@@ -236,7 +236,7 @@ package body BNF_WY_Test is
 
       Exe : constant String := "./" & Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) & "_run.exe";
 
-      Args : GNAT.OS_Lib.String_List (1 .. 7) :=
+      Args : GNAT.OS_Lib.String_List (1 .. 9) :=
         (1      => new String'("-v"),
          2      => new String'("2"),
          others => null);
@@ -248,9 +248,14 @@ package body BNF_WY_Test is
       end if;
 
       if Generate_Alg in LR_Generate_Algorithm and McKenzie_Recover then
-         --  one task in McKenzie_Recover for repeatable results.
+         --  One task in McKenzie_Recover for repeatable results. Verbosity 1
+         --  to show algorithm errors.
          Last := Last + 1;
          Args (Last) := new String'("-t");
+         Last := Last + 1;
+         Args (Last) := new String'("1");
+         Last := Last + 1;
+         Args (Last) := new String'("-m");
          Last := Last + 1;
          Args (Last) := new String'("1");
       end if;

@@ -44,7 +44,7 @@ State 0:
    subprogram_specification goto state 5
    generic_instantiation    goto state 6
 
-   Minimal_Complete_Action => (PROCEDURE)
+   Minimal_Complete_Action => PROCEDURE
 
 State 1:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
@@ -53,7 +53,7 @@ State 1:
    IDENTIFIER               => shift and goto state 7
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 2:
      13.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
@@ -61,7 +61,7 @@ State 2:
    Wisi_EOI                 => accept it 13.0
    default                  => ERROR
 
-   Minimal_Complete_Action => ()
+   Minimal_Complete_Action => 
 
 State 3:
      14.0:compilation_unit <= library_item ^ library_item, Wisi_EOI
@@ -74,7 +74,7 @@ State 3:
    subprogram_specification goto state 11
    generic_instantiation    goto state 12
 
-   Minimal_Complete_Action => (PROCEDURE)
+   Minimal_Complete_Action => PROCEDURE
 
 State 4:
      15.0:library_item <= subprogram_body ^, PROCEDURE
@@ -82,7 +82,7 @@ State 4:
    PROCEDURE                => reduce 1 tokens to library_item 15.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (library_item)
+   Minimal_Complete_Action => library_item
 
 State 5:
      16.0:subprogram_body <= subprogram_specification ^ IS BEGIN NULL END SEMICOLON, PROCEDURE
@@ -90,7 +90,7 @@ State 5:
    IS                       => shift and goto state 13
    default                  => ERROR
 
-   Minimal_Complete_Action => (IS)
+   Minimal_Complete_Action => IS
 
 State 6:
      15.1:library_item <= generic_instantiation ^, PROCEDURE
@@ -98,7 +98,7 @@ State 6:
    PROCEDURE                => reduce 1 tokens to library_item 15.1
    default                  => ERROR
 
-   Minimal_Complete_Action => (library_item)
+   Minimal_Complete_Action => library_item
 
 State 7:
      17.0:subprogram_specification <= PROCEDURE IDENTIFIER ^ parameter_list, IS
@@ -111,7 +111,7 @@ State 7:
 
    parameter_list           goto state 16
 
-   Minimal_Complete_Action => (parameter_list)
+   Minimal_Complete_Action => parameter_list
 
 State 8:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
@@ -120,7 +120,7 @@ State 8:
    IDENTIFIER               => shift and goto state 17
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 9:
      14.0:compilation_unit <= library_item library_item ^, Wisi_EOI
@@ -128,7 +128,7 @@ State 9:
    Wisi_EOI                 => reduce 2 tokens to compilation_unit 14.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (compilation_unit)
+   Minimal_Complete_Action => compilation_unit
 
 State 10:
      15.0:library_item <= subprogram_body ^, Wisi_EOI
@@ -136,7 +136,7 @@ State 10:
    Wisi_EOI                 => reduce 1 tokens to library_item 15.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (library_item)
+   Minimal_Complete_Action => library_item
 
 State 11:
      16.0:subprogram_body <= subprogram_specification ^ IS BEGIN NULL END SEMICOLON, Wisi_EOI
@@ -144,7 +144,7 @@ State 11:
    IS                       => shift and goto state 18
    default                  => ERROR
 
-   Minimal_Complete_Action => (IS)
+   Minimal_Complete_Action => IS
 
 State 12:
      15.1:library_item <= generic_instantiation ^, Wisi_EOI
@@ -152,7 +152,7 @@ State 12:
    Wisi_EOI                 => reduce 1 tokens to library_item 15.1
    default                  => ERROR
 
-   Minimal_Complete_Action => (library_item)
+   Minimal_Complete_Action => library_item
 
 State 13:
      16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, PROCEDURE
@@ -160,7 +160,7 @@ State 13:
    BEGIN                    => shift and goto state 19
    default                  => ERROR
 
-   Minimal_Complete_Action => (BEGIN)
+   Minimal_Complete_Action => BEGIN
 
 State 14:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
@@ -168,7 +168,7 @@ State 14:
    NEW                      => shift and goto state 20
    default                  => ERROR
 
-   Minimal_Complete_Action => (NEW)
+   Minimal_Complete_Action => NEW
 
 State 15:
      18.0:parameter_list <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, IS
@@ -176,7 +176,7 @@ State 15:
    IDENTIFIER               => shift and goto state 21
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 16:
      17.0:subprogram_specification <= PROCEDURE IDENTIFIER parameter_list ^, IS
@@ -184,7 +184,7 @@ State 16:
    IS                       => reduce 3 tokens to subprogram_specification 17.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (subprogram_specification)
+   Minimal_Complete_Action => subprogram_specification
 
 State 17:
      17.0:subprogram_specification <= PROCEDURE IDENTIFIER ^ parameter_list, IS
@@ -197,7 +197,7 @@ State 17:
 
    parameter_list           goto state 16
 
-   Minimal_Complete_Action => (parameter_list)
+   Minimal_Complete_Action => parameter_list
 
 State 18:
      16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, Wisi_EOI
@@ -205,7 +205,7 @@ State 18:
    BEGIN                    => shift and goto state 23
    default                  => ERROR
 
-   Minimal_Complete_Action => (BEGIN)
+   Minimal_Complete_Action => BEGIN
 
 State 19:
      16.0:subprogram_body <= subprogram_specification IS BEGIN ^ NULL END SEMICOLON, PROCEDURE
@@ -213,7 +213,7 @@ State 19:
    NULL                     => shift and goto state 24
    default                  => ERROR
 
-   Minimal_Complete_Action => (NULL)
+   Minimal_Complete_Action => NULL
 
 State 20:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW ^ IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
@@ -221,7 +221,7 @@ State 20:
    IDENTIFIER               => shift and goto state 25
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 21:
      18.0:parameter_list <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, IS
@@ -229,7 +229,7 @@ State 21:
    RIGHT_PAREN              => shift and goto state 26
    default                  => ERROR
 
-   Minimal_Complete_Action => (RIGHT_PAREN)
+   Minimal_Complete_Action => RIGHT_PAREN
 
 State 22:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
@@ -237,7 +237,7 @@ State 22:
    NEW                      => shift and goto state 27
    default                  => ERROR
 
-   Minimal_Complete_Action => (NEW)
+   Minimal_Complete_Action => NEW
 
 State 23:
      16.0:subprogram_body <= subprogram_specification IS BEGIN ^ NULL END SEMICOLON, Wisi_EOI
@@ -245,7 +245,7 @@ State 23:
    NULL                     => shift and goto state 28
    default                  => ERROR
 
-   Minimal_Complete_Action => (NULL)
+   Minimal_Complete_Action => NULL
 
 State 24:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, PROCEDURE
@@ -253,7 +253,7 @@ State 24:
    END                      => shift and goto state 29
    default                  => ERROR
 
-   Minimal_Complete_Action => (END)
+   Minimal_Complete_Action => END
 
 State 25:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER ^ LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
@@ -261,7 +261,7 @@ State 25:
    LEFT_PAREN               => shift and goto state 30
    default                  => ERROR
 
-   Minimal_Complete_Action => (LEFT_PAREN)
+   Minimal_Complete_Action => LEFT_PAREN
 
 State 26:
      18.0:parameter_list <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, IS
@@ -269,7 +269,7 @@ State 26:
    IS                       => reduce 3 tokens to parameter_list 18.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (parameter_list)
+   Minimal_Complete_Action => parameter_list
 
 State 27:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW ^ IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
@@ -277,7 +277,7 @@ State 27:
    IDENTIFIER               => shift and goto state 31
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 28:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, Wisi_EOI
@@ -285,7 +285,7 @@ State 28:
    END                      => shift and goto state 32
    default                  => ERROR
 
-   Minimal_Complete_Action => (END)
+   Minimal_Complete_Action => END
 
 State 29:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END ^ SEMICOLON, PROCEDURE
@@ -293,7 +293,7 @@ State 29:
    SEMICOLON                => shift and goto state 33
    default                  => ERROR
 
-   Minimal_Complete_Action => (SEMICOLON)
+   Minimal_Complete_Action => SEMICOLON
 
 State 30:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
@@ -301,7 +301,7 @@ State 30:
    IDENTIFIER               => shift and goto state 34
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 31:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER ^ LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
@@ -309,7 +309,7 @@ State 31:
    LEFT_PAREN               => shift and goto state 35
    default                  => ERROR
 
-   Minimal_Complete_Action => (LEFT_PAREN)
+   Minimal_Complete_Action => LEFT_PAREN
 
 State 32:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END ^ SEMICOLON, Wisi_EOI
@@ -317,7 +317,7 @@ State 32:
    SEMICOLON                => shift and goto state 36
    default                  => ERROR
 
-   Minimal_Complete_Action => (SEMICOLON)
+   Minimal_Complete_Action => SEMICOLON
 
 State 33:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END SEMICOLON ^, PROCEDURE
@@ -325,7 +325,7 @@ State 33:
    PROCEDURE                => reduce 6 tokens to subprogram_body 16.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (subprogram_body)
+   Minimal_Complete_Action => subprogram_body
 
 State 34:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN SEMICOLON, PROCEDURE
@@ -333,7 +333,7 @@ State 34:
    RIGHT_PAREN              => shift and goto state 37
    default                  => ERROR
 
-   Minimal_Complete_Action => (RIGHT_PAREN)
+   Minimal_Complete_Action => RIGHT_PAREN
 
 State 35:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
@@ -341,7 +341,7 @@ State 35:
    IDENTIFIER               => shift and goto state 38
    default                  => ERROR
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 36:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END SEMICOLON ^, Wisi_EOI
@@ -349,7 +349,7 @@ State 36:
    Wisi_EOI                 => reduce 6 tokens to subprogram_body 16.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (subprogram_body)
+   Minimal_Complete_Action => subprogram_body
 
 State 37:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN ^ SEMICOLON, PROCEDURE
@@ -357,7 +357,7 @@ State 37:
    SEMICOLON                => shift and goto state 39
    default                  => ERROR
 
-   Minimal_Complete_Action => (SEMICOLON)
+   Minimal_Complete_Action => SEMICOLON
 
 State 38:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN SEMICOLON, Wisi_EOI
@@ -365,7 +365,7 @@ State 38:
    RIGHT_PAREN              => shift and goto state 40
    default                  => ERROR
 
-   Minimal_Complete_Action => (RIGHT_PAREN)
+   Minimal_Complete_Action => RIGHT_PAREN
 
 State 39:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON ^, PROCEDURE
@@ -373,7 +373,7 @@ State 39:
    PROCEDURE                => reduce 9 tokens to generic_instantiation 19.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (generic_instantiation)
+   Minimal_Complete_Action => generic_instantiation
 
 State 40:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN ^ SEMICOLON, Wisi_EOI
@@ -381,7 +381,7 @@ State 40:
    SEMICOLON                => shift and goto state 41
    default                  => ERROR
 
-   Minimal_Complete_Action => (SEMICOLON)
+   Minimal_Complete_Action => SEMICOLON
 
 State 41:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON ^, Wisi_EOI
@@ -389,7 +389,7 @@ State 41:
    Wisi_EOI                 => reduce 9 tokens to generic_instantiation 19.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (generic_instantiation)
+   Minimal_Complete_Action => generic_instantiation
 
 States with conflicts: 7 17
 

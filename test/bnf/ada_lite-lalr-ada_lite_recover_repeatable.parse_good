@@ -92,6 +92,14 @@ sequence_of_statements_1: (sequence_of_statements) <= ()
  1: 220: expecting: IF
  1: zombie
 recover
+
+ McKenzie error recovery
+
+parser 1: State 220 Current_Token 11:(SEMICOLON, (213 . 213)) Resume_Token_Goal 14
+Action
+
+ 7 parallel tasks
+ 1: succeed 1, enqueue 23, check  10, cost:  1
  1:  1, ( 0 1 0 0 0), (252 : (IF))| 11:(SEMICOLON, (213 . 213))|((INSERT, IF, 11))
 recover: succeed, parser count 1
  1: Current_Token (IF) Shared_Token  11:(SEMICOLON, (213 . 213))
@@ -257,6 +265,14 @@ sequence_of_statements_1: (sequence_of_statements) <= ()
  2: 220: expecting: IF
  2: zombie
 recover
+
+ McKenzie error recovery
+
+parser 2: State 220 Current_Token 29:(IDENTIFIER, (283 . 289)) Resume_Token_Goal 32
+Action
+
+ 7 parallel tasks
+ 2: succeed 1, enqueue 15, check  7, cost:  1
  2:  1, ( 0 0 0 3 0), (115 : (THEN, (274 . 277)))| 29:(IDENTIFIER, (283 . 289))|((PUSH_BACK, END, 28), (PUSH_BACK, sequence_of_statements, 28), (DELETE, END, 28))
 recover: succeed, parser count 1
  2: Current_Token  29:(IDENTIFIER, (283 . 289)) Shared_Token  29:(IDENTIFIER, (283 . 289))
@@ -518,6 +534,14 @@ sequence_of_statements_0: (sequence_of_statements, (360 . 389)) <= ((sequence_of
  3: 220: expecting: IF
  3: zombie
 recover
+
+ McKenzie error recovery
+
+parser 3: State 220 Current_Token 59:(SEMICOLON, (394 . 394)) Resume_Token_Goal 62
+Action
+
+ 7 parallel tasks
+ 3: succeed 1, enqueue 16, check  7, cost:  1
  3:  1, ( 0 3 0 0 0), (189 : (END))| 59:(SEMICOLON, (394 . 394))|((INSERT, IF, 59), (INSERT, SEMICOLON, 59), (INSERT, END, 59))
 recover: succeed, parser count 1
  3: Current_Token (IF) Shared_Token  59:(SEMICOLON, (394 . 394))
@@ -663,6 +687,14 @@ statement_0: (statement, (443 . 444)) <= ((simple_statement, (443 . 444)))
  4: 64: expecting: BEGIN, CASE, DECLARE, ELSE, ELSIF, END, EXIT, EXCEPTION, FOR, IF, LOOP, RETURN, WHEN, IDENTIFIER
  4: zombie
 recover
+
+ McKenzie error recovery
+
+parser 4: State 64 Current_Token 72:(PROCEDURE, (447 . 455)) Resume_Token_Goal 75
+Action
+
+ 7 parallel tasks
+ 4: succeed 1, enqueue 37, check  5, cost:  2
  4:  2, ( 0 0 0 2 0), (311 : (SEMICOLON))| 72:(PROCEDURE, (447 . 455))|((INSERT, END, 72), (INSERT, SEMICOLON, 72))
 recover: succeed, parser count 1
  4: Current_Token (END) Shared_Token  72:(PROCEDURE, (447 . 455))
@@ -726,6 +758,14 @@ declarative_part_1: (declarative_part) <= ()
  5: 241: expecting: BEGIN, CASE, DECLARE, END, EXIT, EXCEPTION, FOR, IF, LOOP, RETURN, IDENTIFIER
  5: zombie
 recover
+
+ McKenzie error recovery
+
+parser 5: State 241 Current_Token 76:(PROCEDURE, (472 . 480)) Resume_Token_Goal 79
+Action
+
+ 7 parallel tasks
+ 5: succeed 1, enqueue 30, check  6, cost:  1
  5:  1, ( 0 0 0 3 0), (157 : (IS, (463 . 464)))| 76:(PROCEDURE, (472 . 480))|((PUSH_BACK, BEGIN, 75), (PUSH_BACK, declarative_part, 75), (DELETE, BEGIN, 75))
 recover: succeed, parser count 1
  5: Current_Token  76:(PROCEDURE, (472 . 480)) Shared_Token  76:(PROCEDURE, (472 . 480))
@@ -855,7 +895,19 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  6: 120: expecting: NEW
  6: zombie
 recover
+
+ McKenzie error recovery
+
+parser 7: State 157 Current_Token 90:(END, (557 . 559)) Resume_Token_Goal 93
+Action
+
+parser 6: State 120 Current_Token 90:(END, (557 . 559)) Resume_Token_Goal 93
+Action
+
+ 7 parallel tasks
+ 7: succeed 1, enqueue 9, check  2, cost:  1
  7:  1, ( 0 0 0 1 0), (157 : (IS, (554 . 555)))| 91:(BEGIN, (561 . 565))|((DELETE, END, 90))
+ 6: succeed 1, enqueue 50, check  16, cost:  5
  6:  5, ( 0 1 0 3 0), (186 : (NEW))| 93:(IDENTIFIER, (571 . 577))|((DELETE, END, 90), (DELETE, BEGIN, 91), (INSERT, NEW, 92), (DELETE, END, 92))
 recover: succeed, parser count 2
  7: Current_Token  91:(BEGIN, (561 . 565)) Shared_Token  91:(BEGIN, (561 . 565))
@@ -1114,9 +1166,29 @@ discrete_subtype_definition_1: (discrete_subtype_definition, (643 . 660)) <= ((r
  7: zombie
  6: zombie
 recover
+
+ McKenzie error recovery
+
+parser 9: State 201 Current_Token 110:(END, (663 . 665)) Resume_Token_Goal 113
+Action
+
+parser 8: State 201 Current_Token 110:(END, (663 . 665)) Resume_Token_Goal 113
+Action
+
+parser 7: State 275 Current_Token 110:(END, (663 . 665)) Resume_Token_Goal 113
+Action
+
+parser 6: State 275 Current_Token 110:(END, (663 . 665)) Resume_Token_Goal 113
+Action
+
+ 7 parallel tasks
+ 9: succeed 1, enqueue 5, check  3, cost:  1
  9:  1, ( 0 1 0 0 0), (125 : (SEMICOLON))| 110:(END, (663 . 665))|((INSERT, SEMICOLON, 110))
+ 8: succeed 1, enqueue 5, check  3, cost:  1
  8:  1, ( 0 1 0 0 0), (125 : (SEMICOLON))| 110:(END, (663 . 665))|((INSERT, SEMICOLON, 110))
+ 7: succeed 1, enqueue 5, check  3, cost:  1
  7:  1, ( 0 1 0 0 0), (125 : (SEMICOLON))| 110:(END, (663 . 665))|((INSERT, SEMICOLON, 110))
+ 6: succeed 1, enqueue 5, check  3, cost:  1
  6:  1, ( 0 1 0 0 0), (125 : (SEMICOLON))| 110:(END, (663 . 665))|((INSERT, SEMICOLON, 110))
 recover: succeed, parser count 4
  9: Current_Token (SEMICOLON) Shared_Token  110:(END, (663 . 665))
@@ -1394,6 +1466,14 @@ formal_part_0: (formal_part, (724 . 745)) <= ( 118:(LEFT_PAREN, (724 . 724)), (p
  10: 113: expecting: RETURN
  10: zombie
 recover
+
+ McKenzie error recovery
+
+parser 10: State 113 Current_Token 123:(IS, (747 . 748)) Resume_Token_Goal 126
+Action
+
+ 7 parallel tasks
+ 10: succeed 1, enqueue 19, check  8, cost:  6
  10:  6, ( 0 0 0 2 0), (217 : (IDENTIFIER))| 123:(IS, (747 . 748))|((INSERT, RETURN, 123), (INSERT, IDENTIFIER, 123))
 recover: succeed, parser count 1
  10: Current_Token (RETURN) Shared_Token  123:(IS, (747 . 748))
@@ -1525,6 +1605,14 @@ declarative_part_1: (declarative_part) <= ()
  12: 41: expecting: AND, IS, LOOP, OR, RIGHT_PAREN, THEN, XOR, AMPERSAND, COLON_EQUAL, COMMA, DOT_DOT, EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR
  12: zombie
 recover
+
+ McKenzie error recovery
+
+parser 12: State 41 Current_Token 139:(IDENTIFIER, (813 . 814)) Resume_Token_Goal 142
+Action
+
+ 7 parallel tasks
+ 12: succeed 2, enqueue 509, check  79, cost:  8
 spawn parser 13 from 12 (2 active)
  13:  8, ( 0 0 0 2 0), (203 : (DOT_DOT))| 140:(IDENTIFIER, (816 . 828))|((INSERT, DOT_DOT, 139), (DELETE, IDENTIFIER, 139))
  12:  8, ( 0 0 0 3 0), (110 : (IN, (808 . 809)))| 140:(IDENTIFIER, (816 . 828))|((PUSH_BACK, NUMERIC_LITERAL, 138), (DELETE, NUMERIC_LITERAL, 138), (DELETE, IDENTIFIER, 139))
@@ -1749,6 +1837,14 @@ case_statement_alternative_list_1: (case_statement_alternative_list, (896 . 907)
  14: 207: expecting: CASE
  14: zombie
 recover
+
+ McKenzie error recovery
+
+parser 14: State 207 Current_Token 161:(SEMICOLON, (912 . 912)) Resume_Token_Goal 164
+Action
+
+ 7 parallel tasks
+ 14: succeed 1, enqueue 20, check  9, cost:  2
  14:  2, ( 0 3 0 0 0), (291 : (END))| 161:(SEMICOLON, (912 . 912))|((INSERT, CASE, 161), (INSERT, SEMICOLON, 161), (INSERT, END, 161))
 recover: succeed, parser count 1
  14: Current_Token (CASE) Shared_Token  161:(SEMICOLON, (912 . 912))
@@ -1890,6 +1986,14 @@ case_statement_alternative_list_1: (case_statement_alternative_list, (956 . 967)
  15: 207: expecting: CASE
  15: zombie
 recover
+
+ McKenzie error recovery
+
+parser 15: State 207 Current_Token 175:(IDENTIFIER, (973 . 983)) Resume_Token_Goal 178
+Action
+
+ 7 parallel tasks
+ 15: succeed 1, enqueue 62, check  18, cost:  5
  15:  5, ( 0 0 0 3 0), (291 : (END))| 175:(IDENTIFIER, (973 . 983))|((INSERT, CASE, 175), (INSERT, SEMICOLON, 175), (INSERT, END, 175))
 recover: succeed, parser count 1
  15: Current_Token (CASE) Shared_Token  175:(IDENTIFIER, (973 . 983))
@@ -2027,6 +2131,14 @@ sequence_of_statements_0: (sequence_of_statements, (1024 . 1025)) <= ((sequence_
  16: 220: expecting: IF
  16: zombie
 recover
+
+ McKenzie error recovery
+
+parser 16: State 220 Current_Token 187:(SEMICOLON, (1030 . 1030)) Resume_Token_Goal 190
+Action
+
+ 7 parallel tasks
+ 16: succeed 1, enqueue 16, check  7, cost:  1
  16:  1, ( 0 3 0 0 0), (291 : (END))| 187:(SEMICOLON, (1030 . 1030))|((INSERT, IF, 187), (INSERT, SEMICOLON, 187), (INSERT, END, 187))
 recover: succeed, parser count 1
  16: Current_Token (IF) Shared_Token  187:(SEMICOLON, (1030 . 1030))
@@ -2146,6 +2258,14 @@ sequence_of_statements_0: (sequence_of_statements, (1078 . 1079)) <= ((sequence_
  17: 197: expecting: LOOP
  17: zombie
 recover
+
+ McKenzie error recovery
+
+parser 17: State 197 Current_Token 200:(SEMICOLON, (1084 . 1084)) Resume_Token_Goal 203
+Action
+
+ 7 parallel tasks
+ 17: succeed 1, enqueue 16, check  7, cost:  1
  17:  1, ( 0 3 0 0 0), (291 : (END))| 200:(SEMICOLON, (1084 . 1084))|((INSERT, LOOP, 200), (INSERT, SEMICOLON, 200), (INSERT, END, 200))
 recover: succeed, parser count 1
  17: Current_Token (LOOP) Shared_Token  200:(SEMICOLON, (1084 . 1084))
@@ -2222,6 +2342,17 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  18: zombie
  17: zombie
 recover
+
+ McKenzie error recovery
+
+parser 18: State 131 Current_Token 205:(DOT, (1112 . 1112)) Resume_Token_Goal 208
+Action
+
+parser 17: State 120 Current_Token 204:(IDENTIFIER, (1109 . 1111)) Resume_Token_Goal 207
+Action
+
+ 7 parallel tasks
+ 18: succeed 4, enqueue 19, check  10, cost:  7
 spawn parser 19 from 18 (3 active)
  19:  7, ( 0 0 0 2 0), (42 : (IDENTIFIER))| 205:(DOT, (1112 . 1112))|((INSERT, COLON, 205), (INSERT, IDENTIFIER, 205))
 spawn parser 20 from 18 (4 active)
@@ -2229,6 +2360,7 @@ spawn parser 20 from 18 (4 active)
 spawn parser 21 from 18 (5 active)
  21:  7, ( 0 0 0 2 0), (241 : (BEGIN))| 204:(IDENTIFIER, (1109 . 1111))|((PUSH_BACK, IDENTIFIER, 204), (INSERT, BEGIN, 204))
  18:  7, ( 0 0 0 2 0), (129 : (PROCEDURE))| 204:(IDENTIFIER, (1109 . 1111))|((PUSH_BACK, IDENTIFIER, 204), (INSERT, PROCEDURE, 204))
+ 17: succeed 1, enqueue 4, check  2, cost:  3
  17:  3, ( 0 0 0 1 0), (186 : (NEW))| 204:(IDENTIFIER, (1109 . 1111))|((INSERT, NEW, 204))
 recover: succeed, parser count 5
  21: Current_Token (BEGIN) Shared_Token  204:(IDENTIFIER, (1109 . 1111))
@@ -2770,8 +2902,24 @@ declarative_part_1: (declarative_part) <= ()
  22: terminate (3 active): zombie 216:(BEGIN, (1184 . 1188))
  17: zombie
 recover
+
+ McKenzie error recovery
+
+parser 24: State 5 Current_Token 218:(AND, (1194 . 1196)) Resume_Token_Goal 221
+Action
+
+parser 23: State 5 Current_Token 218:(AND, (1194 . 1196)) Resume_Token_Goal 221
+Action
+
+parser 17: State 120 Current_Token 216:(BEGIN, (1184 . 1188)) Resume_Token_Goal 219
+Action
+
+ 7 parallel tasks
+ 24: succeed 1, enqueue 24, check  3, cost:  3
  24:  3, ( 0 0 0 1 0), (42 : (IDENTIFIER))| 218:(AND, (1194 . 1196))|((INSERT, IDENTIFIER, 218))
+ 23: succeed 1, enqueue 24, check  3, cost:  3
  23:  3, ( 0 0 0 1 0), (42 : (IDENTIFIER))| 218:(AND, (1194 . 1196))|((INSERT, IDENTIFIER, 218))
+ 17: succeed 1, enqueue 251, check  57, cost:  8
  17:  8, ( 0 0 0 2 0), (42 : (IDENTIFIER))| 218:(AND, (1194 . 1196))|((PUSH_BACK, IS, 215), (FAST_FORWARD,  218), (INSERT, IDENTIFIER, 218))
 recover: succeed, parser count 3
  24: Current_Token (IDENTIFIER) Shared_Token  218:(AND, (1194 . 1196))
@@ -3418,9 +3566,29 @@ sequence_of_statements_1: (sequence_of_statements) <= ()
  29: zombie
  28: zombie
 recover
+
+ McKenzie error recovery
+
+parser 31: State 190 Current_Token 236:(IF, (1297 . 1298)) Resume_Token_Goal 239
+Action
+
+parser 30: State 190 Current_Token 236:(IF, (1297 . 1298)) Resume_Token_Goal 239
+Action
+
+parser 29: State 190 Current_Token 236:(IF, (1297 . 1298)) Resume_Token_Goal 239
+Action
+
+parser 28: State 196 Current_Token 234:(BEGIN, (1281 . 1285)) Resume_Token_Goal 237
+Action
+
+ 7 parallel tasks
+ 31: succeed 1, enqueue 43, check  18, cost:  4
  31:  4, ( 0 0 0 3 0), (241 : (BEGIN, (1281 . 1285)))| 236:(IF, (1297 . 1298))|((PUSH_BACK, EXCEPTION, 235), (PUSH_BACK, sequence_of_statements, 235), (DELETE, EXCEPTION, 235))
+ 30: succeed 1, enqueue 43, check  18, cost:  4
  30:  4, ( 0 0 0 3 0), (241 : (BEGIN, (1281 . 1285)))| 236:(IF, (1297 . 1298))|((PUSH_BACK, EXCEPTION, 235), (PUSH_BACK, sequence_of_statements, 235), (DELETE, EXCEPTION, 235))
+ 29: succeed 1, enqueue 43, check  18, cost:  4
  29:  4, ( 0 0 0 3 0), (241 : (BEGIN, (1281 . 1285)))| 236:(IF, (1297 . 1298))|((PUSH_BACK, EXCEPTION, 235), (PUSH_BACK, sequence_of_statements, 235), (DELETE, EXCEPTION, 235))
+ 28: succeed 2, enqueue 207, check  68, cost:  8
 spawn parser 32 from 28 (5 active)
  32:  8, ( 0 0 0 5 0), (311 : (SEMICOLON))| 236:(IF, (1297 . 1298))|((PUSH_BACK, IS, 233), (INSERT, SEMICOLON, 233), (DELETE, IS, 233), (FAST_FORWARD,  236), (INSERT, END, 236), (INSERT, SEMICOLON, 236))
  28:  8, ( 0 0 0 4 0), (311 : (SEMICOLON))| 236:(IF, (1297 . 1298))|((INSERT, SEPARATE, 234), (INSERT, SEMICOLON, 234), (FAST_FORWARD,  236), (INSERT, END, 236), (INSERT, SEMICOLON, 236))
@@ -3986,7 +4154,19 @@ sequence_of_statements_list_1: (sequence_of_statements_list, (1405 . 1411)) <= (
  33: 6: expecting: BEGIN, CASE, DECLARE, END, EXIT, FOR, IF, LOOP, RETURN, IDENTIFIER
  33: zombie
 recover
+
+ McKenzie error recovery
+
+parser 34: State 6 Current_Token 261:(SEMICOLON, (1417 . 1417)) Resume_Token_Goal 264
+Action
+
+parser 33: State 6 Current_Token 261:(SEMICOLON, (1417 . 1417)) Resume_Token_Goal 264
+Action
+
+ 7 parallel tasks
+ 34: succeed 1, enqueue 36, check  16, cost:  3
  34:  3, ( 0 5 0 0 0), (183 : (LOOP))| 261:(SEMICOLON, (1417 . 1417))|((INSERT, END, 261), (INSERT, LOOP, 261), (INSERT, SEMICOLON, 261), (INSERT, END, 261), (INSERT, LOOP, 261))
+ 33: succeed 1, enqueue 36, check  16, cost:  3
  33:  3, ( 0 5 0 0 0), (183 : (LOOP))| 261:(SEMICOLON, (1417 . 1417))|((INSERT, END, 261), (INSERT, LOOP, 261), (INSERT, SEMICOLON, 261), (INSERT, END, 261), (INSERT, LOOP, 261))
 recover: succeed, parser count 2
  34: Current_Token (END) Shared_Token  261:(SEMICOLON, (1417 . 1417))
@@ -4352,7 +4532,19 @@ binary_adding_operator_2: (binary_adding_operator, (1477 . 1477)) <= ( 276:(AMPE
  35: 42: expecting: AND, IS, LEFT_PAREN, LOOP, OR, RANGE, RETURN, RIGHT_PAREN, THEN, WITH, XOR, AMPERSAND, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR
  35: zombie
 recover
+
+ McKenzie error recovery
+
+parser 36: State 42 Current_Token 278:(STRING_LITERAL, (1481 . 1481)) Resume_Token_Goal 281
+Action
+
+parser 35: State 42 Current_Token 278:(STRING_LITERAL, (1481 . 1481)) Resume_Token_Goal 281
+Action
+
+ 7 parallel tasks
+ 36: succeed 1, enqueue 34, check  3, cost:  1
  36:  1, ( 0 0 0 0 1), (106 : (binary_adding_operator, (1477 . 1477)))| 278:(STRING_LITERAL, (1481 . 1481))|((PUSH_BACK, IDENTIFIER, 277), (DELETE, IDENTIFIER, 277), (FAST_FORWARD,  278))
+ 35: succeed 1, enqueue 34, check  3, cost:  1
  35:  1, ( 0 0 0 0 1), (106 : (binary_adding_operator, (1477 . 1477)))| 278:(STRING_LITERAL, (1481 . 1481))|((PUSH_BACK, IDENTIFIER, 277), (DELETE, IDENTIFIER, 277), (FAST_FORWARD,  278))
 recover: succeed, parser count 2
  36: Current_Token  278:(STRING_LITERAL, (1481 . 1481)) Shared_Token  278:(STRING_LITERAL, (1481 . 1481))
@@ -5114,9 +5306,21 @@ declarations_1: (declarations, (1603 . 1650)) <= ((declaration, (1603 . 1650)))
  39: 131: expecting: COLON
  39: zombie
 recover
+
+ McKenzie error recovery
+
+parser 40: State 131 Current_Token 320:(COLON_EQUAL, (1654 . 1655)) Resume_Token_Goal 323
+Action
+
+parser 39: State 131 Current_Token 320:(COLON_EQUAL, (1654 . 1655)) Resume_Token_Goal 323
+Action
+
+ 7 parallel tasks
+ 40: succeed 2, enqueue 57, check  19, cost:  7
 spawn parser 41 from 40 (3 active)
  41:  7, ( 0 0 0 2 0), (282 : (BEGIN))| 319:(IDENTIFIER, (1652 . 1652))|((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
  40:  7, ( 0 0 0 2 0), (42 : (IDENTIFIER))| 320:(COLON_EQUAL, (1654 . 1655))|((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
+ 39: succeed 2, enqueue 68, check  19, cost:  7
 spawn parser 42 from 39 (4 active)
  42:  7, ( 0 0 0 2 0), (282 : (BEGIN))| 319:(IDENTIFIER, (1652 . 1652))|((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
  39:  7, ( 0 0 0 2 0), (42 : (IDENTIFIER))| 320:(COLON_EQUAL, (1654 . 1655))|((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
@@ -5414,7 +5618,25 @@ package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  39: zombie
 recover
+
+ McKenzie error recovery
+
+parser 42: State 26 Current_Token 326:(END, (1672 . 1674)) Resume_Token_Goal 329
+Check, (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
+
+parser 41: State 139 Current_Token 326:(END, (1672 . 1674)) Resume_Token_Goal 329
+Check, (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
+
+parser 40: State 139 Current_Token 326:(END, (1672 . 1674)) Resume_Token_Goal 329
+Check, (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
+
+parser 39: State 26 Current_Token 326:(END, (1672 . 1674)) Resume_Token_Goal 329
+Check, (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
+
+ 7 parallel tasks
+ 42: succeed 1, enqueue 3, check  2, cost:  5
  42:  5, ( 0 0 0 1 0), (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 11), (DELETE, END, 326))
+ 41: succeed 4, enqueue 29, check  16, cost:  11
 spawn parser 43 from 41 (5 active)
  43:  11, ( 0 1 0 0 0), (33 : (subprogram_body, (1087 . 1677)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 11), (INSERT, BEGIN, 326), (FAST_FORWARD,  329))
 spawn parser 44 from 41 (6 active)
@@ -5422,6 +5644,7 @@ spawn parser 44 from 41 (6 active)
 spawn parser 45 from 41 (7 active)
  45:  11, ( 0 0 0 3 0), (139 : (package_body, (1585 . 1670)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 11), (DELETE, END, 326), (DELETE, IDENTIFIER, 327), (DELETE, SEMICOLON, 328))
  41:  11, ( 0 2 0 1 0), (42 : (IDENTIFIER))| 328:(SEMICOLON, (1677 . 1677))|((UNDO_REDUCE, package_body, 11), (DELETE, END, 326), (FAST_FORWARD,  328), (INSERT, COLON, 328), (INSERT, IDENTIFIER, 328))
+ 40: succeed 4, enqueue 29, check  16, cost:  11
 spawn parser 46 from 40 (8 active)
  46:  11, ( 0 1 0 0 0), (33 : (subprogram_body, (1087 . 1677)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 9), (INSERT, BEGIN, 326), (FAST_FORWARD,  329))
 spawn parser 47 from 40 (9 active)
@@ -5429,6 +5652,7 @@ spawn parser 47 from 40 (9 active)
 spawn parser 48 from 40 (10 active)
  48:  11, ( 0 0 0 3 0), (139 : (package_body, (1585 . 1670)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 9), (DELETE, END, 326), (DELETE, IDENTIFIER, 327), (DELETE, SEMICOLON, 328))
  40:  11, ( 0 2 0 1 0), (42 : (IDENTIFIER))| 328:(SEMICOLON, (1677 . 1677))|((UNDO_REDUCE, package_body, 9), (DELETE, END, 326), (FAST_FORWARD,  328), (INSERT, COLON, 328), (INSERT, IDENTIFIER, 328))
+ 39: succeed 1, enqueue 3, check  2, cost:  5
  39:  5, ( 0 0 0 1 0), (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 9), (DELETE, END, 326))
 recover: succeed, parser count 10
  48: Current_Token  329:(PROCEDURE, (1679 . 1687)) Shared_Token  329:(PROCEDURE, (1679 . 1687))
@@ -7744,8 +7968,24 @@ semantic check (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2023 . 203
  59: zombie
  58: zombie
 recover
+
+ McKenzie error recovery
+
+parser 60: State 13 Current_Token 406:(PROCEDURE, (2036 . 2044)) Resume_Token_Goal 409
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2023 . 2032)))
+
+parser 59: State 13 Current_Token 406:(PROCEDURE, (2036 . 2044)) Resume_Token_Goal 409
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2023 . 2032)))
+
+parser 58: State 13 Current_Token 406:(PROCEDURE, (2036 . 2044)) Resume_Token_Goal 409
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2023 . 2032)))
+
+ 7 parallel tasks
+ 60: succeed 1, enqueue 15, check  2, cost:  0
  60:  0, ( 1 0 0 0 0), (260 : (SEMICOLON))| 403:(END, (2019 . 2021))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 405), (PUSH_BACK, identifier_opt, 404), (PUSH_BACK, END, 403), (INSERT, END, 403), (INSERT, SEMICOLON, 403), (FAST_FORWARD,  403))
+ 59: succeed 1, enqueue 15, check  2, cost:  0
  59:  0, ( 1 0 0 0 0), (260 : (SEMICOLON))| 403:(END, (2019 . 2021))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 405), (PUSH_BACK, identifier_opt, 404), (PUSH_BACK, END, 403), (INSERT, END, 403), (INSERT, SEMICOLON, 403), (FAST_FORWARD,  403))
+ 58: succeed 1, enqueue 15, check  2, cost:  0
  58:  0, ( 1 0 0 0 0), (260 : (SEMICOLON))| 403:(END, (2019 . 2021))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 405), (PUSH_BACK, identifier_opt, 404), (PUSH_BACK, END, 403), (INSERT, END, 403), (INSERT, SEMICOLON, 403), (FAST_FORWARD,  403))
 recover: succeed, parser count 3
  60: Current_Token (END) Shared_Token  403:(END, (2019 . 2021))
@@ -8216,9 +8456,29 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  62: 196: expecting: SEPARATE
  62: zombie
 recover
+
+ McKenzie error recovery
+
+parser 65: State 157 Current_Token 424:(END, (2137 . 2139)) Resume_Token_Goal 427
+Action
+
+parser 64: State 157 Current_Token 424:(END, (2137 . 2139)) Resume_Token_Goal 427
+Action
+
+parser 63: State 196 Current_Token 424:(END, (2137 . 2139)) Resume_Token_Goal 427
+Action
+
+parser 62: State 196 Current_Token 424:(END, (2137 . 2139)) Resume_Token_Goal 427
+Action
+
+ 7 parallel tasks
+ 65: succeed 1, enqueue 11, check  6, cost:  3
  65:  3, ( 1 1 0 0 0), (311 : (SEMICOLON))| 424:(END, (2137 . 2139))|((INSERT, BEGIN, 424), (FAST_FORWARD,  427), (PUSH_BACK, SEMICOLON, 426), (PUSH_BACK, name_opt, 425), (PUSH_BACK, END, 424), (INSERT, END, 424), (INSERT, SEMICOLON, 424), (FAST_FORWARD,  424))
+ 64: succeed 1, enqueue 11, check  6, cost:  3
  64:  3, ( 1 1 0 0 0), (311 : (SEMICOLON))| 424:(END, (2137 . 2139))|((INSERT, BEGIN, 424), (FAST_FORWARD,  427), (PUSH_BACK, SEMICOLON, 426), (PUSH_BACK, name_opt, 425), (PUSH_BACK, END, 424), (INSERT, END, 424), (INSERT, SEMICOLON, 424), (FAST_FORWARD,  424))
+ 63: succeed 1, enqueue 7, check  4, cost:  3
  63:  3, ( 0 2 0 0 0), (270 : (SEMICOLON))| 424:(END, (2137 . 2139))|((INSERT, SEPARATE, 424), (INSERT, SEMICOLON, 424))
+ 62: succeed 1, enqueue 7, check  4, cost:  3
  62:  3, ( 0 2 0 0 0), (270 : (SEMICOLON))| 424:(END, (2137 . 2139))|((INSERT, SEPARATE, 424), (INSERT, SEMICOLON, 424))
 recover: succeed, parser count 4
  65: Current_Token (BEGIN) Shared_Token  424:(END, (2137 . 2139))
@@ -8695,7 +8955,19 @@ block_statement_1: (block_statement, (2235 . 2261)) <= ((block_label_opt),  437:
 semantic check (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2245 . 2260)))
  70: zombie
 recover
+
+ McKenzie error recovery
+
+parser 71: State 13 Current_Token 441:(BEGIN, (2263 . 2267)) Resume_Token_Goal 444
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2245 . 2260)))
+
+parser 70: State 13 Current_Token 441:(BEGIN, (2263 . 2267)) Resume_Token_Goal 444
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2245 . 2260)))
+
+ 7 parallel tasks
+ 71: succeed 1, enqueue 2, check  2, cost:  0
  71:  0, ( 1 0 0 0 0), (311 : (SEMICOLON))| 437:(BEGIN, (2235 . 2239))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 440), (PUSH_BACK, identifier_opt, 439), (PUSH_BACK, END, 438), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 437), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 437), (INSERT, SEMICOLON, 437), (FAST_FORWARD,  437))
+ 70: succeed 1, enqueue 2, check  2, cost:  0
  70:  0, ( 1 0 0 0 0), (311 : (SEMICOLON))| 437:(BEGIN, (2235 . 2239))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 440), (PUSH_BACK, identifier_opt, 439), (PUSH_BACK, END, 438), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 437), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 437), (INSERT, SEMICOLON, 437), (FAST_FORWARD,  437))
 recover: succeed, parser count 2
  71: Current_Token (END) Shared_Token  437:(BEGIN, (2235 . 2239))
@@ -9221,7 +9493,19 @@ block_statement_1: (block_statement, (2391 . 2417)) <= ((block_label_opt),  458:
 semantic check (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2401 . 2416)))
  78: zombie
 recover
+
+ McKenzie error recovery
+
+parser 79: State 13 Current_Token 462:(BEGIN, (2419 . 2423)) Resume_Token_Goal 465
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2401 . 2416)))
+
+parser 78: State 13 Current_Token 462:(BEGIN, (2419 . 2423)) Resume_Token_Goal 465
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2401 . 2416)))
+
+ 7 parallel tasks
+ 79: succeed 1, enqueue 11, check  7, cost:  3
  79:  3, ( 2 1 0 0 0), (241 : (BEGIN))| 459:(END, (2397 . 2399))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 461), (PUSH_BACK, identifier_opt, 460), (PUSH_BACK, END, 459), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 458), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 458), (INSERT, SEMICOLON, 458), (FAST_FORWARD,  462), (PUSH_BACK, SEMICOLON, 461), (PUSH_BACK, name_opt, 460), (PUSH_BACK, END, 459), (INSERT, END, 459), (INSERT, SEMICOLON, 459), (FAST_FORWARD,  459), (INSERT, BEGIN, 459))
+ 78: succeed 1, enqueue 11, check  7, cost:  3
  78:  3, ( 2 1 0 0 0), (241 : (BEGIN))| 459:(END, (2397 . 2399))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 461), (PUSH_BACK, identifier_opt, 460), (PUSH_BACK, END, 459), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 458), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 458), (INSERT, SEMICOLON, 458), (FAST_FORWARD,  462), (PUSH_BACK, SEMICOLON, 461), (PUSH_BACK, name_opt, 460), (PUSH_BACK, END, 459), (INSERT, END, 459), (INSERT, SEMICOLON, 459), (FAST_FORWARD,  459), (INSERT, BEGIN, 459))
 recover: succeed, parser count 2
  79: Current_Token (END) Shared_Token  458:(BEGIN, (2391 . 2395))
@@ -9673,7 +9957,19 @@ block_statement_1: (block_statement, (2510 . 2536)) <= ((block_label_opt),  473:
 semantic check (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2520 . 2535)))
  82: zombie
 recover
+
+ McKenzie error recovery
+
+parser 83: State 13 Current_Token 477:(BEGIN, (2538 . 2542)) Resume_Token_Goal 480
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2520 . 2535)))
+
+parser 82: State 13 Current_Token 477:(BEGIN, (2538 . 2542)) Resume_Token_Goal 480
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2520 . 2535)))
+
+ 7 parallel tasks
+ 83: succeed 1, enqueue 2, check  2, cost:  0
  83:  0, ( 1 0 0 0 0), (260 : (SEMICOLON))| 474:(END, (2516 . 2518))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 476), (PUSH_BACK, identifier_opt, 475), (PUSH_BACK, END, 474), (INSERT, END, 474), (INSERT, SEMICOLON, 474), (FAST_FORWARD,  474))
+ 82: succeed 1, enqueue 2, check  2, cost:  0
  82:  0, ( 1 0 0 0 0), (260 : (SEMICOLON))| 474:(END, (2516 . 2518))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 476), (PUSH_BACK, identifier_opt, 475), (PUSH_BACK, END, 474), (INSERT, END, 474), (INSERT, SEMICOLON, 474), (FAST_FORWARD,  474))
 recover: succeed, parser count 2
  83: Current_Token (END) Shared_Token  474:(END, (2516 . 2518))
@@ -10157,7 +10453,21 @@ block_statement_1: (block_statement, (2657 . 2673)) <= ((block_label_opt),  500:
 semantic check (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2667 . 2672)))
  86: zombie
 recover
+
+ McKenzie error recovery
+
+parser 87: State 13 Current_Token 504:(END, (2675 . 2677)) Resume_Token_Goal 507
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2667 . 2672)))
+
+parser 86: State 13 Current_Token 504:(END, (2675 . 2677)) Resume_Token_Goal 507
+Check, (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2667 . 2672)))
+
+ 7 parallel tasks
+ 87: Language_Fixes: Config.Current_Ops /= No_Insert_Delete
+ 86: Language_Fixes: Config.Current_Ops /= No_Insert_Delete
+ 87: succeed 1, enqueue 11, check  6, cost:  3
  87:  3, ( 2 1 0 0 0), (311 : (SEMICOLON))| 500:(BEGIN, (2657 . 2661))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 503), (PUSH_BACK, identifier_opt, 502), (PUSH_BACK, END, 501), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 500), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 500), (FAST_FORWARD,  500), (INSERT, CASE, 500), (INSERT, SEMICOLON, 500), (FAST_FORWARD,  504), (PUSH_BACK, SEMICOLON, 503), (PUSH_BACK, identifier_opt, 502), (PUSH_BACK, END, 501), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 500), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 500), (INSERT, SEMICOLON, 500), (FAST_FORWARD,  500))
+ 86: succeed 1, enqueue 11, check  6, cost:  3
  86:  3, ( 2 1 0 0 0), (311 : (SEMICOLON))| 500:(BEGIN, (2657 . 2661))|((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 503), (PUSH_BACK, identifier_opt, 502), (PUSH_BACK, END, 501), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 500), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 500), (FAST_FORWARD,  500), (INSERT, CASE, 500), (INSERT, SEMICOLON, 500), (FAST_FORWARD,  504), (PUSH_BACK, SEMICOLON, 503), (PUSH_BACK, identifier_opt, 502), (PUSH_BACK, END, 501), (PUSH_BACK, handled_sequence_of_statements, 0), (PUSH_BACK, BEGIN, 500), (PUSH_BACK, block_label_opt, 0), (INSERT, END, 500), (INSERT, SEMICOLON, 500), (FAST_FORWARD,  500))
 recover: succeed, parser count 2
  87: Current_Token (END) Shared_Token  500:(BEGIN, (2657 . 2661))
@@ -10657,7 +10967,19 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements, (2762 . 2766)
  90: 57: expecting: WHEN, SEMICOLON
  90: zombie
 recover
+
+ McKenzie error recovery
+
+parser 91: State 57 Current_Token 523:(DOT, (2780 . 2780)) Resume_Token_Goal 526
+Action
+
+parser 90: State 57 Current_Token 523:(DOT, (2780 . 2780)) Resume_Token_Goal 526
+Action
+
+ 7 parallel tasks
+ 91: succeed 1, enqueue 7, check  3, cost:  0
  91:  0, ( 1 0 0 0 0), (311 : (SEMICOLON))| 518:(BEGIN, (2756 . 2760))|((PUSH_BACK, IDENTIFIER, 522), (PUSH_BACK, END, 521), (PUSH_BACK, handled_sequence_of_statements, 519), (PUSH_BACK, BEGIN, 518), (PUSH_BACK, block_label_opt, 518), (INSERT, END, 518), (INSERT, SEMICOLON, 518), (FAST_FORWARD,  518))
+ 90: succeed 1, enqueue 7, check  3, cost:  0
  90:  0, ( 1 0 0 0 0), (311 : (SEMICOLON))| 518:(BEGIN, (2756 . 2760))|((PUSH_BACK, IDENTIFIER, 522), (PUSH_BACK, END, 521), (PUSH_BACK, handled_sequence_of_statements, 519), (PUSH_BACK, BEGIN, 518), (PUSH_BACK, block_label_opt, 518), (INSERT, END, 518), (INSERT, SEMICOLON, 518), (FAST_FORWARD,  518))
 recover: succeed, parser count 2
  91: Current_Token (END) Shared_Token  518:(BEGIN, (2756 . 2760))
@@ -11049,7 +11371,19 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements, (2861 . 2865)
  92: 57: expecting: WHEN, SEMICOLON
  92: zombie
 recover
+
+ McKenzie error recovery
+
+parser 93: State 57 Current_Token 542:(DOT, (2879 . 2879)) Resume_Token_Goal 545
+Action
+
+parser 92: State 57 Current_Token 542:(DOT, (2879 . 2879)) Resume_Token_Goal 545
+Action
+
+ 7 parallel tasks
+ 93: succeed 1, enqueue 5, check  2, cost:  0
  93:  0, ( 1 0 0 0 0), (304 : (SEMICOLON))| 540:(END, (2867 . 2869))|((PUSH_BACK, IDENTIFIER, 541), (PUSH_BACK, END, 540), (INSERT, END, 540), (INSERT, SEMICOLON, 540), (FAST_FORWARD,  540))
+ 92: succeed 1, enqueue 5, check  2, cost:  0
  92:  0, ( 1 0 0 0 0), (304 : (SEMICOLON))| 540:(END, (2867 . 2869))|((PUSH_BACK, IDENTIFIER, 541), (PUSH_BACK, END, 540), (INSERT, END, 540), (INSERT, SEMICOLON, 540), (FAST_FORWARD,  540))
 recover: succeed, parser count 2
  93: Current_Token (END) Shared_Token  540:(END, (2867 . 2869))
@@ -11371,7 +11705,19 @@ association_list_1: (association_list, (2941 . 2947)) <= ((association_opt, (294
  94: 147: expecting: AND, IS, LEFT_PAREN, OR, RANGE, RIGHT_PAREN, XOR, AMPERSAND, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SLASH, SLASH_EQUAL, STAR
  94: zombie
 recover
+
+ McKenzie error recovery
+
+parser 95: State 147 Current_Token 557:(END, (2955 . 2957)) Resume_Token_Goal 560
+Action
+
+parser 94: State 147 Current_Token 557:(END, (2955 . 2957)) Resume_Token_Goal 560
+Action
+
+ 7 parallel tasks
+ 95: succeed 1, enqueue 41, check  16, cost:  5
  95:  5, ( 0 5 0 0 0), (279 : (SEMICOLON))| 557:(END, (2955 . 2957))|((INSERT, RIGHT_PAREN, 557), (INSERT, THEN, 557), (INSERT, END, 557), (INSERT, IF, 557), (INSERT, SEMICOLON, 557))
+ 94: succeed 1, enqueue 41, check  16, cost:  5
  94:  5, ( 0 5 0 0 0), (279 : (SEMICOLON))| 557:(END, (2955 . 2957))|((INSERT, RIGHT_PAREN, 557), (INSERT, THEN, 557), (INSERT, END, 557), (INSERT, IF, 557), (INSERT, SEMICOLON, 557))
 recover: succeed, parser count 2
  95: Current_Token (RIGHT_PAREN) Shared_Token  557:(END, (2955 . 2957))
@@ -11727,13 +12073,33 @@ declarative_part_1: (declarative_part) <= ()
  95: zombie
  94: zombie
 recover
+
+ McKenzie error recovery
+
+parser 97: State 241 Current_Token 575:(TYPE, (3065 . 3068)) Resume_Token_Goal 578
+Action
+
+parser 96: State 241 Current_Token 575:(TYPE, (3065 . 3068)) Resume_Token_Goal 578
+Action
+
+parser 95: State 196 Current_Token 574:(BEGIN, (3059 . 3063)) Resume_Token_Goal 577
+Action
+
+parser 94: State 196 Current_Token 574:(BEGIN, (3059 . 3063)) Resume_Token_Goal 577
+Action
+
+ 7 parallel tasks
+ 97: succeed 1, enqueue 30, check  6, cost:  1
  97:  1, ( 0 0 0 3 0), (157 : (IS, (3056 . 3057)))| 575:(TYPE, (3065 . 3068))|((PUSH_BACK, BEGIN, 574), (PUSH_BACK, declarative_part, 574), (DELETE, BEGIN, 574))
+ 96: succeed 1, enqueue 30, check  6, cost:  1
  96:  1, ( 0 0 0 3 0), (157 : (IS, (3056 . 3057)))| 575:(TYPE, (3065 . 3068))|((PUSH_BACK, BEGIN, 574), (PUSH_BACK, declarative_part, 574), (DELETE, BEGIN, 574))
+ 95: succeed 3, enqueue 102, check  26, cost:  6
 spawn parser 98 from 95 (5 active)
  98:  6, ( 0 0 0 4 0), (82 : (SEMICOLON))| 575:(TYPE, (3065 . 3068))|((PUSH_BACK, IS, 573), (INSERT, SEMICOLON, 573), (DELETE, IS, 573), (DELETE, BEGIN, 574))
 spawn parser 99 from 95 (6 active)
  99:  6, ( 0 0 0 4 0), (157 : (IS, (3056 . 3057)))| 575:(TYPE, (3065 . 3068))|((PUSH_BACK, IS, 573), (FAST_FORWARD,  575), (PUSH_BACK, BEGIN, 574), (PUSH_BACK, declarative_part, 574), (DELETE, BEGIN, 574))
  95:  6, ( 0 0 0 3 0), (270 : (SEMICOLON))| 575:(TYPE, (3065 . 3068))|((INSERT, SEPARATE, 574), (INSERT, SEMICOLON, 574), (DELETE, BEGIN, 574))
+ 94: succeed 3, enqueue 102, check  26, cost:  6
 spawn parser 100 from 94 (7 active)
  100:  6, ( 0 0 0 4 0), (82 : (SEMICOLON))| 575:(TYPE, (3065 . 3068))|((PUSH_BACK, IS, 573), (INSERT, SEMICOLON, 573), (DELETE, IS, 573), (DELETE, BEGIN, 574))
 spawn parser 101 from 94 (8 active)
@@ -11917,11 +12283,39 @@ enumeration_literal_list_1: (enumeration_literal_list, (3086 . 3097)) <= ( 579:(
  94: 302: expecting: IDENTIFIER
  94: zombie
 recover
+
+ McKenzie error recovery
+
+parser 100: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+parser 98: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+parser 97: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+parser 96: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+parser 95: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+parser 94: State 302 Current_Token 581:(RIGHT_PAREN, (3099 . 3099)) Resume_Token_Goal 584
+Action
+
+ 7 parallel tasks
+ 100: succeed 1, enqueue 4, check  2, cost:  3
  100:  3, ( 0 0 0 1 0), (310 : (IDENTIFIER))| 581:(RIGHT_PAREN, (3099 . 3099))|((INSERT, IDENTIFIER, 581))
+ 98: succeed 1, enqueue 4, check  2, cost:  3
  98:  3, ( 0 0 0 1 0), (310 : (IDENTIFIER))| 581:(RIGHT_PAREN, (3099 . 3099))|((INSERT, IDENTIFIER, 581))
+ 97: succeed 1, enqueue 41, check  15, cost:  6
  97:  6, ( 0 1 0 1 0), (241 : (BEGIN))| 583:(END, (3102 . 3104))|((INSERT, IDENTIFIER, 581), (FAST_FORWARD,  583), (INSERT, BEGIN, 583))
+ 96: succeed 1, enqueue 41, check  15, cost:  6
  96:  6, ( 0 1 0 1 0), (241 : (BEGIN))| 583:(END, (3102 . 3104))|((INSERT, IDENTIFIER, 581), (FAST_FORWARD,  583), (INSERT, BEGIN, 583))
+ 95: succeed 1, enqueue 4, check  2, cost:  3
  95:  3, ( 0 0 0 1 0), (310 : (IDENTIFIER))| 581:(RIGHT_PAREN, (3099 . 3099))|((INSERT, IDENTIFIER, 581))
+ 94: succeed 1, enqueue 4, check  2, cost:  3
  94:  3, ( 0 0 0 1 0), (310 : (IDENTIFIER))| 581:(RIGHT_PAREN, (3099 . 3099))|((INSERT, IDENTIFIER, 581))
 recover: succeed, parser count 6
  100: Current_Token (IDENTIFIER) Shared_Token  581:(RIGHT_PAREN, (3099 . 3099))
@@ -12497,9 +12891,21 @@ simple_expression_1: (simple_expression, (3202 . 3211)) <= ((term_list, (3202 . 
  104: 96: expecting: LEFT_PAREN, NOT, MINUS, PLUS, STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER
  104: zombie
 recover
+
+ McKenzie error recovery
+
+parser 105: State 96 Current_Token 601:(SLASH, (3213 . 3213)) Resume_Token_Goal 604
+Action
+
+parser 104: State 96 Current_Token 601:(SLASH, (3213 . 3213)) Resume_Token_Goal 604
+Action
+
+ 7 parallel tasks
+ 105: succeed 2, enqueue 25, check  4, cost:  1
 spawn parser 106 from 105 (3 active)
  106:  1, ( 0 0 0 0 1), (96 : (LESS, (3212 . 3212)))| 608:(STRING_LITERAL, (3226 . 3226))|((DELETE, SLASH, 601), (DELETE, BODY, 602), (DELETE, GREATER, 603), (DELETE, LESS, 604), (DELETE, SLASH, 605), (DELETE, IDENTIFIER, 606), (DELETE, GREATER, 607), (FAST_FORWARD,  608))
  105:  1, ( 0 0 0 0 1), (40 : (STRING_LITERAL, (3202 . 3211)))| 609:(SEMICOLON, (3227 . 3227))|((PUSH_BACK, LESS, 600), (PUSH_BACK, simple_expression, 599), (FAST_FORWARD,  600), (DELETE, LESS, 600), (DELETE, SLASH, 601), (DELETE, BODY, 602), (DELETE, GREATER, 603), (DELETE, LESS, 604), (DELETE, SLASH, 605), (DELETE, IDENTIFIER, 606), (DELETE, GREATER, 607), (DELETE, STRING_LITERAL, 608), (FAST_FORWARD,  609))
+ 104: succeed 2, enqueue 25, check  4, cost:  1
 spawn parser 107 from 104 (4 active)
  107:  1, ( 0 0 0 0 1), (96 : (LESS, (3212 . 3212)))| 608:(STRING_LITERAL, (3226 . 3226))|((DELETE, SLASH, 601), (DELETE, BODY, 602), (DELETE, GREATER, 603), (DELETE, LESS, 604), (DELETE, SLASH, 605), (DELETE, IDENTIFIER, 606), (DELETE, GREATER, 607), (FAST_FORWARD,  608))
  104:  1, ( 0 0 0 0 1), (40 : (STRING_LITERAL, (3202 . 3211)))| 609:(SEMICOLON, (3227 . 3227))|((PUSH_BACK, LESS, 600), (PUSH_BACK, simple_expression, 599), (FAST_FORWARD,  600), (DELETE, LESS, 600), (DELETE, SLASH, 601), (DELETE, BODY, 602), (DELETE, GREATER, 603), (DELETE, LESS, 604), (DELETE, SLASH, 605), (DELETE, IDENTIFIER, 606), (DELETE, GREATER, 607), (DELETE, STRING_LITERAL, 608), (FAST_FORWARD,  609))
@@ -12921,7 +13327,19 @@ expression_opt_0: (expression_opt, (3293 . 3300)) <= ((expression, (3293 . 3300)
  108: 40: expecting: AND, IS, LOOP, OR, RIGHT_PAREN, THEN, XOR, AMPERSAND, COLON_EQUAL, COMMA, DOT_DOT, EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR
  108: zombie
 recover
+
+ McKenzie error recovery
+
+parser 109: State 40 Current_Token 625:(IDENTIFIER, (3316 . 3319)) Resume_Token_Goal 628
+Action
+
+parser 108: State 40 Current_Token 625:(IDENTIFIER, (3316 . 3319)) Resume_Token_Goal 628
+Action
+
+ 7 parallel tasks
+ 109: succeed 1, enqueue 837, check  81, cost:  5
  109:  5, ( 0 0 0 3 0), (42 : (IDENTIFIER, (3321 . 3324)))| 629:(SEMICOLON, (3327 . 3327))|((PUSH_BACK, STRING_LITERAL, 624), (DELETE, STRING_LITERAL, 624), (FAST_FORWARD,  628), (DELETE, STRING_LITERAL, 628))
+ 108: succeed 1, enqueue 837, check  81, cost:  5
  108:  5, ( 0 0 0 3 0), (42 : (IDENTIFIER, (3321 . 3324)))| 629:(SEMICOLON, (3327 . 3327))|((PUSH_BACK, STRING_LITERAL, 624), (DELETE, STRING_LITERAL, 624), (FAST_FORWARD,  628), (DELETE, STRING_LITERAL, 628))
 recover: succeed, parser count 2
  109: Current_Token  625:(IDENTIFIER, (3316 . 3319)) Shared_Token  625:(IDENTIFIER, (3316 . 3319))
@@ -13111,7 +13529,19 @@ simple_expression_1: (simple_expression, (3346 . 3346)) <= ((term_list, (3346 . 
  108: 96: expecting: LEFT_PAREN, NOT, MINUS, PLUS, STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER
  108: zombie
 recover
+
+ McKenzie error recovery
+
+parser 109: State 96 Current_Token 635:(SLASH, (3348 . 3348)) Resume_Token_Goal 638
+Action
+
+parser 108: State 96 Current_Token 635:(SLASH, (3348 . 3348)) Resume_Token_Goal 638
+Action
+
+ 7 parallel tasks
+ 109: succeed 1, enqueue 14, check  3, cost:  1
  109:  1, ( 0 1 0 0 1), (204 : (SEMICOLON))| 647:(END, (3371 . 3373))|((PUSH_BACK, LESS, 634), (PUSH_BACK, simple_expression, 633), (FAST_FORWARD,  634), (DELETE, LESS, 634), (DELETE, SLASH, 635), (DELETE, IDENTIFIER, 636), (DELETE, GREATER, 637), (DELETE, LESS, 638), (DELETE, SLASH, 639), (DELETE, BODY, 640), (DELETE, GREATER, 641), (DELETE, LESS, 642), (DELETE, SLASH, 643), (DELETE, IDENTIFIER, 644), (DELETE, GREATER, 645), (DELETE, SEMICOLON, 646), (FAST_FORWARD,  647), (INSERT, SEMICOLON, 647))
+ 108: succeed 1, enqueue 14, check  3, cost:  1
  108:  1, ( 0 1 0 0 1), (204 : (SEMICOLON))| 647:(END, (3371 . 3373))|((PUSH_BACK, LESS, 634), (PUSH_BACK, simple_expression, 633), (FAST_FORWARD,  634), (DELETE, LESS, 634), (DELETE, SLASH, 635), (DELETE, IDENTIFIER, 636), (DELETE, GREATER, 637), (DELETE, LESS, 638), (DELETE, SLASH, 639), (DELETE, BODY, 640), (DELETE, GREATER, 641), (DELETE, LESS, 642), (DELETE, SLASH, 643), (DELETE, IDENTIFIER, 644), (DELETE, GREATER, 645), (DELETE, SEMICOLON, 646), (FAST_FORWARD,  647), (INSERT, SEMICOLON, 647))
 recover: succeed, parser count 2
  109: Current_Token  633:(STRING_LITERAL, (3346 . 3346)) Shared_Token  633:(STRING_LITERAL, (3346 . 3346))
@@ -13433,7 +13863,19 @@ expression_opt_0: (expression_opt, (3435 . 3442)) <= ((expression, (3435 . 3442)
  110: 40: expecting: AND, IS, LOOP, OR, RIGHT_PAREN, THEN, XOR, AMPERSAND, COLON_EQUAL, COMMA, DOT_DOT, EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR
  110: zombie
 recover
+
+ McKenzie error recovery
+
+parser 111: State 40 Current_Token 662:(IDENTIFIER, (3458 . 3461)) Resume_Token_Goal 665
+Action
+
+parser 110: State 40 Current_Token 662:(IDENTIFIER, (3458 . 3461)) Resume_Token_Goal 665
+Action
+
+ 7 parallel tasks
+ 111: succeed 1, enqueue 837, check  81, cost:  5
  111:  5, ( 0 0 0 3 0), (42 : (IDENTIFIER, (3463 . 3466)))| 666:(SEMICOLON, (3469 . 3469))|((PUSH_BACK, STRING_LITERAL, 661), (DELETE, STRING_LITERAL, 661), (FAST_FORWARD,  665), (DELETE, STRING_LITERAL, 665))
+ 110: succeed 1, enqueue 837, check  81, cost:  5
  110:  5, ( 0 0 0 3 0), (42 : (IDENTIFIER, (3463 . 3466)))| 666:(SEMICOLON, (3469 . 3469))|((PUSH_BACK, STRING_LITERAL, 661), (DELETE, STRING_LITERAL, 661), (FAST_FORWARD,  665), (DELETE, STRING_LITERAL, 665))
 recover: succeed, parser count 2
  111: Current_Token  662:(IDENTIFIER, (3458 . 3461)) Shared_Token  662:(IDENTIFIER, (3458 . 3461))
@@ -13617,9 +14059,21 @@ term_list_1: (term_list, (3488 . 3497)) <= ((term, (3488 . 3497)))
  110: 103: expecting: LEFT_PAREN, NOT, STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER
  110: zombie
 recover
+
+ McKenzie error recovery
+
+parser 111: State 103 Current_Token 672:(LESS, (3501 . 3501)) Resume_Token_Goal 675
+Action
+
+parser 110: State 103 Current_Token 672:(LESS, (3501 . 3501)) Resume_Token_Goal 675
+Action
+
+ 7 parallel tasks
+ 111: succeed 2, enqueue 26, check  4, cost:  1
 spawn parser 112 from 111 (3 active)
  112:  1, ( 0 0 0 0 1), (103 : (AMPERSAND, (3499 . 3499)))| 680:(STRING_LITERAL, (3515 . 3515))|((DELETE, LESS, 672), (DELETE, SLASH, 673), (DELETE, BODY, 674), (DELETE, GREATER, 675), (DELETE, LESS, 676), (DELETE, SLASH, 677), (DELETE, IDENTIFIER, 678), (DELETE, GREATER, 679), (FAST_FORWARD,  680))
  111:  1, ( 0 0 0 0 1), (40 : (STRING_LITERAL, (3488 . 3497)))| 681:(SEMICOLON, (3516 . 3516))|((PUSH_BACK, AMPERSAND, 671), (PUSH_BACK, term_list, 670), (FAST_FORWARD,  671), (DELETE, AMPERSAND, 671), (DELETE, LESS, 672), (DELETE, SLASH, 673), (DELETE, BODY, 674), (DELETE, GREATER, 675), (DELETE, LESS, 676), (DELETE, SLASH, 677), (DELETE, IDENTIFIER, 678), (DELETE, GREATER, 679), (DELETE, STRING_LITERAL, 680), (FAST_FORWARD,  681))
+ 110: succeed 2, enqueue 26, check  4, cost:  1
 spawn parser 113 from 110 (4 active)
  113:  1, ( 0 0 0 0 1), (103 : (AMPERSAND, (3499 . 3499)))| 680:(STRING_LITERAL, (3515 . 3515))|((DELETE, LESS, 672), (DELETE, SLASH, 673), (DELETE, BODY, 674), (DELETE, GREATER, 675), (DELETE, LESS, 676), (DELETE, SLASH, 677), (DELETE, IDENTIFIER, 678), (DELETE, GREATER, 679), (FAST_FORWARD,  680))
  110:  1, ( 0 0 0 0 1), (40 : (STRING_LITERAL, (3488 . 3497)))| 681:(SEMICOLON, (3516 . 3516))|((PUSH_BACK, AMPERSAND, 671), (PUSH_BACK, term_list, 670), (FAST_FORWARD,  671), (DELETE, AMPERSAND, 671), (DELETE, LESS, 672), (DELETE, SLASH, 673), (DELETE, BODY, 674), (DELETE, GREATER, 675), (DELETE, LESS, 676), (DELETE, SLASH, 677), (DELETE, IDENTIFIER, 678), (DELETE, GREATER, 679), (DELETE, STRING_LITERAL, 680), (FAST_FORWARD,  681))
@@ -14241,7 +14695,19 @@ semantic check OK
  114: 147: expecting: AND, IS, LEFT_PAREN, OR, RANGE, RIGHT_PAREN, XOR, AMPERSAND, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SLASH, SLASH_EQUAL, STAR
  114: zombie
 recover
+
+ McKenzie error recovery
+
+parser 115: State 147 Current_Token 706:(STRING_LITERAL, (3634 . 3644)) Resume_Token_Goal 709
+Action
+
+parser 114: State 147 Current_Token 706:(STRING_LITERAL, (3634 . 3644)) Resume_Token_Goal 709
+Action
+
+ 7 parallel tasks
+ 115: succeed 1, enqueue 47, check  3, cost:  1
  115:  1, ( 0 0 0 0 1), (76 : (LEFT_PAREN, (3630 . 3630)))| 708:(STRING_LITERAL, (3652 . 3652))|((PUSH_BACK, IDENTIFIER, 705), (DELETE, IDENTIFIER, 705), (DELETE, STRING_LITERAL, 706), (DELETE, IDENTIFIER, 707), (FAST_FORWARD,  708))
+ 114: succeed 1, enqueue 47, check  3, cost:  1
  114:  1, ( 0 0 0 0 1), (76 : (LEFT_PAREN, (3630 . 3630)))| 708:(STRING_LITERAL, (3652 . 3652))|((PUSH_BACK, IDENTIFIER, 705), (DELETE, IDENTIFIER, 705), (DELETE, STRING_LITERAL, 706), (DELETE, IDENTIFIER, 707), (FAST_FORWARD,  708))
 recover: succeed, parser count 2
  115: Current_Token  708:(STRING_LITERAL, (3652 . 3652)) Shared_Token  708:(STRING_LITERAL, (3652 . 3652))

@@ -72,6 +72,7 @@ project WisiToken_Test is
       "empty_production_8_lalr_run.ads",
       "empty_production_8_packrat_gen_run.ads",
       "empty_production_8_packrat_proc_run.ads",
+      "java_expressions_lr1_run.ads",
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
       "identifier_list_name_conflict_packrat_proc_run.ads",

@@ -49,6 +49,7 @@ package body Subprograms_Process_LALR_Main is
            (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
          Push_Back =>
            (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
+         Minimal_Complete_Cost_Delta => -1,
          Ignore_Check_Fail  => 4,
          Task_Count  => 0,
          Cost_Limit  => 10,

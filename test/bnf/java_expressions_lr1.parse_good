@@ -1,0 +1,37 @@
+ 3 tokens lexed
+ 0: 0:  1:(LPAREN, (55 . 55)) : shift and goto state 7
+ 0: 7:  2:(IDENTIFIER, (56 . 56)) : shift and goto state 28
+ 0: 28:  3:(Wisi_EOI, (58 . 57)) : ERROR
+ 0: 28: expecting: LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD
+ 0: zombie
+recover
+
+ McKenzie error recovery
+
+parser 0: State 28 Current_Token 3:(Wisi_EOI, (58 . 57)) Resume_Token_Goal 7
+Action
+
+ 7 parallel tasks
+ 0: succeed 1, enqueue 3, check  2, cost:  1
+ 0:  1, ( 0 1 0 0 0), (58 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, RPAREN, 3))
+recover: succeed, parser count 1
+ 0: Current_Token (RPAREN) Shared_Token  3:(Wisi_EOI, (58 . 57))
+ 0: resume_active: True, token goal 7
+ 0: 28: (RPAREN) : reduce 1 tokens to primary
+primary_3: (primary, (56 . 56)) <= ( 2:(IDENTIFIER, (56 . 56)))
+ ... goto state 33
+ 0: 33: (RPAREN) : reduce 1 tokens to expression
+expression_0: (expression, (56 . 56)) <= ((primary, (56 . 56)))
+ ... goto state 32
+ 0: 32: (RPAREN) : shift and goto state 58
+ 0: 58:  3:(Wisi_EOI, (58 . 57)) : reduce 3 tokens to primary
+primary_0: (primary, (55 . 56)) <= ( 1:(LPAREN, (55 . 55)), (expression, (56 . 56)), (RPAREN))
+ ... goto state 17
+ 0: 17:  3:(Wisi_EOI, (58 . 57)) : reduce 1 tokens to expression
+expression_0: (expression, (55 . 56)) <= ((primary, (55 . 56)))
+ ... goto state 16
+ 0: 16:  3:(Wisi_EOI, (58 . 57)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (55 . 56)) <= ((expression, (55 . 56)))
+ 0: succeed
+java_expressions.input:3:0: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
+   recovered: ((INSERT, RPAREN, 3))

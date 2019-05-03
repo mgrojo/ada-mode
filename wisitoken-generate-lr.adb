@@ -73,9 +73,9 @@ package body WisiToken.Generate.LR is
       Skipped_Recursive : Boolean := False;
    begin
       --  We get here because All_Sequences (Nonterm) has not been comptued
-      --  yet. Attempt to compute All_Sequences (Nonterm); it may not
-      --  succeed due to recursion. If successful, set All_Set (Nonterm)
-      --  True.
+      --  yet (All_Set (Nonterm) is False). Attempt to compute All_Sequences
+      --  (Nonterm); it may not succeed due to recursion. If successful, set
+      --  All_Set (Nonterm) True.
       --
       --  In a useful grammar, all direct and indirect recursive nonterms
       --  have a non-recursive minimal terminal sequence; finding it will
@@ -99,7 +99,6 @@ package body WisiToken.Generate.LR is
 
             else
                for I in Prod.RHSs (RHS).Tokens.First_Index .. Prod.RHSs (RHS).Tokens.Last_Index loop
-                  Recursing_Index (Nonterm) := I;
                   declare
                      ID : Token_ID renames Prod.RHSs (RHS).Tokens (I);
                   begin
@@ -112,8 +111,14 @@ package body WisiToken.Generate.LR is
 
                            if ID = Nonterm or Recursing (ID) then
                               --  Nonterm is mutually recursive with itself or some other.
-                              All_Sequences (Nonterm)(RHS).Left_Recursive := I = Positive'First and
-                                (ID = Nonterm or Recursing_Index (ID) = Positive'First);
+                              if I = Positive'First and (ID = Nonterm or Recursing_Index (ID) = Positive'First) then
+                                 All_Sequences (Nonterm)(RHS).Left_Recursive := True;
+                                 if Trace_Generate > Extra then
+                                    Ada.Text_IO.Put_Line
+                                      (Trimmed_Image (Production_ID'(Nonterm, RHS)) & ".left_recursive => " &
+                                         Boolean'Image (All_Sequences (Nonterm)(RHS).Left_Recursive));
+                                 end if;
+                              end if;
 
                               if (for some RHS of RHS_Set (ID) => RHS) then
                                  --  There is a minimal sequence for ID; use it
@@ -132,7 +137,8 @@ package body WisiToken.Generate.LR is
                                  goto Skip;
                               end if;
                            else
-                              Recursing (ID) := True;
+                              Recursing (ID)            := True;
+                              Recursing_Index (Nonterm) := I;
                               if Trace_Generate > Extra then
                                  Ada.Text_IO.Put_Line (Trimmed_Image (ID) & " " & Image (ID, Descriptor) & " compute");
                               end if;
@@ -682,11 +688,12 @@ package body WisiToken.Generate.LR is
       Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector)
      return Minimal_Sequence_Array
    is
-      --  Result (ID).Length = 0 is a valid sequence (ie the nonterminal can
-      --  be empty), so we use an auxilliary array to track whether Result
-      --  (ID) has been computed.
+      --  Result (ID).Sequence.Length = 0 is a valid result (ie the
+      --  nonterminal can be empty), so we use an auxilliary array to track
+      --  whether Result (ID) has been computed.
       --
-      --  We also need to detect mutual recursion, and incomplete grammars.
+      --  We also need to detect direct and mutual recursion, and incomplete
+      --  grammars.
 
       All_Set   : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal  => False);
       Recursing : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal  => False);
@@ -916,9 +923,6 @@ package body WisiToken.Generate.LR is
          if not Has_Element (Item.Dot) then
             --  Item has no next terminal. Include a reduce action; the
             --  Minimal_Terminal_First for the resulting state will be used.
-            if Trace_Generate > Extra then
-               Ada.Text_IO.Put_Line ("reduce " & Image (Item.Prod));
-            end if;
             State.Minimal_Complete_Action :=
               (Reduce, Item.Prod.LHS,
                 Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
@@ -944,6 +948,9 @@ package body WisiToken.Generate.LR is
                   end if;
                end if;
             end;
+         end if;
+         if Trace_Generate > Extra then
+            Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Action, Descriptor));
          end if;
       end loop;
    end Set_Minimal_Complete_Actions;
@@ -1206,7 +1213,7 @@ package body WisiToken.Generate.LR is
       Put ("   Minimal_Complete_Action => ");
       case State.Minimal_Complete_Action.Verb is
       when Pause =>
-         null;
+         New_Line;
       when Shift =>
          Put_Line (Image (State.Minimal_Complete_Action.ID, Descriptor));
       when Reduce =>

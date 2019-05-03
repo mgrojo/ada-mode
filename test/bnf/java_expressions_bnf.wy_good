@@ -1,0 +1,181 @@
+;;; generated from java_expressions.wy
+;;;
+;; Subset of Java grammar for testing redundancy elimination in Minimal_Complete_Actions
+
+%code copyright_license %{
+;;  [The "BSD licence"]
+;;  Copyright (c) 2018, 2019 Stephen Leake (translate to WisiToken)
+;;  Copyright (c) 2017 Ivan Kochurkin (upgrade to Java 8)
+;;  Copyright (c) 2013 Terence Parr, Sam Harwell
+;;  All rights reserved.
+
+;;  Redistribution and use in source and binary forms, with or without
+;;  modification, are permitted provided that the following conditions
+;;  are met:
+;;  1. Redistributions of source code must retain the above copyright
+;;     notice, this list of conditions and the following disclaimer.
+;;  2. Redistributions in binary form must reproduce the above copyright
+;;     notice, this list of conditions and the following disclaimer in the
+;;     documentation and/or other materials provided with the distribution.
+;;  3. The name of the author may not be used to endorse or promote products
+;;     derived from this software without specific prior written permission.
+
+;;  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+;;  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+;;  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+;;  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+;;  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+;;  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;;  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;;  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+;;  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+}%
+
+%generate LR1 Ada re2c
+%start expression
+%meta_syntax BNF
+
+%mckenzie_cost_default 3 3 2 0
+%mckenzie_minimal_complete_cost_delta -3
+%mckenzie_enqueue_limit 10_000
+%mckenzie_check_limit 4
+
+%mckenzie_cost_insert RPAREN 1
+%mckenzie_cost_delete RPAREN 1
+
+;; Cheaply finish an expression
+%mckenzie_cost_insert THIS 1
+
+%keyword BOOLEAN "boolean"
+%keyword CLASS "class"
+%keyword INT "int"
+%keyword THIS "this"
+
+%re2c_regexp Digits %[ [0-9] ([0-9_]* [0-9])? ]%
+
+%re2c_regexp Letter %[ [a-zA-Z$_]
+    | [^\u0000-\u007F\uD800-\uDBFF]
+    | [\uD800-\uDBFF] [\uDC00-\uDFFF]
+]%
+
+%re2c_regexp LetterOrDigit %[ Letter
+    | [0-9]
+    ]%
+
+%token <number> DECIMAL_LITERAL %[  ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]? ]%
+
+%keyword TRUE "true"
+%keyword FALSE "false"
+
+BOOL_LITERAL  : TRUE
+  | FALSE
+  ;
+
+%token <punctuation> LPAREN '('
+%token <punctuation> RPAREN ')'
+%token <punctuation> LBRACK '['
+%token <punctuation> RBRACK ']'
+%token <punctuation> COMMA ','
+%token <punctuation> DOT '.'
+
+%token <punctuation> INC '++'
+%token <punctuation> DEC '--'
+%token <punctuation> ADD '+'
+%token <punctuation> SUB '-'
+%token <punctuation> MUL '*'
+%token <punctuation> DIV '/'
+%token <punctuation> MOD '%'
+
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <non-reporting> WS %[ [ \t\u000C]+ ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ '//' [^\r\n]* ]%
+
+%token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
+
+%conflict SHIFT/REDUCE in state expression, expression on token LBRACK
+%conflict SHIFT/REDUCE in state expression, expression on token DOT
+%conflict SHIFT/REDUCE in state expression, expression on token INC
+%conflict SHIFT/REDUCE in state expression, expression on token DEC
+%conflict SHIFT/REDUCE in state expression, expression on token MUL
+%conflict SHIFT/REDUCE in state expression, expression on token DIV
+%conflict SHIFT/REDUCE in state expression, expression on token MOD
+%conflict SHIFT/REDUCE in state expression, expression on token ADD
+%conflict SHIFT/REDUCE in state expression, expression on token SUB
+
+literal
+  : DECIMAL_LITERAL
+  | BOOL_LITERAL
+  ;
+
+expressionList
+  : expression
+  | expressionList COMMA expression
+  ;
+
+methodCall
+  : IDENTIFIER LPAREN expressionList RPAREN
+  | IDENTIFIER LPAREN RPAREN
+  ;
+
+expression
+  : primary
+  | expression bop=DOT nonterminal_008
+  | expression LBRACK expression RBRACK
+  | methodCall
+  | LPAREN typeType RPAREN expression
+  | expression postfix=nonterminal_015
+  | prefix=nonterminal_020 expression
+  | expression bop=nonterminal_024 expression
+  | expression bop=nonterminal_027 expression
+  ;
+
+primary
+  : LPAREN expression RPAREN
+  | THIS
+  | literal
+  | IDENTIFIER
+  | typeType DOT CLASS
+  ;
+
+typeType
+  : typnam=primitiveType nonterminal_033_list
+  | typnam=primitiveType
+  ;
+
+primitiveType
+  : BOOLEAN
+  | INT
+  ;
+;;; end of file
+nonterminal_008
+  : IDENTIFIER
+  | methodCall
+  | THIS
+  ;
+nonterminal_015
+  : INC
+  | DEC
+  ;
+nonterminal_020
+  : ADD
+  | SUB
+  | INC
+  | DEC
+  ;
+nonterminal_024
+  : MUL
+  | DIV
+  | MOD
+  ;
+nonterminal_027
+  : ADD
+  | SUB
+  ;
+nonterminal_034
+  : LBRACK RBRACK
+  ;
+nonterminal_033_list
+  : nonterminal_034
+  | nonterminal_033_list nonterminal_034
+  ;

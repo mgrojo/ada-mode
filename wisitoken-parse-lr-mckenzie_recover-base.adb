@@ -2,7 +2,7 @@
 --
 --  Base utilities for McKenzie_Recover
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -169,6 +169,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end if;
 
          --  Same logic as in Get_Barrier, but different actions.
+         --
+         --  No task_id in outline trace messages, because they may appear in
+         --  .parse_good
          for I in Parser_Status'Range loop
             declare
                P_Status : Base.Parser_Status renames Parser_Status (I);
@@ -178,8 +181,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                   if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
                      if P_Status.Parser_State.Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
                         if Trace_McKenzie > Outline then
-                           Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; check delta (limit" &
-                                       Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")");
+                           Put_Line
+                             (Trace.all,
+                              P_Status.Parser_State.Label, "fail; check delta (limit" &
+                                Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")",
+                              Task_ID => False);
                         end if;
                         P_Status.Recover_State := Fail;
                         P_Status.Fail_Mode     := Fail_Check_Delta;
@@ -188,8 +194,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
                      elsif P_Status.Parser_State.Recover.Enqueue_Count >= Enqueue_Limit then
                         if Trace_McKenzie > Outline then
-                           Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; enqueue limit (" &
-                                       Integer'Image (Enqueue_Limit) & ")");
+                           Put_Line
+                             (Trace.all,
+                              P_Status.Parser_State.Label, "fail; enqueue limit (" &
+                                Integer'Image (Enqueue_Limit) & ")",
+                              Task_ID => False);
                         end if;
                         P_Status.Recover_State := Fail;
                         P_Status.Fail_Mode     := Fail_Enqueue_Limit;
@@ -205,7 +214,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      else
                         if P_Status.Active_Workers = 0 then
                            if Trace_McKenzie > Outline then
-                              Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; cost");
+                              Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; cost", Task_ID => False);
                            end if;
                            P_Status.Recover_State := Fail;
                            P_Status.Fail_Mode     := Fail_Cost;
@@ -217,7 +226,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      if P_Status.Active_Workers = 0 then
                         --  No configs left to check (rarely happens with real languages).
                         if Trace_McKenzie > Outline then
-                           Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; no configs left");
+                           Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; no configs left", Task_ID => False);
                         end if;
                         P_Status.Recover_State := Fail;
                         P_Status.Fail_Mode     := Fail_No_Configs_Left;
@@ -229,8 +238,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                when Ready =>
                   if P_Status.Parser_State.Recover.Enqueue_Count >= Enqueue_Limit then
                      if Trace_McKenzie > Outline then
-                        Put_Line (Trace.all, P_Status.Parser_State.Label, "fail; enqueue limit (" &
-                                    Integer'Image (Enqueue_Limit) & ")");
+                        Put_Line
+                          (Trace.all,
+                           P_Status.Parser_State.Label, "fail; enqueue limit (" &
+                             Integer'Image (Enqueue_Limit) & ")",
+                           Task_ID => False);
                      end if;
                      P_Status.Recover_State := Fail;
                      P_Status.Fail_Mode     := Fail_Enqueue_Limit;

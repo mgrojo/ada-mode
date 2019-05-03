@@ -50,6 +50,7 @@ gen :: empty_production_5_re2c.c
 gen :: empty_production_6_re2c.c
 gen :: empty_production_7_re2c.c
 gen :: empty_production_8_re2c.c
+gen :: java_expressions_re2c.c
 gen :: identifier_list_name_conflict_re2c.c
 gen :: lalr_generator_bug_01_re2c.c
 gen :: nested_ebnf_optional_re2c.c

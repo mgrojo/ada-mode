@@ -55,11 +55,41 @@ begin
    WisiToken.Trace_Generate := 0; -- Only trace the part we are interested in.
 
    Wisitoken_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
-   Grammar_Parser.Lexer.Reset_With_File (-Input_File_Name);
-   Grammar_Parser.Parse;
-   Input_Data.User_Parser := WisiToken.BNF.LALR;
-   Input_Data.User_Lexer := WisiToken.BNF.re2c_Lexer;
-   Grammar_Parser.Execute_Actions;
+
+   begin
+      Grammar_Parser.Lexer.Reset_With_File (-Input_File_Name);
+      Grammar_Parser.Parse;
+
+      Input_Data.Phase       := WisiToken_Grammar_Runtime.Meta;
+      Input_Data.User_Parser := Gen_Alg;
+      Input_Data.User_Lexer  := WisiToken.BNF.re2c_Lexer;
+      Grammar_Parser.Execute_Actions;
+
+      case Input_Data.Meta_Syntax is
+      when WisiToken_Grammar_Runtime.Unknown =>
+         Input_Data.Meta_Syntax := WisiToken_Grammar_Runtime.BNF_Syntax;
+
+      when WisiToken_Grammar_Runtime.BNF_Syntax =>
+         null;
+
+      when WisiToken_Grammar_Runtime.EBNF_Syntax =>
+         declare
+            Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+         begin
+            WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
+            if WisiToken.Generate.Error then
+               raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
+            end if;
+         end;
+      end case;
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
+      Grammar_Parser.Execute_Actions;
+   exception
+   when Syntax_Error =>
+      Grammar_Parser.Put_Errors;
+      return;
+   end;
+
 
    declare
       Generate_Data  : constant WisiToken.BNF.Generate_Utils.Generate_Data :=
@@ -85,6 +115,7 @@ begin
               (Has_Empty_Production, First_Terminal_Sequence, Generate_Data.Grammar, Descriptor),
          when others => raise WisiToken.User_Error);
 
+      Conflict_Counts   : Conflict_Count_Lists.List;
       Unknown_Conflicts : Generate.LR.Conflict_Lists.List;
 
       Table : Parse.LR.Parse_Table
@@ -103,11 +134,11 @@ begin
             Descriptor);
          Generate.LR.LALR_Generate.Add_Actions
            (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence,
-            Unknown_Conflicts, Table, Descriptor);
+            Conflict_Counts, Unknown_Conflicts, Table, Descriptor);
       when WisiToken.BNF.LR1 =>
          Generate.LR.LR1_Generate.Add_Actions
-           (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table,
-            Descriptor);
+           (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts,
+            Unknown_Conflicts, Table, Descriptor);
       when others =>
          raise WisiToken.User_Error;
       end case;
@@ -124,7 +155,7 @@ begin
          for ID in Minimal_Terminal_Sequences'Range loop
             Put_Line
               (Image (ID, Descriptor) & " => " &
-                 Image (Minimal_Terminal_Sequences (ID), Descriptor));
+                 Image (Minimal_Terminal_Sequences (ID), Descriptor, Association => True));
          end loop;
          New_Line;
 

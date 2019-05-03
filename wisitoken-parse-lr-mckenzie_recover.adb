@@ -131,7 +131,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               ": State" & State_Index'Image (Parser_State.Stack (1).State) &
               " Current_Token" & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
               " Resume_Token_Goal" & Token_Index'Image (Config.Resume_Token_Goal));
-         Trace.Put_Line (Image (Error, Parser_State.Tree, Trace.Descriptor.all));
+         Trace.Put_Line
+           ((case Error.Label is
+             when Action => "Action",
+             when Check => "Check, " & Semantic_Checks.Image (Error.Check_Status, Trace.Descriptor.all),
+             when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Extra then
             Put_Line
               (Trace, Parser_State.Label, Parser_Lists.Image

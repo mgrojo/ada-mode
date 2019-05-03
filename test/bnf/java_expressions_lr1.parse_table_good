@@ -1,0 +1,3879 @@
+Tokens:
+ 0 => NEW_LINE
+ 1 => WS
+ 2 => EndOfLine_COMMENT
+ 3 => BOOLEAN
+ 4 => CLASS
+ 5 => INT
+ 6 => THIS
+ 7 => TRUE
+ 8 => FALSE
+ 9 => DECIMAL_LITERAL
+ 10 => LPAREN
+ 11 => RPAREN
+ 12 => LBRACK
+ 13 => RBRACK
+ 14 => COMMA
+ 15 => DOT
+ 16 => INC
+ 17 => DEC
+ 18 => ADD
+ 19 => SUB
+ 20 => MUL
+ 21 => DIV
+ 22 => MOD
+ 23 => IDENTIFIER
+ 24 => Wisi_EOI
+ 25 => wisitoken_accept
+ 26 => BOOL_LITERAL
+ 27 => literal
+ 28 => expressionList
+ 29 => methodCall
+ 30 => expression
+ 31 => primary
+ 32 => typeType
+ 33 => primitiveType
+ 34 => nonterminal_008
+ 35 => nonterminal_015
+ 36 => nonterminal_020
+ 37 => nonterminal_024
+ 38 => nonterminal_027
+ 39 => nonterminal_034
+ 40 => nonterminal_033_list
+
+Productions:
+25.0: wisitoken_accept <= expression Wisi_EOI
+26.0: BOOL_LITERAL <= TRUE
+26.1: BOOL_LITERAL <= FALSE
+27.0: literal <= DECIMAL_LITERAL
+27.1: literal <= BOOL_LITERAL
+28.0: expressionList <= expression
+28.1: expressionList <= expressionList COMMA expression
+29.0: methodCall <= IDENTIFIER LPAREN expressionList RPAREN
+29.1: methodCall <= IDENTIFIER LPAREN RPAREN
+30.0: expression <= primary
+30.1: expression <= expression DOT nonterminal_008
+30.2: expression <= expression LBRACK expression RBRACK
+30.3: expression <= methodCall
+30.4: expression <= LPAREN typeType RPAREN expression
+30.5: expression <= expression nonterminal_015
+30.6: expression <= nonterminal_020 expression
+30.7: expression <= expression nonterminal_024 expression
+30.8: expression <= expression nonterminal_027 expression
+31.0: primary <= LPAREN expression RPAREN
+31.1: primary <= THIS
+31.2: primary <= literal
+31.3: primary <= IDENTIFIER
+31.4: primary <= typeType DOT CLASS
+32.0: typeType <= primitiveType nonterminal_033_list
+32.1: typeType <= primitiveType
+33.0: primitiveType <= BOOLEAN
+33.1: primitiveType <= INT
+34.0: nonterminal_008 <= IDENTIFIER
+34.1: nonterminal_008 <= methodCall
+34.2: nonterminal_008 <= THIS
+35.0: nonterminal_015 <= INC
+35.1: nonterminal_015 <= DEC
+36.0: nonterminal_020 <= ADD
+36.1: nonterminal_020 <= SUB
+36.2: nonterminal_020 <= INC
+36.3: nonterminal_020 <= DEC
+37.0: nonterminal_024 <= MUL
+37.1: nonterminal_024 <= DIV
+37.2: nonterminal_024 <= MOD
+38.0: nonterminal_027 <= ADD
+38.1: nonterminal_027 <= SUB
+39.0: nonterminal_034 <= LBRACK RBRACK
+40.0: nonterminal_033_list <= nonterminal_034
+40.1: nonterminal_033_list <= nonterminal_033_list nonterminal_034
+
+McKenzie:
+(Insert =>
+ BOOLEAN         => 3,
+ CLASS           => 3,
+ INT             => 3,
+ THIS            => 1,
+ TRUE            => 3,
+ FALSE           => 3,
+ DECIMAL_LITERAL => 3,
+ LPAREN          => 3,
+ RPAREN          => 1,
+ LBRACK          => 3,
+ RBRACK          => 3,
+ COMMA           => 3,
+ DOT             => 3,
+ INC             => 3,
+ DEC             => 3,
+ ADD             => 3,
+ SUB             => 3,
+ MUL             => 3,
+ DIV             => 3,
+ MOD             => 3,
+ IDENTIFIER      => 3,
+ Wisi_EOI        => 3)
+(Delete =>
+ BOOLEAN         => 3,
+ CLASS           => 3,
+ INT             => 3,
+ THIS            => 3,
+ TRUE            => 3,
+ FALSE           => 3,
+ DECIMAL_LITERAL => 3,
+ LPAREN          => 3,
+ RPAREN          => 1,
+ LBRACK          => 3,
+ RBRACK          => 3,
+ COMMA           => 3,
+ DOT             => 3,
+ INC             => 3,
+ DEC             => 3,
+ ADD             => 3,
+ SUB             => 3,
+ MUL             => 3,
+ DIV             => 3,
+ MOD             => 3,
+ IDENTIFIER      => 3,
+ Wisi_EOI        => 3)
+(Push_Back =>
+ BOOLEAN         => 3,
+ CLASS           => 3,
+ INT             => 3,
+ THIS            => 3,
+ TRUE            => 3,
+ FALSE           => 3,
+ DECIMAL_LITERAL => 3,
+ LPAREN          => 3,
+ RPAREN          => 1,
+ LBRACK          => 3,
+ RBRACK          => 3,
+ COMMA           => 3,
+ DOT             => 3,
+ INC             => 3,
+ DEC             => 3,
+ ADD             => 3,
+ SUB             => 3,
+ MUL             => 3,
+ DIV             => 3,
+ MOD             => 3,
+ IDENTIFIER      => 3,
+ Wisi_EOI        => 3)
+Ignore_Check_Fail => 0
+Task_Count        => 0
+Cost_Limit        => 2147483647
+Check_Limit       => 4
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 10000
+
+LR1 Parse Table:
+State 0:
+     25.0:wisitoken_accept <= ^ expression Wisi_EOI, Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 3
+   TRUE                 => shift and goto state 4
+   FALSE                => shift and goto state 5
+   DECIMAL_LITERAL      => shift and goto state 6
+   LPAREN               => shift and goto state 7
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 12
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 13
+   literal              goto state 14
+   methodCall           goto state 15
+   expression           goto state 16
+   primary              goto state 17
+   typeType             goto state 18
+   primitiveType        goto state 19
+   nonterminal_020      goto state 20
+
+   Minimal_Complete_Action => THIS
+
+State 1:
+     33.0:primitiveType <= BOOLEAN ^, LBRACK/DOT
+
+   LBRACK               => reduce 1 tokens to primitiveType 33.0
+   DOT                  => reduce 1 tokens to primitiveType 33.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primitiveType
+
+State 2:
+     33.1:primitiveType <= INT ^, LBRACK/DOT
+
+   LBRACK               => reduce 1 tokens to primitiveType 33.1
+   DOT                  => reduce 1 tokens to primitiveType 33.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primitiveType
+
+State 3:
+     31.1:primary <= THIS ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to primary 31.1
+   DOT                  => reduce 1 tokens to primary 31.1
+   INC                  => reduce 1 tokens to primary 31.1
+   DEC                  => reduce 1 tokens to primary 31.1
+   ADD                  => reduce 1 tokens to primary 31.1
+   SUB                  => reduce 1 tokens to primary 31.1
+   MUL                  => reduce 1 tokens to primary 31.1
+   DIV                  => reduce 1 tokens to primary 31.1
+   MOD                  => reduce 1 tokens to primary 31.1
+   Wisi_EOI             => reduce 1 tokens to primary 31.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 4:
+     26.0:BOOL_LITERAL <= TRUE ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.0
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   Wisi_EOI             => reduce 1 tokens to BOOL_LITERAL 26.0
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 5:
+     26.1:BOOL_LITERAL <= FALSE ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.1
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   Wisi_EOI             => reduce 1 tokens to BOOL_LITERAL 26.1
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 6:
+     27.0:literal <= DECIMAL_LITERAL ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to literal 27.0
+   DOT                  => reduce 1 tokens to literal 27.0
+   INC                  => reduce 1 tokens to literal 27.0
+   DEC                  => reduce 1 tokens to literal 27.0
+   ADD                  => reduce 1 tokens to literal 27.0
+   SUB                  => reduce 1 tokens to literal 27.0
+   MUL                  => reduce 1 tokens to literal 27.0
+   DIV                  => reduce 1 tokens to literal 27.0
+   MOD                  => reduce 1 tokens to literal 27.0
+   Wisi_EOI             => reduce 1 tokens to literal 27.0
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 7:
+     30.4:expression <= LPAREN ^ typeType RPAREN expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     31.0:primary <= LPAREN ^ expression RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 21
+   INT                  => shift and goto state 22
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 32
+   primary              goto state 33
+   typeType             goto state 34
+   primitiveType        goto state 35
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 8:
+     36.2:nonterminal_020 <= INC ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_020 36.2
+   INT                  => reduce 1 tokens to nonterminal_020 36.2
+   THIS                 => reduce 1 tokens to nonterminal_020 36.2
+   TRUE                 => reduce 1 tokens to nonterminal_020 36.2
+   FALSE                => reduce 1 tokens to nonterminal_020 36.2
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_020 36.2
+   LPAREN               => reduce 1 tokens to nonterminal_020 36.2
+   INC                  => reduce 1 tokens to nonterminal_020 36.2
+   DEC                  => reduce 1 tokens to nonterminal_020 36.2
+   ADD                  => reduce 1 tokens to nonterminal_020 36.2
+   SUB                  => reduce 1 tokens to nonterminal_020 36.2
+   IDENTIFIER           => reduce 1 tokens to nonterminal_020 36.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_020
+
+State 9:
+     36.3:nonterminal_020 <= DEC ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_020 36.3
+   INT                  => reduce 1 tokens to nonterminal_020 36.3
+   THIS                 => reduce 1 tokens to nonterminal_020 36.3
+   TRUE                 => reduce 1 tokens to nonterminal_020 36.3
+   FALSE                => reduce 1 tokens to nonterminal_020 36.3
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_020 36.3
+   LPAREN               => reduce 1 tokens to nonterminal_020 36.3
+   INC                  => reduce 1 tokens to nonterminal_020 36.3
+   DEC                  => reduce 1 tokens to nonterminal_020 36.3
+   ADD                  => reduce 1 tokens to nonterminal_020 36.3
+   SUB                  => reduce 1 tokens to nonterminal_020 36.3
+   IDENTIFIER           => reduce 1 tokens to nonterminal_020 36.3
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_020
+
+State 10:
+     36.0:nonterminal_020 <= ADD ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_020 36.0
+   INT                  => reduce 1 tokens to nonterminal_020 36.0
+   THIS                 => reduce 1 tokens to nonterminal_020 36.0
+   TRUE                 => reduce 1 tokens to nonterminal_020 36.0
+   FALSE                => reduce 1 tokens to nonterminal_020 36.0
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_020 36.0
+   LPAREN               => reduce 1 tokens to nonterminal_020 36.0
+   INC                  => reduce 1 tokens to nonterminal_020 36.0
+   DEC                  => reduce 1 tokens to nonterminal_020 36.0
+   ADD                  => reduce 1 tokens to nonterminal_020 36.0
+   SUB                  => reduce 1 tokens to nonterminal_020 36.0
+   IDENTIFIER           => reduce 1 tokens to nonterminal_020 36.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_020
+
+State 11:
+     36.1:nonterminal_020 <= SUB ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_020 36.1
+   INT                  => reduce 1 tokens to nonterminal_020 36.1
+   THIS                 => reduce 1 tokens to nonterminal_020 36.1
+   TRUE                 => reduce 1 tokens to nonterminal_020 36.1
+   FALSE                => reduce 1 tokens to nonterminal_020 36.1
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_020 36.1
+   LPAREN               => reduce 1 tokens to nonterminal_020 36.1
+   INC                  => reduce 1 tokens to nonterminal_020 36.1
+   DEC                  => reduce 1 tokens to nonterminal_020 36.1
+   ADD                  => reduce 1 tokens to nonterminal_020 36.1
+   SUB                  => reduce 1 tokens to nonterminal_020 36.1
+   IDENTIFIER           => reduce 1 tokens to nonterminal_020 36.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_020
+
+State 12:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     31.3:primary <= IDENTIFIER ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LPAREN               => shift and goto state 37
+   LBRACK               => reduce 1 tokens to primary 31.3
+   DOT                  => reduce 1 tokens to primary 31.3
+   INC                  => reduce 1 tokens to primary 31.3
+   DEC                  => reduce 1 tokens to primary 31.3
+   ADD                  => reduce 1 tokens to primary 31.3
+   SUB                  => reduce 1 tokens to primary 31.3
+   MUL                  => reduce 1 tokens to primary 31.3
+   DIV                  => reduce 1 tokens to primary 31.3
+   MOD                  => reduce 1 tokens to primary 31.3
+   Wisi_EOI             => reduce 1 tokens to primary 31.3
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 13:
+     27.1:literal <= BOOL_LITERAL ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to literal 27.1
+   DOT                  => reduce 1 tokens to literal 27.1
+   INC                  => reduce 1 tokens to literal 27.1
+   DEC                  => reduce 1 tokens to literal 27.1
+   ADD                  => reduce 1 tokens to literal 27.1
+   SUB                  => reduce 1 tokens to literal 27.1
+   MUL                  => reduce 1 tokens to literal 27.1
+   DIV                  => reduce 1 tokens to literal 27.1
+   MOD                  => reduce 1 tokens to literal 27.1
+   Wisi_EOI             => reduce 1 tokens to literal 27.1
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 14:
+     31.2:primary <= literal ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to primary 31.2
+   DOT                  => reduce 1 tokens to primary 31.2
+   INC                  => reduce 1 tokens to primary 31.2
+   DEC                  => reduce 1 tokens to primary 31.2
+   ADD                  => reduce 1 tokens to primary 31.2
+   SUB                  => reduce 1 tokens to primary 31.2
+   MUL                  => reduce 1 tokens to primary 31.2
+   DIV                  => reduce 1 tokens to primary 31.2
+   MOD                  => reduce 1 tokens to primary 31.2
+   Wisi_EOI             => reduce 1 tokens to primary 31.2
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 15:
+     30.3:expression <= methodCall ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to expression 30.3
+   DOT                  => reduce 1 tokens to expression 30.3
+   INC                  => reduce 1 tokens to expression 30.3
+   DEC                  => reduce 1 tokens to expression 30.3
+   ADD                  => reduce 1 tokens to expression 30.3
+   SUB                  => reduce 1 tokens to expression 30.3
+   MUL                  => reduce 1 tokens to expression 30.3
+   DIV                  => reduce 1 tokens to expression 30.3
+   MOD                  => reduce 1 tokens to expression 30.3
+   Wisi_EOI             => reduce 1 tokens to expression 30.3
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 16:
+     25.0:wisitoken_accept <= expression ^ Wisi_EOI, Wisi_EOI
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => shift and goto state 38
+   DOT                  => shift and goto state 39
+   INC                  => shift and goto state 40
+   DEC                  => shift and goto state 41
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   Wisi_EOI             => accept it 25.0
+   default              => ERROR
+
+   nonterminal_015      goto state 47
+   nonterminal_024      goto state 48
+   nonterminal_027      goto state 49
+
+   Minimal_Complete_Action => 
+
+State 17:
+     30.0:expression <= primary ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to expression 30.0
+   DOT                  => reduce 1 tokens to expression 30.0
+   INC                  => reduce 1 tokens to expression 30.0
+   DEC                  => reduce 1 tokens to expression 30.0
+   ADD                  => reduce 1 tokens to expression 30.0
+   SUB                  => reduce 1 tokens to expression 30.0
+   MUL                  => reduce 1 tokens to expression 30.0
+   DIV                  => reduce 1 tokens to expression 30.0
+   MOD                  => reduce 1 tokens to expression 30.0
+   Wisi_EOI             => reduce 1 tokens to expression 30.0
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 18:
+     31.4:primary <= typeType ^ DOT CLASS, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   DOT                  => shift and goto state 50
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 19:
+     32.0:typeType <= primitiveType ^ nonterminal_033_list, DOT
+     32.1:typeType <= primitiveType ^, DOT
+
+   LBRACK               => shift and goto state 51
+   DOT                  => reduce 1 tokens to typeType 32.1
+   default              => ERROR
+
+   nonterminal_034      goto state 52
+   nonterminal_033_list goto state 53
+
+   Minimal_Complete_Action => typeType
+
+State 20:
+     30.6:expression <= nonterminal_020 ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 3
+   TRUE                 => shift and goto state 4
+   FALSE                => shift and goto state 5
+   DECIMAL_LITERAL      => shift and goto state 6
+   LPAREN               => shift and goto state 7
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 12
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 13
+   literal              goto state 14
+   methodCall           goto state 15
+   expression           goto state 54
+   primary              goto state 17
+   typeType             goto state 18
+   primitiveType        goto state 19
+   nonterminal_020      goto state 20
+
+   Minimal_Complete_Action => THIS
+
+State 21:
+     33.0:primitiveType <= BOOLEAN ^, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 1 tokens to primitiveType 33.0
+   LBRACK               => reduce 1 tokens to primitiveType 33.0
+   DOT                  => reduce 1 tokens to primitiveType 33.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primitiveType
+
+State 22:
+     33.1:primitiveType <= INT ^, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 1 tokens to primitiveType 33.1
+   LBRACK               => reduce 1 tokens to primitiveType 33.1
+   DOT                  => reduce 1 tokens to primitiveType 33.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primitiveType
+
+State 23:
+     31.1:primary <= THIS ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to primary 31.1
+   LBRACK               => reduce 1 tokens to primary 31.1
+   DOT                  => reduce 1 tokens to primary 31.1
+   INC                  => reduce 1 tokens to primary 31.1
+   DEC                  => reduce 1 tokens to primary 31.1
+   ADD                  => reduce 1 tokens to primary 31.1
+   SUB                  => reduce 1 tokens to primary 31.1
+   MUL                  => reduce 1 tokens to primary 31.1
+   DIV                  => reduce 1 tokens to primary 31.1
+   MOD                  => reduce 1 tokens to primary 31.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 24:
+     26.0:BOOL_LITERAL <= TRUE ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to BOOL_LITERAL 26.0
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.0
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 25:
+     26.1:BOOL_LITERAL <= FALSE ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to BOOL_LITERAL 26.1
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.1
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 26:
+     27.0:literal <= DECIMAL_LITERAL ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to literal 27.0
+   LBRACK               => reduce 1 tokens to literal 27.0
+   DOT                  => reduce 1 tokens to literal 27.0
+   INC                  => reduce 1 tokens to literal 27.0
+   DEC                  => reduce 1 tokens to literal 27.0
+   ADD                  => reduce 1 tokens to literal 27.0
+   SUB                  => reduce 1 tokens to literal 27.0
+   MUL                  => reduce 1 tokens to literal 27.0
+   DIV                  => reduce 1 tokens to literal 27.0
+   MOD                  => reduce 1 tokens to literal 27.0
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 27:
+     30.4:expression <= LPAREN ^ typeType RPAREN expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN ^ expression RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 21
+   INT                  => shift and goto state 22
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 55
+   primary              goto state 33
+   typeType             goto state 56
+   primitiveType        goto state 35
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 28:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.3:primary <= IDENTIFIER ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 57
+   RPAREN               => reduce 1 tokens to primary 31.3
+   LBRACK               => reduce 1 tokens to primary 31.3
+   DOT                  => reduce 1 tokens to primary 31.3
+   INC                  => reduce 1 tokens to primary 31.3
+   DEC                  => reduce 1 tokens to primary 31.3
+   ADD                  => reduce 1 tokens to primary 31.3
+   SUB                  => reduce 1 tokens to primary 31.3
+   MUL                  => reduce 1 tokens to primary 31.3
+   DIV                  => reduce 1 tokens to primary 31.3
+   MOD                  => reduce 1 tokens to primary 31.3
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 29:
+     27.1:literal <= BOOL_LITERAL ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to literal 27.1
+   LBRACK               => reduce 1 tokens to literal 27.1
+   DOT                  => reduce 1 tokens to literal 27.1
+   INC                  => reduce 1 tokens to literal 27.1
+   DEC                  => reduce 1 tokens to literal 27.1
+   ADD                  => reduce 1 tokens to literal 27.1
+   SUB                  => reduce 1 tokens to literal 27.1
+   MUL                  => reduce 1 tokens to literal 27.1
+   DIV                  => reduce 1 tokens to literal 27.1
+   MOD                  => reduce 1 tokens to literal 27.1
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 30:
+     31.2:primary <= literal ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to primary 31.2
+   LBRACK               => reduce 1 tokens to primary 31.2
+   DOT                  => reduce 1 tokens to primary 31.2
+   INC                  => reduce 1 tokens to primary 31.2
+   DEC                  => reduce 1 tokens to primary 31.2
+   ADD                  => reduce 1 tokens to primary 31.2
+   SUB                  => reduce 1 tokens to primary 31.2
+   MUL                  => reduce 1 tokens to primary 31.2
+   DIV                  => reduce 1 tokens to primary 31.2
+   MOD                  => reduce 1 tokens to primary 31.2
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 31:
+     30.3:expression <= methodCall ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to expression 30.3
+   LBRACK               => reduce 1 tokens to expression 30.3
+   DOT                  => reduce 1 tokens to expression 30.3
+   INC                  => reduce 1 tokens to expression 30.3
+   DEC                  => reduce 1 tokens to expression 30.3
+   ADD                  => reduce 1 tokens to expression 30.3
+   SUB                  => reduce 1 tokens to expression 30.3
+   MUL                  => reduce 1 tokens to expression 30.3
+   DIV                  => reduce 1 tokens to expression 30.3
+   MOD                  => reduce 1 tokens to expression 30.3
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 32:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN expression ^ RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   RPAREN               => shift and goto state 58
+   LBRACK               => shift and goto state 59
+   DOT                  => shift and goto state 60
+   INC                  => shift and goto state 61
+   DEC                  => shift and goto state 62
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => RPAREN
+
+State 33:
+     30.0:expression <= primary ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to expression 30.0
+   LBRACK               => reduce 1 tokens to expression 30.0
+   DOT                  => reduce 1 tokens to expression 30.0
+   INC                  => reduce 1 tokens to expression 30.0
+   DEC                  => reduce 1 tokens to expression 30.0
+   ADD                  => reduce 1 tokens to expression 30.0
+   SUB                  => reduce 1 tokens to expression 30.0
+   MUL                  => reduce 1 tokens to expression 30.0
+   DIV                  => reduce 1 tokens to expression 30.0
+   MOD                  => reduce 1 tokens to expression 30.0
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 34:
+     30.4:expression <= LPAREN typeType ^ RPAREN expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 66
+   DOT                  => shift and goto state 67
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 35:
+     32.0:typeType <= primitiveType ^ nonterminal_033_list, RPAREN/DOT
+     32.1:typeType <= primitiveType ^, RPAREN/DOT
+
+   RPAREN               => reduce 1 tokens to typeType 32.1
+   LBRACK               => shift and goto state 68
+   DOT                  => reduce 1 tokens to typeType 32.1
+   default              => ERROR
+
+   nonterminal_034      goto state 69
+   nonterminal_033_list goto state 70
+
+   Minimal_Complete_Action => typeType
+
+State 36:
+     30.6:expression <= nonterminal_020 ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 71
+   primary              goto state 33
+   typeType             goto state 72
+   primitiveType        goto state 19
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 37:
+     29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     29.1:methodCall <= IDENTIFIER LPAREN ^ RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   RPAREN               => shift and goto state 78
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   expressionList       goto state 82
+   methodCall           goto state 83
+   expression           goto state 84
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => RPAREN
+
+State 38:
+     30.2:expression <= expression LBRACK ^ expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 97
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 39:
+     30.1:expression <= expression DOT ^ nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   THIS                 => shift and goto state 101
+   IDENTIFIER           => shift and goto state 102
+   default              => ERROR
+
+   methodCall           goto state 103
+   nonterminal_008      goto state 104
+
+   Minimal_Complete_Action => IDENTIFIER
+
+State 40:
+     35.0:nonterminal_015 <= INC ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.0
+   DOT                  => reduce 1 tokens to nonterminal_015 35.0
+   INC                  => reduce 1 tokens to nonterminal_015 35.0
+   DEC                  => reduce 1 tokens to nonterminal_015 35.0
+   ADD                  => reduce 1 tokens to nonterminal_015 35.0
+   SUB                  => reduce 1 tokens to nonterminal_015 35.0
+   MUL                  => reduce 1 tokens to nonterminal_015 35.0
+   DIV                  => reduce 1 tokens to nonterminal_015 35.0
+   MOD                  => reduce 1 tokens to nonterminal_015 35.0
+   Wisi_EOI             => reduce 1 tokens to nonterminal_015 35.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 41:
+     35.1:nonterminal_015 <= DEC ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.1
+   DOT                  => reduce 1 tokens to nonterminal_015 35.1
+   INC                  => reduce 1 tokens to nonterminal_015 35.1
+   DEC                  => reduce 1 tokens to nonterminal_015 35.1
+   ADD                  => reduce 1 tokens to nonterminal_015 35.1
+   SUB                  => reduce 1 tokens to nonterminal_015 35.1
+   MUL                  => reduce 1 tokens to nonterminal_015 35.1
+   DIV                  => reduce 1 tokens to nonterminal_015 35.1
+   MOD                  => reduce 1 tokens to nonterminal_015 35.1
+   Wisi_EOI             => reduce 1 tokens to nonterminal_015 35.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 42:
+     38.0:nonterminal_027 <= ADD ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_027 38.0
+   INT                  => reduce 1 tokens to nonterminal_027 38.0
+   THIS                 => reduce 1 tokens to nonterminal_027 38.0
+   TRUE                 => reduce 1 tokens to nonterminal_027 38.0
+   FALSE                => reduce 1 tokens to nonterminal_027 38.0
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_027 38.0
+   LPAREN               => reduce 1 tokens to nonterminal_027 38.0
+   INC                  => reduce 1 tokens to nonterminal_027 38.0
+   DEC                  => reduce 1 tokens to nonterminal_027 38.0
+   ADD                  => reduce 1 tokens to nonterminal_027 38.0
+   SUB                  => reduce 1 tokens to nonterminal_027 38.0
+   IDENTIFIER           => reduce 1 tokens to nonterminal_027 38.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_027
+
+State 43:
+     38.1:nonterminal_027 <= SUB ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_027 38.1
+   INT                  => reduce 1 tokens to nonterminal_027 38.1
+   THIS                 => reduce 1 tokens to nonterminal_027 38.1
+   TRUE                 => reduce 1 tokens to nonterminal_027 38.1
+   FALSE                => reduce 1 tokens to nonterminal_027 38.1
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_027 38.1
+   LPAREN               => reduce 1 tokens to nonterminal_027 38.1
+   INC                  => reduce 1 tokens to nonterminal_027 38.1
+   DEC                  => reduce 1 tokens to nonterminal_027 38.1
+   ADD                  => reduce 1 tokens to nonterminal_027 38.1
+   SUB                  => reduce 1 tokens to nonterminal_027 38.1
+   IDENTIFIER           => reduce 1 tokens to nonterminal_027 38.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_027
+
+State 44:
+     37.0:nonterminal_024 <= MUL ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_024 37.0
+   INT                  => reduce 1 tokens to nonterminal_024 37.0
+   THIS                 => reduce 1 tokens to nonterminal_024 37.0
+   TRUE                 => reduce 1 tokens to nonterminal_024 37.0
+   FALSE                => reduce 1 tokens to nonterminal_024 37.0
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_024 37.0
+   LPAREN               => reduce 1 tokens to nonterminal_024 37.0
+   INC                  => reduce 1 tokens to nonterminal_024 37.0
+   DEC                  => reduce 1 tokens to nonterminal_024 37.0
+   ADD                  => reduce 1 tokens to nonterminal_024 37.0
+   SUB                  => reduce 1 tokens to nonterminal_024 37.0
+   IDENTIFIER           => reduce 1 tokens to nonterminal_024 37.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_024
+
+State 45:
+     37.1:nonterminal_024 <= DIV ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_024 37.1
+   INT                  => reduce 1 tokens to nonterminal_024 37.1
+   THIS                 => reduce 1 tokens to nonterminal_024 37.1
+   TRUE                 => reduce 1 tokens to nonterminal_024 37.1
+   FALSE                => reduce 1 tokens to nonterminal_024 37.1
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_024 37.1
+   LPAREN               => reduce 1 tokens to nonterminal_024 37.1
+   INC                  => reduce 1 tokens to nonterminal_024 37.1
+   DEC                  => reduce 1 tokens to nonterminal_024 37.1
+   ADD                  => reduce 1 tokens to nonterminal_024 37.1
+   SUB                  => reduce 1 tokens to nonterminal_024 37.1
+   IDENTIFIER           => reduce 1 tokens to nonterminal_024 37.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_024
+
+State 46:
+     37.2:nonterminal_024 <= MOD ^, BOOLEAN/INT/THIS/TRUE/FALSE/DECIMAL_LITERAL/LPAREN/INC/DEC/ADD/SUB/IDENTIFIER
+
+   BOOLEAN              => reduce 1 tokens to nonterminal_024 37.2
+   INT                  => reduce 1 tokens to nonterminal_024 37.2
+   THIS                 => reduce 1 tokens to nonterminal_024 37.2
+   TRUE                 => reduce 1 tokens to nonterminal_024 37.2
+   FALSE                => reduce 1 tokens to nonterminal_024 37.2
+   DECIMAL_LITERAL      => reduce 1 tokens to nonterminal_024 37.2
+   LPAREN               => reduce 1 tokens to nonterminal_024 37.2
+   INC                  => reduce 1 tokens to nonterminal_024 37.2
+   DEC                  => reduce 1 tokens to nonterminal_024 37.2
+   ADD                  => reduce 1 tokens to nonterminal_024 37.2
+   SUB                  => reduce 1 tokens to nonterminal_024 37.2
+   IDENTIFIER           => reduce 1 tokens to nonterminal_024 37.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_024
+
+State 47:
+     30.5:expression <= expression nonterminal_015 ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 2 tokens to expression 30.5
+   DOT                  => reduce 2 tokens to expression 30.5
+   INC                  => reduce 2 tokens to expression 30.5
+   DEC                  => reduce 2 tokens to expression 30.5
+   ADD                  => reduce 2 tokens to expression 30.5
+   SUB                  => reduce 2 tokens to expression 30.5
+   MUL                  => reduce 2 tokens to expression 30.5
+   DIV                  => reduce 2 tokens to expression 30.5
+   MOD                  => reduce 2 tokens to expression 30.5
+   Wisi_EOI             => reduce 2 tokens to expression 30.5
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 48:
+     30.7:expression <= expression nonterminal_024 ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 3
+   TRUE                 => shift and goto state 4
+   FALSE                => shift and goto state 5
+   DECIMAL_LITERAL      => shift and goto state 6
+   LPAREN               => shift and goto state 7
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 12
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 13
+   literal              goto state 14
+   methodCall           goto state 15
+   expression           goto state 105
+   primary              goto state 17
+   typeType             goto state 18
+   primitiveType        goto state 19
+   nonterminal_020      goto state 20
+
+   Minimal_Complete_Action => THIS
+
+State 49:
+     30.8:expression <= expression nonterminal_027 ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 3
+   TRUE                 => shift and goto state 4
+   FALSE                => shift and goto state 5
+   DECIMAL_LITERAL      => shift and goto state 6
+   LPAREN               => shift and goto state 7
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 12
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 13
+   literal              goto state 14
+   methodCall           goto state 15
+   expression           goto state 106
+   primary              goto state 17
+   typeType             goto state 18
+   primitiveType        goto state 19
+   nonterminal_020      goto state 20
+
+   Minimal_Complete_Action => THIS
+
+State 50:
+     31.4:primary <= typeType DOT ^ CLASS, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   CLASS                => shift and goto state 107
+   default              => ERROR
+
+   Minimal_Complete_Action => CLASS
+
+State 51:
+     39.0:nonterminal_034 <= LBRACK ^ RBRACK, LBRACK/DOT
+
+   RBRACK               => shift and goto state 108
+   default              => ERROR
+
+   Minimal_Complete_Action => RBRACK
+
+State 52:
+     40.0:nonterminal_033_list <= nonterminal_034 ^, LBRACK/DOT
+
+   LBRACK               => reduce 1 tokens to nonterminal_033_list 40.0
+   DOT                  => reduce 1 tokens to nonterminal_033_list 40.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_033_list
+
+State 53:
+     32.0:typeType <= primitiveType nonterminal_033_list ^, DOT
+     40.1:nonterminal_033_list <= nonterminal_033_list ^ nonterminal_034, LBRACK/DOT
+
+   LBRACK               => shift and goto state 51
+   DOT                  => reduce 2 tokens to typeType 32.0
+   default              => ERROR
+
+   nonterminal_034      goto state 109
+
+   Minimal_Complete_Action => typeType
+
+State 54:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.6:expression <= nonterminal_020 expression ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => shift and goto state 38,
+                           reduce 2 tokens to expression 30.6
+   DOT                  => shift and goto state 39,
+                           reduce 2 tokens to expression 30.6
+   INC                  => shift and goto state 40,
+                           reduce 2 tokens to expression 30.6
+   DEC                  => shift and goto state 41,
+                           reduce 2 tokens to expression 30.6
+   ADD                  => shift and goto state 42,
+                           reduce 2 tokens to expression 30.6
+   SUB                  => shift and goto state 43,
+                           reduce 2 tokens to expression 30.6
+   MUL                  => shift and goto state 44,
+                           reduce 2 tokens to expression 30.6
+   DIV                  => shift and goto state 45,
+                           reduce 2 tokens to expression 30.6
+   MOD                  => shift and goto state 46,
+                           reduce 2 tokens to expression 30.6
+   Wisi_EOI             => reduce 2 tokens to expression 30.6
+   default              => ERROR
+
+   nonterminal_015      goto state 47
+   nonterminal_024      goto state 48
+   nonterminal_027      goto state 49
+
+   Minimal_Complete_Action => expression
+
+State 55:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN expression ^ RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 110
+   LBRACK               => shift and goto state 59
+   DOT                  => shift and goto state 60
+   INC                  => shift and goto state 61
+   DEC                  => shift and goto state 62
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => RPAREN
+
+State 56:
+     30.4:expression <= LPAREN typeType ^ RPAREN expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 111
+   DOT                  => shift and goto state 67
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 57:
+     29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER LPAREN ^ RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   RPAREN               => shift and goto state 112
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   expressionList       goto state 113
+   methodCall           goto state 83
+   expression           goto state 84
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => RPAREN
+
+State 58:
+     31.0:primary <= LPAREN expression RPAREN ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 3 tokens to primary 31.0
+   DOT                  => reduce 3 tokens to primary 31.0
+   INC                  => reduce 3 tokens to primary 31.0
+   DEC                  => reduce 3 tokens to primary 31.0
+   ADD                  => reduce 3 tokens to primary 31.0
+   SUB                  => reduce 3 tokens to primary 31.0
+   MUL                  => reduce 3 tokens to primary 31.0
+   DIV                  => reduce 3 tokens to primary 31.0
+   MOD                  => reduce 3 tokens to primary 31.0
+   Wisi_EOI             => reduce 3 tokens to primary 31.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 59:
+     30.2:expression <= expression LBRACK ^ expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 114
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 60:
+     30.1:expression <= expression DOT ^ nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   THIS                 => shift and goto state 115
+   IDENTIFIER           => shift and goto state 116
+   default              => ERROR
+
+   methodCall           goto state 117
+   nonterminal_008      goto state 118
+
+   Minimal_Complete_Action => IDENTIFIER
+
+State 61:
+     35.0:nonterminal_015 <= INC ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_015 35.0
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.0
+   DOT                  => reduce 1 tokens to nonterminal_015 35.0
+   INC                  => reduce 1 tokens to nonterminal_015 35.0
+   DEC                  => reduce 1 tokens to nonterminal_015 35.0
+   ADD                  => reduce 1 tokens to nonterminal_015 35.0
+   SUB                  => reduce 1 tokens to nonterminal_015 35.0
+   MUL                  => reduce 1 tokens to nonterminal_015 35.0
+   DIV                  => reduce 1 tokens to nonterminal_015 35.0
+   MOD                  => reduce 1 tokens to nonterminal_015 35.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 62:
+     35.1:nonterminal_015 <= DEC ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_015 35.1
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.1
+   DOT                  => reduce 1 tokens to nonterminal_015 35.1
+   INC                  => reduce 1 tokens to nonterminal_015 35.1
+   DEC                  => reduce 1 tokens to nonterminal_015 35.1
+   ADD                  => reduce 1 tokens to nonterminal_015 35.1
+   SUB                  => reduce 1 tokens to nonterminal_015 35.1
+   MUL                  => reduce 1 tokens to nonterminal_015 35.1
+   DIV                  => reduce 1 tokens to nonterminal_015 35.1
+   MOD                  => reduce 1 tokens to nonterminal_015 35.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 63:
+     30.5:expression <= expression nonterminal_015 ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 2 tokens to expression 30.5
+   LBRACK               => reduce 2 tokens to expression 30.5
+   DOT                  => reduce 2 tokens to expression 30.5
+   INC                  => reduce 2 tokens to expression 30.5
+   DEC                  => reduce 2 tokens to expression 30.5
+   ADD                  => reduce 2 tokens to expression 30.5
+   SUB                  => reduce 2 tokens to expression 30.5
+   MUL                  => reduce 2 tokens to expression 30.5
+   DIV                  => reduce 2 tokens to expression 30.5
+   MOD                  => reduce 2 tokens to expression 30.5
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 64:
+     30.7:expression <= expression nonterminal_024 ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 119
+   primary              goto state 33
+   typeType             goto state 72
+   primitiveType        goto state 19
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 65:
+     30.8:expression <= expression nonterminal_027 ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 120
+   primary              goto state 33
+   typeType             goto state 72
+   primitiveType        goto state 19
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 66:
+     30.4:expression <= LPAREN typeType RPAREN ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 3
+   TRUE                 => shift and goto state 4
+   FALSE                => shift and goto state 5
+   DECIMAL_LITERAL      => shift and goto state 6
+   LPAREN               => shift and goto state 7
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 12
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 13
+   literal              goto state 14
+   methodCall           goto state 15
+   expression           goto state 121
+   primary              goto state 17
+   typeType             goto state 18
+   primitiveType        goto state 19
+   nonterminal_020      goto state 20
+
+   Minimal_Complete_Action => THIS
+
+State 67:
+     31.4:primary <= typeType DOT ^ CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   CLASS                => shift and goto state 122
+   default              => ERROR
+
+   Minimal_Complete_Action => CLASS
+
+State 68:
+     39.0:nonterminal_034 <= LBRACK ^ RBRACK, RPAREN/LBRACK/DOT
+
+   RBRACK               => shift and goto state 123
+   default              => ERROR
+
+   Minimal_Complete_Action => RBRACK
+
+State 69:
+     40.0:nonterminal_033_list <= nonterminal_034 ^, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 1 tokens to nonterminal_033_list 40.0
+   LBRACK               => reduce 1 tokens to nonterminal_033_list 40.0
+   DOT                  => reduce 1 tokens to nonterminal_033_list 40.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_033_list
+
+State 70:
+     32.0:typeType <= primitiveType nonterminal_033_list ^, RPAREN/DOT
+     40.1:nonterminal_033_list <= nonterminal_033_list ^ nonterminal_034, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 2 tokens to typeType 32.0
+   LBRACK               => shift and goto state 68
+   DOT                  => reduce 2 tokens to typeType 32.0
+   default              => ERROR
+
+   nonterminal_034      goto state 124
+
+   Minimal_Complete_Action => typeType
+
+State 71:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.6:expression <= nonterminal_020 expression ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 2 tokens to expression 30.6
+   LBRACK               => shift and goto state 59,
+                           reduce 2 tokens to expression 30.6
+   DOT                  => shift and goto state 60,
+                           reduce 2 tokens to expression 30.6
+   INC                  => shift and goto state 61,
+                           reduce 2 tokens to expression 30.6
+   DEC                  => shift and goto state 62,
+                           reduce 2 tokens to expression 30.6
+   ADD                  => shift and goto state 42,
+                           reduce 2 tokens to expression 30.6
+   SUB                  => shift and goto state 43,
+                           reduce 2 tokens to expression 30.6
+   MUL                  => shift and goto state 44,
+                           reduce 2 tokens to expression 30.6
+   DIV                  => shift and goto state 45,
+                           reduce 2 tokens to expression 30.6
+   MOD                  => shift and goto state 46,
+                           reduce 2 tokens to expression 30.6
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => expression
+
+State 72:
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   DOT                  => shift and goto state 67
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 73:
+     31.1:primary <= THIS ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to primary 31.1
+   LBRACK               => reduce 1 tokens to primary 31.1
+   COMMA                => reduce 1 tokens to primary 31.1
+   DOT                  => reduce 1 tokens to primary 31.1
+   INC                  => reduce 1 tokens to primary 31.1
+   DEC                  => reduce 1 tokens to primary 31.1
+   ADD                  => reduce 1 tokens to primary 31.1
+   SUB                  => reduce 1 tokens to primary 31.1
+   MUL                  => reduce 1 tokens to primary 31.1
+   DIV                  => reduce 1 tokens to primary 31.1
+   MOD                  => reduce 1 tokens to primary 31.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 74:
+     26.0:BOOL_LITERAL <= TRUE ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to BOOL_LITERAL 26.0
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.0
+   COMMA                => reduce 1 tokens to BOOL_LITERAL 26.0
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 75:
+     26.1:BOOL_LITERAL <= FALSE ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to BOOL_LITERAL 26.1
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.1
+   COMMA                => reduce 1 tokens to BOOL_LITERAL 26.1
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 76:
+     27.0:literal <= DECIMAL_LITERAL ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to literal 27.0
+   LBRACK               => reduce 1 tokens to literal 27.0
+   COMMA                => reduce 1 tokens to literal 27.0
+   DOT                  => reduce 1 tokens to literal 27.0
+   INC                  => reduce 1 tokens to literal 27.0
+   DEC                  => reduce 1 tokens to literal 27.0
+   ADD                  => reduce 1 tokens to literal 27.0
+   SUB                  => reduce 1 tokens to literal 27.0
+   MUL                  => reduce 1 tokens to literal 27.0
+   DIV                  => reduce 1 tokens to literal 27.0
+   MOD                  => reduce 1 tokens to literal 27.0
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 77:
+     30.4:expression <= LPAREN ^ typeType RPAREN expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN ^ expression RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 21
+   INT                  => shift and goto state 22
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 125
+   primary              goto state 33
+   typeType             goto state 126
+   primitiveType        goto state 35
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 78:
+     29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 3 tokens to methodCall 29.1
+   DOT                  => reduce 3 tokens to methodCall 29.1
+   INC                  => reduce 3 tokens to methodCall 29.1
+   DEC                  => reduce 3 tokens to methodCall 29.1
+   ADD                  => reduce 3 tokens to methodCall 29.1
+   SUB                  => reduce 3 tokens to methodCall 29.1
+   MUL                  => reduce 3 tokens to methodCall 29.1
+   DIV                  => reduce 3 tokens to methodCall 29.1
+   MOD                  => reduce 3 tokens to methodCall 29.1
+   Wisi_EOI             => reduce 3 tokens to methodCall 29.1
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 79:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.3:primary <= IDENTIFIER ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 127
+   RPAREN               => reduce 1 tokens to primary 31.3
+   LBRACK               => reduce 1 tokens to primary 31.3
+   COMMA                => reduce 1 tokens to primary 31.3
+   DOT                  => reduce 1 tokens to primary 31.3
+   INC                  => reduce 1 tokens to primary 31.3
+   DEC                  => reduce 1 tokens to primary 31.3
+   ADD                  => reduce 1 tokens to primary 31.3
+   SUB                  => reduce 1 tokens to primary 31.3
+   MUL                  => reduce 1 tokens to primary 31.3
+   DIV                  => reduce 1 tokens to primary 31.3
+   MOD                  => reduce 1 tokens to primary 31.3
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 80:
+     27.1:literal <= BOOL_LITERAL ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to literal 27.1
+   LBRACK               => reduce 1 tokens to literal 27.1
+   COMMA                => reduce 1 tokens to literal 27.1
+   DOT                  => reduce 1 tokens to literal 27.1
+   INC                  => reduce 1 tokens to literal 27.1
+   DEC                  => reduce 1 tokens to literal 27.1
+   ADD                  => reduce 1 tokens to literal 27.1
+   SUB                  => reduce 1 tokens to literal 27.1
+   MUL                  => reduce 1 tokens to literal 27.1
+   DIV                  => reduce 1 tokens to literal 27.1
+   MOD                  => reduce 1 tokens to literal 27.1
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 81:
+     31.2:primary <= literal ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to primary 31.2
+   LBRACK               => reduce 1 tokens to primary 31.2
+   COMMA                => reduce 1 tokens to primary 31.2
+   DOT                  => reduce 1 tokens to primary 31.2
+   INC                  => reduce 1 tokens to primary 31.2
+   DEC                  => reduce 1 tokens to primary 31.2
+   ADD                  => reduce 1 tokens to primary 31.2
+   SUB                  => reduce 1 tokens to primary 31.2
+   MUL                  => reduce 1 tokens to primary 31.2
+   DIV                  => reduce 1 tokens to primary 31.2
+   MOD                  => reduce 1 tokens to primary 31.2
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 82:
+     28.1:expressionList <= expressionList ^ COMMA expression, RPAREN/COMMA
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   RPAREN               => shift and goto state 128
+   COMMA                => shift and goto state 129
+   default              => ERROR
+
+   Minimal_Complete_Action => RPAREN
+
+State 83:
+     30.3:expression <= methodCall ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to expression 30.3
+   LBRACK               => reduce 1 tokens to expression 30.3
+   COMMA                => reduce 1 tokens to expression 30.3
+   DOT                  => reduce 1 tokens to expression 30.3
+   INC                  => reduce 1 tokens to expression 30.3
+   DEC                  => reduce 1 tokens to expression 30.3
+   ADD                  => reduce 1 tokens to expression 30.3
+   SUB                  => reduce 1 tokens to expression 30.3
+   MUL                  => reduce 1 tokens to expression 30.3
+   DIV                  => reduce 1 tokens to expression 30.3
+   MOD                  => reduce 1 tokens to expression 30.3
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 84:
+     28.0:expressionList <= expression ^, RPAREN/COMMA
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to expressionList 28.0
+   LBRACK               => shift and goto state 130
+   COMMA                => reduce 1 tokens to expressionList 28.0
+   DOT                  => shift and goto state 131
+   INC                  => shift and goto state 132
+   DEC                  => shift and goto state 133
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expressionList
+
+State 85:
+     30.0:expression <= primary ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to expression 30.0
+   LBRACK               => reduce 1 tokens to expression 30.0
+   COMMA                => reduce 1 tokens to expression 30.0
+   DOT                  => reduce 1 tokens to expression 30.0
+   INC                  => reduce 1 tokens to expression 30.0
+   DEC                  => reduce 1 tokens to expression 30.0
+   ADD                  => reduce 1 tokens to expression 30.0
+   SUB                  => reduce 1 tokens to expression 30.0
+   MUL                  => reduce 1 tokens to expression 30.0
+   DIV                  => reduce 1 tokens to expression 30.0
+   MOD                  => reduce 1 tokens to expression 30.0
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 86:
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   DOT                  => shift and goto state 137
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 87:
+     30.6:expression <= nonterminal_020 ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   methodCall           goto state 83
+   expression           goto state 138
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => THIS
+
+State 88:
+     31.1:primary <= THIS ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to primary 31.1
+   RBRACK               => reduce 1 tokens to primary 31.1
+   DOT                  => reduce 1 tokens to primary 31.1
+   INC                  => reduce 1 tokens to primary 31.1
+   DEC                  => reduce 1 tokens to primary 31.1
+   ADD                  => reduce 1 tokens to primary 31.1
+   SUB                  => reduce 1 tokens to primary 31.1
+   MUL                  => reduce 1 tokens to primary 31.1
+   DIV                  => reduce 1 tokens to primary 31.1
+   MOD                  => reduce 1 tokens to primary 31.1
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 89:
+     26.0:BOOL_LITERAL <= TRUE ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.0
+   RBRACK               => reduce 1 tokens to BOOL_LITERAL 26.0
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.0
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 90:
+     26.1:BOOL_LITERAL <= FALSE ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to BOOL_LITERAL 26.1
+   RBRACK               => reduce 1 tokens to BOOL_LITERAL 26.1
+   DOT                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   INC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DEC                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   ADD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   SUB                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MUL                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   DIV                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   MOD                  => reduce 1 tokens to BOOL_LITERAL 26.1
+   default              => ERROR
+
+   Minimal_Complete_Action => BOOL_LITERAL
+
+State 91:
+     27.0:literal <= DECIMAL_LITERAL ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to literal 27.0
+   RBRACK               => reduce 1 tokens to literal 27.0
+   DOT                  => reduce 1 tokens to literal 27.0
+   INC                  => reduce 1 tokens to literal 27.0
+   DEC                  => reduce 1 tokens to literal 27.0
+   ADD                  => reduce 1 tokens to literal 27.0
+   SUB                  => reduce 1 tokens to literal 27.0
+   MUL                  => reduce 1 tokens to literal 27.0
+   DIV                  => reduce 1 tokens to literal 27.0
+   MOD                  => reduce 1 tokens to literal 27.0
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 92:
+     30.4:expression <= LPAREN ^ typeType RPAREN expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN ^ expression RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 21
+   INT                  => shift and goto state 22
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 139
+   primary              goto state 33
+   typeType             goto state 140
+   primitiveType        goto state 35
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 93:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.3:primary <= IDENTIFIER ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 141
+   LBRACK               => reduce 1 tokens to primary 31.3
+   RBRACK               => reduce 1 tokens to primary 31.3
+   DOT                  => reduce 1 tokens to primary 31.3
+   INC                  => reduce 1 tokens to primary 31.3
+   DEC                  => reduce 1 tokens to primary 31.3
+   ADD                  => reduce 1 tokens to primary 31.3
+   SUB                  => reduce 1 tokens to primary 31.3
+   MUL                  => reduce 1 tokens to primary 31.3
+   DIV                  => reduce 1 tokens to primary 31.3
+   MOD                  => reduce 1 tokens to primary 31.3
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 94:
+     27.1:literal <= BOOL_LITERAL ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to literal 27.1
+   RBRACK               => reduce 1 tokens to literal 27.1
+   DOT                  => reduce 1 tokens to literal 27.1
+   INC                  => reduce 1 tokens to literal 27.1
+   DEC                  => reduce 1 tokens to literal 27.1
+   ADD                  => reduce 1 tokens to literal 27.1
+   SUB                  => reduce 1 tokens to literal 27.1
+   MUL                  => reduce 1 tokens to literal 27.1
+   DIV                  => reduce 1 tokens to literal 27.1
+   MOD                  => reduce 1 tokens to literal 27.1
+   default              => ERROR
+
+   Minimal_Complete_Action => literal
+
+State 95:
+     31.2:primary <= literal ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to primary 31.2
+   RBRACK               => reduce 1 tokens to primary 31.2
+   DOT                  => reduce 1 tokens to primary 31.2
+   INC                  => reduce 1 tokens to primary 31.2
+   DEC                  => reduce 1 tokens to primary 31.2
+   ADD                  => reduce 1 tokens to primary 31.2
+   SUB                  => reduce 1 tokens to primary 31.2
+   MUL                  => reduce 1 tokens to primary 31.2
+   DIV                  => reduce 1 tokens to primary 31.2
+   MOD                  => reduce 1 tokens to primary 31.2
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 96:
+     30.3:expression <= methodCall ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to expression 30.3
+   RBRACK               => reduce 1 tokens to expression 30.3
+   DOT                  => reduce 1 tokens to expression 30.3
+   INC                  => reduce 1 tokens to expression 30.3
+   DEC                  => reduce 1 tokens to expression 30.3
+   ADD                  => reduce 1 tokens to expression 30.3
+   SUB                  => reduce 1 tokens to expression 30.3
+   MUL                  => reduce 1 tokens to expression 30.3
+   DIV                  => reduce 1 tokens to expression 30.3
+   MOD                  => reduce 1 tokens to expression 30.3
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 97:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression LBRACK expression ^ RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142
+   RBRACK               => shift and goto state 143
+   DOT                  => shift and goto state 144
+   INC                  => shift and goto state 145
+   DEC                  => shift and goto state 146
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => RBRACK
+
+State 98:
+     30.0:expression <= primary ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to expression 30.0
+   RBRACK               => reduce 1 tokens to expression 30.0
+   DOT                  => reduce 1 tokens to expression 30.0
+   INC                  => reduce 1 tokens to expression 30.0
+   DEC                  => reduce 1 tokens to expression 30.0
+   ADD                  => reduce 1 tokens to expression 30.0
+   SUB                  => reduce 1 tokens to expression 30.0
+   MUL                  => reduce 1 tokens to expression 30.0
+   DIV                  => reduce 1 tokens to expression 30.0
+   MOD                  => reduce 1 tokens to expression 30.0
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 99:
+     31.4:primary <= typeType ^ DOT CLASS, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   DOT                  => shift and goto state 150
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 100:
+     30.6:expression <= nonterminal_020 ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 151
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 101:
+     34.2:nonterminal_008 <= THIS ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.2
+   DOT                  => reduce 1 tokens to nonterminal_008 34.2
+   INC                  => reduce 1 tokens to nonterminal_008 34.2
+   DEC                  => reduce 1 tokens to nonterminal_008 34.2
+   ADD                  => reduce 1 tokens to nonterminal_008 34.2
+   SUB                  => reduce 1 tokens to nonterminal_008 34.2
+   MUL                  => reduce 1 tokens to nonterminal_008 34.2
+   DIV                  => reduce 1 tokens to nonterminal_008 34.2
+   MOD                  => reduce 1 tokens to nonterminal_008 34.2
+   Wisi_EOI             => reduce 1 tokens to nonterminal_008 34.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 102:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     34.0:nonterminal_008 <= IDENTIFIER ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LPAREN               => shift and goto state 37
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.0
+   DOT                  => reduce 1 tokens to nonterminal_008 34.0
+   INC                  => reduce 1 tokens to nonterminal_008 34.0
+   DEC                  => reduce 1 tokens to nonterminal_008 34.0
+   ADD                  => reduce 1 tokens to nonterminal_008 34.0
+   SUB                  => reduce 1 tokens to nonterminal_008 34.0
+   MUL                  => reduce 1 tokens to nonterminal_008 34.0
+   DIV                  => reduce 1 tokens to nonterminal_008 34.0
+   MOD                  => reduce 1 tokens to nonterminal_008 34.0
+   Wisi_EOI             => reduce 1 tokens to nonterminal_008 34.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 103:
+     34.1:nonterminal_008 <= methodCall ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.1
+   DOT                  => reduce 1 tokens to nonterminal_008 34.1
+   INC                  => reduce 1 tokens to nonterminal_008 34.1
+   DEC                  => reduce 1 tokens to nonterminal_008 34.1
+   ADD                  => reduce 1 tokens to nonterminal_008 34.1
+   SUB                  => reduce 1 tokens to nonterminal_008 34.1
+   MUL                  => reduce 1 tokens to nonterminal_008 34.1
+   DIV                  => reduce 1 tokens to nonterminal_008 34.1
+   MOD                  => reduce 1 tokens to nonterminal_008 34.1
+   Wisi_EOI             => reduce 1 tokens to nonterminal_008 34.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 104:
+     30.1:expression <= expression DOT nonterminal_008 ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 3 tokens to expression 30.1
+   DOT                  => reduce 3 tokens to expression 30.1
+   INC                  => reduce 3 tokens to expression 30.1
+   DEC                  => reduce 3 tokens to expression 30.1
+   ADD                  => reduce 3 tokens to expression 30.1
+   SUB                  => reduce 3 tokens to expression 30.1
+   MUL                  => reduce 3 tokens to expression 30.1
+   DIV                  => reduce 3 tokens to expression 30.1
+   MOD                  => reduce 3 tokens to expression 30.1
+   Wisi_EOI             => reduce 3 tokens to expression 30.1
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 105:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression nonterminal_024 expression ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => shift and goto state 38,
+                           reduce 3 tokens to expression 30.7
+   DOT                  => shift and goto state 39,
+                           reduce 3 tokens to expression 30.7
+   INC                  => shift and goto state 40,
+                           reduce 3 tokens to expression 30.7
+   DEC                  => shift and goto state 41,
+                           reduce 3 tokens to expression 30.7
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.7
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.7
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.7
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.7
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.7
+   Wisi_EOI             => reduce 3 tokens to expression 30.7
+   default              => ERROR
+
+   nonterminal_015      goto state 47
+   nonterminal_024      goto state 48
+   nonterminal_027      goto state 49
+
+   Minimal_Complete_Action => expression
+
+State 106:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression nonterminal_027 expression ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => shift and goto state 38,
+                           reduce 3 tokens to expression 30.8
+   DOT                  => shift and goto state 39,
+                           reduce 3 tokens to expression 30.8
+   INC                  => shift and goto state 40,
+                           reduce 3 tokens to expression 30.8
+   DEC                  => shift and goto state 41,
+                           reduce 3 tokens to expression 30.8
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.8
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.8
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.8
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.8
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.8
+   Wisi_EOI             => reduce 3 tokens to expression 30.8
+   default              => ERROR
+
+   nonterminal_015      goto state 47
+   nonterminal_024      goto state 48
+   nonterminal_027      goto state 49
+
+   Minimal_Complete_Action => expression
+
+State 107:
+     31.4:primary <= typeType DOT CLASS ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 3 tokens to primary 31.4
+   DOT                  => reduce 3 tokens to primary 31.4
+   INC                  => reduce 3 tokens to primary 31.4
+   DEC                  => reduce 3 tokens to primary 31.4
+   ADD                  => reduce 3 tokens to primary 31.4
+   SUB                  => reduce 3 tokens to primary 31.4
+   MUL                  => reduce 3 tokens to primary 31.4
+   DIV                  => reduce 3 tokens to primary 31.4
+   MOD                  => reduce 3 tokens to primary 31.4
+   Wisi_EOI             => reduce 3 tokens to primary 31.4
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 108:
+     39.0:nonterminal_034 <= LBRACK RBRACK ^, LBRACK/DOT
+
+   LBRACK               => reduce 2 tokens to nonterminal_034 39.0
+   DOT                  => reduce 2 tokens to nonterminal_034 39.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_034
+
+State 109:
+     40.1:nonterminal_033_list <= nonterminal_033_list nonterminal_034 ^, LBRACK/DOT
+
+   LBRACK               => reduce 2 tokens to nonterminal_033_list 40.1
+   DOT                  => reduce 2 tokens to nonterminal_033_list 40.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_033_list
+
+State 110:
+     31.0:primary <= LPAREN expression RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to primary 31.0
+   LBRACK               => reduce 3 tokens to primary 31.0
+   DOT                  => reduce 3 tokens to primary 31.0
+   INC                  => reduce 3 tokens to primary 31.0
+   DEC                  => reduce 3 tokens to primary 31.0
+   ADD                  => reduce 3 tokens to primary 31.0
+   SUB                  => reduce 3 tokens to primary 31.0
+   MUL                  => reduce 3 tokens to primary 31.0
+   DIV                  => reduce 3 tokens to primary 31.0
+   MOD                  => reduce 3 tokens to primary 31.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 111:
+     30.4:expression <= LPAREN typeType RPAREN ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 23
+   TRUE                 => shift and goto state 24
+   FALSE                => shift and goto state 25
+   DECIMAL_LITERAL      => shift and goto state 26
+   LPAREN               => shift and goto state 27
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 28
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 29
+   literal              goto state 30
+   methodCall           goto state 31
+   expression           goto state 152
+   primary              goto state 33
+   typeType             goto state 72
+   primitiveType        goto state 19
+   nonterminal_020      goto state 36
+
+   Minimal_Complete_Action => THIS
+
+State 112:
+     29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to methodCall 29.1
+   LBRACK               => reduce 3 tokens to methodCall 29.1
+   DOT                  => reduce 3 tokens to methodCall 29.1
+   INC                  => reduce 3 tokens to methodCall 29.1
+   DEC                  => reduce 3 tokens to methodCall 29.1
+   ADD                  => reduce 3 tokens to methodCall 29.1
+   SUB                  => reduce 3 tokens to methodCall 29.1
+   MUL                  => reduce 3 tokens to methodCall 29.1
+   DIV                  => reduce 3 tokens to methodCall 29.1
+   MOD                  => reduce 3 tokens to methodCall 29.1
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 113:
+     28.1:expressionList <= expressionList ^ COMMA expression, RPAREN/COMMA
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 153
+   COMMA                => shift and goto state 129
+   default              => ERROR
+
+   Minimal_Complete_Action => RPAREN
+
+State 114:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression LBRACK expression ^ RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142
+   RBRACK               => shift and goto state 154
+   DOT                  => shift and goto state 144
+   INC                  => shift and goto state 145
+   DEC                  => shift and goto state 146
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => RBRACK
+
+State 115:
+     34.2:nonterminal_008 <= THIS ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.2
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.2
+   DOT                  => reduce 1 tokens to nonterminal_008 34.2
+   INC                  => reduce 1 tokens to nonterminal_008 34.2
+   DEC                  => reduce 1 tokens to nonterminal_008 34.2
+   ADD                  => reduce 1 tokens to nonterminal_008 34.2
+   SUB                  => reduce 1 tokens to nonterminal_008 34.2
+   MUL                  => reduce 1 tokens to nonterminal_008 34.2
+   DIV                  => reduce 1 tokens to nonterminal_008 34.2
+   MOD                  => reduce 1 tokens to nonterminal_008 34.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 116:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     34.0:nonterminal_008 <= IDENTIFIER ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 57
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.0
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.0
+   DOT                  => reduce 1 tokens to nonterminal_008 34.0
+   INC                  => reduce 1 tokens to nonterminal_008 34.0
+   DEC                  => reduce 1 tokens to nonterminal_008 34.0
+   ADD                  => reduce 1 tokens to nonterminal_008 34.0
+   SUB                  => reduce 1 tokens to nonterminal_008 34.0
+   MUL                  => reduce 1 tokens to nonterminal_008 34.0
+   DIV                  => reduce 1 tokens to nonterminal_008 34.0
+   MOD                  => reduce 1 tokens to nonterminal_008 34.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 117:
+     34.1:nonterminal_008 <= methodCall ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.1
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.1
+   DOT                  => reduce 1 tokens to nonterminal_008 34.1
+   INC                  => reduce 1 tokens to nonterminal_008 34.1
+   DEC                  => reduce 1 tokens to nonterminal_008 34.1
+   ADD                  => reduce 1 tokens to nonterminal_008 34.1
+   SUB                  => reduce 1 tokens to nonterminal_008 34.1
+   MUL                  => reduce 1 tokens to nonterminal_008 34.1
+   DIV                  => reduce 1 tokens to nonterminal_008 34.1
+   MOD                  => reduce 1 tokens to nonterminal_008 34.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 118:
+     30.1:expression <= expression DOT nonterminal_008 ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.1
+   LBRACK               => reduce 3 tokens to expression 30.1
+   DOT                  => reduce 3 tokens to expression 30.1
+   INC                  => reduce 3 tokens to expression 30.1
+   DEC                  => reduce 3 tokens to expression 30.1
+   ADD                  => reduce 3 tokens to expression 30.1
+   SUB                  => reduce 3 tokens to expression 30.1
+   MUL                  => reduce 3 tokens to expression 30.1
+   DIV                  => reduce 3 tokens to expression 30.1
+   MOD                  => reduce 3 tokens to expression 30.1
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 119:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression nonterminal_024 expression ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.7
+   LBRACK               => shift and goto state 59,
+                           reduce 3 tokens to expression 30.7
+   DOT                  => shift and goto state 60,
+                           reduce 3 tokens to expression 30.7
+   INC                  => shift and goto state 61,
+                           reduce 3 tokens to expression 30.7
+   DEC                  => shift and goto state 62,
+                           reduce 3 tokens to expression 30.7
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.7
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.7
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.7
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.7
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.7
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => expression
+
+State 120:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression nonterminal_027 expression ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.8
+   LBRACK               => shift and goto state 59,
+                           reduce 3 tokens to expression 30.8
+   DOT                  => shift and goto state 60,
+                           reduce 3 tokens to expression 30.8
+   INC                  => shift and goto state 61,
+                           reduce 3 tokens to expression 30.8
+   DEC                  => shift and goto state 62,
+                           reduce 3 tokens to expression 30.8
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.8
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.8
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.8
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.8
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.8
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => expression
+
+State 121:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.4:expression <= LPAREN typeType RPAREN expression ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => shift and goto state 38,
+                           reduce 4 tokens to expression 30.4
+   DOT                  => shift and goto state 39,
+                           reduce 4 tokens to expression 30.4
+   INC                  => shift and goto state 40,
+                           reduce 4 tokens to expression 30.4
+   DEC                  => shift and goto state 41,
+                           reduce 4 tokens to expression 30.4
+   ADD                  => shift and goto state 42,
+                           reduce 4 tokens to expression 30.4
+   SUB                  => shift and goto state 43,
+                           reduce 4 tokens to expression 30.4
+   MUL                  => shift and goto state 44,
+                           reduce 4 tokens to expression 30.4
+   DIV                  => shift and goto state 45,
+                           reduce 4 tokens to expression 30.4
+   MOD                  => shift and goto state 46,
+                           reduce 4 tokens to expression 30.4
+   Wisi_EOI             => reduce 4 tokens to expression 30.4
+   default              => ERROR
+
+   nonterminal_015      goto state 47
+   nonterminal_024      goto state 48
+   nonterminal_027      goto state 49
+
+   Minimal_Complete_Action => expression
+
+State 122:
+     31.4:primary <= typeType DOT CLASS ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to primary 31.4
+   LBRACK               => reduce 3 tokens to primary 31.4
+   DOT                  => reduce 3 tokens to primary 31.4
+   INC                  => reduce 3 tokens to primary 31.4
+   DEC                  => reduce 3 tokens to primary 31.4
+   ADD                  => reduce 3 tokens to primary 31.4
+   SUB                  => reduce 3 tokens to primary 31.4
+   MUL                  => reduce 3 tokens to primary 31.4
+   DIV                  => reduce 3 tokens to primary 31.4
+   MOD                  => reduce 3 tokens to primary 31.4
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 123:
+     39.0:nonterminal_034 <= LBRACK RBRACK ^, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 2 tokens to nonterminal_034 39.0
+   LBRACK               => reduce 2 tokens to nonterminal_034 39.0
+   DOT                  => reduce 2 tokens to nonterminal_034 39.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_034
+
+State 124:
+     40.1:nonterminal_033_list <= nonterminal_033_list nonterminal_034 ^, RPAREN/LBRACK/DOT
+
+   RPAREN               => reduce 2 tokens to nonterminal_033_list 40.1
+   LBRACK               => reduce 2 tokens to nonterminal_033_list 40.1
+   DOT                  => reduce 2 tokens to nonterminal_033_list 40.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_033_list
+
+State 125:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN expression ^ RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 155
+   LBRACK               => shift and goto state 59
+   DOT                  => shift and goto state 60
+   INC                  => shift and goto state 61
+   DEC                  => shift and goto state 62
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => RPAREN
+
+State 126:
+     30.4:expression <= LPAREN typeType ^ RPAREN expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 156
+   DOT                  => shift and goto state 67
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 127:
+     29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER LPAREN ^ RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   RPAREN               => shift and goto state 157
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   expressionList       goto state 158
+   methodCall           goto state 83
+   expression           goto state 84
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => RPAREN
+
+State 128:
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 4 tokens to methodCall 29.0
+   DOT                  => reduce 4 tokens to methodCall 29.0
+   INC                  => reduce 4 tokens to methodCall 29.0
+   DEC                  => reduce 4 tokens to methodCall 29.0
+   ADD                  => reduce 4 tokens to methodCall 29.0
+   SUB                  => reduce 4 tokens to methodCall 29.0
+   MUL                  => reduce 4 tokens to methodCall 29.0
+   DIV                  => reduce 4 tokens to methodCall 29.0
+   MOD                  => reduce 4 tokens to methodCall 29.0
+   Wisi_EOI             => reduce 4 tokens to methodCall 29.0
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 129:
+     28.1:expressionList <= expressionList COMMA ^ expression, RPAREN/COMMA
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   methodCall           goto state 83
+   expression           goto state 159
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => THIS
+
+State 130:
+     30.2:expression <= expression LBRACK ^ expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 160
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 131:
+     30.1:expression <= expression DOT ^ nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   THIS                 => shift and goto state 161
+   IDENTIFIER           => shift and goto state 162
+   default              => ERROR
+
+   methodCall           goto state 163
+   nonterminal_008      goto state 164
+
+   Minimal_Complete_Action => IDENTIFIER
+
+State 132:
+     35.0:nonterminal_015 <= INC ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_015 35.0
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.0
+   COMMA                => reduce 1 tokens to nonterminal_015 35.0
+   DOT                  => reduce 1 tokens to nonterminal_015 35.0
+   INC                  => reduce 1 tokens to nonterminal_015 35.0
+   DEC                  => reduce 1 tokens to nonterminal_015 35.0
+   ADD                  => reduce 1 tokens to nonterminal_015 35.0
+   SUB                  => reduce 1 tokens to nonterminal_015 35.0
+   MUL                  => reduce 1 tokens to nonterminal_015 35.0
+   DIV                  => reduce 1 tokens to nonterminal_015 35.0
+   MOD                  => reduce 1 tokens to nonterminal_015 35.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 133:
+     35.1:nonterminal_015 <= DEC ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_015 35.1
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.1
+   COMMA                => reduce 1 tokens to nonterminal_015 35.1
+   DOT                  => reduce 1 tokens to nonterminal_015 35.1
+   INC                  => reduce 1 tokens to nonterminal_015 35.1
+   DEC                  => reduce 1 tokens to nonterminal_015 35.1
+   ADD                  => reduce 1 tokens to nonterminal_015 35.1
+   SUB                  => reduce 1 tokens to nonterminal_015 35.1
+   MUL                  => reduce 1 tokens to nonterminal_015 35.1
+   DIV                  => reduce 1 tokens to nonterminal_015 35.1
+   MOD                  => reduce 1 tokens to nonterminal_015 35.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 134:
+     30.5:expression <= expression nonterminal_015 ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 2 tokens to expression 30.5
+   LBRACK               => reduce 2 tokens to expression 30.5
+   COMMA                => reduce 2 tokens to expression 30.5
+   DOT                  => reduce 2 tokens to expression 30.5
+   INC                  => reduce 2 tokens to expression 30.5
+   DEC                  => reduce 2 tokens to expression 30.5
+   ADD                  => reduce 2 tokens to expression 30.5
+   SUB                  => reduce 2 tokens to expression 30.5
+   MUL                  => reduce 2 tokens to expression 30.5
+   DIV                  => reduce 2 tokens to expression 30.5
+   MOD                  => reduce 2 tokens to expression 30.5
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 135:
+     30.7:expression <= expression nonterminal_024 ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   methodCall           goto state 83
+   expression           goto state 165
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => THIS
+
+State 136:
+     30.8:expression <= expression nonterminal_027 ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   methodCall           goto state 83
+   expression           goto state 166
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => THIS
+
+State 137:
+     31.4:primary <= typeType DOT ^ CLASS, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   CLASS                => shift and goto state 167
+   default              => ERROR
+
+   Minimal_Complete_Action => CLASS
+
+State 138:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.6:expression <= nonterminal_020 expression ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 2 tokens to expression 30.6
+   LBRACK               => shift and goto state 130,
+                           reduce 2 tokens to expression 30.6
+   COMMA                => reduce 2 tokens to expression 30.6
+   DOT                  => shift and goto state 131,
+                           reduce 2 tokens to expression 30.6
+   INC                  => shift and goto state 132,
+                           reduce 2 tokens to expression 30.6
+   DEC                  => shift and goto state 133,
+                           reduce 2 tokens to expression 30.6
+   ADD                  => shift and goto state 42,
+                           reduce 2 tokens to expression 30.6
+   SUB                  => shift and goto state 43,
+                           reduce 2 tokens to expression 30.6
+   MUL                  => shift and goto state 44,
+                           reduce 2 tokens to expression 30.6
+   DIV                  => shift and goto state 45,
+                           reduce 2 tokens to expression 30.6
+   MOD                  => shift and goto state 46,
+                           reduce 2 tokens to expression 30.6
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expression
+
+State 139:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.0:primary <= LPAREN expression ^ RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 168
+   LBRACK               => shift and goto state 59
+   DOT                  => shift and goto state 60
+   INC                  => shift and goto state 61
+   DEC                  => shift and goto state 62
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => RPAREN
+
+State 140:
+     30.4:expression <= LPAREN typeType ^ RPAREN expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 169
+   DOT                  => shift and goto state 67
+   default              => ERROR
+
+   Minimal_Complete_Action => DOT
+
+State 141:
+     29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER LPAREN ^ RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   RPAREN               => shift and goto state 170
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   expressionList       goto state 171
+   methodCall           goto state 83
+   expression           goto state 84
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => RPAREN
+
+State 142:
+     30.2:expression <= expression LBRACK ^ expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 172
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 143:
+     30.2:expression <= expression LBRACK expression RBRACK ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
+
+   LBRACK               => reduce 4 tokens to expression 30.2
+   DOT                  => reduce 4 tokens to expression 30.2
+   INC                  => reduce 4 tokens to expression 30.2
+   DEC                  => reduce 4 tokens to expression 30.2
+   ADD                  => reduce 4 tokens to expression 30.2
+   SUB                  => reduce 4 tokens to expression 30.2
+   MUL                  => reduce 4 tokens to expression 30.2
+   DIV                  => reduce 4 tokens to expression 30.2
+   MOD                  => reduce 4 tokens to expression 30.2
+   Wisi_EOI             => reduce 4 tokens to expression 30.2
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 144:
+     30.1:expression <= expression DOT ^ nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   THIS                 => shift and goto state 173
+   IDENTIFIER           => shift and goto state 174
+   default              => ERROR
+
+   methodCall           goto state 175
+   nonterminal_008      goto state 176
+
+   Minimal_Complete_Action => IDENTIFIER
+
+State 145:
+     35.0:nonterminal_015 <= INC ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.0
+   RBRACK               => reduce 1 tokens to nonterminal_015 35.0
+   DOT                  => reduce 1 tokens to nonterminal_015 35.0
+   INC                  => reduce 1 tokens to nonterminal_015 35.0
+   DEC                  => reduce 1 tokens to nonterminal_015 35.0
+   ADD                  => reduce 1 tokens to nonterminal_015 35.0
+   SUB                  => reduce 1 tokens to nonterminal_015 35.0
+   MUL                  => reduce 1 tokens to nonterminal_015 35.0
+   DIV                  => reduce 1 tokens to nonterminal_015 35.0
+   MOD                  => reduce 1 tokens to nonterminal_015 35.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 146:
+     35.1:nonterminal_015 <= DEC ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to nonterminal_015 35.1
+   RBRACK               => reduce 1 tokens to nonterminal_015 35.1
+   DOT                  => reduce 1 tokens to nonterminal_015 35.1
+   INC                  => reduce 1 tokens to nonterminal_015 35.1
+   DEC                  => reduce 1 tokens to nonterminal_015 35.1
+   ADD                  => reduce 1 tokens to nonterminal_015 35.1
+   SUB                  => reduce 1 tokens to nonterminal_015 35.1
+   MUL                  => reduce 1 tokens to nonterminal_015 35.1
+   DIV                  => reduce 1 tokens to nonterminal_015 35.1
+   MOD                  => reduce 1 tokens to nonterminal_015 35.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_015
+
+State 147:
+     30.5:expression <= expression nonterminal_015 ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 2 tokens to expression 30.5
+   RBRACK               => reduce 2 tokens to expression 30.5
+   DOT                  => reduce 2 tokens to expression 30.5
+   INC                  => reduce 2 tokens to expression 30.5
+   DEC                  => reduce 2 tokens to expression 30.5
+   ADD                  => reduce 2 tokens to expression 30.5
+   SUB                  => reduce 2 tokens to expression 30.5
+   MUL                  => reduce 2 tokens to expression 30.5
+   DIV                  => reduce 2 tokens to expression 30.5
+   MOD                  => reduce 2 tokens to expression 30.5
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 148:
+     30.7:expression <= expression nonterminal_024 ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 177
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 149:
+     30.8:expression <= expression nonterminal_027 ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 178
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 150:
+     31.4:primary <= typeType DOT ^ CLASS, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   CLASS                => shift and goto state 179
+   default              => ERROR
+
+   Minimal_Complete_Action => CLASS
+
+State 151:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.6:expression <= nonterminal_020 expression ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142,
+                           reduce 2 tokens to expression 30.6
+   RBRACK               => reduce 2 tokens to expression 30.6
+   DOT                  => shift and goto state 144,
+                           reduce 2 tokens to expression 30.6
+   INC                  => shift and goto state 145,
+                           reduce 2 tokens to expression 30.6
+   DEC                  => shift and goto state 146,
+                           reduce 2 tokens to expression 30.6
+   ADD                  => shift and goto state 42,
+                           reduce 2 tokens to expression 30.6
+   SUB                  => shift and goto state 43,
+                           reduce 2 tokens to expression 30.6
+   MUL                  => shift and goto state 44,
+                           reduce 2 tokens to expression 30.6
+   DIV                  => shift and goto state 45,
+                           reduce 2 tokens to expression 30.6
+   MOD                  => shift and goto state 46,
+                           reduce 2 tokens to expression 30.6
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => expression
+
+State 152:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.4:expression <= LPAREN typeType RPAREN expression ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to expression 30.4
+   LBRACK               => shift and goto state 59,
+                           reduce 4 tokens to expression 30.4
+   DOT                  => shift and goto state 60,
+                           reduce 4 tokens to expression 30.4
+   INC                  => shift and goto state 61,
+                           reduce 4 tokens to expression 30.4
+   DEC                  => shift and goto state 62,
+                           reduce 4 tokens to expression 30.4
+   ADD                  => shift and goto state 42,
+                           reduce 4 tokens to expression 30.4
+   SUB                  => shift and goto state 43,
+                           reduce 4 tokens to expression 30.4
+   MUL                  => shift and goto state 44,
+                           reduce 4 tokens to expression 30.4
+   DIV                  => shift and goto state 45,
+                           reduce 4 tokens to expression 30.4
+   MOD                  => shift and goto state 46,
+                           reduce 4 tokens to expression 30.4
+   default              => ERROR
+
+   nonterminal_015      goto state 63
+   nonterminal_024      goto state 64
+   nonterminal_027      goto state 65
+
+   Minimal_Complete_Action => expression
+
+State 153:
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to methodCall 29.0
+   LBRACK               => reduce 4 tokens to methodCall 29.0
+   DOT                  => reduce 4 tokens to methodCall 29.0
+   INC                  => reduce 4 tokens to methodCall 29.0
+   DEC                  => reduce 4 tokens to methodCall 29.0
+   ADD                  => reduce 4 tokens to methodCall 29.0
+   SUB                  => reduce 4 tokens to methodCall 29.0
+   MUL                  => reduce 4 tokens to methodCall 29.0
+   DIV                  => reduce 4 tokens to methodCall 29.0
+   MOD                  => reduce 4 tokens to methodCall 29.0
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 154:
+     30.2:expression <= expression LBRACK expression RBRACK ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to expression 30.2
+   LBRACK               => reduce 4 tokens to expression 30.2
+   DOT                  => reduce 4 tokens to expression 30.2
+   INC                  => reduce 4 tokens to expression 30.2
+   DEC                  => reduce 4 tokens to expression 30.2
+   ADD                  => reduce 4 tokens to expression 30.2
+   SUB                  => reduce 4 tokens to expression 30.2
+   MUL                  => reduce 4 tokens to expression 30.2
+   DIV                  => reduce 4 tokens to expression 30.2
+   MOD                  => reduce 4 tokens to expression 30.2
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 155:
+     31.0:primary <= LPAREN expression RPAREN ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to primary 31.0
+   LBRACK               => reduce 3 tokens to primary 31.0
+   COMMA                => reduce 3 tokens to primary 31.0
+   DOT                  => reduce 3 tokens to primary 31.0
+   INC                  => reduce 3 tokens to primary 31.0
+   DEC                  => reduce 3 tokens to primary 31.0
+   ADD                  => reduce 3 tokens to primary 31.0
+   SUB                  => reduce 3 tokens to primary 31.0
+   MUL                  => reduce 3 tokens to primary 31.0
+   DIV                  => reduce 3 tokens to primary 31.0
+   MOD                  => reduce 3 tokens to primary 31.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 156:
+     30.4:expression <= LPAREN typeType RPAREN ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 73
+   TRUE                 => shift and goto state 74
+   FALSE                => shift and goto state 75
+   DECIMAL_LITERAL      => shift and goto state 76
+   LPAREN               => shift and goto state 77
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 79
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 80
+   literal              goto state 81
+   methodCall           goto state 83
+   expression           goto state 180
+   primary              goto state 85
+   typeType             goto state 86
+   primitiveType        goto state 19
+   nonterminal_020      goto state 87
+
+   Minimal_Complete_Action => THIS
+
+State 157:
+     29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to methodCall 29.1
+   LBRACK               => reduce 3 tokens to methodCall 29.1
+   COMMA                => reduce 3 tokens to methodCall 29.1
+   DOT                  => reduce 3 tokens to methodCall 29.1
+   INC                  => reduce 3 tokens to methodCall 29.1
+   DEC                  => reduce 3 tokens to methodCall 29.1
+   ADD                  => reduce 3 tokens to methodCall 29.1
+   SUB                  => reduce 3 tokens to methodCall 29.1
+   MUL                  => reduce 3 tokens to methodCall 29.1
+   DIV                  => reduce 3 tokens to methodCall 29.1
+   MOD                  => reduce 3 tokens to methodCall 29.1
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 158:
+     28.1:expressionList <= expressionList ^ COMMA expression, RPAREN/COMMA
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 181
+   COMMA                => shift and goto state 129
+   default              => ERROR
+
+   Minimal_Complete_Action => RPAREN
+
+State 159:
+     28.1:expressionList <= expressionList COMMA expression ^, RPAREN/COMMA
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expressionList 28.1
+   LBRACK               => shift and goto state 130
+   COMMA                => reduce 3 tokens to expressionList 28.1
+   DOT                  => shift and goto state 131
+   INC                  => shift and goto state 132
+   DEC                  => shift and goto state 133
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expressionList
+
+State 160:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression LBRACK expression ^ RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142
+   RBRACK               => shift and goto state 182
+   DOT                  => shift and goto state 144
+   INC                  => shift and goto state 145
+   DEC                  => shift and goto state 146
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => RBRACK
+
+State 161:
+     34.2:nonterminal_008 <= THIS ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.2
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.2
+   COMMA                => reduce 1 tokens to nonterminal_008 34.2
+   DOT                  => reduce 1 tokens to nonterminal_008 34.2
+   INC                  => reduce 1 tokens to nonterminal_008 34.2
+   DEC                  => reduce 1 tokens to nonterminal_008 34.2
+   ADD                  => reduce 1 tokens to nonterminal_008 34.2
+   SUB                  => reduce 1 tokens to nonterminal_008 34.2
+   MUL                  => reduce 1 tokens to nonterminal_008 34.2
+   DIV                  => reduce 1 tokens to nonterminal_008 34.2
+   MOD                  => reduce 1 tokens to nonterminal_008 34.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 162:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     34.0:nonterminal_008 <= IDENTIFIER ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 127
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.0
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.0
+   COMMA                => reduce 1 tokens to nonterminal_008 34.0
+   DOT                  => reduce 1 tokens to nonterminal_008 34.0
+   INC                  => reduce 1 tokens to nonterminal_008 34.0
+   DEC                  => reduce 1 tokens to nonterminal_008 34.0
+   ADD                  => reduce 1 tokens to nonterminal_008 34.0
+   SUB                  => reduce 1 tokens to nonterminal_008 34.0
+   MUL                  => reduce 1 tokens to nonterminal_008 34.0
+   DIV                  => reduce 1 tokens to nonterminal_008 34.0
+   MOD                  => reduce 1 tokens to nonterminal_008 34.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 163:
+     34.1:nonterminal_008 <= methodCall ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 1 tokens to nonterminal_008 34.1
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.1
+   COMMA                => reduce 1 tokens to nonterminal_008 34.1
+   DOT                  => reduce 1 tokens to nonterminal_008 34.1
+   INC                  => reduce 1 tokens to nonterminal_008 34.1
+   DEC                  => reduce 1 tokens to nonterminal_008 34.1
+   ADD                  => reduce 1 tokens to nonterminal_008 34.1
+   SUB                  => reduce 1 tokens to nonterminal_008 34.1
+   MUL                  => reduce 1 tokens to nonterminal_008 34.1
+   DIV                  => reduce 1 tokens to nonterminal_008 34.1
+   MOD                  => reduce 1 tokens to nonterminal_008 34.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 164:
+     30.1:expression <= expression DOT nonterminal_008 ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.1
+   LBRACK               => reduce 3 tokens to expression 30.1
+   COMMA                => reduce 3 tokens to expression 30.1
+   DOT                  => reduce 3 tokens to expression 30.1
+   INC                  => reduce 3 tokens to expression 30.1
+   DEC                  => reduce 3 tokens to expression 30.1
+   ADD                  => reduce 3 tokens to expression 30.1
+   SUB                  => reduce 3 tokens to expression 30.1
+   MUL                  => reduce 3 tokens to expression 30.1
+   DIV                  => reduce 3 tokens to expression 30.1
+   MOD                  => reduce 3 tokens to expression 30.1
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 165:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression nonterminal_024 expression ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.7
+   LBRACK               => shift and goto state 130,
+                           reduce 3 tokens to expression 30.7
+   COMMA                => reduce 3 tokens to expression 30.7
+   DOT                  => shift and goto state 131,
+                           reduce 3 tokens to expression 30.7
+   INC                  => shift and goto state 132,
+                           reduce 3 tokens to expression 30.7
+   DEC                  => shift and goto state 133,
+                           reduce 3 tokens to expression 30.7
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.7
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.7
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.7
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.7
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.7
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expression
+
+State 166:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression nonterminal_027 expression ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to expression 30.8
+   LBRACK               => shift and goto state 130,
+                           reduce 3 tokens to expression 30.8
+   COMMA                => reduce 3 tokens to expression 30.8
+   DOT                  => shift and goto state 131,
+                           reduce 3 tokens to expression 30.8
+   INC                  => shift and goto state 132,
+                           reduce 3 tokens to expression 30.8
+   DEC                  => shift and goto state 133,
+                           reduce 3 tokens to expression 30.8
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.8
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.8
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.8
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.8
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.8
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expression
+
+State 167:
+     31.4:primary <= typeType DOT CLASS ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 3 tokens to primary 31.4
+   LBRACK               => reduce 3 tokens to primary 31.4
+   COMMA                => reduce 3 tokens to primary 31.4
+   DOT                  => reduce 3 tokens to primary 31.4
+   INC                  => reduce 3 tokens to primary 31.4
+   DEC                  => reduce 3 tokens to primary 31.4
+   ADD                  => reduce 3 tokens to primary 31.4
+   SUB                  => reduce 3 tokens to primary 31.4
+   MUL                  => reduce 3 tokens to primary 31.4
+   DIV                  => reduce 3 tokens to primary 31.4
+   MOD                  => reduce 3 tokens to primary 31.4
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 168:
+     31.0:primary <= LPAREN expression RPAREN ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 3 tokens to primary 31.0
+   RBRACK               => reduce 3 tokens to primary 31.0
+   DOT                  => reduce 3 tokens to primary 31.0
+   INC                  => reduce 3 tokens to primary 31.0
+   DEC                  => reduce 3 tokens to primary 31.0
+   ADD                  => reduce 3 tokens to primary 31.0
+   SUB                  => reduce 3 tokens to primary 31.0
+   MUL                  => reduce 3 tokens to primary 31.0
+   DIV                  => reduce 3 tokens to primary 31.0
+   MOD                  => reduce 3 tokens to primary 31.0
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 169:
+     30.4:expression <= LPAREN typeType RPAREN ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   BOOLEAN              => shift and goto state 1
+   INT                  => shift and goto state 2
+   THIS                 => shift and goto state 88
+   TRUE                 => shift and goto state 89
+   FALSE                => shift and goto state 90
+   DECIMAL_LITERAL      => shift and goto state 91
+   LPAREN               => shift and goto state 92
+   INC                  => shift and goto state 8
+   DEC                  => shift and goto state 9
+   ADD                  => shift and goto state 10
+   SUB                  => shift and goto state 11
+   IDENTIFIER           => shift and goto state 93
+   default              => ERROR
+
+   BOOL_LITERAL         goto state 94
+   literal              goto state 95
+   methodCall           goto state 96
+   expression           goto state 183
+   primary              goto state 98
+   typeType             goto state 99
+   primitiveType        goto state 19
+   nonterminal_020      goto state 100
+
+   Minimal_Complete_Action => THIS
+
+State 170:
+     29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 3 tokens to methodCall 29.1
+   RBRACK               => reduce 3 tokens to methodCall 29.1
+   DOT                  => reduce 3 tokens to methodCall 29.1
+   INC                  => reduce 3 tokens to methodCall 29.1
+   DEC                  => reduce 3 tokens to methodCall 29.1
+   ADD                  => reduce 3 tokens to methodCall 29.1
+   SUB                  => reduce 3 tokens to methodCall 29.1
+   MUL                  => reduce 3 tokens to methodCall 29.1
+   DIV                  => reduce 3 tokens to methodCall 29.1
+   MOD                  => reduce 3 tokens to methodCall 29.1
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 171:
+     28.1:expressionList <= expressionList ^ COMMA expression, RPAREN/COMMA
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => shift and goto state 184
+   COMMA                => shift and goto state 129
+   default              => ERROR
+
+   Minimal_Complete_Action => RPAREN
+
+State 172:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression LBRACK expression ^ RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142
+   RBRACK               => shift and goto state 185
+   DOT                  => shift and goto state 144
+   INC                  => shift and goto state 145
+   DEC                  => shift and goto state 146
+   ADD                  => shift and goto state 42
+   SUB                  => shift and goto state 43
+   MUL                  => shift and goto state 44
+   DIV                  => shift and goto state 45
+   MOD                  => shift and goto state 46
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => RBRACK
+
+State 173:
+     34.2:nonterminal_008 <= THIS ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.2
+   RBRACK               => reduce 1 tokens to nonterminal_008 34.2
+   DOT                  => reduce 1 tokens to nonterminal_008 34.2
+   INC                  => reduce 1 tokens to nonterminal_008 34.2
+   DEC                  => reduce 1 tokens to nonterminal_008 34.2
+   ADD                  => reduce 1 tokens to nonterminal_008 34.2
+   SUB                  => reduce 1 tokens to nonterminal_008 34.2
+   MUL                  => reduce 1 tokens to nonterminal_008 34.2
+   DIV                  => reduce 1 tokens to nonterminal_008 34.2
+   MOD                  => reduce 1 tokens to nonterminal_008 34.2
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 174:
+     29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     29.1:methodCall <= IDENTIFIER ^ LPAREN RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     34.0:nonterminal_008 <= IDENTIFIER ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LPAREN               => shift and goto state 141
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.0
+   RBRACK               => reduce 1 tokens to nonterminal_008 34.0
+   DOT                  => reduce 1 tokens to nonterminal_008 34.0
+   INC                  => reduce 1 tokens to nonterminal_008 34.0
+   DEC                  => reduce 1 tokens to nonterminal_008 34.0
+   ADD                  => reduce 1 tokens to nonterminal_008 34.0
+   SUB                  => reduce 1 tokens to nonterminal_008 34.0
+   MUL                  => reduce 1 tokens to nonterminal_008 34.0
+   DIV                  => reduce 1 tokens to nonterminal_008 34.0
+   MOD                  => reduce 1 tokens to nonterminal_008 34.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 175:
+     34.1:nonterminal_008 <= methodCall ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 1 tokens to nonterminal_008 34.1
+   RBRACK               => reduce 1 tokens to nonterminal_008 34.1
+   DOT                  => reduce 1 tokens to nonterminal_008 34.1
+   INC                  => reduce 1 tokens to nonterminal_008 34.1
+   DEC                  => reduce 1 tokens to nonterminal_008 34.1
+   ADD                  => reduce 1 tokens to nonterminal_008 34.1
+   SUB                  => reduce 1 tokens to nonterminal_008 34.1
+   MUL                  => reduce 1 tokens to nonterminal_008 34.1
+   DIV                  => reduce 1 tokens to nonterminal_008 34.1
+   MOD                  => reduce 1 tokens to nonterminal_008 34.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_008
+
+State 176:
+     30.1:expression <= expression DOT nonterminal_008 ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 3 tokens to expression 30.1
+   RBRACK               => reduce 3 tokens to expression 30.1
+   DOT                  => reduce 3 tokens to expression 30.1
+   INC                  => reduce 3 tokens to expression 30.1
+   DEC                  => reduce 3 tokens to expression 30.1
+   ADD                  => reduce 3 tokens to expression 30.1
+   SUB                  => reduce 3 tokens to expression 30.1
+   MUL                  => reduce 3 tokens to expression 30.1
+   DIV                  => reduce 3 tokens to expression 30.1
+   MOD                  => reduce 3 tokens to expression 30.1
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 177:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression nonterminal_024 expression ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142,
+                           reduce 3 tokens to expression 30.7
+   RBRACK               => reduce 3 tokens to expression 30.7
+   DOT                  => shift and goto state 144,
+                           reduce 3 tokens to expression 30.7
+   INC                  => shift and goto state 145,
+                           reduce 3 tokens to expression 30.7
+   DEC                  => shift and goto state 146,
+                           reduce 3 tokens to expression 30.7
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.7
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.7
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.7
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.7
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.7
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => expression
+
+State 178:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression nonterminal_027 expression ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142,
+                           reduce 3 tokens to expression 30.8
+   RBRACK               => reduce 3 tokens to expression 30.8
+   DOT                  => shift and goto state 144,
+                           reduce 3 tokens to expression 30.8
+   INC                  => shift and goto state 145,
+                           reduce 3 tokens to expression 30.8
+   DEC                  => shift and goto state 146,
+                           reduce 3 tokens to expression 30.8
+   ADD                  => shift and goto state 42,
+                           reduce 3 tokens to expression 30.8
+   SUB                  => shift and goto state 43,
+                           reduce 3 tokens to expression 30.8
+   MUL                  => shift and goto state 44,
+                           reduce 3 tokens to expression 30.8
+   DIV                  => shift and goto state 45,
+                           reduce 3 tokens to expression 30.8
+   MOD                  => shift and goto state 46,
+                           reduce 3 tokens to expression 30.8
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => expression
+
+State 179:
+     31.4:primary <= typeType DOT CLASS ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 3 tokens to primary 31.4
+   RBRACK               => reduce 3 tokens to primary 31.4
+   DOT                  => reduce 3 tokens to primary 31.4
+   INC                  => reduce 3 tokens to primary 31.4
+   DEC                  => reduce 3 tokens to primary 31.4
+   ADD                  => reduce 3 tokens to primary 31.4
+   SUB                  => reduce 3 tokens to primary 31.4
+   MUL                  => reduce 3 tokens to primary 31.4
+   DIV                  => reduce 3 tokens to primary 31.4
+   MOD                  => reduce 3 tokens to primary 31.4
+   default              => ERROR
+
+   Minimal_Complete_Action => primary
+
+State 180:
+     30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.4:expression <= LPAREN typeType RPAREN expression ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to expression 30.4
+   LBRACK               => shift and goto state 130,
+                           reduce 4 tokens to expression 30.4
+   COMMA                => reduce 4 tokens to expression 30.4
+   DOT                  => shift and goto state 131,
+                           reduce 4 tokens to expression 30.4
+   INC                  => shift and goto state 132,
+                           reduce 4 tokens to expression 30.4
+   DEC                  => shift and goto state 133,
+                           reduce 4 tokens to expression 30.4
+   ADD                  => shift and goto state 42,
+                           reduce 4 tokens to expression 30.4
+   SUB                  => shift and goto state 43,
+                           reduce 4 tokens to expression 30.4
+   MUL                  => shift and goto state 44,
+                           reduce 4 tokens to expression 30.4
+   DIV                  => shift and goto state 45,
+                           reduce 4 tokens to expression 30.4
+   MOD                  => shift and goto state 46,
+                           reduce 4 tokens to expression 30.4
+   default              => ERROR
+
+   nonterminal_015      goto state 134
+   nonterminal_024      goto state 135
+   nonterminal_027      goto state 136
+
+   Minimal_Complete_Action => expression
+
+State 181:
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to methodCall 29.0
+   LBRACK               => reduce 4 tokens to methodCall 29.0
+   COMMA                => reduce 4 tokens to methodCall 29.0
+   DOT                  => reduce 4 tokens to methodCall 29.0
+   INC                  => reduce 4 tokens to methodCall 29.0
+   DEC                  => reduce 4 tokens to methodCall 29.0
+   ADD                  => reduce 4 tokens to methodCall 29.0
+   SUB                  => reduce 4 tokens to methodCall 29.0
+   MUL                  => reduce 4 tokens to methodCall 29.0
+   DIV                  => reduce 4 tokens to methodCall 29.0
+   MOD                  => reduce 4 tokens to methodCall 29.0
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 182:
+     30.2:expression <= expression LBRACK expression RBRACK ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   RPAREN               => reduce 4 tokens to expression 30.2
+   LBRACK               => reduce 4 tokens to expression 30.2
+   COMMA                => reduce 4 tokens to expression 30.2
+   DOT                  => reduce 4 tokens to expression 30.2
+   INC                  => reduce 4 tokens to expression 30.2
+   DEC                  => reduce 4 tokens to expression 30.2
+   ADD                  => reduce 4 tokens to expression 30.2
+   SUB                  => reduce 4 tokens to expression 30.2
+   MUL                  => reduce 4 tokens to expression 30.2
+   DIV                  => reduce 4 tokens to expression 30.2
+   MOD                  => reduce 4 tokens to expression 30.2
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+State 183:
+     30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.2:expression <= expression ^ LBRACK expression RBRACK, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.4:expression <= LPAREN typeType RPAREN expression ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.5:expression <= expression ^ nonterminal_015, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.7:expression <= expression ^ nonterminal_024 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+     30.8:expression <= expression ^ nonterminal_027 expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => shift and goto state 142,
+                           reduce 4 tokens to expression 30.4
+   RBRACK               => reduce 4 tokens to expression 30.4
+   DOT                  => shift and goto state 144,
+                           reduce 4 tokens to expression 30.4
+   INC                  => shift and goto state 145,
+                           reduce 4 tokens to expression 30.4
+   DEC                  => shift and goto state 146,
+                           reduce 4 tokens to expression 30.4
+   ADD                  => shift and goto state 42,
+                           reduce 4 tokens to expression 30.4
+   SUB                  => shift and goto state 43,
+                           reduce 4 tokens to expression 30.4
+   MUL                  => shift and goto state 44,
+                           reduce 4 tokens to expression 30.4
+   DIV                  => shift and goto state 45,
+                           reduce 4 tokens to expression 30.4
+   MOD                  => shift and goto state 46,
+                           reduce 4 tokens to expression 30.4
+   default              => ERROR
+
+   nonterminal_015      goto state 147
+   nonterminal_024      goto state 148
+   nonterminal_027      goto state 149
+
+   Minimal_Complete_Action => expression
+
+State 184:
+     29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 4 tokens to methodCall 29.0
+   RBRACK               => reduce 4 tokens to methodCall 29.0
+   DOT                  => reduce 4 tokens to methodCall 29.0
+   INC                  => reduce 4 tokens to methodCall 29.0
+   DEC                  => reduce 4 tokens to methodCall 29.0
+   ADD                  => reduce 4 tokens to methodCall 29.0
+   SUB                  => reduce 4 tokens to methodCall 29.0
+   MUL                  => reduce 4 tokens to methodCall 29.0
+   DIV                  => reduce 4 tokens to methodCall 29.0
+   MOD                  => reduce 4 tokens to methodCall 29.0
+   default              => ERROR
+
+   Minimal_Complete_Action => methodCall
+
+State 185:
+     30.2:expression <= expression LBRACK expression RBRACK ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
+
+   LBRACK               => reduce 4 tokens to expression 30.2
+   RBRACK               => reduce 4 tokens to expression 30.2
+   DOT                  => reduce 4 tokens to expression 30.2
+   INC                  => reduce 4 tokens to expression 30.2
+   DEC                  => reduce 4 tokens to expression 30.2
+   ADD                  => reduce 4 tokens to expression 30.2
+   SUB                  => reduce 4 tokens to expression 30.2
+   MUL                  => reduce 4 tokens to expression 30.2
+   DIV                  => reduce 4 tokens to expression 30.2
+   MOD                  => reduce 4 tokens to expression 30.2
+   default              => ERROR
+
+   Minimal_Complete_Action => expression
+
+States with conflicts: 54 71 105 106 119 120 121 138 151 152 165 166 177 178 180 183
+
+ 0 accept/reduce conflicts, 144 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 15 rules, 0 user actions, 0 checks, 186 states, 1872 parse actions

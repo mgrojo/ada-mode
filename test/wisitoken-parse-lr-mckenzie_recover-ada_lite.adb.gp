@@ -669,7 +669,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
       if Config.Current_Ops /= No_Insert_Delete then
          if Trace_McKenzie > Outline then
-            Put_Line (Trace, Parser_Label, "Language_Fixes: Config.Current_Ops /= No_Insert_Delete");
+            --  No task_id here, because this message appears in .parse_good
+            Put_Line (Trace, Parser_Label, "Language_Fixes: Config.Current_Ops /= No_Insert_Delete", Task_ID => False);
          end if;
          return;
       end if;

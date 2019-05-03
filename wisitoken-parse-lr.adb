@@ -175,7 +175,7 @@ package body WisiToken.Parse.LR is
    is begin
       case Item.Verb is
       when Pause =>
-         return "(Verb => Shift)";
+         return "(Verb => Pause)";
       when Shift =>
          return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
       when Reduce =>
@@ -183,6 +183,18 @@ package body WisiToken.Parse.LR is
            Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
       end case;
    end Strict_Image;
+
+   function Image (Item : in Minimal_Action; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      case Item.Verb is
+      when Pause =>
+         return "Pause";
+      when Shift =>
+         return "Shift " & Image (Item.ID, Descriptor);
+      when Reduce =>
+         return "Reduce to " & Image (Item.Nonterm, Descriptor);
+      end case;
+   end Image;
 
    function First (State : in Parse_State) return Action_List_Iterator
    is begin
@@ -856,24 +868,5 @@ package body WisiToken.Parse.LR is
    begin
       Data.Results.Process (Proc'Unrestricted_Access);
    end Accumulate;
-
-   function Image
-     (Item       : in Parse_Error;
-      Tree       : in Syntax_Trees.Tree;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-   is begin
-      case Item.Label is
-      when Action =>
-         return "Action, expecting: " & Image (Item.Expecting, Descriptor) &
-           ", found" & Tree.Image (Item.Error_Token, Descriptor);
-
-      when Check =>
-         return "Check, " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
-
-      when Message =>
-         return -Item.Msg;
-      end case;
-   end Image;
 
 end WisiToken.Parse.LR;

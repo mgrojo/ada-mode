@@ -21,7 +21,7 @@ State 0:
 
    expr             goto state 2
 
-   Minimal_Complete_Action => (NUMERIC_LITERAL)
+   Minimal_Complete_Action => NUMERIC_LITERAL
 
 State 1:
       6.1:expr <= NUMERIC_LITERAL ^, MINUS/Wisi_EOI
@@ -30,7 +30,7 @@ State 1:
    Wisi_EOI         => reduce 1 tokens to expr 6.1
    default          => ERROR
 
-   Minimal_Complete_Action => (expr)
+   Minimal_Complete_Action => expr
 
 State 2:
       5.0:wisitoken_accept <= expr ^ Wisi_EOI, 
@@ -40,7 +40,7 @@ State 2:
    Wisi_EOI         => accept it 5.0
    default          => ERROR
 
-   Minimal_Complete_Action => ()
+   Minimal_Complete_Action => 
 
 State 3:
       6.0:expr <= expr MINUS ^ NUMERIC_LITERAL, MINUS/Wisi_EOI
@@ -48,7 +48,7 @@ State 3:
    NUMERIC_LITERAL  => shift and goto state 4
    default          => ERROR
 
-   Minimal_Complete_Action => (NUMERIC_LITERAL)
+   Minimal_Complete_Action => NUMERIC_LITERAL
 
 State 4:
       6.0:expr <= expr MINUS NUMERIC_LITERAL ^, MINUS/Wisi_EOI
@@ -57,7 +57,7 @@ State 4:
    Wisi_EOI         => reduce 3 tokens to expr 6.0
    default          => ERROR
 
-   Minimal_Complete_Action => (expr)
+   Minimal_Complete_Action => expr
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

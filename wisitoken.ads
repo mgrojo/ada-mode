@@ -79,6 +79,7 @@ package WisiToken is
    package State_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
    package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive, State_Index, Default_Element => State_Index'Last);
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
    function Image is new State_Index_Arrays.Gen_Image (Trimmed_Image);
 
    ----------
@@ -166,7 +167,7 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive, Token_ID, Default_Element => Invalid_Token_ID);
 
-   function Image is new Token_ID_Arrays.Gen_Image_Aux (Descriptor, Image);
+   function Image is new Token_ID_Arrays.Gen_Image_Aux (Descriptor, Trimmed_Image, Image);
    function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
@@ -276,6 +277,7 @@ package WisiToken is
    --  Return region enclosing both Left and Right.
 
    type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
@@ -314,6 +316,8 @@ package WisiToken is
 
    Invalid_Token_Index : constant Base_Token_Index := Base_Token_Index'First;
 
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Token_Index);
+
    type Token_Index_Array is array (Natural range <>) of Token_Index;
 
    package Recover_Token_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
@@ -325,16 +329,16 @@ package WisiToken is
      (Token_Index, Base_Token, Default_Element => (others => <>));
    type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
 
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);
-
-   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
 
    function Image
      (Token      : in Base_Token_Index;
       Terminals  : in Base_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor)
      return String;
+
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);
 
    type Recover_Token is record
       --  Maintaining a syntax tree during recover is too slow, so we store
@@ -371,7 +375,7 @@ package WisiToken is
    package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Token_Index, Recover_Token, Default_Element => (others => <>));
 
-   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
 
    type Base_Identifier_Index is range 0 .. Integer'Last;
    subtype Identifier_Index is Base_Identifier_Index range 1 .. Base_Identifier_Index'Last;
@@ -439,7 +443,6 @@ package WisiToken is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Ada.Containers.Count_Type);
 
    function Error_Message

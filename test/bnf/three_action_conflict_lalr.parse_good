@@ -149,6 +149,24 @@ lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)
  1: 15: expecting: LBRACE
  1: zombie
 recover
+
+ McKenzie error recovery
+
+parser 6: State 20 Current_Token 21:(ARROW, (147 . 148)) Resume_Token_Goal 24
+Action
+
+parser 5: State 19 Current_Token 21:(ARROW, (147 . 148)) Resume_Token_Goal 24
+Action
+
+parser 1: State 15 Current_Token 22:(IDENTIFIER, (150 . 152)) Resume_Token_Goal 25
+Action
+
+ 7 parallel tasks
+ 6: fail; cost
+ 5: fail; cost
+ 6: fail, enqueue 63, check  24, cost_limit:  10, max shared_token  27
+ 5: fail, enqueue 126, check  40, cost_limit:  10, max shared_token  27
+ 1: succeed 1, enqueue 9, check  5, cost:  4
  1:  4, ( 0 0 0 1 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((INSERT, LBRACE, 22))
 recover: succeed, parser count 3
  6: Current_Token  21:(ARROW, (147 . 148)) Shared_Token  21:(ARROW, (147 . 148))

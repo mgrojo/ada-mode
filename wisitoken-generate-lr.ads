@@ -139,7 +139,7 @@ package WisiToken.Generate.LR is
    function Image (Item : in RHS_Sequence; Descriptor : in WisiToken.Descriptor) return String;
    --  Positional Ada aggregate syntax.
 
-   function Image is new RHS_Sequence_Arrays.Gen_Image_Aux (Descriptor, Image);
+   function Image is new RHS_Sequence_Arrays.Gen_Image_Aux (Descriptor, Trimmed_Image, Image);
 
    function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence;
    --  Return element of Item with minimum length;
@@ -152,8 +152,7 @@ package WisiToken.Generate.LR is
      return Minimal_Sequence_Array;
    --  For each production in Grammar, compute the minimal sequence of
    --  terminals that will complete it. Result is an empty sequence if
-   --  the production may be empty, or Invalid_Token_ID if it is
-   --  recursive.
+   --  the production may be empty.
 
    function Compute_Minimal_Terminal_First
      (Descriptor                 : in WisiToken.Descriptor;

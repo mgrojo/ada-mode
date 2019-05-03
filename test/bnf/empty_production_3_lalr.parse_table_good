@@ -27,7 +27,7 @@ State 0:
    compilation_unit        goto state 2
    parameter_specification goto state 3
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 1:
       8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
@@ -38,7 +38,7 @@ State 1:
 
    mode                    goto state 5
 
-   Minimal_Complete_Action => (mode)
+   Minimal_Complete_Action => mode
 
 State 2:
       4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -46,7 +46,7 @@ State 2:
    Wisi_EOI                => accept it 4.0
    default                 => ERROR
 
-   Minimal_Complete_Action => ()
+   Minimal_Complete_Action => 
 
 State 3:
       5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
@@ -56,7 +56,7 @@ State 3:
 
    parameter_specification goto state 6
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 4:
       6.0:mode <= IN ^, IDENTIFIER
@@ -64,7 +64,7 @@ State 4:
    IDENTIFIER              => reduce 1 tokens to mode 6.0
    default                 => ERROR
 
-   Minimal_Complete_Action => (mode)
+   Minimal_Complete_Action => mode
 
 State 5:
       8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
@@ -74,7 +74,7 @@ State 5:
 
    name                    goto state 8
 
-   Minimal_Complete_Action => (IDENTIFIER)
+   Minimal_Complete_Action => IDENTIFIER
 
 State 6:
       5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
@@ -82,7 +82,7 @@ State 6:
    Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
 
-   Minimal_Complete_Action => (compilation_unit)
+   Minimal_Complete_Action => compilation_unit
 
 State 7:
       7.0:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
@@ -91,7 +91,7 @@ State 7:
    Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
-   Minimal_Complete_Action => (name)
+   Minimal_Complete_Action => name
 
 State 8:
       8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
@@ -100,7 +100,7 @@ State 8:
    Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
-   Minimal_Complete_Action => (parameter_specification)
+   Minimal_Complete_Action => parameter_specification
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

@@ -143,6 +143,10 @@ package WisiToken.Parse.LR is
    function Strict_Image (Item : in Minimal_Action) return String;
    --  Strict Ada aggregate syntax, for generated code.
 
+   function Image (Item : in Minimal_Action; Descriptor : in WisiToken.Descriptor) return String;
+   --  For debugging
+
+   --
    type Parse_State is record
       Productions : Production_ID_Arrays.Vector;
       --  Used in some language-specfic error recovery.
@@ -600,12 +604,6 @@ package WisiToken.Parse.LR is
    end record;
 
    package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
-
-   function Image
-     (Item       : in Parse_Error;
-      Tree       : in Syntax_Trees.Tree;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
 
 private
 
