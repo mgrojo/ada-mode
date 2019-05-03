@@ -50,6 +50,7 @@ package body Gpr_Process_LR1_Main is
          Push_Back =>
            (2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
+         Minimal_Complete_Cost_Delta => -1,
          Ignore_Check_Fail  => 2,
          Task_Count  => 0,
          Cost_Limit  => 20,

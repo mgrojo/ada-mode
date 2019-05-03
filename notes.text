@@ -54,6 +54,8 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+invalidate names
+
 gpr_query needs to close some xref object to allow 'rm ./obj'?
 
 doc jit-lock-context-time
@@ -76,8 +78,6 @@ test/ada_mode-recover_partial_16.adb : error during resume
 test/ada_mode-recover_partial_19.adb : error during resume
 
 separate partial-parse threshold for face
-
-check Protocol_Version in wisi-process-parse
 
 using o.e.a-m
         (progn

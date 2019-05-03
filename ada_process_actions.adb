@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ada.wy
 --
 
 --  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
@@ -2961,8 +2961,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (5, Motion), (9,
-         Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (9, Empty_IDs)));
@@ -3098,7 +3097,8 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion)));
+         Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 4, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs)));
@@ -3426,7 +3426,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (12, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (12, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 2)));
@@ -3450,7 +3450,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (8, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 2)));
@@ -3491,7 +3491,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Name)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, Statement_Start)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
@@ -3645,8 +3645,8 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (9,
-         Motion), (11, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (9, Motion), (11,
+         Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 10);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (10, +49) & (11,
@@ -3684,8 +3684,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (8,
-         Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (8, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (7, +49) & (8,
@@ -4835,8 +4834,8 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (9,
-         Motion), (13, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (9, Motion), (13,
+         Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 10);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (9, Empty_IDs) & (10,
@@ -4875,7 +4874,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (10,
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (10,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
@@ -4914,7 +4913,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (3, 3, 2)));

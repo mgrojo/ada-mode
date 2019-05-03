@@ -274,11 +274,7 @@ complete."
   ;; see ‘wisi-process-parse--execute’
   ;; implements wisi-name-action
   (with-silent-modifications
-    (add-text-properties
-     (aref sexp 1)
-     (1+ (aref sexp 2))
-     '(wisi-name t)
-     )))
+    (put-text-property (aref sexp 1) (1+ (aref sexp 2)) 'wisi-name t)))
 
 (defun wisi-process-parse--Face_Property (parser sexp)
   ;; sexp is [Face_Property first-pos last-pos face-index]

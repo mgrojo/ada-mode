@@ -79,7 +79,7 @@ package Wisi is
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
-   type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
+   type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
 
    type Index_Navigate_Class is record

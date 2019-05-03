@@ -69,7 +69,7 @@ elisp-clean :
 	cd ./$(<D); dos2unix -q $(*F)_re2c.c
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
+	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"
 
 # load path rationale:
 #    .. for run-*.el

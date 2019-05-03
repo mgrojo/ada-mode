@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ada.wy
 --
 
 --  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
@@ -374,7 +374,7 @@ package Ada_Process_Actions is
          new String'("with_clause")),
       Terminal_Image_Width => 17,
       Image_Width          => 38,
-      Last_Lookahead       => 107);
+      Last_Lookahead       => 108);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,

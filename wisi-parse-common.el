@@ -261,11 +261,14 @@ If nil, uses value from grammar file."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
 
-(defvar wisi-parse-max-parallel 15
+(defcustom wisi-parse-max-parallel 15
   "Maximum number of parallel parsers during regular parsing.
 Parallel parsers are used to resolve redundancy in the grammar.
 If a file needs more than this, it's probably an indication that
-the grammar is excessively redundant.")
+the grammar is excessively redundant."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
 
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size.
@@ -292,7 +295,6 @@ Normally set from a language-specific option.")
 
 (defconst wisi-class-list
   [motion ;; motion-action
-   name ;; for which-function
    statement-end
    statement-override
    statement-start

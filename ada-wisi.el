@@ -549,7 +549,7 @@ Also return cache at start."
   "For `ada-which-function'."
   ;; No message on parse fail, since this could be called from
   ;; which-function-mode.
-  (wisi-validate-cache (point-min) (point) nil 'navigate)
+  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
   (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
       (let ((result nil)

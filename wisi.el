@@ -1375,7 +1375,7 @@ If non-nil, only repair errors in BEG END region."
       ident)))
 
 (defun wisi-next-name-region ()
-  "Return the next region at or after POS with text property 'wisi-name'."
+  "Return the next region at or after point with text property 'wisi-name'."
   (let* ((begin
 	  (if (get-text-property (point) 'wisi-name)
 	      (point)

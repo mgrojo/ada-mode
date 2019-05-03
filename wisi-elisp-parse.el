@@ -790,11 +790,7 @@ Intended as a grammar action."
       (when region
 	;; region can be null on an optional or virtual token
 	(with-silent-modifications
-	  (put-text-property
-	   (car region)
-	   (cdr region)
-	   '(wisi-name t)
-	   ))
+	  (put-text-property (car region) (cdr region) 'wisi-name t))
 	))))
 
 (defun wisi-containing-action (containing-token contained-token)
