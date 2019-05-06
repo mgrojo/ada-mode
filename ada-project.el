@@ -46,6 +46,13 @@
   ;; Not meaningful
   nil)
 
+(cl-defmethod project-files ((_prj ada-project) &optional _dirs)
+  (let ((iter (make-path-iterator
+	       :user-path-non-recursive (ada-prj-get 'src_dir)
+	       :user-path-recursive nil
+	       :ignore-function nil)))
+    (path-iter-files iter nil)))
+
 (cl-defmethod project-file-completion-table ((_prj ada-project) _dirs)
   ;; (ada-prj-get 'src_dir) is more accurate than project-*roots
   (cond

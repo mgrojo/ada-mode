@@ -1487,7 +1487,9 @@ package body Wisi is
 
       --  [2] wisi-indent-action
       for I in Tokens'Range loop
-         if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
+         if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region and
+           I in Params'Range -- in some translated EBNF, not every token has an indent param
+         then
             declare
                use all type WisiToken.Syntax_Trees.Node_Index;
                use all type SAL.Base_Peek_Type;

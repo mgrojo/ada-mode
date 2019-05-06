@@ -54,6 +54,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+finish 6.1.0 release
+    upload to savannah, possibly other steps
+
 invalidate names
 
 gpr_query needs to close some xref object to allow 'rm ./obj'?
