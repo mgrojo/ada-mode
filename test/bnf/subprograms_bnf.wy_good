@@ -113,9 +113,16 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
+;; Recognized canonical list with action
 name_list
-  : name_list COMMA name
-  | name
+  : T1=name
+    %((wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
+                           (T2 . 0)
+                           (T3 . (wisi-hanging 0 java-indent-broken))]))%
+  | name_list=name_list T2=COMMA T3=name
+    %((wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
+                           (T2 . 0)
+                           (T3 . (wisi-hanging 0 java-indent-broken))]))%
   ;
 
 parameter_list

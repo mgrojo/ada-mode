@@ -416,9 +416,16 @@ package WisiToken.Syntax_Trees is
    --  or a nonterm is empty.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
-   --  "Terminals" can be Shared_Terminal, Virtual_Terminal, Virtual_Identifier.
+   --  Return sequence of terminals in Node.
+   --
+   --  "Terminals" can be Shared_Terminal, Virtual_Terminal,
+   --  Virtual_Identifier.
 
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
+   --  Same as Get_Terminals, but return the IDs.
+
+   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID;
+   --  First of Get_Terminal_IDs
 
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;

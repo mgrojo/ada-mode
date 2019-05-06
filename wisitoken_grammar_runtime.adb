@@ -205,7 +205,7 @@ package body WisiToken_Grammar_Runtime is
                   begin
                      RHS.Tokens.Append
                        ((Label      => +Label,
-                         Identifier => +Get_Text (Data, Tree, Tree.Child (Tree.Child (I, 3), 1))));
+                         Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
 
                      if (for all L of Labels => -L /= Label) then
                         Labels.Append (+Label);
@@ -1661,6 +1661,8 @@ package body WisiToken_Grammar_Runtime is
                   --      : enumConstant (',' enumConstant)*
                   --      ;
                   --
+                  --  The tokens may have labels.
+                  --
                   --  Handling this case specially this eliminates a conflict between
                   --  reducing to enumConstants and reducing to the introduced nonterm
                   --  list.
@@ -1675,18 +1677,18 @@ package body WisiToken_Grammar_Runtime is
 
                   use all type SAL.Base_Peek_Type;
 
-                  Alt_List_Elements : constant Valid_Node_Index_Array := Tree.Get_IDs (Node, +rhs_element_ID);
-                  RHS_Element       : constant Valid_Node_Index       := Tree.Parent (Node, 2);
-                  Element_1         : constant Node_Index             := Prev_List_Element
+                  Alt_List_Items : constant Valid_Node_Index_Array := Tree.Get_IDs (Node, +rhs_item_ID);
+                  RHS_Element    : constant Valid_Node_Index       := Tree.Parent (Node, 2);
+                  Element_1      : constant Node_Index             := Prev_List_Element
                     (RHS_Element, +rhs_item_list_ID);
-                  RHS_2             : constant Valid_Node_Index       := Tree.Find_Ancestor
+                  RHS_2          : constant Valid_Node_Index       := Tree.Find_Ancestor
                     (Node, (+rhs_ID, +rhs_alternative_list_ID));
                begin
                   if Tree.ID (RHS_2) = +rhs_alternative_list_ID then return; end if;
-                  if Alt_List_Elements'Last /= 2 then return; end if;
+                  if Alt_List_Items'Last /= 2 then return; end if;
                   if Element_1 = Invalid_Node_Index or else
-                    Get_Text (Data, Tree, Element_1) /=
-                    Get_Text (Data, Tree, Alt_List_Elements (2))
+                    Get_Text (Data, Tree, Tree.Get_IDs (Element_1, +rhs_item_ID)(1)) /=
+                    Get_Text (Data, Tree, Alt_List_Items (2))
                   then
                      return;
                   end if;
@@ -1701,7 +1703,7 @@ package body WisiToken_Grammar_Runtime is
                   --
                   --  rhs_list: keep
                   --  | rhs_list:
-                  --  | | rhs: new
+                  --  | | rhs: new, RHS_1
                   --  | | | rhs_item_list: new, RHS_Item_List_1
                   --  | | | | rhs_element: keep, Element_1
                   --  | | | | | rhs_item: keep
@@ -1722,25 +1724,69 @@ package body WisiToken_Grammar_Runtime is
                   --  | | | | | IDENTIFIER: keep, element name
 
                   declare
-                     List_Name       : constant Token_Index      := Tree.Min_Terminal_Index
-                       (Tree.Find_Ancestor (RHS_2, +compilation_unit_ID));
-                     RHS_Item_List_1 : constant Valid_Node_Index := Tree.Add_Nonterm
+                     List_Name_Node   : constant Valid_Node_Index := Tree.Find_Ancestor (RHS_2, +compilation_unit_ID);
+                     List_Name_Tok    : constant Token_Index      := Tree.Min_Terminal_Index (List_Name_Node);
+                     List_Name_Region : constant Buffer_Region    := Data.Terminals.all (List_Name_Tok).Byte_Region;
+                     List_Name        : constant String           := Data.Grammar_Lexer.Buffer_Text (List_Name_Region);
+
+                     RHS_2_Index    : constant Integer       := Tree.RHS_Index (RHS_2);
+                     RHS_2_Children : Valid_Node_Index_Array := Tree.Children (RHS_2);
+
+                     RHS_Item_List_1    : constant Valid_Node_Index := Tree.Add_Nonterm
                        ((+rhs_item_list_ID, 0), (1 => Element_1));
-                     RHS_1           : constant Valid_Node_Index := Tree.Add_Nonterm
-                       ((+rhs_ID, 1), (1           => RHS_Item_List_1));
-                     Bar             : constant Valid_Node_Index := Tree.Add_Terminal (+BAR_ID);
-                     RHS_Item_List_3 : constant Valid_Node_Index := Tree.Child (RHS_2, 1);
-                     RHS_Item_List_4 : constant Valid_Node_Index := Tree.Child (RHS_Item_List_3, 1);
-                     List_Name_Node : constant Valid_Node_Index := Tree.Add_Terminal (List_Name, Data.Terminals.all);
-                     RHS_Item_List_2 : constant Valid_Node_Index := Tree.Add_Nonterm
+
+                     RHS_1_Action : constant Node_Index :=
+                       (case RHS_2_Index is
+                        when 2 | 3 => Tree.Add_Terminal
+                          (Tree.Min_Terminal_Index (RHS_2_Children (2)), Data.Terminals.all),
+                        when others => Invalid_Node_Index);
+
+                     RHS_1_Check : constant Node_Index :=
+                       (case RHS_2_Index is
+                        when 3 => Tree.Add_Terminal
+                          (Tree.Min_Terminal_Index (RHS_2_Children (3)), Data.Terminals.all),
+                        when others => Invalid_Node_Index);
+
+                     RHS_1              : constant Valid_Node_Index :=
+                       (case RHS_2_Index is
+                        when 1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => RHS_Item_List_1)),
+                        when 2 => Tree.Add_Nonterm ((+rhs_ID, 2), (1 => RHS_Item_List_1, 2 => RHS_1_Action)),
+                        when 3 => Tree.Add_Nonterm
+                          ((+rhs_ID, 3), (1 => RHS_Item_List_1, 2 => RHS_1_Action, 3 => RHS_1_Check)),
+                        when others => raise SAL.Programmer_Error);
+
+                     Bar                : constant Valid_Node_Index := Tree.Add_Terminal (+BAR_ID);
+                     RHS_Item_List_3    : constant Valid_Node_Index := Tree.Child (RHS_2, 1);
+                     RHS_Item_List_4    : constant Valid_Node_Index := Tree.Child (RHS_Item_List_3, 1);
+                     New_List_Name_Term : constant Valid_Node_Index := Tree.Add_Terminal
+                       (List_Name_Tok, Data.Terminals.all);
+                     New_List_Name_Item : constant Valid_Node_Index := Tree.Add_Nonterm
+                       ((+rhs_item_ID, 0), (1 => New_List_Name_Term));
+
+                     Alt_List_Elements : constant Valid_Node_Index_Array := Tree.Get_IDs (Node, +rhs_element_ID);
+                     RHS_Item_List_2   : constant Valid_Node_Index       := Tree.Add_Nonterm
                        ((+rhs_item_list_ID, 1),
                         (1 => RHS_Item_List_3,
                          2 => Alt_List_Elements (2)));
+
+                     List_Name_Ident : constant Node_Index :=
+                       (if Tree.RHS_Index (Element_1) = 1
+                        then --  tokens have labels
+                           Tree.Add_Identifier (+IDENTIFIER_ID, New_Identifier (List_Name), List_Name_Region)
+                        else Invalid_Node_Index);
+
+                     RHS_2_Child_1 : constant Valid_Node_Index :=
+                       (if Tree.RHS_Index (Element_1) = 1
+                        then --  tokens have labels
+                           Tree.Add_Nonterm
+                             ((+rhs_element_ID, 1),
+                             (1 => List_Name_Ident,
+                              2 => Tree.Add_Terminal (+EQUAL_ID),
+                              3 => New_List_Name_Item))
+                        else
+                           Tree.Add_Nonterm ((+rhs_element_ID, 0), (1 => New_List_Name_Item)));
                   begin
-                     Tree.Set_Children
-                       (RHS_Item_List_4,
-                        (+rhs_item_list_ID, 0),
-                        (1 => Tree.Add_Nonterm ((+rhs_element_ID, 0), (1 => List_Name_Node))));
+                     Tree.Set_Children (RHS_Item_List_4, (+rhs_item_list_ID, 0), (1 => RHS_2_Child_1));
 
                      Tree.Set_Children
                        (RHS_Item_List_3,
@@ -1748,7 +1794,8 @@ package body WisiToken_Grammar_Runtime is
                         (1 => RHS_Item_List_4,
                          2 => Alt_List_Elements (1)));
 
-                     Tree.Set_Children (RHS_2, (+rhs_ID, 1), (1 => RHS_Item_List_2));
+                     RHS_2_Children (1) := RHS_Item_List_2;
+                     Tree.Set_Children (RHS_2, (+rhs_ID, Tree.RHS_Index (RHS_2)), RHS_2_Children);
 
                      Tree.Set_Children
                        (Tree.Parent (RHS_2),

@@ -45,8 +45,8 @@ Productions:
 26.0: loop_statement <= FOR SYMBOL IN subtype LOOP SEMICOLON
 27.0: name <= name DOT SYMBOL
 27.1: name <= SYMBOL
-28.0: name_list <= name_list COMMA name
-28.1: name_list <= name
+28.0: name_list <= name
+28.1: name_list <= name_list COMMA name
 29.0: parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN
 29.1: parameter_list <= LEFT_PAREN RIGHT_PAREN
 30.0: subprogram <= FUNCTION name parameter_list block SEMICOLON
@@ -338,17 +338,17 @@ State 16:
 
 State 17:
      27.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
-     28.1:name_list <= name ^, COMMA/SEMICOLON
+     28.0:name_list <= name ^, COMMA/SEMICOLON
 
-   COMMA            => reduce 1 tokens to name_list 28.1
+   COMMA            => reduce 1 tokens to name_list 28.0
    DOT              => shift and goto state 25
-   SEMICOLON        => reduce 1 tokens to name_list 28.1
+   SEMICOLON        => reduce 1 tokens to name_list 28.0
    default          => ERROR
 
    Minimal_Complete_Action => name_list
 
 State 18:
-     28.0:name_list <= name_list ^ COMMA name, COMMA/SEMICOLON
+     28.1:name_list <= name_list ^ COMMA name, COMMA/SEMICOLON
      32.0:use_clause <= USE name_list ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
    COMMA            => shift and goto state 32
@@ -482,7 +482,7 @@ State 31:
    Minimal_Complete_Action => END
 
 State 32:
-     28.0:name_list <= name_list COMMA ^ name, COMMA/SEMICOLON
+     28.1:name_list <= name_list COMMA ^ name, COMMA/SEMICOLON
 
    SYMBOL           => shift and goto state 12
    default          => ERROR
@@ -603,11 +603,11 @@ State 43:
 
 State 44:
      27.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
-     28.0:name_list <= name_list COMMA name ^, COMMA/SEMICOLON
+     28.1:name_list <= name_list COMMA name ^, COMMA/SEMICOLON
 
-   COMMA            => reduce 3 tokens to name_list 28.0
+   COMMA            => reduce 3 tokens to name_list 28.1
    DOT              => shift and goto state 25
-   SEMICOLON        => reduce 3 tokens to name_list 28.0
+   SEMICOLON        => reduce 3 tokens to name_list 28.1
    default          => ERROR
 
    Minimal_Complete_Action => name_list
@@ -720,4 +720,4 @@ State 55:
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
- 11 rules, 18 user actions, 3 checks, 56 states, 195 parse actions
+ 11 rules, 20 user actions, 3 checks, 56 states, 195 parse actions

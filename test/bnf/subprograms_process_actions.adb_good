@@ -171,6 +171,47 @@ package body Subprograms_Process_Actions is
       return Merge_Names (Nonterm, Tokens, suf);
    end name_1_check;
 
+   procedure name_list_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T1 : constant SAL.Peek_Type := 1;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (T1 => (False, (Hanging_0, (Int, 0), (Int,
+         Java_Indent_Broken)))));
+      end case;
+   end name_list_0;
+
+   procedure name_list_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (T2 => (False, (Simple, (Int, 0))), T3 => (False,
+         (Hanging_0, (Int, 0), (Int, Java_Indent_Broken)))));
+      end case;
+   end name_list_1;
+
    procedure parameter_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;

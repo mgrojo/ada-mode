@@ -22,9 +22,9 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Strings.Unbounded;
 with System.Multiprocessors;
-with Dragon_4_43_Packrat_Gen;
-with Dragon_4_43_Packrat_Hand;
+with BNF_WY_Test;
 with WisiToken;
 procedure Test_One_Harness
 is
@@ -52,6 +52,11 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
+   function "+" (Item : in String) return Ada.Strings.Unbounded.String_Access
+   is begin
+      return Ada.Strings.Unbounded.String_Access'(new String'(Item));
+   end "+";
+   --  pragma Unreferenced ("+");
 begin
    Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
 
@@ -82,8 +87,7 @@ begin
    WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
    WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
-   Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
-   Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));
 
    Run (Suite, Options, Result, Status);
 

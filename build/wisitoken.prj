@@ -7,5 +7,6 @@ gpr_file=wisitoken_test.gpr
 gnat_stub_opts=-P wisitoken_test.gpr
 
 casing=emacs_case_exceptions
+casing=wisitoken_grammar.casing
 casing=../../org.stephe_leake.aunit_ext/build/emacs_case_exceptions
 casing=../../org.stephe_leake.sal/build/sal.casing

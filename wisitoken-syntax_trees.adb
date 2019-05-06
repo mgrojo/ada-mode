@@ -851,6 +851,25 @@ package body WisiToken.Syntax_Trees is
       end return;
    end Get_Terminal_IDs;
 
+   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID
+   is
+      function Compute (N : in Syntax_Trees.Node) return Token_ID
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+            return N.ID;
+
+         when Nonterm =>
+            return First_Terminal_ID (Tree, N.Children (1));
+         end case;
+      end Compute;
+   begin
+      return Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end First_Terminal_ID;
+
    function Has_Branched_Nodes (Tree : in Syntax_Trees.Tree) return Boolean
    is
       use all type Ada.Containers.Count_Type;
