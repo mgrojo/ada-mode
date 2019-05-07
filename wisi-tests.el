@@ -1,6 +1,6 @@
 ;;; wisi-tests.el --- Common utils for wisi tests -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -124,7 +124,7 @@
 	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-keyword-table-raw")))
 	      :string-quote-escape-doubled nil
 	      :string-quote-escape nil))
-     (setq wisi-mckenzie-enable t)
+     (setq wisi-mckenzie-disable nil)
      )
     )
 

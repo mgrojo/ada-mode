@@ -99,12 +99,20 @@ package body Wisi.Ada is
       Params            : in     String)
    is
       use Standard.Ada.Strings.Fixed;
+      use all type Ada_Process_Actions.Token_Enum_ID;
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
       Wisi.Initialize
         (Wisi.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Begin_Line, End_Line,
          Begin_Indent, "");
+
+      Data.First_Comment_ID := +COMMENT_ID;
+      Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
+      Data.Left_Paren_ID    := +LEFT_PAREN_ID;
+      Data.Right_Paren_ID   := +RIGHT_PAREN_ID;
+
+      Data.Embedded_Quote_Escape_Doubled := True;
 
       if Params /= "" then
          Ada_Indent := Integer'Value (Params (First .. Last - 1));
@@ -357,7 +365,7 @@ package body Wisi.Ada is
          return Null_Delta;
       end if;
 
-      Paren_I := Data.Find (Data.Descriptor.Left_Paren_ID, Subp_Tok);
+      Paren_I := Data.Find (Data.Left_Paren_ID, Subp_Tok);
 
       if Paren_I /= Augmented_Token_Arrays.No_Index then
          --  paren is present

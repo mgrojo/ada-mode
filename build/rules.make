@@ -72,11 +72,10 @@ autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"
 
 # load path rationale:
-#    .. for run-*.el
+#    . for run-*.el
 #    ADA_MODE_DIR = "-L .. -l "autoloads.el"" for developing ada-mode
 #    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
-ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
-
+#
 # All gpr-query functions run "gpr_query" in a background process.
 # That fails in batch mode; batch mode does not support background
 # processes. FIXME: not true in Emacs 25? So we don't run tests in

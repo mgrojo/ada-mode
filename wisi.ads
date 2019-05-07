@@ -533,6 +533,14 @@ private
      (Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with
    record
+      --  Aux token info
+      First_Comment_ID : WisiToken.Token_ID;
+      Last_Comment_ID  : WisiToken.Token_ID;
+      Left_Paren_ID    : WisiToken.Token_ID;
+      Right_Paren_ID   : WisiToken.Token_ID;
+
+      Embedded_Quote_Escape_Doubled : Boolean := False;
+
       --  Data from parsing
 
       Terminals : Augmented_Token_Arrays.Vector;

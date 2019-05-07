@@ -241,8 +241,8 @@ package body Wisi is
       Offset       : in     Integer)
      return Integer
    is
-      Left_Paren_ID  : Token_ID renames Data.Descriptor.Left_Paren_ID;
-      Right_Paren_ID : Token_ID renames Data.Descriptor.Right_Paren_ID;
+      Left_Paren_ID  : Token_ID renames Data.Left_Paren_ID;
+      Right_Paren_ID : Token_ID renames Data.Right_Paren_ID;
 
       I              : Base_Token_Index := Anchor_Token.First_Terminals_Index;
       Paren_Count    : Integer          := 0;
@@ -359,9 +359,10 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Item       : in Parse.LR.Configuration;
-      Terminals  : in Augmented_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
+     (Item                          : in Parse.LR.Configuration;
+      Terminals                     : in Augmented_Token_Arrays.Vector;
+      Descriptor                    : in WisiToken.Descriptor;
+      Embedded_Quote_Escape_Doubled : in Boolean)
    is
       use Ada.Containers;
       use Ada.Strings.Unbounded;
@@ -429,7 +430,7 @@ package body Wisi is
                         Append (Line, "][");
 
                      elsif Last_Op.Op = Delete then
-                        if Descriptor.Embedded_Quote_Escape_Doubled and then
+                        if Embedded_Quote_Escape_Doubled and then
                           ((Last_Op.ID = Descriptor.String_1_ID and Op.ID = Descriptor.String_1_ID) or
                              (Last_Op.ID = Descriptor.String_2_ID and Op.ID = Descriptor.String_2_ID))
                         then
@@ -693,7 +694,7 @@ package body Wisi is
                       (Containing_Token.Non_Grammar.Last_Index).ID = Data.Descriptor.New_Line_ID);
             begin
                if Lexer.First and
-                 (Token.ID in Data.Descriptor.First_Comment_ID .. Data.Descriptor.Last_Comment_ID or
+                 (Token.ID in Data.First_Comment_ID .. Data.Last_Comment_ID or
                     Trailing_Blank)
                then
                   if Containing_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
@@ -726,10 +727,10 @@ package body Wisi is
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
                Non_Grammar                 => <>);
          begin
-            if Token.ID = Data.Descriptor.Left_Paren_ID then
+            if Token.ID = Data.Left_Paren_ID then
                Data.Current_Paren_State := Data.Current_Paren_State + 1;
 
-            elsif Token.ID = Data.Descriptor.Right_Paren_ID then
+            elsif Token.ID = Data.Right_Paren_ID then
                Data.Current_Paren_State := Data.Current_Paren_State - 1;
             end if;
 
@@ -1796,7 +1797,7 @@ package body Wisi is
          end case;
 
          if Item.Recover.Stack.Depth > 0 then
-            Put (Item.Recover, Data.Terminals, Data.Descriptor.all);
+            Put (Item.Recover, Data.Terminals, Data.Descriptor.all, Data.Embedded_Quote_Escape_Doubled);
          end if;
       end loop;
    end Put;
@@ -2100,7 +2101,7 @@ package body Wisi is
                if Data.Line_Begin_Token.all (Line - 1) /= Augmented_Token_Arrays.No_Index then
                   for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
                      if Tok.Line = Line and then
-                       Tok.ID in Data.Descriptor.First_Comment_ID .. Data.Descriptor.Last_Comment_ID and then
+                       Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
                        Tok.Column = 0
                      then
                         Indent := False;

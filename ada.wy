@@ -187,8 +187,6 @@
 
 %token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 
-%embedded_quote_escape_doubled
-
 %start compilation_unit_list
 
 %elisp_face font-lock-constant-face
