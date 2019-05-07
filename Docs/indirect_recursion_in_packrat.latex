@@ -1,6 +1,6 @@
-Present parsning algorithm given pre-computed left_recursive set.
+Present parsing algorithm given pre-computed left_recursive set.
 
-Introduce pre-computed involved.
+Introduce pre-computed 'involved'.
 
 One solution to indirect left recursive rules is merge one rule into
 the other, yeilding a direct left recursive rule, which we know how to

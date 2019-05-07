@@ -21,18 +21,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-doing java_wisi actions; may find more test cases
-
-descriptor.left_paren_id only used in ada-mode wisi.adb
-    new_line also
-    move to wisi.data_type?
-        needs a generic param?
-        set in language-specific initialize?
+test_mckenzie use lr-parser-gen_aunit
 
 use First to compute String_ID_Set?
 
-make "canonical list" compatible with packrat
+make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1
+    better to implement list in packrat
 
 c:/Projects/org.emacs.java-wisi/test/recover_001.java
     don't delete next if minimal_c_a inserted
@@ -73,6 +68,7 @@ lalr generator bug
             bison state 36 is the same
 
 re2c now has --location-format <gnu | msvc>
+    Apr 2019 in devel, not release
 
 c:/eurocontrol/query_display-flight_operations.adb
     errors cause huge slowdown in parse speed
@@ -82,32 +78,8 @@ c:/eurocontrol/query_display-flight_operations.adb
         benefit depends on density, duration of conflicts
         errors are when speed is noticeable
 
-test_mckenzie use lr-parser-gen_aunit
-
-recover still hanging on exception in worker_task
-    but get no output in *Ada_wisi_parse*, not even parse command
-    only symptom is "not getting more text", several times, from jit-lock
-    some previous command hung, later commands wiped its output?
-        parser-busy is supposed to prevent that
-
-declare recover tasks at package level
-    reuse them in recover
-    o.w.s-1
-
-take Dot into account when finding min?
-    best metric is min remaining to insert
-        won't make much difference; only matters when dot is not near beginning, but then don't have multiple productions (they all must have same prefix)
-
-delete "assume ignore semantic check is a solution"; only language_fixes knows that
-    provide subprog to enqueue that in language_fixes
-
 enqueue_limit should be for total over all parsers; more consistent max time
     need test case?
-
-hint in grammar to prefer "null;" over "return;" in minimal-terminal-sequence?
-    ada: IDENTIFIER for 'name', not string_literal = operator
-    %prefer_minimum_terminal <nonterm> <terminal>
-
 
 Error messages need gen_alg prefix - add to Error_message
 
@@ -120,37 +92,18 @@ capture diff between lr1, lalr recover
 
         similar on line 47; lalr finds no solutions
 
-compare to bison
-
-set lines_per_subr on wisitoken command line
-    optimize for ada_lite, ada
-
-lr1 only store kernels?
-    find other documentation of lr1 algorithm
-    just adding 'filter in_kernel' in lr1_item_sets causes infinite loop or big slowdown.
-
-distinquish between reset for lex, reset for execute_actions.
-    wisi_grammar don't reset command line args?
-
-add delete to config heap, use when configuration_access is abandoned?
-
 can generate code for LR parser, rather than using table
     see Google drive/Parsing/notes
+    screws up recover because parse stack = cpu stack; not accessible?
 
 try packrat indirect recursion solution
-    adding head, grow_set to Parser
-        must be on a stack for nested recursion?
-
     docs/indirect_recursion_in_packrat.latex
+        finish it
 
     add "run grammar.wy input" main for -procedural_*?
 
-    Solution to left recurse is merge into one expression. See how
-    that evaluates, make recursive do the same - use memo instead of
-    apply rule.
-
-    Need recurse_pos in case possibly empty nonterm is not empty -
-    call apply rule if memo empty.
+    adding head, grow_set to Parser
+        must be on a stack for nested recursion?
 
     test with optional unary minus
 

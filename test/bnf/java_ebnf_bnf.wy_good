@@ -103,7 +103,8 @@ forControl
 
 ;; no labels in canonical list
 argumentList
-  : argument (',' argument)*
+  : argument
+  | argumentList COMMA argument
   ;
 
 ;; labels in canonical list
@@ -112,7 +113,7 @@ expressionList
     %((wisi-indent-action [(T1 . (wisi-indent-hanging 0 java-indent-broken))
                            (T2 . 0)
                            (T3 . (wisi-indent-hanging 0 java-indent-broken))]))%
-  | expressionList T2=',' T3=expression
+  | expressionList=expressionList T2=COMMA T3=expression
     %((wisi-indent-action [(T1 . (wisi-indent-hanging 0 java-indent-broken))
                            (T2 . 0)
                            (T3 . (wisi-indent-hanging 0 java-indent-broken))]))%
@@ -121,11 +122,11 @@ expressionList
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
   : primary
-  | expression bop=DOT nonterminal_018
-  | expression postfix=nonterminal_021
+  | expression bop=DOT nonterminal_021
+  | expression postfix=nonterminal_024
 
 ;; attribute with more than one item following
-  | expression bop=nonterminal_034 expression
+  | expression bop=nonterminal_037 expression
 
 ;; attribute with one item following
   | expression
@@ -133,24 +134,24 @@ expression
 
 ;; non-trivial group item
 arrayCreatorRest
-  : LBRACK nonterminal_048
+  : LBRACK nonterminal_051
   ;
 
 ;; another non-trivial group item, and lots of copies
 interfaceMethodDeclaration
-  : nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list THROWS qualifiedNameList methodBody
-  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list methodBody
-  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters methodBody
-  | nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list THROWS qualifiedNameList methodBody
-  | nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list methodBody
-  | nonterminal_051 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | nonterminal_051 IDENTIFIER formalParameters methodBody
+  : nonterminal_052_list nonterminal_054 IDENTIFIER formalParameters nonterminal_042_list THROWS qualifiedNameList methodBody
+  | nonterminal_052_list nonterminal_054 IDENTIFIER formalParameters nonterminal_042_list methodBody
+  | nonterminal_052_list nonterminal_054 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_052_list nonterminal_054 IDENTIFIER formalParameters methodBody
+  | nonterminal_054 IDENTIFIER formalParameters nonterminal_042_list THROWS qualifiedNameList methodBody
+  | nonterminal_054 IDENTIFIER formalParameters nonterminal_042_list methodBody
+  | nonterminal_054 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_054 IDENTIFIER formalParameters methodBody
   ;
 
 ;; trailing optional with multiple tokens
 typeParameter
-  : nonterminal_050_list IDENTIFIER EXTENDS typeBound  | nonterminal_050_list IDENTIFIER
+  : nonterminal_053_list IDENTIFIER EXTENDS typeBound  | nonterminal_053_list IDENTIFIER
   | IDENTIFIER EXTENDS typeBound
   | IDENTIFIER
   ;
@@ -181,18 +182,18 @@ nonterminal_011_list
   : switchLabel
   | nonterminal_011_list switchLabel
   ;
-nonterminal_018
+nonterminal_021
   : THIS
   | NEW nonWildcardTypeArguments innerCreator
   | NEW innerCreator
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_021
+nonterminal_024
   : INC
   | DEC
   ;
-nonterminal_034
+nonterminal_037
   : ASSIGN
   | ADD_ASSIGN
   | SUB_ASSIGN
@@ -206,38 +207,38 @@ nonterminal_034
   | LSHIFT_ASSIGN
   | MOD_ASSIGN
   ;
-nonterminal_040
+nonterminal_043
   : LBRACK RBRACK
   ;
-nonterminal_039_list
-  : nonterminal_040
-  | nonterminal_039_list nonterminal_040
-  ;
-nonterminal_045
-  : LBRACK expression RBRACK
-  ;
-nonterminal_044_list
-  : nonterminal_045
-  | nonterminal_044_list nonterminal_045
+nonterminal_042_list
+  : nonterminal_043
+  | nonterminal_042_list nonterminal_043
   ;
 nonterminal_048
-  : RBRACK nonterminal_039_list arrayInitializer
-  | RBRACK arrayInitializer
-  | expression RBRACK nonterminal_044_list nonterminal_039_list
-  | expression RBRACK nonterminal_044_list
-  | expression RBRACK nonterminal_039_list
-  | expression RBRACK
+  : LBRACK expression RBRACK
   ;
-nonterminal_049_list
-  : interfaceMethodModifier
-  | nonterminal_049_list interfaceMethodModifier
-  ;
-nonterminal_050_list
-  : annotation
-  | nonterminal_050_list annotation
+nonterminal_047_list
+  : nonterminal_048
+  | nonterminal_047_list nonterminal_048
   ;
 nonterminal_051
+  : RBRACK nonterminal_042_list arrayInitializer
+  | RBRACK arrayInitializer
+  | expression RBRACK nonterminal_047_list nonterminal_042_list
+  | expression RBRACK nonterminal_047_list
+  | expression RBRACK nonterminal_042_list
+  | expression RBRACK
+  ;
+nonterminal_052_list
+  : interfaceMethodModifier
+  | nonterminal_052_list interfaceMethodModifier
+  ;
+nonterminal_053_list
+  : annotation
+  | nonterminal_053_list annotation
+  ;
+nonterminal_054
   : typeTypeOrVoid
-  | typeParameters nonterminal_050_list typeTypeOrVoid
+  | typeParameters nonterminal_053_list typeTypeOrVoid
   | typeParameters typeTypeOrVoid
   ;

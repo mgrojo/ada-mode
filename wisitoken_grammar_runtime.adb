@@ -658,9 +658,6 @@ package body WisiToken_Grammar_Runtime is
                     ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
                       Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
-               elsif Kind = "embedded_quote_escape_doubled" then
-                  Data.Language_Params.Embedded_Quote_Escape_Doubled := True;
-
                elsif Kind = "end_names_optional_option" then
                   Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
 

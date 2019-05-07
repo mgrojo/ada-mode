@@ -109,26 +109,16 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      Case_Insensitive : Boolean; -- keywords and names
+      Case_Insensitive : Boolean;  -- keywords and names
       New_Line_ID      : Token_ID;
-      First_Comment_ID : Token_ID;
-      Last_Comment_ID  : Token_ID;
-      Left_Paren_ID    : Token_ID;
-      Right_Paren_ID   : Token_ID;
-      --  If the language does not define these tokens, set them to
-      --  Invalid_Token_ID.
 
-      String_1_ID  : Token_ID; -- delimited by ', error if New_Line_ID
-      String_2_ID  : Token_ID; -- delimited by ", error if New_Line_ID
+      String_1_ID : Token_ID;
+      String_2_ID : Token_ID;
+      --  String_1 delimited by '; String_2 by ".
       --
-      --  Support for missing quote error recovery. If the language does not
+      --  Used by missing quote error recovery. If the language does not
       --  have two kinds of string literals, set one or both of these to
       --  Invalid_Token_ID.
-
-      Embedded_Quote_Escape_Doubled : Boolean;
-      --  True if quote characters embedded in strings are escaped by
-      --  doubling (as in Ada); false if by preceding with backslash (as in
-      --  C).
 
       Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
@@ -136,13 +126,13 @@ package WisiToken is
       Terminal_Image_Width : Integer;
       Image_Width          : Integer; --  max width of Image
 
+      Last_Lookahead : Token_ID;
       --  LALR generate needs a 'Propagate_ID' lookahead that is distinct
       --  from all terminals. Since lookaheads are Token_ID_Set, we need to
       --  allocate First_Terminal .. Last_Terminal for LR1 generate, and
       --  First_Terminal .. Propagate_ID for LALR generate, so we define
       --  Last_Lookahead. After the LR table is generated, Last_Lookahead is
       --  no longer used.
-      Last_Lookahead : Token_ID;
    end record;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;

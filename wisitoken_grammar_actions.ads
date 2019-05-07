@@ -25,22 +25,17 @@ with WisiToken.Syntax_Trees;
 package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal                => 3,
-      Last_Terminal                 => 36,
-      First_Nonterminal             => 37,
-      Last_Nonterminal              => 56,
-      EOI_ID                        => 36,
-      Accept_ID                     => 37,
-      Case_Insensitive              => False,
-      New_Line_ID                   => 1,
-      First_Comment_ID              => 2,
-      Last_Comment_ID               => 2147483647,
-      Left_Paren_ID                 => 2147483647,
-      Right_Paren_ID                => 2147483647,
-      String_1_ID                   => 35,
-      String_2_ID                   => 34,
-      Embedded_Quote_Escape_Doubled => False,
-      Image                         =>
+     (First_Terminal    => 3,
+      Last_Terminal     => 36,
+      First_Nonterminal => 37,
+      Last_Nonterminal  => 56,
+      EOI_ID            => 36,
+      Accept_ID         => 37,
+      Case_Insensitive  => False,
+      New_Line_ID       => 1,
+      String_1_ID       => 35,
+      String_2_ID       => 34,
+      Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),

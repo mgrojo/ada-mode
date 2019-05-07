@@ -23,22 +23,17 @@ with WisiToken.Semantic_Checks;
 package Subprograms_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal                => 4,
-      Last_Terminal                 => 20,
-      First_Nonterminal             => 21,
-      Last_Nonterminal              => 32,
-      EOI_ID                        => 20,
-      Accept_ID                     => 21,
-      Case_Insensitive              => False,
-      New_Line_ID                   => 1,
-      First_Comment_ID              => 2,
-      Last_Comment_ID               => 3,
-      Left_Paren_ID                 => 14,
-      Right_Paren_ID                => 15,
-      String_1_ID                   => 2147483647,
-      String_2_ID                   => 2147483647,
-      Embedded_Quote_Escape_Doubled => False,
-      Image                         =>
+     (First_Terminal    => 4,
+      Last_Terminal     => 20,
+      First_Nonterminal => 21,
+      Last_Nonterminal  => 32,
+      EOI_ID            => 20,
+      Accept_ID         => 21,
+      Case_Insensitive  => False,
+      New_Line_ID       => 1,
+      String_1_ID       => 2147483647,
+      String_2_ID       => 2147483647,
+      Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT_1"),
