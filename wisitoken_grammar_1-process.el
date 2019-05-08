@@ -37,6 +37,7 @@
    ACTION
    BAR
    COLON
+   COLON_COLON_EQUAL
    COMMA
    EQUAL
    GREATER
@@ -79,6 +80,7 @@
    rhs_alternative_list
    compilation_unit
    compilation_unit_list
+   nonterminal_004
    ])
 
 (defconst wisitoken_grammar_1-process-face-table

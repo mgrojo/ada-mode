@@ -7,14 +7,6 @@
 ;;  The supported syntax is close to Extended Backus-Naur form, as defined by
 ;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
 ;;
-;;  Differences from EBNF:
-;;  - ':' instead of '::='
-;;
-;;  - no ',' between tokens, just space
-;;
-;;  - Terminating ';' optional in nonterminals (for compatibility with
-;;    Python grammar syntax).
-;;
 ;;  In addition, we support the Python grammar file given at
 ;;  https://docs.python.org/3.8/reference/grammar.html
 ;;  and the Java grammar file given at
@@ -49,6 +41,8 @@
    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
+%meta_syntax EBNF
+
 ;; LR1 for better error correction
 %generate LR1 Ada_Emacs re2c Process
 %start compilation_unit_list
@@ -68,6 +62,7 @@
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
+%token <punctuation> COLON_COLON_EQUAL "::="
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
@@ -86,12 +81,7 @@
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
-%if lexer = elisp
-%token <number> NUMERIC_LITERAL wisi-number-p
-%end if
-%if lexer = re2c
-%token <number> NUMERIC_LITERAL %[ [0-9][0-9_]* ]%
-%end if
+%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]%
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
@@ -133,16 +123,20 @@
 
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
-    %( (progn
-         (wisi-statement-action [1 statement-start 3 name])
-         (wisi-face-apply-action
-          [1 nil font-lock-constant-face
-             2 nil font-lock-keyword-face
-             3 nil font-lock-function-name-face])) )%
+    %((progn
+        (wisi-statement-action [1 statement-start])
+        (wisi-name-action 3)
+        (wisi-face-apply-action
+         [1 nil font-lock-constant-face
+            2 nil font-lock-keyword-face
+            3 nil font-lock-function-name-face])
+        (wisi-indent-action [0 0 0 (wisi-hanging 4 2)])))%
   | PERCENT CODE identifier_list RAW_CODE
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER declaration_item_list
-    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+    %((progn
+        (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
+        (wisi-indent-action [0 0 (wisi-hanging 4 2)])))%
   | PERCENT IDENTIFIER
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
@@ -187,11 +181,12 @@ declaration_item
   ;
 
 nonterminal
-  : IDENTIFIER COLON rhs_list semicolon_opt
+  : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
     %( (progn
          (wisi-statement-action [1 statement-start 4 statement-end])
+         (wisi-name-action 1)
          (wisi-face-apply-action [1 nil font-lock-function-name-face])
-         (wisi-indent-action [0 [2 -1] 2 2])) )%
+         (wisi-indent-action [0 [2 -1] (wisi-hanging 4 2) 2])) )%
   ;
 
 semicolon_opt :
@@ -209,10 +204,11 @@ rhs_list
 rhs
   : ;; empty
   | rhs_item_list
+    %( (wisi-indent-action [[(wisi-hanging 0 2) 0]]) )%
   | rhs_item_list ACTION
-    %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1]]) )%
+    %( (wisi-indent-action [[(wisi-hanging 0 2) 0] [2 0]]) )%
   | rhs_item_list ACTION ACTION
-    %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1] [2 -1]]) )%
+    %( (wisi-indent-action [[(wisi-hanging 0 2) 0] [2 0] [2 0]]) )%
   ;
 
 rhs_attribute

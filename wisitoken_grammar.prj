@@ -1,4 +1,3 @@
-gpr_project_path=.
 gpr_project_path=$EMACS_WISI
 gpr_project_path=$WISITOKEN/build
 gpr_project_path=../org.stephe_leake.sal/build

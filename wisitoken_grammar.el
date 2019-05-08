@@ -4,7 +4,7 @@
 (require 'project-menu)
 (require 'xref-ada)
 
-(setq project-find-functions '(project-menu-prj))
+(add-to-list 'project-find-functions #'project-menu-prj)
 
 (let* ((prj-file "wisitoken_grammar.prj")
        (prj-name "wisitoken_grammar main")

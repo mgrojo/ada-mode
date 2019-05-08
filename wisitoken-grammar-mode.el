@@ -47,8 +47,10 @@
 
 (defvar wisitoken-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; see wisitoken-grammar-syntax-propertize for double semicolon as comment
+    ;; see wisitoken-grammar-syntax-propertize for comment start
     (modify-syntax-entry ?\n ">   " table)
+    (modify-syntax-entry ?= ".   " table) ;; default symbol
+    (modify-syntax-entry ?* ".   " table) ;; default symbol
     table))
 
 (defvar wisitoken-grammar-mode-map
@@ -64,12 +66,74 @@
 (defvar-local wisitoken-grammar-action-mode nil
   "Emacs major mode used for actions and code, inferred from ’%generate’ declaration or file local variable.")
 
-(cl-defstruct (wisitoken-wisi-parser (:include wisi-process--parser))
+(cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
   )
 
-(cl-defmethod wisi-parse-format-language-options ((_parser wisitoken-wisi-parser))
+(cl-defmethod wisi-parse-format-language-options ((_parser wisitoken-grammar-parser))
   "")
+
+(defun wisitoken-grammar-in-action-or-comment ()
+  ;; (info "(elisp) Parser State" "*info syntax-ppss*")
+  (let* ((state (syntax-ppss))
+	 (paren-depth (nth 0 state))
+	 (done nil)
+	 (result nil))
+    (cond
+     ((nth 3 state)
+      ;; in string
+      t)
+
+     ((nth 4 state)
+      ;; in comment
+      t)
+
+     ((> paren-depth 0)
+      ;; check for action delimiters
+      (save-excursion
+	(while (not done)
+	  (if (= ?% (char-before (nth 1 state)))
+	      ;; in code, regesp, or action
+	      (setq done t
+		    result t)
+
+	    ;; else go up one level
+	    (setq state (syntax-ppss (1- (nth 1 state))))
+	    )))
+      result)
+     )))
+
+(defun wisitoken-grammar-find-begin (begin)
+  "Starting at BEGIN, search backward for a parse start point."
+  (goto-char begin)
+  (cond
+   ((wisi-search-backward-skip ":" #'wisitoken-grammar-in-action-or-comment)
+    ;; Move back to before the nonterminal name
+    (forward-comment (- (line-number-at-pos (point))))
+    (skip-syntax-backward "w_")
+    (point))
+
+   (t
+    (point-min))
+   ))
+
+(defun wisitoken-grammar-find-end (end)
+  "Starting at END, search forward for a parse end point."
+  (goto-char end)
+  (cond
+   ((wisi-search-forward-skip ";" #'wisitoken-grammar-in-action-or-comment)
+    (point))
+
+   (t
+    (point-max))
+   ))
+
+(cl-defmethod wisi-parse-expand-region ((_parser wisitoken-grammar-parser) begin end)
+    (save-excursion
+      (let ((begin-cand (wisitoken-grammar-find-begin begin))
+	    (end-cand (wisitoken-grammar-find-end end)))
+	(cons begin-cand end-cand)
+	)))
 
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
@@ -101,25 +165,8 @@ Otherwise insert a plain new line."
   ;; no message on parse fail, since this could be called from which-func-mode
   (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
-      (let ((cache (wisi-backward-cache)))
-	;; Find terminal or nonterminal containing point (if any)
-	(while
-	    (and
-	     cache
-	     (not (bobp))
-	     (not
-	      (or
-	       (and (eq (wisi-cache-class cache) 'statement-start)
-		    (eq (wisi-cache-nonterm cache) 'nonterminal))
-	       (and (eq (wisi-cache-class cache) 'name)
-		    (eq (wisi-cache-nonterm cache) 'declaration)))))
-	  (setq cache (wisi-backward-cache)))
-
-	(when cache
-	  ;; We don’t define an elisp lexer, so we can’t use wisi-forward-token
-	  (buffer-substring-no-properties (point) (progn (skip-syntax-forward "w_") (point))); name
-
-	  )))))
+      (wisi-goto-statement-start)
+      (wisi-next-name))))
 
 (defun wisitoken-grammar-add-log-current-function ()
   "For `add-log-current-defun-function'; return name of current non-terminal or declaration."
@@ -142,10 +189,24 @@ Otherwise insert a plain new line."
 	(inhibit-point-motion-hooks t))
     (goto-char start)
     (save-match-data
-      (while (re-search-forward ";;" end t); comment start
-	(put-text-property
-	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
-  )))
+      (while (re-search-forward
+	      (concat
+	       "\\(;;\\)"     ;; comment start
+	       "\\|\\(%\\[\\)" ;; regexp begin
+	       )
+	      end t)
+	(cond
+	 ((match-beginning 1)
+	  (put-text-property (match-beginning 1) (match-end 1) 'syntax-table '(11 . nil)))
+
+	 ((match-beginning 2)
+	  (let ((begin (match-beginning 2))
+		(end (search-forward "]%")))
+	    ;; allow single quotes in regexp to not mess up the rest of the buffer
+	    (put-text-property begin end 'syntax-table '(11 . nil))
+	    ))
+	 ))
+      )))
 
 (defun wisitoken-grammar-set-action-mode ()
   (save-excursion
@@ -171,55 +232,26 @@ Otherwise insert a plain new line."
 
 ;;; xref integration
 (defun wisitoken-grammar--xref-backend ()
-  (cl-case major-mode
-    (wisitoken-grammar-mode 'wisitoken-grammar)
-    (emacs-lisp-mode 'elisp)
-    (t nil)))
+  'wisitoken-grammar)
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisitoken-grammar)))
-  (thing-at-point 'symbol))
+  (wisi-xref-identifier-at-point))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
-  ;; Complete on declaration names (ie terminals and other things) and
-  ;; nonterminal names.
-  (save-excursion
-    (let (result
-	  cache)
-      (wisi-validate-cache (point-min) (point-max) nil 'navigate)
-      (goto-char (point-min))
-      (while (setq cache (wisi-forward-cache))
-	(when (or (and (eq 'declaration (wisi-cache-nonterm cache))
-		       (eq 'name (wisi-cache-class cache)))
-		  (eq 'nonterminal (wisi-cache-nonterm cache)))
-	  ;; We can’t store location data in a string text property -
-	  ;; it does not survive completion. So we include the line
-	  ;; number in the identifier string.
-	  (setq result (cons (format "%s<%d>" (wisi-cache-text cache) (line-number-at-pos)) result))))
-      result)))
+  (wisi-xref-identifier-completion-table))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
-  ;; The line number is incuded in the identifier wrapped in <>
-  (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
-  (let ((ident (match-string 1 identifier))
-	(line-str (match-string 2 identifier))
-	line)
-    (if line-str
-	(setq line (string-to-number line-str))
+  (unless (and (string-match wisi-xref-ident-regexp identifier)
+	       (match-string 2 identifier))
+    ;; Identifier is from identifier-at-point; get line from completion table
+    (setq identifier (try-completion identifier (wisi-xref-identifier-completion-table)))
+    (unless (test-completion identifier (wisi-xref-identifier-completion-table))
+      (setq identifier (completing-read "decl: " (wisi-xref-identifier-completion-table) nil t identifier)))
+    (string-match wisi-xref-ident-regexp identifier))
 
-      ;; identifier is from identifier-at-point; search for definition
-      (save-excursion
-	(let (cache)
-	  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
-	  (goto-char (point-min))
-	  (while (and (null line)
-		      (setq cache (wisi-forward-cache)))
-	    (when (or (and (eq 'declaration (wisi-cache-nonterm cache))
-			   (eq 'name (wisi-cache-class cache)))
-		      (eq 'nonterminal (wisi-cache-nonterm cache)))
-	      (when (string-equal ident (wisi-cache-text cache))
-		(setq line (line-number-at-pos)))
-	      ))
-	  )))
+  (let* ((ident (match-string 1 identifier))
+	 (line-str (match-string 2 identifier))
+	 (line (when line-str (string-to-number line-str))))
     (when line
       (list (xref-make ident (xref-make-file-location (buffer-file-name) line  0))))
     ))
@@ -251,7 +283,9 @@ Otherwise insert a plain new line."
 
   (wisitoken-grammar-set-action-mode)
 
-  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend t t)
+  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
+	    nil ;; append
+	    t)
   (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
   (add-hook 'before-save-hook 'copyright-update nil t)
 
@@ -259,8 +293,9 @@ Otherwise insert a plain new line."
    :indent-calculate nil
    :post-indent-fail nil
    :parser (wisi-process-parse-get
-	    (make-wisitoken-wisi-parser
+	    (make-wisitoken-grammar-parser
 	     :label "wisitoken-grammar"
+	     :language-protocol-version "1"
 	     :exec-file wisitoken-grammar-process-parse-exec
 	     :face-table wisitoken_grammar_1-process-face-table
 	     :token-table wisitoken_grammar_1-process-token-table

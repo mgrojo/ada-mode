@@ -15,26 +15,26 @@ elisp : update-elisp test
 
 pub : pub-wisi-grammar build-elpa uninstall-elpa
 
-update-elisp : build_ada_executables
-update-elisp : autoloads
-update-elisp : byte-compile
+update-elisp :: build_executables
+update-elisp :: autoloads
+update-elisp :: byte-compile
 
-update-install : update-elisp install_ada_executables
+update-install : update-elisp install_executables
 
 test : test-wisitoken_grammar.stamp
 
 ONE_TEST_FILE := ada.wy
-one-clean : force
+one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
-one : one-clean
-one : build_ada_executables
-one : RUNTEST := run-indent-test-grammar.el
-one : $(ONE_TEST_FILE).diff
+one :: one-clean
+one :: build_executables
+one :: RUNTEST := run-indent-test-grammar.el
+one :: $(ONE_TEST_FILE).diff
 
-#two : RUN_ARGS ?= --verbosity 0 0 2 --cost_limit 5
-#two : RUN_ARGS ?= --repeat_count 5
-#two : RUN_LOG := > debug.log
-two : build_ada_executables
+#two :: RUN_ARGS ?= --verbosity 0 0 2 --cost_limit 5
+#two :: RUN_ARGS ?= --repeat_count 5
+#two :: RUN_LOG := > debug.log
+two :: build_executables
 	./run_wisitoken_grammar_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
@@ -56,8 +56,7 @@ byte-compile-clean :
 	rm -f *.elc
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "autoloads.el")))(update-directory-autoloads ".")))'
-
+	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -106,10 +105,10 @@ test-wisitoken_grammar.stamp : test-clean
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-build_ada_executables : wisitoken_grammar_1_re2c.c force
+build_executables : wisitoken_grammar_1_re2c.c force
 	gprbuild -p wisitoken_grammar.gpr
 
-install_ada_executables : build_ada_executables
+install_executables : build_executables
 	gprinstall -f -p -P wisitoken_grammar.gpr --install-name=wisitoken_grammar_wisi_parse
 
 clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
