@@ -750,9 +750,9 @@ is
             return "";
          end Expression;
 
-         procedure Skip_Expression
+         procedure Skip_Expression (Param_First : in Integer)
          is
-            Junk : constant String := Expression (Last);
+            Junk : constant String := Expression (Param_First);
             pragma Unreferenced (Junk);
          begin
             null;
@@ -814,13 +814,14 @@ is
                         if Params (Last) /= ')' then
                            Put_Error
                              (Error_Message
-                                (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid indent syntax"));
+                                (Input_Data.Grammar_Lexer.File_Name,
+                                 RHS.Source_Line, "invalid indent syntax; missing ')'"));
                         end if;
                         Last := Last + 1;
                      end;
                   else
                      if Skip then
-                        Skip_Expression;
+                        Skip_Expression (Last);
                      else
                         Comma;
                         Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
@@ -831,9 +832,8 @@ is
             when '[' =>
                --  vector
                if Skip then
-                  Skip_Expression;
-                  Last := Index_Non_Blank (Params, Last + 1);
-                  Skip_Expression;
+                  Skip_Expression (Last + 1);
+                  Skip_Expression (Last + 1);
                else
                   Comma;
                   Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
@@ -842,14 +842,14 @@ is
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid indent syntax"));
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid indent syntax; missing ']'"));
                end if;
                Last := Last + 1;
 
             when others =>
                --  integer or symbol
                if Skip then
-                  Skip_Expression;
+                  Skip_Expression (Last);
                else
                   Comma;
                   Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';

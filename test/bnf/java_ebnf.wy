@@ -73,7 +73,8 @@ expressionList
   : T1=expression (T2=',' T3=expression)*
     %((wisi-indent-action [(T1 . (wisi-indent-hanging 0 java-indent-broken))
                            (T2 . 0)
-                           (T3 . (wisi-indent-hanging 0 java-indent-broken))]))%
+                           (T3 . [(wisi-indent-hanging 0 java-indent-broken)
+                                  (wisi-indent-hanging 0 java-indent-broken))]))%
   ;
 
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
