@@ -20,6 +20,8 @@ pragma License (Modified_GPL);
 with Wisitoken_Grammar_1_Process_Actions;
 package body Wisi.WisiToken_Grammar is
 
+   Check_Parens_Action_Index : constant String := "0";
+
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
@@ -40,5 +42,24 @@ package body Wisi.WisiToken_Grammar is
 
       Data.First_Comment_ID := +COMMENT_ID;
    end Initialize;
+
+   procedure Check_Parens
+     (Data        : in out Wisi.Parse_Data_Type'Class;
+      Tree        : in     WisiToken.Syntax_Trees.Tree;
+      Tree_Tokens : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Args        : in     Arg_Index_Array)
+   is
+      use WisiToken;
+   begin
+      for Index of Args loop
+         declare
+            Token : Augmented_Token renames Data.Terminals (Tree.Min_Terminal_Index (Tree_Tokens (Index)));
+         begin
+            Data.Put_Language_Action
+              (Check_Parens_Action_Index & Buffer_Pos'Image (Token.Char_Region.First) &
+                 Buffer_Pos'Image (Token.Char_Region.Last));
+         end;
+      end loop;
+   end Check_Parens;
 
 end Wisi.WisiToken_Grammar;
