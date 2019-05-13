@@ -34,4 +34,10 @@ package Wisi.WisiToken_Grammar is
       Begin_Indent      : in     Integer;
       Params            : in     String);
 
+   procedure Check_Parens
+     (Data        : in out Wisi.Parse_Data_Type'Class;
+      Tree        : in     WisiToken.Syntax_Trees.Tree;
+      Tree_Tokens : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Args        : in     Arg_Index_Array);
+
 end Wisi.WisiToken_Grammar;

@@ -47,7 +47,7 @@
 %generate LR1 Ada_Emacs re2c Process
 %start compilation_unit_list
 
-%no_language_runtime
+%language_runtime "Wisi.WisiToken_Grammar"
 
 %keyword CODE "code"
 %keyword END "end"
@@ -106,6 +106,8 @@
 %elisp_face font-lock-string-face
 %elisp_face font-lock-type-face
 %elisp_face nil
+
+%elisp_action face wisi-check-parens Check_Parens
 
 %mckenzie_cost_default 2 2 2 2
 %mckenzie_cost_insert SEMICOLON 1
@@ -208,8 +210,11 @@ rhs_list
 rhs
   : ;; empty
   | rhs_item_list
+    %((wisi-indent-action [[(wisi-hanging 0 2) 0]]))%
   | rhs_item_list ACTION
+    %((wisi-check-parens [2]))%
   | rhs_item_list ACTION ACTION
+    %((wisi-check-parens [2 3]))%
   ;
 
 rhs_attribute

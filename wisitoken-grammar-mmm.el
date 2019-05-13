@@ -4,7 +4,7 @@
 
 (mmm-add-classes
  '((wisi-action
-    :match-submode wisi-mmm-submode
+    :match-submode wisitoken-grammar-mmm-submode
     :face mmm-code-submode-face
     :front "%("
     :back ")%"
@@ -18,7 +18,7 @@
    ))
 
 (defvar wisitoken-grammar-action-mode) ;; in wisitoken-grammar-mode.el
-(defun wisi-mmm-submode (_delim)
+(defun wisitoken-grammar-mmm-submode (_delim)
   "for :match-submode"
   wisitoken-grammar-action-mode)
 

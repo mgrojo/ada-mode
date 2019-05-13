@@ -63,9 +63,7 @@
 
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
-    (define-key map "\C-c\C-i" 'wisi-indent-statement)
-    (when (featurep 'mmm-mode)
-      (define-key map "\C-c\C-m" 'mmm-parse-region))
+    (define-key map "\C-c\C-m" 'mmm-parse-region)
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
@@ -79,6 +77,36 @@
 
 (cl-defmethod wisi-parse-format-language-options ((_parser wisitoken-grammar-parser))
   "")
+
+(defun wisitoken-grammar-check-parens (sexp)
+  "For `wisi-process--parse-Language'"
+  ;; sexp is [Language index token-first token-last]
+
+  ;; Check for missing parens in the action; otherwise only
+  ;; checked at grammar generation time.
+    (let* ((start (aref sexp 2))
+	   (stop (1+ (aref sexp 3)))
+	   (paren-depth-start (nth 0 (syntax-ppss start)))
+	   (paren-depth-stop (nth 0 (syntax-ppss stop))))
+      ;; We could check for paren-depth = 0 at start, but then we'd
+      ;; get errors on every action after that.
+      (unless (= paren-depth-start paren-depth-stop)
+	(push
+	 (make-wisi--parse-error
+	  :pos (copy-marker start)
+	  :message
+	  (format "%s:%d: missing paren or bracket in %d %d"
+		  (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		  ;; file-name can be nil during vc-resolve-conflict
+		  (line-number-at-pos start)
+		  start stop))
+	 (wisi-parser-parse-errors wisi--parser))
+
+	;; As of mmm version 0.5.7, mmm-parse-region calls
+	;; font-lock-ensure, which calls us. So we can't do
+	;; mmm-parse-region here. FIXME: fix mmm to do parse-region in
+	;; syntax-propertize.
+	)))
 
 (defun wisitoken-grammar-in-action-or-comment ()
   ;; (info "(elisp) Parser State" "*info syntax-ppss*")
@@ -100,7 +128,7 @@
       (save-excursion
 	(while (not done)
 	  (if (= ?% (char-before (nth 1 state)))
-	      ;; in code, regesp, or action
+	      ;; in code, regexp, or action
 	      (setq done t
 		    result t)
 
@@ -311,6 +339,7 @@ Otherwise insert a plain new line."
 	     :exec-file wisitoken-grammar-process-parse-exec
 	     :face-table wisitoken_grammar_1-process-face-table
 	     :token-table wisitoken_grammar_1-process-token-table
+	     :language-action-table [wisitoken-grammar-check-parens]
 	     ))
    :lexer nil)
 
