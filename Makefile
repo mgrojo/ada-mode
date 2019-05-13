@@ -23,7 +23,7 @@ update-install : update-elisp install_executables
 
 test : test-wisitoken_grammar.stamp
 
-ONE_TEST_FILE := ada.wy
+ONE_TEST_FILE := nominal.wy
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 one :: one-clean
@@ -31,14 +31,14 @@ one :: build_executables
 one :: RUNTEST := run-indent-test-grammar.el
 one :: $(ONE_TEST_FILE).diff
 
-#two :: RUN_ARGS ?= --verbosity 0 0 2 --cost_limit 5
+two :: RUN_ARGS ?= --verbosity 0 0 2
 #two :: RUN_ARGS ?= --repeat_count 5
 #two :: RUN_LOG := > debug.log
 two :: build_executables
-	./run_wisitoken_grammar_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
+	./run_wisitoken_grammar_parse.exe test/nominal.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	$(WISITOKEN)/build/wisitoken-bnf-generate.exe $(<F)
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf $(*F)_bnf.wy $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
@@ -78,32 +78,26 @@ endif
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
 
-vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
+vpath %.wy test
 
-TEST_FILES := wisitoken_grammar_1.wy
-TEST_FILES += ada.wy
-TEST_FILES += java.wy
-TEST_FILES += gpr.wy
-TEST_FILES += ada_lite.wy
-TEST_FILES += character_literal.wy
-TEST_FILES += identifier_list_name_conflict.wy
+TEST_FILES := $(shell cd test; ls *.wy)
 
 %.diff : % %.tmp
-	diff -u $< $*.tmp > $*.diff
+	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) -L $(EMACS_WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))
-
-test-clean : force
-	rm -f *.diff *.tmp *.log
 
 test-wisitoken_grammar.stamp : test-clean
 	$(MAKE) test-wisitoken_grammar
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
+
+test-clean : force
+	rm -f *.diff *.tmp *.log
 
 build_executables : wisitoken_grammar_1_re2c.c force
 	gprbuild -p wisitoken_grammar.gpr
