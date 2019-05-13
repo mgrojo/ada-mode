@@ -205,12 +205,12 @@ package body Wisitoken_Grammar_1_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 1)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 2)),
-         (Simple, (Int, -1))), (False, (Hanging_0, (Int, 4), (Int, 2))), (False, (Simple, (Int, 2)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 2))),
+         (False, (Simple, (Int, 2))), (False, (Simple, (Int, 2)))));
       end case;
    end nonterminal_0;
 
-   procedure rhs_1
+   procedure rhs_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -224,12 +224,11 @@ package body Wisitoken_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (1 => (True, (Hanging_0, (Int, 0), (Int, 2)), (Simple,
-         (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (1 => (True, (Simple, (Int, 2)), (Simple, (Int, 0)))));
       end case;
-   end rhs_1;
+   end rhs_list_0;
 
-   procedure rhs_2
+   procedure rhs_list_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -243,12 +242,12 @@ package body Wisitoken_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int,
-         0))), (True, (Simple, (Int, 2)), (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (False, (Simple, (Int, 2)))));
       end case;
-   end rhs_2;
+   end rhs_list_1;
 
-   procedure rhs_3
+   procedure rhs_list_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -262,10 +261,30 @@ package body Wisitoken_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int,
-         0))), (True, (Simple, (Int, 2)), (Simple, (Int, 0))), (True, (Simple, (Int, 2)), (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0)))));
       end case;
-   end rhs_3;
+   end rhs_list_2;
+
+   procedure rhs_list_3
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+      end case;
+   end rhs_list_3;
 
    procedure compilation_unit_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

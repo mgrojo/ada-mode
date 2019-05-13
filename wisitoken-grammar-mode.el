@@ -36,6 +36,10 @@
 (require 'wisitoken_grammar_1-process)
 (require 'wisi-process-parse)
 
+(eval-and-compile
+  (when (locate-library "mmm-mode")
+    (require 'wisitoken-grammar-mmm)))
+
 (defgroup wisitoken-grammar nil
   "Major mode for editing Wisi grammar files in Emacs."
   :group 'languages)
@@ -59,6 +63,9 @@
 
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
+    (define-key map "\C-c\C-i" 'wisi-indent-statement)
+    (when (featurep 'mmm-mode)
+      (define-key map "\C-c\C-m" 'mmm-parse-region))
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
@@ -107,10 +114,11 @@
   "Starting at BEGIN, search backward for a parse start point."
   (goto-char begin)
   (cond
-   ((wisi-search-backward-skip ":" #'wisitoken-grammar-in-action-or-comment)
-    ;; Move back to before the nonterminal name
-    (forward-comment (- (line-number-at-pos (point))))
-    (skip-syntax-backward "w_")
+   ((wisi-search-backward-skip "[%:]" #'wisitoken-grammar-in-action-or-comment)
+    (when (looking-at ":")
+      ;; Move back to before the nonterminal name
+      (forward-comment (- (line-number-at-pos (point))))
+      (skip-syntax-backward "w_"))
     (point))
 
    (t
@@ -121,7 +129,7 @@
   "Starting at END, search forward for a parse end point."
   (goto-char end)
   (cond
-   ((wisi-search-forward-skip ";" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-forward-skip "[%;]" #'wisitoken-grammar-in-action-or-comment)
     (point))
 
    (t
@@ -211,8 +219,12 @@ Otherwise insert a plain new line."
 (defun wisitoken-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) \\([A-Za-z_0-9]+\\)" (point-max) t)
+    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) ?\\([A-Za-z_0-9]+\\)?" (point-max) t)
 	(cond
+	 ((string-equal (match-string 1) "None")
+	  ;; unit test
+	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
+
 	 ((or
 	   (string-equal (match-string 2) "Ada_Emacs")
 	   (string-equal (match-string 2) "Elisp")
@@ -316,8 +328,4 @@ Otherwise insert a plain new line."
 (put 'wisitoken-grammar-mode 'custom-mode-group 'wisitoken-grammar)
 
 (provide 'wisitoken-grammar-mode)
-
-(when (locate-library "mmm-mode")
-  (require 'wisitoken-grammar-mmm))
-
 ;;; end of file

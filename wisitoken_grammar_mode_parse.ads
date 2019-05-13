@@ -23,7 +23,7 @@ with Wisitoken_Grammar_1_Process_Main;
 with Gen_Emacs_Wisi_LR_Parse;
 with Wisi.WisiToken_Grammar;
 procedure WisiToken_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
-  (Parse_Data_Type                       => Wisi.Parse_Data_Type,
+  (Parse_Data_Type                       => Wisi.WisiToken_Grammar.Parse_Data_Type,
    Name                                  => "wisi_grammar_mode",
    Language_Protocol_Version             => Wisi.WisiToken_Grammar.Language_Protocol_Version,
    Descriptor                            => Wisitoken_Grammar_1_Process_Actions.Descriptor,

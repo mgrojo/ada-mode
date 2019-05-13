@@ -1,0 +1,17 @@
+%generate LALR elisp elisp
+
+%mckenzie_minimal_complete_cost_delta -3
+
+Literal : ;; not empty
+  ;; another comment line
+    IntegerLiteral
+  | Long RHS Split
+    Over Two Lines
+  | ;; comment
+    First Line
+  ;
+
+Literal
+  : ;; empty
+  | IntegerLiteral
+  ;

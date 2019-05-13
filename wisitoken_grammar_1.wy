@@ -186,7 +186,7 @@ nonterminal
          (wisi-statement-action [1 statement-start 4 statement-end])
          (wisi-name-action 1)
          (wisi-face-apply-action [1 nil font-lock-function-name-face])
-         (wisi-indent-action [0 [2 -1] (wisi-hanging 4 2) 2])) )%
+         (wisi-indent-action [0 2 2 2])) )%
   ;
 
 semicolon_opt :
@@ -196,19 +196,20 @@ semicolon_opt :
 
 rhs_list
   : rhs
+  %((wisi-indent-action [[2 0]]))%
   | rhs_list BAR rhs
+  %((wisi-indent-action [0 0 2]))%
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  %((wisi-indent-action [0 0 0 0 0 0]))%
   | rhs_list PERCENT END IF
+  %((wisi-indent-action [0 0 0 0]))%
   ;
 
 rhs
   : ;; empty
   | rhs_item_list
-    %( (wisi-indent-action [[(wisi-hanging 0 2) 0]]) )%
   | rhs_item_list ACTION
-    %( (wisi-indent-action [[(wisi-hanging 0 2) 0] [2 0]]) )%
   | rhs_item_list ACTION ACTION
-    %( (wisi-indent-action [[(wisi-hanging 0 2) 0] [2 0] [2 0]]) )%
   ;
 
 rhs_attribute

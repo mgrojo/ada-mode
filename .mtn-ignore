@@ -1,10 +1,12 @@
 ^.*\.diff$
 ^.*\.elc$
 ^.*\.exe$
+^.*\.parse_table$
+^.*\.re2c$
 ^.*\.stamp$
 ^.*\.tmp$
 ^autoloads\.el$
 ^obj$
+^test/debug\.wy$
 ^test\.log$
-^.*\.parse_table$
-^.*\.re2c$
+^wisitoken_grammar_1_bnf\.wy$
