@@ -320,6 +320,13 @@ package Wisi is
    --  Language specific child packages override this to implement
    --  wisi-elisp-parse-indent-hanging-function.
 
+   type Arg_Index_Array is array (Positive range <>) of WisiToken.Positive_Index_Type;
+
+   procedure Put_Language_Action
+     (Data    : in Parse_Data_Type;
+      Content : in String);
+   --  Send a Language_Action message to Emacs.
+
    procedure Put (Data : in out Parse_Data_Type; Parser : in WisiToken.Parse.Base_Parser'Class);
    --  Perform additional post-parse actions, then put result to
    --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]

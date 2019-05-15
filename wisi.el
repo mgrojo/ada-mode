@@ -721,8 +721,10 @@ Usefull if the parser appears to be hung."
 	(wisi-parse-error
 	 (cl-ecase wisi--parse-action
 	   (face
-	    ;; caches set by failed elisp parse are ok
-	    (wisi--delete-face-cache (cdr parsed-region)))
+	    ;; Caches set by failed elisp parse are ok, but some parse
+	    ;; failures return 'nil' in parse-region.
+	    (when (cdr parsed-region)
+	      (wisi--delete-face-cache (cdr parsed-region))))
 
 	   (navigate
 	    ;; elisp parse partially resets caches
