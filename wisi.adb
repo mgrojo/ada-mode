@@ -25,15 +25,16 @@ with WisiToken.Semantic_Checks;
 package body Wisi is
    use WisiToken;
 
-   Navigate_Cache_Code : constant String := "1";
-   Face_Property_Code  : constant String := "2";
-   Indent_Code         : constant String := "3";
-   Lexer_Error_Code    : constant String := "4";
-   Parser_Error_Code   : constant String := "5";
-   Check_Error_Code    : constant String := "6";
-   Recover_Code        : constant String := "7 ";
-   End_Code            : constant String := "8";
-   Name_Property_Code  : constant String := "9";
+   Navigate_Cache_Code  : constant String := "1";
+   Face_Property_Code   : constant String := "2";
+   Indent_Code          : constant String := "3";
+   Lexer_Error_Code     : constant String := "4";
+   Parser_Error_Code    : constant String := "5";
+   Check_Error_Code     : constant String := "6";
+   Recover_Code         : constant String := "7 ";
+   End_Code             : constant String := "8";
+   Name_Property_Code   : constant String := "9";
+   Language_Action_Code : constant String := "10 ";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
@@ -484,8 +485,9 @@ package body Wisi is
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line (";; Begin_Indent: " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+            Ada.Text_IO.Put_Line (";; " & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
+         Ada.Text_IO.Put_Line (";; resolve anchors:");
       end if;
 
       for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
@@ -1594,6 +1596,15 @@ package body Wisi is
       end if;
    end Indent_Hanging_1;
 
+   procedure Put_Language_Action
+     (Data    : in Parse_Data_Type;
+      Content : in String)
+   is
+      pragma Unreferenced (Data);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Language_Action_Code & Content & "]");
+   end Put_Language_Action;
+
    procedure Put (Data : in out Parse_Data_Type; Parser : in Parse.Base_Parser'Class)
    is
       use all type Ada.Containers.Count_Type;
@@ -1818,7 +1829,8 @@ package body Wisi is
         (case Item.Label is
          when Int => Integer'Image (Item.Int_Delta),
          when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
-              Boolean'Image (Item.Anchored_Accumulate) & ")");
+              Boolean'Image (Item.Anchored_Accumulate))
+        & ")";
    end Image;
 
    function Image (Item : in Delta_Type) return String

@@ -70,6 +70,7 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
   (total-wait-time 0.0)   ;; total time during last parse spent waiting for subprocess output.
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
   end-pos                 ;; last character position parsed
+  language-action-table   ;; array of function pointers, each taking an sexp sent by the process
   )
 
 (defvar wisi-process--alist nil
@@ -388,6 +389,10 @@ complete."
   ;; see ‘wisi-process-parse--execute’
   (setf (wisi-process--parser-end-pos parser) (aref sexp 1)))
 
+(defun wisi-process-parse--Language (parser sexp)
+  ;; sexp is [Language language-action ...]
+  (funcall (aref (wisi-process--parser-language-action-table parser) (aref sexp 1)) sexp))
+
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
@@ -442,6 +447,10 @@ complete."
   ;;    Args are token ids; index into parser-token-table. Save the information
   ;;    for later use by ’wisi-repair-error’.
   ;;
+  ;; [Language ...]
+  ;;    Dispatch to a language-specific action, via
+  ;;    `wisi-process--parser-language-action-table'.
+  ;;
   ;;
   ;; Numeric action codes are given in the case expression below
 
@@ -455,6 +464,7 @@ complete."
     (7  (wisi-process-parse--Recover parser sexp))
     (8  (wisi-process-parse--End parser sexp))
     (9  (wisi-process-parse--Name_Property parser sexp))
+    (10 (wisi-process-parse--Language parser sexp))
     ))
 
 ;;;;; main
@@ -487,14 +497,14 @@ Send BEGIN thru SEND-END to external parser."
   ;; wisi-indent-region, we signal an error here.
   (if (wisi-process--parser-busy parser)
       (progn
-	(setf (wisi-parser-parse-errors parser)
+  	(setf (wisi-parser-parse-errors parser)
 	      (list
 	       (make-wisi--parse-error
 		:pos 0
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
-	(error "%s parse abandoned; parser busy" wisi--parse-action)
+	(error "%s parse abandoned; parser busy - use partial parse?" wisi--parse-action)
 	)
 
     ;; It is not possible for a background elisp function (ie
