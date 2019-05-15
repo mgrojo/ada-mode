@@ -21,6 +21,7 @@
 %meta_syntax EBNF
 
 %generate LALR         Ada_Emacs re2c Process
+%start compilation_unit
 
 ;; FIXME: implement *, ? directly in packrat
 ;; %generate Packrat_Gen  Ada_Emacs re2c Process
@@ -51,8 +52,6 @@
 %non_grammar <comment> COMMENT_1 %[ "--"[^\n]* ]%
 %non_grammar <comment> COMMENT_2 %[ "//"[^\n]* ]%
 
-%start compilation_unit
-
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3
 %mckenzie_check_delta_limit 200
@@ -67,6 +66,9 @@
 
 ;; language-specific elisp names in indent actions
 %elisp_indent subp-indent-function Function_1
+
+;; language-specific elisp action
+%elisp_action face wisi-mmmify-token MMMify_Token
 
 block
   : beg=BEGIN T2=loop_statement [T3=EXCEPTION whe=WHEN T5=name] T6=END
@@ -104,10 +106,11 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
-;; Recognized canonical list with action
+;; Recognized canonical list with action, token labels
 name_list
   : T1=name (T2=COMMA T3=name)*
-    %((wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
+    %((wisi-mmmify-token [T3])
+      (wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
                            (T2 . 0)
                            (T3 . (wisi-hanging 0 java-indent-broken))]))%
   ;

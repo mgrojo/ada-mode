@@ -32,6 +32,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
@@ -183,9 +184,19 @@ package WisiToken.BNF is
    end record;
 
    package String_Pair_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
-
    function Is_Present (List : in String_Pair_Lists.List; Name : in String) return Boolean;
    function Value (List : in String_Pair_Lists.List; Name : in String) return String;
+
+   type Elisp_Action_Type is record
+      --  Elisp name is the key
+      Action_Label : Ada.Strings.Unbounded.Unbounded_String;
+      Ada_Name     : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   package Elisp_Action_Maps is new Ada.Containers.Ordered_Maps
+     (Ada.Strings.Unbounded.Unbounded_String, Elisp_Action_Type, Ada.Strings.Unbounded."<");
+
+   function Is_Present (List : in Elisp_Action_Maps.Map; Name : in String) return Boolean;
 
    type McKenzie_Recover_Param_Type is record
       Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
@@ -288,6 +299,7 @@ package WisiToken.BNF is
       re2c_Regexps : String_Pair_Lists.List; -- %re2c_regexp
       Faces        : String_Lists.List;      -- %elisp_face
       Indents      : String_Pair_Lists.List; -- %elisp_indent
+      Actions      : Elisp_Action_Maps.Map;  -- %elisp_action
    end record;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String

@@ -205,7 +205,7 @@ package body Subprograms_Process_Actions is
       when Navigate =>
          null;
       when Face =>
-         null;
+         MMMify_Token (Wisi.Parse_Data_Type'Class (User_Data), Tree, Tokens, (1 => T3));
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (T2 => (False, (Simple, (Int, 0))), T3 => (False,
          (Hanging_0, (Int, 0), (Int, Java_Indent_Broken)))));

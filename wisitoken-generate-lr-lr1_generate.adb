@@ -192,17 +192,18 @@ package body WisiToken.Generate.LR.LR1_Generate is
    end Add_Actions;
 
    function Generate
-     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor;
-      Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Put_Parse_Table : in Boolean := False)
+     (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor;
+      Known_Conflicts  : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      McKenzie_Param   : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table  : in Boolean             := False;
+      Ignore_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
 
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > Detail;
-      Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > Detail;
+      Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;

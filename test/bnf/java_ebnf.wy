@@ -77,6 +77,29 @@ expressionList
                                   (wisi-indent-hanging 0 java-indent-broken))]))%
   ;
 
+;; Start test of previous bug in searching for single-element list
+;; nonterm.
+PrimitiveType:
+    {Annotation} NumericType
+  | {Annotation} boolean
+  ;
+
+;; This is not an AnnotationList.
+TypeParameterModifier: Annotation;
+
+;; This is an AnnotationList
+AnnotationList
+  : Annotation
+  | AnnotationList Annotation
+  ;
+;; End test of previous bug in searching for list nonterm.
+
+;; Single-item optional brackets with label.
+ReturnStatement
+  : T1='return' [T2=Expression] T3=';'
+  %((wisi-indent-action [(T1 . 0) (T2 . java-indent-broken) (T3 . 0)]))%
+  ;
+
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
     : primary
@@ -112,5 +135,8 @@ interfaceMethodDeclaration
 typeParameter
     : annotation* IDENTIFIER (EXTENDS typeBound)?
     ;
+
+;; Recognize this as a canonical list
+SwitchLabels: SwitchLabel {SwitchLabel} ;
 
 ;; end of file

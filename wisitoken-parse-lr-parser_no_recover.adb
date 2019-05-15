@@ -27,6 +27,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Exceptions;
 package body WisiToken.Parse.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
@@ -455,7 +456,19 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 
             if Tree.Action (Node) /= null then
-               Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
+               begin
+                  Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
+               exception
+               when E : others =>
+                  declare
+                     Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
+                  begin
+                     raise WisiToken.Parse_Error with Error_Message
+                       (Parser.Lexer.File_Name, Token.Line, Token.Column,
+                        "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                          Ada.Exceptions.Exception_Message (E));
+                  end;
+               end;
             end if;
          end;
       end Process_Node;

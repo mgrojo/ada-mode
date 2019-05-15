@@ -62,4 +62,18 @@
    nil
    ])
 
+(defconst subprograms-elisp-keyword-table-raw
+  '(
+   ("begin" . BEGIN)
+   ("end" . END)
+   ("exception" . EXCEPTION)
+   ("for" . FOR)
+   ("function" . FUNCTION)
+   ("in" . IN)
+   ("loop" . LOOP)
+   ("procedure" . PROCEDURE)
+   ("when" . WHEN)
+   ("use" . USE)
+   ))
+
 (provide 'subprograms-process)

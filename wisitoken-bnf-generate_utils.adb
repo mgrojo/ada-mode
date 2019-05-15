@@ -212,7 +212,10 @@ package body WisiToken.BNF.Generate_Utils is
    ----------
    --  Public subprograms, declaration order
 
-   function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data
+   function Initialize
+     (Input_Data       : aliased in WisiToken_Grammar_Runtime.User_Data_Type;
+      Ignore_Conflicts :         in Boolean := False)
+     return Generate_Data
    is
       EOI_ID : constant Token_ID := Token_ID
         (Count (Input_Data.Tokens.Non_Grammar) + Count (Input_Data.Tokens.Tokens)) + Token_ID
@@ -267,6 +270,7 @@ package body WisiToken.BNF.Generate_Utils is
          end loop;
 
          To_Grammar (Result, Input_Data.Grammar_Lexer.File_Name, -Input_Data.Language_Params.Start_Token);
+         Result.Ignore_Conflicts := Ignore_Conflicts;
       end return;
    end Initialize;
 
@@ -690,9 +694,11 @@ package body WisiToken.BNF.Generate_Utils is
             Result.Append (Conflict);
          exception
          when E : Not_Found =>
-            Put_Error
-              (Error_Message
-                 (Source_File_Name, Item.Source_Line, Ada.Exceptions.Exception_Message (E)));
+            if not Data.Ignore_Conflicts then
+               Put_Error
+                 (Error_Message
+                    (Source_File_Name, Item.Source_Line, Ada.Exceptions.Exception_Message (E)));
+            end if;
          end;
       end loop;
       return Result;

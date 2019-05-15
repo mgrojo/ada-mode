@@ -184,7 +184,8 @@ is
       Indent_Action_Line : Unbounded_String;
       Check_Line         : Unbounded_String;
 
-      Label_Needed : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
+      Label_Needed   : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
+      Nonterm_Needed : Boolean := False;
 
       function Label_Used (Label : in String) return Boolean
       is
@@ -268,6 +269,7 @@ is
                end if;
             end;
          end loop;
+         Nonterm_Needed := True;
          return " (Parse_Data, Tree, Nonterm, Tokens, " &
            (case Count is
             when 0 => "(1 .. 0 => (1, Motion)))",
@@ -286,6 +288,7 @@ is
          if (0 = Index (First_Label, Numeric, Outside) or else Label_Used (First_Label)) and
            (0 = Index (Second_Label, Numeric, Outside) or else Label_Used (Second_Label))
          then
+            Nonterm_Needed := True;
             return " (Parse_Data, Tree, Nonterm, Tokens, " & First_Label & ", " & Second_Label & ")";
          else
             return "";
@@ -348,6 +351,7 @@ is
                   Label : constant String := Params (Index_First .. Index_Last);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                     Nonterm_Needed := True;
                      Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
                        Label & ", " &
                        (if IDs_Count = 1 then "+" else "") & IDs & ")";
@@ -360,6 +364,7 @@ is
                   Label : constant String := Params (First .. Last - 1);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                     Nonterm_Needed := True;
                      Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Label & ", Empty_IDs)";
                   end if;
                end;
@@ -425,9 +430,13 @@ is
                end if;
             end;
          end loop;
-         if Count = 1 then
+         if Count = 0 then
+            return "";
+         elsif Count = 1 then
+               Nonterm_Needed := True;
             return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
+               Nonterm_Needed := True;
             return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
@@ -487,6 +496,7 @@ is
                Need_Comma := True;
             end if;
          end loop;
+         Nonterm_Needed := True;
          return " (Parse_Data, Tree, Nonterm, Tokens, " &
            (case Count is
             when 0 => "(1 .. 0 => (1, Prefix))",
@@ -526,6 +536,7 @@ is
 
             Need_Comma := True;
          end loop;
+         Nonterm_Needed := True;
          if Count = 1 then
             return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
@@ -842,7 +853,7 @@ is
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid indent syntax; missing ']'"));
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent missing ']'"));
                end if;
                Last := Last + 1;
 
@@ -862,7 +873,7 @@ is
             if Params (Last) /= ']' then
                Last := Index_Non_Blank (Params, Last + 1);
                if Last = 0 then
-                  Put_Error (Error_Message (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "missing ']'"));
+                  Put_Error (Error_Message (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent missing ']'"));
                   return -Result;
                end if;
             end if;
@@ -897,6 +908,7 @@ is
             end if;
          end if;
 
+         Nonterm_Needed := True;
          if Param_Count = 1 then
             Result := Prefix & "1 => " & Result;
          else
@@ -918,6 +930,8 @@ is
          Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
            Label_Used (Label_Second);
       begin
+         Nonterm_Needed := True;
+
          if Label_Used_First and Label_Used_Second then
             return " (Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
 
@@ -945,6 +959,48 @@ is
             then -Input_Data.Language_Params.End_Names_Optional_Option
             else "False") & ")";
       end Match_Names_Params;
+
+      function Language_Action_Params (Params : in String; Action_Name : in String) return String
+      is
+         --  Input looks like: [1 2 ...])
+         Result      : Unbounded_String;
+         Need_Comma  : Boolean := False;
+         Param_Count : Integer := 0;
+         First       : Integer;
+         Last        : Integer := Params'First; --  '['
+      begin
+         loop
+            First := Index_Non_Blank (Params, Last + 1);
+            Last  := Index (Params, Space_Paren_Set, First);
+            declare
+               Label : constant String  := Params (First .. Last - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Param_Count := Param_Count + 1;
+                  if Need_Comma then
+                     Result := Result & ", ";
+                  else
+                     Need_Comma := True;
+                  end if;
+                  Result := Result & Label;
+               end if;
+               exit when Params (Last) = ']';
+               if Last = Params'Last then
+                  Put_Error
+                    (Error_Message
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Action_Name & " missing ']'"));
+                  exit;
+               end if;
+            end;
+         end loop;
+         if Param_Count = 0 then
+            return "";
+         elsif Param_Count = 1 then
+            return "(1 => " & (-Result) & ")";
+         else
+            return "(" & (-Result) & ")";
+         end if;
+      end Language_Action_Params;
 
       procedure Translate_Sexp (Line : in String)
       is
@@ -991,8 +1047,17 @@ is
             end;
 
          elsif Elisp_Name = "wisi-name-action" then
-            Navigate_Lines.Append
-              ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";");
+            declare
+               First : constant Integer := Index_Non_Blank (Line, Last + 1);
+               Last  : constant Integer := Index (Line, Space_Paren_Set, First);
+               Label : constant String  := Line (First .. Last - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Nonterm_Needed := True;
+                  Navigate_Lines.Append
+                    ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Line (First .. Line'Last) & ";");
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-containing-action" then
             declare
@@ -1067,6 +1132,7 @@ is
 
          elsif Elisp_Name = "wisi-propagate-name" then
             Assert_Check_Empty;
+            Nonterm_Needed := True;
             Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
               " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";";
 
@@ -1082,9 +1148,41 @@ is
 
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
             Assert_Check_Empty;
+            Nonterm_Needed := True;
             Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
               "Recover_Active, Nonterm);";
 
+         elsif Is_Present (Input_Data.Tokens.Actions, Elisp_Name) then
+            --  Language-specific action
+            declare
+               Item   : Elisp_Action_Type renames Input_Data.Tokens.Actions
+                 (Input_Data.Tokens.Actions.Find (+Elisp_Name));
+               Params : constant String := Language_Action_Params (Line (Last + 1 .. Line'Last), Elisp_Name);
+               Code   : constant String := -Item.Ada_Name &
+                 " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Tokens, " & Params & ");";
+            begin
+               if Params'Length > 0 then
+                  if "navigate" = -Item.Action_Label then
+                     Navigate_Lines.Append (Code);
+
+                  elsif "face" = -Item.Action_Label then
+                     Assert_Face_Empty;
+                     Face_Line := +Code;
+
+                  elsif "indent" = -Item.Action_Label then
+                     Assert_Indent_Empty;
+                     Indent_Action_Line := +Code;
+
+                  else
+                     Put_Error
+                       (Error_Message
+                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized action label: '" &
+                             (-Item.Action_Label) & "'"));
+                  end if;
+
+                  --  else skip
+               end if;
+            end;
          else
             Put_Error
               (Error_Message
@@ -1175,6 +1273,11 @@ is
 
          Indent := Indent + 3;
          Indent_Line ("Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);");
+
+         if not Nonterm_Needed then
+            --  Language_Action may not use this
+            Indent_Line ("pragma Unreferenced (Nonterm);");
+         end if;
 
          for I in Label_Needed'Range loop
             if Label_Needed (I) then

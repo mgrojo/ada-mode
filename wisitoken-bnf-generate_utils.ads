@@ -49,13 +49,17 @@ package WisiToken.BNF.Generate_Utils is
       --  The following fields are LR specific; so far, it's not worth
       --  splitting them out.
 
-      Conflicts                    : WisiToken.Generate.LR.Conflict_Lists.List;
-      LR_Parse_Table               : WisiToken.Parse.LR.Parse_Table_Ptr;
-      Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
-      Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
+      Ignore_Conflicts    : Boolean                       := False;
+      Conflicts           : WisiToken.Generate.LR.Conflict_Lists.List;
+      LR_Parse_Table      : WisiToken.Parse.LR.Parse_Table_Ptr;
+      Table_Actions_Count : Integer                       := -1; -- parse, not user, actions
+      Parser_State_Count  : WisiToken.Unknown_State_Index := 0;
    end record;
 
-   function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data;
+   function Initialize
+     (Input_Data       : aliased in WisiToken_Grammar_Runtime.User_Data_Type;
+      Ignore_Conflicts :         in Boolean := False)
+     return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
 

@@ -1072,6 +1072,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Finish ("d", New_Config, Token.Min_Terminal_Index, Lexer_Error_Token_Index - 1);
             Local_Config_Heap.Add (New_Config);
          exception
+         when SAL.Container_Empty =>
+            --  From Stack.Pop
+            null;
          when Bad_Config =>
             null;
          end;

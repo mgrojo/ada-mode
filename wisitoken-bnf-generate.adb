@@ -112,6 +112,7 @@ is
       Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
       Put_Line (Standard_Error, "  --output_bnf <file_name> : output translated BNF source to file_name");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
+      Put_Line (Standard_Error, "  --ignore_conflicts; ignore excess/unknown conflicts");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
@@ -123,6 +124,7 @@ is
    Suffix                : Ada.Strings.Unbounded.Unbounded_String;
    BNF_File_Name         : Ada.Strings.Unbounded.Unbounded_String;
    Output_BNF            : Boolean := False;
+   Ignore_Conflicts      : Boolean := False;
    Test_Main             : Boolean := False;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
@@ -185,6 +187,10 @@ begin
             Arg_Next  := Arg_Next + 1;
             WisiToken.Trace_Generate := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--ignore_conflicts" then
+            Ignore_Conflicts := True;
+            Arg_Next         := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--generate" then
             Arg_Next  := Arg_Next + 1;
@@ -361,6 +367,11 @@ begin
                raise WisiToken.Grammar_Error with "no rules";
             end if;
          end case;
+      exception
+      when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Ada.Exceptions.Exception_Message (E));
+         Grammar_Parser.Put_Errors;
+         raise;
       end Parse_Check;
 
    begin
@@ -395,7 +406,7 @@ begin
             Time_End   : Time;
 
             Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-              WisiToken.BNF.Generate_Utils.Initialize (Input_Data);
+              WisiToken.BNF.Generate_Utils.Initialize (Input_Data, Ignore_Conflicts);
 
             Packrat_Data : WisiToken.Generate.Packrat.Data
               (Generate_Data.Descriptor.First_Terminal, Generate_Data.Descriptor.First_Nonterminal,
@@ -410,6 +421,10 @@ begin
                when re2c_Lexer =>
                   WisiToken.BNF.Output_Ada_Common.Create_re2c
                     (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root);
+                  if Tuple.Out_Lang = Ada_Emacs_Lang and Elisp_Tokens.Keywords.Is_Empty then
+                     --  elisp code needs keywords for font-lock.
+                     Elisp_Tokens.Keywords := Input_Data.Tokens.Keywords;
+                  end if;
                when Elisp_Lexer =>
                   Elisp_Tokens := Input_Data.Tokens;
                when others =>
@@ -444,7 +459,8 @@ begin
                     (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                   Generate_Utils.To_McKenzie_Param
                     (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
-                  Put_Parse_Table => True);
+                  Put_Parse_Table  => True,
+                  Ignore_Conflicts => Ignore_Conflicts);
 
                if Do_Time then
                   Time_End := Clock;
@@ -470,7 +486,8 @@ begin
                     (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                   Generate_Utils.To_McKenzie_Param
                     (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
-                  Put_Parse_Table => True);
+                  Put_Parse_Table  => True,
+                  Ignore_Conflicts => Ignore_Conflicts);
 
                if Do_Time then
                   Time_End := Clock;
@@ -546,6 +563,9 @@ begin
                   WisiToken.BNF.Output_Elisp (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple);
 
                end case;
+               if WisiToken.Generate.Error then
+                  raise WisiToken.Grammar_Error with "errors: aborting";
+               end if;
             end if;
          end;
       end loop;

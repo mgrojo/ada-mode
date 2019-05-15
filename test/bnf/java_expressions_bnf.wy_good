@@ -68,7 +68,8 @@
 %keyword TRUE "true"
 %keyword FALSE "false"
 
-BOOL_LITERAL  : TRUE
+BOOL_LITERAL
+  : TRUE
   | FALSE
   ;
 

@@ -25,11 +25,12 @@ with WisiToken.Productions;
 package WisiToken.Generate.LR.LALR_Generate is
 
    function Generate
-     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor;
-      Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Put_Parse_Table : in Boolean := False)
+     (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor;
+      Known_Conflicts  : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      McKenzie_Param   : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table  : in Boolean             := False;
+      Ignore_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr
    with Pre =>
      Descriptor.Last_Lookahead = Descriptor.First_Nonterminal and
