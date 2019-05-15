@@ -284,7 +284,7 @@ Truncate any region that overlaps POS."
   (with-silent-modifications
     ;; This text property is 'wisi-cache', not 'wisi-navigate', for
     ;; historical reasons.
-    (remove-text-properties after (point-max) '(wisi-cache nil))
+    (remove-text-properties after (point-max) '(wisi-cache nil wisi-name nil))
     )
   (wisi-cache-delete-regions-after 'navigate after))
 

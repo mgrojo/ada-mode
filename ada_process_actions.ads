@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ada.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
 --
 
 --  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
@@ -23,22 +23,17 @@ with WisiToken.Semantic_Checks;
 package Ada_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal                => 3,
-      Last_Terminal                 => 107,
-      First_Nonterminal             => 108,
-      Last_Nonterminal              => 332,
-      EOI_ID                        => 107,
-      Accept_ID                     => 108,
-      Case_Insensitive              => True,
-      New_Line_ID                   => 1,
-      First_Comment_ID              => 2,
-      Last_Comment_ID               => 2147483647,
-      Left_Paren_ID                 => 76,
-      Right_Paren_ID                => 77,
-      String_1_ID                   => 106,
-      String_2_ID                   => 105,
-      Embedded_Quote_Escape_Doubled => True,
-      Image                         =>
+     (First_Terminal    => 3,
+      Last_Terminal     => 107,
+      First_Nonterminal => 108,
+      Last_Nonterminal  => 332,
+      EOI_ID            => 107,
+      Accept_ID         => 108,
+      Case_Insensitive  => True,
+      New_Line_ID       => 1,
+      String_1_ID       => 106,
+      String_2_ID       => 105,
+      Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -374,7 +369,7 @@ package Ada_Process_Actions is
          new String'("with_clause")),
       Terminal_Image_Width => 17,
       Image_Width          => 38,
-      Last_Lookahead       => 108);
+      Last_Lookahead       => 107);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,

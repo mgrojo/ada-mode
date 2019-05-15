@@ -54,14 +54,22 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-finish 6.1.0 release
-    upload to savannah, possibly other steps
+need wisi user guide
+    explain actions
 
-invalidate names
+    explain how to patch grammar
+
+elpa package include simple makefile to build ada, gpr parser from patched .wy
 
 gpr_query needs to close some xref object to allow 'rm ./obj'?
+    clean => rm: cannot remove 'obj/gpr_query.db': Device or resource busy
+    would have to restart process after clean anyway, but that could be automated
 
-doc jit-lock-context-time
+    gpr_query.adb does:
+        gnatcoll.xref.setup_db (Xref, ..., GNATCOLL.SQL.Sqlite.Setup (db_name.all), ...)
+        could call free on Xref
+        to avoid clean knowing anything about gpr_query requires gpr_query to close, reopen in every command
+            way too slow.
 
 indent bug:
                  (if GNAT.Regexp.Match (Value, Symbol_Regexp)
@@ -1513,14 +1521,13 @@ bump versions
     ada-ref-man.el
         Version:
 
-    README-ada-ref-man
-        first line
-
     emacs_wisi_common_parse.ads
         Protocol_Version ; integer; bump if wisi-process-parse would break with old version
+            should have been changed already if required
 
     wisi-process-parse.el
         wisi-process-parse-protocol-version match Protocol_Version
+            should have been changed already if required
 
     build/Makefile
         run uninstall-elpa with old values before changing!
@@ -1528,11 +1535,17 @@ bump versions
         ADA_REF_MAN_VERSION
         WISI_VERSION
 
-    (find-file "d:/Web/savannah/ada-mode/index.html")
-        find-replace i.j.k
+    d:/Web/savannah/ada-mode/index.html
+        find-replace ada-mode i.j.k
+        wisi version does not appear
+        _not_ WisiToken
+
+    _not_ d:/Web/stephe-leake/ada/wisitoken.html - that's wisitoken ada code, not emacs wisi
+
 
     ~/Web/Makefile
         ADA_MODE_VERSION
+        _not_ WISITOKEN_ZIP_VERSION
 
 verify other metadata
     ada-mode.el
@@ -1651,20 +1664,29 @@ mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-<version>
 
 build/Makefile zip
 
-in cygwin console for gpg2 prompts:
+in cygwin console for gpg prompts:
     cd /Projects/org.emacs.ada-mode/build/
     ls *.tar*
     rm <old>.tar*
-    gpg2 -b *.tar.bz2
+    gpg -b *.tar.bz2
 
-    scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
 ~/Web/Makefile
     # no 'sync' here; all on savannah
     ada-mode
 
-(cvs-examine "d:/Web/savannah/ada-mode/" nil)
-    mark all, commit
+commit savannah
+    if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
+        # see projects.text "conflicting keys for savannah"
+        $ cd /d/Web/savannah/ada-mode
+        $ cvs status
+        # edit ~/.ssh/known_hosts, delete offending one, repeat 'cvs status'
+    (cvs-examine "d:/Web/savannah/ada-mode" nil)
+    mark all 'm'
+    commit   'c'
+    edit commit message "release version i.j.k"
+    C-c C-c
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 

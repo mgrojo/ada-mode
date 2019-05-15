@@ -534,10 +534,10 @@ private
      is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       --  Aux token info
-      First_Comment_ID : WisiToken.Token_ID;
-      Last_Comment_ID  : WisiToken.Token_ID;
-      Left_Paren_ID    : WisiToken.Token_ID;
-      Right_Paren_ID   : WisiToken.Token_ID;
+      First_Comment_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
+      Last_Comment_ID  : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
+      Left_Paren_ID    : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
+      Right_Paren_ID   : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
 
       Embedded_Quote_Escape_Doubled : Boolean := False;
 
