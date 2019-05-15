@@ -2091,40 +2091,47 @@ package body WisiToken_Grammar_Runtime is
                   --  : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
                   --  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
 
-                  --  See if we've already created a nonterminal for this. If not,
-                  --  create one.
-                  declare
-                     New_Text             : constant String := Get_Text (Data, Tree, Tree.Child (Node, 2));
-                     Temp                 : Node_Index      := First_List_Element
-                       (Tree.Child (Tree.Root, 1), +compilation_unit_ID);
-                     Name_Element_Node    : Valid_Node_Index;
-                     Name_Identifier_Node : Node_Index;
+                  --  Check for special cases
 
-                  begin
-                     if List_Singleton (Tree.Child (Node, 2)) and then
-                       List_Singleton (Tree.Child (Tree.Child (Node, 2), 1))
-                     then
-                        --  Single item in rhs_alternative_list and rhs_item_list; just use it
-                        Found     := True;
-                        Name_Element_Node := First_List_Element (Tree.Child (Tree.Child (Node, 2), 1), +rhs_element_ID);
-                        if Tree.RHS_Index (Name_Element_Node) = 0 then
-                           Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 1), 1);
-                        else
-                           --  Name has a label
-                           Name_Label           := Tree.Min_Terminal_Index (Tree.Child (Name_Element_Node, 1));
-                           Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 3), 1);
-                        end if;
-                        case Tree.Label (Name_Identifier_Node) is
-                        when Virtual_Identifier =>
-                           Name_Ident := Tree.Identifier (Name_Identifier_Node);
-                        when Shared_Terminal =>
-                           Name_Terminal := Tree.Min_Terminal_Index (Name_Identifier_Node);
-                        when others =>
-                           Raise_Programmer_Error
-                             ("unhandled rhs_optional case '" & New_Text & "'", Tree, Name_Identifier_Node);
-                        end case;
+                  if List_Singleton (Tree.Child (Node, 2)) then
+                     if List_Singleton (Tree.Child (Tree.Child (Node, 2), 1)) then
+                        --  Single item in rhs_alternative_list and rhs_item_list; just use it.
+                        --
+                        --  Single alternative, multiple rhs_items handled below
+                        declare
+                           Name_Element_Node    : Valid_Node_Index;
+                           Name_Identifier_Node : Node_Index;
+                        begin
+                           Found     := True;
+                           Name_Element_Node := First_List_Element
+                             (Tree.Child (Tree.Child (Node, 2), 1), +rhs_element_ID);
 
-                     else
+                           if Tree.RHS_Index (Name_Element_Node) = 0 then
+                              Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 1), 1);
+                           else
+                              --  Name has a label
+                              Name_Label           := Tree.Min_Terminal_Index (Tree.Child (Name_Element_Node, 1));
+                              Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 3), 1);
+                           end if;
+
+                           case Tree.Label (Name_Identifier_Node) is
+                           when Virtual_Identifier =>
+                              Name_Ident := Tree.Identifier (Name_Identifier_Node);
+                           when Shared_Terminal =>
+                              Name_Terminal := Tree.Min_Terminal_Index (Name_Identifier_Node);
+                           when others =>
+                              Raise_Programmer_Error ("unhandled rhs_optional case ", Tree, Name_Identifier_Node);
+                           end case;
+                        end;
+                     end if;
+                  else
+                     --  See if we've already created a nonterminal for this.
+                     declare
+                        New_Text             : constant String := Get_Text (Data, Tree, Tree.Child (Node, 2));
+                        Temp                 : Node_Index      := First_List_Element
+                          (Tree.Child (Tree.Root, 1), +compilation_unit_ID);
+                        Name_Identifier_Node : Node_Index;
+                     begin
                         loop
                            pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
 
@@ -2146,10 +2153,11 @@ package body WisiToken_Grammar_Runtime is
                            Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
                            exit when Found or Temp = Invalid_Node_Index;
                         end loop;
-                     end if;
-                  end;
+                     end;
+                  end if;
 
                   if Found then
+                     --  Use previously created nonterminal
                      if Name_Ident /= Invalid_Identifier_Index then
                         Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Name_Ident);
 
@@ -2182,7 +2190,11 @@ package body WisiToken_Grammar_Runtime is
                      end if;
 
                   else
+                     --  Create a new nonterm, or handle more special cases
+
                      if List_Singleton (Tree.Child (Node, 2)) then
+                        --  Single alternative, multiple rhs_items
+                        --
                         --  No separate nonterminal, so token labels stay in the same RHS for
                         --  actions. Splice together rhs_item_lists a, b, c
                         declare
