@@ -63,7 +63,7 @@
 
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
-    (define-key map "\C-c\C-m" 'mmm-parse-region)
+    (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
@@ -171,6 +171,16 @@
 	(cons begin-cand end-cand)
 	)))
 
+(defun wisitoken-grammar-mmm-parse ()
+  "If in action, call `mmm-parse-region' on it."
+  (interactive)
+  (save-excursion
+    (let* ((begin (search-backward-regexp "%[(}]" nil t))
+	   (end   (when begin (search-forward-regexp "[)}]%" nil t))))
+      (when (and begin end)
+	(mmm-parse-region begin end)))
+    ))
+
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
 If in nonterminal, insert new production right hand side.
@@ -247,7 +257,7 @@ Otherwise insert a plain new line."
 (defun wisitoken-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) ?\\([A-Za-z_0-9]+\\)?" (point-max) t)
+    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) *\\([A-Za-z_0-9]+\\)?" (point-max) t)
 	(cond
 	 ((string-equal (match-string 1) "None")
 	  ;; unit test
@@ -263,7 +273,7 @@ Otherwise insert a plain new line."
 	  (setq wisitoken-grammar-action-mode 'ada-mode))
 
 	 (t
-	  (error "unrecognized output language %s" (match-string 1)))
+	  (error "unrecognized output language %s" (match-string 2)))
 	 )
 
       ;; We can still support the grammar statements, just not the actions.
