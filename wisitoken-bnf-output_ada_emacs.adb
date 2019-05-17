@@ -559,7 +559,7 @@ is
          --
          --  - an integer; copy to output
          --
-         --  - a symbol; convert to Ada name syntax
+         --  - a symbol; convert to Ada name syntax, except 'nil' => None
          --
          --  - a lisp function call with arbitrary args; convert to Indent_Param type
          --
@@ -588,8 +588,9 @@ is
             elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_3";
             elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_4";
             elsif Elisp_Name = "wisi-hanging"    then return "Hanging_0";
-            elsif Elisp_Name = "wisi-hanging%"   then return "Hanging_1";
-            elsif Elisp_Name = "wisi-hanging%-"  then return "Hanging_2";
+            elsif Elisp_Name = "wisi-hanging-"   then return "Hanging_1";
+            elsif Elisp_Name = "wisi-hanging%"   then return "Hanging_2";
+            elsif Elisp_Name = "wisi-hanging%-"  then return "Hanging_3";
             else
                Put_Error
                  (Error_Message
@@ -621,6 +622,9 @@ is
                --  Anchored or Language
                return Item;
 
+            elsif Item = "nil" then
+               return "(Label => None)";
+
             else
                --  simple integer
                return "(Int, " & Item & ")";
@@ -633,6 +637,8 @@ is
             --  Simple_Indent_Param or Indent_Param.
             --
             --  Handles this syntax:
+            --
+            --  nil => nil
             --
             --  integer literal:
             --  2 => 2
@@ -748,10 +754,15 @@ is
                end if;
 
             else
-               --  Assume it is a language-specific integer indent option, like "ada-indent",
-               --  declared in Language_Runtime_Package, which is use-visible.
+               --  Assume it is 'nil' or a language-specific integer indent option,
+               --  like "ada-indent", declared in Language_Runtime_Package, which is
+               --  use-visible.
                Last  := Index (Params, Delim, First);
-               return Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0);
+               if Params (First .. Last - 1) = "nil" then
+                  return "nil";
+               else
+                  return Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0);
+               end if;
             end if;
          exception
          when E : others =>
@@ -783,6 +794,9 @@ is
             elsif Item (Item'First) = '(' then
                --  Anchored or Language
                return "(Simple, " & Item & ")";
+
+            elsif Item = "nil" then
+               return "(Simple, (Label => None))";
 
             else
                --  simple integer
