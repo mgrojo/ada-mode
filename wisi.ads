@@ -198,7 +198,8 @@ package Wisi is
    --  evaluated by wisi-elisp-parse--indent-compute-delta.
 
    type Simple_Indent_Param_Label is -- not hanging
-     (Int,
+     (None,
+      Int,
       Anchored_0, -- wisi-anchored
       Anchored_1, -- wisi-anchored%
       Anchored_2, -- wisi-anchored%-
@@ -231,9 +232,12 @@ package Wisi is
 
    Null_Args : Indent_Arg_Arrays.Vector renames Indent_Arg_Arrays.Empty_Vector;
 
-   type Simple_Indent_Param (Label : Simple_Indent_Param_Label := Int) is
+   type Simple_Indent_Param (Label : Simple_Indent_Param_Label := None) is
    record
       case Label is
+      when None =>
+         null;
+
       when Int =>
          Int_Delta : Integer;
 
@@ -252,8 +256,9 @@ package Wisi is
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- wisi-hanging
-      Hanging_1, -- wisi-hanging%
-      Hanging_2  -- wisi-hanging%-
+      Hanging_1, -- wisi-hanging-
+      Hanging_2, -- wisi-hanging%
+      Hanging_3  -- wisi-hanging%-
      );
    subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_3;
 
@@ -501,7 +506,7 @@ private
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, WisiToken.Buffer_Pos);
 
-   type Indent_Label is (Not_Set, Int, Anchor, Anchored, Anchor_Anchored);
+   type Indent_Label is (Not_Set, Int, Anchor_Nil, Anchor_Int, Anchored, Anchor_Anchored);
 
    package Anchor_ID_Vectors is new Ada.Containers.Vectors (Natural, Positive);
 
@@ -515,9 +520,12 @@ private
       when Int =>
          Int_Indent : Integer;
 
-      when Anchor =>
-         Anchor_IDs    : Anchor_ID_Vectors.Vector; --  Largest ID first.
-         Anchor_Indent : Integer;
+      when Anchor_Nil =>
+         Anchor_Nil_IDs : Anchor_ID_Vectors.Vector; --  Largest ID first.
+
+      when Anchor_Int =>
+         Anchor_Int_IDs    : Anchor_ID_Vectors.Vector; --  Largest ID first.
+         Anchor_Int_Indent : Integer;
 
       when Anchored =>
          Anchored_ID    : Positive;
@@ -588,11 +596,29 @@ private
       Max_Anchor_ID : Integer;
    end record;
 
-   type Simple_Delta_Labels is (Int, Anchored);
+   type Simple_Delta_Labels is (None, Int, Anchored);
 
-   type Simple_Delta_Type (Label : Simple_Delta_Labels := Int) is
+   --  subtype Non_Anchored_Delta_Labels is Simple_Delta_Labels range None .. Int;
+
+   --  type Non_Anchored_Delta (Label : Non_Anchored_Delta_Labels := None) is
+   --  record
+   --     case Label is
+   --     when None =>
+   --        null;
+   --     when Int =>
+   --        Int_Delta : Integer;
+   --     end case;
+   --  end record;
+
+   --  function Image (Item : in Non_Anchored_Delta) return String;
+   --  For debugging
+
+   type Simple_Delta_Type (Label : Simple_Delta_Labels := None) is
    record
       case Label is
+      when None =>
+         null;
+
       when Int =>
          Int_Delta : Integer;
 
@@ -603,7 +629,6 @@ private
 
       end case;
    end record;
-   subtype Anchored_Delta is Simple_Delta_Type (Anchored);
 
    function Image (Item : in Simple_Delta_Type) return String;
    --  For debugging
@@ -626,7 +651,7 @@ private
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Simple, (Int, 0));
+   Null_Delta : constant Delta_Type := (Simple, (Label => None));
 
    function Image (Item : in Delta_Type) return String;
    --  For debugging

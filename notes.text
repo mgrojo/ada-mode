@@ -54,9 +54,6 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-experiment with changing zero_p to non_set_p for java
-    o.e.a.s-2
-
 need wisi user guide
     explain actions
 

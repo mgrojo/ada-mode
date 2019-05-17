@@ -41,7 +41,7 @@ package body Wisi is
    ----------
    --  body subprogram specs (as needed), alphabetical
 
-   function Indent_Zero_P (Indent : in Indent_Type) return Boolean;
+   function Indent_Nil_P (Indent : in Indent_Type) return Boolean;
 
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
@@ -83,42 +83,53 @@ package body Wisi is
       when Int =>
          return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Int_Indent) & ")";
 
-      when Anchor =>
-         return "(" & Indent_Label'Image (Indent.Label) & Image (Indent.Anchor_IDs) & ", " & Integer'Image
-           (Indent.Anchor_Indent) & ")";
+      when Anchor_Nil =>
+         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Nil_IDs) & ", nil)";
+
+      when Anchor_Int =>
+         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Int_IDs) & ", " & Integer'Image
+           (Indent.Anchor_Int_Indent) & ")";
 
       when Anchored =>
-         return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Anchored_ID) & ", " & Integer'Image
-           (Indent.Anchored_Delta) & ")";
+         return "(" & Indent_Label'Image (Indent.Label) & ", " & Integer'Image (Indent.Anchored_ID) & ", " &
+           Integer'Image (Indent.Anchored_Delta) & ")";
 
       when Anchor_Anchored =>
-         return "(" & Indent_Label'Image (Indent.Label) & Image (Indent.Anchor_Anchored_IDs) & Integer'Image
+         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Anchored_IDs) & Integer'Image
            (Indent.Anchor_Anchored_ID) & ", " & Integer'Image (Indent.Anchor_Anchored_Delta) & ")";
       end case;
    end Image;
 
    procedure Indent_Apply_Anchored
-     (Delta_Indent : in     Anchored_Delta;
+     (Delta_Indent : in     Simple_Delta_Type;
       Indent       : in out Indent_Type)
+   with Pre => Delta_Indent.Label = Anchored
    is begin
-      --  [2] wisi-elisp-parse--apply-anchored
+      --  [2] wisi-elisp-parse--apply-anchored; add Delta_Indent to Indent
 
       case Indent.Label is
       when Not_Set =>
          Indent := (Anchored, Delta_Indent.Anchored_ID, Delta_Indent.Anchored_Delta);
 
       when Int =>
-         if Indent.Int_Indent = 0 or Delta_Indent.Anchored_Accumulate then
+         if Delta_Indent.Anchored_Accumulate then
             Indent := (Anchored, Delta_Indent.Anchored_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
          end if;
 
-      when Anchor =>
-         if Delta_Indent.Anchored_Accumulate or Indent.Anchor_Indent = 0 then
+      when Anchor_Nil =>
+         Indent :=
+           (Anchor_Anchored,
+            Indent.Anchor_Nil_IDs,
+            Delta_Indent.Anchored_ID,
+            Delta_Indent.Anchored_Delta);
+
+      when Anchor_Int =>
+         if Delta_Indent.Anchored_Accumulate then
             Indent :=
               (Anchor_Anchored,
-               Indent.Anchor_IDs,
+               Indent.Anchor_Int_IDs,
                Delta_Indent.Anchored_ID,
-               Delta_Indent.Anchored_Delta + Indent.Anchor_Indent);
+               Delta_Indent.Anchored_Delta + Indent.Anchor_Int_Indent);
          end if;
 
       when Anchored | Anchor_Anchored =>
@@ -129,7 +140,7 @@ package body Wisi is
 
    procedure Indent_Apply_Int (Indent : in out Indent_Type; Offset : in Integer)
    is begin
-      --  [2] wisi-elisp-parse--apply-int
+      --  [2] wisi-elisp-parse--apply-int; add an Int indent to Indent
       case Indent.Label is
       when Not_Set =>
          Indent := (Int, Offset);
@@ -137,8 +148,14 @@ package body Wisi is
       when Int =>
          Indent.Int_Indent := Indent.Int_Indent + Offset;
 
-      when Anchor =>
-         Indent.Anchor_Indent := Indent.Anchor_Indent + Offset;
+      when Anchor_Nil         =>
+         Indent :=
+           (Label             => Anchor_Int,
+            Anchor_Int_IDs    => Indent.Anchor_Nil_IDs,
+            Anchor_Int_Indent => Offset);
+
+      when Anchor_Int =>
+         Indent.Anchor_Int_Indent := Indent.Anchor_Int_Indent + Offset;
 
       when Anchored | Anchor_Anchored =>
          null;
@@ -156,6 +173,9 @@ package body Wisi is
       case Delta_Indent.Label is
       when Simple =>
          case Delta_Indent.Simple_Delta.Label is
+         when None =>
+            null;
+
          when Int =>
             Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
 
@@ -164,10 +184,12 @@ package body Wisi is
          end case;
 
       when Hanging =>
-         if Delta_Indent.Hanging_Accumulate or Indent_Zero_P (Data.Indents (Line)) then
+         if Delta_Indent.Hanging_Accumulate or Indent_Nil_P (Data.Indents (Line)) then
             if Line = Delta_Indent.Hanging_First_Line then
                --  Apply delta_1
                case Delta_Indent.Hanging_Delta_1.Label is
+               when None =>
+                  null;
                when Int =>
                   Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta);
                when Anchored =>
@@ -176,6 +198,8 @@ package body Wisi is
             else
                if Delta_Indent.Hanging_Paren_State = Data.Line_Paren_State (Line) then
                   case Delta_Indent.Hanging_Delta_2.Label is
+                  when None =>
+                     null;
                   when Int =>
                      Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
                   when Anchored =>
@@ -193,26 +217,10 @@ package body Wisi is
       Data.Indents.Replace_Element (Line, Indent);
    end Indent_Line;
 
-   function Indent_Zero_P (Indent : in Indent_Type) return Boolean
+   function Indent_Nil_P (Indent : in Indent_Type) return Boolean
    is begin
-      --  wisi-elisp-parse--indent-zero-p
-      case Indent.Label is
-      when Not_Set =>
-         return True;
-
-      when Int =>
-         return Indent.Int_Indent = 0;
-
-      when Anchor =>
-         return Indent.Anchor_Indent = 0;
-
-      when Anchored =>
-         return Indent.Anchored_Delta = 0;
-
-      when Anchor_Anchored =>
-         return Indent.Anchor_Anchored_Delta = 0;
-      end case;
-   end Indent_Zero_P;
+      return Indent.Label in Not_Set | Anchor_Nil;
+   end Indent_Nil_P;
 
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
@@ -229,8 +237,10 @@ package body Wisi is
             case Indent.Label is
             when Not_Set | Int =>
                null;
-            when Anchor =>
-               Result := Integer'Max (Result, Indent.Anchor_IDs (Indent.Anchor_IDs.First_Index));
+            when Anchor_Nil =>
+               Result := Integer'Max (Result, Indent.Anchor_Nil_IDs (Indent.Anchor_Nil_IDs.First_Index));
+            when Anchor_Int =>
+               Result := Integer'Max (Result, Indent.Anchor_Int_IDs (Indent.Anchor_Int_IDs.First_Index));
             when Anchored =>
                Result := Integer'Max (Result, Indent.Anchored_ID);
             when Anchor_Anchored =>
@@ -359,7 +369,7 @@ package body Wisi is
               ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
          end;
 
-      when Anchor | Anchored | Anchor_Anchored =>
+      when Anchor_Nil | Anchor_Int | Anchored | Anchor_Anchored =>
          raise SAL.Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
       end case;
    end Put;
@@ -492,7 +502,7 @@ package body Wisi is
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (";; " & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
-         Ada.Text_IO.Put_Line (";; resolve anchors:");
+         Ada.Text_IO.Put_Line (";; resolve anchors");
       end if;
 
       for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
@@ -507,11 +517,17 @@ package body Wisi is
             when Int =>
                Data.Indents.Replace_Element (I, (Int, Indent.Int_Indent + Begin_Indent));
 
-            when Anchor =>
-               for I of Indent.Anchor_IDs loop
-                  Anchor_Indent (I) := Indent.Anchor_Indent + Begin_Indent;
+            when Anchor_Nil =>
+               for I of Indent.Anchor_Nil_IDs loop
+                  Anchor_Indent (I) := Begin_Indent;
                end loop;
-               Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent + Begin_Indent));
+               Data.Indents.Replace_Element (I, (Int, Begin_Indent));
+
+            when Anchor_Int =>
+               for I of Indent.Anchor_Int_IDs loop
+                  Anchor_Indent (I) := Indent.Anchor_Int_Indent + Begin_Indent;
+               end loop;
+               Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Int_Indent + Begin_Indent));
 
             when Anchored =>
                Data.Indents.Replace_Element
@@ -1459,6 +1475,7 @@ package body Wisi is
    is begin
       return "(" & Simple_Indent_Param_Label'Image (Item.Label) &
         (case Item.Label is
+         when None => "",
          when Int => Integer'Image (Item.Int_Delta),
          when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
               Integer'Image (Item.Anchored_Delta),
@@ -1832,6 +1849,7 @@ package body Wisi is
    is begin
       return "(" & Simple_Delta_Labels'Image (Item.Label) &
         (case Item.Label is
+         when None => "",
          when Int => Integer'Image (Item.Int_Delta),
          when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
               Boolean'Image (Item.Anchored_Accumulate))
@@ -1951,6 +1969,7 @@ package body Wisi is
       Accumulate  : in     Boolean)
      return Delta_Type
    is
+      --  [2] wisi-elisp-parse--anchored-2; return an anchored delta
       use Anchor_ID_Vectors;
       --  We can't use a Reference here, because the Element in reference
       --  types is constrained (as are all allocated objects of access
@@ -1958,18 +1977,30 @@ package body Wisi is
       Indent    : Indent_Type      := Data.Indents (Anchor_Line);
       Anchor_ID : constant Integer := 1 + Max_Anchor_ID (Data, Anchor_Line, Last_Line);
    begin
-      --  [2] wisi-elisp-parse--anchored-2
       Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
 
       case Indent.Label is
       when Not_Set =>
-         Indent := (Anchor, To_Vector (Anchor_ID, 1), 0);
+         Indent := (Anchor_Nil, To_Vector (Anchor_ID, 1));
+
+         if Trace_Action > Extra then
+            Ada.Text_IO.Put_Line
+              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+         end if;
 
       when Int =>
-         Indent := (Anchor, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
+         Indent := (Anchor_Int, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
 
-      when Anchor =>
-         Indent.Anchor_IDs := Anchor_ID & Indent.Anchor_IDs;
+         if Trace_Action > Extra then
+            Ada.Text_IO.Put_Line
+              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+         end if;
+
+      when Anchor_Nil =>
+         Indent.Anchor_Nil_IDs := Anchor_ID & Indent.Anchor_Nil_IDs;
+
+      when Anchor_Int =>
+         Indent.Anchor_Int_IDs := Anchor_ID & Indent.Anchor_Int_IDs;
 
       when Anchored =>
          Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
@@ -1998,6 +2029,9 @@ package body Wisi is
       case Param.Label is
       when Simple =>
          case Param.Param.Label is
+         when None =>
+            return (Simple, (Label => None));
+
          when Int =>
             return (Simple, (Int, Param.Param.Int_Delta));
 
@@ -2079,12 +2113,17 @@ package body Wisi is
               (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
                Param.Hanging_Delta_2,
                Option => False, Accumulate => True);
-         when Hanging_1 => -- wisi-hanging%
+         when Hanging_1 => -- wisi-hanging-
+            return Indent_Hanging_1
+              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+               Param.Hanging_Delta_2,
+               Option => False, Accumulate => False);
+         when Hanging_2 => -- wisi-hanging%
             return Indent_Hanging_1
               (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
                Param.Hanging_Delta_2,
                Option => True, Accumulate => True);
-         when Hanging_2 => -- wisi-hanging%-
+         when Hanging_3 => -- wisi-hanging%-
             return Indent_Hanging_1
               (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
                Param.Hanging_Delta_2,
@@ -2099,6 +2138,7 @@ package body Wisi is
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean)
    is
+      --  Aplly Delta_Indent to Indenting_Token
       First_Line : constant Line_Number_Type := Indenting_Token.First_Line (Indenting_Comment);
       Last_Line  : constant Line_Number_Type := Indenting_Token.Last_Line (Indenting_Comment);
    begin
@@ -2130,7 +2170,7 @@ package body Wisi is
                if Indent then
                   Indent_Line (Data, Line, Delta_Indent);
                else
-                  Indent_Line (Data, Line, Null_Delta);
+                  Indent_Line (Data, Line, (Simple, (Int, 0)));
                end if;
             end;
          else
