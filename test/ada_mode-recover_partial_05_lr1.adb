@@ -8,8 +8,8 @@
 procedure Update_First
 is
 begin
-end loop;
-end loop;
+   end loop;
+   end loop;
 end Update_First;
 -- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:

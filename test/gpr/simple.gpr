@@ -60,4 +60,9 @@ library project Simple is
             null;
       end case;
    end Compiler;
+
+   package Naming is
+      for Spec ("MyPack.MyChild") use "mypack.mychild.spec" at 1;
+   end Naming;
+
 end Simple;

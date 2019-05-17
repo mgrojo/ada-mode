@@ -185,6 +185,11 @@ package body Wisi is
             end if;
          end if;
       end case;
+
+      if Trace_Action > Extra then
+         Ada.Text_IO.Put_Line (";; indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
+      end if;
+
       Data.Indents.Replace_Element (Line, Indent);
    end Indent_Line;
 

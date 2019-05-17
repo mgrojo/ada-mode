@@ -93,6 +93,28 @@ package body Gpr_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (10, Statement_End)));
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 0)));
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0)))));
+      end case;
+   end attribute_declaration_2;
+
+   procedure attribute_declaration_3
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
       when Face =>
          null;
@@ -102,7 +124,7 @@ package body Gpr_Process_Actions is
          Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False,
          (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
-   end attribute_declaration_2;
+   end attribute_declaration_3;
 
    procedure case_statement_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

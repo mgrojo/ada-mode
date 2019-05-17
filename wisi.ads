@@ -255,7 +255,7 @@ package Wisi is
       Hanging_1, -- wisi-hanging%
       Hanging_2  -- wisi-hanging%-
      );
-   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_2;
+   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_3;
 
    type Indent_Param (Label : Indent_Param_Label := Simple) is
    record

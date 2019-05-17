@@ -6,9 +6,9 @@
 procedure Ada_Mode.Recover_Extra_End_Loop is
    procedure Find_Node
    is begin
-      --  Error recovery inserts 'loop' here.
-         Iter.Current := Next_Sibling (Iter.Current);
-      end loop;
+      Iter.Current := Next_Sibling (Iter.Current);
+
+      end loop; --  recovery deletes 'loop'.
    end Find_Node;
 
 begin

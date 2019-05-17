@@ -689,6 +689,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             --  solution is to insert 'end;' after the second 'begin' (ie before
             --  the last 'end').
             --
+            --  Minimal_Complete_Actions does not handle this case well.
+            --
             --  Note that it's _not_ possible the user is just editing names; that
             --  would generate a semantic check fail, not a parse table error,
             --  since a "." would be permitted.
@@ -700,6 +702,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             begin
                New_Config_1.Error_Token.ID := Invalid_Token_ID;
 
+               New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
+
                Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
 
                case Ada_Process_Actions.Token_Enum_ID'(-New_Config_1.Stack (3).Token.ID) is
@@ -707,6 +711,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   --  no 'declare'; either case 1 or 2
 
                   New_Config_2 := New_Config_1;
+                  New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
+
                   Insert (New_Config_2, (+END_ID, +SEMICOLON_ID));
 
                   Push_Back_Check
@@ -814,120 +820,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                       Image (Config.Error_Token.ID, Descriptor), Config);
                Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
             end if;
-         end;
-
-      elsif End_Keyword_IDs (Config.Error_Token.ID) and Config.Stack (1).Token.ID = +END_ID then
-         --  Encountered 'end <keyword>;' when expecting 'end <different keyword>;' or 'end <name>;'
-         --
-         --  The input looks like one of:
-         --
-         --  a. <matching_begin_keyword> ... <other_begin_keyword> ... end <keyword> ;
-         --
-         --     where <begin_keyword> matches the error keyword. The solution
-         --     is to insert an 'end <keyword>;' matching <other_begin_keyword>
-         --     before the 'end'. See test/ada_mode_recover_12.adb
-         --
-         --  b. <other_begin> ... end <keyword> ;
-         --
-         --     where the matching keyword is missing. The solution is to
-         --     insert a matching <begin_keyword> before the '...'
-         --     sequence_of_statements_opt.
-         --
-         --  c. 'end <keyword>;' could be in the wrong place;
-         --
-         --      see test/ada_mode-recover_24.adb. Best solution there is to
-         --      replace the wrong keyword with the right one, so we enqueue that
-         --      solution also.
-         declare
-            Label             : constant String := "end keyword 2";
-            New_Config        : Configuration   := Config;
-            Matching_Index    : SAL.Peek_Type   := 2;
-            Other_Begin_Index : SAL.Peek_Type   := 2;
-         begin
-            Find_ID (Config, Config.Error_Token.ID, Matching_Index);
-
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-            New_Config.Cost := New_Config.Cost + 1;
-
-            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-
-            Push_Back (New_Config); -- end_id
-
-            if Matching_Index = Config.Stack.Depth then
-               --  matching keyword not found; case b
-               case Ada_Process_Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
-               when sequence_of_statements_opt_ID | handled_sequence_of_statements_ID =>
-                  Push_Back (New_Config);
-
-               when declarative_part_opt_ID =>
-                  --  Code looks like:
-                  --  package <declaration>... end <keyword> ; ...
-                  Insert (New_Config, +BEGIN_ID);
-
-               when others =>
-                  if Trace_McKenzie > Outline then
-                     Trace.Put_Line
-                       ("Language_Fixes " & Label & " unrecognized nonterm " & Image
-                          (New_Config.Stack (1).Token.ID, Descriptor));
-                  end if;
-               end case;
-
-               Insert (New_Config, (1 => Config.Error_Token.ID));
-
-               if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes " & Label & "b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               end if;
-            else
-               --  Matching keyword found; case a. Look for the <other_begin_keyword>.
-               Find_ID (Config, End_Keyword_IDs & (+BEGIN_ID), Other_Begin_Index);
-
-               if Other_Begin_Index = Config.Stack.Depth then
-                  if Trace_McKenzie > Outline then
-                     Put (Label & " other_begin_keyword not found", Config);
-                  end if;
-                  return;
-               end if;
-
-               if Config.Stack.Peek (Other_Begin_Index).Token.ID = (+BEGIN_ID) then
-                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
-               else
-                  Insert (New_Config, (+END_ID, Config.Stack.Peek (Other_Begin_Index).Token.ID, +SEMICOLON_ID));
-               end if;
-
-               if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes " & Label & "a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               end if;
-            end if;
-
-            Local_Config_Heap.Add (New_Config);
-         exception
-         when Bad_Config =>
-            null;
-         end;
-
-         declare
-            Label      : constant String := "end keyword 2c ";
-            New_Config : Configuration   := Config;
-         begin
-            Delete (New_Config, New_Config.Error_Token.ID); -- wrong keyword
-
-            --  It's not easy to tell what the right keyword to insert is; the
-            --  normal explore mechanism will find it.
-
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-
-            --  Inserting the replacement is likely to cost 2, so make this cost 0.
-            New_Config.Cost := New_Config.Cost + 0;
-
-            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-
-            if Trace_McKenzie > Detail then
-               Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
-            end if;
-            Local_Config_Heap.Add (New_Config);
-         exception
-         when Bad_Config =>
-            null;
          end;
 
       elsif Config.Error_Token.ID = +WHEN_ID then

@@ -14,7 +14,7 @@ is
 
 begin
    if Root = Invalid_Node_Index and Tree.Root = Invalid_Node_Index then
-      raise SAL.Programmer_Error with "Tree.Root not set";
+      raise Sal.Programmer_Error with "Tree.Root not set";
    end if;
    Tree.Shared_Tree.Traversing := True;
    Process_Tree (Tree, Tree.Root, Process_Node);

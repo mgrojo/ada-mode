@@ -70,7 +70,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_end_1.adb",
       "ada_mode-recover_end_2.adb",
       "ada_mode-recover_error_during_resume_01.adb",
-      "ada_mode-recover_error_during_resume_02.adb",
       "ada_mode-recover_exception_1.adb",
       "ada_mode-recover_extra_declare.adb",
       "ada_mode-recover_extra_end_loop.adb",

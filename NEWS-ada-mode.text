@@ -9,6 +9,8 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada Mode
 
+** gpr-mode supports new gpr syntax "at n" in an attribute specification.
+
 ** parser language protocol version 1
 
 ** The ada-mode xref backend now includes object names in the local

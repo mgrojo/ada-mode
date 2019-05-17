@@ -23,6 +23,7 @@
    NEW_LINE
    COMMENT
    ABSTRACT
+   AT
    AGGREGATE
    CASE
    CONFIGURATION
@@ -54,6 +55,7 @@
    QUOTE
    SEMICOLON
    VERTICAL_BAR
+   NUMERIC_LITERAL
    IDENTIFIER
    STRING_LITERAL
    Wisi_EOI
@@ -102,6 +104,7 @@
 (defconst gpr-elisp-keyword-table-raw
   '(
    ("abstract" . ABSTRACT)
+   ("at" . AT)
    ("aggregate" . AGGREGATE)
    ("case" . CASE)
    ("configuration" . CONFIGURATION)
@@ -138,6 +141,9 @@
     (QUOTE . "'")
     (SEMICOLON . ";")
     (VERTICAL_BAR . "|")
+    )
+   ("number"
+    (NUMERIC_LITERAL ada-wisi-number-p)
     )
    ("symbol"
     (IDENTIFIER . "")

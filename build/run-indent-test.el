@@ -10,8 +10,10 @@
 (defun ada-test-casing ()
   "Run a casing test on the current buffer."
   (interactive)
-  (message "casing")
-  (ada-case-adjust-buffer))
+  (unless (or skip-recase-test
+	      (eq major-mode 'gpr-mode))
+    (message "casing")
+    (ada-case-adjust-buffer)))
 
 (advice-add #'run-test-here :after #'ada-test-casing)
 
