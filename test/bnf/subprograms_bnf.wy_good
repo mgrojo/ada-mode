@@ -76,11 +76,11 @@ block
   : beg=BEGIN T2=loop_statement T3=EXCEPTION whe=WHEN T5=name T6=END
     %((progn
       (wisi-statement-action [T2 motion T3 motion whe motion])
-      (wisi-indent-action [(beg . 0) (T2 . subp-indent) (T3 . 0) (whe . subp-indent) (T5 . 0) (T6 . 0)])))%
+      (wisi-indent-action [(beg . nil) (T2 . subp-indent) (T3 . nil) (whe . subp-indent) (T5 . nil) (T6 . nil)])))%
   | beg=BEGIN T2=loop_statement T6=END
     %((progn
       (wisi-statement-action [T2 motion T3 motion whe motion])
-      (wisi-indent-action [(beg . 0) (T2 . subp-indent) (T3 . 0) (whe . subp-indent) (T5 . 0) (T6 . 0)])))%
+      (wisi-indent-action [(beg . nil) (T2 . subp-indent) (T3 . nil) (whe . subp-indent) (T5 . nil) (T6 . nil)])))%
   ;
 
 compilation_unit

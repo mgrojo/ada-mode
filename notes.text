@@ -97,6 +97,10 @@ can generate code for LR parser, rather than using table
     screws up recover because parse stack = cpu stack; not accessible?
 
 try packrat indirect recursion solution
+    see paper by laurent, mens
+        in ebooks/parsing, google drive
+        used in https://tatsu.readthedocs.io/
+
     docs/indirect_recursion_in_packrat.latex
         finish it
 

@@ -45,9 +45,9 @@ package body Subprograms_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (beg => (False, (Simple, (Int, 0))), T2 => (False,
-         (Simple, (Int, Subp_Indent))), T3 => (False, (Simple, (Int, 0))), whe => (False, (Simple, (Int,
-         Subp_Indent))), T5 => (False, (Simple, (Int, 0))), T6 => (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (beg => (False, (Simple, (Label => None))), T2 => (False,
+         (Simple, (Int, Subp_Indent))), T3 => (False, (Simple, (Label => None))), whe => (False, (Simple, (Int,
+         Subp_Indent))), T5 => (False, (Simple, (Label => None))), T6 => (False, (Simple, (Label => None)))));
       end case;
    end block_0;
 
@@ -68,8 +68,8 @@ package body Subprograms_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (beg => (False, (Simple, (Int, 0))), T2 => (False,
-         (Simple, (Int, Subp_Indent))), T6 => (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (beg => (False, (Simple, (Label => None))), T2 => (False,
+         (Simple, (Int, Subp_Indent))), T6 => (False, (Simple, (Label => None)))));
       end case;
    end block_1;
 
