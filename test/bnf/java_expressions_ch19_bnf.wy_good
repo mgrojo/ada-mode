@@ -1,0 +1,87 @@
+;;; generated from java_expressions_ch19.wy -*- buffer-read-only:t -*-
+;;;
+;;; Subset of Java grammar, to illustrate problem with
+;;  minimal_complete_actions algorithm.
+;;
+;;  Original grammar is from
+;;  https://docs.oracle.com/javase/specs/jls/se12/html/jls-19.html
+
+%generate LR1 Ada re2c
+
+%start Expression
+%meta_syntax BNF
+
+%no_language_runtime
+
+%mckenzie_cost_default 3 3 2 0
+%mckenzie_enqueue_limit 10_000
+%mckenzie_minimal_complete_cost_delta -3
+
+%token <punctuation> COMMA ','
+%token <punctuation> EQUAL "="
+%token <punctuation> LPAREN '('
+%token <punctuation> MINUS "-"
+%token <punctuation> MINUS_GREATER "->"
+%token <punctuation> PERCENT "%"
+%token <punctuation> PLUS "+"
+%token <punctuation> RPAREN ')'
+%token <punctuation> SLASH "/"
+%token <punctuation> STAR "*"
+
+%token <symbol> Identifier %[ [a-zA-Z]+ ]%
+%token <number> Numeric_Literal %[ [0-9]+ ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+Expression
+  : LambdaExpression  | AssignmentExpression
+  ;
+
+LambdaExpression
+  : Identifier MINUS_GREATER Identifier
+  ;
+
+AssignmentExpression
+  : AdditiveExpression
+  | Assignment
+  ;
+
+Assignment
+  : LeftHandSide EQUAL Expression
+  ;
+
+LeftHandSide
+  : Identifier
+  ;
+
+AdditiveExpression
+  : MultiplicativeExpression
+  | AdditiveExpression PLUS MultiplicativeExpression
+  | AdditiveExpression MINUS MultiplicativeExpression
+  ;
+
+MultiplicativeExpression
+  : PostfixExpression
+  | MultiplicativeExpression STAR PostfixExpression
+  | MultiplicativeExpression SLASH PostfixExpression
+  | MultiplicativeExpression PERCENT PostfixExpression
+  ;
+
+PostfixExpression
+  : Numeric_Literal
+  | Identifier
+  | MethodInvocation
+  ;
+
+MethodInvocation
+  : Identifier LPAREN ArgumentList RPAREN
+  ;
+
+ArgumentList
+  : Expression
+  | ArgumentList COMMA Expression
+  ;
+
+;; end of file
+

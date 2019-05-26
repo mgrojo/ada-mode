@@ -21,6 +21,64 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+minimal_completion_actions
+    elminate cycles in java
+
+    need kernels at runtime
+        in _main.adb and text_rep
+        don't need lookaheads
+        dot could be integer index
+        also store token length after dot
+
+
+    consider higher-level productions when picking minimum reduce
+        can't precompute which ones are actually available
+            except special cases, like LeftHandSide
+            lhs in current state does not have to be first in higher set
+            can use lookahead to filter productions?
+            get list of states with multiple mins
+                java_ch19:
+                    35, 83: runtime might help
+                    251, 263: generate time only half known
+                        309.1 => postincrement/decrement 1, or recursive mult/add, and, conditionaland, condor => expression, unknown min remaining
+                        334.0 => MethodInvocation, 2
+                    254: runtime (ignore recursive production)
+               => can't compute min at generate time
+
+        use stack at runtime
+java_expressions_ch19 error recovery:
+
+stack: (21 : (Identifier, (62 . 62)), 12 : (LPAREN, (61 . 61)), 1 : (Identifier, (50 . 59)), 0 : (-))
+    state 21: min actions = reduce 1 token to LeftHandSide or ClassType
+State 12:
+   LeftHandSide             goto state 26
+      only one prod:
+     20.0:Assignment <= LeftHandSide ^ EQUAL Expression, COMMA/RPAREN
+   ClassType                goto state 30
+     ClassType before dot:
+     24.0:PostfixExpression <= ClassType ^, COMMA/MINUS/PERCENT/PLUS/RPAREN/SLASH/STAR
+     25.1:ClassType <= ClassType ^ DOT Identifier, COMMA/DOT/MINUS/PERCENT/PLUS/RPAREN/SLASH/STAR
+
+    choose state 30 prod 24.0 => reduce to classType
+
+java_ch19 error recovery:
+stack: (3441 : (Identifier, (203 . 213)), 2342 : (DOT, (202 . 202)), 1322 : (ClassType, (187 . 201)), 2347 : (COMMA, (185 . 185)), 2867 : (ArgumentList, (174 . 184)), 1798 : (LEFT_PAREN, (173 . 173)), 798 : (Identifier, (163 . 172)), 325 : (LEFT_CURLY_BRACKET, (155 . 155)), 346 : (MethodHeader, (138 . 147)), 113 : (LEFT_CURLY_BRACKET, (130 . 130)), 159 : (Identifier, (121 . 128)), 91 : (CLASS, (115 . 119)), 42 : (nonterminal_092_list, (108 . 113)), 24 : (PackageDeclaration, (91 . 106)), 0 : (-))
+state 3441 one minimal: reduce 3 to ClassType, goto 1322, push ClassType
+state 1322 two minimal:
+    292.0:LeftHandSide <= ClassType ^
+    309.1:PostfixExpression <= ClassType ^
+State 2347:
+   LeftHandSide                               goto state 1334
+   PostfixExpression                          goto state 1313
+state 1334
+    291.0:Assignment <= LeftHandSide ^ AssignmentOperator Expression
+        remaining length 2
+State 1313:
+    308.0:UnaryExpressionNotPlusMinus <= PostfixExpression ^
+    310.0:PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS
+    311.0:PostDecrementExpression <= PostfixExpression ^ MINUS_MINUS
+        minimal remaining length 0
+
 test_mckenzie use lr-parser-gen_aunit
 
 use First to compute String_ID_Set?

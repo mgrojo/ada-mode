@@ -36,7 +36,7 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
-with WisiToken;
+with WisiToken.Parse.LR;
 package WisiToken.BNF is
 
    --  See also WisiToken exceptions
@@ -209,12 +209,18 @@ package WisiToken.BNF is
       Delete                      : String_Pair_Lists.List;
       Insert                      : String_Pair_Lists.List;
       Push_Back                   : String_Pair_Lists.List;
-      Minimal_Complete_Cost_Delta : Integer               := -1;
-      Ignore_Check_Fail           : Natural               := 0;
-      Cost_Limit                  : Natural               := Integer'Last;
-      Check_Limit                 : WisiToken.Token_Index := WisiToken.Token_Index'Last;
-      Check_Delta_Limit           : Natural               := Integer'Last;
-      Enqueue_Limit               : Natural               := Integer'Last;
+      Minimal_Complete_Cost_Delta : Integer               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Minimal_Complete_Cost_Delta;
+      Ignore_Check_Fail           : Natural               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
+      Cost_Limit                  : Natural               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Cost_Limit;
+      Check_Limit                 : WisiToken.Token_Index :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
+      Check_Delta_Limit           : Natural               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Check_Delta_Limit;
+      Enqueue_Limit               : Natural               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Enqueue_Limit;
    end record;
 
    type Token_Kind_Type is record

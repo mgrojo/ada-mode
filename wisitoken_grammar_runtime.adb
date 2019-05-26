@@ -2793,7 +2793,7 @@ package body WisiToken_Grammar_Runtime is
       end Process_Node;
    begin
       Create (File, Out_File, File_Name);
-      Put_Line (File, ";;; generated from " & Data.Grammar_Lexer.File_Name);
+      Put_Line (File, ";;; generated from " & Data.Grammar_Lexer.File_Name & " -*- buffer-read-only:t -*-");
       Put_Line (File, ";;;");
 
       declare

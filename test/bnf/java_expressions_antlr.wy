@@ -1,4 +1,7 @@
 ;; Subset of Java grammar for testing redundancy elimination in Minimal_Complete_Actions
+;;
+;; Original Java grammar from the Antlr grammar at
+;; https://github.com/antlr/grammars-v4/tree/master/java
 
 %code copyright_license %{
 ;;  [The "BSD licence"]

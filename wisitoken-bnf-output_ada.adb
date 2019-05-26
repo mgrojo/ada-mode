@@ -437,7 +437,8 @@ is
                else -Input_Data.Language_Params.Language_Runtime_Name);
          begin
             --  For language-specific names in actions, checks.
-            Put_Line ("with " & Pkg & "; use " & Pkg & ";");
+            Put_Line ("with " & Pkg & ";");
+            Put_Line ("use " & Pkg & ";");
          end;
       end if;
 

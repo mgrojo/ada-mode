@@ -766,7 +766,6 @@ package body WisiToken.Generate.LR is
       subtype Terminals is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 
       Working_Set : LR1_Items.Item_Lists.List := Kernel.Set;
-      Del         : LR1_Items.Item_Lists.Cursor;
 
       function Find_Action (List : in Action_Node_Ptr; ID : in Token_ID) return Minimal_Action
       is
@@ -791,97 +790,150 @@ package body WisiToken.Generate.LR is
          raise SAL.Programmer_Error;
       end Find_Action;
 
+      function Min_Length (Item : in RHS_Sequence_Arrays.Vector) return Ada.Containers.Count_Type
+      is
+         use Ada.Containers;
+         Min : Count_Type := Count_Type'Last;
+      begin
+         for RHS of Item loop
+            if RHS.Sequence.Length < Min then
+               Min := RHS.Sequence.Length;
+            end if;
+         end loop;
+         return Min;
+      end Min_Length;
+
+      function After_Dot_Length (Item : in LR1_Items.Item) return Ada.Containers.Count_Type
+      is
+         use Ada.Containers;
+         Prod   : constant Production_ID := Item.Prod;
+         I      : Token_ID_Arrays.Cursor := Item.Dot;
+         Result : Count_Type             := 0;
+         Tokens : Vector renames Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens;
+      begin
+         loop
+            exit when I = Token_ID_Arrays.No_Element;
+
+            if Tokens (I) in Terminals then
+               Result := Result + 1;
+            else
+               Result := Result + Min_Length (Minimal_Terminal_Sequences (Tokens (I)));
+            end if;
+            Next (I);
+         end loop;
+         return Result;
+      end After_Dot_Length;
+
       procedure Delete_Non_Minimal
       is
-         Min_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
+         use Ada.Containers;
+
+         Min_Length : Count_Type := Count_Type'Last;
          I          : LR1_Items.Item_Lists.Cursor;
-         Min_I      : LR1_Items.Item_Lists.Cursor;
+
+         function Left_Recursive return Boolean
+         is
+            Item : LR1_Items.Item renames Constant_Ref (I).Element.all;
+            Prod : constant WisiToken.Production_ID := Item.Prod;
+         begin
+            return Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and then
+              (Has_Element (Item.Dot) and then
+                 Item.Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2));
+         end Left_Recursive;
+
       begin
-         --  The absolute minimal production for an LHS may not be in this state.
-         --  For example, for an Ada aggregate, the minimal terminal sequence is:
+         --  The absolute minimal production for an LHS may not be in this
+         --  state. For example, for an Ada aggregate, the absolute minimal
+         --  terminal sequence is:
+         --
          --  aggregate <= LEFT_PAREN RIGHT_PAREN
-         --  but one state has:
+         --
+         --  but one state has only:
+         --
          --  aggregate <= LEFT_PAREN expression_opt WITH ^ NULL RECORD RIGHT_PAREN
          --  aggregate <= LEFT_PAREN expression_opt WITH ^ association_list RIGHT_PAREN
          --
-         --  Find the minimum of the productions that are present
+         --  Find the minimum tokens after dot of the productions that are present
 
          I := Working_Set.First;
          loop
             exit when not Has_Element (I);
-            declare
-               Prod : constant WisiToken.Production_ID := Constant_Ref (I).Prod;
-            begin
-               --  IMPROVEME: If Dot is near the end of a production, this is not the
-               --  best metric; the best metric is count of remaining tokens to
-               --  insert. But changing to that won't make much difference; it only
-               --  matters when Dot is not near the beginning, but then we don't have
-               --  multiple productions (they all must have same prefix).
-               --
-               --  We must eliminate direct left recursion; otherwise it can appear
-               --  to have a minimum length. For example, consider ada_lite state
-               --  149:
-               --
-               --  57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
-               --  61.0:association_list <= association_list ^ COMMA association_opt
-               --
-               --  Both have length 2, but the association_list requires a
-               --  RIGHT_PAREN eventually.
-               --
-               --  We also have to eliminate indirect left recursion; consider ada_lite state 60:
-               --
-               --   94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
-               --  103.0:name <= name ^ LEFT_PAREN range_list
-               --  103.1:name <= name ^ actual_parameter_part
-               --  123.0:selected_component <= name ^ DOT IDENTIFIER
-               --
-               --  'selected' component has length 3, which two others also have, but
-               --  it requires more eventually.
-               --
-               --  An item production is left recursive only if Dot is after the
-               --  first token (ie, before the second token); consider conflict_name
-               --  state 5:
-               --
-               --   8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
-               --  11.0:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/Wisi_EOI
-               --
-               --  Both are indirect left recursive with "name", but both are past
-               --  the recursion, and can be completed.
 
-               if Min_Length > Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length and
-                 not (Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and then
-                        (Has_Element (Constant_Ref (I).Dot) and then
-                           Constant_Ref (I).Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2)))
-               then
-                  Min_Length := Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length;
-                  Min_I      := I;
+            --  Direct left recursion is never minimal; for example, consider
+            --  ada_lite LALR state 149:
+            --
+            --  57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
+            --  61.0:association_list <= association_list ^ COMMA association_opt
+            --
+            --  If we already have an association_list, adding a COMMA to it
+            --  cannot be minimal.
+            --
+            --  Similarly, indirect left recursion is not minimal; consider
+            --  ada_lite LALR states 29 and 60:
+            --
+            --  State 29:
+            --  103.3:name <= selected_component ^,
+            --
+            --  State 60:
+            --   94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
+            --  103.0:name <= name ^ LEFT_PAREN range_list
+            --  103.1:name <= name ^ actual_parameter_part
+            --  123.0:selected_component <= name ^ DOT IDENTIFIER
+            --
+            --  If we already have a name, adding another DOT IDENTIFIER cannot be
+            --  minimal.
+            --
+            --  IMPROVEME: If Dot is near the end of a production, this is not the
+            --  best metric; the best metric is count of remaining tokens to
+            --  insert. But changing to that won't make much difference; it only
+            --  matters when Dot is not near the beginning, but then we don't have
+            --  multiple productions (they all must have same prefix).
+
+            if Left_Recursive then
+               if Trace_Generate > Extra then
+                  Ada.Text_IO.Put_Line ("delete " & Image (Constant_Ref (I).Prod) & " recursive");
                end if;
-            end;
-            Next (I);
-         end loop;
-
-         if not Has_Element (Min_I) then
-            Working_Set.Clear;
-         else
-            I := Working_Set.First;
-            loop
-               exit when not Has_Element (I);
                declare
-                  Prod : constant WisiToken.Production_ID := Constant_Ref (I).Prod;
+                  Del : LR1_Items.Item_Lists.Cursor := I;
                begin
-                  if I /= Min_I then
-                     if Trace_Generate > Extra then
-                        Ada.Text_IO.Put_Line ("delete " & Image (Prod) & " not minimal");
-                     end if;
-                     Del := I;
-                     Next (I);
-                     Working_Set.Delete (Del);
-                  else
-                     Next (I);
+                  Next (I);
+                  Working_Set.Delete (Del);
+               end;
+
+            else
+               declare
+                  Prod_Length : constant Count_Type := After_Dot_Length (Constant_Ref (I));
+               begin
+                  if Min_Length > Prod_Length then
+                     Min_Length := Prod_Length;
                   end if;
                end;
-            end loop;
-         end if;
+
+               Next (I);
+            end if;
+         end loop;
+
+         --  Now we have the minimum length; check remaining items against that
+         I := Working_Set.First;
+         loop
+            exit when not Has_Element (I);
+            if Min_Length < After_Dot_Length (Constant_Ref (I)) then
+               declare
+                  Del : LR1_Items.Item_Lists.Cursor := I;
+               begin
+                  if Trace_Generate > Extra then
+                     Ada.Text_IO.Put_Line ("delete " & Image (Constant_Ref (I).Prod));
+                  end if;
+                  Next (I);
+                  Working_Set.Delete (Del);
+               end;
+            else
+               if Trace_Generate > Extra then
+                  Ada.Text_IO.Put_Line ("keep " & Image (Constant_Ref (I).Prod));
+               end if;
+               Next (I);
+            end if;
+         end loop;
       end Delete_Non_Minimal;
 
    begin
@@ -912,47 +964,101 @@ package body WisiToken.Generate.LR is
          Delete_Non_Minimal;
       end if;
 
-      if Trace_Generate > Extra then
-         Ada.Text_IO.Put_Line ("after deletions:");
-         LR1_Items.Put (Grammar, Descriptor, Working_Set, Show_Lookaheads => False);
-      end if;
+      if Working_Set.Length > 0 then
+         --  If the actions for all the remaining productions are Shift, we
+         --  pick the first one arbitrarily.
+         --
+         --  For reduce, we must consider the higher-level production being completed, not
+         --  just the current item set. Consider java_expressions_ch19 LR1 state 21:
+         --
+         --  18.0:LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
+         --  21.0:LeftHandSide <= Identifier ^
+         --  25.0:ClassType <= Identifier ^
+         --  26.0:MethodInvocation <= Identifier ^ LPAREN ArgumentList RPAREN
+         --
+         --  LeftHandSide and ClassType both have remaining length 0, but
+         --  LeftHandSide appears only in:
+         --
+         --  Assignment <= LeftHandSide EQUAL Expression
+         --
+         --  while ClassType will be reduced to Expression, so LeftHandSide is
+         --  not minimal. However, in general we cannot precompute what
+         --  higher-level productions might be completed from each state; we
+         --  must use the parse stack during error recovery. In that case, we
+         --  store multiple minimal actions in the state.
 
-      --  Find the actions for the remaining productions.
+         declare
+            Actions : array (1 .. Working_Set.Length) of Minimal_Action := (others => (Verb => Pause));
 
-      for Item of Working_Set loop
-         if not Has_Element (Item.Dot) then
-            --  Item has no next terminal. Include a reduce action; the
-            --  Minimal_Terminal_First for the resulting state will be used.
-            State.Minimal_Complete_Action :=
-              (Reduce, Item.Prod.LHS,
-                Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
-         else
-            declare
-               ID : constant Token_ID := Element (Item.Dot);
-            begin
-               if ID /= Descriptor.EOI_ID then
+            I            : Ada.Containers.Count_Type := 1;
+            Shift_Count  : Integer := 0;
+            Reduce_Count : Integer := 0;
+         begin
+            for Item of Working_Set loop
 
-                  if ID in Terminals then
-                     State.Minimal_Complete_Action := Find_Action (State.Action_List, ID);
-
+               --  Find the actions for the remaining productions.
+               declare
+                  Item : LR1_Items.Item renames Working_Set (Working_Set.First);
+               begin
+                  if not Has_Element (Item.Dot) then
+                     --  Item has no next terminal. Include a reduce action; the
+                     --  Minimal_Terminal_First for the resulting state will be used.
+                     Reduce_Count := Reduce_Count + 1;
+                     Actions (I) :=
+                       (Reduce, Item.Prod.LHS,
+                        Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
                   else
-                     if Minimal_Terminal_First (ID) = Invalid_Token_ID then
-                        --  Item.Dot is a nullable nonterm, include a reduce of the null
-                        --  nonterm, rather than a shift of the following terminal; recover
-                        --  must do the reduce first.
-                        State.Minimal_Complete_Action := (Reduce, ID, Token_Count => 0);
+                     declare
+                        ID : constant Token_ID := Element (Item.Dot);
+                     begin
+                        if ID /= Descriptor.EOI_ID then
 
-                     else
-                        State.Minimal_Complete_Action := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
-                     end if;
+                           if ID in Terminals then
+                              Shift_Count := Shift_Count + 1;
+                              Actions (I) := Find_Action (State.Action_List, ID);
+
+                           else
+                              if Minimal_Terminal_First (ID) = Invalid_Token_ID then
+                                 --  Item.Dot is a nullable nonterm, include a reduce of the null
+                                 --  nonterm, rather than a shift of the following terminal; recover
+                                 --  must do the reduce first.
+                                 Reduce_Count := Reduce_Count + 1;
+                                 Actions (I) := (Reduce, ID, Token_Count => 0);
+
+                              else
+                                 Shift_Count := Shift_Count + 1;
+                                 Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
+                              end if;
+                           end if;
+                        end if;
+                     end;
                   end if;
+               end;
+               I := I + 1;
+            end loop;
+
+            if Shift_Count = Actions'Length then
+               State.Minimal_Complete_Action := Actions (Actions'First);
+
+            elsif Reduce_Count = Actions'Length then
+               --  FIXME: consider higher level productions special cases.
+               State.Minimal_Complete_Action := Actions (Actions'First);
+
+               if Actions'Length > 1 then
+                  Ada.Text_IO.Put (Unknown_State_Index'Image (Kernel.State) & " : multiple minimal reduce actions:");
+                  for Item of Working_Set loop
+                     Ada.Text_IO.Put (Image (Item.Prod));
+                  end loop;
+                  Ada.Text_IO.New_Line;
                end if;
-            end;
-         end if;
-         if Trace_Generate > Extra then
-            Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Action, Descriptor));
-         end if;
-      end loop;
+            else
+               raise SAL.Programmer_Error with "Set_Minimal_Complete_Actions: mixed shift/reduce";
+            end if;
+            if Trace_Generate > Extra then
+               Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Action, Descriptor));
+            end if;
+         end;
+      end if;
    end Set_Minimal_Complete_Actions;
 
    ----------

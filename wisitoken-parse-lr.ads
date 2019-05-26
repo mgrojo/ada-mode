@@ -255,7 +255,7 @@ package WisiToken.Parse.LR is
       Ignore_Check_Fail => 0,
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
-      Check_Limit       => Token_Index'Last,
+      Check_Limit       => 4,
       Check_Delta_Limit => Natural'Last,
       Enqueue_Limit     => Natural'Last);
 
