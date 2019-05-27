@@ -937,6 +937,34 @@ package body WisiToken.Generate.LR is
       end Delete_Non_Minimal;
 
    begin
+      if Kernel.State > 0 then
+         declare
+            use Ada.Containers;
+            I : Count_Type := 1;
+
+            function Before_Dot (Item : in LR1_Items.Item) return Token_ID
+            is
+               Tokens : Token_ID_Arrays.Vector renames Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens;
+            begin
+               if Item.Dot = Token_ID_Arrays.No_Element then
+                  return Tokens (Tokens.Last_Index);
+               else
+                  return Tokens (Prev (Item.Dot));
+               end if;
+            end Before_Dot;
+         begin
+            State.Kernel.Set_First_Last (1, Kernel.Set.Length);
+            for Item of Kernel.Set loop
+               State.Kernel (I) :=
+                 (LHS              => Item.Prod.LHS,
+                  Before_Dot       => Before_Dot (Item),
+                  Length_After_Dot => After_Dot_Length (Item));
+
+               I := I + 1;
+            end loop;
+         end;
+      end if;
+
       --  The actions computed here are used in the error recovery
       --  algorithm, to decide what terminals to insert in the input stream
       --  in order to correct an error. The strategy is to complete a high
@@ -988,7 +1016,7 @@ package body WisiToken.Generate.LR is
          --  store multiple minimal actions in the state.
 
          declare
-            Actions : array (1 .. Working_Set.Length) of Minimal_Action := (others => (Verb => Pause));
+            Actions : Minimal_Action_Array (1 .. Working_Set.Length) := (others => (Verb => Pause));
 
             I            : Ada.Containers.Count_Type := 1;
             Shift_Count  : Integer := 0;
@@ -997,65 +1025,59 @@ package body WisiToken.Generate.LR is
             for Item of Working_Set loop
 
                --  Find the actions for the remaining productions.
-               declare
-                  Item : LR1_Items.Item renames Working_Set (Working_Set.First);
-               begin
-                  if not Has_Element (Item.Dot) then
-                     --  Item has no next terminal. Include a reduce action; the
-                     --  Minimal_Terminal_First for the resulting state will be used.
-                     Reduce_Count := Reduce_Count + 1;
-                     Actions (I) :=
-                       (Reduce, Item.Prod.LHS,
-                        Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
-                  else
-                     declare
-                        ID : constant Token_ID := Element (Item.Dot);
-                     begin
-                        if ID /= Descriptor.EOI_ID then
+               if not Has_Element (Item.Dot) then
+                  --  Item has no next terminal. Include a reduce action; the
+                  --  Minimal_Terminal_First for the resulting state will be used.
+                  Reduce_Count := Reduce_Count + 1;
+                  Actions (I) :=
+                    (Reduce, Item.Prod.LHS,
+                     Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
+               else
+                  declare
+                     ID : constant Token_ID := Element (Item.Dot);
+                  begin
+                     if ID /= Descriptor.EOI_ID then
 
-                           if ID in Terminals then
-                              Shift_Count := Shift_Count + 1;
-                              Actions (I) := Find_Action (State.Action_List, ID);
+                        if ID in Terminals then
+                           Shift_Count := Shift_Count + 1;
+                           Actions (I) := Find_Action (State.Action_List, ID);
+
+                        else
+                           if Minimal_Terminal_First (ID) = Invalid_Token_ID then
+                              --  Item.Dot is a nullable nonterm, include a reduce of the null
+                              --  nonterm, rather than a shift of the following terminal; recover
+                              --  must do the reduce first.
+                              Reduce_Count := Reduce_Count + 1;
+                              Actions (I) := (Reduce, ID, Token_Count => 0);
 
                            else
-                              if Minimal_Terminal_First (ID) = Invalid_Token_ID then
-                                 --  Item.Dot is a nullable nonterm, include a reduce of the null
-                                 --  nonterm, rather than a shift of the following terminal; recover
-                                 --  must do the reduce first.
-                                 Reduce_Count := Reduce_Count + 1;
-                                 Actions (I) := (Reduce, ID, Token_Count => 0);
-
-                              else
-                                 Shift_Count := Shift_Count + 1;
-                                 Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
-                              end if;
+                              Shift_Count := Shift_Count + 1;
+                              Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
                            end if;
                         end if;
-                     end;
-                  end if;
-               end;
+                     end if;
+                  end;
+               end if;
                I := I + 1;
             end loop;
 
             if Shift_Count = Actions'Length then
-               State.Minimal_Complete_Action := Actions (Actions'First);
+               State.Minimal_Complete_Actions := Minimal_Action_Arrays.To_Vector (Actions (Actions'First));
 
             elsif Reduce_Count = Actions'Length then
-               --  FIXME: consider higher level productions special cases.
-               State.Minimal_Complete_Action := Actions (Actions'First);
-
-               if Actions'Length > 1 then
-                  Ada.Text_IO.Put (Unknown_State_Index'Image (Kernel.State) & " : multiple minimal reduce actions:");
-                  for Item of Working_Set loop
-                     Ada.Text_IO.Put (Image (Item.Prod));
+               if Actions'Length = 1 then
+                  State.Minimal_Complete_Actions := Minimal_Action_Arrays.To_Vector (Actions (Actions'First));
+               else
+                  State.Minimal_Complete_Actions.Set_First_Last (Actions'First, Actions'Last);
+                  for I in Actions'Range loop
+                     State.Minimal_Complete_Actions.Replace_Element (I, Actions (I));
                   end loop;
-                  Ada.Text_IO.New_Line;
                end if;
             else
                raise SAL.Programmer_Error with "Set_Minimal_Complete_Actions: mixed shift/reduce";
             end if;
             if Trace_Generate > Extra then
-               Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Action, Descriptor));
+               Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Actions, Descriptor));
             end if;
          end;
       end if;
@@ -1070,6 +1092,7 @@ package body WisiToken.Generate.LR is
       Action_Names : in Names_Array_Array;
       Check_Names  : in Names_Array_Array)
    is
+      use Ada.Containers;
       use Ada.Text_IO;
       File : File_Type;
    begin
@@ -1089,13 +1112,6 @@ package body WisiToken.Generate.LR is
       New_Line (File);
 
       for State of Table.States loop
-         Put (File, Integer'Image (State.Productions.First_Index));
-         Put (File, Integer'Image (State.Productions.Last_Index));
-         for Prod of State.Productions loop
-            Put (File, Token_ID'Image (Prod.LHS) & Integer'Image (Prod.RHS));
-         end loop;
-         New_Line (File);
-
          declare
             Node_I : Action_Node_Ptr := State.Action_List;
          begin
@@ -1166,20 +1182,32 @@ package body WisiToken.Generate.LR is
             New_Line (File);
          end;
 
-         declare
-            Action  : Minimal_Action renames State.Minimal_Complete_Action;
-         begin
-            case State.Minimal_Complete_Action.Verb is
-            when Pause =>
-               null;
-            when Shift =>
-               Put (File, Minimal_Verbs'Image (Action.Verb));
-               Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
-            when Reduce =>
-               Put (File, Minimal_Verbs'Image (Action.Verb));
-               Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
-            end case;
-         end;
+         Put (File, Count_Type'Image (State.Kernel.First_Index));
+         Put (File, Count_Type'Image (State.Kernel.Last_Index));
+         for Item of State.Kernel loop
+            Put (File, Token_ID'Image (Item.LHS) & Token_ID'Image (Item.Before_Dot) &
+                   Count_Type'Image (Item.Length_After_Dot));
+         end loop;
+         New_Line (File);
+
+         if State.Minimal_Complete_Actions.Length = 0 then
+            null;
+         else
+            Put (File, Count_Type'Image (State.Minimal_Complete_Actions.First_Index));
+            Put (File, Count_Type'Image (State.Minimal_Complete_Actions.Last_Index));
+            for Action of State.Minimal_Complete_Actions loop
+               case Action.Verb is
+               when Pause =>
+                  null;
+               when Shift =>
+                  Put (File, Minimal_Verbs'Image (Action.Verb));
+                  Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
+               when Reduce =>
+                  Put (File, Minimal_Verbs'Image (Action.Verb));
+                  Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
+               end case;
+            end loop;
+         end if;
          Put (File, ';');
          New_Line (File);
       end loop;
@@ -1283,6 +1311,7 @@ package body WisiToken.Generate.LR is
 
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State)
    is
+      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
       Action_Ptr : Action_Node_Ptr := State.Action_List;
@@ -1316,14 +1345,34 @@ package body WisiToken.Generate.LR is
       end loop;
 
       New_Line;
-      Put ("   Minimal_Complete_Action => ");
-      case State.Minimal_Complete_Action.Verb is
-      when Pause =>
+      Put ("   Minimal_Complete_Actions => ");
+      case State.Minimal_Complete_Actions.Length is
+      when 0 =>
          New_Line;
-      when Shift =>
-         Put_Line (Image (State.Minimal_Complete_Action.ID, Descriptor));
-      when Reduce =>
-         Put_Line (Image (State.Minimal_Complete_Action.Nonterm, Descriptor));
+      when 1 =>
+         --  No () here for compatibity with previous known good parse tables.
+         declare
+            Action : Minimal_Action renames State.Minimal_Complete_Actions (State.Minimal_Complete_Actions.First_Index);
+         begin
+            case Action.Verb is
+            when Pause =>
+               null;
+            when Shift =>
+               Put_Line (Image (Action.ID, Descriptor));
+            when Reduce =>
+               Put_Line (Image (Action.Nonterm, Descriptor));
+            end case;
+         end;
+      when others =>
+         --  Must all be reduce
+         Put ("(");
+         for I in State.Minimal_Complete_Actions.First_Index .. State.Minimal_Complete_Actions.Last_Index loop
+            Put (Image (State.Minimal_Complete_Actions (I).Nonterm, Descriptor));
+            if I < State.Minimal_Complete_Actions.Last_Index then
+               Put (", ");
+            end if;
+         end loop;
+         Put_Line (")");
       end case;
    end Put;
 

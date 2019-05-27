@@ -426,6 +426,58 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       return Abandon;
    end Check;
 
+   function Find_Min_Action
+     (Super            : not null access Base.Supervisor;
+      Shared       : not null access Base.Shared;
+      Parser_Index     : in              SAL.Base_Peek_Type;
+      Complete_Actions : in              Minimal_Action_Arrays.Vector;
+      Config           : in              Configuration)
+     return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      use SAL;
+      Length : array (Complete_Actions.First_Index .. Complete_Actions.Last_Index) of Count_Type :=
+        (others => Count_Type'Last);
+
+      Min_Length : Count_Type := Count_Type'Last;
+      Min_Action : Count_Type := Count_Type'Last;
+   begin
+      if Complete_Actions.Length = 1 then
+         return Complete_Actions.First_Index;
+      end if;
+
+      for I in Complete_Actions.First_Index .. Complete_Actions.Last_Index loop
+         declare
+            Action     : Minimal_Action renames Complete_Actions (I);
+            Next_State : constant State_Index := Goto_For
+              (Shared.Table.all, Config.Stack.Peek (Base_Peek_Type (Action.Token_Count) + 1).State, Action.Nonterm);
+            Kernel     : Kernel_Info_Arrays.Vector renames Shared.Table.States (Next_State).Kernel;
+         begin
+            for Item of Kernel loop
+               if Item.Before_Dot = Action.Nonterm and
+                 Item.Length_After_Dot < Length (I)
+               then
+                  Length (I) := Item.Length_After_Dot;
+                  if Length (I) < Min_Length then
+                     Min_Length := Length (I);
+                     Min_Action := I;
+                  end if;
+               end if;
+            end loop;
+         end;
+      end loop;
+
+      --  Check for unique; need a test case
+      for I in Length'Range loop
+         if I /= Min_Action and Length (I) = Min_Length then
+            Put_Line (Super.Trace.all, Super.Label (Parser_Index), "non-unique minimal reduce found");
+            raise Bad_Config;
+         end if;
+      end loop;
+
+      return Min_Action;
+   end Find_Min_Action;
+
    function Check_Reduce_To_Start
      (Super        : not null access Base.Supervisor;
       Shared       : not null access Base.Shared;
@@ -434,6 +486,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
      return Boolean
       --  Returns True if Config reduces to the start nonterm.
    is
+      use Ada.Containers;
       Table : Parse_Table renames Shared.Table.all;
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
@@ -443,11 +496,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Local_Config_Heap : Config_Heaps.Heap_Type; -- never used, because Do_Language_Fixes is False.
 
-      Config : Configuration  := Orig_Config;
-      Action : Minimal_Action := Table.States (Config.Stack.Peek.State).Minimal_Complete_Action;
+      Config     : Configuration                := Orig_Config;
+      Actions    : Minimal_Action_Arrays.Vector := Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions;
+      Min_Action : Count_Type;
    begin
       loop
-         case Action.Verb is
+         if Actions.Length = 0 then
+            return True;
+         end if;
+
+         Min_Action := Find_Min_Action (Super, Shared, Parser_Index, Actions, Config);
+
+         case Actions (Min_Action).Verb is
          when Pause =>
             return True;
 
@@ -457,10 +517,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          when Reduce =>
             Do_Reduce_1
               ("", Super, Shared, Parser_Index, Local_Config_Heap, Config,
-               To_Reduce_Action (Action),
+               To_Reduce_Action (Actions (Min_Action)),
                Do_Language_Fixes => False);
 
-            Action := Table.States (Config.Stack.Peek.State).Minimal_Complete_Action;
+            Actions := Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions;
          end case;
          --  loop only exits via returns above
       end loop;
@@ -629,14 +689,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Returns count of terminals inserted; 0 if Orig_Config reduces to
       --  the start nonterm.
    is
-      use all type Ada.Containers.Count_Type;
+      use Ada.Containers;
 
       Table        : Parse_Table renames Shared.Table.all;
       Descriptor   : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
       Insert_Count : Integer := 0;
 
-      New_Config      : Configuration  := Orig_Config;
-      Complete_Action : Minimal_Action := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action;
+      New_Config       : Configuration                := Orig_Config;
+      Complete_Actions : Minimal_Action_Arrays.Vector := Table.States
+        (New_Config.Stack.Peek.State).Minimal_Complete_Actions;
+      Min_Action : Count_Type;
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
       is begin
@@ -644,38 +706,44 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end To_Reduce_Action;
 
       procedure Minimal_Do_Shift
-      is begin
+      is
+         Action : constant Minimal_Action := Complete_Actions (Complete_Actions.First_Index);
+      begin
          if New_Config.Ops.Length > 0 and then
            --  Don't insert an ID we just pushed back or deleted; we know that failed.
-           (New_Config.Ops (New_Config.Ops.Last_Index) =
-              (Push_Back, Complete_Action.ID, New_Config.Current_Shared_Token) or
-              New_Config.Ops (New_Config.Ops.Last_Index) =
-              (Delete, Complete_Action.ID, New_Config.Current_Shared_Token))
+           (New_Config.Ops (New_Config.Ops.Last_Index) = (Push_Back, Action.ID, New_Config.Current_Shared_Token) or
+              New_Config.Ops (New_Config.Ops.Last_Index) = (Delete, Action.ID, New_Config.Current_Shared_Token))
          then
             if Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions abandoned " &
-                    Image (Complete_Action.ID, Descriptor));
+                    Image (Action.ID, Descriptor));
             end if;
             pragma Assert (Insert_Count = 0);
          else
             if Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions shift " &
-                    Image (Complete_Action.ID, Descriptor));
+                    Image (Action.ID, Descriptor));
             end if;
             New_Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
             Insert_Count            := Insert_Count + 1;
 
             Do_Shift
-              (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Complete_Action.State, Complete_Action.ID,
+              (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Action.ID,
                Table.McKenzie_Param.Minimal_Complete_Cost_Delta,
                Strategy   => Minimal_Complete);
          end if;
       end Minimal_Do_Shift;
 
    begin
-      case Complete_Action.Verb is
+      if Complete_Actions.Length = 0 then
+         return 0;
+      end if;
+
+      Min_Action := Find_Min_Action (Super, Shared, Parser_Index, Complete_Actions, New_Config);
+
+      case Complete_Actions (Min_Action).Verb is
       when Pause =>
          return 0;
 
@@ -683,27 +751,30 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  Do a reduce, look at resulting state. Keep reducing until we can't
          --  anymore.
          declare
-            Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Complete_Action);
+            Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Complete_Actions (Min_Action));
          begin
             loop
                Do_Reduce_1
                  ("Minimal_Complete_Actions", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Reduce_Action,
                   Do_Language_Fixes => False);
 
-               Complete_Action := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action;
+               Complete_Actions := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Actions;
 
-               case Complete_Action.Verb is
+               if Complete_Actions.Length = 0 then
+                  return 0;
+               end if;
+
+               Min_Action := Find_Min_Action (Super, Shared, Parser_Index, Complete_Actions, New_Config);
+
+               case Complete_Actions (Min_Action).Verb is
                when Pause =>
                   return 0;
                when Shift =>
                   Minimal_Do_Shift;
                   return Insert_Count;
                when Reduce =>
-                  null;
+                  Reduce_Action := To_Reduce_Action (Complete_Actions (Min_Action));
                end case;
-
-               Reduce_Action := To_Reduce_Action
-                 (Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action);
             end loop;
          end;
 
@@ -1206,9 +1277,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Matching_Begin_Token         : Token_ID := Invalid_Token_ID;
 
       function Allow_Insert_Terminal (Config : in Configuration) return Boolean
-      is begin
+      is
+         use all type Ada.Containers.Count_Type;
+      begin
          if Use_Minimal_Complete_Actions then
-            if Table.States (Config.Stack.Peek.State).Minimal_Complete_Action.Verb = Pause then
+            if Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions.Length = 0 then
                --  This happens when there is an extra token after an acceptable
                --  grammar statement. There is no production to complete, so try
                --  other things.

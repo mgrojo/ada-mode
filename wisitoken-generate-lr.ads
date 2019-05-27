@@ -176,6 +176,9 @@ package WisiToken.Generate.LR is
    --
    --  The Minimal_Complete_Actions will be empty in a state where there
    --  is nothing useful to do.
+   --
+   --  Also set State.Kernels; used to resolve multiple reduce actions at
+   --  runtime.
 
    ----------
    --  Parse table output

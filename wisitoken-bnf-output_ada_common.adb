@@ -533,7 +533,8 @@ package body WisiToken.BNF.Output_Ada_Common is
      (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      use all type WisiToken.Parse.LR.All_Parse_Action_Verbs;
+      use all type Ada.Containers.Count_Type;
+      use WisiToken.Parse.LR;
       use Ada.Strings.Unbounded;
 
       Table            : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
@@ -563,17 +564,9 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Declare_Subroutines :
       for State_Index in Table.States'Range loop
-
-         if Input_Data.Language_Params.Error_Recover then
-            Indent_Wrap
-              ("Table.States (" & Trimmed_Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
-                 Image (Table.States (State_Index).Productions, Strict => True) & ");");
-         end if;
-
          Actions :
          declare
             use Ada.Containers;
-            use WisiToken.Parse.LR;
             Base_Indent : constant Ada.Text_IO.Count := Indent;
             Node        : Action_Node_Ptr := Table.States (State_Index).Action_List;
          begin
@@ -702,7 +695,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Gotos :
          declare
-            use WisiToken.Parse.LR;
             Node : Goto_Node_Ptr := Table.States (State_Index).Goto_List;
          begin
             loop
@@ -715,12 +707,17 @@ package body WisiToken.BNF.Output_Ada_Common is
             end loop;
          end Gotos;
 
-         if Input_Data.Language_Params.Error_Recover and
-           Table.States (State_Index).Minimal_Complete_Action.Verb /= Parse.LR.Pause
-         then
-            Indent_Wrap
-              ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Action := " &
-                 WisiToken.Parse.LR.Strict_Image (Table.States (State_Index).Minimal_Complete_Action) & ";");
+         if Input_Data.Language_Params.Error_Recover then
+            if Table.States (State_Index).Kernel.Length > 0 then
+               Indent_Wrap
+                 ("Table.States (" & Trimmed_Image (State_Index) & ").Kernel := To_Vector (" &
+                    Image (Table.States (State_Index).Kernel, Strict => True) & ");");
+            end if;
+            if Table.States (State_Index).Minimal_Complete_Actions.Length > 0 then
+               Indent_Wrap
+                 ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions := To_Vector (" &
+                    Strict_Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
+            end if;
          end if;
 
          if Line_Count > Lines_Per_Subr then

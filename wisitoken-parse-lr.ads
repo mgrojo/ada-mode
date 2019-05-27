@@ -43,7 +43,6 @@ with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with System.Multiprocessors;
-with WisiToken.Productions;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
@@ -124,6 +123,22 @@ package WisiToken.Parse.LR is
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
+   type Kernel_Info is record
+      LHS              : Token_ID := Token_ID'First;
+      Before_Dot       : Token_ID := Token_ID'First;
+      Length_After_Dot : Ada.Containers.Count_Type := 0;
+   end record;
+
+   function Strict_Image (Item : in Kernel_Info) return String;
+
+   type Kernel_Info_Array is array (Ada.Containers.Count_Type range <>) of Kernel_Info;
+   package Kernel_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Ada.Containers.Count_Type, Kernel_Info, (others => <>));
+
+   function To_Vector (Item : in Kernel_Info_Array) return Kernel_Info_Arrays.Vector;
+
+   function Image is new Kernel_Info_Arrays.Gen_Image (Strict_Image);
+
    type Minimal_Action (Verb : Minimal_Verbs := Pause) is record
       case Verb is
       when Pause =>
@@ -146,16 +161,25 @@ package WisiToken.Parse.LR is
    function Image (Item : in Minimal_Action; Descriptor : in WisiToken.Descriptor) return String;
    --  For debugging
 
-   --
+   type Minimal_Action_Array is array (Ada.Containers.Count_Type range <>) of Minimal_Action;
+   package Minimal_Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Ada.Containers.Count_Type, Minimal_Action, (others => <>));
+
+   function To_Vector (Item : in Minimal_Action_Array) return Minimal_Action_Arrays.Vector;
+
+   function Image is new Minimal_Action_Arrays.Gen_Image_Aux (Descriptor, Trimmed_Image, Image);
+   function Strict_Image is new Minimal_Action_Arrays.Gen_Image (Strict_Image);
+
    type Parse_State is record
-      Productions : Production_ID_Arrays.Vector;
-      --  Used in some language-specfic error recovery.
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
 
-      Minimal_Complete_Action : Minimal_Action;
-      --  Parse action that will most quickly complete a
-      --  production in this state; used in error recovery
+      --  The following are used in error recovery.
+      Kernel : Kernel_Info_Arrays.Vector;
+
+      Minimal_Complete_Actions : Minimal_Action_Arrays.Vector;
+      --  Parse actions that will most quickly complete a production in this
+      --  state. If more than one, resolved at runtime using Kernels.
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
@@ -259,18 +283,6 @@ package WisiToken.Parse.LR is
       Check_Delta_Limit => Natural'Last,
       Enqueue_Limit     => Natural'Last);
 
-   procedure Set_Production
-     (Prod     : in out Productions.Instance;
-      LHS      : in     Token_ID;
-      RHS_Last : in     Natural);
-
-   procedure Set_RHS
-     (Prod      : in out Productions.Instance;
-      RHS_Index : in     Natural;
-      Tokens    : in     Token_ID_Array;
-      Action    : in     WisiToken.Syntax_Trees.Semantic_Action   := null;
-      Check     : in     WisiToken.Semantic_Checks.Semantic_Check := null);
-
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;
@@ -310,20 +322,19 @@ package WisiToken.Parse.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   function Get_Action
-     (Prod        : in Production_ID;
-      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
-     return WisiToken.Syntax_Trees.Semantic_Action;
+   type Semantic_Action is record
+      Action : WisiToken.Syntax_Trees.Semantic_Action := null;
+      Check  : WisiToken.Semantic_Checks.Semantic_Check := null;
+   end record;
 
-   function Get_Check
-     (Prod        : in Production_ID;
-      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
-     return WisiToken.Semantic_Checks.Semantic_Check;
+   package Semantic_Action_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Semantic_Action, (others => <>));
+   package Semantic_Action_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Semantic_Action_Arrays.Vector, Semantic_Action_Arrays.Empty_Vector);
 
    function Get_Text_Rep
      (File_Name      : in String;
       McKenzie_Param : in McKenzie_Param_Type;
-      Productions    : in WisiToken.Productions.Prod_Arrays.Vector)
+      Actions        : in Semantic_Action_Array_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
    --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result

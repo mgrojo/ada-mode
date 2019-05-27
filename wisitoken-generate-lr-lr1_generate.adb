@@ -268,15 +268,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
         (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set,
          Conflict_Counts, Unknown_Conflicts, Table.all, Descriptor);
 
-      --  Set Table.States.Productions, Minimal_Complete_Actions for McKenzie_Recover
       for State in Table.States'Range loop
-         Table.States (State).Productions := LR1_Items.Productions
-           (LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access));
-
-         if Trace_Generate > Detail then
+         if Trace_Generate > Extra then
             Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
          end if;
-
          WisiToken.Generate.LR.Set_Minimal_Complete_Actions
            (Table.States (State),
             LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access),
