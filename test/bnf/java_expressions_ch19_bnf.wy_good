@@ -1,38 +1,61 @@
 ;;; generated from java_expressions_ch19.wy -*- buffer-read-only:t -*-
 ;;;
-;;; Subset of Java grammar, to illustrate problem with
+;;; Subset of Java grammar, to illustrate problems with the
 ;;  minimal_complete_actions algorithm.
 ;;
 ;;  Original grammar is from
 ;;  https://docs.oracle.com/javase/specs/jls/se12/html/jls-19.html
+;;
+;;  Before improving the algorithm, recover would enter a cycle when
+;;  handling java_expressions_ch19.input:
+;;
+;;  state 22 reduce to LeftHandSide
+;;  state 27 shift EQUAL
+;;  state 52 shift Identifier
+;;  state 22 reduce to LeftHandSide
+;;
+;;  In addition, state 8 has no minimial_complete_action; the accept
+;;  state is not the only state for which that is true.
 
 %generate LR1 Ada re2c
 
-%start Expression
+%start CompilationUnit
 %meta_syntax BNF
-
-%no_language_runtime
 
 %mckenzie_cost_default 3 3 2 0
 %mckenzie_enqueue_limit 10_000
 %mckenzie_minimal_complete_cost_delta -3
 
 %token <punctuation> COMMA ','
+%token <punctuation> DOT '.'
 %token <punctuation> EQUAL "="
-%token <punctuation> LPAREN '('
+%token <punctuation> LEFT_CURLY_BRACKET "{"
+%token <punctuation> LEFT_PAREN '('
 %token <punctuation> MINUS "-"
 %token <punctuation> MINUS_GREATER "->"
+%token <punctuation> MINUS_MINUS "--"
 %token <punctuation> PERCENT "%"
 %token <punctuation> PLUS "+"
-%token <punctuation> RPAREN ')'
+%token <punctuation> PLUS_PLUS "++"
+%token <punctuation> RIGHT_CURLY_BRACKET "}"
+%token <punctuation> RIGHT_PAREN ')'
+%token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*"
 
 %token <symbol> Identifier %[ [a-zA-Z]+ ]%
-%token <number> Numeric_Literal %[ [0-9]+ ]%
 %non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+CompilationUnit
+  : nonterminal_004_list
+  ;
+
+Statement
+  : LEFT_CURLY_BRACKET Assignment RIGHT_CURLY_BRACKET
+  | LEFT_CURLY_BRACKET StatementExpression SEMICOLON RIGHT_CURLY_BRACKET
+  ;
 
 Expression
   : LambdaExpression  | AssignmentExpression
@@ -69,13 +92,25 @@ MultiplicativeExpression
   ;
 
 PostfixExpression
-  : Numeric_Literal
-  | Identifier
+  : ClassType
   | MethodInvocation
+  | PostIncrementExpression
+  | PostDecrementExpression
+  ;
+
+PostIncrementExpression
+  : PostfixExpression PLUS_PLUS  ;
+
+PostDecrementExpression
+  : PostfixExpression MINUS_MINUS  ;
+
+ClassType
+  : Identifier
+  | ClassType DOT Identifier
   ;
 
 MethodInvocation
-  : Identifier LPAREN ArgumentList RPAREN
+  : Identifier LEFT_PAREN ArgumentList RIGHT_PAREN
   ;
 
 ArgumentList
@@ -83,5 +118,14 @@ ArgumentList
   | ArgumentList COMMA Expression
   ;
 
-;; end of file
+StatementExpression
+  : PostIncrementExpression
+  | PostDecrementExpression
+  ;
 
+
+;; end of file
+nonterminal_004_list
+  : Statement
+  | nonterminal_004_list Statement
+  ;

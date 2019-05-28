@@ -1,4 +1,4 @@
-;;; generated from ada_lite_ebnf.wy
+;;; generated from ada_lite_ebnf.wy -*- buffer-read-only:t -*-
 ;;;
 ;;; WisiToken grammar for Ada-Lite using EBNF syntax; a subset of Ada used for testing EBNF parsing.
 

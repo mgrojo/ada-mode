@@ -99,7 +99,7 @@ parser 1: State 1862 Current_Token 11:(SEMICOLON, (213 . 213)) Resume_Token_Goal
 Action
 
  7 parallel tasks
- 1: succeed 1, enqueue 23, check  10, cost:  1
+ 1: succeed 1, enqueue 25, check  10, cost:  1
  1:  1, ( 0 1 0 0 0), (2209 : (IF))| 11:(SEMICOLON, (213 . 213))|((INSERT, IF, 11))
 recover: succeed, parser count 1
  1: Current_Token (IF) Shared_Token  11:(SEMICOLON, (213 . 213))
@@ -272,7 +272,7 @@ parser 2: State 1862 Current_Token 29:(IDENTIFIER, (283 . 289)) Resume_Token_Goa
 Action
 
  7 parallel tasks
- 2: succeed 1, enqueue 15, check  7, cost:  1
+ 2: succeed 1, enqueue 17, check  7, cost:  1
  2:  1, ( 0 0 0 3 0), (970 : (THEN, (274 . 277)))| 29:(IDENTIFIER, (283 . 289))|((PUSH_BACK, END, 28), (PUSH_BACK, sequence_of_statements, 28), (DELETE, END, 28))
 recover: succeed, parser count 1
  2: Current_Token  29:(IDENTIFIER, (283 . 289)) Shared_Token  29:(IDENTIFIER, (283 . 289))
@@ -541,7 +541,7 @@ parser 3: State 1862 Current_Token 59:(SEMICOLON, (394 . 394)) Resume_Token_Goal
 Action
 
  7 parallel tasks
- 3: succeed 1, enqueue 16, check  7, cost:  1
+ 3: succeed 1, enqueue 18, check  7, cost:  1
  3:  1, ( 0 3 0 0 0), (905 : (END))| 59:(SEMICOLON, (394 . 394))|((INSERT, IF, 59), (INSERT, SEMICOLON, 59), (INSERT, END, 59))
 recover: succeed, parser count 1
  3: Current_Token (IF) Shared_Token  59:(SEMICOLON, (394 . 394))
@@ -1844,7 +1844,7 @@ parser 14: State 1859 Current_Token 161:(SEMICOLON, (912 . 912)) Resume_Token_Go
 Action
 
  7 parallel tasks
- 14: succeed 1, enqueue 20, check  9, cost:  2
+ 14: succeed 1, enqueue 21, check  9, cost:  2
  14:  2, ( 0 3 0 0 0), (2030 : (END))| 161:(SEMICOLON, (912 . 912))|((INSERT, CASE, 161), (INSERT, SEMICOLON, 161), (INSERT, END, 161))
 recover: succeed, parser count 1
  14: Current_Token (CASE) Shared_Token  161:(SEMICOLON, (912 . 912))
@@ -1993,7 +1993,7 @@ parser 15: State 1859 Current_Token 175:(IDENTIFIER, (973 . 983)) Resume_Token_G
 Action
 
  7 parallel tasks
- 15: succeed 1, enqueue 62, check  18, cost:  5
+ 15: succeed 1, enqueue 68, check  20, cost:  5
  15:  5, ( 0 0 0 3 0), (2030 : (END))| 175:(IDENTIFIER, (973 . 983))|((INSERT, CASE, 175), (INSERT, SEMICOLON, 175), (INSERT, END, 175))
 recover: succeed, parser count 1
  15: Current_Token (CASE) Shared_Token  175:(IDENTIFIER, (973 . 983))
@@ -2138,7 +2138,7 @@ parser 16: State 1862 Current_Token 187:(SEMICOLON, (1030 . 1030)) Resume_Token_
 Action
 
  7 parallel tasks
- 16: succeed 1, enqueue 16, check  7, cost:  1
+ 16: succeed 1, enqueue 18, check  7, cost:  1
  16:  1, ( 0 3 0 0 0), (2030 : (END))| 187:(SEMICOLON, (1030 . 1030))|((INSERT, IF, 187), (INSERT, SEMICOLON, 187), (INSERT, END, 187))
 recover: succeed, parser count 1
  16: Current_Token (IF) Shared_Token  187:(SEMICOLON, (1030 . 1030))

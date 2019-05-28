@@ -190,8 +190,6 @@ package body WisiToken.Parse.LR is
    function Strict_Image (Item : in Minimal_Action) return String
    is begin
       case Item.Verb is
-      when Pause =>
-         return "(Verb => Pause)";
       when Shift =>
          return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
       when Reduce =>
@@ -203,8 +201,6 @@ package body WisiToken.Parse.LR is
    function Image (Item : in Minimal_Action; Descriptor : in WisiToken.Descriptor) return String
    is begin
       case Item.Verb is
-      when Pause =>
-         return "Pause";
       when Shift =>
          return "Shift " & Image (Item.ID, Descriptor);
       when Reduce =>
@@ -740,13 +736,24 @@ package body WisiToken.Parse.LR is
             end if;
             Check_New_Line;
 
-            State.Kernel.Set_First (Count_Type (Next_Integer));
-            State.Kernel.Set_Last (Count_Type (Next_Integer));
-            for I in State.Kernel.First_Index .. State.Kernel.Last_Index loop
-               State.Kernel (I).LHS := Next_Token_ID;
-               State.Kernel (I).Before_Dot := Next_Token_ID;
-               State.Kernel (I).Length_After_Dot := Count_Type (Next_Integer);
-            end loop;
+            declare
+               First : constant Integer := Next_Integer;
+               Last  : constant Integer := Next_Integer;
+            begin
+               if Last = -1 then
+                  --  State.Kernel not set for state 0
+                  null;
+               else
+                  State.Kernel.Set_First (Count_Type (First));
+                  State.Kernel.Set_Last (Count_Type (Last));
+
+                  for I in State.Kernel.First_Index .. State.Kernel.Last_Index loop
+                     State.Kernel (I).LHS := Next_Token_ID;
+                     State.Kernel (I).Before_Dot := Next_Token_ID;
+                     State.Kernel (I).Length_After_Dot := Count_Type (Next_Integer);
+                  end loop;
+               end if;
+            end;
             Check_New_Line;
 
             if Check_Semicolon then
@@ -763,17 +770,14 @@ package body WisiToken.Parse.LR is
                      Count        : Ada.Containers.Count_Type;
                   begin
                      case Verb is
-                     when Pause =>
-                        null; --  Generate.LR.Put_Text_Rep does not output this
-
                      when Shift =>
                         ID           := Next_Token_ID;
                         Action_State := Next_State_Index;
-                        State.Minimal_Complete_Actions (I) := (Shift, ID, Action_State);
+                        State.Minimal_Complete_Actions.Replace_Element (I, (Shift, ID, Action_State));
                      when Reduce =>
                         ID    := Next_Token_ID;
                         Count := Next_Count_Type;
-                        State.Minimal_Complete_Actions (I) := (Reduce, ID, Count);
+                        State.Minimal_Complete_Actions.Replace_Element (I, (Reduce, ID, Count));
                      end case;
                   end;
                end loop;

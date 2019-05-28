@@ -33,5 +33,5 @@ expression_0: (expression, (55 . 56)) <= ((primary, (55 . 56)))
  0: 16:  3:(Wisi_EOI, (58 . 57)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (55 . 56)) <= ((expression, (55 . 56)))
  0: succeed
-java_expressions.input:3:0: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
+java_expressions_antlr.input:3:0: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
    recovered: ((INSERT, RPAREN, 3))

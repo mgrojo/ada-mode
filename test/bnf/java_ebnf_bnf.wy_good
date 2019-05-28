@@ -1,4 +1,4 @@
-;;; generated from java_ebnf.wy
+;;; generated from java_ebnf.wy -*- buffer-read-only:t -*-
 ;;;
 ;; Examples of EBNF syntax used in the Java grammar file
 ;; https://github.com/antlr/grammars-v4/tree/master/java

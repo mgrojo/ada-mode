@@ -49,8 +49,9 @@ package WisiToken.Parse.LR is
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
-   subtype Minimal_Verbs is All_Parse_Action_Verbs range Pause .. Reduce;
-   --  Pause is only used for error recovery.
+   subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
+   --  Pause is only used for error recovery, to allow parallel parsers
+   --  to re-sync on the same input terminal.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
@@ -139,15 +140,11 @@ package WisiToken.Parse.LR is
 
    function Image is new Kernel_Info_Arrays.Gen_Image (Strict_Image);
 
-   type Minimal_Action (Verb : Minimal_Verbs := Pause) is record
+   type Minimal_Action (Verb : Minimal_Verbs := Shift) is record
       case Verb is
-      when Pause =>
-         --  In this case, 'Pause' means no minimal action.
-         null;
-
       when Shift =>
-         ID    : Token_ID;
-         State : State_Index;
+         ID    : Token_ID    := Invalid_Token_ID;
+         State : State_Index := State_Index'Last;
 
       when Reduce =>
          Nonterm     : Token_ID;

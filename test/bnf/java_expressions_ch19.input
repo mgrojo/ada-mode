@@ -1,4 +1,8 @@
-// Missing identifier; recover encountered cycle
-UpdateText (A
+// Missing right paren; recover encountered cycle on LeftHandSide
+{ B = UpdateText (A }
+
+// Missing trailing '++ ;'; recover encountered cycle on
+// PostIncrementExpression if state 8 has minimal action.
+{ UpdateText (A) }
 
 // end of file

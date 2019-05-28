@@ -413,7 +413,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       use Ada.Strings.Unbounded;
-      use all type Ada.Containers.Count_Type;
 
       subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
@@ -469,62 +468,48 @@ package body WisiToken.BNF.Output_Ada_Common is
       New_Line;
 
       if Common_Data.Text_Rep then
-         Indent_Line ("function Productions return WisiToken.Productions.Prod_Arrays.Vector");
+         Indent_Line ("function Actions return WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector");
          Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("return Prods : WisiToken.Productions.Prod_Arrays.Vector do");
+         Indent_Line ("return Acts : WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector do");
          Indent := Indent + 3;
          Indent_Line
-           ("Prods.Set_First (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ");");
-         Indent_Line
-           ("Prods.Set_Last (" & Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
+           ("Acts.Set_First_Last (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ", " &
+              Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
 
          for I in Nonterminal_ID loop
             declare
                P : Productions.Instance renames Generate_Data.Grammar (I);
             begin
-               Indent_Line
-                 ("Set_Production (Prods (" & Trimmed_Image (P.LHS) & "), " &
-                    Trimmed_Image (P.LHS) & "," & Integer'Image (P.RHSs.Last_Index) & ");");
+               if Generate_Data.Action_Names (P.LHS) /= null or Generate_Data.Check_Names (P.LHS) /= null then
+                  Indent_Line
+                    ("Acts (" & Trimmed_Image (P.LHS) & ").Set_First_Last (0," &
+                       Integer'Image (P.RHSs.Last_Index) & ");");
 
-               for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
-                  Line := +"Set_RHS (Prods (" & Trimmed_Image (P.LHS) & ")," & Natural'Image (J) & ", (";
-                  declare
-                     RHS : Productions.Right_Hand_Side renames P.RHSs (J);
-                  begin
-                     if RHS.Tokens.Length = 0 then
-                        Append ("1 .. 0 => <>");
-                     elsif RHS.Tokens.Length = 1 then
-                        Append ("1 => " & Trimmed_Image (RHS.Tokens (1)));
-                     else
-                        for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
-                           Append (Trimmed_Image (RHS.Tokens (I)));
-                           if I < RHS.Tokens.Last_Index then
-                              Append (", ");
-                           end if;
-                        end loop;
+                  for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
+                     if (Generate_Data.Action_Names (P.LHS) /= null and then
+                           Generate_Data.Action_Names (P.LHS)(J) /= null)
+                       or
+                       (Generate_Data.Check_Names (P.LHS) /= null and then
+                          Generate_Data.Check_Names (P.LHS) /= null)
+                     then
+                        Indent_Wrap
+                          ("Acts (" & Trimmed_Image (P.LHS) & ")(" & Trimmed_Image (J) & ") := (" &
+                             (if Generate_Data.Action_Names (P.LHS) = null then "null"
+                              elsif Generate_Data.Action_Names (P.LHS)(J) = null then "null"
+                              else Generate_Data.Action_Names (P.LHS)(J).all & "'Access") & ", " &
+                             (if Generate_Data.Check_Names (P.LHS) = null then "null"
+                              elsif Generate_Data.Check_Names (P.LHS)(J) = null then "null"
+                              else Generate_Data.Check_Names (P.LHS)(J).all & "'Access") & ");");
                      end if;
-
-                     Append ("), ");
-                     Append
-                       ((if Generate_Data.Action_Names (P.LHS) = null then "null"
-                         elsif Generate_Data.Action_Names (P.LHS)(J) = null then "null"
-                         else Generate_Data.Action_Names (P.LHS)(J).all & "'Access"));
-                     Append (", ");
-                     Append
-                       ((if Generate_Data.Check_Names (P.LHS) = null then "null"
-                         elsif Generate_Data.Check_Names (P.LHS)(J) = null then "null"
-                         else Generate_Data.Check_Names (P.LHS)(J).all & "'Access"));
-                  end;
-                  Append (");");
-                  Indent_Wrap (-Line);
-               end loop;
+                  end loop;
+               end if;
             end;
          end loop;
          Indent := Indent - 3;
          Indent_Line ("end return;");
          Indent := Indent - 3;
-         Indent_Line ("end Productions;");
+         Indent_Line ("end Actions;");
          New_Line;
       end if;
    end Create_LR_Parser_Core_1;
@@ -798,7 +783,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       if Common_Data.Text_Rep then
          Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
          Indent_Line ("Table : constant Parse_Table_Ptr := Get_Text_Rep");
-         Indent_Line ("  (Text_Rep_File_Name, McKenzie_Param, Productions);");
+         Indent_Line ("  (Text_Rep_File_Name, McKenzie_Param, Actions);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;

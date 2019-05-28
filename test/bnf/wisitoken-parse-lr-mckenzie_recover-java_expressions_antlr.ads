@@ -1,6 +1,6 @@
 pragma License (Modified_GPL);
 
-package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions is
+package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
 
    procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
@@ -27,4 +27,4 @@ package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions is
       String_Literal_ID : in Token_ID)
      return Token_ID_Set;
 
-end WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions;
+end WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr;

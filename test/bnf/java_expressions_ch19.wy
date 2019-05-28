@@ -1,4 +1,4 @@
-;;; Subset of Java grammar, to illustrate problem with
+;;; Subset of Java grammar, to illustrate problems with the
 ;;  minimal_complete_actions algorithm.
 ;;
 ;;  Original grammar is from
@@ -7,14 +7,17 @@
 ;;  Before improving the algorithm, recover would enter a cycle when
 ;;  handling java_expressions_ch19.input:
 ;;
-;;  state 21 reduce to LeftHandSide
-;;  state 26 shift EQUAL
-;;  state 44 shift Identifier
-;;  state 21 reduce to LeftHandSide
+;;  state 22 reduce to LeftHandSide
+;;  state 27 shift EQUAL
+;;  state 52 shift Identifier
+;;  state 22 reduce to LeftHandSide
+;;
+;;  In addition, state 8 has no minimial_complete_action; the accept
+;;  state is not the only state for which that is true.
 
 %generate LR1 Ada re2c
 
-%start Expression
+%start CompilationUnit
 %meta_syntax EBNF
 
 %mckenzie_cost_default 3 3 2 0
@@ -24,12 +27,17 @@
 %token <punctuation> COMMA ','
 %token <punctuation> DOT '.'
 %token <punctuation> EQUAL "="
-%token <punctuation> LPAREN '('
+%token <punctuation> LEFT_CURLY_BRACKET "{"
+%token <punctuation> LEFT_PAREN '('
 %token <punctuation> MINUS "-"
 %token <punctuation> MINUS_GREATER "->"
+%token <punctuation> MINUS_MINUS "--"
 %token <punctuation> PERCENT "%"
 %token <punctuation> PLUS "+"
-%token <punctuation> RPAREN ')'
+%token <punctuation> PLUS_PLUS "++"
+%token <punctuation> RIGHT_CURLY_BRACKET "}"
+%token <punctuation> RIGHT_PAREN ')'
+%token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*"
 
@@ -37,6 +45,15 @@
 %non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+CompilationUnit
+  : Statement+
+  ;
+
+Statement
+  : '{' Assignment '}'
+  | '{' StatementExpression ';' '}'
+  ;
 
 Expression
   : LambdaExpression  | AssignmentExpression
@@ -75,7 +92,13 @@ MultiplicativeExpression:
 PostfixExpression
   : ClassType
   | MethodInvocation
+  | PostIncrementExpression
+  | PostDecrementExpression
   ;
+
+PostIncrementExpression: PostfixExpression '++' ;
+
+PostDecrementExpression: PostfixExpression '--' ;
 
 ClassType
   : Identifier
@@ -90,4 +113,10 @@ ArgumentList
   : Expression {',' Expression}
   ;
 
-  ;; end of file
+StatementExpression
+  : PostIncrementExpression
+  | PostDecrementExpression
+  ;
+
+
+;; end of file

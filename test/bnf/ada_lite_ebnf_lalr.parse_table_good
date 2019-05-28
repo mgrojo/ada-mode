@@ -3939,7 +3939,7 @@ State 182:
    constraint                         goto state 225
    index_constraint                   goto state 226
 
-   Minimal_Complete_Action => primary
+   Minimal_Complete_Action => (primary, subtype_indication)
 
 State 183:
      75.1:discrete_subtype_definition <= range_g ^, LOOP
@@ -5177,7 +5177,7 @@ State 262:
    COMMA                              => reduce 1 tokens to range_list 108.1
    default                            => ERROR
 
-   Minimal_Complete_Action => discrete_subtype_definition
+   Minimal_Complete_Action => (discrete_subtype_definition, range_list)
 
 State 263:
      72.0:constraint <= RANGE range_g ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON

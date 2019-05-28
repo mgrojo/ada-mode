@@ -1,4 +1,4 @@
-;;; generated from subprograms.wy
+;;; generated from subprograms.wy -*- buffer-read-only:t -*-
 ;;;
 ;; Grammar has no conflicts; test wisi cache actions in Emacs
 ;; (ediff "subprograms.wy" "../../../org.wisitoken.stephe-1/wisi/test/subprograms.wy")

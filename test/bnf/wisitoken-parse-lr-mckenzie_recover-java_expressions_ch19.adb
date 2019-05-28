@@ -29,7 +29,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Ch19 is
    Minimal_Complete_Action_IDs : constant Terminal_Token_ID_Set :=
      To_Token_ID_Set
        (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-          (+RPAREN_ID) &
+          (+RIGHT_CURLY_BRACKET_ID) &
+          (+RIGHT_PAREN_ID) &
           Descriptor.EOI_ID);
 
    procedure Use_Minimal_Complete_Actions
@@ -51,11 +52,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Ch19 is
       elsif Minimal_Complete_Action_IDs (Current_Token) then
          Use_Complete := True;
 
-         if Current_Token = +RPAREN_ID then
-            Matching_Begin_Token := +LPAREN_ID;
-         else
+         case To_Token_Enum (Current_Token) is
+         when RIGHT_CURLY_BRACKET_ID =>
+            Matching_Begin_Token := +LEFT_CURLY_BRACKET_ID;
+         when RIGHT_PAREN_ID =>
+            Matching_Begin_Token := +LEFT_PAREN_ID;
+         when others =>
             Matching_Begin_Token := Invalid_Token_ID;
-         end if;
+         end case;
       else
          Use_Complete := False;
          Matching_Begin_Token := Invalid_Token_ID;

@@ -175,7 +175,8 @@ package WisiToken.Generate.LR is
    --  terminal is a block ending or statement start.
    --
    --  The Minimal_Complete_Actions will be empty in a state where there
-   --  is nothing useful to do.
+   --  is nothing useful to do; the accept state, or one where all
+   --  productions are recursive.
    --
    --  Also set State.Kernels; used to resolve multiple reduce actions at
    --  runtime.

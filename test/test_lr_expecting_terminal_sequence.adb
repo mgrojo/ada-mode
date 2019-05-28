@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
 with Ada.Text_IO;
-with Java_Expressions_Actions;
+with Java_Expressions_Antlr_Actions;
 with WisiToken.AUnit;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Gen_Token_Enum;
@@ -235,7 +235,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       use WisiToken;
       use WisiToken.Generate.LR.AUnit;
 
-      Input_File_Name : constant String := "../Test/bnf/java_expressions.wy";
+      Input_File_Name : constant String := "../Test/bnf/java_expressions_antlr.wy";
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
@@ -257,7 +257,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       Grammar_Parser.Execute_Actions;
 
       declare
-         use all type Java_Expressions_Actions.Token_Enum_ID;
+         use all type Java_Expressions_Antlr_Actions.Token_Enum_ID;
          use all type WisiToken.Generate.LR.RHS_Sequence_Arrays.Vector;
 
          Generate_Data  : constant WisiToken.BNF.Generate_Utils.Generate_Data :=
@@ -265,17 +265,17 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
          Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
 
-         function "+" (Item : in Java_Expressions_Actions.Token_Enum_ID) return Token_ID_Arrays.Vector
+         function "+" (Item : in Java_Expressions_Antlr_Actions.Token_Enum_ID) return Token_ID_Arrays.Vector
          is begin
-            return Token_ID_Arrays.To_Vector (Java_Expressions_Actions."+" (Item));
+            return Token_ID_Arrays.To_Vector (Java_Expressions_Antlr_Actions."+" (Item));
          end "+";
 
          function "&"
            (Left : in Token_ID_Arrays.Vector;
-            Right : in Java_Expressions_Actions.Token_Enum_ID)
+            Right : in Java_Expressions_Antlr_Actions.Token_Enum_ID)
            return Token_ID_Arrays.Vector
          is begin
-            return Token_ID_Arrays."&" (Left, Java_Expressions_Actions."+" (Right));
+            return Token_ID_Arrays."&" (Left, Java_Expressions_Antlr_Actions."+" (Right));
          end "&";
 
          Computed : constant WisiToken.Generate.LR.Minimal_Sequence_Array :=

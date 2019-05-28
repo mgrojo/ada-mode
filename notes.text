@@ -24,13 +24,7 @@ update-wisitoken_grammar
 minimal_completion_actions
     elminate cycles in java
 
-    don't need Pause in minimal_action
-
-    java_ch19 state 857, 2691, 4856 has null minimal complete, because all recursive
-        error on empty if not accept
-        but should not; no other choices
-        add to java_expressions_ch19
-
+-mckenzie_recover-explore.adb Do_Reduce_2 assumes only one conflict
 
 test_mckenzie use lr-parser-gen_aunit
 

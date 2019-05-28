@@ -17,12 +17,12 @@
 
 pragma License (Modified_GPL);
 
-with Java_Expressions_Actions;
-package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions is
+with Java_Expressions_Antlr_Actions;
+package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
 
-   use all type Java_Expressions_Actions.Token_Enum_ID; -- token names
+   use all type Java_Expressions_Antlr_Actions.Token_Enum_ID; -- token names
 
-   Descriptor : WisiToken.Descriptor renames Java_Expressions_Actions.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Java_Expressions_Antlr_Actions.Descriptor;
 
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
 
@@ -41,7 +41,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions is
    is
       pragma Unreferenced (Next_Token);
       use all type SAL.Base_Peek_Type;
-      use Java_Expressions_Actions;
+      use Java_Expressions_Antlr_Actions;
    begin
       if Config.Stack.Depth = 1 and Current_Token = Descriptor.EOI_ID then
          --  Empty input buffer
@@ -67,4 +67,4 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions is
       return (String_Literal_ID .. String_Literal_ID => True);
    end String_ID_Set;
 
-end WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions;
+end WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr;

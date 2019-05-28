@@ -201,7 +201,7 @@ State 11:
                            reduce 1 tokens to expression 15.1
    default              => ERROR
 
-   Minimal_Complete_Action => classOrInterfaceType
+   Minimal_Complete_Action => (classOrInterfaceType, expression)
 
 State 12:
      15.2:expression <= LPAREN classOrInterfaceType ^ RPAREN expression, RPAREN/SEMI

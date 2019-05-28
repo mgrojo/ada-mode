@@ -8905,7 +8905,7 @@ State 446:
    constraint                         goto state 835
    index_constraint                   goto state 836
 
-   Minimal_Complete_Action => primary
+   Minimal_Complete_Action => (primary, subtype_indication)
 
 State 447:
     112.3:primary <= paren_expression ^, AMPERSAND/DOT_DOT/MINUS/PLUS/SLASH/STAR
@@ -24337,7 +24337,7 @@ State 1279:
    constraint                         goto state 1745
    index_constraint                   goto state 1746
 
-   Minimal_Complete_Action => primary
+   Minimal_Complete_Action => (primary, subtype_indication)
 
 State 1280:
      77.1:discrete_subtype_definition <= range_g ^, RIGHT_PAREN
@@ -24348,7 +24348,7 @@ State 1280:
    COMMA                              => reduce 1 tokens to range_list 117.1
    default                            => ERROR
 
-   Minimal_Complete_Action => discrete_subtype_definition
+   Minimal_Complete_Action => (discrete_subtype_definition, range_list)
 
 State 1281:
     103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN, LEFT_PAREN/LOOP/RANGE/AMPERSAND/DOT/DOT_DOT/MINUS/PLUS/SLASH/STAR

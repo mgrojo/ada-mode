@@ -1,4 +1,4 @@
-;;; generated from three_action_conflict.wy
+;;; generated from three_action_conflict.wy -*- buffer-read-only:t -*-
 ;;;
 ;;; Test more than two actions in a conflict
 

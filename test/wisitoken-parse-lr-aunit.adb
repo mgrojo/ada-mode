@@ -35,9 +35,6 @@ package body WisiToken.Parse.LR.AUnit is
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
-      when Pause =>
-         null;
-
       when Shift =>
          Check (Label & ".ID", Computed.ID, Expected.ID);
          if Expected.State /= State_Index'Last then
@@ -173,13 +170,16 @@ package body WisiToken.Parse.LR.AUnit is
       Computed : in Parse_State;
       Expected : in Parse_State)
    is
-      use WisiToken.AUnit.Production_ID_Arrays_AUnit;
    begin
-      if Strict then
-         Check (Label & ".Productions", Computed.Productions, Expected.Productions);
-      end if;
       Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
       Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
+      if Strict then
+         raise SAL.Programmer_Error;
+         --  Check (Label & ".Kernel", Computed.Kernel, Expected.Kernel);
+         --  Check (Label & ".Minimal_Complete_Actions",
+         --         Computed.Minimal_Complete_Actions,
+         --         Expected.Minimal_Complete_Actions);
+      end if;
    end Check;
 
    procedure Check

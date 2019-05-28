@@ -460,7 +460,7 @@ State 37:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => primary
+   Minimal_Complete_Action => (primary, subtype_indication)
 
 State 38:
      31.0:subtype_indication <= name LEFT_PAREN subtype_indication ^ RIGHT_PAREN, RIGHT_PAREN/SEMICOLON

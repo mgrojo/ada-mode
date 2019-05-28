@@ -95,7 +95,7 @@ State 3:
                        reduce 1 tokens to name 15.0
    default          => ERROR
 
-   Minimal_Complete_Action => identifier_list
+   Minimal_Complete_Action => (identifier_list, name)
 
 State 4:
       9.0:wisitoken_accept <= compilation ^ Wisi_EOI, 
