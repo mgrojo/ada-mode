@@ -786,7 +786,7 @@ State 34:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => RPAREN
+   Minimal_Complete_Action => (RPAREN, DOT)
 
 State 35:
      32.0:typeType <= primitiveType ^ nonterminal_033_list, RPAREN/DOT
@@ -1209,7 +1209,7 @@ State 56:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => RPAREN
+   Minimal_Complete_Action => (RPAREN, DOT)
 
 State 57:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2568,7 +2568,7 @@ State 126:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => RPAREN
+   Minimal_Complete_Action => (RPAREN, DOT)
 
 State 127:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2874,7 +2874,7 @@ State 140:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => RPAREN
+   Minimal_Complete_Action => (RPAREN, DOT)
 
 State 141:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD

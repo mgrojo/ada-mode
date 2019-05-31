@@ -231,7 +231,8 @@ package body WisiToken.Parse.LR.Parser is
    begin
       if Trace_Parse > Extra then
          Shared_Parser.Trace.Put_Line
-           (Integer'Image (Parser_State.Label) & ": shared_token:" & Token_Index'Image (Parser_State.Shared_Token) &
+           (Integer'Image (Parser_State.Label) & ": shared_token:" &
+              WisiToken.Token_Index'Image (Parser_State.Shared_Token) &
               " inc_shared_token: " & Boolean'Image (Parser_State.Inc_Shared_Token) &
               " recover_insert_delete: " &
               Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all));
@@ -240,7 +241,7 @@ package body WisiToken.Parse.LR.Parser is
       loop
          if Parser_State.Recover_Insert_Delete.Length > 0 and then
            Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-           Parser_State.Recover_Insert_Delete.Peek.Token_Index =
+           Parser_State.Recover_Insert_Delete.Peek.Del_Token_Index =
            (if Parser_State.Inc_Shared_Token
             then Parser_State.Shared_Token + 1
             else Parser_State.Shared_Token)
@@ -248,7 +249,7 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Shared_Token     := Parser_State.Shared_Token + 1;
             --  We don't reset Inc_Shared_Token here; only after the next token is
             --  actually used.
-            Parser_State.Prev_Deleted.Append (Parser_State.Recover_Insert_Delete.Peek.Token_Index);
+            Parser_State.Prev_Deleted.Append (Parser_State.Recover_Insert_Delete.Peek.Del_Token_Index);
             Parser_State.Recover_Insert_Delete.Drop;
 
          elsif Parser_State.Prev_Deleted.Contains
@@ -508,7 +509,7 @@ package body WisiToken.Parse.LR.Parser is
                      if Trace_Parse > Extra then
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": zombie (" &
-                             Token_Index'Image
+                             WisiToken.Token_Index'Image
                                (Shared_Parser.Table.McKenzie_Param.Check_Limit - Parser_State.Zombie_Token_Count) &
                              " tokens remaining)");
                      end if;
@@ -517,13 +518,13 @@ package body WisiToken.Parse.LR.Parser is
                elsif Parser_State.Verb = Shift then
                   if Parser_State.Recover_Insert_Delete.Length > 0 and then
                     Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
-                    Parser_State.Recover_Insert_Delete.Peek.Token_Index =
+                    Parser_State.Recover_Insert_Delete.Peek.Ins_Token_Index =
                     (if Parser_State.Inc_Shared_Token
                      then Parser_State.Shared_Token + 1
                      else Parser_State.Shared_Token)
                   then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Recover_Insert_Delete.Get.ID);
+                       (Parser_State.Recover_Insert_Delete.Get.Ins_ID);
 
                   elsif (if Parser_State.Inc_Shared_Token
                          then Parser_State.Shared_Token + 1
@@ -764,7 +765,7 @@ package body WisiToken.Parse.LR.Parser is
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
                              (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
-                                Token_Index'Image (Parser_State.Resume_Token_Goal));
+                                WisiToken.Token_Index'Image (Parser_State.Resume_Token_Goal));
                         end if;
                      end if;
 
@@ -1085,7 +1086,7 @@ package body WisiToken.Parse.LR.Parser is
                   for Op of Err.Recover.Ops loop
                      case Op.Op is
                      when Delete =>
-                        Parser.User_Data.Delete_Token (Op.Token_Index);
+                        Parser.User_Data.Delete_Token (Op.Del_Token_Index);
                      when others =>
                         null;
                      end case;

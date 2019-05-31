@@ -1,3 +1,5 @@
+GNATCOLL
+RHSs
 *BNF
 *CPU
 *CR
@@ -19,11 +21,10 @@
 *LR1
 *McKenzie
 *OS
+*PB
 *RHS
 *RHSs
 *UD
 *WY
 *WisiToken
 *re2c
-GNATCOLL
-RHSs

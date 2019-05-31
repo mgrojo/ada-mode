@@ -1498,9 +1498,7 @@ is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         if Tuple.Text_Rep then
-            Put_Line ("with WisiToken.Productions;");
-         end if;
+         null;
 
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");

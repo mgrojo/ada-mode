@@ -6,13 +6,17 @@
 ;;  Original grammar is from
 ;;  https://docs.oracle.com/javase/specs/jls/se12/html/jls-19.html
 ;;
-;;  Before improving the algorithm, recover would enter a cycle when
-;;  handling java_expressions_ch19.input:
+;;  Before improving the algorithm to consider multiple actions at
+;;  runtime, recover would enter a cycle when handling
+;;  java_expressions_ch19.input:
 ;;
 ;;  state 22 reduce to LeftHandSide
 ;;  state 27 shift EQUAL
 ;;  state 52 shift Identifier
 ;;  state 22 reduce to LeftHandSide
+;;
+;;  This loop is not due to recursion, just grammar design and choice
+;;  of minimal action.
 ;;
 ;;  In addition, state 8 has no minimial_complete_action; the accept
 ;;  state is not the only state for which that is true.

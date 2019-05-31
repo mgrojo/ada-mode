@@ -216,9 +216,19 @@ package body WisiToken.Parse.LR.AUnit is
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
          Check (Label & ".id", Computed.Token_Count, Expected.Token_Count);
 
-      when Push_Back | Insert | Delete =>
-         Check (Label & ".id", Computed.ID, Expected.ID);
-         Check (Label & ".token_index", Computed.Token_Index, Expected.Token_Index);
+      when Push_Back =>
+         Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);
+         Check (Label & ".token_index", Computed.PB_Token_Index, Expected.PB_Token_Index);
+
+      when Insert =>
+         Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
+         Check (Label & ".token_index", Computed.Ins_Token_Index, Expected.Ins_Token_Index);
+         --  Don't check State, stack_depth; only used to detect cycles, tedious to maintain
+         --  in expected.
+
+      when Delete =>
+         Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
+         Check (Label & ".token_index", Computed.Del_Token_Index, Expected.Del_Token_Index);
       end case;
    end Check;
 

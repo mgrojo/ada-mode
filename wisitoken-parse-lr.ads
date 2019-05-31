@@ -377,16 +377,8 @@ package WisiToken.Parse.LR is
 
    type Config_Op (Op : Config_Op_Label := Fast_Forward) is record
       --  We store enough information to perform the operation on the main
-      --  parser stack and input stream point when the config is the result
+      --  parser stack and input stream when the config is the result
       --  of a successful recover.
-      --
-      --  After a recover, the main parser must reparse any inserted tokens,
-      --  and skip any deleted tokens. Therefore, when all the recover ops
-      --  are applied, the main parser stack will be the same or shorter
-      --  than it was, so we only need to store token counts for stack
-      --  operations (Unknown_State is pushed when a state is needed; none
-      --  will be left on the main stack). We also store IDs, so we can
-      --  check that everything is in sync, and for debugging.
 
       case Op is
       when Fast_Forward =>
@@ -401,25 +393,50 @@ package WisiToken.Parse.LR is
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
 
-      when Push_Back | Insert | Delete =>
-         ID : Token_ID;
-         --  For Push_Back, ID is the nonterm ID popped off the stack.
-         --  For Insert | Delete, ID is the token inserted or deleted.
+      when Push_Back =>
+         PB_ID : Token_ID;
+         --  The nonterm ID popped off the stack.
 
-         Token_Index : WisiToken.Base_Token_Index;
-         --  For Push_Back, Token_Index is Config.Current_Shared_Token after
+         PB_Token_Index : WisiToken.Base_Token_Index;
+         --  Config.Current_Shared_Token after
          --  the operation is done. If the token is empty, Token_Index is
          --  Invalid_Token_Index.
-         --
-         --  For Insert, ID is inserted before Token_Index.
-         --
-         --  For Delete, token at Token_Index is deleted.
+
+      when Insert =>
+         Ins_ID : Token_ID;
+         --  The token ID inserted.
+
+         Ins_Token_Index : WisiToken.Base_Token_Index;
+         --  Ins_ID is inserted before Token_Index.
+
+         State       : Unknown_State_Index;
+         Stack_Depth : SAL.Base_Peek_Type;
+         --  Used in Minimal_Completion_Actions to detect cycles; only set for
+         --  Insert by Minimal_Completion_Actions.
+
+      when Delete =>
+         Del_ID : Token_ID;
+         --  The token ID deleted.
+
+         Del_Token_Index : WisiToken.Base_Token_Index;
+         --  Token at Token_Index is deleted.
 
       end case;
    end record;
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
 
+   function Token_Index (Op : in Insert_Delete_Op) return WisiToken.Token_Index
+     is (case Insert_Delete_Op_Label'(Op.Op) is
+         when Insert => Op.Ins_Token_Index,
+         when Delete => Op.Del_Token_Index);
+
+   function ID (Op : in Insert_Delete_Op) return WisiToken.Token_ID
+     is (case Insert_Delete_Op_Label'(Op.Op) is
+         when Insert => Op.Ins_ID,
+         when Delete => Op.Del_ID);
+
    function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result;
+   --  Compare token_index.
 
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
 
@@ -444,8 +461,15 @@ package WisiToken.Parse.LR is
             when Fast_Forward => WisiToken.Token_Index'Image (Item.FF_Token_Index),
             when Undo_Reduce => Image (Item.Nonterm, Descriptor) & "," &
                  Ada.Containers.Count_Type'Image (Item.Token_Count),
-            when Push_Back | Insert | Delete => Image (Item.ID, Descriptor) & "," &
-                 WisiToken.Token_Index'Image (Item.Token_Index))
+            when Push_Back => Image (Item.PB_ID, Descriptor) & "," &
+                 WisiToken.Token_Index'Image (Item.PB_Token_Index),
+            when Insert => Image (Item.Ins_ID, Descriptor) & "," &
+                 WisiToken.Token_Index'Image (Item.Ins_Token_Index) &
+                (if Item.State = Unknown_State or Trace_McKenzie <= Detail then ""
+                 else "," & State_Index'Image (Item.State) &
+                    SAL.Base_Peek_Type'Image (Item.Stack_Depth)),
+            when Delete => Image (Item.Del_ID, Descriptor) & "," &
+                 WisiToken.Token_Index'Image (Item.Del_Token_Index))
            & ")");
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
@@ -509,12 +533,12 @@ package WisiToken.Parse.LR is
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
 
-      Resume_Token_Goal : Token_Index := Token_Index'Last;
+      Resume_Token_Goal : WisiToken.Token_Index := WisiToken.Token_Index'Last;
       --  A successful solution shifts this token. Per-config because it
       --  increases with Delete; we increase Shared_Parser.Resume_Token_Goal
       --  only from successful configs.
 
-      Current_Shared_Token : Base_Token_Index := Token_Index'Last;
+      Current_Shared_Token : Base_Token_Index := WisiToken.Token_Index'Last;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 

@@ -668,7 +668,7 @@ State 7:
    name                               goto state 66
    selected_component                 goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => (IDENTIFIER, BODY)
 
 State 8:
      95.1:generic_instantiation <= PROCEDURE ^ name IS NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -2844,7 +2844,7 @@ State 111:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Action => association_list
+   Minimal_Complete_Action => (association_list, parameter_specification_list)
 
 State 112:
     107.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON

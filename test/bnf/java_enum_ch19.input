@@ -1,0 +1,2 @@
+// encounters cycle; inserts 'Identifier ,' ... instead of '}'
+{ A, B,

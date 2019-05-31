@@ -836,29 +836,6 @@ package body WisiToken.Generate.LR is
             Item : LR1_Items.Item renames Constant_Ref (I).Element.all;
             Prod : constant WisiToken.Production_ID := Item.Prod;
          begin
-            return Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and then
-              (Has_Element (Item.Dot) and then
-                 Item.Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2));
-         end Left_Recursive;
-
-      begin
-         --  The absolute minimal production for an LHS may not be in this
-         --  state. For example, for an Ada aggregate, the absolute minimal
-         --  terminal sequence is:
-         --
-         --  aggregate <= LEFT_PAREN RIGHT_PAREN
-         --
-         --  but one state has only:
-         --
-         --  aggregate <= LEFT_PAREN expression_opt WITH ^ NULL RECORD RIGHT_PAREN
-         --  aggregate <= LEFT_PAREN expression_opt WITH ^ association_list RIGHT_PAREN
-         --
-         --  Find the minimum tokens after dot of the productions that are present
-
-         I := Working_Set.First;
-         loop
-            exit when not Has_Element (I);
-
             --  Direct left recursion is never minimal; for example, consider
             --  ada_lite LALR state 149:
             --
@@ -882,6 +859,44 @@ package body WisiToken.Generate.LR is
             --
             --  If we already have a name, adding another DOT IDENTIFIER cannot be
             --  minimal.
+
+            --  There is a trade off here between error recovery power and risk of
+            --  recursive loops. Consider ada_lite state 152:
+            --
+            --  103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
+            --  117.0:range_list <= range_list ^ COMMA range_g
+            --
+            --  Both productions are Left_Recursive, but in the first, dot is past
+            --  the recursion, and can be usefully completed.
+            --
+            --  However, that might allow loops; see java_enum_ch19.wy. But there
+            --  may also be loops that are not due to recursion; see
+            --  java_expressions_ch19.wy. So in general we must handle possible
+            --  loops at runtime, and we allow items that are "past the recursion"
+            --  here.
+
+            return Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and then
+              (Has_Element (Item.Dot) and then
+                 Item.Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2));
+         end Left_Recursive;
+
+      begin
+         --  The absolute minimal production for an LHS may not be in this
+         --  state. For example, for an Ada aggregate, the absolute minimal
+         --  terminal sequence is:
+         --
+         --  aggregate <= LEFT_PAREN RIGHT_PAREN
+         --
+         --  but one state has only:
+         --
+         --  aggregate <= LEFT_PAREN expression_opt WITH ^ NULL RECORD RIGHT_PAREN
+         --  aggregate <= LEFT_PAREN expression_opt WITH ^ association_list RIGHT_PAREN
+         --
+         --  Find the minimum tokens after dot of the productions that are present
+
+         I := Working_Set.First;
+         loop
+            exit when not Has_Element (I);
 
             if Left_Recursive then
                if Trace_Generate > Extra then
@@ -968,9 +983,9 @@ package body WisiToken.Generate.LR is
       --  production.
       --
       --  The actions are empty in a state that includes the accept
-      --  production, or where the only not left recursive productions can
-      --  be empty. That tells the error recovery algorithm to stop using
-      --  the minimal complete actions strategy.
+      --  production, or where there are only recursive productions. That
+      --  tells the error recovery algorithm to stop using the minimal
+      --  complete actions strategy.
 
       if (for some Item of Working_Set =>
             Item.Prod.LHS = Descriptor.Accept_ID and
@@ -981,50 +996,34 @@ package body WisiToken.Generate.LR is
       end if;
 
       if Working_Set.Length > 1 then
-         --  There are multiple productions in this state, all equally valid;
-         --  the choice is determined by what input error recovery inserts.
          Delete_Non_Minimal;
       end if;
 
       if Working_Set.Length > 0 then
-         --  If the actions for all the remaining productions are Shift, or
-         --  reduce 0 tokens, we pick the first one arbitrarily.
+         --  There are multiple productions in this state, all equally valid;
+         --  the choice is determined by what input error recovery inserts.
          --
-         --  For reduce, we must consider the higher-level production being completed, not
-         --  just the current item set. Consider java_expressions_ch19 LR1 state 21:
-         --
-         --  18.0:LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
-         --  21.0:LeftHandSide <= Identifier ^
-         --  25.0:ClassType <= Identifier ^
-         --  26.0:MethodInvocation <= Identifier ^ LPAREN ArgumentList RPAREN
-         --
-         --  LeftHandSide and ClassType both have remaining length 0, but
-         --  LeftHandSide appears only in:
-         --
-         --  Assignment <= LeftHandSide EQUAL Expression
-         --
-         --  while ClassType will be reduced to Expression, so LeftHandSide is
-         --  not minimal. However, in general we cannot precompute what
+         --  All the productions have the same after-dot length. We could
+         --  simply choose one arbitrarily, but that can lead to loops (see
+         --  java_expressions_ch19.wy). So we consider the higher level
+         --  production. However, in general we cannot precompute what
          --  higher-level productions might be completed from each state; we
          --  must use the parse stack during error recovery. In that case, we
-         --  store multiple minimal actions in the state.
+         --  store multiple minimal actions in the state (see
+         --  Insert_Minimal_Complete_Actions in
+         --  wisitoken-parse-lr-mckenzie_recover-explore.adb).
 
          declare
             Actions : Minimal_Action_Array (1 .. Working_Set.Length) := (others => (others => <>));
 
-            I : Ada.Containers.Count_Type := 1;
-
-            Shift_Count        : Integer := 0;
-            Reduce_0_Count     : Integer := 0;
-            Reduce_Other_Count : Integer := 0;
+            I    : Ada.Containers.Count_Type := 1;
+            Skip : Boolean;
          begin
             for Item of Working_Set loop
 
-               --  Find the actions for the remaining productions.
                if not Has_Element (Item.Dot) then
                   --  Item has no next terminal. Include a reduce action; the
                   --  Minimal_Terminal_First for the resulting state will be used.
-                  Reduce_Other_Count := Reduce_Other_Count + 1;
                   Actions (I) :=
                     (Reduce, Item.Prod.LHS,
                      Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
@@ -1032,24 +1031,18 @@ package body WisiToken.Generate.LR is
                   declare
                      ID : constant Token_ID := Element (Item.Dot);
                   begin
-                     if ID /= Descriptor.EOI_ID then
+                     if ID in Terminals then
+                        Actions (I) := Find_Action (State.Action_List, ID);
 
-                        if ID in Terminals then
-                           Shift_Count := Shift_Count + 1;
-                           Actions (I) := Find_Action (State.Action_List, ID);
+                     else
+                        if Minimal_Terminal_First (ID) = Invalid_Token_ID then
+                           --  Item.Dot is a nullable nonterm; include a reduce to the null
+                           --  nonterm, rather than a shift of the following terminal; recover
+                           --  must do the reduce first.
+                           Actions (I) := (Reduce, ID, Token_Count => 0);
 
                         else
-                           if Minimal_Terminal_First (ID) = Invalid_Token_ID then
-                              --  Item.Dot is a nullable nonterm, include a reduce of the null
-                              --  nonterm, rather than a shift of the following terminal; recover
-                              --  must do the reduce first.
-                              Reduce_0_Count := Reduce_0_Count + 1;
-                              Actions (I) := (Reduce, ID, Token_Count => 0);
-
-                           else
-                              Shift_Count := Shift_Count + 1;
-                              Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
-                           end if;
+                           Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
                         end if;
                      end if;
                   end;
@@ -1057,21 +1050,25 @@ package body WisiToken.Generate.LR is
                I := I + 1;
             end loop;
 
-            if Shift_Count = Actions'Length or Reduce_0_Count = Actions'Length then
+            if Actions'Length = 1 then
                State.Minimal_Complete_Actions := Minimal_Action_Arrays.To_Vector (Actions (Actions'First));
-
-            elsif Reduce_Other_Count = Actions'Length then
-               if Actions'Length = 1 then
-                  State.Minimal_Complete_Actions := Minimal_Action_Arrays.To_Vector (Actions (Actions'First));
-               else
-                  State.Minimal_Complete_Actions.Set_First_Last (Actions'First, Actions'Last);
-                  for I in Actions'Range loop
-                     State.Minimal_Complete_Actions.Replace_Element (I, Actions (I));
-                  end loop;
-               end if;
             else
-               raise SAL.Programmer_Error with "Set_Minimal_Complete_Actions: mixed shift/reduce_0/reduce_other";
+               --  Check for duplicates; see three_action_conflict_lalr.parse_table
+               --  state 3 or lalr_generator_bug_01_lalr.parse_table state 28
+               for I in Actions'Range loop
+                  Skip := False;
+                  for J in Actions'First .. I - 1 loop
+                     if Actions (I) = Actions (J) then
+                        Skip := True;
+                        exit;
+                     end if;
+                  end loop;
+                  if not Skip then
+                     State.Minimal_Complete_Actions.Append (Actions (I));
+                  end if;
+               end loop;
             end if;
+
             if Trace_Generate > Extra then
                Ada.Text_IO.Put_Line (Image (State.Minimal_Complete_Actions, Descriptor));
             end if;
@@ -1361,10 +1358,14 @@ package body WisiToken.Generate.LR is
             end case;
          end;
       when others =>
-         --  Must all be reduce
          Put ("(");
          for I in State.Minimal_Complete_Actions.First_Index .. State.Minimal_Complete_Actions.Last_Index loop
-            Put (Image (State.Minimal_Complete_Actions (I).Nonterm, Descriptor));
+            case State.Minimal_Complete_Actions (I).Verb is
+            when Shift =>
+               Put (Image (State.Minimal_Complete_Actions (I).ID, Descriptor));
+            when Reduce =>
+               Put (Image (State.Minimal_Complete_Actions (I).Nonterm, Descriptor));
+            end case;
             if I < State.Minimal_Complete_Actions.Last_Index then
                Put (", ");
             end if;

@@ -21,9 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-minimal_completion_actions
-    elminate cycles in java
-
 -mckenzie_recover-explore.adb Do_Reduce_2 assumes only one conflict
 
 test_mckenzie use lr-parser-gen_aunit

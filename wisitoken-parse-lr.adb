@@ -803,10 +803,19 @@ package body WisiToken.Parse.LR is
    end Get_Text_Rep;
 
    function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result
-   is begin
-      if Left.Token_Index < Right.Token_Index then
+   is
+      Left_Token_Index : constant WisiToken.Token_Index :=
+        (case Insert_Delete_Op_Label'(Left.Op) is
+         when Insert => Left.Ins_Token_Index,
+         when Delete => Left.Del_Token_Index);
+      Right_Token_Index : constant WisiToken.Token_Index :=
+        (case Insert_Delete_Op_Label'(Right.Op) is
+         when Insert => Right.Ins_Token_Index,
+         when Delete => Right.Del_Token_Index);
+   begin
+      if Left_Token_Index < Right_Token_Index then
          return SAL.Less;
-      elsif Left.Token_Index = Right.Token_Index then
+      elsif Left_Token_Index = Right_Token_Index then
          return SAL.Equal;
       else
          return SAL.Greater;

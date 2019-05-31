@@ -1,0 +1,38 @@
+;;; Subset of Java grammar, to illustrate problems with the
+;;  minimal_complete_actions algorithm.
+;;
+;;  Original grammar is from
+;;  https://docs.oracle.com/javase/specs/jls/se12/html/jls-19.html
+;;
+;;  Before improving the algorithm, recover would enter a cycle when
+;;  handling java_enum_ch19.input:
+;;
+;;  FIXME:
+
+%generate LR1 Ada re2c
+
+%start EnumBody
+%meta_syntax EBNF
+
+%mckenzie_cost_default 3 3 2 0
+%mckenzie_enqueue_limit 10_000
+%mckenzie_minimal_complete_cost_delta -3
+
+%token <punctuation> COMMA ','
+%token <punctuation> LEFT_CURLY_BRACKET "{"
+%token <punctuation> RIGHT_CURLY_BRACKET "}"
+
+%token <symbol> Identifier %[ [a-zA-Z]+ ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+EnumConstantList: EnumConstant {',' EnumConstant} ;
+
+EnumConstant: Identifier ;
+
+EnumBody
+  : '{' [T2=EnumConstantList] ',' '}'
+  ;
+
+;; end of file
