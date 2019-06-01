@@ -385,7 +385,7 @@ package body Wisi is
       use Parse.LR;
 
       Line    : Unbounded_String := To_Unbounded_String ("[");
-      Last_Op : Config_Op        := (Fast_Forward, Token_Index'Last);
+      Last_Op : Config_Op        := (Fast_Forward, WisiToken.Token_Index'Last);
 
    begin
       if Trace_Action > Detail then
@@ -417,19 +417,19 @@ package body Wisi is
                when Insert =>
                   if Last_Op.Op = Fast_Forward then
                      Append (Line, "[");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
                      Append (Line, "[");
 
                   elsif Last_Op.Op = Delete then
                      Append (Line, "]][");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
                      Append (Line, "[");
 
                   else
                      --  Last_Op.Op = Insert
                      null;
                   end if;
-                  Append (Line, Token_ID'Image (Op.ID));
+                  Append (Line, Token_ID'Image (Op.Ins_ID));
 
                   Last_Op := Op;
 
@@ -439,7 +439,7 @@ package body Wisi is
                   begin
                      if Last_Op.Op = Fast_Forward then
                         Append (Line, "[");
-                        Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                        Append (Line, Buffer_Pos'Image (Terminals (Op.Del_Token_Index).Char_Region.First));
                         Append (Line, "[][");
 
                      elsif Last_Op.Op = Insert then
@@ -447,12 +447,12 @@ package body Wisi is
 
                      elsif Last_Op.Op = Delete then
                         if Embedded_Quote_Escape_Doubled and then
-                          ((Last_Op.ID = Descriptor.String_1_ID and Op.ID = Descriptor.String_1_ID) or
-                             (Last_Op.ID = Descriptor.String_2_ID and Op.ID = Descriptor.String_2_ID))
+                          ((Last_Op.Del_ID = Descriptor.String_1_ID and Op.Del_ID = Descriptor.String_1_ID) or
+                             (Last_Op.Del_ID = Descriptor.String_2_ID and Op.Del_ID = Descriptor.String_2_ID))
                         then
                            declare
-                              Tok_1 : Augmented_Token renames Terminals (Last_Op.Token_Index);
-                              Tok_2 : Augmented_Token renames Terminals (Op.Token_Index);
+                              Tok_1 : Augmented_Token renames Terminals (Last_Op.Del_Token_Index);
+                              Tok_2 : Augmented_Token renames Terminals (Op.Del_Token_Index);
                            begin
                               if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
                                  --  Buffer text was '"""', lexer repair changed it to '""""'. The
@@ -467,7 +467,7 @@ package body Wisi is
                      end if;
 
                      if not Skip then
-                        Append (Line, Token_ID'Image (Op.ID));
+                        Append (Line, Token_ID'Image (Op.Del_ID));
                      end if;
                   end;
                   Last_Op := Op;

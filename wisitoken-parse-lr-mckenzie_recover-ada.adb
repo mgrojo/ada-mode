@@ -444,12 +444,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                     Image (Config.Error_Token, Descriptor);
                end case;
 
-               Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
+               Ops.Append ((Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
                if Keyword_Item.Token.ID /= Invalid_Token_ID then
-                  Ops.Append ((Delete, Keyword_Item.Token.ID, Token_Index => Keyword_Item.Token.Min_Terminal_Index));
+                  Ops.Append ((Delete, Keyword_Item.Token.ID, Keyword_Item.Token.Min_Terminal_Index));
                end if;
                --  We don't need to delete the identifier|name ; it is missing and therefore empty.
-               Ops.Append ((Delete, +SEMICOLON_ID, Token_Index => Semicolon_Item.Token.Min_Terminal_Index));
+               Ops.Append ((Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
@@ -892,7 +892,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end;
 
       elsif Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in CONSTANT_ID | IDENTIFIER_ID and
-        (for some Prod of Parse_Table.States (Config.Stack.Peek.State).Productions => Prod.LHS = +block_label_ID)
+        (for some Item of Parse_Table.States (Config.Stack.Peek.State).Kernel => Item.LHS = +block_label_ID)
       then
          --  Code looks like:
          --
