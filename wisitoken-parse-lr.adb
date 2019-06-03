@@ -184,7 +184,8 @@ package body WisiToken.Parse.LR is
    function Strict_Image (Item : in Kernel_Info) return String
    is begin
       return "(" & Trimmed_Image (Item.LHS) & "," & Token_ID'Image (Item.Before_Dot) & "," &
-        Ada.Containers.Count_Type'Image (Item.Length_After_Dot) & ")";
+        Ada.Containers.Count_Type'Image (Item.Length_After_Dot) & ", " &
+        Recursion'Image (Item.Recursive) & ")";
    end Strict_Image;
 
    function Strict_Image (Item : in Minimal_Action) return String

@@ -126,9 +126,12 @@ package WisiToken.Generate.LR is
 
    type RHS_Sequence is
    record
-      Left_Recursive : Boolean := False;
+      Recursive : Parse.LR.Recursion := None;
       --  Direct or indirect; see comment in
       --  Set_Minimal_Complete_Actions.Delete_Non_Minimal.
+
+      Recursive_With : Production_ID;
+      --  If recursion is present and indirect, id of other production.
 
       Sequence : Token_ID_Arrays.Vector;
    end record;
@@ -201,11 +204,12 @@ package WisiToken.Generate.LR is
    --  Put Item to Ada.Text_IO.Current_Output in parse table format.
 
    procedure Put_Parse_Table
-     (Table                 : in Parse_Table_Ptr;
-      Title                 : in String;
-      Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
-      Kernels               : in LR1_Items.Item_Set_List;
-      Conflicts             : in Conflict_Count_Lists.List;
-      Descriptor            : in WisiToken.Descriptor);
+     (Table                      : in Parse_Table_Ptr;
+      Title                      : in String;
+      Grammar                    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
+      Kernels                    : in LR1_Items.Item_Set_List;
+      Conflicts                  : in Conflict_Count_Lists.List;
+      Descriptor                 : in WisiToken.Descriptor);
 
 end WisiToken.Generate.LR;

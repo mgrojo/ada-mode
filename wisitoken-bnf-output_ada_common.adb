@@ -702,6 +702,10 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Wrap
                  ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions := To_Vector (" &
                     Strict_Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
+               Indent_Wrap
+                 ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions_Recursive := " &
+                    (if Table.States (State_Index).Minimal_Complete_Actions_Recursive
+                     then "True" else "False") & ";");
             end if;
          end if;
 

@@ -140,7 +140,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
               ": state" & State_Index'Image (Prev_State) & " reduce" &
               Ada.Containers.Count_Type'Image (Action.Token_Count) & " to " &
               Image (Action.Production.LHS, Descriptor) & ", goto" &
-              State_Index'Image (New_State));
+              State_Index'Image (New_State) & " via" & State_Index'Image (Config.Stack (2).State));
       end if;
    end Do_Reduce_1;
 
@@ -691,7 +691,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                     (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions abandoned: cycle " &
                        Image (Action.ID, Descriptor) & State_Index'Image (Action.State));
                end if;
-               raise Bad_Config;
+               return;
             end if;
          end loop;
 
@@ -703,7 +703,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index),
-                  "Minimal_Complete_Actions abandoned: undo push back/delete" & Image (Action.ID, Descriptor));
+                  "Minimal_Complete_Actions abandoned: undo push back/delete " & Image (Action.ID, Descriptor));
             end if;
          else
             if Trace_McKenzie > Extra then
@@ -722,21 +722,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Minimal_Do_Shift;
 
       procedure Enqueue_Min_Actions
-        (Actions     : in Minimal_Action_Arrays.Vector;
+        (Label       : in String;
+         Actions     : in Minimal_Action_Arrays.Vector;
+         Recursive   : in Boolean;
          Config      : in Configuration;
          Reduce_Only : in Boolean)
       is
          use SAL;
-         Length : array (Actions.First_Index .. Actions.Last_Index) of Count_Type :=
-           (others => Count_Type'Last);
+         Length : array (Actions.First_Index .. Actions.Last_Index) of Count_Type := (others => Count_Type'Last);
 
-         Min_Length : Count_Type := Count_Type'Last;
+         Item_Not_Recursive  : array (Actions.First_Index .. Actions.Last_Index) of Boolean := (others => False);
+
+         Not_Recursive_Count : Count_Type := 0;
+         Min_Length          : Count_Type := Count_Type'Last;
+         Use_Recursive       : Boolean;
       begin
          --  Enqueue non-minimal actions on Work,
          if Trace_McKenzie > Extra then
             Put_Line
-              (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " &
-                 Image (Actions, Descriptor));
+              (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " & Label &
+                 Image (Actions, Descriptor) & (if Recursive then " recursive" else ""));
          end if;
 
          if Actions.Length = 0 then
@@ -766,6 +771,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                if (not Reduce_Only) or Action.Verb = Reduce then
                   for Item of Kernel loop
+                     Item_Not_Recursive (I) := Item_Not_Recursive (I) or not Item.Recursive;
                      if Item.Before_Dot = Before_Dot and
                        Item.Length_After_Dot < Length (I)
                      then
@@ -777,18 +783,30 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end loop;
                end if;
             end;
+            if Item_Not_Recursive (I) then
+               Not_Recursive_Count := Not_Recursive_Count + 1;
+            end if;
          end loop;
 
+         Use_Recursive := Recursive and Not_Recursive_Count > 0 and Not_Recursive_Count < Actions.Length;
+
          for I in Length'Range loop
-            if Length (I) = Min_Length then
+            if (Use_Recursive and Item_Not_Recursive (I)) or ((not Use_Recursive) and Length (I) = Min_Length) then
                Work.Add ((Actions (I), Config));
+            elsif Trace_McKenzie > Extra then
+               Put_Line
+                 (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
+                    Image (Actions (I), Descriptor));
             end if;
          end loop;
       end Enqueue_Min_Actions;
 
    begin
       Enqueue_Min_Actions
-        (Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions, Orig_Config, Reduce_Only => False);
+        ("",
+         Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions,
+         Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions_Recursive,
+         Orig_Config, Reduce_Only => False);
 
       loop
          exit when Work.Is_Empty;
@@ -796,6 +814,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             Item : Work_Item := Work.Get;
          begin
+            if Trace_McKenzie > Extra then
+               Put_Line
+                 (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: dequeue work item " &
+                    Image (Item.Action, Descriptor));
+            end if;
+
             case Item.Action.Verb is
             when Reduce =>
                --  Do a reduce, look at resulting state. Keep reducing until we can't
@@ -803,6 +827,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                declare
                   Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Item.Action);
                   Actions       : Minimal_Action_Arrays.Vector;
+                  Recursive     : Boolean;
                begin
                   loop
                      Do_Reduce_1
@@ -810,7 +835,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         Reduce_Action,
                         Do_Language_Fixes => False);
 
-                     Actions := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions;
+                     Actions   := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions;
+                     Recursive := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions_Recursive;
 
                      case Actions.Length is
                      when 0 =>
@@ -825,7 +851,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         end case;
 
                      when others =>
-                        Enqueue_Min_Actions (Actions, Item.Config, Reduce_Only => True);
+                        Enqueue_Min_Actions ("multiple actions ", Actions, Recursive, Item.Config, Reduce_Only => True);
                         exit;
                      end case;
                   end loop;

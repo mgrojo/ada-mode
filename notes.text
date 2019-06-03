@@ -21,7 +21,23 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
--mckenzie_recover-explore.adb Do_Reduce_2 assumes only one conflict
+Set_Minimal_Complete_Actions
+    improving recursion detection/handling
+    ada_lite range_g labeled left recursive with 126.0 simple_expression; actually
+        126.0: simple_expression <= unary_adding_operator term_list ; right
+        126.1: simple_expression <= term_list ; single
+        135.0: term <= term multiplying_operator factor ; left
+        136.1: term_list <= term ; single
+        135.1: term <= factor ; single
+         91.0: factor <= primary ; single
+        112.2: primary <= name ; single
+        103.0: name <= name LEFT_PAREN range_list RIGHT_PAREN ; middle
+        117.1: range_list <= range_g ; single
+        => middle
+
+        we happen to start with *.0; that misses other rhs; search and mark those
+        recursive_with is a list of pointer to a shared chain (nonterms) of lists (rhss)
+        recursing_nonterm should be a stack (or also a stack), so can find parent/child easily
 
 test_mckenzie use lr-parser-gen_aunit
 

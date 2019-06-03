@@ -1,0 +1,65 @@
+;;; Subset of Java grammar, to illustrate problems with the
+;;  minimal_complete_actions algorithm.
+;;
+;;  Original grammar is from
+;;  https://docs.oracle.com/javase/specs/jls/se12/html/jls-19.html
+;;
+;; State 4 has only recursive productions; minimal complete actions
+;; are computed anyway.
+%generate LR1 Ada re2c
+
+%start CompilationUnit
+%meta_syntax EBNF
+
+%mckenzie_cost_default 3 3 2 0
+%mckenzie_enqueue_limit 10_000
+%mckenzie_minimal_complete_cost_delta -3
+
+%token <punctuation> AT '@'
+%token <punctuation> COMMA ','
+%token <punctuation> GREATER ">"
+%token <punctuation> LEFT_SQUARE_BRACKET "["
+%token <punctuation> LESS "<"
+%token <punctuation> RIGHT_SQUARE_BRACKET "]"
+
+%token <symbol> Identifier %[ [a-zA-Z]+ ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+CompilationUnit
+  : ClassType
+  ;
+
+AnnotationList
+  : Annotation
+  | AnnotationList Annotation
+  ;
+
+Annotation: '@' ClassType ;
+
+ClassType: {Annotation} Identifier [TypeArguments] ;
+
+TypeArguments: '<' TypeArgumentList '>' ;
+
+TypeArgumentList: TypeArgument {',' TypeArgument} ;
+
+TypeArgument:
+    ClassType
+  | ArrayType
+;
+
+ArrayType:
+    PrimitiveType Dims
+  | ClassType Dims
+  ;
+
+Dims: {Annotation} '[' ']' {{Annotation} '[' ']'} ;
+
+PrimitiveType:
+    {Annotation} NumericType
+  ;
+
+NumericType: 'byte' | 'short' | 'int' | 'long' | 'char' ;
+
+;; end of file

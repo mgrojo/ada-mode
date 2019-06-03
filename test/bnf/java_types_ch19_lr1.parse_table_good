@@ -1,0 +1,1222 @@
+Tokens:
+ 0 => EndOfLine_COMMENT
+ 1 => NEW_LINE
+ 2 => WHITESPACE
+ 3 => CHAR
+ 4 => LONG
+ 5 => INT
+ 6 => SHORT
+ 7 => BYTE
+ 8 => AT
+ 9 => COMMA
+ 10 => GREATER
+ 11 => LEFT_SQUARE_BRACKET
+ 12 => LESS
+ 13 => RIGHT_SQUARE_BRACKET
+ 14 => Identifier
+ 15 => Wisi_EOI
+ 16 => wisitoken_accept
+ 17 => CompilationUnit
+ 18 => AnnotationList
+ 19 => Annotation
+ 20 => ClassType
+ 21 => TypeArguments
+ 22 => TypeArgumentList
+ 23 => TypeArgument
+ 24 => ArrayType
+ 25 => Dims
+ 26 => PrimitiveType
+ 27 => NumericType
+ 28 => nonterminal_013
+ 29 => nonterminal_012_list
+ 30 => nonterminal_028
+ 31 => nonterminal_027_list
+
+Productions:
+16.0: wisitoken_accept <= CompilationUnit Wisi_EOI
+17.0: CompilationUnit <= ClassType
+18.0: AnnotationList <= Annotation
+18.1: AnnotationList <= AnnotationList Annotation
+19.0: Annotation <= AT ClassType
+20.0: ClassType <= AnnotationList Identifier TypeArguments
+20.1: ClassType <= AnnotationList Identifier
+20.2: ClassType <= Identifier TypeArguments
+20.3: ClassType <= Identifier
+21.0: TypeArguments <= LESS TypeArgumentList GREATER
+22.0: TypeArgumentList <= TypeArgument
+22.1: TypeArgumentList <= TypeArgumentList COMMA TypeArgument
+23.0: TypeArgument <= ClassType
+23.1: TypeArgument <= ArrayType
+24.0: ArrayType <= PrimitiveType Dims
+24.1: ArrayType <= ClassType Dims
+25.0: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list
+25.1: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+25.2: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list
+25.3: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+26.0: PrimitiveType <= AnnotationList NumericType
+26.1: PrimitiveType <= NumericType
+27.0: NumericType <= BYTE
+27.1: NumericType <= SHORT
+27.2: NumericType <= INT
+27.3: NumericType <= LONG
+27.4: NumericType <= CHAR
+28.0: nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+28.1: nonterminal_013 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+29.0: nonterminal_012_list <= nonterminal_013
+29.1: nonterminal_012_list <= nonterminal_012_list nonterminal_013
+30.0: nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+30.1: nonterminal_028 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+31.0: nonterminal_027_list <= nonterminal_028
+31.1: nonterminal_027_list <= nonterminal_027_list nonterminal_028
+
+McKenzie:
+(Insert =>
+ CHAR                 => 3,
+ LONG                 => 3,
+ INT                  => 3,
+ SHORT                => 3,
+ BYTE                 => 3,
+ AT                   => 3,
+ COMMA                => 3,
+ GREATER              => 3,
+ LEFT_SQUARE_BRACKET  => 3,
+ LESS                 => 3,
+ RIGHT_SQUARE_BRACKET => 3,
+ Identifier           => 3,
+ Wisi_EOI             => 3)
+(Delete =>
+ CHAR                 => 3,
+ LONG                 => 3,
+ INT                  => 3,
+ SHORT                => 3,
+ BYTE                 => 3,
+ AT                   => 3,
+ COMMA                => 3,
+ GREATER              => 3,
+ LEFT_SQUARE_BRACKET  => 3,
+ LESS                 => 3,
+ RIGHT_SQUARE_BRACKET => 3,
+ Identifier           => 3,
+ Wisi_EOI             => 3)
+(Push_Back =>
+ CHAR                 => 3,
+ LONG                 => 3,
+ INT                  => 3,
+ SHORT                => 3,
+ BYTE                 => 3,
+ AT                   => 3,
+ COMMA                => 3,
+ GREATER              => 3,
+ LEFT_SQUARE_BRACKET  => 3,
+ LESS                 => 3,
+ RIGHT_SQUARE_BRACKET => 3,
+ Identifier           => 3,
+ Wisi_EOI             => 3)
+Ignore_Check_Fail => 0
+Task_Count        => 0
+Cost_Limit        => 2147483647
+Check_Limit       => 4
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 10000
+
+LR1 Parse Table:
+State 0:
+     16.0:wisitoken_accept <= ^ CompilationUnit Wisi_EOI, Wisi_EOI
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 2
+   default              => ERROR
+
+   CompilationUnit      goto state 3
+   AnnotationList       goto state 4
+   Annotation           goto state 5
+   ClassType            goto state 6
+
+   Minimal_Complete_Action => Identifier
+
+State 1:
+     19.0:Annotation <= AT ^ ClassType, AT/Identifier
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 7
+   default              => ERROR
+
+   AnnotationList       goto state 8
+   Annotation           goto state 5
+   ClassType            goto state 9
+
+   Minimal_Complete_Action => Identifier
+
+State 2:
+     20.2:ClassType <= Identifier ^ TypeArguments, Wisi_EOI
+     20.3:ClassType <= Identifier ^, Wisi_EOI
+
+   LESS                 => shift and goto state 10
+   Wisi_EOI             => reduce 1 tokens to ClassType 20.3
+   default              => ERROR
+
+   TypeArguments        goto state 11
+
+   Minimal_Complete_Action => ClassType
+
+State 3:
+     16.0:wisitoken_accept <= CompilationUnit ^ Wisi_EOI, Wisi_EOI
+
+   Wisi_EOI             => accept it 16.0
+   default              => ERROR
+
+   Minimal_Complete_Action => 
+
+State 4:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/Identifier
+     20.0:ClassType <= AnnotationList ^ Identifier TypeArguments, Wisi_EOI
+     20.1:ClassType <= AnnotationList ^ Identifier, Wisi_EOI
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 12
+   default              => ERROR
+
+   Annotation           goto state 13
+
+   Minimal_Complete_Action => Identifier
+
+State 5:
+     18.0:AnnotationList <= Annotation ^, AT/Identifier
+
+   AT                   => reduce 1 tokens to AnnotationList 18.0
+   Identifier           => reduce 1 tokens to AnnotationList 18.0
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 6:
+     17.0:CompilationUnit <= ClassType ^, Wisi_EOI
+
+   Wisi_EOI             => reduce 1 tokens to CompilationUnit 17.0
+   default              => ERROR
+
+   Minimal_Complete_Action => CompilationUnit
+
+State 7:
+     20.2:ClassType <= Identifier ^ TypeArguments, AT/Identifier
+     20.3:ClassType <= Identifier ^, AT/Identifier
+
+   AT                   => reduce 1 tokens to ClassType 20.3
+   LESS                 => shift and goto state 14
+   Identifier           => reduce 1 tokens to ClassType 20.3
+   default              => ERROR
+
+   TypeArguments        goto state 15
+
+   Minimal_Complete_Action => ClassType
+
+State 8:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/Identifier
+     20.0:ClassType <= AnnotationList ^ Identifier TypeArguments, AT/Identifier
+     20.1:ClassType <= AnnotationList ^ Identifier, AT/Identifier
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 16
+   default              => ERROR
+
+   Annotation           goto state 13
+
+   Minimal_Complete_Action => Identifier
+
+State 9:
+     19.0:Annotation <= AT ClassType ^, AT/Identifier
+
+   AT                   => reduce 2 tokens to Annotation 19.0
+   Identifier           => reduce 2 tokens to Annotation 19.0
+   default              => ERROR
+
+   Minimal_Complete_Action => Annotation
+
+State 10:
+     21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, Wisi_EOI
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgumentList     goto state 27
+   TypeArgument         goto state 28
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => BYTE
+
+State 11:
+     20.2:ClassType <= Identifier TypeArguments ^, Wisi_EOI
+
+   Wisi_EOI             => reduce 2 tokens to ClassType 20.2
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 12:
+     20.0:ClassType <= AnnotationList Identifier ^ TypeArguments, Wisi_EOI
+     20.1:ClassType <= AnnotationList Identifier ^, Wisi_EOI
+
+   LESS                 => shift and goto state 10
+   Wisi_EOI             => reduce 2 tokens to ClassType 20.1
+   default              => ERROR
+
+   TypeArguments        goto state 32
+
+   Minimal_Complete_Action => ClassType
+
+State 13:
+     18.1:AnnotationList <= AnnotationList Annotation ^, AT/Identifier
+
+   AT                   => reduce 2 tokens to AnnotationList 18.1
+   Identifier           => reduce 2 tokens to AnnotationList 18.1
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 14:
+     21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, AT/Identifier
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgumentList     goto state 33
+   TypeArgument         goto state 28
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => BYTE
+
+State 15:
+     20.2:ClassType <= Identifier TypeArguments ^, AT/Identifier
+
+   AT                   => reduce 2 tokens to ClassType 20.2
+   Identifier           => reduce 2 tokens to ClassType 20.2
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 16:
+     20.0:ClassType <= AnnotationList Identifier ^ TypeArguments, AT/Identifier
+     20.1:ClassType <= AnnotationList Identifier ^, AT/Identifier
+
+   AT                   => reduce 2 tokens to ClassType 20.1
+   LESS                 => shift and goto state 14
+   Identifier           => reduce 2 tokens to ClassType 20.1
+   default              => ERROR
+
+   TypeArguments        goto state 34
+
+   Minimal_Complete_Action => ClassType
+
+State 17:
+     27.4:NumericType <= CHAR ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to NumericType 27.4
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to NumericType 27.4
+   default              => ERROR
+
+   Minimal_Complete_Action => NumericType
+
+State 18:
+     27.3:NumericType <= LONG ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to NumericType 27.3
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to NumericType 27.3
+   default              => ERROR
+
+   Minimal_Complete_Action => NumericType
+
+State 19:
+     27.2:NumericType <= INT ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to NumericType 27.2
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to NumericType 27.2
+   default              => ERROR
+
+   Minimal_Complete_Action => NumericType
+
+State 20:
+     27.1:NumericType <= SHORT ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to NumericType 27.1
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to NumericType 27.1
+   default              => ERROR
+
+   Minimal_Complete_Action => NumericType
+
+State 21:
+     27.0:NumericType <= BYTE ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to NumericType 27.0
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to NumericType 27.0
+   default              => ERROR
+
+   Minimal_Complete_Action => NumericType
+
+State 22:
+     19.0:Annotation <= AT ^ ClassType, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 35
+   default              => ERROR
+
+   AnnotationList       goto state 36
+   Annotation           goto state 5
+   ClassType            goto state 37
+
+   Minimal_Complete_Action => Identifier
+
+State 23:
+     20.2:ClassType <= Identifier ^ TypeArguments, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+     20.3:ClassType <= Identifier ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to ClassType 20.3
+   COMMA                => reduce 1 tokens to ClassType 20.3
+   GREATER              => reduce 1 tokens to ClassType 20.3
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to ClassType 20.3
+   LESS                 => shift and goto state 38
+   default              => ERROR
+
+   TypeArguments        goto state 39
+
+   Minimal_Complete_Action => ClassType
+
+State 24:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+     20.0:ClassType <= AnnotationList ^ Identifier TypeArguments, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+     20.1:ClassType <= AnnotationList ^ Identifier, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+     26.0:PrimitiveType <= AnnotationList ^ NumericType, AT/LEFT_SQUARE_BRACKET
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 40
+   default              => ERROR
+
+   Annotation           goto state 41
+   NumericType          goto state 42
+
+   Minimal_Complete_Action => BYTE
+
+State 25:
+     18.0:AnnotationList <= Annotation ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 1 tokens to AnnotationList 18.0
+   LONG                 => reduce 1 tokens to AnnotationList 18.0
+   INT                  => reduce 1 tokens to AnnotationList 18.0
+   SHORT                => reduce 1 tokens to AnnotationList 18.0
+   BYTE                 => reduce 1 tokens to AnnotationList 18.0
+   AT                   => reduce 1 tokens to AnnotationList 18.0
+   Identifier           => reduce 1 tokens to AnnotationList 18.0
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 26:
+     23.0:TypeArgument <= ClassType ^, COMMA/GREATER
+     24.1:ArrayType <= ClassType ^ Dims, COMMA/GREATER
+
+   AT                   => shift and goto state 43
+   COMMA                => reduce 1 tokens to TypeArgument 23.0
+   GREATER              => reduce 1 tokens to TypeArgument 23.0
+   LEFT_SQUARE_BRACKET  => shift and goto state 44
+   default              => ERROR
+
+   AnnotationList       goto state 45
+   Annotation           goto state 46
+   Dims                 goto state 47
+
+   Minimal_Complete_Action => TypeArgument
+
+State 27:
+     21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, Wisi_EOI
+     22.1:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgument, COMMA/GREATER
+
+   COMMA                => shift and goto state 48
+   GREATER              => shift and goto state 49
+   default              => ERROR
+
+   Minimal_Complete_Action => GREATER
+
+State 28:
+     22.0:TypeArgumentList <= TypeArgument ^, COMMA/GREATER
+
+   COMMA                => reduce 1 tokens to TypeArgumentList 22.0
+   GREATER              => reduce 1 tokens to TypeArgumentList 22.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArgumentList
+
+State 29:
+     23.1:TypeArgument <= ArrayType ^, COMMA/GREATER
+
+   COMMA                => reduce 1 tokens to TypeArgument 23.1
+   GREATER              => reduce 1 tokens to TypeArgument 23.1
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArgument
+
+State 30:
+     24.0:ArrayType <= PrimitiveType ^ Dims, COMMA/GREATER
+
+   AT                   => shift and goto state 43
+   LEFT_SQUARE_BRACKET  => shift and goto state 44
+   default              => ERROR
+
+   AnnotationList       goto state 45
+   Annotation           goto state 46
+   Dims                 goto state 50
+
+   Minimal_Complete_Action => LEFT_SQUARE_BRACKET
+
+State 31:
+     26.1:PrimitiveType <= NumericType ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to PrimitiveType 26.1
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to PrimitiveType 26.1
+   default              => ERROR
+
+   Minimal_Complete_Action => PrimitiveType
+
+State 32:
+     20.0:ClassType <= AnnotationList Identifier TypeArguments ^, Wisi_EOI
+
+   Wisi_EOI             => reduce 3 tokens to ClassType 20.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 33:
+     21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, AT/Identifier
+     22.1:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgument, COMMA/GREATER
+
+   COMMA                => shift and goto state 48
+   GREATER              => shift and goto state 51
+   default              => ERROR
+
+   Minimal_Complete_Action => GREATER
+
+State 34:
+     20.0:ClassType <= AnnotationList Identifier TypeArguments ^, AT/Identifier
+
+   AT                   => reduce 3 tokens to ClassType 20.0
+   Identifier           => reduce 3 tokens to ClassType 20.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 35:
+     20.2:ClassType <= Identifier ^ TypeArguments, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+     20.3:ClassType <= Identifier ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 1 tokens to ClassType 20.3
+   LONG                 => reduce 1 tokens to ClassType 20.3
+   INT                  => reduce 1 tokens to ClassType 20.3
+   SHORT                => reduce 1 tokens to ClassType 20.3
+   BYTE                 => reduce 1 tokens to ClassType 20.3
+   AT                   => reduce 1 tokens to ClassType 20.3
+   LESS                 => shift and goto state 52
+   Identifier           => reduce 1 tokens to ClassType 20.3
+   default              => ERROR
+
+   TypeArguments        goto state 53
+
+   Minimal_Complete_Action => ClassType
+
+State 36:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/Identifier
+     20.0:ClassType <= AnnotationList ^ Identifier TypeArguments, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+     20.1:ClassType <= AnnotationList ^ Identifier, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 54
+   default              => ERROR
+
+   Annotation           goto state 13
+
+   Minimal_Complete_Action => Identifier
+
+State 37:
+     19.0:Annotation <= AT ClassType ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 2 tokens to Annotation 19.0
+   LONG                 => reduce 2 tokens to Annotation 19.0
+   INT                  => reduce 2 tokens to Annotation 19.0
+   SHORT                => reduce 2 tokens to Annotation 19.0
+   BYTE                 => reduce 2 tokens to Annotation 19.0
+   AT                   => reduce 2 tokens to Annotation 19.0
+   Identifier           => reduce 2 tokens to Annotation 19.0
+   default              => ERROR
+
+   Minimal_Complete_Action => Annotation
+
+State 38:
+     21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgumentList     goto state 55
+   TypeArgument         goto state 28
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => BYTE
+
+State 39:
+     20.2:ClassType <= Identifier TypeArguments ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to ClassType 20.2
+   COMMA                => reduce 2 tokens to ClassType 20.2
+   GREATER              => reduce 2 tokens to ClassType 20.2
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to ClassType 20.2
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 40:
+     20.0:ClassType <= AnnotationList Identifier ^ TypeArguments, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+     20.1:ClassType <= AnnotationList Identifier ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to ClassType 20.1
+   COMMA                => reduce 2 tokens to ClassType 20.1
+   GREATER              => reduce 2 tokens to ClassType 20.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to ClassType 20.1
+   LESS                 => shift and goto state 38
+   default              => ERROR
+
+   TypeArguments        goto state 56
+
+   Minimal_Complete_Action => ClassType
+
+State 41:
+     18.1:AnnotationList <= AnnotationList Annotation ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 2 tokens to AnnotationList 18.1
+   LONG                 => reduce 2 tokens to AnnotationList 18.1
+   INT                  => reduce 2 tokens to AnnotationList 18.1
+   SHORT                => reduce 2 tokens to AnnotationList 18.1
+   BYTE                 => reduce 2 tokens to AnnotationList 18.1
+   AT                   => reduce 2 tokens to AnnotationList 18.1
+   Identifier           => reduce 2 tokens to AnnotationList 18.1
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 42:
+     26.0:PrimitiveType <= AnnotationList NumericType ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to PrimitiveType 26.0
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to PrimitiveType 26.0
+   default              => ERROR
+
+   Minimal_Complete_Action => PrimitiveType
+
+State 43:
+     19.0:Annotation <= AT ^ ClassType, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 57
+   default              => ERROR
+
+   AnnotationList       goto state 58
+   Annotation           goto state 5
+   ClassType            goto state 59
+
+   Minimal_Complete_Action => Identifier
+
+State 44:
+     25.2:Dims <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET nonterminal_027_list, COMMA/GREATER
+     25.3:Dims <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, COMMA/GREATER
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 60
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 45:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/LEFT_SQUARE_BRACKET
+     25.0:Dims <= AnnotationList ^ LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list, COMMA/GREATER
+     25.1:Dims <= AnnotationList ^ LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET, COMMA/GREATER
+
+   AT                   => shift and goto state 43
+   LEFT_SQUARE_BRACKET  => shift and goto state 61
+   default              => ERROR
+
+   Annotation           goto state 62
+
+   Minimal_Complete_Action => LEFT_SQUARE_BRACKET
+
+State 46:
+     18.0:AnnotationList <= Annotation ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to AnnotationList 18.0
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to AnnotationList 18.0
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 47:
+     24.1:ArrayType <= ClassType Dims ^, COMMA/GREATER
+
+   COMMA                => reduce 2 tokens to ArrayType 24.1
+   GREATER              => reduce 2 tokens to ArrayType 24.1
+   default              => ERROR
+
+   Minimal_Complete_Action => ArrayType
+
+State 48:
+     22.1:TypeArgumentList <= TypeArgumentList COMMA ^ TypeArgument, COMMA/GREATER
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgument         goto state 63
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => Identifier
+
+State 49:
+     21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, Wisi_EOI
+
+   Wisi_EOI             => reduce 3 tokens to TypeArguments 21.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArguments
+
+State 50:
+     24.0:ArrayType <= PrimitiveType Dims ^, COMMA/GREATER
+
+   COMMA                => reduce 2 tokens to ArrayType 24.0
+   GREATER              => reduce 2 tokens to ArrayType 24.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ArrayType
+
+State 51:
+     21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, AT/Identifier
+
+   AT                   => reduce 3 tokens to TypeArguments 21.0
+   Identifier           => reduce 3 tokens to TypeArguments 21.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArguments
+
+State 52:
+     21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgumentList     goto state 64
+   TypeArgument         goto state 28
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => BYTE
+
+State 53:
+     20.2:ClassType <= Identifier TypeArguments ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 2 tokens to ClassType 20.2
+   LONG                 => reduce 2 tokens to ClassType 20.2
+   INT                  => reduce 2 tokens to ClassType 20.2
+   SHORT                => reduce 2 tokens to ClassType 20.2
+   BYTE                 => reduce 2 tokens to ClassType 20.2
+   AT                   => reduce 2 tokens to ClassType 20.2
+   Identifier           => reduce 2 tokens to ClassType 20.2
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 54:
+     20.0:ClassType <= AnnotationList Identifier ^ TypeArguments, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+     20.1:ClassType <= AnnotationList Identifier ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 2 tokens to ClassType 20.1
+   LONG                 => reduce 2 tokens to ClassType 20.1
+   INT                  => reduce 2 tokens to ClassType 20.1
+   SHORT                => reduce 2 tokens to ClassType 20.1
+   BYTE                 => reduce 2 tokens to ClassType 20.1
+   AT                   => reduce 2 tokens to ClassType 20.1
+   LESS                 => shift and goto state 52
+   Identifier           => reduce 2 tokens to ClassType 20.1
+   default              => ERROR
+
+   TypeArguments        goto state 65
+
+   Minimal_Complete_Action => ClassType
+
+State 55:
+     21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+     22.1:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgument, COMMA/GREATER
+
+   COMMA                => shift and goto state 48
+   GREATER              => shift and goto state 66
+   default              => ERROR
+
+   Minimal_Complete_Action => GREATER
+
+State 56:
+     20.0:ClassType <= AnnotationList Identifier TypeArguments ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to ClassType 20.0
+   COMMA                => reduce 3 tokens to ClassType 20.0
+   GREATER              => reduce 3 tokens to ClassType 20.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to ClassType 20.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 57:
+     20.2:ClassType <= Identifier ^ TypeArguments, AT/LEFT_SQUARE_BRACKET
+     20.3:ClassType <= Identifier ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to ClassType 20.3
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to ClassType 20.3
+   LESS                 => shift and goto state 67
+   default              => ERROR
+
+   TypeArguments        goto state 68
+
+   Minimal_Complete_Action => ClassType
+
+State 58:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/Identifier
+     20.0:ClassType <= AnnotationList ^ Identifier TypeArguments, AT/LEFT_SQUARE_BRACKET
+     20.1:ClassType <= AnnotationList ^ Identifier, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 1
+   Identifier           => shift and goto state 69
+   default              => ERROR
+
+   Annotation           goto state 13
+
+   Minimal_Complete_Action => Identifier
+
+State 59:
+     19.0:Annotation <= AT ClassType ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to Annotation 19.0
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to Annotation 19.0
+   default              => ERROR
+
+   Minimal_Complete_Action => Annotation
+
+State 60:
+     25.2:Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^ nonterminal_027_list, COMMA/GREATER
+     25.3:Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, COMMA/GREATER
+
+   AT                   => shift and goto state 43
+   COMMA                => reduce 2 tokens to Dims 25.3
+   GREATER              => reduce 2 tokens to Dims 25.3
+   LEFT_SQUARE_BRACKET  => shift and goto state 70
+   default              => ERROR
+
+   AnnotationList       goto state 71
+   Annotation           goto state 46
+   nonterminal_028      goto state 72
+   nonterminal_027_list goto state 73
+
+   Minimal_Complete_Action => Dims
+
+State 61:
+     25.0:Dims <= AnnotationList LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET nonterminal_012_list, COMMA/GREATER
+     25.1:Dims <= AnnotationList LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, COMMA/GREATER
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 74
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 62:
+     18.1:AnnotationList <= AnnotationList Annotation ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to AnnotationList 18.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to AnnotationList 18.1
+   default              => ERROR
+
+   Minimal_Complete_Action => AnnotationList
+
+State 63:
+     22.1:TypeArgumentList <= TypeArgumentList COMMA TypeArgument ^, COMMA/GREATER
+
+   COMMA                => reduce 3 tokens to TypeArgumentList 22.1
+   GREATER              => reduce 3 tokens to TypeArgumentList 22.1
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArgumentList
+
+State 64:
+     21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+     22.1:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgument, COMMA/GREATER
+
+   COMMA                => shift and goto state 48
+   GREATER              => shift and goto state 75
+   default              => ERROR
+
+   Minimal_Complete_Action => GREATER
+
+State 65:
+     20.0:ClassType <= AnnotationList Identifier TypeArguments ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 3 tokens to ClassType 20.0
+   LONG                 => reduce 3 tokens to ClassType 20.0
+   INT                  => reduce 3 tokens to ClassType 20.0
+   SHORT                => reduce 3 tokens to ClassType 20.0
+   BYTE                 => reduce 3 tokens to ClassType 20.0
+   AT                   => reduce 3 tokens to ClassType 20.0
+   Identifier           => reduce 3 tokens to ClassType 20.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 66:
+     21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to TypeArguments 21.0
+   COMMA                => reduce 3 tokens to TypeArguments 21.0
+   GREATER              => reduce 3 tokens to TypeArguments 21.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to TypeArguments 21.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArguments
+
+State 67:
+     21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, AT/LEFT_SQUARE_BRACKET
+
+   CHAR                 => shift and goto state 17
+   LONG                 => shift and goto state 18
+   INT                  => shift and goto state 19
+   SHORT                => shift and goto state 20
+   BYTE                 => shift and goto state 21
+   AT                   => shift and goto state 22
+   Identifier           => shift and goto state 23
+   default              => ERROR
+
+   AnnotationList       goto state 24
+   Annotation           goto state 25
+   ClassType            goto state 26
+   TypeArgumentList     goto state 76
+   TypeArgument         goto state 28
+   ArrayType            goto state 29
+   PrimitiveType        goto state 30
+   NumericType          goto state 31
+
+   Minimal_Complete_Action => BYTE
+
+State 68:
+     20.2:ClassType <= Identifier TypeArguments ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to ClassType 20.2
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to ClassType 20.2
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 69:
+     20.0:ClassType <= AnnotationList Identifier ^ TypeArguments, AT/LEFT_SQUARE_BRACKET
+     20.1:ClassType <= AnnotationList Identifier ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to ClassType 20.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to ClassType 20.1
+   LESS                 => shift and goto state 67
+   default              => ERROR
+
+   TypeArguments        goto state 77
+
+   Minimal_Complete_Action => ClassType
+
+State 70:
+     30.1:nonterminal_028 <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 78
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 71:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/LEFT_SQUARE_BRACKET
+     30.0:nonterminal_028 <= AnnotationList ^ LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 43
+   LEFT_SQUARE_BRACKET  => shift and goto state 79
+   default              => ERROR
+
+   Annotation           goto state 62
+
+   Minimal_Complete_Action => LEFT_SQUARE_BRACKET
+
+State 72:
+     31.0:nonterminal_027_list <= nonterminal_028 ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to nonterminal_027_list 31.0
+   COMMA                => reduce 1 tokens to nonterminal_027_list 31.0
+   GREATER              => reduce 1 tokens to nonterminal_027_list 31.0
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to nonterminal_027_list 31.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_027_list
+
+State 73:
+     25.2:Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list ^, COMMA/GREATER
+     31.1:nonterminal_027_list <= nonterminal_027_list ^ nonterminal_028, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 43
+   COMMA                => reduce 3 tokens to Dims 25.2
+   GREATER              => reduce 3 tokens to Dims 25.2
+   LEFT_SQUARE_BRACKET  => shift and goto state 70
+   default              => ERROR
+
+   AnnotationList       goto state 71
+   Annotation           goto state 46
+   nonterminal_028      goto state 80
+
+   Minimal_Complete_Action => Dims
+
+State 74:
+     25.0:Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^ nonterminal_012_list, COMMA/GREATER
+     25.1:Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, COMMA/GREATER
+
+   AT                   => shift and goto state 43
+   COMMA                => reduce 3 tokens to Dims 25.1
+   GREATER              => reduce 3 tokens to Dims 25.1
+   LEFT_SQUARE_BRACKET  => shift and goto state 81
+   default              => ERROR
+
+   AnnotationList       goto state 82
+   Annotation           goto state 46
+   nonterminal_013      goto state 83
+   nonterminal_012_list goto state 84
+
+   Minimal_Complete_Action => Dims
+
+State 75:
+     21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
+
+   CHAR                 => reduce 3 tokens to TypeArguments 21.0
+   LONG                 => reduce 3 tokens to TypeArguments 21.0
+   INT                  => reduce 3 tokens to TypeArguments 21.0
+   SHORT                => reduce 3 tokens to TypeArguments 21.0
+   BYTE                 => reduce 3 tokens to TypeArguments 21.0
+   AT                   => reduce 3 tokens to TypeArguments 21.0
+   Identifier           => reduce 3 tokens to TypeArguments 21.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArguments
+
+State 76:
+     21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, AT/LEFT_SQUARE_BRACKET
+     22.1:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgument, COMMA/GREATER
+
+   COMMA                => shift and goto state 48
+   GREATER              => shift and goto state 85
+   default              => ERROR
+
+   Minimal_Complete_Action => GREATER
+
+State 77:
+     20.0:ClassType <= AnnotationList Identifier TypeArguments ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to ClassType 20.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to ClassType 20.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ClassType
+
+State 78:
+     30.1:nonterminal_028 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to nonterminal_028 30.1
+   COMMA                => reduce 2 tokens to nonterminal_028 30.1
+   GREATER              => reduce 2 tokens to nonterminal_028 30.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_028 30.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_028
+
+State 79:
+     30.0:nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 86
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 80:
+     31.1:nonterminal_027_list <= nonterminal_027_list nonterminal_028 ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to nonterminal_027_list 31.1
+   COMMA                => reduce 2 tokens to nonterminal_027_list 31.1
+   GREATER              => reduce 2 tokens to nonterminal_027_list 31.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_027_list 31.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_027_list
+
+State 81:
+     28.1:nonterminal_013 <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 87
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 82:
+     18.1:AnnotationList <= AnnotationList ^ Annotation, AT/LEFT_SQUARE_BRACKET
+     28.0:nonterminal_013 <= AnnotationList ^ LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 43
+   LEFT_SQUARE_BRACKET  => shift and goto state 88
+   default              => ERROR
+
+   Annotation           goto state 62
+
+   Minimal_Complete_Action => LEFT_SQUARE_BRACKET
+
+State 83:
+     29.0:nonterminal_012_list <= nonterminal_013 ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 1 tokens to nonterminal_012_list 29.0
+   COMMA                => reduce 1 tokens to nonterminal_012_list 29.0
+   GREATER              => reduce 1 tokens to nonterminal_012_list 29.0
+   LEFT_SQUARE_BRACKET  => reduce 1 tokens to nonterminal_012_list 29.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_012_list
+
+State 84:
+     25.0:Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list ^, COMMA/GREATER
+     29.1:nonterminal_012_list <= nonterminal_012_list ^ nonterminal_013, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => shift and goto state 43
+   COMMA                => reduce 4 tokens to Dims 25.0
+   GREATER              => reduce 4 tokens to Dims 25.0
+   LEFT_SQUARE_BRACKET  => shift and goto state 81
+   default              => ERROR
+
+   AnnotationList       goto state 82
+   Annotation           goto state 46
+   nonterminal_013      goto state 89
+
+   Minimal_Complete_Action => Dims
+
+State 85:
+     21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, AT/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to TypeArguments 21.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to TypeArguments 21.0
+   default              => ERROR
+
+   Minimal_Complete_Action => TypeArguments
+
+State 86:
+     30.0:nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to nonterminal_028 30.0
+   COMMA                => reduce 3 tokens to nonterminal_028 30.0
+   GREATER              => reduce 3 tokens to nonterminal_028 30.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to nonterminal_028 30.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_028
+
+State 87:
+     28.1:nonterminal_013 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to nonterminal_013 28.1
+   COMMA                => reduce 2 tokens to nonterminal_013 28.1
+   GREATER              => reduce 2 tokens to nonterminal_013 28.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_013 28.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_013
+
+State 88:
+     28.0:nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   RIGHT_SQUARE_BRACKET => shift and goto state 90
+   default              => ERROR
+
+   Minimal_Complete_Action => RIGHT_SQUARE_BRACKET
+
+State 89:
+     29.1:nonterminal_012_list <= nonterminal_012_list nonterminal_013 ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 2 tokens to nonterminal_012_list 29.1
+   COMMA                => reduce 2 tokens to nonterminal_012_list 29.1
+   GREATER              => reduce 2 tokens to nonterminal_012_list 29.1
+   LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_012_list 29.1
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_012_list
+
+State 90:
+     28.0:nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
+
+   AT                   => reduce 3 tokens to nonterminal_013 28.0
+   COMMA                => reduce 3 tokens to nonterminal_013 28.0
+   GREATER              => reduce 3 tokens to nonterminal_013 28.0
+   LEFT_SQUARE_BRACKET  => reduce 3 tokens to nonterminal_013 28.0
+   default              => ERROR
+
+   Minimal_Complete_Action => nonterminal_013
+
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 15 rules, 0 user actions, 0 checks, 91 states, 381 parse actions

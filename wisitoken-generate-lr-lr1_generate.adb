@@ -280,7 +280,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       if Put_Parse_Table then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, "LR1", Grammar, Item_Sets, Conflict_Counts, Descriptor);
+           (Table, "LR1", Grammar, Minimal_Terminal_Sequences, Item_Sets, Conflict_Counts, Descriptor);
       end if;
 
       if Trace_Generate > Outline then

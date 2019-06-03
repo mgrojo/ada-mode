@@ -575,7 +575,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end loop;
 
       if Put_Parse_Table then
-         WisiToken.Generate.LR.Put_Parse_Table (Table, "LALR", Grammar, Kernels, Conflict_Counts, Descriptor);
+         WisiToken.Generate.LR.Put_Parse_Table
+           (Table, "LALR", Grammar, Minimal_Terminal_Sequences, Kernels, Conflict_Counts, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
