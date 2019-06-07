@@ -1,8 +1,3 @@
-current work:
-sal-gen_graphs.adb Find_Cycles
-test_graphs.Test_Find_Cycle
-    passes except path 3
-    add test case of grammar
 
 Release process:
 

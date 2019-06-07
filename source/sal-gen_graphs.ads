@@ -28,14 +28,16 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Vectors;
+with SAL.Gen_Unbounded_Definite_Vectors;
 generic
    type Edge_Data is private;
    Default_Edge_Data : in Edge_Data;
-   type Vertex_Index is (<>);
-package SAL.Gen_Graphs is
+   type Vertex_Index is range <>;
+   Invalid_Vertex : in Vertex_Index'Base;
 
-   Invalid_Vertex : constant Vertex_Index'Base := Vertex_Index'Base'Pred (Vertex_Index'First);
+   type Path_Index is range <>;
+package SAL.Gen_Graphs is
 
    type Graph is tagged private;
 
@@ -47,24 +49,24 @@ package SAL.Gen_Graphs is
    --  Adds a directed edge from Vertex_A to Vertex_B.
 
    type Path_Item is record
-      Vertex : Vertex_Index'Base;
-      Edge   : Edge_Data; -- leading to Vertex
+      Vertex : Vertex_Index'Base := Invalid_Vertex;
+      Edge   : Edge_Data         := Default_Edge_Data; -- leading to Vertex
    end record;
 
    type Path is array (Positive range <>) of Path_Item;
 
-   package Path_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Path);
+   package Path_Arrays is new Ada.Containers.Indefinite_Vectors (Path_Index, Path);
 
    function Find_Paths
      (Graph : in out Gen_Graphs.Graph;
       From  : in     Vertex_Index;
       To    : in     Edge_Data)
-     return Path_Lists.List;
+     return Path_Arrays.Vector;
    --  Return all non-cyclic paths starting at From that lead to a To edge.
    --  First entry in each item in result is From, with first edge. Last
    --  entry in result contains edge data for To, leaving last vertex.
 
-   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Lists.List;
+   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Arrays.Vector;
    --  Return all cyclic paths in Graph.
 
 private
@@ -80,19 +82,19 @@ private
    type Vertex_Node is record
       Edges       : Edge_Lists.List;
 
-      --  FIXME: The following are used in the Find_Path algorithm; move to
-      --  a derived type.
-      Color       : Colors;
-      D           : Natural;
-      Parent      : Vertex_Index'Base;
-      Parent_Set  : Boolean;
-      Parent_Edge : Edge_Lists.Cursor;
+      --  FIXME: The following are used only in the Find_Path algorithm; move to
+      --  a separate type?
+      Color       : Colors            := Colors'First;
+      D           : Natural           := Natural'Last;
+      Parent      : Vertex_Index'Base := Invalid_Vertex;
+      Parent_Set  : Boolean           := False;
+      Parent_Edge : Edge_Lists.Cursor := Edge_Lists.No_Element;
    end record;
 
-   type Vertex_Array is array (Vertex_Index) of Vertex_Node;
+   package Vertex_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Vertex_Index, Vertex_Node, (others => <>));
 
    type Graph is tagged record
-      Vertices : Vertex_Array;
+      Vertices : Vertex_Arrays.Vector;
    end record;
 
 end SAL.Gen_Graphs;

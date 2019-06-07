@@ -45,6 +45,8 @@ package SAL.Gen_Graphs.Gen_AUnit is
       Expected : in Path);
    --  For composing.
 
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Path_Index);
+
    function Image (Item : in Path_Item) return String
      is ("(" & Item.Vertex'Image & ", " & Edge_Image (Item.Edge) & ")");
 

@@ -45,6 +45,7 @@ with Test_Stacks;
 with Test_Stats;
 with Test_Unbounded_Definite_Vectors;
 with Test_Unbounded_Definite_Vectors_Protected;
+with Test_Unbounded_Indefinite_Vectors;
 procedure Test_All_Harness
 is
    --  command line arguments: [<verbose> [test_name [routine_name]]]
@@ -100,7 +101,7 @@ begin
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
-   Add_Test (Suite, new Test_Graphs.Test_Case);
+   Add_Test (Suite, new Test_Graphs.Test_Case (Trace => 0));
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Vectors.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Vectors_Sorted.Test_Case);
@@ -115,6 +116,7 @@ begin
    Add_Test (Suite, new Test_Stats.Test_Case);
    Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Protected.Test_Case);
    Add_Test (Suite, new Test_Unbounded_Definite_Vectors.Test_Case);
+   Add_Test (Suite, new Test_Unbounded_Indefinite_Vectors.Test_Case (Trace => 0));
 
    Run (Suite, Options, Result, Status);
 

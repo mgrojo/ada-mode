@@ -23,8 +23,8 @@
 pragma License (GPL);
 with AUnit.Checks.Containers;
 with Ada.Text_IO;
-with SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit;
 with SAL.Gen_Graphs.Gen_AUnit;
+with SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit;
 package body Test_Graphs is
 
    ----------
@@ -39,21 +39,28 @@ package body Test_Graphs is
       --  labels or weights on the edges; we add an integer to each to
       --  allow testing edge_data. We also treat it as a directed graph.
 
-      type Base_Vertex_Index is (Invalid, R, S, T, U, V, W, X, Y);
-      pragma Unreferenced (Invalid);
-      subtype Vertex_Index is Base_Vertex_Index range R .. Y;
+      R : constant Integer := 1;
+      S : constant Integer := 2;
+      T : constant Integer := 3;
+      U : constant Integer := 4;
+      V : constant Integer := 5;
+      W : constant Integer := 6;
+      X : constant Integer := 7;
+      Y : constant Integer := 8;
 
       package Graphs is new SAL.Gen_Graphs
         (Edge_Data         => Integer,
          Default_Edge_Data => 0,
-         Vertex_Index      => Vertex_Index);
+         Vertex_Index      => Positive,
+         Invalid_Vertex    => 0,
+         Path_Index        => Positive);
       use Graphs;
 
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
       use Graphs_AUnit;
 
       Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Lists.List;
+      Computed : Graphs.Path_Arrays.Vector;
    begin
       --  Fill graph.
 
@@ -90,20 +97,23 @@ package body Test_Graphs is
       package Graphs is new SAL.Gen_Graphs
         (Edge_Data         => Integer, -- "edge number"
          Default_Edge_Data => 0,
-         Vertex_Index      => Vertex_Index);
+         Vertex_Index      => Vertex_Index,
+         Invalid_Vertex    => 6,
+         Path_Index        => Positive);
       use Graphs;
 
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
-      package Paths_AUnit is new SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit
-        (Element_Type  => Path,
-         "="           => "=",
-         Lists         => Path_Lists,
+
+      procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
+        (Index_Type    => Positive,
+         Element_Type  => Path,
+         Vectors       => Graphs.Path_Arrays,
+         Check_Index   => Graphs_AUnit.Check,
          Check_Element => Graphs_AUnit.Check);
-      use Paths_AUnit;
 
       Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Lists.List;
-      Expected : Graphs.Path_Lists.List;
+      Computed : Graphs.Path_Arrays.Vector;
+      Expected : Graphs.Path_Arrays.Vector;
    begin
       --  Fill graph.
 
@@ -116,9 +126,9 @@ package body Test_Graphs is
       Graph.Add_Edge (5, 1, 7);
 
       --  Set expected as in [2] fig 2 page 723
-      Expected.Append (((1, 7), (2, 1), (3, 3), (5, 5)));
-      Expected.Append (((1, 7), (2, 1), (4, 4), (3, 6), (5, 5)));
-      Expected.Append ((1 => (2, 2)));
+      Expected.Append (Path'((1, 7), (2, 1), (3, 3), (5, 5)));
+      Expected.Append (Path'((1, 7), (2, 1), (4, 4), (3, 6), (5, 5)));
+      Expected.Append (Path'(1 => (2, 2)));
 
       Computed := Graph.Find_Cycles;
       Check ("1", Computed, Expected);
@@ -158,9 +168,6 @@ package body Test_Graphs is
       --  11.0 qualified_expression <= name TICK aggregate
 
 
-      type Base_Vertex_Index is range 5 .. 11;
-      subtype Vertex_Index is Base_Vertex_Index range 6 .. 11;
-
       --  In WisiToken, we might want Edge_Data to be:
       --  type Edge is record
       --     LHS       : Positive  := 1;
@@ -171,23 +178,32 @@ package body Test_Graphs is
       --
       --  But using that here just makes the test harder to read
 
+      type Unknown_Recursion_Index is range 0 .. Integer'Last;
+      subtype Recursion_Index is Unknown_Recursion_Index range 1 .. Unknown_Recursion_Index'Last;
+      Invalid_Recursion_Index : constant Unknown_Recursion_Index := 0;
+      pragma Unreferenced (Invalid_Recursion_Index);
+
       package Graphs is new SAL.Gen_Graphs
         (Edge_Data         => Integer,
          Default_Edge_Data => 0,
-         Vertex_Index      => Vertex_Index);
-      use Graphs;
-
+         Vertex_Index      => Positive,
+         Invalid_Vertex    => Integer'Last,
+         Path_Index        => Recursion_Index);
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
-      package Paths_AUnit is new SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit
-        (Element_Type  => Path,
-         "="           => "=",
-         Lists         => Path_Lists,
+
+      procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
+        (Index_Type    => Recursion_Index,
+         Element_Type  => Graphs.Path,
+         "="           => Graphs."=",
+         Vectors       => Graphs.Path_Arrays,
+         Check_Index   => Graphs_AUnit.Check,
          Check_Element => Graphs_AUnit.Check);
-      use Paths_AUnit;
 
       Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Lists.List;
-      Expected : Graphs.Path_Lists.List;
+      Computed : Graphs.Path_Arrays.Vector;
+      Expected : Graphs.Path_Arrays.Vector;
+
+      use Graphs;
    begin
       Graph.Add_Edge  (6, 10, 1);
       Graph.Add_Edge  (7, 10, 2);
@@ -201,10 +217,10 @@ package body Test_Graphs is
 
       --  Cycles are found in start nonterminal order, arbitrary within
       --  start nonterminal; cycles start with lowest nonterm.
-      Expected.Append (((7, 9), (10, 2), (11, 7)));
-      Expected.Append (((8, 6), (10, 3)));
-      Expected.Append (((8, 6), (9, 4), (10, 5)));
-      Expected.Append (((10, 8), (11, 7)));
+      Expected.Append (Path'((7, 9), (10, 2), (11, 7)));
+      Expected.Append (Path'((8, 6), (10, 3)));
+      Expected.Append (Path'((8, 6), (9, 4), (10, 5)));
+      Expected.Append (Path'((10, 8), (11, 7)));
 
       Computed := Graph.Find_Cycles;
       if Test.Trace > 0 then

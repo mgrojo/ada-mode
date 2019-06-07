@@ -75,7 +75,26 @@ package body SAL.Gen_Graphs is
       Vertex_A : in     Vertex_Index;
       Vertex_B : in     Vertex_Index;
       Data     : in     Edge_Data)
-   is begin
+   is
+      procedure Update_First_Last (Vertex : in Vertex_Index)
+      is
+         use all type Ada.Containers.Count_Type;
+      begin
+         if Graph.Vertices.Length = 0 then
+            Graph.Vertices.Set_First_Last (Vertex, Vertex);
+         else
+            if Vertex < Graph.Vertices.First_Index then
+               Graph.Vertices.Set_First (Vertex);
+            end if;
+            if Vertex > Graph.Vertices.Last_Index then
+               Graph.Vertices.Set_Last (Vertex);
+            end if;
+         end if;
+      end Update_First_Last;
+
+   begin
+      Update_First_Last (Vertex_A);
+      Update_First_Last (Vertex_B);
       Graph.Vertices (Vertex_A).Edges.Append ((Vertex_B, Data));
    end Add_Edge;
 
@@ -83,17 +102,17 @@ package body SAL.Gen_Graphs is
      (Graph : in out Gen_Graphs.Graph;
       From  : in     Vertex_Index;
       To    : in     Edge_Data)
-     return Path_Lists.List
+     return Path_Arrays.Vector
    is
       Vertex_Queue  : Vertex_Queues.Queue_Type
-        (Size => Integer (Vertex_Index'Pos (Vertex_Index'Last) - Vertex_Index'Pos (Vertex_Index'First) + 1));
+        (Size => Integer (Graph.Vertices.Last_Index - Graph.Vertices.First_Index + 1));
 
-      Result_List : Path_Lists.List;
+      Result_List : Path_Arrays.Vector;
       Result_Edge : Edge_Lists.Cursor;
    begin
       --  [1] figure 22.3 breadth-first search; 'From' = s.
 
-      for I in Graph.Vertices'Range loop
+      for I in Graph.Vertices.First_Index .. Graph.Vertices.Last_Index loop
          if I = From then
             Graph.Vertices (I).Color      := Gray;
             Graph.Vertices (I).D          := 0;
@@ -142,24 +161,28 @@ package body SAL.Gen_Graphs is
       return Result_List;
    end Find_Paths;
 
-   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Lists.List
+   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Arrays.Vector
    is
       --  Implements [2] "Algorithm EC"
       --
-      --  vertex "0" = Invalid_Vertex
-      --  vertex  N  = Vertex_Index'Last
+      --  vertex 0 = Invalid_Vertex
+      --  vertex 1 = Graph.Vertices.First_Index
+      --  vertex N = Graph.Vertices.Last_Index
 
-      G : Gen_Graphs.Graph renames Graph;
-      P : Path (1 .. Vertex_Index'Pos (Vertex_Index'Last) - Vertex_Index'Pos (Vertex_Index'First) + 1);
+      First : Vertex_Index renames Graph.Vertices.First_Index;
+      Last  : Vertex_Index renames Graph.Vertices.Last_Index;
+
+      G : Vertex_Arrays.Vector renames Graph.Vertices;
+      P : Path (1 .. Integer (Last - First + 1));
       K : Positive := 1; -- ie P_Last
 
-      type H_Row is array (Vertex_Index) of Vertex_Index'Base;
-      H : array (Vertex_Index) of H_Row := (others => (others => Invalid_Vertex));
+      type H_Row is array (G.First_Index .. G.Last_Index) of Vertex_Index'Base;
+      H : array (G.First_Index .. G.Last_Index) of H_Row := (others => (others => Invalid_Vertex));
 
       Next_Vertex_Found : Boolean;
       Circuit_Found     : Boolean;
 
-      Result : Path_Lists.List;
+      Result : Path_Arrays.Vector;
 
       function Contains (P : in Path; V : in Vertex_Index) return Boolean
       is (for some N of P => N.Vertex = V);
@@ -168,7 +191,7 @@ package body SAL.Gen_Graphs is
       is (for some N of Row => N = V);
 
    begin
-      P (1) := (Vertex_Index'First, Default_Edge_Data);
+      P (1) := (First, Default_Edge_Data);
 
       All_Initial_Vertices :
       loop
@@ -181,7 +204,7 @@ package body SAL.Gen_Graphs is
                Circuit_Found     := False;
 
                Find_Next_Vertex :
-               for Edge of G.Vertices (P (K).Vertex).Edges loop
+               for Edge of G (P (K).Vertex).Edges loop
                   declare
                      Next_Vertex : constant Vertex_Index := Edge.Vertex_B; -- ie G[P[k],j]
                   begin
@@ -215,7 +238,7 @@ package body SAL.Gen_Graphs is
             exit Explore_Vertex when K = 1;
 
             H (P (K).Vertex) := (others => Invalid_Vertex);
-            for M in Vertex_Index loop
+            for M in H (P (K - 1).Vertex)'Range loop
                if H (P (K - 1).Vertex)(M) = Invalid_Vertex then
                   H (P (K - 1).Vertex)(M) := P (K).Vertex;
                   P (K) := (Invalid_Vertex, Default_Edge_Data);
@@ -226,9 +249,9 @@ package body SAL.Gen_Graphs is
          end loop Explore_Vertex;
 
          --  EC5 Advance Initial Index
-         exit All_Initial_Vertices when P (1).Vertex = Vertex_Index'Last;
+         exit All_Initial_Vertices when P (1).Vertex = Graph.Vertices.Last_Index;
 
-         P (1) := (Vertex_Index'Succ (P (1).Vertex), Default_Edge_Data);
+         P (1) := (P (1).Vertex + 1, Default_Edge_Data);
          pragma Assert (K = 1);
          H := (others => (others => Invalid_Vertex));
       end loop All_Initial_Vertices;

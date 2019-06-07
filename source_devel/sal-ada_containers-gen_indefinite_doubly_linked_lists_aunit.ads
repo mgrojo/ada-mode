@@ -21,8 +21,7 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 generic
    type Element_Type (<>) is private;
 
-   with function "=" (Left, Right : Element_Type)
-      return Boolean is <>;
+   with function "=" (Left, Right : Element_Type) return Boolean is <>;
 
    with package Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Element_Type, "=");
 
