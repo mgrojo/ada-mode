@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  see spec.
+--  Root of extensions to Ada.Containers.
 --
---  Copyright (C) 2017, 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -16,24 +16,6 @@
 --  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
+package SAL.Ada_Containers is
 
-package body SAL.Gen_Graphs.Gen_AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Path_Item;
-      Expected : in Path_Item)
-   is begin
-      Check (Label & ".Vertex", Computed.Vertex, Expected.Vertex);
-      Check_Edge_Data (Label & ".Edge", Computed.Edge, Expected.Edge);
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Path;
-      Expected : in Path)
-   is begin
-      Check_Path (Label, Computed, Expected, Strict_Indices => True);
-   end Check;
-
-end SAL.Gen_Graphs.Gen_AUnit;
+end SAL.Ada_Containers;

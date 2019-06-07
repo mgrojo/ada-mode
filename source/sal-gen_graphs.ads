@@ -7,7 +7,12 @@
 --  [1] Introduction to Algorithms, Thomas H. Cormen, Charles E.
 --  Leiserson, Ronald L. Rivest, Clifford Stein.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  [2] "An Efficient Search Algorithm to Find the Elementary Circuits
+--  of a Graph", James C. Tiernan, Communications of the ACM Volume 13
+--  Number 12 December 1970.
+--  https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.516.9454&rep=rep1&type=pdf
+--
+--  Copyright (C) 2017, 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -30,6 +35,8 @@ generic
    type Vertex_Index is (<>);
 package SAL.Gen_Graphs is
 
+   Invalid_Vertex : constant Vertex_Index'Base := Vertex_Index'Base'Pred (Vertex_Index'First);
+
    type Graph is tagged private;
 
    procedure Add_Edge
@@ -40,7 +47,7 @@ package SAL.Gen_Graphs is
    --  Adds a directed edge from Vertex_A to Vertex_B.
 
    type Path_Item is record
-      Vertex : Vertex_Index;
+      Vertex : Vertex_Index'Base;
       Edge   : Edge_Data; -- leading to Vertex
    end record;
 
@@ -53,9 +60,12 @@ package SAL.Gen_Graphs is
       From  : in     Vertex_Index;
       To    : in     Edge_Data)
      return Path_Lists.List;
-   --  Return all non-cyclic paths starting From that lead to a To edge.
+   --  Return all non-cyclic paths starting at From that lead to a To edge.
    --  First entry in each item in result is From, with first edge. Last
    --  entry in result contains edge data for To, leaving last vertex.
+
+   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Lists.List;
+   --  Return all cyclic paths in Graph.
 
 private
    type Edge_Node is record
@@ -69,9 +79,12 @@ private
 
    type Vertex_Node is record
       Edges       : Edge_Lists.List;
+
+      --  FIXME: The following are used in the Find_Path algorithm; move to
+      --  a derived type.
       Color       : Colors;
       D           : Natural;
-      Parent      : Vertex_Index'Base; -- FIXME: use greek Pi; need to fix wisitoken to use better lexer
+      Parent      : Vertex_Index'Base;
       Parent_Set  : Boolean;
       Parent_Edge : Edge_Lists.Cursor;
    end record;

@@ -6,7 +6,7 @@
 --
 --  see sal-gen_graphs.ads
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,31 +22,34 @@
 
 pragma License (GPL);
 with AUnit.Checks.Containers;
-with SAL.Gen_Graphs.Gen_Aunit;
+with SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit;
+with SAL.Gen_Graphs.Gen_AUnit;
 package body Test_Graphs is
-
-   --  Test uses the graph in [1] figure 22.3. That does not have
-   --  labels or weights on the edges; we add an integer to each to
-   --  allow testing edge_data. We also treat it as a directed graph.
-
-   type Vertex_Index is (R, S, T, U, V, W, X, Y);
-
-   package Graphs is new SAL.Gen_Graphs
-     (Edge_Data         => Integer,
-      Default_Edge_Data => 0,
-      Vertex_Index      => Vertex_Index);
-   use Graphs;
-
-   package Graphs_Aunit is new Graphs.Gen_Aunit (AUnit.Checks.Check);
 
    ----------
    --  Test procedures
 
-   procedure Nominal (Tst : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Find_Path (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Tst);
       use AUnit.Checks.Containers;
-      use Graphs_Aunit;
+
+      --  Test uses the graph in [1] figure 22.3. That does not have
+      --  labels or weights on the edges; we add an integer to each to
+      --  allow testing edge_data. We also treat it as a directed graph.
+
+      type Base_Vertex_Index is (Invalid, R, S, T, U, V, W, X, Y);
+      pragma Unreferenced (Invalid);
+      subtype Vertex_Index is Base_Vertex_Index range R .. Y;
+
+      package Graphs is new SAL.Gen_Graphs
+        (Edge_Data         => Integer,
+         Default_Edge_Data => 0,
+         Vertex_Index      => Vertex_Index);
+      use Graphs;
+
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      use Graphs_AUnit;
 
       Graph    : Graphs.Graph;
       Computed : Graphs.Path_Lists.List;
@@ -72,7 +75,53 @@ package body Test_Graphs is
       Check ("v - 10.length", Computed.Length, 1);
       Check ("v - 10.first", Computed (Computed.First), ((V, 1), (R, 2), (S, 3), (W, 5), (X, 10)));
 
-   end Nominal;
+   end Test_Find_Path;
+
+   procedure Test_Find_Cycles (Tst : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (Tst);
+
+      --  Test uses the graph in [2] figure 1.
+
+      type Base_Vertex_Index is range 0 .. 5;
+      subtype Vertex_Index is Base_Vertex_Index range 1 .. 5;
+
+      package Graphs is new SAL.Gen_Graphs
+        (Edge_Data         => Integer, -- "edge number"
+         Default_Edge_Data => 0,
+         Vertex_Index      => Vertex_Index);
+      use Graphs;
+
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      package Paths_AUnit is new SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit
+        (Element_Type  => Path,
+         "="           => "=",
+         Lists         => Path_Lists,
+         Check_Element => Graphs_AUnit.Check);
+      use Paths_AUnit;
+
+      Graph    : Graphs.Graph;
+      Computed : Graphs.Path_Lists.List;
+      Expected : Graphs.Path_Lists.List;
+   begin
+      --  Fill graph.
+
+      Graph.Add_Edge (1, 2, 1);
+      Graph.Add_Edge (2, 2, 2);
+      Graph.Add_Edge (2, 3, 3);
+      Graph.Add_Edge (2, 4, 4);
+      Graph.Add_Edge (3, 5, 5);
+      Graph.Add_Edge (4, 3, 6);
+      Graph.Add_Edge (5, 1, 7);
+
+      --  Set expected as in [2] fig 2 page 723
+      Expected.Append (((1, 0), (2, 1), (3, 3), (5, 5)));
+      Expected.Append (((1, 0), (2, 1), (4, 4), (3, 6), (5, 5)));
+      Expected.Append ((1 => (2, 0)));
+
+      Computed := Graph.Find_Cycles;
+      Check ("1", Computed, Expected);
+   end Test_Find_Cycles;
 
    ----------
    --  Public routines
@@ -81,7 +130,8 @@ package body Test_Graphs is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Find_Path'Access, "Test_Find_Path");
+      Register_Routine (T, Test_Find_Cycles'Access, "Test_Find_Cycles");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
