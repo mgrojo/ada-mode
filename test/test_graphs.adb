@@ -22,6 +22,7 @@
 
 pragma License (GPL);
 with AUnit.Checks.Containers;
+with Ada.Text_IO;
 with SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit;
 with SAL.Gen_Graphs.Gen_AUnit;
 package body Test_Graphs is
@@ -48,7 +49,7 @@ package body Test_Graphs is
          Vertex_Index      => Vertex_Index);
       use Graphs;
 
-      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
       use Graphs_AUnit;
 
       Graph    : Graphs.Graph;
@@ -92,7 +93,7 @@ package body Test_Graphs is
          Vertex_Index      => Vertex_Index);
       use Graphs;
 
-      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
       package Paths_AUnit is new SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit
         (Element_Type  => Path,
          "="           => "=",
@@ -115,13 +116,105 @@ package body Test_Graphs is
       Graph.Add_Edge (5, 1, 7);
 
       --  Set expected as in [2] fig 2 page 723
-      Expected.Append (((1, 0), (2, 1), (3, 3), (5, 5)));
-      Expected.Append (((1, 0), (2, 1), (4, 4), (3, 6), (5, 5)));
-      Expected.Append ((1 => (2, 0)));
+      Expected.Append (((1, 7), (2, 1), (3, 3), (5, 5)));
+      Expected.Append (((1, 7), (2, 1), (4, 4), (3, 6), (5, 5)));
+      Expected.Append ((1 => (2, 2)));
 
       Computed := Graph.Find_Cycles;
       Check ("1", Computed, Expected);
    end Test_Find_Cycles;
+
+   procedure Test_Conflict_Name (Tst : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (Tst);
+
+      --  Graph is from WisiToken conflict_name.wy grammar.
+      --
+      --  Nodes are nonterminals, edges are occurence of nonterminal in a
+      --  production.
+      --
+      --  Nonterminals:
+      --   6 => wisitoken_accept
+      --   7 => aggregate
+      --   8 => attribute_reference
+      --   9 => attribute_designator
+      --  10 => name
+      --  11 => qualified_expression
+
+      --  Productions:
+      --   6.0 wisitoken_accept <= name Wisi_EOI
+      --
+      --   7.0 aggregate <= LEFT_PAREN name RIGHT_PAREN
+      --
+      --   8.0 attribute_reference <= name TICK attribute_designator
+      --
+      --   9.0 attribute_designator <= name
+      --
+      --        name
+      --  10.0  <= IDENTIFIER
+      --  10.1  | attribute_reference
+      --  10.2  | qualified_expression
+      --
+      --  11.0 qualified_expression <= name TICK aggregate
+
+
+      type Base_Vertex_Index is range 5 .. 11;
+      subtype Vertex_Index is Base_Vertex_Index range 6 .. 11;
+
+      --  In WisiToken, we might want Edge_Data to be:
+      --  type Edge is record
+      --     LHS       : Positive  := 1;
+      --     RHS       : Natural   := 10;
+      --     Token     : Positive  := 10;
+      --     Recursive : Recursion := None;
+      --  end record;
+      --
+      --  But using that here just makes the test harder to read
+
+      package Graphs is new SAL.Gen_Graphs
+        (Edge_Data         => Integer,
+         Default_Edge_Data => 0,
+         Vertex_Index      => Vertex_Index);
+      use Graphs;
+
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
+      package Paths_AUnit is new SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit
+        (Element_Type  => Path,
+         "="           => "=",
+         Lists         => Path_Lists,
+         Check_Element => Graphs_AUnit.Check);
+      use Paths_AUnit;
+
+      Graph    : Graphs.Graph;
+      Computed : Graphs.Path_Lists.List;
+      Expected : Graphs.Path_Lists.List;
+   begin
+      Graph.Add_Edge  (6, 10, 1);
+      Graph.Add_Edge  (7, 10, 2);
+      Graph.Add_Edge  (8, 10, 3);
+      Graph.Add_Edge  (8,  9, 4);
+      Graph.Add_Edge  (9, 10, 5);
+      Graph.Add_Edge (10,  8, 6);
+      Graph.Add_Edge (10, 11, 7);
+      Graph.Add_Edge (11, 10, 8);
+      Graph.Add_Edge (11,  7, 9);
+
+      --  Cycles are found in start nonterminal order, arbitrary within
+      --  start nonterminal; cycles start with lowest nonterm.
+      Expected.Append (((7, 9), (10, 2), (11, 7)));
+      Expected.Append (((8, 6), (10, 3)));
+      Expected.Append (((8, 6), (9, 4), (10, 5)));
+      Expected.Append (((10, 8), (11, 7)));
+
+      Computed := Graph.Find_Cycles;
+      if Test.Trace > 0 then
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs_AUnit.Image (Cycle));
+         end loop;
+      end if;
+
+      Check ("1", Computed, Expected);
+   end Test_Conflict_Name;
 
    ----------
    --  Public routines
@@ -132,6 +225,7 @@ package body Test_Graphs is
    begin
       Register_Routine (T, Test_Find_Path'Access, "Test_Find_Path");
       Register_Routine (T, Test_Find_Cycles'Access, "Test_Find_Cycles");
+      Register_Routine (T, Test_Conflict_Name'Access, "Test_Conflict_Name");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

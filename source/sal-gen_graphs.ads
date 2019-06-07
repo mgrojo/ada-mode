@@ -70,7 +70,7 @@ package SAL.Gen_Graphs is
 private
    type Edge_Node is record
       Vertex_B : Vertex_Index;
-      Data     : Edge_Data;
+      Data     : Edge_Data; -- to Vertex_B
    end record;
 
    package Edge_Lists is new Ada.Containers.Doubly_Linked_Lists (Edge_Node);

@@ -185,7 +185,10 @@ package body SAL.Gen_Graphs is
                   declare
                      Next_Vertex : constant Vertex_Index := Edge.Vertex_B; -- ie G[P[k],j]
                   begin
-                     Circuit_Found := Circuit_Found or Next_Vertex = P (1).Vertex;
+                     if Next_Vertex = P (1).Vertex then
+                        Circuit_Found := True;
+                        P (1).Edge    := Edge.Data;
+                     end if;
 
                      if Next_Vertex > P (1).Vertex and -- (1)
                        (not Contains (P, Next_Vertex)) and -- (2)
