@@ -17,7 +17,9 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Unbounded;
 with SAL.Gen_Bounded_Definite_Queues;
+with SAL.Gen_Trimmed_Image;
 package body SAL.Gen_Graphs is
 
    package Vertex_Queues is new SAL.Gen_Bounded_Definite_Queues (Vertex_Index);
@@ -32,40 +34,7 @@ package body SAL.Gen_Graphs is
       return Edge_Lists.No_Element;
    end Find;
 
-   function Build_Path
-     (Graph       : in Gen_Graphs.Graph;
-      Tail_Vertex : in Vertex_Index;
-      Tail_Edge   : in Edge_Lists.Cursor)
-     return Path
-   is
-   begin
-      return Result : Path (1 .. Graph.Vertices (Tail_Vertex).D + 1)
-      do
-         declare
-            use Edge_Lists;
-            V_Index   : Vertex_Index := Tail_Vertex;
-            Last_Edge : Cursor       := Tail_Edge;
-         begin
-            for I in reverse 1 .. Result'Length loop
-               declare
-                  V : Vertex_Node renames Graph.Vertices (V_Index);
-               begin
-                  Result (I) :=
-                    (V_Index,
-                     (if Last_Edge = No_Element
-                      then Default_Edge_Data
-                      else Element (Last_Edge).Data));
-
-                  if V.Parent_Set then
-                     Last_Edge := V.Parent_Edge;
-                     V_Index   := V.Parent;
-                  end if;
-               end;
-            end loop;
-         end;
-      end return;
-
-   end Build_Path;
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Vertex_Index);
 
    ----------
    --  Visible subprograms
@@ -76,6 +45,8 @@ package body SAL.Gen_Graphs is
       Vertex_B : in     Vertex_Index;
       Data     : in     Edge_Data)
    is
+      Multigraph : Boolean := False;
+
       procedure Update_First_Last (Vertex : in Vertex_Index)
       is
          use all type Ada.Containers.Count_Type;
@@ -95,8 +66,36 @@ package body SAL.Gen_Graphs is
    begin
       Update_First_Last (Vertex_A);
       Update_First_Last (Vertex_B);
-      Graph.Vertices (Vertex_A).Edges.Append ((Vertex_B, Data));
+
+      Graph.Last_Edge_ID := Graph.Last_Edge_ID + 1;
+      if (for some E of Graph.Vertices (Vertex_A) => E.Vertex_B = Vertex_B) then
+         Multigraph       := True;
+         Graph.Multigraph := True;
+      end if;
+
+      Graph.Vertices (Vertex_A).Append ((Graph.Last_Edge_ID, Vertex_B, Multigraph, Data));
    end Add_Edge;
+
+   function Multigraph (Graph : in Gen_Graphs.Graph) return Boolean
+   is begin
+      return Graph.Multigraph;
+   end Multigraph;
+
+   function Image (Item : in Path) return String
+   is
+      use Ada.Strings.Unbounded;
+
+      Result : Unbounded_String := To_Unbounded_String ("(");
+
+   begin
+      for I in Item'Range loop
+         Result := Result & Trimmed_Image (Item (I).Vertex) &
+           --  FIXME: add edge id?
+           Edge_Image ((if I = Item'Last then Item (Item'First).Edge else Item (I).Edge)) & " -> ";
+      end loop;
+      Result := Result & ")";
+      return To_String (Result);
+   end Image;
 
    function Find_Paths
      (Graph : in out Gen_Graphs.Graph;
@@ -107,21 +106,67 @@ package body SAL.Gen_Graphs is
       Vertex_Queue  : Vertex_Queues.Queue_Type
         (Size => Integer (Graph.Vertices.Last_Index - Graph.Vertices.First_Index + 1));
 
+      type Aux_Node is record
+         Color       : Colors            := Colors'First;
+         D           : Natural           := Natural'Last;
+         Parent      : Vertex_Index'Base := Invalid_Vertex;
+         Parent_Set  : Boolean           := False;
+         Parent_Edge : Edge_Lists.Cursor := Edge_Lists.No_Element;
+      end record;
+
+      package Aux_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Vertex_Index, Aux_Node, (others => <>));
+      Aux : Aux_Arrays.Vector;
+
+      function Build_Path
+        (Tail_Vertex : in Vertex_Index;
+         Tail_Edge   : in Edge_Lists.Cursor)
+        return Path
+      is
+      begin
+         return Result : Path (1 .. Aux (Tail_Vertex).D + 1)
+         do
+            declare
+               use Edge_Lists;
+               V_Index   : Vertex_Index := Tail_Vertex;
+               Last_Edge : Cursor       := Tail_Edge;
+            begin
+               for I in reverse 1 .. Result'Length loop
+                  declare
+                     V : Aux_Node renames Aux (V_Index);
+                  begin
+                     if Last_Edge = No_Element then
+                        Result (I) := (V_Index, Invalid_Edge_ID, Default_Edge_Data);
+                     else
+                        Result (I) := (V_Index, Element (Last_Edge).ID, Element (Last_Edge).Data);
+                     end if;
+
+                     if V.Parent_Set then
+                        Last_Edge := V.Parent_Edge;
+                        V_Index   := V.Parent;
+                     end if;
+                  end;
+               end loop;
+            end;
+         end return;
+      end Build_Path;
+
       Result_List : Path_Arrays.Vector;
       Result_Edge : Edge_Lists.Cursor;
    begin
       --  [1] figure 22.3 breadth-first search; 'From' = s.
 
-      for I in Graph.Vertices.First_Index .. Graph.Vertices.Last_Index loop
+      Aux.Set_First_Last (Graph.Vertices.First_Index, Graph.Vertices.Last_Index);
+
+      for I in Aux.First_Index .. Aux.Last_Index loop
          if I = From then
-            Graph.Vertices (I).Color      := Gray;
-            Graph.Vertices (I).D          := 0;
-            Graph.Vertices (I).Parent_Set := False;
+            Aux (I).Color      := Gray;
+            Aux (I).D          := 0;
+            Aux (I).Parent_Set := False;
 
          else
-            Graph.Vertices (I).Color      := White;
-            Graph.Vertices (I).D          := Natural'Last;
-            Graph.Vertices (I).Parent_Set := False;
+            Aux (I).Color      := White;
+            Aux (I).D          := Natural'Last;
+            Aux (I).Parent_Set := False;
          end if;
       end loop;
 
@@ -130,14 +175,14 @@ package body SAL.Gen_Graphs is
       while not Vertex_Queue.Is_Empty loop
          declare
             U_Index : constant Vertex_Index := Vertex_Queue.Get;
-            U       : Vertex_Node renames Graph.Vertices (U_Index);
+            U       : Aux_Node renames Aux (U_Index);
          begin
             Edges :
-            for C in Graph.Vertices (U_Index).Edges.Iterate loop
+            for C in Graph.Vertices (U_Index).Iterate loop
                declare
                   use all type Edge_Lists.Cursor;
                   V_Index : constant Vertex_Index := Edge_Lists.Element (C).Vertex_B;
-                  V       : Vertex_Node renames Graph.Vertices (V_Index);
+                  V       : Aux_Node renames Aux (V_Index);
                begin
                   if V.Color = White then
                      V.Color       := Gray;
@@ -146,9 +191,9 @@ package body SAL.Gen_Graphs is
                      V.Parent_Edge := C;
                      V.Parent_Set  := True;
 
-                     Result_Edge := Find (To, V.Edges);
+                     Result_Edge := Find (To, Graph.Vertices (V_Index));
                      if Result_Edge /= Edge_Lists.No_Element then
-                        Result_List.Append (Build_Path (Graph, V_Index, Result_Edge));
+                        Result_List.Append (Build_Path (V_Index, Result_Edge));
                      end if;
 
                      Vertex_Queue.Put (V_Index);
@@ -180,7 +225,6 @@ package body SAL.Gen_Graphs is
       H : array (G.First_Index .. G.Last_Index) of H_Row := (others => (others => Invalid_Vertex));
 
       Next_Vertex_Found : Boolean;
-      Circuit_Found     : Boolean;
 
       Result : Path_Arrays.Vector;
 
@@ -191,7 +235,9 @@ package body SAL.Gen_Graphs is
       is (for some N of Row => N = V);
 
    begin
-      P (1) := (First, Default_Edge_Data);
+      if Graph.Multigraph then raise Multigraph_Error; end if;
+
+      P (1) := (First, Invalid_Edge_ID, Default_Edge_Data);
 
       All_Initial_Vertices :
       loop
@@ -201,24 +247,18 @@ package body SAL.Gen_Graphs is
             loop  -- EC2 Path Extension
 
                Next_Vertex_Found := False;
-               Circuit_Found     := False;
 
                Find_Next_Vertex :
-               for Edge of G (P (K).Vertex).Edges loop
+               for Edge of G (P (K).Vertex) loop
                   declare
                      Next_Vertex : constant Vertex_Index := Edge.Vertex_B; -- ie G[P[k],j]
                   begin
-                     if Next_Vertex = P (1).Vertex then
-                        Circuit_Found := True;
-                        P (1).Edge    := Edge.Data;
-                     end if;
-
                      if Next_Vertex > P (1).Vertex and -- (1)
                        (not Contains (P, Next_Vertex)) and -- (2)
                        (not Contains (H (P (K).Vertex), Next_Vertex))
                      then
                         K     := K + 1;
-                        P (K) := (Next_Vertex, Edge.Data);
+                        P (K) := (Next_Vertex, Edge.ID, Edge.Data);
 
                         Next_Vertex_Found := True;
                         exit Find_Next_Vertex;
@@ -230,9 +270,13 @@ package body SAL.Gen_Graphs is
             end loop Path_Extension;
 
             --  EC3 Circuit Confirmation
-            if Circuit_Found then
-               Result.Append (P (1 .. K));
-            end if;
+            for Edge of G (P (K).Vertex) loop
+               if Edge.Vertex_B = P (1).Vertex then
+                  P (1).Edge    := Edge.Data;
+                  Result.Append (P (1 .. K));
+                  exit;
+               end if;
+            end loop;
 
             --  EC4 Vertex Closure
             exit Explore_Vertex when K = 1;
@@ -241,7 +285,7 @@ package body SAL.Gen_Graphs is
             for M in H (P (K - 1).Vertex)'Range loop
                if H (P (K - 1).Vertex)(M) = Invalid_Vertex then
                   H (P (K - 1).Vertex)(M) := P (K).Vertex;
-                  P (K) := (Invalid_Vertex, Default_Edge_Data);
+                  P (K) := (Invalid_Vertex, Invalid_Edge_ID, Default_Edge_Data);
                   exit;
                end if;
             end loop;
@@ -251,7 +295,7 @@ package body SAL.Gen_Graphs is
          --  EC5 Advance Initial Index
          exit All_Initial_Vertices when P (1).Vertex = Graph.Vertices.Last_Index;
 
-         P (1) := (P (1).Vertex + 1, Default_Edge_Data);
+         P (1) := (P (1).Vertex + 1, Invalid_Edge_ID, Default_Edge_Data);
          pragma Assert (K = 1);
          H := (others => (others => Invalid_Vertex));
       end loop All_Initial_Vertices;

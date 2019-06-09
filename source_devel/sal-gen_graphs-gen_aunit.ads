@@ -18,10 +18,9 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks;
-with SAL.Gen_Unconstrained_Array_Image;
+with SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit;
 generic
    with procedure Check_Edge_Data (Label : in String; Computed, Expected : in Edge_Data);
-   with function Edge_Image (Item : in Edge_Data) return String;
 package SAL.Gen_Graphs.Gen_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Vertex_Index);
@@ -47,9 +46,11 @@ package SAL.Gen_Graphs.Gen_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Path_Index);
 
-   function Image (Item : in Path_Item) return String
-     is ("(" & Item.Vertex'Image & ", " & Edge_Image (Item.Edge) & ")");
-
-   function Image is new SAL.Gen_Unconstrained_Array_Image (Positive, Path_Item, Path, Image);
+   procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
+     (Index_Type    => Path_Index,
+      Element_Type  => Path,
+      Vectors       => Path_Arrays,
+      Check_Index   => Check,
+      Check_Element => Check);
 
 end SAL.Gen_Graphs.Gen_AUnit;

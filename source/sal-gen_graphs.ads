@@ -37,6 +37,8 @@ generic
    Invalid_Vertex : in Vertex_Index'Base;
 
    type Path_Index is range <>;
+
+   with function Edge_Image (Item : in Edge_Data) return String;
 package SAL.Gen_Graphs is
 
    type Graph is tagged private;
@@ -48,12 +50,31 @@ package SAL.Gen_Graphs is
       Data     : in     Edge_Data);
    --  Adds a directed edge from Vertex_A to Vertex_B.
 
+   function Multigraph (Graph : in Gen_Graphs.Graph) return Boolean;
+   --  If more than one edge is added between two vertices, the graph is
+   --  a multigraph. The edges are given separate identifiers internally.
+
+   Multigraph_Error : exception;
+
+   type Base_Edge_ID is range 0 .. Integer'Last;
+   subtype Edge_ID is Base_Edge_ID range 1 .. Base_Edge_ID'Last;
+   Invalid_Edge_ID : constant Base_Edge_ID := 0;
+   --  Edge ids are unique graph-wide, assigned by Add_Edge.
+
    type Path_Item is record
-      Vertex : Vertex_Index'Base := Invalid_Vertex;
-      Edge   : Edge_Data         := Default_Edge_Data; -- leading to Vertex
+      Vertex  : Vertex_Index'Base       := Invalid_Vertex;
+      Edge_ID : Gen_Graphs.Base_Edge_ID := Invalid_Edge_ID;
+      Edge    : Edge_Data               := Default_Edge_Data;
+      --  Edge_ID, Edge describe the edge leading from the previous vertex
+      --  in the path to Vertex. If this is the first vertex in an open
+      --  path, Edge_ID is Invalid_Edge_ID. If it is the first vertex in a
+      --  cycle, the edge is from the last vertex in the cycle.
    end record;
 
    type Path is array (Positive range <>) of Path_Item;
+
+   function Image (Item : in Path) return String;
+   --  For trace, debugging.
 
    package Path_Arrays is new Ada.Containers.Indefinite_Vectors (Path_Index, Path);
 
@@ -62,39 +83,36 @@ package SAL.Gen_Graphs is
       From  : in     Vertex_Index;
       To    : in     Edge_Data)
      return Path_Arrays.Vector;
-   --  Return all non-cyclic paths starting at From that lead to a To edge.
-   --  First entry in each item in result is From, with first edge. Last
-   --  entry in result contains edge data for To, leaving last vertex.
+   --  Return all non-cyclic paths starting at From that lead to a To
+   --  edge, using algorithm [1]. First entry in each item in result is
+   --  From, with first edge. Last entry in result contains edge data for
+   --  To.
+   --
+   --  Raises Multigraph_Error if Graph is a multigraph.
 
    function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Arrays.Vector;
-   --  Return all cyclic paths in Graph.
+   --  Return all cyclic paths in Graph, using algorithm [2].
 
 private
    type Edge_Node is record
-      Vertex_B : Vertex_Index;
-      Data     : Edge_Data; -- to Vertex_B
+      --  Edge is from vertex contaning this Node to Vertex_B
+      ID         : Edge_ID;
+      Vertex_B   : Vertex_Index;
+      Multigraph : Boolean;
+      Data       : Edge_Data;
    end record;
 
    package Edge_Lists is new Ada.Containers.Doubly_Linked_Lists (Edge_Node);
 
    type Colors is (White, Gray, Black);
 
-   type Vertex_Node is record
-      Edges       : Edge_Lists.List;
-
-      --  FIXME: The following are used only in the Find_Path algorithm; move to
-      --  a separate type?
-      Color       : Colors            := Colors'First;
-      D           : Natural           := Natural'Last;
-      Parent      : Vertex_Index'Base := Invalid_Vertex;
-      Parent_Set  : Boolean           := False;
-      Parent_Edge : Edge_Lists.Cursor := Edge_Lists.No_Element;
-   end record;
-
-   package Vertex_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Vertex_Index, Vertex_Node, (others => <>));
+   package Vertex_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Vertex_Index, Edge_Lists.List, Edge_Lists.Empty_List);
 
    type Graph is tagged record
-      Vertices : Vertex_Arrays.Vector;
+      Last_Edge_ID : Base_Edge_ID := Invalid_Edge_ID;
+      Multigraph   : Boolean      := False;
+      Vertices     : Vertex_Arrays.Vector;
    end record;
 
 end SAL.Gen_Graphs;

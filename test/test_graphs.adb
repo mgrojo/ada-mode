@@ -33,6 +33,7 @@ package body Test_Graphs is
    procedure Test_Find_Path (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Tst);
+      use AUnit.Checks;
       use AUnit.Checks.Containers;
 
       --  Test uses the graph in [1] figure 22.3. That does not have
@@ -53,10 +54,11 @@ package body Test_Graphs is
          Default_Edge_Data => 0,
          Vertex_Index      => Positive,
          Invalid_Vertex    => 0,
-         Path_Index        => Positive);
+         Path_Index        => Positive,
+         Edge_Image        => Integer'Image);
       use Graphs;
 
-      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
       use Graphs_AUnit;
 
       Graph    : Graphs.Graph;
@@ -75,19 +77,22 @@ package body Test_Graphs is
       Graph.Add_Edge (X, U, 9);
       Graph.Add_Edge (X, Y, 10);
 
+      Check ("Multigraph", Graph.Multigraph, False);
+
       Computed := Graph.Find_Paths (V, 2);
       Check ("v - 2.length", Computed.Length, 1);
-      Check ("v - 2.first", Computed (Computed.First), ((V, 1), (R, 2)));
+      Check ("v - 2.first", Computed (Computed.First), ((V, 1, 1), (R, 2, 2)));
 
       Computed := Graph.Find_Paths (V, 10);
       Check ("v - 10.length", Computed.Length, 1);
-      Check ("v - 10.first", Computed (Computed.First), ((V, 1), (R, 2), (S, 3), (W, 5), (X, 10)));
+      Check ("v - 10.first", Computed (Computed.First), ((V, 1, 1), (R, 2, 2), (S, 3, 3), (W, 5, 5), (X, 10, 10)));
 
    end Test_Find_Path;
 
    procedure Test_Find_Cycles (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Tst);
+      use AUnit.Checks;
 
       --  Test uses the graph in [2] figure 1.
 
@@ -99,10 +104,11 @@ package body Test_Graphs is
          Default_Edge_Data => 0,
          Vertex_Index      => Vertex_Index,
          Invalid_Vertex    => 6,
-         Path_Index        => Positive);
+         Path_Index        => Positive,
+         Edge_Image        => Integer'Image);
       use Graphs;
 
-      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
 
       procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
         (Index_Type    => Positive,
@@ -125,10 +131,12 @@ package body Test_Graphs is
       Graph.Add_Edge (4, 3, 6);
       Graph.Add_Edge (5, 1, 7);
 
+      Check ("Multigraph", Graph.Multigraph, False);
+
       --  Set expected as in [2] fig 2 page 723
-      Expected.Append (Path'((1, 7), (2, 1), (3, 3), (5, 5)));
-      Expected.Append (Path'((1, 7), (2, 1), (4, 4), (3, 6), (5, 5)));
-      Expected.Append (Path'(1 => (2, 2)));
+      Expected.Append (Path'((1, 7, 7), (2, 1, 1), (3, 3, 3), (5, 5, 5)));
+      Expected.Append (Path'((1, 7, 7), (2, 1, 1), (4, 4, 4), (3, 6, 6), (5, 5, 5)));
+      Expected.Append (Path'(1 => (2, 2, 2)));
 
       Computed := Graph.Find_Cycles;
       Check ("1", Computed, Expected);
@@ -137,6 +145,7 @@ package body Test_Graphs is
    procedure Test_Conflict_Name (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (Tst);
+      use AUnit.Checks;
 
       --  Graph is from WisiToken conflict_name.wy grammar.
       --
@@ -188,8 +197,9 @@ package body Test_Graphs is
          Default_Edge_Data => 0,
          Vertex_Index      => Positive,
          Invalid_Vertex    => Integer'Last,
-         Path_Index        => Recursion_Index);
-      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check, Integer'Image);
+         Path_Index        => Recursion_Index,
+         Edge_Image        => Integer'Image);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
 
       procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
         (Index_Type    => Recursion_Index,
@@ -215,22 +225,129 @@ package body Test_Graphs is
       Graph.Add_Edge (11, 10, 8);
       Graph.Add_Edge (11,  7, 9);
 
+      Check ("Multigraph", Graph.Multigraph, False);
+
       --  Cycles are found in start nonterminal order, arbitrary within
       --  start nonterminal; cycles start with lowest nonterm.
-      Expected.Append (Path'((7, 9), (10, 2), (11, 7)));
-      Expected.Append (Path'((8, 6), (10, 3)));
-      Expected.Append (Path'((8, 6), (9, 4), (10, 5)));
-      Expected.Append (Path'((10, 8), (11, 7)));
+      Expected.Append (Path'((7, 9, 9), (10, 2, 2), (11, 7, 7)));
+      Expected.Append (Path'((8, 6, 6), (10, 3, 3)));
+      Expected.Append (Path'((8, 6, 6), (9, 4, 4), (10, 5, 5)));
+      Expected.Append (Path'((10, 8, 8), (11, 7, 7)));
 
       Computed := Graph.Find_Cycles;
       if Test.Trace > 0 then
          for Cycle of Computed loop
-            Ada.Text_IO.Put_Line (Graphs_AUnit.Image (Cycle));
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
          end loop;
       end if;
 
       Check ("1", Computed, Expected);
    end Test_Conflict_Name;
+
+   procedure Test_Ada_Lite_Name (Tst : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (Tst);
+      use AUnit.Checks;
+
+      --  Graph is from a small subset of the WisiToken ada_lite.wy name
+      --  grammar; it did not find the loop 11.0 -> 11.0.
+      --
+      --  There are multiple edges between the same two nodes; this requires
+      --  the algorithm to use edge ids.
+      --
+      --  Nonterminals:
+      --  8.0: wisitoken_accept <= name Wisi_EOI
+      --  9.0: actual_parameter_part <= LEFT_PAREN association_opt RIGHT_PAREN
+      --  10.0: association_opt <= IDENTIFIER EQUAL_GREATER primary
+      --  10.1: association_opt <= primary
+      --  10.2: association_opt <=
+      --  11.0: name <= name LEFT_PAREN range_list RIGHT_PAREN
+      --  11.1: name <= name actual_parameter_part
+      --  11.2: name <= IDENTIFIER
+      --  12.0: paren_primary <= LEFT_PAREN primary RIGHT_PAREN
+      --  13.0: primary <= NUMERIC_LITERAL
+      --  13.1: primary <= name
+      --  13.2: primary <= paren_primary
+      --  14.0: range_g <= primary DOT_DOT primary
+      --  15.0: range_list <= range_list COMMA range_g
+      --  15.1: range_list <= range_g
+
+      type Unknown_Recursion_Index is range 0 .. Integer'Last;
+      subtype Recursion_Index is Unknown_Recursion_Index range 1 .. Unknown_Recursion_Index'Last;
+
+      package Graphs is new SAL.Gen_Graphs
+        (Edge_Data         => Integer,
+         Default_Edge_Data => 0,
+         Vertex_Index      => Positive,
+         Invalid_Vertex    => Integer'Last,
+         Path_Index        => Recursion_Index,
+         Edge_Image        => Integer'Image);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+
+      Graph    : Graphs.Graph;
+      Computed : Graphs.Path_Arrays.Vector;
+      Expected : Graphs.Path_Arrays.Vector;
+
+      use Graphs;
+   begin
+      Graph.Add_Edge  (8, 11,  1);
+      Graph.Add_Edge  (9, 10,  2);
+      Graph.Add_Edge (10, 13,  3); -- 10.0
+      Graph.Add_Edge (10, 13,  4); -- 10.1
+      Graph.Add_Edge (11, 11,  5); -- 11.0 name
+      Graph.Add_Edge (11, 15,  6); -- 11.0 range_list
+      Graph.Add_Edge (11, 11,  7); -- 11.1 name
+      Graph.Add_Edge (11,  9,  8); -- 11.1 actual_parameter_part
+      Graph.Add_Edge (12, 13,  9);
+      Graph.Add_Edge (13, 11, 10);
+      Graph.Add_Edge (13, 12, 11);
+      Graph.Add_Edge (14, 13, 12); -- 14.0 left primary
+      Graph.Add_Edge (14, 13, 13); -- 14.0 right primary
+      Graph.Add_Edge (15, 15, 14); -- 15.0 range_list
+      Graph.Add_Edge (15, 14, 15); -- 15.0 range_g
+      Graph.Add_Edge (15, 14, 16); -- 15.1 range_g
+
+      Check ("Multigraph", Graph.Multigraph, True);
+
+      --  Cycles are found in start nonterminal order, longest first within
+      --  start nonterminal; cycles start with lowest nonterm.
+      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 3, 3), (12, 11, 11), (13, 9, 9), (11, 10, 10)));
+      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 4, 4), (12, 11, 11), (13, 9, 9), (11, 10, 10)));
+      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 3, 3), (11, 10, 10)));
+      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 4, 4), (11, 10, 10)));
+
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
+
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 12, 12)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 12, 12)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 12, 12)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 12, 12)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 13, 13)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 13, 13)));
+      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 13, 13)));
+      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 13, 13)));
+
+      Expected.Append (Path'(1 => (11, 5, 5)));
+      Expected.Append (Path'(1 => (11, 7, 7)));
+      Expected.Append (Path'((12, 11, 11), (13, 9, 9)));
+
+      Computed := Graph.Find_Cycles;
+
+      if Test.Trace > 0 then
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+         end loop;
+      end if;
+
+      Graphs_AUnit.Check ("1", Computed, Expected);
+   end Test_Ada_Lite_Name;
 
    ----------
    --  Public routines
@@ -242,6 +359,7 @@ package body Test_Graphs is
       Register_Routine (T, Test_Find_Path'Access, "Test_Find_Path");
       Register_Routine (T, Test_Find_Cycles'Access, "Test_Find_Cycles");
       Register_Routine (T, Test_Conflict_Name'Access, "Test_Conflict_Name");
+      Register_Routine (T, Test_Ada_Lite_Name'Access, "Test_Ada_Lite_Name");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
