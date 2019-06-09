@@ -45,8 +45,6 @@ package body SAL.Gen_Graphs is
       Vertex_B : in     Vertex_Index;
       Data     : in     Edge_Data)
    is
-      Multigraph : Boolean := False;
-
       procedure Update_First_Last (Vertex : in Vertex_Index)
       is
          use all type Ada.Containers.Count_Type;
@@ -69,11 +67,10 @@ package body SAL.Gen_Graphs is
 
       Graph.Last_Edge_ID := Graph.Last_Edge_ID + 1;
       if (for some E of Graph.Vertices (Vertex_A) => E.Vertex_B = Vertex_B) then
-         Multigraph       := True;
          Graph.Multigraph := True;
       end if;
 
-      Graph.Vertices (Vertex_A).Append ((Graph.Last_Edge_ID, Vertex_B, Multigraph, Data));
+      Graph.Vertices (Vertex_A).Append ((Graph.Last_Edge_ID, Vertex_B, Data));
    end Add_Edge;
 
    function Multigraph (Graph : in Gen_Graphs.Graph) return Boolean
@@ -81,7 +78,7 @@ package body SAL.Gen_Graphs is
       return Graph.Multigraph;
    end Multigraph;
 
-   function Image (Item : in Path) return String
+   function Image (Item : in Path; Include_Edge_ID : in Boolean := False) return String
    is
       use Ada.Strings.Unbounded;
 
@@ -90,8 +87,9 @@ package body SAL.Gen_Graphs is
    begin
       for I in Item'Range loop
          Result := Result & Trimmed_Image (Item (I).Vertex) &
-           --  FIXME: add edge id?
-           Edge_Image ((if I = Item'Last then Item (Item'First).Edge else Item (I).Edge)) & " -> ";
+           (if Include_Edge_ID then Edge_ID'Image
+              ((if I = Item'Last then Item (Item'First).Edge_ID else Item (I + 1).Edge_ID)) else "") &
+           Edge_Image ((if I = Item'Last then Item (Item'First).Edge else Item (I + 1).Edge)) & " -> ";
       end loop;
       Result := Result & ")";
       return To_String (Result);
@@ -105,6 +103,8 @@ package body SAL.Gen_Graphs is
    is
       Vertex_Queue  : Vertex_Queues.Queue_Type
         (Size => Integer (Graph.Vertices.Last_Index - Graph.Vertices.First_Index + 1));
+
+      type Colors is (White, Gray, Black);
 
       type Aux_Node is record
          Color       : Colors            := Colors'First;
@@ -234,9 +234,35 @@ package body SAL.Gen_Graphs is
       function Contains (Row : in H_Row; V : in Vertex_Index) return Boolean
       is (for some N of Row => N = V);
 
-   begin
-      if Graph.Multigraph then raise Multigraph_Error; end if;
+      procedure Add_Alternate_Edges (P : in Path)
+      is
+         use Edge_Lists;
 
+         Paths : Path_Arrays.Vector := Path_Arrays.To_Vector (P, 1);
+
+         function Dec (I : in Positive) return Positive
+           is (if I = P'First then P'Last else I - 1);
+      begin
+         for I in P'Range loop
+            for Cur in G (P (Dec (I)).Vertex).Iterate loop
+               if Element (Cur).Vertex_B = P (I).Vertex and Element (Cur).ID /= P (I).Edge_ID then
+                  for J in Paths.First_Index .. Paths.Last_Index loop
+                     declare
+                        New_Edge : Edge_Node renames Element (Cur);
+                        New_Path : Path := Paths (J);
+                     begin
+                        New_Path (I).Edge_ID := New_Edge.ID;
+                        New_Path (I).Edge := New_Edge.Data;
+                        Paths.Append (New_Path);
+                     end;
+                  end loop;
+               end if;
+            end loop;
+         end loop;
+         Result.Append (Paths);
+      end Add_Alternate_Edges;
+
+   begin
       P (1) := (First, Invalid_Edge_ID, Default_Edge_Data);
 
       All_Initial_Vertices :
@@ -272,8 +298,13 @@ package body SAL.Gen_Graphs is
             --  EC3 Circuit Confirmation
             for Edge of G (P (K).Vertex) loop
                if Edge.Vertex_B = P (1).Vertex then
+                  P (1).Edge_ID := Edge.ID;
                   P (1).Edge    := Edge.Data;
-                  Result.Append (P (1 .. K));
+                  if Graph.Multigraph then
+                     Add_Alternate_Edges (P (1 .. K));
+                  else
+                     Result.Append (P (1 .. K));
+                  end if;
                   exit;
                end if;
             end loop;

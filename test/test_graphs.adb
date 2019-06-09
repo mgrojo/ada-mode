@@ -311,38 +311,24 @@ package body Test_Graphs is
 
       --  Cycles are found in start nonterminal order, longest first within
       --  start nonterminal; cycles start with lowest nonterm.
-      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 3, 3), (12, 11, 11), (13, 9, 9), (11, 10, 10)));
-      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 4, 4), (12, 11, 11), (13, 9, 9), (11, 10, 10)));
       Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 3, 3), (11, 10, 10)));
       Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 4, 4), (11, 10, 10)));
 
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 12, 12), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 13, 13), (12, 11, 11), (13, 9, 9)));
-
       Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 12, 12)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 12, 12)));
       Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 12, 12)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 12, 12)));
       Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 13, 13)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 15, 15), (13, 13, 13)));
       Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 13, 13)));
-      Expected.Append (Path'((11, 10, 10), (15, 7, 7), (14, 16, 16), (13, 13, 13)));
 
       Expected.Append (Path'(1 => (11, 5, 5)));
       Expected.Append (Path'(1 => (11, 7, 7)));
       Expected.Append (Path'((12, 11, 11), (13, 9, 9)));
+      Expected.Append (Path'(1 => (15, 14, 14)));
 
       Computed := Graph.Find_Cycles;
 
       if Test.Trace > 0 then
          for Cycle of Computed loop
-            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle, Include_Edge_ID => True));
          end loop;
       end if;
 

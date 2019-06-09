@@ -39,6 +39,7 @@ generic
    type Path_Index is range <>;
 
    with function Edge_Image (Item : in Edge_Data) return String;
+
 package SAL.Gen_Graphs is
 
    type Graph is tagged private;
@@ -73,7 +74,7 @@ package SAL.Gen_Graphs is
 
    type Path is array (Positive range <>) of Path_Item;
 
-   function Image (Item : in Path) return String;
+   function Image (Item : in Path; Include_Edge_ID : in Boolean := False) return String;
    --  For trace, debugging.
 
    package Path_Arrays is new Ada.Containers.Indefinite_Vectors (Path_Index, Path);
@@ -91,20 +92,19 @@ package SAL.Gen_Graphs is
    --  Raises Multigraph_Error if Graph is a multigraph.
 
    function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Arrays.Vector;
-   --  Return all cyclic paths in Graph, using algorithm [2].
+   --  Return all cyclic paths in Graph, using algorithm [2] extended for
+   --  multigraphs.
 
 private
+
    type Edge_Node is record
       --  Edge is from vertex contaning this Node to Vertex_B
       ID         : Edge_ID;
       Vertex_B   : Vertex_Index;
-      Multigraph : Boolean;
       Data       : Edge_Data;
    end record;
 
    package Edge_Lists is new Ada.Containers.Doubly_Linked_Lists (Edge_Node);
-
-   type Colors is (White, Gray, Black);
 
    package Vertex_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Vertex_Index, Edge_Lists.List, Edge_Lists.Empty_List);

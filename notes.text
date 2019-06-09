@@ -1,22 +1,3 @@
-Move find_path data out of vertex_node
-
-extend tiernan for multigraph
-    after find a cycle, examine it for alternate edges, add all permutations
-    add multigraph boolean to each vertex
-
-liu, wang 2006 brute force - find all paths
-    keep a queue of open paths already constructed
-
-    add all vertices to the path queue as one item paths
-    loop
-        exit when queue empty
-        get path from queue
-        for (each edge of the end vertex) loop
-            if next vertex > path head, add a new path to the queue
-            if next vertex = path head, add a cycle to the result
-            if next vertex < path head, ignore.
-        end loop
-    end loop
 
 Release process:
 
