@@ -18,8 +18,10 @@ OK bnf_wy_test.adb empty_production_7 : Run_Test
 OK bnf_wy_test.adb empty_production_8 : Run_Test
 OK bnf_wy_test.adb identifier_list_name_conflict : Run_Test
 OK bnf_wy_test.adb java_ebnf : Run_Test
+OK bnf_wy_test.adb java_enum_ch19 : Run_Test
 OK bnf_wy_test.adb java_expressions_antlr : Run_Test
 OK bnf_wy_test.adb java_expressions_ch19 : Run_Test
+OK bnf_wy_test.adb java_types_ch19 : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
@@ -41,12 +43,8 @@ OK grune_9_30.adb : Test_Item_Sets
 OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
-OK test_ada_lite_terminal_sequence.adb : Test_Terminal_Sequence
-OK test_ada_lite_terminal_sequence.adb : Test_Minimal_Complete_Actions
 OK test_follow.adb : Subprograms.One
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
-OK test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence_1
-OK test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence_2
 OK test_mckenzie_recover.adb : No_Error
 OK test_mckenzie_recover.adb : Empty_Comments
 OK test_mckenzie_recover.adb : Error_1
@@ -105,7 +103,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   105
-Successful Tests:  105
+Total Tests Run:   103
+Successful Tests:  103
 Failed Assertions: 0
 Unexpected Errors: 0

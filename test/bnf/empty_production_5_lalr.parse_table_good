@@ -20,6 +20,8 @@ Productions:
 11.0: parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN
 11.1: parameter_profile <=
 
+Recursions:
+
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 

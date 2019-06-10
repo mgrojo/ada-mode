@@ -148,181 +148,231 @@ Tokens:
 
 Productions:
 56.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
-57.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN
+57.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; (1, 2, 3, 4, 5, 6, 7, 8) MIDDLE
 58.0: aspect_specification <= WITH association_list
 59.0: assignment_statement <= name COLON_EQUAL expression SEMICOLON
-60.0: association <= IDENTIFIER EQUAL_GREATER expression
-60.1: association <= expression
-61.0: association_list <= association
-61.1: association_list <= association_list COMMA association
+60.0: association <= IDENTIFIER EQUAL_GREATER expression ; (1, 2, 3, 4, 5, 6, 7, 8) MIDDLE
+60.1: association <= expression ; (1, 2, 3, 4, 5, 6, 7, 8) MIDDLE
+61.0: association_list <= association ; (1, 2, 3, 4, 5, 6, 7, 8) MIDDLE
+61.1: association_list <= association_list COMMA association ; (1, 2, 3, 4, 5, 6, 7, 8, 9) LEFT
 62.0: binary_adding_operator <= PLUS
 62.1: binary_adding_operator <= MINUS
 62.2: binary_adding_operator <= AMPERSAND
 63.0: block_label_opt <= IDENTIFIER COLON
 63.1: block_label_opt <=
-64.0: block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
-64.1: block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
-65.0: body_g <= proper_body
+64.0: block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ; (10, 11, 12, 13, 14, 15) MIDDLE
+64.1: block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ; (14, 15) MIDDLE
+65.0: body_g <= proper_body ; (10, 11, 12, 13, 16, 17) MIDDLE
 65.1: body_g <= body_stub
 66.0: body_stub <= subprogram_body_stub
-67.0: case_statement <= CASE expression IS nonterminal_004_list END CASE SEMICOLON
-68.0: case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
+67.0: case_statement <= CASE expression IS nonterminal_004_list END CASE SEMICOLON ; (18) MIDDLE
+68.0: case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements ; (18) MIDDLE
 69.0: compilation_unit <= package_body
 69.1: compilation_unit <= subprogram_declaration
 69.2: compilation_unit <= subprogram_body
 69.3: compilation_unit <= generic_instantiation
 69.4: compilation_unit <= statement
 70.0: compilation_unit_list <= nonterminal_005_list
-71.0: compound_statement <= if_statement
-71.1: compound_statement <= case_statement
-71.2: compound_statement <= loop_statement
-71.3: compound_statement <= block_statement
+71.0: compound_statement <= if_statement ; (19, 20) MIDDLE
+71.1: compound_statement <= case_statement ; (18) MIDDLE
+71.2: compound_statement <= loop_statement ; (21) MIDDLE
+71.3: compound_statement <= block_statement ; (10, 11, 12, 13, 14, 15) MIDDLE
 71.4: compound_statement <= extended_return_statement
 72.0: constraint <= RANGE range_g
-72.1: constraint <= index_constraint
-73.0: declaration <= body_g
+72.1: constraint <= index_constraint ; (22) MIDDLE
+73.0: declaration <= body_g ; (10, 11, 12, 13, 16, 17) MIDDLE
 73.1: declaration <= object_declaration
 73.2: declaration <= subprogram_declaration
 73.3: declaration <= type_declaration
-74.0: declarative_part <= nonterminal_006_list
+74.0: declarative_part <= nonterminal_006_list ; (10, 11, 12, 13, 16, 17) MIDDLE
 74.1: declarative_part <=
-75.0: discrete_subtype_definition <= subtype_indication
+75.0: discrete_subtype_definition <= subtype_indication ; (22) MIDDLE
 75.1: discrete_subtype_definition <= range_g
 76.0: enumeration_type_definition <= LEFT_PAREN IDENTIFIER nonterminal_007_list RIGHT_PAREN
 76.1: enumeration_type_definition <= LEFT_PAREN IDENTIFIER RIGHT_PAREN
 77.0: exception_choice <= name
-78.0: exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements
+78.0: exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements ; (11, 13, 15) MIDDLE
 79.0: exit_statement <= EXIT IDENTIFIER WHEN expression SEMICOLON
 79.1: exit_statement <= EXIT IDENTIFIER SEMICOLON
 79.2: exit_statement <= EXIT WHEN expression SEMICOLON
 79.3: exit_statement <= EXIT SEMICOLON
-80.0: expression <= relation
-80.1: expression <= relation nonterminal_009_list
-80.2: expression <= relation nonterminal_011_list
-80.3: expression <= relation nonterminal_013_list
+80.0: expression <= relation ; (1, 2, 23, 24) MIDDLE
+80.1: expression <= relation nonterminal_009_list ; (1, 2, 3, 4, 23, 24, 25, 26) MIDDLE
+80.2: expression <= relation nonterminal_011_list ; (1, 2, 5, 6, 23, 24, 27, 28) MIDDLE
+80.3: expression <= relation nonterminal_013_list ; (1, 2, 7, 8, 23, 24, 29, 30) MIDDLE
 81.0: extended_return_object_declaration <= IDENTIFIER COLON subtype_indication
 82.0: extended_return_statement <= RETURN extended_return_object_declaration SEMICOLON
-83.0: factor <= primary
-83.1: factor <= NOT primary
+83.0: factor <= primary ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
+83.1: factor <= NOT primary ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
 84.0: formal_part <= LEFT_PAREN parameter_specification nonterminal_015_list RIGHT_PAREN
 84.1: formal_part <= LEFT_PAREN parameter_specification RIGHT_PAREN
 85.0: full_type_declaration <= TYPE IDENTIFIER IS type_definition SEMICOLON
 86.0: function_specification <= FUNCTION name parameter_and_result_profile
 87.0: generic_instantiation <= PACKAGE name IS NEW name SEMICOLON
 87.1: generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON
-88.0: handled_sequence_of_statements <= sequence_of_statements nonterminal_018
-88.1: handled_sequence_of_statements <= sequence_of_statements
+88.0: handled_sequence_of_statements <= sequence_of_statements nonterminal_018 ; (10, 11, 12, 13, 14, 15) MIDDLE
+88.1: handled_sequence_of_statements <= sequence_of_statements ; (10, 12, 14) MIDDLE
 89.0: identifier_opt <= IDENTIFIER
 89.1: identifier_opt <=
-90.0: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-90.1: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON
-90.2: if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
-90.3: if_statement <= IF expression THEN sequence_of_statements END IF SEMICOLON
-91.0: index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
+90.0: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON ; (19, 19, 20) MIDDLE
+90.1: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON ; (19, 20) MIDDLE
+90.2: if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON ; (19, 19) MIDDLE
+90.3: if_statement <= IF expression THEN sequence_of_statements END IF SEMICOLON ; (19) MIDDLE
+91.0: index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ; (22) MIDDLE
 92.0: iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition
-93.0: loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
-93.1: loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
+93.0: loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ; (21) MIDDLE
+93.1: loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ; (21) MIDDLE
 94.0: multiplying_operator <= STAR
 94.1: multiplying_operator <= SLASH
-95.0: name <= name LEFT_PAREN range_list RIGHT_PAREN
-95.1: name <= name actual_parameter_part
+95.0: name <= name LEFT_PAREN range_list RIGHT_PAREN ; (31, 32, 34) LEFT
+95.1: name <= name actual_parameter_part ; (1, 2, 3, 4, 5, 6, 7, 8, 34) LEFT
 95.2: name <= IDENTIFIER
-95.3: name <= selected_component
+95.3: name <= selected_component ; (33) LEFT
 96.0: name_opt <= name
 96.1: name_opt <=
 97.0: object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON
 97.1: object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON
-98.0: package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-98.1: package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt SEMICOLON
-98.2: package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-98.3: package_body <= PACKAGE BODY name IS declarative_part END name_opt SEMICOLON
+98.0: package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ; (10, 11, 16) MIDDLE
+98.1: package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt SEMICOLON ; (16) MIDDLE
+98.2: package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ; (10, 11, 16) MIDDLE
+98.3: package_body <= PACKAGE BODY name IS declarative_part END name_opt SEMICOLON ; (16) MIDDLE
 99.0: parameter_and_result_profile <= formal_part RETURN IDENTIFIER
 99.1: parameter_and_result_profile <= RETURN IDENTIFIER
 100.0: parameter_profile <= formal_part
 100.1: parameter_profile <=
 101.0: parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression
 101.1: parameter_specification <= IDENTIFIER COLON IDENTIFIER
-102.0: paren_expression <= LEFT_PAREN expression RIGHT_PAREN
+102.0: paren_expression <= LEFT_PAREN expression RIGHT_PAREN ; (23, 24, 25, 26, 27, 28, 29, 30) MIDDLE
 103.0: primary <= NUMERIC_LITERAL
 103.1: primary <= STRING_LITERAL
-103.2: primary <= name
-103.3: primary <= paren_expression
+103.2: primary <= name ; (1, 2, 3, 4, 5, 6, 7, 8, 31, 32) MIDDLE
+103.3: primary <= paren_expression ; (23, 24, 25, 26, 27, 28, 29, 30) MIDDLE
 104.0: procedure_call_statement <= name SEMICOLON
 105.0: procedure_specification <= PROCEDURE name parameter_profile
-106.0: proper_body <= package_body
-106.1: proper_body <= subprogram_body
-107.0: range_g <= simple_expression DOT_DOT simple_expression
-108.0: range_list <= range_list COMMA range_g
-108.1: range_list <= range_g
-109.0: relation <= simple_expression relational_operator simple_expression
-109.1: relation <= simple_expression
+106.0: proper_body <= package_body ; (10, 11, 16) MIDDLE
+106.1: proper_body <= subprogram_body ; (12, 13, 17) MIDDLE
+107.0: range_g <= simple_expression DOT_DOT simple_expression ; (31, 31, 32, 32) MIDDLE
+108.0: range_list <= range_list COMMA range_g ; (31, 32, 35) LEFT
+108.1: range_list <= range_g ; (31, 32) MIDDLE
+109.0: relation <= simple_expression relational_operator simple_expression ; (1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30) MIDDLE
+109.1: relation <= simple_expression ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30) MIDDLE
 110.0: relational_operator <= EQUAL
 110.1: relational_operator <= SLASH_EQUAL
 110.2: relational_operator <= LESS
 110.3: relational_operator <= LESS_EQUAL
 110.4: relational_operator <= GREATER
 110.5: relational_operator <= GREATER_EQUAL
-111.0: selected_component <= name DOT IDENTIFIER
-112.0: sequence_of_statements <= nonterminal_021_list
+111.0: selected_component <= name DOT IDENTIFIER ; (33) LEFT
+112.0: sequence_of_statements <= nonterminal_021_list ; (10, 11, 12, 13, 14, 15, 18, 19, 20, 21) MIDDLE
 112.1: sequence_of_statements <=
-113.0: simple_expression <= unary_adding_operator term nonterminal_022_list
-113.1: simple_expression <= unary_adding_operator term
-113.2: simple_expression <= term nonterminal_022_list
-113.3: simple_expression <= term
+113.0: simple_expression <= unary_adding_operator term nonterminal_022_list ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
+113.1: simple_expression <= unary_adding_operator term ; (1, 3, 5, 7, 23, 25, 27, 29, 31) MIDDLE
+113.2: simple_expression <= term nonterminal_022_list ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
+113.3: simple_expression <= term ; (1, 3, 5, 7, 23, 25, 27, 29, 31) MIDDLE
 114.0: simple_return_statement <= RETURN expression SEMICOLON
 115.0: simple_statement <= assignment_statement
 115.1: simple_statement <= exit_statement
 115.2: simple_statement <= procedure_call_statement
 115.3: simple_statement <= simple_return_statement
 116.0: statement <= simple_statement
-116.1: statement <= compound_statement
-117.0: subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-117.1: subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
+116.1: statement <= compound_statement ; (10, 11, 12, 13, 14, 15, 18, 19, 20, 21) MIDDLE
+117.0: subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ; (12, 13, 17) MIDDLE
+117.1: subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ; (12, 13, 17) MIDDLE
 118.0: subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON
 119.0: subprogram_declaration <= subprogram_specification SEMICOLON
 120.0: subprogram_specification <= procedure_specification
 120.1: subprogram_specification <= function_specification
-121.0: subtype_indication <= name constraint
+121.0: subtype_indication <= name constraint ; (22) MIDDLE
 121.1: subtype_indication <= name
-122.0: term <= factor
-122.1: term <= term multiplying_operator factor
+122.0: term <= factor ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
+122.1: term <= term multiplying_operator factor ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 36) LEFT
 123.0: type_declaration <= full_type_declaration
 124.0: type_definition <= enumeration_type_definition
 125.0: unary_adding_operator <= PLUS
 125.1: unary_adding_operator <= MINUS
-126.0: nonterminal_004_list <= case_statement_alternative
-126.1: nonterminal_004_list <= nonterminal_004_list case_statement_alternative
+126.0: nonterminal_004_list <= case_statement_alternative ; (18) MIDDLE
+126.1: nonterminal_004_list <= nonterminal_004_list case_statement_alternative ; (18, 37) LEFT
 127.0: nonterminal_005_list <= compilation_unit
-127.1: nonterminal_005_list <= nonterminal_005_list compilation_unit
-128.0: nonterminal_006_list <= declaration
-128.1: nonterminal_006_list <= nonterminal_006_list declaration
+127.1: nonterminal_005_list <= nonterminal_005_list compilation_unit ; (38) LEFT
+128.0: nonterminal_006_list <= declaration ; (10, 11, 12, 13, 16, 17) MIDDLE
+128.1: nonterminal_006_list <= nonterminal_006_list declaration ; (10, 11, 12, 13, 16, 17, 39) LEFT
 129.0: nonterminal_008 <= COMMA IDENTIFIER
 130.0: nonterminal_007_list <= nonterminal_008
-130.1: nonterminal_007_list <= nonterminal_007_list nonterminal_008
-131.0: nonterminal_010 <= AND relation
-132.0: nonterminal_009_list <= nonterminal_010
-132.1: nonterminal_009_list <= nonterminal_009_list nonterminal_010
-133.0: nonterminal_012 <= OR relation
-134.0: nonterminal_011_list <= nonterminal_012
-134.1: nonterminal_011_list <= nonterminal_011_list nonterminal_012
-135.0: nonterminal_014 <= XOR relation
-136.0: nonterminal_013_list <= nonterminal_014
-136.1: nonterminal_013_list <= nonterminal_013_list nonterminal_014
+130.1: nonterminal_007_list <= nonterminal_007_list nonterminal_008 ; (40) LEFT
+131.0: nonterminal_010 <= AND relation ; (3, 4, 25, 26) MIDDLE
+132.0: nonterminal_009_list <= nonterminal_010 ; (3, 4, 25, 26) MIDDLE
+132.1: nonterminal_009_list <= nonterminal_009_list nonterminal_010 ; (3, 4, 25, 26, 41) LEFT
+133.0: nonterminal_012 <= OR relation ; (5, 6, 27, 28) MIDDLE
+134.0: nonterminal_011_list <= nonterminal_012 ; (5, 6, 27, 28) MIDDLE
+134.1: nonterminal_011_list <= nonterminal_011_list nonterminal_012 ; (5, 6, 27, 28, 42) LEFT
+135.0: nonterminal_014 <= XOR relation ; (7, 8, 29, 30) MIDDLE
+136.0: nonterminal_013_list <= nonterminal_014 ; (7, 8, 29, 30) MIDDLE
+136.1: nonterminal_013_list <= nonterminal_013_list nonterminal_014 ; (7, 8, 29, 30, 43) LEFT
 137.0: nonterminal_016 <= SEMICOLON parameter_specification
 138.0: nonterminal_015_list <= nonterminal_016
-138.1: nonterminal_015_list <= nonterminal_015_list nonterminal_016
-139.0: nonterminal_017_list <= exception_handler
-139.1: nonterminal_017_list <= nonterminal_017_list exception_handler
-140.0: nonterminal_018 <= EXCEPTION nonterminal_017_list
+138.1: nonterminal_015_list <= nonterminal_015_list nonterminal_016 ; (44) LEFT
+139.0: nonterminal_017_list <= exception_handler ; (11, 13, 15) MIDDLE
+139.1: nonterminal_017_list <= nonterminal_017_list exception_handler ; (11, 13, 15, 45) LEFT
+140.0: nonterminal_018 <= EXCEPTION nonterminal_017_list ; (11, 13, 15) MIDDLE
 140.1: nonterminal_018 <= EXCEPTION
-141.0: nonterminal_020 <= ELSIF expression THEN sequence_of_statements
-142.0: nonterminal_019_list <= nonterminal_020
-142.1: nonterminal_019_list <= nonterminal_019_list nonterminal_020
-143.0: nonterminal_021_list <= statement
-143.1: nonterminal_021_list <= nonterminal_021_list statement
-144.0: nonterminal_023 <= binary_adding_operator term
-145.0: nonterminal_022_list <= nonterminal_023
-145.1: nonterminal_022_list <= nonterminal_022_list nonterminal_023
+141.0: nonterminal_020 <= ELSIF expression THEN sequence_of_statements ; (20) MIDDLE
+142.0: nonterminal_019_list <= nonterminal_020 ; (20) MIDDLE
+142.1: nonterminal_019_list <= nonterminal_019_list nonterminal_020 ; (20, 46) LEFT
+143.0: nonterminal_021_list <= statement ; (10, 11, 12, 13, 14, 15, 18, 19, 20, 21) MIDDLE
+143.1: nonterminal_021_list <= nonterminal_021_list statement ; (10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 47) LEFT
+144.0: nonterminal_023 <= binary_adding_operator term ; (2, 4, 6, 8, 24, 26, 28, 30, 32) MIDDLE
+145.0: nonterminal_022_list <= nonterminal_023 ; (2, 4, 6, 8, 24, 26, 28, 30, 32) MIDDLE
+145.1: nonterminal_022_list <= nonterminal_022_list nonterminal_023 ; (2, 4, 6, 8, 24, 26, 28, 30, 32, 48) LEFT
+
+Recursions:
+1 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (0 SINGLE, 1 LEFT, 2 LEFT, 3 LEFT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+2 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (0 SINGLE, 1 LEFT, 2 LEFT, 3 LEFT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+3 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (1 RIGHT) -> 132 (0 SINGLE, 1 RIGHT) -> 131 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+4 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (1 RIGHT) -> 132 (0 SINGLE, 1 RIGHT) -> 131 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+5 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (2 RIGHT) -> 134 (0 SINGLE, 1 RIGHT) -> 133 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+6 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (2 RIGHT) -> 134 (0 SINGLE, 1 RIGHT) -> 133 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+7 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (3 RIGHT) -> 136 (0 SINGLE, 1 RIGHT) -> 135 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+8 => (57 (0 MIDDLE) -> 61 (0 SINGLE, 1 RIGHT) -> 60 (0 RIGHT, 1 SINGLE) -> 80 (3 RIGHT) -> 136 (0 SINGLE, 1 RIGHT) -> 135 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (1 RIGHT) -> )
+9 => (61 (1 LEFT) -> )
+10 => (64 (0 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> 65 (0 SINGLE) -> 106 (0 SINGLE) -> 98 (0 MIDDLE, 2 MIDDLE) -> 88 (0 LEFT, 1 SINGLE) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+11 => (64 (0 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> 65 (0 SINGLE) -> 106 (0 SINGLE) -> 98 (0 MIDDLE, 2 MIDDLE) -> 88 (0 RIGHT) -> 140 (0 RIGHT) -> 139 (0 SINGLE, 1 RIGHT) -> 78 (0 RIGHT) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+12 => (64 (0 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> 65 (0 SINGLE) -> 106 (1 SINGLE) -> 117 (0 MIDDLE, 1 MIDDLE) -> 88 (0 LEFT, 1 SINGLE) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+13 => (64 (0 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> 65 (0 SINGLE) -> 106 (1 SINGLE) -> 117 (0 MIDDLE, 1 MIDDLE) -> 88 (0 RIGHT) -> 140 (0 RIGHT) -> 139 (0 SINGLE, 1 RIGHT) -> 78 (0 RIGHT) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+14 => (64 (0 MIDDLE, 1 MIDDLE) -> 88 (0 LEFT, 1 SINGLE) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+15 => (64 (0 MIDDLE, 1 MIDDLE) -> 88 (0 RIGHT) -> 140 (0 RIGHT) -> 139 (0 SINGLE, 1 RIGHT) -> 78 (0 RIGHT) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (3 SINGLE) -> )
+16 => (65 (0 SINGLE) -> 106 (0 SINGLE) -> 98 (0 MIDDLE, 1 MIDDLE, 2 MIDDLE, 3 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> )
+17 => (65 (0 SINGLE) -> 106 (1 SINGLE) -> 117 (0 MIDDLE, 1 MIDDLE) -> 74 (0 SINGLE) -> 128 (0 SINGLE, 1 RIGHT) -> 73 (0 SINGLE) -> )
+18 => (67 (0 MIDDLE) -> 126 (0 SINGLE, 1 RIGHT) -> 68 (0 RIGHT) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> 71 (1 SINGLE) -> )
+19 => (71 (0 SINGLE) -> 90 (0 MIDDLE, 0 MIDDLE, 1 MIDDLE, 2 MIDDLE, 2 MIDDLE, 3 MIDDLE) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> )
+20 => (71 (0 SINGLE) -> 90 (0 MIDDLE, 1 MIDDLE) -> 142 (0 SINGLE, 1 RIGHT) -> 141 (0 RIGHT) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> )
+21 => (71 (2 SINGLE) -> 93 (0 MIDDLE, 1 MIDDLE) -> 112 (0 SINGLE) -> 143 (0 SINGLE, 1 RIGHT) -> 116 (1 SINGLE) -> )
+22 => (72 (1 SINGLE) -> 91 (0 MIDDLE) -> 75 (0 SINGLE) -> 121 (0 RIGHT) -> )
+23 => (80 (0 SINGLE, 1 LEFT, 2 LEFT, 3 LEFT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+24 => (80 (0 SINGLE, 1 LEFT, 2 LEFT, 3 LEFT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+25 => (80 (1 RIGHT) -> 132 (0 SINGLE, 1 RIGHT) -> 131 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+26 => (80 (1 RIGHT) -> 132 (0 SINGLE, 1 RIGHT) -> 131 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+27 => (80 (2 RIGHT) -> 134 (0 SINGLE, 1 RIGHT) -> 133 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+28 => (80 (2 RIGHT) -> 134 (0 SINGLE, 1 RIGHT) -> 133 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+29 => (80 (3 RIGHT) -> 136 (0 SINGLE, 1 RIGHT) -> 135 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+30 => (80 (3 RIGHT) -> 136 (0 SINGLE, 1 RIGHT) -> 135 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
+31 => (83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (0 MIDDLE) -> 108 (0 RIGHT, 1 SINGLE) -> 107 (0 LEFT, 0 RIGHT) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> )
+32 => (83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (0 MIDDLE) -> 108 (0 RIGHT, 1 SINGLE) -> 107 (0 LEFT, 0 RIGHT) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> )
+33 => (95 (3 SINGLE) -> 111 (0 LEFT) -> )
+34 => (95 (0 LEFT, 1 LEFT) -> )
+35 => (108 (0 LEFT) -> )
+36 => (122 (1 LEFT) -> )
+37 => (126 (1 LEFT) -> )
+38 => (127 (1 LEFT) -> )
+39 => (128 (1 LEFT) -> )
+40 => (130 (1 LEFT) -> )
+41 => (132 (1 LEFT) -> )
+42 => (134 (1 LEFT) -> )
+43 => (136 (1 LEFT) -> )
+44 => (138 (1 LEFT) -> )
+45 => (139 (1 LEFT) -> )
+46 => (142 (1 LEFT) -> )
+47 => (143 (1 LEFT) -> )
+48 => (145 (1 LEFT) -> )
 
 McKenzie:
 (Insert =>
@@ -1111,7 +1161,7 @@ State 29:
    STAR                               => reduce 1 tokens to name 95.3
    default                            => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name recursive
 
 State 30:
     115.3:simple_statement <= simple_return_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -2074,7 +2124,7 @@ State 72:
    term                               goto state 51
    unary_adding_operator              goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL
+   Minimal_Complete_Action => NUMERIC_LITERAL recursive
 
 State 73:
      59.0:assignment_statement <= name COLON_EQUAL ^ expression SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -2107,7 +2157,7 @@ State 74:
    IDENTIFIER                         => shift and goto state 160
    default                            => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 75:
     104.0:procedure_call_statement <= name SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -2167,7 +2217,7 @@ State 76:
    STAR                               => reduce 2 tokens to name 95.1
    default                            => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name recursive
 
 State 77:
     117.1:subprogram_body <= subprogram_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -2274,7 +2324,7 @@ State 81:
    Wisi_EOI                           => reduce 2 tokens to nonterminal_005_list 127.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_005_list
+   Minimal_Complete_Action => nonterminal_005_list recursive
 
 State 82:
     102.0:paren_expression <= LEFT_PAREN expression ^ RIGHT_PAREN, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2685,7 +2735,7 @@ State 107:
    primary                            goto state 48
    selected_component                 goto state 29
 
-   Minimal_Complete_Action => NUMERIC_LITERAL
+   Minimal_Complete_Action => NUMERIC_LITERAL recursive
 
 State 108:
     145.0:nonterminal_022_list <= nonterminal_023 ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH_EQUAL
@@ -2896,7 +2946,7 @@ State 115:
    term                               goto state 51
    unary_adding_operator              goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL
+   Minimal_Complete_Action => NUMERIC_LITERAL recursive
 
 State 116:
      99.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON
@@ -2992,7 +3042,7 @@ State 121:
    IDENTIFIER                         => reduce 2 tokens to nonterminal_021_list 143.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_021_list
+   Minimal_Complete_Action => nonterminal_021_list recursive
 
 State 122:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT
@@ -3476,7 +3526,7 @@ State 157:
    COMMA                              => shift and goto state 214
    default                            => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN
+   Minimal_Complete_Action => RIGHT_PAREN recursive
 
 State 158:
     107.0:range_g <= simple_expression ^ DOT_DOT simple_expression, RIGHT_PAREN/COMMA
@@ -3542,7 +3592,7 @@ State 160:
    STAR                               => reduce 3 tokens to selected_component 111.0
    default                            => ERROR
 
-   Minimal_Complete_Action => selected_component
+   Minimal_Complete_Action => selected_component recursive
 
 State 161:
     117.1:subprogram_body <= subprogram_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
@@ -3700,7 +3750,7 @@ State 171:
    SEMICOLON                          => reduce 2 tokens to nonterminal_009_list 132.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_009_list
+   Minimal_Complete_Action => nonterminal_009_list recursive
 
 State 172:
     134.1:nonterminal_011_list <= nonterminal_011_list nonterminal_012 ^, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -3713,7 +3763,7 @@ State 172:
    SEMICOLON                          => reduce 2 tokens to nonterminal_011_list 134.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_011_list
+   Minimal_Complete_Action => nonterminal_011_list recursive
 
 State 173:
     136.1:nonterminal_013_list <= nonterminal_013_list nonterminal_014 ^, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
@@ -3726,7 +3776,7 @@ State 173:
    SEMICOLON                          => reduce 2 tokens to nonterminal_013_list 136.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_013_list
+   Minimal_Complete_Action => nonterminal_013_list recursive
 
 State 174:
     109.0:relation <= simple_expression relational_operator simple_expression ^, AND/IS/OR/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
@@ -3802,7 +3852,7 @@ State 176:
    STAR                               => reduce 3 tokens to term 122.1
    default                            => ERROR
 
-   Minimal_Complete_Action => term
+   Minimal_Complete_Action => term recursive
 
 State 177:
     145.1:nonterminal_022_list <= nonterminal_022_list nonterminal_023 ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH_EQUAL
@@ -3829,7 +3879,7 @@ State 177:
    SLASH_EQUAL                        => reduce 2 tokens to nonterminal_022_list 145.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_022_list
+   Minimal_Complete_Action => nonterminal_022_list recursive
 
 State 178:
     113.0:simple_expression <= unary_adding_operator term nonterminal_022_list ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -4320,7 +4370,7 @@ State 208:
    IDENTIFIER                         => reduce 2 tokens to nonterminal_006_list 128.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_006_list
+   Minimal_Complete_Action => nonterminal_006_list recursive
 
 State 209:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -4414,7 +4464,7 @@ State 212:
    term                               goto state 51
    unary_adding_operator              goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL
+   Minimal_Complete_Action => NUMERIC_LITERAL recursive
 
 State 213:
      95.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -4449,7 +4499,7 @@ State 213:
    STAR                               => reduce 4 tokens to name 95.0
    default                            => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name recursive
 
 State 214:
     108.0:range_list <= range_list COMMA ^ range_g, RIGHT_PAREN/COMMA
@@ -4473,7 +4523,7 @@ State 214:
    term                               goto state 51
    unary_adding_operator              goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL
+   Minimal_Complete_Action => NUMERIC_LITERAL recursive
 
 State 215:
     107.0:range_g <= simple_expression DOT_DOT ^ simple_expression, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
@@ -4592,7 +4642,7 @@ State 221:
    WHEN                               => reduce 2 tokens to nonterminal_004_list 126.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_004_list
+   Minimal_Complete_Action => nonterminal_004_list recursive
 
 State 222:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN expression SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -4650,7 +4700,7 @@ State 223:
    term                               goto state 51
    unary_adding_operator              goto state 52
 
-   Minimal_Complete_Action => (NUMERIC_LITERAL, IDENTIFIER)
+   Minimal_Complete_Action => (NUMERIC_LITERAL, IDENTIFIER) recursive
 
 State 224:
      72.0:constraint <= RANGE ^ range_g, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
@@ -4970,7 +5020,7 @@ State 246:
    WHEN                               => reduce 2 tokens to nonterminal_017_list 139.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_017_list
+   Minimal_Complete_Action => nonterminal_017_list recursive
 
 State 247:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -5046,7 +5096,7 @@ State 254:
    COMMA                              => reduce 3 tokens to association_list 61.1
    default                            => ERROR
 
-   Minimal_Complete_Action => association_list
+   Minimal_Complete_Action => association_list recursive
 
 State 255:
     108.0:range_list <= range_list COMMA range_g ^, RIGHT_PAREN/COMMA
@@ -5055,7 +5105,7 @@ State 255:
    COMMA                              => reduce 3 tokens to range_list 108.0
    default                            => ERROR
 
-   Minimal_Complete_Action => range_list
+   Minimal_Complete_Action => range_list recursive
 
 State 256:
     107.0:range_g <= simple_expression DOT_DOT simple_expression ^, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
@@ -5237,7 +5287,7 @@ State 268:
    SEMICOLON                          => reduce 2 tokens to nonterminal_015_list 138.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_015_list
+   Minimal_Complete_Action => nonterminal_015_list recursive
 
 State 269:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -5315,7 +5365,7 @@ State 274:
    END                                => reduce 2 tokens to nonterminal_019_list 142.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_019_list
+   Minimal_Complete_Action => nonterminal_019_list recursive
 
 State 275:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -6277,7 +6327,7 @@ State 339:
    COMMA                              => reduce 2 tokens to nonterminal_007_list 130.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_007_list
+   Minimal_Complete_Action => nonterminal_007_list recursive
 
 State 340:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI

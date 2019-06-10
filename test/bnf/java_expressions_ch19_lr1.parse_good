@@ -112,40 +112,40 @@ parser 0: State 62 Current_Token 13:(RIGHT_CURLY_BRACKET, (222 . 222)) Resume_To
 Action
 
  7 parallel tasks
- 0: succeed 2, enqueue 120, check  41, cost:  6
+ 0: succeed 2, enqueue 9, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
- 1:  6, ( 0 0 0 2 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (222 . 222))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
- 0:  6, ( 0 0 0 2 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (222 . 222))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
+ 1:  1, ( 0 2 0 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (222 . 222))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
+ 0:  1, ( 0 2 0 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (222 . 222))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
 recover: succeed, parser count 2
- 1: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (222 . 222))
+ 1: Current_Token (PLUS_PLUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (222 . 222))
  1: resume_active: True, token goal 17
- 0: Current_Token (PLUS_PLUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (222 . 222))
+ 0: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (222 . 222))
  0: resume_active: True, token goal 17
- 1: 62: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
+ 1: 62: (PLUS_PLUS) : reduce 4 tokens to MethodInvocation
 MethodInvocation_0: (MethodInvocation, (207 . 220)) <= ( 9:(Identifier, (207 . 216)),  10:(LEFT_PAREN, (218 . 218)), (ArgumentList, (219 . 219)),  12:(RIGHT_PAREN, (220 . 220)))
  ... goto state 12
- 0: 62: (PLUS_PLUS) : reduce 4 tokens to MethodInvocation
+ 0: 62: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
 MethodInvocation_0: (MethodInvocation, (207 . 220)) <= ( 9:(Identifier, (207 . 216)),  10:(LEFT_PAREN, (218 . 218)), (ArgumentList, (219 . 219)),  12:(RIGHT_PAREN, (220 . 220)))
  ... goto state 12
- 1: 12: (MINUS_MINUS) : reduce 1 tokens to PostfixExpression
+ 1: 12: (PLUS_PLUS) : reduce 1 tokens to PostfixExpression
 PostfixExpression_1: (PostfixExpression, (207 . 220)) <= ((MethodInvocation, (207 . 220)))
  ... goto state 8
- 0: 12: (PLUS_PLUS) : reduce 1 tokens to PostfixExpression
+ 0: 12: (MINUS_MINUS) : reduce 1 tokens to PostfixExpression
 PostfixExpression_1: (PostfixExpression, (207 . 220)) <= ((MethodInvocation, (207 . 220)))
  ... goto state 8
- 1: 8: (MINUS_MINUS) : shift and goto state 18
- 0: 8: (PLUS_PLUS) : shift and goto state 19
- 1: 18: (SEMICOLON) : reduce 2 tokens to PostDecrementExpression
-PostDecrementExpression_0: (PostDecrementExpression, (207 . 220)) <= ((PostfixExpression, (207 . 220)), (MINUS_MINUS))
- ... goto state 10
- 0: 19: (SEMICOLON) : reduce 2 tokens to PostIncrementExpression
+ 1: 8: (PLUS_PLUS) : shift and goto state 19
+ 0: 8: (MINUS_MINUS) : shift and goto state 18
+ 1: 19: (SEMICOLON) : reduce 2 tokens to PostIncrementExpression
 PostIncrementExpression_0: (PostIncrementExpression, (207 . 220)) <= ((PostfixExpression, (207 . 220)), (PLUS_PLUS))
  ... goto state 9
- 1: 10: (SEMICOLON) : reduce 1 tokens to StatementExpression
-StatementExpression_1: (StatementExpression, (207 . 220)) <= ((PostDecrementExpression, (207 . 220)))
- ... goto state 13
- 0: 9: (SEMICOLON) : reduce 1 tokens to StatementExpression
+ 0: 18: (SEMICOLON) : reduce 2 tokens to PostDecrementExpression
+PostDecrementExpression_0: (PostDecrementExpression, (207 . 220)) <= ((PostfixExpression, (207 . 220)), (MINUS_MINUS))
+ ... goto state 10
+ 1: 9: (SEMICOLON) : reduce 1 tokens to StatementExpression
 StatementExpression_0: (StatementExpression, (207 . 220)) <= ((PostIncrementExpression, (207 . 220)))
+ ... goto state 13
+ 0: 10: (SEMICOLON) : reduce 1 tokens to StatementExpression
+StatementExpression_1: (StatementExpression, (207 . 220)) <= ((PostDecrementExpression, (207 . 220)))
  ... goto state 13
  1: 13: (SEMICOLON) : shift and goto state 21
  0: 13: (SEMICOLON) : shift and goto state 21
@@ -265,6 +265,6 @@ wisitoken_accept_0: (wisitoken_accept, (67 . 364)) <= ((CompilationUnit, (67 . 3
 java_expressions_ch19.input:2:20: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
 java_expressions_ch19.input:6:17: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
-   recovered: ((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
+   recovered: ((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
 java_expressions_ch19.input:12:6: syntax error: expecting Identifier, found '}'
    recovered: ((INSERT, Identifier, 22))

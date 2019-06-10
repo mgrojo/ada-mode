@@ -210,8 +210,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
+      Recursions                 : constant Recursion_Array :=
+        WisiToken.Generate.Compute_Recursion (Descriptor, Grammar);
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
+        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Recursions);
 
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
@@ -280,7 +282,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       if Put_Parse_Table then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, "LR1", Grammar, Minimal_Terminal_Sequences, Item_Sets, Conflict_Counts, Descriptor);
+           (Table, "LR1", Grammar, Recursions, Minimal_Terminal_Sequences, Item_Sets, Conflict_Counts, Descriptor);
       end if;
 
       if Trace_Generate > Outline then

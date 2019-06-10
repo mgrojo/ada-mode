@@ -145,12 +145,19 @@ begin
 
       WisiToken.Trace_Generate := Trace_Generate; -- Only trace the part we are interested in.
       declare
+         Recursions : constant WisiToken.Generate.Recursion_Array := WisiToken.Generate.Compute_Recursion
+           (Descriptor, Generate_Data.Grammar);
          Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-           Generate.LR.Compute_Minimal_Terminal_Sequences (Descriptor, Generate_Data.Grammar);
+           Generate.LR.Compute_Minimal_Terminal_Sequences (Descriptor, Generate_Data.Grammar, Recursions);
          Minimal_Terminal_First : constant WisiToken.Token_Array_Token_ID :=
            Generate.LR.Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
 
       begin
+         Put_Line ("Recursions:");
+         for I in Recursions.First_Index .. Recursions.Last_Index loop
+            Put_Line (WisiToken.Generate.Trimmed_Image (I) & " => " & WisiToken.Generate.Image (Recursions (I)));
+         end loop;
+
          Put_Line ("Minimal_Terminal_Sequences:");
          for ID in Minimal_Terminal_Sequences'Range loop
             Put_Line

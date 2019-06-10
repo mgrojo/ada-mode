@@ -21,7 +21,7 @@ Tokens:
 Productions:
 13.0: wisitoken_accept <= compilation_unit Wisi_EOI
 14.0: compilation_unit <= statement_list
-15.0: statement_list <= statement_list statement
+15.0: statement_list <= statement_list statement ; (1) LEFT
 15.1: statement_list <= statement
 16.0: statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
 16.1: statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
@@ -29,6 +29,9 @@ Productions:
 16.3: statement <= STRING_LITERAL SEMICOLON
 16.4: statement <= FOO SEMICOLON
 17.0: tick <= TICK_1
+
+Recursions:
+1 => (15 (0 LEFT) -> )
 
 LR1 Parse Table:
 State 0:
@@ -157,7 +160,7 @@ State 11:
    Wisi_EOI          => reduce 2 tokens to statement_list 15.0
    default           => ERROR
 
-   Minimal_Complete_Action => statement_list
+   Minimal_Complete_Action => statement_list recursive
 
 State 12:
      16.0:statement <= IDENTIFIER tick LEFT_PAREN ^ CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI

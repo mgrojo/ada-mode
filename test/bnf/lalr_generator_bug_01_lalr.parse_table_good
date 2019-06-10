@@ -36,32 +36,38 @@ Tokens:
 
 Productions:
 17.0: wisitoken_accept <= compilation_unit Wisi_EOI
-18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN
-19.0: association <= IDENTIFIER EQUAL_GREATER expression
-19.1: association <= expression
-20.0: association_list <= association
+18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; (1) MIDDLE
+19.0: association <= IDENTIFIER EQUAL_GREATER expression ; (1) MIDDLE
+19.1: association <= expression ; (1) MIDDLE
+20.0: association_list <= association ; (1) MIDDLE
 21.0: compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON
 21.1: compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON
 21.2: compilation_unit <= TYPE IDENTIFIER IS SEMICOLON
-22.0: expression <= relation
-23.0: name <= name actual_parameter_part
+22.0: expression <= relation ; (1) MIDDLE
+23.0: name <= name actual_parameter_part ; (1, 2) LEFT
 23.1: name <= IDENTIFIER
 24.0: name_opt <= name
 24.1: name_opt <=
-25.0: primary <= name
+25.0: primary <= name ; (1) MIDDLE
 26.0: procedure_call_statement <= name SEMICOLON
-27.0: relation <= simple_expression
+27.0: relation <= simple_expression ; (1) MIDDLE
 28.0: sequence_of_statements_list <= procedure_call_statement
-28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement
+28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ; (3) LEFT
 29.0: sequence_of_statements <=
 29.1: sequence_of_statements <= sequence_of_statements_list
-30.0: simple_expression <= unary_adding_operator_opt primary
-31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN
+30.0: simple_expression <= unary_adding_operator_opt primary ; (1) MIDDLE
+31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ; (4) MIDDLE
 31.1: subtype_indication <= name
 32.0: unary_adding_operator <= PLUS
 32.1: unary_adding_operator <= MINUS
 33.0: unary_adding_operator_opt <= unary_adding_operator
 33.1: unary_adding_operator_opt <=
+
+Recursions:
+1 => (18 (0 MIDDLE) -> 20 (0 SINGLE) -> 19 (0 RIGHT, 1 SINGLE) -> 22 (0 SINGLE) -> 27 (0 SINGLE) -> 30 (0 RIGHT) -> 25 (0 SINGLE) -> 23 (0 RIGHT) -> )
+2 => (23 (0 LEFT) -> )
+3 => (28 (1 LEFT) -> )
+4 => (31 (0 MIDDLE) -> )
 
 LALR Parse Table:
 State 0:
@@ -189,7 +195,7 @@ State 11:
    SEMICOLON                   => reduce 2 tokens to name 23.0
    default                     => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name recursive
 
 State 12:
      21.2:compilation_unit <= TYPE IDENTIFIER IS ^ SEMICOLON, Wisi_EOI
@@ -486,7 +492,7 @@ State 40:
    IDENTIFIER                  => reduce 2 tokens to sequence_of_statements_list 28.1
    default                     => ERROR
 
-   Minimal_Complete_Action => sequence_of_statements_list
+   Minimal_Complete_Action => sequence_of_statements_list recursive
 
 State 41:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END ^ name_opt SEMICOLON, Wisi_EOI

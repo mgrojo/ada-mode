@@ -35,39 +35,52 @@ Tokens:
 Productions:
 16.0: wisitoken_accept <= CompilationUnit Wisi_EOI
 17.0: CompilationUnit <= ClassType
-18.0: AnnotationList <= Annotation
-18.1: AnnotationList <= AnnotationList Annotation
-19.0: Annotation <= AT ClassType
-20.0: ClassType <= AnnotationList Identifier TypeArguments
-20.1: ClassType <= AnnotationList Identifier
-20.2: ClassType <= Identifier TypeArguments
+18.0: AnnotationList <= Annotation ; (1, 2, 3, 4, 5) RIGHT
+18.1: AnnotationList <= AnnotationList Annotation ; (1, 2, 3, 4, 5, 6) LEFT
+19.0: Annotation <= AT ClassType ; (1, 2, 3, 4, 5) RIGHT
+20.0: ClassType <= AnnotationList Identifier TypeArguments ; (1, 2, 3, 4, 5, 7, 8) RIGHT
+20.1: ClassType <= AnnotationList Identifier ; (5) RIGHT
+20.2: ClassType <= Identifier TypeArguments ; (1, 2, 3, 4, 7, 8) MIDDLE
 20.3: ClassType <= Identifier
-21.0: TypeArguments <= LESS TypeArgumentList GREATER
-22.0: TypeArgumentList <= TypeArgument
-22.1: TypeArgumentList <= TypeArgumentList COMMA TypeArgument
-23.0: TypeArgument <= ClassType
-23.1: TypeArgument <= ArrayType
-24.0: ArrayType <= PrimitiveType Dims
-24.1: ArrayType <= ClassType Dims
-25.0: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list
-25.1: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-25.2: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list
+21.0: TypeArguments <= LESS TypeArgumentList GREATER ; (1, 2, 3, 4, 7, 8) MIDDLE
+22.0: TypeArgumentList <= TypeArgument ; (1, 2, 3, 4, 7, 8) MIDDLE
+22.1: TypeArgumentList <= TypeArgumentList COMMA TypeArgument ; (1, 2, 3, 4, 7, 8, 9) LEFT
+23.0: TypeArgument <= ClassType ; (8) MIDDLE
+23.1: TypeArgument <= ArrayType ; (1, 2, 3, 4, 7) MIDDLE
+24.0: ArrayType <= PrimitiveType Dims ; (1, 2, 3, 4) MIDDLE
+24.1: ArrayType <= ClassType Dims ; (2, 3, 4, 7) MIDDLE
+25.0: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list ; (2, 4) MIDDLE
+25.1: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (4) MIDDLE
+25.2: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list ; (3) MIDDLE
 25.3: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-26.0: PrimitiveType <= AnnotationList NumericType
+26.0: PrimitiveType <= AnnotationList NumericType ; (1) MIDDLE
 26.1: PrimitiveType <= NumericType
 27.0: NumericType <= BYTE
 27.1: NumericType <= SHORT
 27.2: NumericType <= INT
 27.3: NumericType <= LONG
 27.4: NumericType <= CHAR
-28.0: nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+28.0: nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (2) MIDDLE
 28.1: nonterminal_013 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-29.0: nonterminal_012_list <= nonterminal_013
-29.1: nonterminal_012_list <= nonterminal_012_list nonterminal_013
-30.0: nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+29.0: nonterminal_012_list <= nonterminal_013 ; (2) MIDDLE
+29.1: nonterminal_012_list <= nonterminal_012_list nonterminal_013 ; (2, 10) LEFT
+30.0: nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (3) MIDDLE
 30.1: nonterminal_028 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-31.0: nonterminal_027_list <= nonterminal_028
-31.1: nonterminal_027_list <= nonterminal_027_list nonterminal_028
+31.0: nonterminal_027_list <= nonterminal_028 ; (3) MIDDLE
+31.1: nonterminal_027_list <= nonterminal_027_list nonterminal_028 ; (3, 11) LEFT
+
+Recursions:
+1 => (18 (0 SINGLE, 1 RIGHT) -> 19 (0 RIGHT) -> 20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (1 SINGLE) -> 24 (0 LEFT) -> 26 (0 LEFT) -> )
+2 => (18 (0 SINGLE, 1 RIGHT) -> 19 (0 RIGHT) -> 20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (1 SINGLE) -> 24 (0 RIGHT, 1 RIGHT) -> 25 (0 RIGHT) -> 29 (0 SINGLE, 1 RIGHT) -> 28 (0 LEFT) -> )
+3 => (18 (0 SINGLE, 1 RIGHT) -> 19 (0 RIGHT) -> 20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (1 SINGLE) -> 24 (0 RIGHT, 1 RIGHT) -> 25 (2 RIGHT) -> 31 (0 SINGLE, 1 RIGHT) -> 30 (0 LEFT) -> )
+4 => (18 (0 SINGLE, 1 RIGHT) -> 19 (0 RIGHT) -> 20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (1 SINGLE) -> 24 (0 RIGHT, 1 RIGHT) -> 25 (0 LEFT, 1 LEFT) -> )
+5 => (18 (0 SINGLE, 1 RIGHT) -> 19 (0 RIGHT) -> 20 (0 LEFT, 1 LEFT) -> )
+6 => (18 (1 LEFT) -> )
+7 => (20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (1 SINGLE) -> 24 (1 LEFT) -> )
+8 => (20 (0 RIGHT, 2 RIGHT) -> 21 (0 MIDDLE) -> 22 (0 SINGLE, 1 RIGHT) -> 23 (0 SINGLE) -> )
+9 => (22 (1 LEFT) -> )
+10 => (29 (1 LEFT) -> )
+11 => (31 (1 LEFT) -> )
 
 McKenzie:
 (Insert =>
@@ -145,7 +158,7 @@ State 1:
    Annotation           goto state 5
    ClassType            goto state 9
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 2:
      20.2:ClassType <= Identifier ^ TypeArguments, Wisi_EOI
@@ -178,7 +191,7 @@ State 4:
 
    Annotation           goto state 13
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 5:
      18.0:AnnotationList <= Annotation ^, AT/Identifier
@@ -187,7 +200,7 @@ State 5:
    Identifier           => reduce 1 tokens to AnnotationList 18.0
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 6:
      17.0:CompilationUnit <= ClassType ^, Wisi_EOI
@@ -221,7 +234,7 @@ State 8:
 
    Annotation           goto state 13
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 9:
      19.0:Annotation <= AT ClassType ^, AT/Identifier
@@ -230,7 +243,7 @@ State 9:
    Identifier           => reduce 2 tokens to Annotation 19.0
    default              => ERROR
 
-   Minimal_Complete_Action => Annotation
+   Minimal_Complete_Action => Annotation recursive
 
 State 10:
      21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, Wisi_EOI
@@ -273,7 +286,7 @@ State 12:
 
    TypeArguments        goto state 32
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 13:
      18.1:AnnotationList <= AnnotationList Annotation ^, AT/Identifier
@@ -282,7 +295,7 @@ State 13:
    Identifier           => reduce 2 tokens to AnnotationList 18.1
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 14:
      21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, AT/Identifier
@@ -327,7 +340,7 @@ State 16:
 
    TypeArguments        goto state 34
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 17:
      27.4:NumericType <= CHAR ^, AT/LEFT_SQUARE_BRACKET
@@ -385,7 +398,7 @@ State 22:
    Annotation           goto state 5
    ClassType            goto state 37
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 23:
      20.2:ClassType <= Identifier ^ TypeArguments, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -434,7 +447,7 @@ State 25:
    Identifier           => reduce 1 tokens to AnnotationList 18.0
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 26:
      23.0:TypeArgument <= ClassType ^, COMMA/GREATER
@@ -508,7 +521,7 @@ State 32:
    Wisi_EOI             => reduce 3 tokens to ClassType 20.0
    default              => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 33:
      21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, AT/Identifier
@@ -527,7 +540,7 @@ State 34:
    Identifier           => reduce 3 tokens to ClassType 20.0
    default              => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 35:
      20.2:ClassType <= Identifier ^ TypeArguments, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
@@ -558,7 +571,7 @@ State 36:
 
    Annotation           goto state 13
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 37:
      19.0:Annotation <= AT ClassType ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
@@ -572,7 +585,7 @@ State 37:
    Identifier           => reduce 2 tokens to Annotation 19.0
    default              => ERROR
 
-   Minimal_Complete_Action => Annotation
+   Minimal_Complete_Action => Annotation recursive
 
 State 38:
      21.0:TypeArguments <= LESS ^ TypeArgumentList GREATER, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -621,7 +634,7 @@ State 40:
 
    TypeArguments        goto state 56
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 41:
      18.1:AnnotationList <= AnnotationList Annotation ^, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
@@ -635,7 +648,7 @@ State 41:
    Identifier           => reduce 2 tokens to AnnotationList 18.1
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 42:
      26.0:PrimitiveType <= AnnotationList NumericType ^, AT/LEFT_SQUARE_BRACKET
@@ -657,7 +670,7 @@ State 43:
    Annotation           goto state 5
    ClassType            goto state 59
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 44:
      25.2:Dims <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET nonterminal_027_list, COMMA/GREATER
@@ -688,7 +701,7 @@ State 46:
    LEFT_SQUARE_BRACKET  => reduce 1 tokens to AnnotationList 18.0
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 47:
      24.1:ArrayType <= ClassType Dims ^, COMMA/GREATER
@@ -719,7 +732,7 @@ State 48:
    PrimitiveType        goto state 30
    NumericType          goto state 31
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 49:
      21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, Wisi_EOI
@@ -800,7 +813,7 @@ State 54:
 
    TypeArguments        goto state 65
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 55:
      21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -821,7 +834,7 @@ State 56:
    LEFT_SQUARE_BRACKET  => reduce 3 tokens to ClassType 20.0
    default              => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 57:
      20.2:ClassType <= Identifier ^ TypeArguments, AT/LEFT_SQUARE_BRACKET
@@ -847,7 +860,7 @@ State 58:
 
    Annotation           goto state 13
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 59:
      19.0:Annotation <= AT ClassType ^, AT/LEFT_SQUARE_BRACKET
@@ -856,7 +869,7 @@ State 59:
    LEFT_SQUARE_BRACKET  => reduce 2 tokens to Annotation 19.0
    default              => ERROR
 
-   Minimal_Complete_Action => Annotation
+   Minimal_Complete_Action => Annotation recursive
 
 State 60:
      25.2:Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^ nonterminal_027_list, COMMA/GREATER
@@ -891,7 +904,7 @@ State 62:
    LEFT_SQUARE_BRACKET  => reduce 2 tokens to AnnotationList 18.1
    default              => ERROR
 
-   Minimal_Complete_Action => AnnotationList
+   Minimal_Complete_Action => AnnotationList recursive
 
 State 63:
      22.1:TypeArgumentList <= TypeArgumentList COMMA TypeArgument ^, COMMA/GREATER
@@ -900,7 +913,7 @@ State 63:
    GREATER              => reduce 3 tokens to TypeArgumentList 22.1
    default              => ERROR
 
-   Minimal_Complete_Action => TypeArgumentList
+   Minimal_Complete_Action => TypeArgumentList recursive
 
 State 64:
      21.0:TypeArguments <= LESS TypeArgumentList ^ GREATER, CHAR/LONG/INT/SHORT/BYTE/AT/Identifier
@@ -924,7 +937,7 @@ State 65:
    Identifier           => reduce 3 tokens to ClassType 20.0
    default              => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 66:
      21.0:TypeArguments <= LESS TypeArgumentList GREATER ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -980,7 +993,7 @@ State 69:
 
    TypeArguments        goto state 77
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 70:
      30.1:nonterminal_028 <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -1077,7 +1090,7 @@ State 77:
    LEFT_SQUARE_BRACKET  => reduce 3 tokens to ClassType 20.0
    default              => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 78:
      30.1:nonterminal_028 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -1107,7 +1120,7 @@ State 80:
    LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_027_list 31.1
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_027_list
+   Minimal_Complete_Action => nonterminal_027_list recursive
 
 State 81:
      28.1:nonterminal_013 <= LEFT_SQUARE_BRACKET ^ RIGHT_SQUARE_BRACKET, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET
@@ -1204,7 +1217,7 @@ State 89:
    LEFT_SQUARE_BRACKET  => reduce 2 tokens to nonterminal_012_list 29.1
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_012_list
+   Minimal_Complete_Action => nonterminal_012_list recursive
 
 State 90:
      28.0:nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ^, AT/COMMA/GREATER/LEFT_SQUARE_BRACKET

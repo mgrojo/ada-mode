@@ -45,34 +45,45 @@ Productions:
 23.0: Statement <= LEFT_CURLY_BRACKET Assignment RIGHT_CURLY_BRACKET
 23.1: Statement <= LEFT_CURLY_BRACKET StatementExpression SEMICOLON RIGHT_CURLY_BRACKET
 24.0: Expression <= LambdaExpression
-24.1: Expression <= AssignmentExpression
+24.1: Expression <= AssignmentExpression ; (1, 2) RIGHT
 25.0: LambdaExpression <= Identifier MINUS_GREATER Identifier
-26.0: AssignmentExpression <= AdditiveExpression
-26.1: AssignmentExpression <= Assignment
-27.0: Assignment <= LeftHandSide EQUAL Expression
+26.0: AssignmentExpression <= AdditiveExpression ; (1) MIDDLE
+26.1: AssignmentExpression <= Assignment ; (2) RIGHT
+27.0: Assignment <= LeftHandSide EQUAL Expression ; (2) RIGHT
 28.0: LeftHandSide <= Identifier
-29.0: AdditiveExpression <= MultiplicativeExpression
-29.1: AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression
-29.2: AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression
-30.0: MultiplicativeExpression <= PostfixExpression
-30.1: MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression
-30.2: MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression
-30.3: MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression
+29.0: AdditiveExpression <= MultiplicativeExpression ; (1) MIDDLE
+29.1: AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ; (1, 3) LEFT
+29.2: AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression ; (1, 3) LEFT
+30.0: MultiplicativeExpression <= PostfixExpression ; (1) MIDDLE
+30.1: MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ; (1, 4) LEFT
+30.2: MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ; (1, 4) LEFT
+30.3: MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ; (1, 4) LEFT
 31.0: PostfixExpression <= ClassType
-31.1: PostfixExpression <= MethodInvocation
-31.2: PostfixExpression <= PostIncrementExpression
-31.3: PostfixExpression <= PostDecrementExpression
-32.0: PostIncrementExpression <= PostfixExpression PLUS_PLUS
-33.0: PostDecrementExpression <= PostfixExpression MINUS_MINUS
+31.1: PostfixExpression <= MethodInvocation ; (1) MIDDLE
+31.2: PostfixExpression <= PostIncrementExpression ; (5) LEFT
+31.3: PostfixExpression <= PostDecrementExpression ; (6) LEFT
+32.0: PostIncrementExpression <= PostfixExpression PLUS_PLUS ; (5) LEFT
+33.0: PostDecrementExpression <= PostfixExpression MINUS_MINUS ; (6) LEFT
 34.0: ClassType <= Identifier
-34.1: ClassType <= ClassType DOT Identifier
-35.0: MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN
-36.0: ArgumentList <= Expression
-36.1: ArgumentList <= ArgumentList COMMA Expression
+34.1: ClassType <= ClassType DOT Identifier ; (7) LEFT
+35.0: MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ; (1) MIDDLE
+36.0: ArgumentList <= Expression ; (1) MIDDLE
+36.1: ArgumentList <= ArgumentList COMMA Expression ; (1, 8) LEFT
 37.0: StatementExpression <= PostIncrementExpression
 37.1: StatementExpression <= PostDecrementExpression
 38.0: nonterminal_004_list <= Statement
-38.1: nonterminal_004_list <= nonterminal_004_list Statement
+38.1: nonterminal_004_list <= nonterminal_004_list Statement ; (9) LEFT
+
+Recursions:
+1 => (24 (1 SINGLE) -> 26 (0 SINGLE) -> 29 (0 SINGLE, 1 RIGHT, 2 RIGHT) -> 30 (0 SINGLE, 1 RIGHT, 2 RIGHT, 3 RIGHT) -> 31 (1 SINGLE) -> 35 (0 MIDDLE) -> 36 (0 SINGLE, 1 RIGHT) -> )
+2 => (24 (1 SINGLE) -> 26 (1 SINGLE) -> 27 (0 RIGHT) -> )
+3 => (29 (1 LEFT, 2 LEFT) -> )
+4 => (30 (1 LEFT, 2 LEFT, 3 LEFT) -> )
+5 => (31 (2 SINGLE) -> 32 (0 LEFT) -> )
+6 => (31 (3 SINGLE) -> 33 (0 LEFT) -> )
+7 => (34 (1 LEFT) -> )
+8 => (36 (1 LEFT) -> )
+9 => (38 (1 LEFT) -> )
 
 McKenzie:
 (Insert =>
@@ -227,7 +238,7 @@ State 7:
    EQUAL                    => shift and goto state 17
    default                  => ERROR
 
-   Minimal_Complete_Action => EQUAL
+   Minimal_Complete_Action => EQUAL recursive
 
 State 8:
      32.0:PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS, MINUS_MINUS/PLUS_PLUS/SEMICOLON
@@ -237,7 +248,7 @@ State 8:
    PLUS_PLUS                => shift and goto state 19
    default                  => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Action => (PLUS_PLUS, MINUS_MINUS) recursive
 
 State 9:
      31.2:PostfixExpression <= PostIncrementExpression ^, MINUS_MINUS/PLUS_PLUS
@@ -248,7 +259,7 @@ State 9:
    SEMICOLON                => reduce 1 tokens to StatementExpression 37.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (PostfixExpression, StatementExpression)
+   Minimal_Complete_Action => (PostfixExpression, StatementExpression) recursive
 
 State 10:
      31.3:PostfixExpression <= PostDecrementExpression ^, MINUS_MINUS/PLUS_PLUS
@@ -259,7 +270,7 @@ State 10:
    SEMICOLON                => reduce 1 tokens to StatementExpression 37.1
    default                  => ERROR
 
-   Minimal_Complete_Action => (PostfixExpression, StatementExpression)
+   Minimal_Complete_Action => (PostfixExpression, StatementExpression) recursive
 
 State 11:
      31.0:PostfixExpression <= ClassType ^, MINUS_MINUS/PLUS_PLUS
@@ -296,7 +307,7 @@ State 14:
    Wisi_EOI                 => reduce 2 tokens to nonterminal_004_list 38.1
    default                  => ERROR
 
-   Minimal_Complete_Action => nonterminal_004_list
+   Minimal_Complete_Action => nonterminal_004_list recursive
 
 State 15:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ^ ArgumentList RIGHT_PAREN, MINUS_MINUS/PLUS_PLUS
@@ -348,7 +359,7 @@ State 17:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 18:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^, MINUS_MINUS/PLUS_PLUS/SEMICOLON
@@ -358,7 +369,7 @@ State 18:
    SEMICOLON                => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression
+   Minimal_Complete_Action => PostDecrementExpression recursive
 
 State 19:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^, MINUS_MINUS/PLUS_PLUS/SEMICOLON
@@ -368,7 +379,7 @@ State 19:
    SEMICOLON                => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression
+   Minimal_Complete_Action => PostIncrementExpression recursive
 
 State 20:
      34.1:ClassType <= ClassType DOT ^ Identifier, DOT/MINUS_MINUS/PLUS_PLUS
@@ -376,7 +387,7 @@ State 20:
    Identifier               => shift and goto state 48
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 21:
      23.1:Statement <= LEFT_CURLY_BRACKET StatementExpression SEMICOLON ^ RIGHT_CURLY_BRACKET, LEFT_CURLY_BRACKET/Wisi_EOI
@@ -434,7 +445,7 @@ State 25:
    RIGHT_PAREN              => reduce 1 tokens to Expression 24.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression
+   Minimal_Complete_Action => Expression recursive
 
 State 26:
      26.1:AssignmentExpression <= Assignment ^, COMMA/RIGHT_PAREN
@@ -443,7 +454,7 @@ State 26:
    RIGHT_PAREN              => reduce 1 tokens to AssignmentExpression 26.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression
+   Minimal_Complete_Action => AssignmentExpression recursive
 
 State 27:
      27.0:Assignment <= LeftHandSide ^ EQUAL Expression, COMMA/RIGHT_PAREN
@@ -451,7 +462,7 @@ State 27:
    EQUAL                    => shift and goto state 52
    default                  => ERROR
 
-   Minimal_Complete_Action => EQUAL
+   Minimal_Complete_Action => EQUAL recursive
 
 State 28:
      26.0:AssignmentExpression <= AdditiveExpression ^, COMMA/RIGHT_PAREN
@@ -515,7 +526,7 @@ State 31:
    STAR                     => reduce 1 tokens to PostfixExpression 31.2
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression
+   Minimal_Complete_Action => PostfixExpression recursive
 
 State 32:
      31.3:PostfixExpression <= PostDecrementExpression ^, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -531,7 +542,7 @@ State 32:
    STAR                     => reduce 1 tokens to PostfixExpression 31.3
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression
+   Minimal_Complete_Action => PostfixExpression recursive
 
 State 33:
      31.0:PostfixExpression <= ClassType ^, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -605,7 +616,7 @@ State 37:
    RIGHT_CURLY_BRACKET      => reduce 3 tokens to Assignment 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Assignment
+   Minimal_Complete_Action => Assignment recursive
 
 State 38:
      24.0:Expression <= LambdaExpression ^, RIGHT_CURLY_BRACKET
@@ -621,7 +632,7 @@ State 39:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to Expression 24.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression
+   Minimal_Complete_Action => Expression recursive
 
 State 40:
      26.1:AssignmentExpression <= Assignment ^, RIGHT_CURLY_BRACKET
@@ -629,7 +640,7 @@ State 40:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to AssignmentExpression 26.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression
+   Minimal_Complete_Action => AssignmentExpression recursive
 
 State 41:
      26.0:AssignmentExpression <= AdditiveExpression ^, RIGHT_CURLY_BRACKET
@@ -689,7 +700,7 @@ State 44:
    STAR                     => reduce 1 tokens to PostfixExpression 31.2
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression
+   Minimal_Complete_Action => PostfixExpression recursive
 
 State 45:
      31.3:PostfixExpression <= PostDecrementExpression ^, MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -704,7 +715,7 @@ State 45:
    STAR                     => reduce 1 tokens to PostfixExpression 31.3
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression
+   Minimal_Complete_Action => PostfixExpression recursive
 
 State 46:
      31.0:PostfixExpression <= ClassType ^, MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -746,7 +757,7 @@ State 48:
    PLUS_PLUS                => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 49:
      23.1:Statement <= LEFT_CURLY_BRACKET StatementExpression SEMICOLON RIGHT_CURLY_BRACKET ^, LEFT_CURLY_BRACKET/Wisi_EOI
@@ -806,7 +817,7 @@ State 52:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 53:
      29.2:AdditiveExpression <= AdditiveExpression MINUS ^ MultiplicativeExpression, COMMA/MINUS/PLUS/RIGHT_PAREN
@@ -821,7 +832,7 @@ State 53:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 54:
      29.1:AdditiveExpression <= AdditiveExpression PLUS ^ MultiplicativeExpression, COMMA/MINUS/PLUS/RIGHT_PAREN
@@ -836,7 +847,7 @@ State 54:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 55:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT ^ PostfixExpression, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -850,7 +861,7 @@ State 55:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 56:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH ^ PostfixExpression, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -864,7 +875,7 @@ State 56:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 57:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR ^ PostfixExpression, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -878,7 +889,7 @@ State 57:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 58:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -894,7 +905,7 @@ State 58:
    STAR                     => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression
+   Minimal_Complete_Action => PostDecrementExpression recursive
 
 State 59:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -910,7 +921,7 @@ State 59:
    STAR                     => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression
+   Minimal_Complete_Action => PostIncrementExpression recursive
 
 State 60:
      34.1:ClassType <= ClassType DOT ^ Identifier, COMMA/DOT/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -918,7 +929,7 @@ State 60:
    Identifier               => shift and goto state 82
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 61:
      36.1:ArgumentList <= ArgumentList COMMA ^ Expression, COMMA/RIGHT_PAREN
@@ -939,7 +950,7 @@ State 61:
    ClassType                goto state 33
    MethodInvocation         goto state 34
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 62:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^, MINUS_MINUS/PLUS_PLUS
@@ -993,7 +1004,7 @@ State 65:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 66:
      29.1:AdditiveExpression <= AdditiveExpression PLUS ^ MultiplicativeExpression, MINUS/PLUS/RIGHT_CURLY_BRACKET
@@ -1008,7 +1019,7 @@ State 66:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 67:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT ^ PostfixExpression, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1022,7 +1033,7 @@ State 67:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 68:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH ^ PostfixExpression, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1036,7 +1047,7 @@ State 68:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 69:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR ^ PostfixExpression, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1050,7 +1061,7 @@ State 69:
    ClassType                goto state 46
    MethodInvocation         goto state 47
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 70:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^, MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1065,7 +1076,7 @@ State 70:
    STAR                     => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression
+   Minimal_Complete_Action => PostDecrementExpression recursive
 
 State 71:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^, MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1080,7 +1091,7 @@ State 71:
    STAR                     => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression
+   Minimal_Complete_Action => PostIncrementExpression recursive
 
 State 72:
      34.1:ClassType <= ClassType DOT ^ Identifier, DOT/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1088,7 +1099,7 @@ State 72:
    Identifier               => shift and goto state 92
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier
+   Minimal_Complete_Action => Identifier recursive
 
 State 73:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1116,7 +1127,7 @@ State 75:
    RIGHT_PAREN              => reduce 3 tokens to Assignment 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Assignment
+   Minimal_Complete_Action => Assignment recursive
 
 State 76:
      34.0:ClassType <= Identifier ^, COMMA/DOT/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1152,7 +1163,7 @@ State 77:
    STAR                     => shift and goto state 57
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression
+   Minimal_Complete_Action => AdditiveExpression recursive
 
 State 78:
      29.1:AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ^, COMMA/MINUS/PLUS/RIGHT_PAREN
@@ -1169,7 +1180,7 @@ State 78:
    STAR                     => shift and goto state 57
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression
+   Minimal_Complete_Action => AdditiveExpression recursive
 
 State 79:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ^, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1187,7 +1198,7 @@ State 79:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.3
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 80:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ^, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1205,7 +1216,7 @@ State 80:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.2
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 81:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ^, COMMA/MINUS/PERCENT/PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1223,7 +1234,7 @@ State 81:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 82:
      34.1:ClassType <= ClassType DOT Identifier ^, COMMA/DOT/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR
@@ -1240,7 +1251,7 @@ State 82:
    STAR                     => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 83:
      36.1:ArgumentList <= ArgumentList COMMA Expression ^, COMMA/RIGHT_PAREN
@@ -1249,7 +1260,7 @@ State 83:
    RIGHT_PAREN              => reduce 3 tokens to ArgumentList 36.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ArgumentList
+   Minimal_Complete_Action => ArgumentList recursive
 
 State 84:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN, MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1301,7 +1312,7 @@ State 87:
    STAR                     => shift and goto state 69
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression
+   Minimal_Complete_Action => AdditiveExpression recursive
 
 State 88:
      29.1:AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ^, MINUS/PLUS/RIGHT_CURLY_BRACKET
@@ -1317,7 +1328,7 @@ State 88:
    STAR                     => shift and goto state 69
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression
+   Minimal_Complete_Action => AdditiveExpression recursive
 
 State 89:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ^, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1334,7 +1345,7 @@ State 89:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.3
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 90:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ^, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1351,7 +1362,7 @@ State 90:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.2
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 91:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ^, MINUS/PERCENT/PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1368,7 +1379,7 @@ State 91:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression
+   Minimal_Complete_Action => MultiplicativeExpression recursive
 
 State 92:
      34.1:ClassType <= ClassType DOT Identifier ^, DOT/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_CURLY_BRACKET/SLASH/STAR
@@ -1384,7 +1395,7 @@ State 92:
    STAR                     => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType
+   Minimal_Complete_Action => ClassType recursive
 
 State 93:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^, COMMA/MINUS/MINUS_MINUS/PERCENT/PLUS/PLUS_PLUS/RIGHT_PAREN/SLASH/STAR

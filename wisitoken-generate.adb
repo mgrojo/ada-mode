@@ -359,6 +359,50 @@ package body WisiToken.Generate is
       return Result;
    end Follow;
 
+   function Compute_Recursion
+     (Descriptor : in WisiToken.Descriptor;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
+     return Recursion_Array
+   is
+      use all type Ada.Containers.Count_Type;
+      subtype Nonterminals is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
+      Graph : Grammar_Graphs.Graph;
+   begin
+      for LHS in Grammar.First_Index .. Grammar.Last_Index loop
+         declare
+            Prod : WisiToken.Productions.Instance renames Grammar (LHS);
+         begin
+            for RHS in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+               declare
+                  Tokens : Token_ID_Arrays.Vector renames Prod.RHSs (RHS).Tokens;
+               begin
+                  for I in Tokens.First_Index .. Tokens.Last_Index loop
+                     if Tokens (I) in Nonterminals then
+                        Graph.Add_Edge
+                          (LHS, Tokens (I),
+                           (RHS,
+                            Recursive =>
+                              (if Tokens.Length = 1 then Single
+                               elsif I = Tokens.First_Index then Left
+                               elsif I = Tokens.Last_Index then Right
+                               else Middle)));
+                     end if;
+                  end loop;
+               end;
+            end loop;
+         end;
+      end loop;
+
+      return Result : constant Recursion_Array := Graph.Find_Cycles do
+         if Trace_Generate > Outline then
+            Ada.Text_IO.Put_Line ("Recursions:");
+            for I in Result.First_Index .. Result.Last_Index loop
+               Ada.Text_IO.Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Result (I)));
+            end loop;
+         end if;
+      end return;
+   end Compute_Recursion;
+
    ----------
    --  Indented text output
 

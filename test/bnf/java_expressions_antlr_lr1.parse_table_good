@@ -47,20 +47,20 @@ Productions:
 26.1: BOOL_LITERAL <= FALSE
 27.0: literal <= DECIMAL_LITERAL
 27.1: literal <= BOOL_LITERAL
-28.0: expressionList <= expression
-28.1: expressionList <= expressionList COMMA expression
-29.0: methodCall <= IDENTIFIER LPAREN expressionList RPAREN
+28.0: expressionList <= expression ; (1, 2) MIDDLE
+28.1: expressionList <= expressionList COMMA expression ; (1, 2, 3) LEFT
+29.0: methodCall <= IDENTIFIER LPAREN expressionList RPAREN ; (1, 2) MIDDLE
 29.1: methodCall <= IDENTIFIER LPAREN RPAREN
-30.0: expression <= primary
-30.1: expression <= expression DOT nonterminal_008
-30.2: expression <= expression LBRACK expression RBRACK
-30.3: expression <= methodCall
-30.4: expression <= LPAREN typeType RPAREN expression
-30.5: expression <= expression nonterminal_015
-30.6: expression <= nonterminal_020 expression
-30.7: expression <= expression nonterminal_024 expression
-30.8: expression <= expression nonterminal_027 expression
-31.0: primary <= LPAREN expression RPAREN
+30.0: expression <= primary ; (4) MIDDLE
+30.1: expression <= expression DOT nonterminal_008 ; (1, 5) LEFT
+30.2: expression <= expression LBRACK expression RBRACK ; (5, 5) MIDDLE
+30.3: expression <= methodCall ; (2) MIDDLE
+30.4: expression <= LPAREN typeType RPAREN expression ; (5) RIGHT
+30.5: expression <= expression nonterminal_015 ; (5) LEFT
+30.6: expression <= nonterminal_020 expression ; (5) RIGHT
+30.7: expression <= expression nonterminal_024 expression ; (5, 5) RIGHT
+30.8: expression <= expression nonterminal_027 expression ; (5, 5) RIGHT
+31.0: primary <= LPAREN expression RPAREN ; (4) MIDDLE
 31.1: primary <= THIS
 31.2: primary <= literal
 31.3: primary <= IDENTIFIER
@@ -70,7 +70,7 @@ Productions:
 33.0: primitiveType <= BOOLEAN
 33.1: primitiveType <= INT
 34.0: nonterminal_008 <= IDENTIFIER
-34.1: nonterminal_008 <= methodCall
+34.1: nonterminal_008 <= methodCall ; (1) MIDDLE
 34.2: nonterminal_008 <= THIS
 35.0: nonterminal_015 <= INC
 35.1: nonterminal_015 <= DEC
@@ -85,7 +85,15 @@ Productions:
 38.1: nonterminal_027 <= SUB
 39.0: nonterminal_034 <= LBRACK RBRACK
 40.0: nonterminal_033_list <= nonterminal_034
-40.1: nonterminal_033_list <= nonterminal_033_list nonterminal_034
+40.1: nonterminal_033_list <= nonterminal_033_list nonterminal_034 ; (6) LEFT
+
+Recursions:
+1 => (28 (0 SINGLE, 1 RIGHT) -> 30 (1 RIGHT) -> 34 (1 SINGLE) -> 29 (0 MIDDLE) -> )
+2 => (28 (0 SINGLE, 1 RIGHT) -> 30 (3 SINGLE) -> 29 (0 MIDDLE) -> )
+3 => (28 (1 LEFT) -> )
+4 => (30 (0 SINGLE) -> 31 (0 MIDDLE) -> )
+5 => (30 (1 LEFT, 2 LEFT, 2 MIDDLE, 4 RIGHT, 5 LEFT, 6 RIGHT, 7 LEFT, 7 RIGHT, 8 LEFT, 8 RIGHT) -> )
+6 => (40 (1 LEFT) -> )
 
 McKenzie:
 (Insert =>
@@ -545,7 +553,7 @@ State 20:
    primitiveType        goto state 19
    nonterminal_020      goto state 20
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 21:
      33.0:primitiveType <= BOOLEAN ^, RPAREN/LBRACK/DOT
@@ -786,7 +794,7 @@ State 34:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => (RPAREN, DOT)
+   Minimal_Complete_Action => (RPAREN, DOT) recursive
 
 State 35:
      32.0:typeType <= primitiveType ^ nonterminal_033_list, RPAREN/DOT
@@ -828,7 +836,7 @@ State 36:
    primitiveType        goto state 19
    nonterminal_020      goto state 36
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 37:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -899,7 +907,7 @@ State 39:
    methodCall           goto state 103
    nonterminal_008      goto state 104
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 40:
      35.0:nonterminal_015 <= INC ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -1045,7 +1053,7 @@ State 47:
    Wisi_EOI             => reduce 2 tokens to expression 30.5
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 48:
      30.7:expression <= expression nonterminal_024 ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -1073,7 +1081,7 @@ State 48:
    primitiveType        goto state 19
    nonterminal_020      goto state 20
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 49:
      30.8:expression <= expression nonterminal_027 ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -1101,7 +1109,7 @@ State 49:
    primitiveType        goto state 19
    nonterminal_020      goto state 20
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 50:
      31.4:primary <= typeType DOT ^ CLASS, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -1173,7 +1181,7 @@ State 54:
    nonterminal_024      goto state 48
    nonterminal_027      goto state 49
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 55:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1209,7 +1217,7 @@ State 56:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => (RPAREN, DOT)
+   Minimal_Complete_Action => (RPAREN, DOT) recursive
 
 State 57:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1297,7 +1305,7 @@ State 60:
    methodCall           goto state 117
    nonterminal_008      goto state 118
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 61:
      35.0:nonterminal_015 <= INC ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1348,7 +1356,7 @@ State 63:
    MOD                  => reduce 2 tokens to expression 30.5
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 64:
      30.7:expression <= expression nonterminal_024 ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1376,7 +1384,7 @@ State 64:
    primitiveType        goto state 19
    nonterminal_020      goto state 36
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 65:
      30.8:expression <= expression nonterminal_027 ^ expression, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1404,7 +1412,7 @@ State 65:
    primitiveType        goto state 19
    nonterminal_020      goto state 36
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 66:
      30.4:expression <= LPAREN typeType RPAREN ^ expression, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -1432,7 +1440,7 @@ State 66:
    primitiveType        goto state 19
    nonterminal_020      goto state 20
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 67:
      31.4:primary <= typeType DOT ^ CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1506,7 +1514,7 @@ State 71:
    nonterminal_024      goto state 64
    nonterminal_027      goto state 65
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 72:
      31.4:primary <= typeType ^ DOT CLASS, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -1798,7 +1806,7 @@ State 87:
    primitiveType        goto state 19
    nonterminal_020      goto state 87
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 88:
      31.1:primary <= THIS ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2045,7 +2053,7 @@ State 100:
    primitiveType        goto state 19
    nonterminal_020      goto state 100
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 101:
      34.2:nonterminal_008 <= THIS ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -2116,7 +2124,7 @@ State 104:
    Wisi_EOI             => reduce 3 tokens to expression 30.1
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 105:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -2151,7 +2159,7 @@ State 105:
    nonterminal_024      goto state 48
    nonterminal_027      goto state 49
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 106:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -2186,7 +2194,7 @@ State 106:
    nonterminal_024      goto state 48
    nonterminal_027      goto state 49
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 107:
      31.4:primary <= typeType DOT CLASS ^, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -2221,7 +2229,7 @@ State 109:
    DOT                  => reduce 2 tokens to nonterminal_033_list 40.1
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_033_list
+   Minimal_Complete_Action => nonterminal_033_list recursive
 
 State 110:
      31.0:primary <= LPAREN expression RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2266,7 +2274,7 @@ State 111:
    primitiveType        goto state 19
    nonterminal_020      goto state 36
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 112:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2390,7 +2398,7 @@ State 118:
    MOD                  => reduce 3 tokens to expression 30.1
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 119:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2425,7 +2433,7 @@ State 119:
    nonterminal_024      goto state 64
    nonterminal_027      goto state 65
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 120:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2460,7 +2468,7 @@ State 120:
    nonterminal_024      goto state 64
    nonterminal_027      goto state 65
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 121:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD/Wisi_EOI
@@ -2495,7 +2503,7 @@ State 121:
    nonterminal_024      goto state 48
    nonterminal_027      goto state 49
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 122:
      31.4:primary <= typeType DOT CLASS ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2532,7 +2540,7 @@ State 124:
    DOT                  => reduce 2 tokens to nonterminal_033_list 40.1
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_033_list
+   Minimal_Complete_Action => nonterminal_033_list recursive
 
 State 125:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2568,7 +2576,7 @@ State 126:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => (RPAREN, DOT)
+   Minimal_Complete_Action => (RPAREN, DOT) recursive
 
 State 127:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2644,7 +2652,7 @@ State 129:
    primitiveType        goto state 19
    nonterminal_020      goto state 87
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 130:
      30.2:expression <= expression LBRACK ^ expression RBRACK, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2684,7 +2692,7 @@ State 131:
    methodCall           goto state 163
    nonterminal_008      goto state 164
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 132:
      35.0:nonterminal_015 <= INC ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2738,7 +2746,7 @@ State 134:
    MOD                  => reduce 2 tokens to expression 30.5
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 135:
      30.7:expression <= expression nonterminal_024 ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2766,7 +2774,7 @@ State 135:
    primitiveType        goto state 19
    nonterminal_020      goto state 87
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 136:
      30.8:expression <= expression nonterminal_027 ^ expression, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2794,7 +2802,7 @@ State 136:
    primitiveType        goto state 19
    nonterminal_020      goto state 87
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 137:
      31.4:primary <= typeType DOT ^ CLASS, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2838,7 +2846,7 @@ State 138:
    nonterminal_024      goto state 135
    nonterminal_027      goto state 136
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 139:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2874,7 +2882,7 @@ State 140:
    DOT                  => shift and goto state 67
    default              => ERROR
 
-   Minimal_Complete_Action => (RPAREN, DOT)
+   Minimal_Complete_Action => (RPAREN, DOT) recursive
 
 State 141:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -2962,7 +2970,7 @@ State 144:
    methodCall           goto state 175
    nonterminal_008      goto state 176
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 145:
      35.0:nonterminal_015 <= INC ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3013,7 +3021,7 @@ State 147:
    MOD                  => reduce 2 tokens to expression 30.5
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 148:
      30.7:expression <= expression nonterminal_024 ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3041,7 +3049,7 @@ State 148:
    primitiveType        goto state 19
    nonterminal_020      goto state 100
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 149:
      30.8:expression <= expression nonterminal_027 ^ expression, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3069,7 +3077,7 @@ State 149:
    primitiveType        goto state 19
    nonterminal_020      goto state 100
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 150:
      31.4:primary <= typeType DOT ^ CLASS, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3112,7 +3120,7 @@ State 151:
    nonterminal_024      goto state 148
    nonterminal_027      goto state 149
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 152:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3147,7 +3155,7 @@ State 152:
    nonterminal_024      goto state 64
    nonterminal_027      goto state 65
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 153:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, RPAREN/LBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3227,7 +3235,7 @@ State 156:
    primitiveType        goto state 19
    nonterminal_020      goto state 87
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 157:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3282,7 +3290,7 @@ State 159:
    nonterminal_024      goto state 135
    nonterminal_027      goto state 136
 
-   Minimal_Complete_Action => expressionList
+   Minimal_Complete_Action => expressionList recursive
 
 State 160:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3383,7 +3391,7 @@ State 164:
    MOD                  => reduce 3 tokens to expression 30.1
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 165:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3419,7 +3427,7 @@ State 165:
    nonterminal_024      goto state 135
    nonterminal_027      goto state 136
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 166:
      30.1:expression <= expression ^ DOT nonterminal_008, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3455,7 +3463,7 @@ State 166:
    nonterminal_024      goto state 135
    nonterminal_027      goto state 136
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 167:
      31.4:primary <= typeType DOT CLASS ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3518,7 +3526,7 @@ State 169:
    primitiveType        goto state 19
    nonterminal_020      goto state 100
 
-   Minimal_Complete_Action => THIS
+   Minimal_Complete_Action => THIS recursive
 
 State 170:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3642,7 +3650,7 @@ State 176:
    MOD                  => reduce 3 tokens to expression 30.1
    default              => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 177:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3677,7 +3685,7 @@ State 177:
    nonterminal_024      goto state 148
    nonterminal_027      goto state 149
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 178:
      30.1:expression <= expression ^ DOT nonterminal_008, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3712,7 +3720,7 @@ State 178:
    nonterminal_024      goto state 148
    nonterminal_027      goto state 149
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 179:
      31.4:primary <= typeType DOT CLASS ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3765,7 +3773,7 @@ State 180:
    nonterminal_024      goto state 135
    nonterminal_027      goto state 136
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 181:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, RPAREN/LBRACK/COMMA/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD
@@ -3836,7 +3844,7 @@ State 183:
    nonterminal_024      goto state 148
    nonterminal_027      goto state 149
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression recursive
 
 State 184:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^, LBRACK/RBRACK/DOT/INC/DEC/ADD/SUB/MUL/DIV/MOD

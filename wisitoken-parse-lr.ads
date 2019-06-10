@@ -124,13 +124,11 @@ package WisiToken.Parse.LR is
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
-   type Recursion is (None, Middle, Left, Right);
-
    type Kernel_Info is record
       LHS              : Token_ID                  := Token_ID'First;
       Before_Dot       : Token_ID                  := Token_ID'First;
       Length_After_Dot : Ada.Containers.Count_Type := 0;
-      Recursive        : Recursion                 := None;
+      Recursive        : Boolean                   := False;
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;

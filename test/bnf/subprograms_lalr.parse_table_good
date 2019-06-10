@@ -38,15 +38,15 @@ Productions:
 22.0: block <= BEGIN loop_statement EXCEPTION WHEN name END
 22.1: block <= BEGIN loop_statement END
 23.0: compilation_unit <= declarations
-24.0: declarations <= declarations declaration
+24.0: declarations <= declarations declaration ; (1) LEFT
 24.1: declarations <= declaration
 25.0: declaration <= subprogram
 25.1: declaration <= use_clause
 26.0: loop_statement <= FOR SYMBOL IN subtype LOOP SEMICOLON
-27.0: name <= name DOT SYMBOL
+27.0: name <= name DOT SYMBOL ; (2) LEFT
 27.1: name <= SYMBOL
 28.0: name_list <= name
-28.1: name_list <= name_list COMMA name
+28.1: name_list <= name_list COMMA name ; (3) LEFT
 29.0: parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN
 29.1: parameter_list <= LEFT_PAREN RIGHT_PAREN
 30.0: subprogram <= FUNCTION name parameter_list block SEMICOLON
@@ -60,6 +60,11 @@ Productions:
 30.8: subprogram <= PROCEDURE name parameter_list END name SEMICOLON
 31.0: subtype <= name
 32.0: use_clause <= USE name_list SEMICOLON
+
+Recursions:
+1 => (24 (0 LEFT) -> )
+2 => (27 (0 LEFT) -> )
+3 => (28 (1 LEFT) -> )
 
 McKenzie:
 (Insert =>
@@ -366,7 +371,7 @@ State 19:
    Wisi_EOI         => reduce 2 tokens to declarations 24.0
    default          => ERROR
 
-   Minimal_Complete_Action => declarations
+   Minimal_Complete_Action => declarations recursive
 
 State 20:
      26.0:loop_statement <= FOR ^ SYMBOL IN subtype LOOP SEMICOLON, END/EXCEPTION
@@ -421,7 +426,7 @@ State 25:
    SYMBOL           => shift and goto state 38
    default          => ERROR
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL recursive
 
 State 26:
      30.3:subprogram <= FUNCTION name SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -489,7 +494,7 @@ State 32:
 
    name             goto state 44
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL recursive
 
 State 33:
      32.0:use_clause <= USE name_list SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -548,7 +553,7 @@ State 38:
    SEMICOLON        => reduce 3 tokens to name 27.0
    default          => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name recursive
 
 State 39:
      30.2:subprogram <= FUNCTION name block SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -610,7 +615,7 @@ State 44:
    SEMICOLON        => reduce 3 tokens to name_list 28.1
    default          => ERROR
 
-   Minimal_Complete_Action => name_list
+   Minimal_Complete_Action => name_list recursive
 
 State 45:
      26.0:loop_statement <= FOR SYMBOL IN ^ subtype LOOP SEMICOLON, END/EXCEPTION

@@ -124,14 +124,15 @@ package WisiToken.Generate.LR is
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
+   ----------
+   --  Minimal terminal sequences.
+
    type RHS_Sequence is
    record
-      Recursive : Parse.LR.Recursion := None;
-      --  Direct or indirect; see comment in
-      --  Set_Minimal_Complete_Actions.Delete_Non_Minimal.
+      Recursion : Recursion_Lists.List;
+      --  All recursion cycles involving this RHS.
 
-      Recursive_With : Production_ID;
-      --  If recursion is present and indirect, id of other production.
+      Worst_Recursion : WisiToken.Recursion := None; --  worst case of all Recursion.
 
       Sequence : Token_ID_Arrays.Vector;
    end record;
@@ -150,8 +151,9 @@ package WisiToken.Generate.LR is
    type Minimal_Sequence_Array is array (Token_ID range <>) of RHS_Sequence_Arrays.Vector;
 
    function Compute_Minimal_Terminal_Sequences
-     (Descriptor : in     WisiToken.Descriptor;
-      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector)
+     (Descriptor : in WisiToken.Descriptor;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Recursions : in Recursion_Array)
      return Minimal_Sequence_Array;
    --  For each production in Grammar, compute the minimal sequence of
    --  terminals that will complete it. Result is an empty sequence if
@@ -207,6 +209,7 @@ package WisiToken.Generate.LR is
      (Table                      : in Parse_Table_Ptr;
       Title                      : in String;
       Grammar                    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Recursions                 : in Recursion_Array;
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
       Kernels                    : in LR1_Items.Item_Set_List;
       Conflicts                  : in Conflict_Count_Lists.List;

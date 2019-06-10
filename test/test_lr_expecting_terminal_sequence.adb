@@ -20,23 +20,15 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
-with Ada.Text_IO;
-with Java_Expressions_Antlr_Actions;
 with WisiToken.AUnit;
-with WisiToken.BNF.Generate_Utils;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Generate.LR.AUnit;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
-with WisiToken_Grammar_Runtime;
-with Wisitoken_Grammar_Actions;
-with Wisitoken_Grammar_Main;
 package body Test_LR_Expecting_Terminal_Sequence is
 
    package Simple is
@@ -198,153 +190,6 @@ package body Test_LR_Expecting_Terminal_Sequence is
            (First, Last, (+Set_ID, +Verify_ID)));
    end Test_Expecting;
 
-   procedure Test_Terminal_Sequence_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use Simple;
-      use Simple.Token_Enum;
-
-      use WisiToken.Generate.LR.AUnit;
-      use WisiToken.Generate.LR.RHS_Sequence_Arrays;
-      use WisiToken.Token_ID_Arrays;
-
-      Computed : constant WisiToken.Generate.LR.Minimal_Sequence_Array :=
-        WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences (LALR_Descriptor, Top_Level.Grammar);
-
-      Expected : constant WisiToken.Generate.LR.Minimal_Sequence_Array (+Parse_Sequence_ID .. +Statement_ID) :=
-        (To_Vector ((False, +Set_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID) & (+Semicolon_ID) & (+EOF_ID))),
-         ((False, +Set_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID)) &
-          (False, +Verify_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID) & (+Plus_Minus_ID) & (+Int_ID))));
-   begin
-      if WisiToken.Trace_Generate > WisiToken.Outline then
-         Ada.Text_IO.Put_Line ("Computed:");
-         for S of Computed loop
-            Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, LALR_Descriptor));
-         end loop;
-         Ada.Text_IO.Put_Line ("Expected:");
-         for S of Expected loop
-            Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, LALR_Descriptor));
-         end loop;
-      end if;
-      Check ("1", Computed, Expected);
-   end Test_Terminal_Sequence_1;
-
-   procedure Test_Terminal_Sequence_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use WisiToken;
-      use WisiToken.Generate.LR.AUnit;
-
-      Input_File_Name : constant String := "../Test/bnf/java_expressions_antlr.wy";
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-      Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-   begin
-      Wisitoken_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
-      Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
-      Grammar_Parser.Parse;
-
-      Input_Data.Phase       := WisiToken_Grammar_Runtime.Meta;
-      Input_Data.User_Parser := WisiToken.BNF.LR1;
-      Input_Data.User_Lexer  := WisiToken.BNF.re2c_Lexer;
-      Grammar_Parser.Execute_Actions;
-      declare
-         Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
-      begin
-         WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
-      end;
-      Input_Data.Phase       := WisiToken_Grammar_Runtime.Other;
-      Grammar_Parser.Execute_Actions;
-
-      declare
-         use all type Java_Expressions_Antlr_Actions.Token_Enum_ID;
-         use all type WisiToken.Generate.LR.RHS_Sequence_Arrays.Vector;
-
-         Generate_Data  : constant WisiToken.BNF.Generate_Utils.Generate_Data :=
-           WisiToken.BNF.Generate_Utils.Initialize (Input_Data);
-
-         Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
-
-         function "+" (Item : in Java_Expressions_Antlr_Actions.Token_Enum_ID) return Token_ID_Arrays.Vector
-         is begin
-            return Token_ID_Arrays.To_Vector (Java_Expressions_Antlr_Actions."+" (Item));
-         end "+";
-
-         function "&"
-           (Left : in Token_ID_Arrays.Vector;
-            Right : in Java_Expressions_Antlr_Actions.Token_Enum_ID)
-           return Token_ID_Arrays.Vector
-         is begin
-            return Token_ID_Arrays."&" (Left, Java_Expressions_Antlr_Actions."+" (Right));
-         end "&";
-
-         Computed : constant WisiToken.Generate.LR.Minimal_Sequence_Array :=
-           WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences (Descriptor, Generate_Data.Grammar);
-
-         Expected : WisiToken.Generate.LR.Minimal_Sequence_Array
-           (+wisitoken_accept_ID .. +nonterminal_033_list_ID);
-
-      begin
-         Expected (+wisitoken_accept_ID) := +(False, +THIS_ID & Wisi_EOI_ID);
-         Expected (+BOOL_LITERAL_ID)     := +(False, +TRUE_ID) & (False, +FALSE_ID);
-         Expected (+literal_ID)          := +(False, +DECIMAL_LITERAL_ID) & (False, +TRUE_ID);
-
-         Expected (+expressionList_ID) := +(False, +THIS_ID) & (True, +THIS_ID & COMMA_ID & THIS_ID);
-         Expected (+methodCall_ID)     :=
-           +(False, +IDENTIFIER_ID & LPAREN_ID & THIS_ID & RPAREN_ID) &
-             (False, +IDENTIFIER_ID & LPAREN_ID & RPAREN_ID);
-         Expected (+expression_ID)     :=
-           +(False, +THIS_ID) &
-             (True, +THIS_ID & DOT_ID & IDENTIFIER_ID) &
-             (True, +THIS_ID & LBRACK_ID & THIS_ID & RBRACK_ID) &
-             (False, +IDENTIFIER_ID & LPAREN_ID & RPAREN_ID) &
-             (False, +LPAREN_ID & BOOLEAN_ID & RPAREN_ID & THIS_ID) &
-             (True, +THIS_ID & INC_ID) &
-             (False, +ADD_ID & THIS_ID) &
-             (True, +THIS_ID & MUL_ID & THIS_ID) &
-             (True, +THIS_ID & ADD_ID & THIS_ID);
-         Expected (+primary_ID)         :=
-           +(False, +LPAREN_ID & THIS_ID & RPAREN_ID) &
-             (False, +THIS_ID) &
-             (False, +DECIMAL_LITERAL_ID) &
-             (False, +IDENTIFIER_ID) &
-             (False, +BOOLEAN_ID & DOT_ID & CLASS_ID);
-         Expected (+typeType_ID)        :=
-           +(False, +BOOLEAN_ID & LBRACK_ID & RBRACK_ID) &
-             (False, +BOOLEAN_ID);
-         Expected (+primitiveType_ID)   := +(False, +BOOLEAN_ID) & (False, +INT_ID);
-         Expected (+nonterminal_008_ID) :=
-           +(False, +IDENTIFIER_ID) &
-             (False, +IDENTIFIER_ID & LPAREN_ID & RPAREN_ID) &
-             (False, +THIS_ID);
-         Expected (+nonterminal_015_ID) := +(False, +INC_ID) & (False, +DEC_ID);
-         Expected (+nonterminal_020_ID) :=
-           +(False, +ADD_ID) &
-             (False, +SUB_ID) &
-             (False, +INC_ID) &
-             (False, +DEC_ID);
-
-         Expected (+nonterminal_024_ID) := +(False, +MUL_ID) & (False, +DIV_ID) & (False, +MOD_ID);
-         Expected (+nonterminal_027_ID) := +(False, +ADD_ID) & (False, +SUB_ID);
-         Expected (+nonterminal_034_ID) := +(False, +LBRACK_ID & RBRACK_ID);
-
-         Expected (+nonterminal_033_list_ID) :=
-           +(False, +LBRACK_ID & RBRACK_ID) & (True, +LBRACK_ID & RBRACK_ID & LBRACK_ID & RBRACK_ID);
-
-         if WisiToken.Trace_Generate > WisiToken.Outline then
-            Ada.Text_IO.Put_Line ("Computed:");
-            for S of Computed loop
-               Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, Descriptor));
-            end loop;
-            Ada.Text_IO.Put_Line ("Expected:");
-            for S of Expected loop
-               Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, Descriptor));
-            end loop;
-         end if;
-         Check ("1", Computed, Expected);
-      end;
-   end Test_Terminal_Sequence_2;
-
    ----------
    --  Public subprograms
 
@@ -353,8 +198,6 @@ package body Test_LR_Expecting_Terminal_Sequence is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Expecting'Access, "Test_Expecting");
-      Register_Routine (T, Test_Terminal_Sequence_1'Access, "Test_Terminal_Sequence_1");
-      Register_Routine (T, Test_Terminal_Sequence_2'Access, "Test_Terminal_Sequence_2");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
