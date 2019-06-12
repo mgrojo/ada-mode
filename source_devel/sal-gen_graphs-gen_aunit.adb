@@ -21,11 +21,20 @@ package body SAL.Gen_Graphs.Gen_AUnit is
 
    procedure Check
      (Label    : in String;
+      Computed : in Edge_Item;
+      Expected : in Edge_Item)
+   is begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check_Edge_Data (Label & ".Data", Computed.Data, Expected.Data);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
       Computed : in Path_Item;
       Expected : in Path_Item)
    is begin
       Check (Label & ".Vertex", Computed.Vertex, Expected.Vertex);
-      Check_Edge_Data (Label & ".Edge", Computed.Edge, Expected.Edge);
+      Check (Label & ".Edges", Computed.Edges, Expected.Edges);
    end Check;
 
    procedure Check
@@ -36,4 +45,30 @@ package body SAL.Gen_Graphs.Gen_AUnit is
       Check_Path (Label, Computed, Expected, Strict_Indices => True);
    end Check;
 
+   function "&" (Left : in Edge_Lists.List; Right : in Edge_Item) return Edge_Lists.List
+   is
+      use Edge_Lists;
+   begin
+      return Result : List := Left do
+         Append (Result, Right);
+      end return;
+   end "&";
+
+   function "+" (Right : in Vertex_Index) return Vertex_Lists.List
+   is
+      use Vertex_Lists;
+   begin
+      return Result : List do
+         Append (Result, Right);
+      end return;
+   end "+";
+
+   function "&" (Left : in Vertex_Lists.List; Right : in Vertex_Index) return Vertex_Lists.List
+   is
+      use Vertex_Lists;
+   begin
+      return Result : List := Left do
+         Append (Result, Right);
+      end return;
+   end "&";
 end SAL.Gen_Graphs.Gen_AUnit;

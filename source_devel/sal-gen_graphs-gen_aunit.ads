@@ -18,12 +18,26 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks;
+with SAL.Ada_Containers.Gen_Doubly_Linked_Lists_AUnit;
 with SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit;
 generic
    with procedure Check_Edge_Data (Label : in String; Computed, Expected : in Edge_Data);
 package SAL.Gen_Graphs.Gen_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Vertex_Index);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Base_Edge_ID);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Edge_Item;
+      Expected : in Edge_Item);
+
+   procedure Check is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_AUnit
+     (Element_Type  => Edge_Item,
+      Lists         => Edge_Lists,
+      Check_Element => Check);
+
+   function "&" (Left : in Edge_Lists.List; Right : in Edge_Item) return Edge_Lists.List;
 
    procedure Check
      (Label    : in String;
@@ -51,6 +65,20 @@ package SAL.Gen_Graphs.Gen_AUnit is
       Element_Type  => Path,
       Vectors       => Path_Arrays,
       Check_Index   => Check,
+      Check_Element => Check);
+
+   procedure Check is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_AUnit
+     (Element_Type  => Vertex_Index,
+      Lists         => Vertex_Lists,
+      Check_Element => Check);
+
+   function "+" (Right : in Vertex_Index) return Vertex_Lists.List;
+   function "&" (Left : in Vertex_Lists.List; Right : in Vertex_Index) return Vertex_Lists.List;
+
+   procedure Check is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_AUnit
+     (Element_Type  => Vertex_Lists.List,
+      "="           => Vertex_Lists."=",
+      Lists         => Component_Lists,
       Check_Element => Check);
 
 end SAL.Gen_Graphs.Gen_AUnit;

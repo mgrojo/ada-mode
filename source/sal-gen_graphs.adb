@@ -19,22 +19,21 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
 with SAL.Gen_Bounded_Definite_Queues;
-with SAL.Gen_Trimmed_Image;
+with SAL.Gen_Unbounded_Definite_Stacks;
 package body SAL.Gen_Graphs is
 
    package Vertex_Queues is new SAL.Gen_Bounded_Definite_Queues (Vertex_Index);
+   package Vertex_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Vertex_Index);
 
-   function Find (Data : in Edge_Data; List : in Edge_Lists.List) return Edge_Lists.Cursor
+   function Find (Data : in Edge_Data; List : in Edge_Node_Lists.List) return Edge_Node_Lists.Cursor
    is begin
       for I in List.Iterate loop
-         if Edge_Lists.Element (I).Data = Data then
+         if Edge_Node_Lists.Element (I).Data = Data then
             return I;
          end if;
       end loop;
-      return Edge_Lists.No_Element;
+      return Edge_Node_Lists.No_Element;
    end Find;
-
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Vertex_Index);
 
    ----------
    --  Visible subprograms
@@ -45,6 +44,8 @@ package body SAL.Gen_Graphs is
       Vertex_B : in     Vertex_Index;
       Data     : in     Edge_Data)
    is
+      Multigraph : Boolean := False;
+
       procedure Update_First_Last (Vertex : in Vertex_Index)
       is
          use all type Ada.Containers.Count_Type;
@@ -67,29 +68,52 @@ package body SAL.Gen_Graphs is
 
       Graph.Last_Edge_ID := Graph.Last_Edge_ID + 1;
       if (for some E of Graph.Vertices (Vertex_A) => E.Vertex_B = Vertex_B) then
+         Multigraph       := True;
          Graph.Multigraph := True;
       end if;
 
-      Graph.Vertices (Vertex_A).Append ((Graph.Last_Edge_ID, Vertex_B, Data));
+      Graph.Vertices (Vertex_A).Append ((Graph.Last_Edge_ID, Vertex_B, Multigraph, Data));
    end Add_Edge;
+
+   function Count_Nodes (Graph : in Gen_Graphs.Graph) return Ada.Containers.Count_Type
+   is begin
+      return Graph.Vertices.Length;
+   end Count_Nodes;
+
+   function Count_Edges (Graph : in Gen_Graphs.Graph) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Result : Count_Type := 0;
+   begin
+      for Edges of Graph.Vertices loop
+         Result := Result + Edges.Length;
+      end loop;
+      return Result;
+   end Count_Edges;
 
    function Multigraph (Graph : in Gen_Graphs.Graph) return Boolean
    is begin
       return Graph.Multigraph;
    end Multigraph;
 
-   function Image (Item : in Path; Include_Edge_ID : in Boolean := False) return String
+   function "+" (Right : in Edge_Item) return Edge_Lists.List
+   is
+      use Edge_Lists;
+   begin
+      return Result : List do
+         Append (Result, Right);
+      end return;
+   end "+";
+
+   function Image (Item : in Path) return String
    is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String := To_Unbounded_String ("(");
-
    begin
       for I in Item'Range loop
-         Result := Result & Trimmed_Image (Item (I).Vertex) &
-           (if Include_Edge_ID then Edge_ID'Image
-              ((if I = Item'Last then Item (Item'First).Edge_ID else Item (I + 1).Edge_ID)) else "") &
-           Edge_Image ((if I = Item'Last then Item (Item'First).Edge else Item (I + 1).Edge)) & " -> ";
+         Result := Result & Trimmed_Image (Item (I).Vertex) & " " &
+           Image ((if I = Item'Last then Item (Item'First).Edges else Item (I + 1).Edges)) & " -> ";
       end loop;
       Result := Result & ")";
       return To_String (Result);
@@ -111,7 +135,7 @@ package body SAL.Gen_Graphs is
          D           : Natural           := Natural'Last;
          Parent      : Vertex_Index'Base := Invalid_Vertex;
          Parent_Set  : Boolean           := False;
-         Parent_Edge : Edge_Lists.Cursor := Edge_Lists.No_Element;
+         Parent_Edge : Edge_Node_Lists.Cursor := Edge_Node_Lists.No_Element;
       end record;
 
       package Aux_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Vertex_Index, Aux_Node, (others => <>));
@@ -119,14 +143,14 @@ package body SAL.Gen_Graphs is
 
       function Build_Path
         (Tail_Vertex : in Vertex_Index;
-         Tail_Edge   : in Edge_Lists.Cursor)
+         Tail_Edge   : in Edge_Node_Lists.Cursor)
         return Path
       is
       begin
          return Result : Path (1 .. Aux (Tail_Vertex).D + 1)
          do
             declare
-               use Edge_Lists;
+               use Edge_Node_Lists;
                V_Index   : Vertex_Index := Tail_Vertex;
                Last_Edge : Cursor       := Tail_Edge;
             begin
@@ -135,9 +159,9 @@ package body SAL.Gen_Graphs is
                      V : Aux_Node renames Aux (V_Index);
                   begin
                      if Last_Edge = No_Element then
-                        Result (I) := (V_Index, Invalid_Edge_ID, Default_Edge_Data);
+                        Result (I) := (V_Index, Edge_Lists.Empty_List);
                      else
-                        Result (I) := (V_Index, Element (Last_Edge).ID, Element (Last_Edge).Data);
+                        Result (I) := (V_Index, +(Element (Last_Edge).ID, Element (Last_Edge).Data));
                      end if;
 
                      if V.Parent_Set then
@@ -151,7 +175,7 @@ package body SAL.Gen_Graphs is
       end Build_Path;
 
       Result_List : Path_Arrays.Vector;
-      Result_Edge : Edge_Lists.Cursor;
+      Result_Edge : Edge_Node_Lists.Cursor;
    begin
       --  [1] figure 22.3 breadth-first search; 'From' = s.
 
@@ -180,8 +204,8 @@ package body SAL.Gen_Graphs is
             Edges :
             for C in Graph.Vertices (U_Index).Iterate loop
                declare
-                  use all type Edge_Lists.Cursor;
-                  V_Index : constant Vertex_Index := Edge_Lists.Element (C).Vertex_B;
+                  use all type Edge_Node_Lists.Cursor;
+                  V_Index : constant Vertex_Index := Edge_Node_Lists.Element (C).Vertex_B;
                   V       : Aux_Node renames Aux (V_Index);
                begin
                   if V.Color = White then
@@ -192,7 +216,7 @@ package body SAL.Gen_Graphs is
                      V.Parent_Set  := True;
 
                      Result_Edge := Find (To, Graph.Vertices (V_Index));
-                     if Result_Edge /= Edge_Lists.No_Element then
+                     if Result_Edge /= Edge_Node_Lists.No_Element then
                         Result_List.Append (Build_Path (V_Index, Result_Edge));
                      end if;
 
@@ -206,7 +230,8 @@ package body SAL.Gen_Graphs is
       return Result_List;
    end Find_Paths;
 
-   function Find_Cycles (Graph : in out Gen_Graphs.Graph) return Path_Arrays.Vector
+   function Find_Cycles_Tiernan (Graph : in Gen_Graphs.Graph)
+     return Path_Arrays.Vector
    is
       --  Implements [2] "Algorithm EC"
       --
@@ -234,36 +259,25 @@ package body SAL.Gen_Graphs is
       function Contains (Row : in H_Row; V : in Vertex_Index) return Boolean
       is (for some N of Row => N = V);
 
-      procedure Add_Alternate_Edges (P : in Path)
+      function Contains (Edges : in Edge_Lists.List; ID : in Edge_ID) return Boolean
+        is (for some E of Edges => E.ID = ID);
+
+      procedure Add_Alternate_Edges (P : in out Path)
       is
-         use Edge_Lists;
-
-         Paths : Path_Arrays.Vector := Path_Arrays.To_Vector (P, 1);
-
          function Dec (I : in Positive) return Positive
            is (if I = P'First then P'Last else I - 1);
       begin
          for I in P'Range loop
-            for Cur in G (P (Dec (I)).Vertex).Iterate loop
-               if Element (Cur).Vertex_B = P (I).Vertex and Element (Cur).ID /= P (I).Edge_ID then
-                  for J in Paths.First_Index .. Paths.Last_Index loop
-                     declare
-                        New_Edge : Edge_Node renames Element (Cur);
-                        New_Path : Path := Paths (J);
-                     begin
-                        New_Path (I).Edge_ID := New_Edge.ID;
-                        New_Path (I).Edge := New_Edge.Data;
-                        Paths.Append (New_Path);
-                     end;
-                  end loop;
+            for New_Edge of G (P (Dec (I)).Vertex) loop
+               if New_Edge.Vertex_B = P (I).Vertex and (not Contains (P (I).Edges, New_Edge.ID)) then
+                  P (I).Edges.Append ((New_Edge.ID, New_Edge.Data));
                end if;
             end loop;
          end loop;
-         Result.Append (Paths);
       end Add_Alternate_Edges;
 
    begin
-      P (1) := (First, Invalid_Edge_ID, Default_Edge_Data);
+      P (1) := (First, Edge_Lists.Empty_List);
 
       All_Initial_Vertices :
       loop
@@ -271,7 +285,6 @@ package body SAL.Gen_Graphs is
          loop
             Path_Extension :
             loop  -- EC2 Path Extension
-
                Next_Vertex_Found := False;
 
                Find_Next_Vertex :
@@ -284,7 +297,7 @@ package body SAL.Gen_Graphs is
                        (not Contains (H (P (K).Vertex), Next_Vertex))
                      then
                         K     := K + 1;
-                        P (K) := (Next_Vertex, Edge.ID, Edge.Data);
+                        P (K) := (Next_Vertex, +(Edge.ID, Edge.Data));
 
                         Next_Vertex_Found := True;
                         exit Find_Next_Vertex;
@@ -298,13 +311,11 @@ package body SAL.Gen_Graphs is
             --  EC3 Circuit Confirmation
             for Edge of G (P (K).Vertex) loop
                if Edge.Vertex_B = P (1).Vertex then
-                  P (1).Edge_ID := Edge.ID;
-                  P (1).Edge    := Edge.Data;
+                  P (1).Edges := +(Edge.ID, Edge.Data);
                   if Graph.Multigraph then
                      Add_Alternate_Edges (P (1 .. K));
-                  else
-                     Result.Append (P (1 .. K));
                   end if;
+                  Result.Append (P (1 .. K));
                   exit;
                end if;
             end loop;
@@ -316,7 +327,7 @@ package body SAL.Gen_Graphs is
             for M in H (P (K - 1).Vertex)'Range loop
                if H (P (K - 1).Vertex)(M) = Invalid_Vertex then
                   H (P (K - 1).Vertex)(M) := P (K).Vertex;
-                  P (K) := (Invalid_Vertex, Invalid_Edge_ID, Default_Edge_Data);
+                  P (K) := (Invalid_Vertex, Edge_Lists.Empty_List);
                   exit;
                end if;
             end loop;
@@ -326,13 +337,314 @@ package body SAL.Gen_Graphs is
          --  EC5 Advance Initial Index
          exit All_Initial_Vertices when P (1).Vertex = Graph.Vertices.Last_Index;
 
-         P (1) := (P (1).Vertex + 1, Invalid_Edge_ID, Default_Edge_Data);
+         P (1) := (P (1).Vertex + 1, Edge_Lists.Empty_List);
          pragma Assert (K = 1);
          H := (others => (others => Invalid_Vertex));
       end loop All_Initial_Vertices;
 
       --  EC6 Terminate
       return Result;
-   end Find_Cycles;
+   end Find_Cycles_Tiernan;
+
+   function Find_Cycles_Johnson (Graph : in Gen_Graphs.Graph)
+     return Path_Arrays.Vector
+   is
+      --  Implements Circuit-Finding Algorithm from [3]
+
+      use all type Ada.Containers.Count_Type;
+
+      pragma Warnings (Off, """Edited_Graph"" is not modified, could be declared constant");
+      Edited_Graph : Gen_Graphs.Graph := Graph;
+
+      Result : Path_Arrays.Vector;
+
+      A_K     : Adjacency_Structures.Vector;
+      B       : Adjacency_Structures.Vector;
+      Blocked : array (Graph.Vertices.First_Index .. Graph.Vertices.Last_Index) of Boolean := (others => False);
+
+      Stack : Vertex_Stacks.Stack;
+      S     : Vertex_Index := Graph.Vertices.First_Index;
+
+      Dummy : Boolean;
+      pragma Unreferenced (Dummy);
+
+      function Circuit (V : in Vertex_Index) return Boolean
+      is
+         F : Boolean := False;
+
+         procedure Unblock (U : in Vertex_Index)
+         is begin
+            Blocked (U) := False;
+            declare
+               use Vertex_Lists;
+               Cur  : Cursor := B (U).First;
+               Temp : Cursor;
+               W    : Vertex_Index;
+            begin
+               loop
+                  exit when not Has_Element (Cur);
+                  W := Element (Cur);
+                  Temp := Cur;
+                  Next (Cur);
+                  B (U).Delete (Temp);
+                  if Blocked (W) then
+                     Unblock (W);
+                  end if;
+               end loop;
+            end;
+         end Unblock;
+
+         procedure Add_Result
+         is
+            Cycle : Path (1 .. Integer (Stack.Depth));
+         begin
+            for I in 1 .. Stack.Depth loop
+               Cycle (Integer (Stack.Depth - I + 1)) := (Stack.Peek (I), Edge_Lists.Empty_List);
+               --  We add the edge info later, after finding all the cycles.
+            end loop;
+            Result.Append (Cycle);
+         end Add_Result;
+
+      begin
+         Stack.Push (V);
+         Blocked (V) := True;
+         if V in A_K.First_Index .. A_K.Last_Index then
+            for W of A_K (V) loop
+               if W = S then
+                  Add_Result;
+                  F := True;
+               elsif not Blocked (W) then
+                  if Circuit (W) then
+                     F := True;
+                  end if;
+               end if;
+            end loop;
+         end if;
+         if F then
+            Unblock (V);
+         else
+            if V in A_K.First_Index .. A_K.Last_Index then
+               for W of A_K (V) loop
+                  if (for all V1 of B (W) => V /= V1) then
+                     B (W).Append (V);
+                  end if;
+               end loop;
+            end if;
+         end if;
+         Stack.Pop;
+         return F;
+      end Circuit;
+
+   begin
+      --  [3] restricts the graph to not have loops (edge v-v) or multiple
+      --  edges between two nodes. So we first delete any such edges.
+      Delete_Loops_Multigraph :
+      for V in Edited_Graph.Vertices.First_Index .. Edited_Graph.Vertices.Last_Index loop
+         declare
+            use Edge_Node_Lists;
+            Cur        : Cursor  := Edited_Graph.Vertices (V).First;
+            Temp       : Cursor;
+            Found_Loop : Boolean := False;
+         begin
+            loop
+               exit when not Has_Element (Cur);
+               if Element (Cur).Vertex_B = V then
+                  if not Found_Loop then
+                     --  This is a cycle we want in the result. Edge data is added to all
+                     --  cycles later.
+                     Result.Append (Path'(1 => (V, Edge_Lists.Empty_List)));
+                     Found_Loop := True;
+                  end if;
+                  Temp := Cur;
+                  Next (Cur);
+                  Edited_Graph.Vertices (V).Delete (Temp);
+               elsif Element (Cur).Multigraph then
+                  --  These will be added back from Graph after we find all cycles.
+                  Temp := Cur;
+                  Next (Cur);
+                  Edited_Graph.Vertices (V).Delete (Temp);
+               else
+                  Next (Cur);
+               end if;
+            end loop;
+         end;
+      end loop Delete_Loops_Multigraph;
+
+      B.Set_First_Last (Graph.Vertices.First_Index, Graph.Vertices.Last_Index);
+
+      --  Start of body of Circuit-Finding Algorithm from [3]
+      loop
+         exit when S = Graph.Vertices.Last_Index;
+         declare
+            use Component_Lists;
+            Subgraph         : Adjacency_Structures.Vector;
+            Components       : Component_Lists.List;
+            Cur              : Component_Lists.Cursor;
+            Least_Vertex_Cur : Component_Lists.Cursor;
+            Least_Vertex_V   : Vertex_Index := Vertex_Index'Last;
+
+            function Delete_Edges (Edges : in Edge_Node_Lists.List) return Vertex_Lists.List
+            is begin
+               return Result : Vertex_Lists.List do
+                  for Edge of Edges loop
+                     if Edge.Vertex_B >= S then
+                        Result.Append (Edge.Vertex_B);
+                     end if;
+                  end loop;
+               end return;
+            end Delete_Edges;
+         begin
+            Subgraph.Set_First_Last (S, Edited_Graph.Vertices.Last_Index);
+            for V in S .. Edited_Graph.Vertices.Last_Index loop
+               Subgraph (V) := Delete_Edges (Edited_Graph.Vertices (V));
+            end loop;
+
+            Components := Strongly_Connected_Components (Subgraph);
+            Cur        := Components.First;
+            loop
+               exit when not Has_Element (Cur);
+
+               if Element (Cur).Length > 1 then
+                  declare
+                     Comp : Vertex_Lists.List renames Components.Constant_Reference (Cur);
+                  begin
+                     if not Has_Element (Least_Vertex_Cur) or else Comp (Comp.Last) < Least_Vertex_V then
+                        Least_Vertex_Cur := Cur;
+                        Least_Vertex_V   := Comp (Comp.Last);
+                     end if;
+                  end;
+               end if;
+               Next (Cur);
+            end loop;
+
+            A_K.Clear;
+            if Has_Element (Least_Vertex_Cur) then
+               declare
+                  Component : Vertex_Lists.List renames Components (Least_Vertex_Cur);
+                  Min : Vertex_Index := Vertex_Index'Last;
+                  Max : Vertex_Index := Vertex_Index'First;
+               begin
+                  for V of Component loop
+                     if Min > V then
+                        Min := V;
+                     end if;
+                     if Max < V then
+                        Max := V;
+                     end if;
+                  end loop;
+                  A_K.Set_First_Last (Min, Max);
+                  for V of Component loop
+                     for Edge of Edited_Graph.Vertices (V) loop
+                        A_K (V).Append (Edge.Vertex_B);
+                     end loop;
+                  end loop;
+               end;
+            end if;
+         end;
+
+         if A_K.Length > 0 then
+            S := A_K.First_Index;
+            for I in A_K.First_Index .. A_K.Last_Index loop
+               Blocked (I) := False;
+               B (I).Clear;
+            end loop;
+            Dummy := Circuit (S);
+            S := S + 1;
+         else
+            S := Graph.Vertices.Last_Index;
+         end if;
+      end loop;
+
+      --  Add edge data.
+      for Cycle of Result loop
+         for I in Cycle'First .. Cycle'Last loop
+            declare
+               Prev_I : constant Positive := (if I = Cycle'First then Cycle'Last else I - 1);
+            begin
+               for Edge of Graph.Vertices (Cycle (Prev_I).Vertex) loop
+                  if Cycle (I).Vertex = Edge.Vertex_B then
+                     Cycle (I).Edges.Append ((Edge.ID, Edge.Data));
+                  end if;
+               end loop;
+            end;
+         end loop;
+      end loop;
+      return Result;
+   end Find_Cycles_Johnson;
+
+   function To_Adjancency (Graph : in Gen_Graphs.Graph) return Adjacency_Structures.Vector
+   is
+      function To_Vertex_List (Edges : in Edge_Node_Lists.List) return Vertex_Lists.List
+      is begin
+         return Result : Vertex_Lists.List do
+            for Edge of Edges loop
+               Result.Append (Edge.Vertex_B);
+            end loop;
+         end return;
+      end To_Vertex_List;
+   begin
+      return Result : Adjacency_Structures.Vector do
+         Result.Set_First_Last (Graph.Vertices.First_Index, Graph.Vertices.Last_Index);
+         for V in Graph.Vertices.First_Index .. Graph.Vertices.Last_Index loop
+            Result (V) := To_Vertex_List (Graph.Vertices (V));
+         end loop;
+      end return;
+   end To_Adjancency;
+
+   function Strongly_Connected_Components (Graph : in Adjacency_Structures.Vector) return Component_Lists.List
+   is
+      --  Implements [4] section 4.
+
+      Low_Link : array (Graph.First_Index .. Graph.Last_Index) of Vertex_Index;
+
+      Number : array (Graph.First_Index .. Graph.Last_Index) of Vertex_Index'Base := (others => Invalid_Vertex);
+      --  Number is the order visited in the depth-first search.
+
+      Points : Vertex_Stacks.Stack;
+
+      I : Vertex_Index'Base := Graph.First_Index - 1;
+
+      Result : Component_Lists.List;
+
+      procedure Strong_Connect (V : in Vertex_Index)
+      is begin
+         I            := I + 1;
+         Number (V)   := I;
+         Low_Link (V) := I;
+         Points.Push (V);
+
+         for W of Graph (V) loop
+            if Number (W) = Invalid_Vertex then
+               --  (v, w) is a tree arc
+               Strong_Connect (W);
+               Low_Link (V) := Vertex_Index'Min (Low_Link (V), Low_Link (W));
+
+            elsif Number (W) < Number (V) then
+               --  (v, w) is a frond or cross-link
+               if (for some P of Points => P = W) then
+                  Low_Link (V) := Vertex_Index'Min (Low_Link (V), Low_Link (W));
+               end if;
+            end if;
+         end loop;
+         if Low_Link (V) = Number (V) then
+            --  v is the root of a component
+            declare
+               Component : Vertex_Lists.List;
+            begin
+               while (not Points.Is_Empty) and then Number (Points.Peek) >= Number (V) loop
+                  Component.Append (Points.Pop);
+               end loop;
+               Result.Append (Component);
+            end;
+         end if;
+      end Strong_Connect;
+   begin
+      for W in Graph.First_Index .. Graph.Last_Index loop
+         if Number (W) = Invalid_Vertex then
+            Strong_Connect (W);
+         end if;
+      end loop;
+      return Result;
+   end Strongly_Connected_Components;
 
 end SAL.Gen_Graphs;

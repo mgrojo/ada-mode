@@ -24,7 +24,6 @@ pragma License (GPL);
 with AUnit.Checks.Containers;
 with Ada.Text_IO;
 with SAL.Gen_Graphs.Gen_AUnit;
-with SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit;
 package body Test_Graphs is
 
    ----------
@@ -81,18 +80,22 @@ package body Test_Graphs is
 
       Computed := Graph.Find_Paths (V, 2);
       Check ("v - 2.length", Computed.Length, 1);
-      Check ("v - 2.first", Computed (Computed.First), ((V, 1, 1), (R, 2, 2)));
+      Check ("v - 2.first", Computed (Computed.First), ((V, +(1, 1)), (R, +(2, 2))));
 
       Computed := Graph.Find_Paths (V, 10);
       Check ("v - 10.length", Computed.Length, 1);
-      Check ("v - 10.first", Computed (Computed.First), ((V, 1, 1), (R, 2, 2), (S, 3, 3), (W, 5, 5), (X, 10, 10)));
+      Check
+        ("v - 10.first",
+         Computed (Computed.First),
+         ((V, +(1, 1)), (R, +(2, 2)), (S, +(3, 3)), (W, +(5, 5)), (X, +(10, 10))));
 
    end Test_Find_Path;
 
    procedure Test_Find_Cycles (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (Tst);
       use AUnit.Checks;
+
+      Test : Test_Case renames Test_Case (Tst);
 
       --  Test uses the graph in [2] figure 1.
 
@@ -109,17 +112,16 @@ package body Test_Graphs is
       use Graphs;
 
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      use Graphs_AUnit;
 
-      procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
-        (Index_Type    => Positive,
-         Element_Type  => Path,
-         Vectors       => Graphs.Path_Arrays,
-         Check_Index   => Graphs_AUnit.Check,
-         Check_Element => Graphs_AUnit.Check);
+      Graph            : Graphs.Graph;
+      Computed         : Graphs.Path_Arrays.Vector;
+      Expected_Tiernan : Graphs.Path_Arrays.Vector;
+      Expected_Johnson : Graphs.Path_Arrays.Vector;
 
-      Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Arrays.Vector;
-      Expected : Graphs.Path_Arrays.Vector;
+      Path_1 : constant Path := ((1, +(7, 7)), (2, +(1, 1)), (3, +(3, 3)), (5, +(5, 5)));
+      Path_2 : constant Path := ((1, +(7, 7)), (2, +(1, 1)), (4, +(4, 4)), (3, +(6, 6)), (5, +(5, 5)));
+      Path_3 : constant Path := (1 => (2, +(2, 2)));
    begin
       --  Fill graph.
 
@@ -134,12 +136,33 @@ package body Test_Graphs is
       Check ("Multigraph", Graph.Multigraph, False);
 
       --  Set expected as in [2] fig 2 page 723
-      Expected.Append (Path'((1, 7, 7), (2, 1, 1), (3, 3, 3), (5, 5, 5)));
-      Expected.Append (Path'((1, 7, 7), (2, 1, 1), (4, 4, 4), (3, 6, 6), (5, 5, 5)));
-      Expected.Append (Path'(1 => (2, 2, 2)));
+      Expected_Tiernan.Append (Path_1);
+      Expected_Tiernan.Append (Path_2);
+      Expected_Tiernan.Append (Path_3);
 
-      Computed := Graph.Find_Cycles;
-      Check ("1", Computed, Expected);
+      Computed := Graph.Find_Cycles_Tiernan;
+      if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Tiernan:");
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+         end loop;
+      end if;
+
+      Check ("Tiernan", Computed, Expected_Tiernan);
+
+      Expected_Johnson.Append (Path_3);
+      Expected_Johnson.Append (Path_1);
+      Expected_Johnson.Append (Path_2);
+
+      Computed := Graph.Find_Cycles_Johnson;
+      if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Johnson:");
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+         end loop;
+      end if;
+
+      Check ("Johnson", Computed, Expected_Johnson);
    end Test_Find_Cycles;
 
    procedure Test_Conflict_Name (Tst : in out AUnit.Test_Cases.Test_Case'Class)
@@ -201,19 +224,17 @@ package body Test_Graphs is
          Edge_Image        => Integer'Image);
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
 
-      procedure Check is new SAL.Ada_Containers.Gen_Indefinite_Vectors_AUnit
-        (Index_Type    => Recursion_Index,
-         Element_Type  => Graphs.Path,
-         "="           => Graphs."=",
-         Vectors       => Graphs.Path_Arrays,
-         Check_Index   => Graphs_AUnit.Check,
-         Check_Element => Graphs_AUnit.Check);
-
-      Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Arrays.Vector;
-      Expected : Graphs.Path_Arrays.Vector;
+      Graph            : Graphs.Graph;
+      Computed         : Graphs.Path_Arrays.Vector;
+      Expected_Tiernan : Graphs.Path_Arrays.Vector;
+      Expected_Johnson : Graphs.Path_Arrays.Vector;
 
       use Graphs;
+      use Graphs_AUnit;
+      Path_1 : constant Path := ((7, +(9, 9)), (10, +(2, 2)), (11, +(7, 7)));
+      Path_2 : constant Path := ((8, +(6, 6)), (10, +(3, 3)));
+      Path_3 : constant Path := ((8, +(6, 6)), (9, +(4, 4)), (10, +(5, 5)));
+      Path_4 : constant Path := ((10, +(8, 8)), (11, +(7, 7)));
    begin
       Graph.Add_Edge  (6, 10, 1);
       Graph.Add_Edge  (7, 10, 2);
@@ -229,19 +250,44 @@ package body Test_Graphs is
 
       --  Cycles are found in start nonterminal order, arbitrary within
       --  start nonterminal; cycles start with lowest nonterm.
-      Expected.Append (Path'((7, 9, 9), (10, 2, 2), (11, 7, 7)));
-      Expected.Append (Path'((8, 6, 6), (10, 3, 3)));
-      Expected.Append (Path'((8, 6, 6), (9, 4, 4), (10, 5, 5)));
-      Expected.Append (Path'((10, 8, 8), (11, 7, 7)));
+      Expected_Tiernan.Append (Path_1);
+      Expected_Tiernan.Append (Path_2);
+      Expected_Tiernan.Append (Path_3);
+      Expected_Tiernan.Append (Path_4);
 
-      Computed := Graph.Find_Cycles;
+      Computed := Graph.Find_Cycles_Tiernan;
       if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Tiernan:");
          for Cycle of Computed loop
             Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
          end loop;
       end if;
 
-      Check ("1", Computed, Expected);
+      Check ("Tiernan", Computed, Expected_Tiernan);
+
+      Expected_Johnson.Append (Path_1);
+      Expected_Johnson.Append (Path_2);
+      Expected_Johnson.Append (Path_3);
+      Expected_Johnson.Append (Path_4);
+
+      Computed := Graph.Find_Cycles_Johnson;
+      if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("strong components:");
+         declare
+            Components : constant Graphs.Component_Lists.List := Graphs.Strongly_Connected_Components
+              (To_Adjancency (Graph));
+         begin
+            for Comp of Components loop
+               Ada.Text_IO.Put_Line (Graphs.Image (Comp));
+            end loop;
+         end;
+         Ada.Text_IO.Put_Line ("Johnson cycles:");
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+         end loop;
+      end if;
+
+      Check ("Johnson", Computed, Expected_Johnson);
    end Test_Conflict_Name;
 
    procedure Test_Ada_Lite_Name (Tst : in out AUnit.Test_Cases.Test_Case'Class)
@@ -284,11 +330,19 @@ package body Test_Graphs is
          Edge_Image        => Integer'Image);
       package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
 
-      Graph    : Graphs.Graph;
-      Computed : Graphs.Path_Arrays.Vector;
-      Expected : Graphs.Path_Arrays.Vector;
+      Graph            : Graphs.Graph;
+      Computed         : Graphs.Path_Arrays.Vector;
+      Expected_Tiernan : Graphs.Path_Arrays.Vector;
+      Expected_Johnson : Graphs.Path_Arrays.Vector;
 
       use Graphs;
+      use Graphs_AUnit;
+      Path_1 : constant Path := ((9, +(8, 8)), (10, +(2, 2)), (13, +(3, 3) & (4, 4)), (11, +(10, 10)));
+      Path_2 : constant Path := ((11, +(10, 10)), (15, +(6, 6)), (14, +(15, 15) & (16, 16)),
+                                 (13, +(12, 12) & (13, 13)));
+      Path_3 : constant Path := (1 => (11, +(5, 5) & (7, 7)));
+      Path_4 : constant Path := ((12, +(11, 11)), (13, +(9, 9)));
+      Path_5 : constant Path := (1 => (15, +(14, 14)));
    begin
       Graph.Add_Edge  (8, 11,  1);
       Graph.Add_Edge  (9, 10,  2);
@@ -311,29 +365,84 @@ package body Test_Graphs is
 
       --  Cycles are found in start nonterminal order, longest first within
       --  start nonterminal; cycles start with lowest nonterm.
-      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 3, 3), (11, 10, 10)));
-      Expected.Append (Path'((9, 8, 8), (10, 2, 2), (13, 4, 4), (11, 10, 10)));
+      Expected_Tiernan.Append (Path_1);
+      Expected_Tiernan.Append (Path_2);
+      Expected_Tiernan.Append (Path_3);
+      Expected_Tiernan.Append (Path_4);
+      Expected_Tiernan.Append (Path_5);
 
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 12, 12)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 12, 12)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 15, 15), (13, 13, 13)));
-      Expected.Append (Path'((11, 10, 10), (15, 6, 6), (14, 16, 16), (13, 13, 13)));
-
-      Expected.Append (Path'(1 => (11, 5, 5)));
-      Expected.Append (Path'(1 => (11, 7, 7)));
-      Expected.Append (Path'((12, 11, 11), (13, 9, 9)));
-      Expected.Append (Path'(1 => (15, 14, 14)));
-
-      Computed := Graph.Find_Cycles;
+      Computed := Graph.Find_Cycles_Tiernan;
 
       if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Tiernan:");
          for Cycle of Computed loop
-            Ada.Text_IO.Put_Line (Graphs.Image (Cycle, Include_Edge_ID => True));
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
          end loop;
       end if;
 
-      Graphs_AUnit.Check ("1", Computed, Expected);
+      Check ("1", Computed, Expected_Tiernan);
+
+      Expected_Johnson.Append (Path_3);
+      Expected_Johnson.Append (Path_5);
+      Expected_Johnson.Append (Path_1);
+      Expected_Johnson.Append (Path_2);
+      Expected_Johnson.Append (Path_4);
+
+      Computed := Graph.Find_Cycles_Johnson;
+      if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Johnson cycles:");
+         for Cycle of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Cycle));
+         end loop;
+      end if;
+
+      Check ("Johnson", Computed, Expected_Johnson);
    end Test_Ada_Lite_Name;
+
+   procedure Test_Strong_Components (Tst : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (Tst);
+
+      --  Test uses the graph in [4] figure 3
+
+      package Graphs is new SAL.Gen_Graphs
+        (Edge_Data         => Integer,
+         Default_Edge_Data => 0,
+         Vertex_Index      => Positive,
+         Invalid_Vertex    => Integer'Last,
+         Path_Index        => Natural,
+         Edge_Image        => Integer'Image);
+      package Graphs_AUnit is new Graphs.Gen_AUnit (AUnit.Checks.Check);
+      use Graphs_AUnit;
+
+      Graph    : Graphs.Adjacency_Structures.Vector;
+      Computed : Graphs.Component_Lists.List;
+      Expected : Graphs.Component_Lists.List;
+   begin
+      Graph.Set_First_Last (1, 8);
+      Graph (1) := +2;
+      Graph (2) := +3 & 8;
+      Graph (3) := +4 & 7;
+      Graph (4) := +5;
+      Graph (5) := +3 & 6;
+      --  6 none
+      Graph (7) := +4 & 6;
+      Graph (8) := +1 & 7;
+
+      Expected.Append (+6);
+      Expected.Append (+7 & 5 & 4 & 3);
+      Expected.Append (+8 & 2 & 1);
+
+      Computed := Graphs.Strongly_Connected_Components (Graph);
+      if Test.Trace > 0 then
+         Ada.Text_IO.Put_Line ("Computed 1");
+         for Comp of Computed loop
+            Ada.Text_IO.Put_Line (Graphs.Image (Comp));
+         end loop;
+      end if;
+      Check ("1", Computed, Expected);
+
+   end Test_Strong_Components;
 
    ----------
    --  Public routines
@@ -346,6 +455,7 @@ package body Test_Graphs is
       Register_Routine (T, Test_Find_Cycles'Access, "Test_Find_Cycles");
       Register_Routine (T, Test_Conflict_Name'Access, "Test_Conflict_Name");
       Register_Routine (T, Test_Ada_Lite_Name'Access, "Test_Ada_Lite_Name");
+      Register_Routine (T, Test_Strong_Components'Access, "Test_Strong_Components");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
