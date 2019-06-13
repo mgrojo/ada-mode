@@ -76,8 +76,8 @@ package SAL.Gen_Graphs is
    --  Edge ids are unique graph-wide, assigned by Add_Edge.
 
    type Edge_Item is record
-      ID   : Gen_Graphs.Base_Edge_ID := Invalid_Edge_ID;
-      Data : Edge_Data               := Default_Edge_Data;
+      ID   : Base_Edge_ID := Invalid_Edge_ID;
+      Data : Edge_Data    := Default_Edge_Data;
    end record;
    function Image (Item : in Edge_Item) return String
      is (Edge_Image (Item.Data));
@@ -127,7 +127,7 @@ package SAL.Gen_Graphs is
    --  unit tests for Find_Cycles_Johnson, since [2] is easier to
    --  implement.
 
-   function Find_Cycles_Johnson (Graph : in Gen_Graphs.Graph) return Path_Arrays.Vector;
+   function Find_Cycles (Graph : in Gen_Graphs.Graph) return Path_Arrays.Vector;
    --  Return all cyclic paths in Graph, using algorithm [3] extended for
    --  multigraphs.
    --
@@ -149,6 +149,9 @@ package SAL.Gen_Graphs is
    function Strongly_Connected_Components (Graph : in Adjacency_Structures.Vector) return Component_Lists.List;
    --  Find strongly connected components of Graph, using algorithm in [4]
 
+   Trace : Integer := 0;
+   --  Some bodies output debug info to Text_IO.Current_Output for
+   --  non-zero values of Trace.
 private
 
    type Edge_Node is record

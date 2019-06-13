@@ -39,10 +39,19 @@ package SAL.Gen_Graphs.Gen_AUnit is
 
    function "&" (Left : in Edge_Lists.List; Right : in Edge_Item) return Edge_Lists.List;
 
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Edge_ID);
+
+   function Image (Item : in Edge_Lists.List) return String;
+   --  In unit test expected path building format
+
    procedure Check
      (Label    : in String;
       Computed : in Path_Item;
       Expected : in Path_Item);
+
+   function "<" (Left, Right : in Path) return Boolean;
+
+   package Sort_Paths is new Path_Arrays.Generic_Sorting;
 
    procedure Check_Path is new AUnit.Checks.Gen_Check_Unconstrained_Array
      --  Has "Strict_Indices" param
@@ -57,6 +66,9 @@ package SAL.Gen_Graphs.Gen_AUnit is
       Computed : in Path;
       Expected : in Path);
    --  For composing.
+
+   function Image (Item : in Path) return String;
+   --  In unit test expected path building format
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Path_Index);
 

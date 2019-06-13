@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 with SAL.Gen_Bounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Stacks;
 package body SAL.Gen_Graphs is
@@ -346,8 +347,7 @@ package body SAL.Gen_Graphs is
       return Result;
    end Find_Cycles_Tiernan;
 
-   function Find_Cycles_Johnson (Graph : in Gen_Graphs.Graph)
-     return Path_Arrays.Vector
+   function Find_Cycles (Graph : in Gen_Graphs.Graph) return Path_Arrays.Vector
    is
       --  Implements Circuit-Finding Algorithm from [3]
 
@@ -403,9 +403,16 @@ package body SAL.Gen_Graphs is
                --  We add the edge info later, after finding all the cycles.
             end loop;
             Result.Append (Cycle);
+            if Trace > 0 then
+               Ada.Text_IO.Put_Line ("cycle " & Image (Cycle));
+            end if;
          end Add_Result;
 
       begin
+         if Trace > 0 then
+            Ada.Text_IO.Put_Line ("circuit start" & V'Image);
+         end if;
+
          Stack.Push (V);
          Blocked (V) := True;
          if V in A_K.First_Index .. A_K.Last_Index then
@@ -432,6 +439,9 @@ package body SAL.Gen_Graphs is
             end if;
          end if;
          Stack.Pop;
+         if Trace > 0 then
+            Ada.Text_IO.Put_Line ("circuit finish" & V'Image);
+         end if;
          return F;
       end Circuit;
 
@@ -508,10 +518,12 @@ package body SAL.Gen_Graphs is
                   declare
                      Comp : Vertex_Lists.List renames Components.Constant_Reference (Cur);
                   begin
-                     if not Has_Element (Least_Vertex_Cur) or else Comp (Comp.Last) < Least_Vertex_V then
-                        Least_Vertex_Cur := Cur;
-                        Least_Vertex_V   := Comp (Comp.Last);
-                     end if;
+                     for W of Comp loop
+                        if W < Least_Vertex_V then
+                           Least_Vertex_Cur := Cur;
+                           Least_Vertex_V   := W;
+                        end if;
+                     end loop;
                   end;
                end if;
                Next (Cur);
@@ -524,6 +536,10 @@ package body SAL.Gen_Graphs is
                   Min : Vertex_Index := Vertex_Index'Last;
                   Max : Vertex_Index := Vertex_Index'First;
                begin
+                  if Trace > 0 then
+                     Ada.Text_IO.Put_Line ("strong component " & Least_Vertex_V'Image);
+                     Ada.Text_IO.Put_Line (Image (Component));
+                  end if;
                   for V of Component loop
                      if Min > V then
                         Min := V;
@@ -570,7 +586,7 @@ package body SAL.Gen_Graphs is
          end loop;
       end loop;
       return Result;
-   end Find_Cycles_Johnson;
+   end Find_Cycles;
 
    function To_Adjancency (Graph : in Gen_Graphs.Graph) return Adjacency_Structures.Vector
    is
@@ -595,7 +611,7 @@ package body SAL.Gen_Graphs is
    is
       --  Implements [4] section 4.
 
-      Low_Link : array (Graph.First_Index .. Graph.Last_Index) of Vertex_Index;
+      Low_Link : array (Graph.First_Index .. Graph.Last_Index) of Vertex_Index'Base := (others => Invalid_Vertex);
 
       Number : array (Graph.First_Index .. Graph.Last_Index) of Vertex_Index'Base := (others => Invalid_Vertex);
       --  Number is the order visited in the depth-first search.

@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Unbounded;
 package body SAL.Gen_Graphs.Gen_AUnit is
 
    procedure Check
@@ -37,13 +38,25 @@ package body SAL.Gen_Graphs.Gen_AUnit is
       Check (Label & ".Edges", Computed.Edges, Expected.Edges);
    end Check;
 
-   procedure Check
-     (Label    : in String;
-      Computed : in Path;
-      Expected : in Path)
+   function "<" (Left, Right : in Path) return Boolean
    is begin
-      Check_Path (Label, Computed, Expected, Strict_Indices => True);
-   end Check;
+      for I in Left'Range loop
+         if Left'First /= Right'First then
+            raise SAL.Programmer_Error;
+         elsif Left'Last /= Right'Last then
+            return Left'Last < Right'Last;
+         elsif Left (I).Vertex < Right (I).Vertex then
+            return True;
+         elsif Left (I).Vertex > Right (I).Vertex then
+            return False;
+         else
+            --  =; check remaining elements
+            null;
+         end if;
+      end loop;
+      --  All =
+      return False;
+   end "<";
 
    function "&" (Left : in Edge_Lists.List; Right : in Edge_Item) return Edge_Lists.List
    is
@@ -53,6 +66,47 @@ package body SAL.Gen_Graphs.Gen_AUnit is
          Append (Result, Right);
       end return;
    end "&";
+
+   function Image (Item : in Edge_Lists.List) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+      First  : Boolean          := True;
+   begin
+      for E of Item loop
+         if First then
+            Result := To_Unbounded_String ("+");
+            First  := False;
+         else
+            Result := Result & " & ";
+         end if;
+         Result := Result & "(" & Trimmed_Image (E.ID) & ", " & Edge_Image (E.Data) & ")";
+      end loop;
+      return To_String (Result);
+   end Image;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Path;
+      Expected : in Path)
+   is begin
+      Check_Path (Label, Computed, Expected, Strict_Indices => True);
+   end Check;
+
+   function Image (Item : in Path) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("(");
+   begin
+      for I in Item'Range loop
+         Result := Result & "(" & Trimmed_Image (Item (I).Vertex) & ", " & Gen_AUnit.Image (Item (I).Edges) & ")";
+         if I /= Item'Last then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return To_String (Result);
+   end Image;
 
    function "+" (Right : in Vertex_Index) return Vertex_Lists.List
    is
@@ -71,4 +125,5 @@ package body SAL.Gen_Graphs.Gen_AUnit is
          Append (Result, Right);
       end return;
    end "&";
+
 end SAL.Gen_Graphs.Gen_AUnit;
