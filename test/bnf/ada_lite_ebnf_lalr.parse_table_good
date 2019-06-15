@@ -224,10 +224,10 @@ Productions:
 93.1: loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ; (21) MIDDLE
 94.0: multiplying_operator <= STAR
 94.1: multiplying_operator <= SLASH
-95.0: name <= name LEFT_PAREN range_list RIGHT_PAREN ; (31, 32, 34) LEFT
-95.1: name <= name actual_parameter_part ; (1, 2, 3, 4, 5, 6, 7, 8, 34) LEFT
+95.0: name <= name LEFT_PAREN range_list RIGHT_PAREN ; (31, 32, 33) LEFT
+95.1: name <= name actual_parameter_part ; (1, 2, 3, 4, 5, 6, 7, 8, 33) LEFT
 95.2: name <= IDENTIFIER
-95.3: name <= selected_component ; (33) LEFT
+95.3: name <= selected_component ; (34) LEFT
 96.0: name_opt <= name
 96.1: name_opt <=
 97.0: object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON
@@ -262,7 +262,7 @@ Productions:
 110.3: relational_operator <= LESS_EQUAL
 110.4: relational_operator <= GREATER
 110.5: relational_operator <= GREATER_EQUAL
-111.0: selected_component <= name DOT IDENTIFIER ; (33) LEFT
+111.0: selected_component <= name DOT IDENTIFIER ; (34) LEFT
 112.0: sequence_of_statements <= nonterminal_021_list ; (10, 11, 12, 13, 14, 15, 18, 19, 20, 21) MIDDLE
 112.1: sequence_of_statements <=
 113.0: simple_expression <= unary_adding_operator term nonterminal_022_list ; (1, 2, 3, 4, 5, 6, 7, 8, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32) MIDDLE
@@ -357,8 +357,8 @@ Recursions:
 30 => (80 (3 RIGHT) -> 136 (0 SINGLE, 1 RIGHT) -> 135 (0 RIGHT) -> 109 (0 LEFT, 0 RIGHT, 1 SINGLE) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> 83 (0 SINGLE, 1 RIGHT) -> 103 (3 SINGLE) -> 102 (0 MIDDLE) -> )
 31 => (83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (0 MIDDLE) -> 108 (0 RIGHT, 1 SINGLE) -> 107 (0 LEFT, 0 RIGHT) -> 113 (0 MIDDLE, 1 RIGHT, 2 LEFT, 3 SINGLE) -> 122 (0 SINGLE, 1 RIGHT) -> )
 32 => (83 (0 SINGLE, 1 RIGHT) -> 103 (2 SINGLE) -> 95 (0 MIDDLE) -> 108 (0 RIGHT, 1 SINGLE) -> 107 (0 LEFT, 0 RIGHT) -> 113 (0 RIGHT, 2 RIGHT) -> 145 (0 SINGLE, 1 RIGHT) -> 144 (0 RIGHT) -> 122 (0 SINGLE, 1 RIGHT) -> )
-33 => (95 (3 SINGLE) -> 111 (0 LEFT) -> )
-34 => (95 (0 LEFT, 1 LEFT) -> )
+33 => (95 (0 LEFT, 1 LEFT) -> )
+34 => (95 (3 SINGLE) -> 111 (0 LEFT) -> )
 35 => (108 (0 LEFT) -> )
 36 => (122 (1 LEFT) -> )
 37 => (126 (1 LEFT) -> )
