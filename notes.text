@@ -54,6 +54,43 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+put --recover-log in info
+
+ada-add-log gives wrong result on procedure instantiation; sal-gen_graphs.adb trimmed_image
+    works if skip (end-of-line 1). sigh.
+    add test
+    use back-to-indentation, not end-of-line
+
+motion in package spec does not stop at 'private'
+    add test
+
+Eurocontrol bugs
+    bug#35124
+        test/ada_mode-debbugs_35124.ads
+        can't fix original bug (no '.' in name)
+        error recovery tries 'insert begin', but that fails on '.'
+            set matching_token to 'package' if name has a dot.
+
+    bug#35143
+        partial parse vs RET; fixed in devel, posted new code
+
+    bug#35144
+        partial parse vs which-func
+        don't get the error in master, but also don't get mode-line element
+            something is resetting which-func-mode to nil
+            trace which-func-update
+                can't find it
+
+    bug#35924
+        wavefront compiler warns about 'new String' in descriptor; need named string access type
+        posted fix
+
+    bug#36102
+        don't use parse for ada-wisi-which-function
+            changed to use grep in devel, no patch
+            oops; doesn't skip local subprograms
+            try min partial-parse size, before/after point.
+
 need wisi user guide
     explain actions
 
@@ -113,9 +150,6 @@ change ada-mode to derive-major-mode
 Insert context clause inhibit invalidate navigate
 
 loop_statement motion_action include "exit"?
-
-add error recovery strategy counts to recover.log
-    language_fixes, minimal_complete_actions, explore
 
 sort error messages in line order
 

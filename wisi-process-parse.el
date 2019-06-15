@@ -26,10 +26,10 @@
   "Options for Wisi package."
   :group 'programming)
 
-(defcustom wisi-process-time-out 1.0
+(defcustom wisi-process-time-out 5.0
   "Time out waiting for parser response. An error occurs if there
-  is no response from the parser after waiting this amount 5
-  times."
+  is no response from the parser after waiting this amount (in
+  seconds)."
   :type 'float
   :safe 'floatp)
 (make-variable-buffer-local 'wisi-process-time-out)
@@ -43,8 +43,6 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
 
 (defconst wisi-process-parse-quit-cmd "004quit\n"
   "Command to external process telling it to quit.")
-
-(defvar wisi-process-parse-debug 0)
 
 ;;;;; sessions
 
@@ -160,16 +158,9 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 		    (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t)))))
 	(setq search-start (point));; don't search same text again
 	(setq wait-count (1+ wait-count))
-	(when (> wisi-process-parse-debug 0)
-	    (message "wisi-process-parse--wait: %d" wait-count))
 	(accept-process-output process 0.1))
 
-      (if found
-	  (when (> wisi-process-parse-debug 0)
-	    (message "wisi-process-parse--wait: %d" wait-count)
-	    (when (> wisi-process-parse-debug 2)
-	      (message "'%s'" (buffer-substring-no-properties (point-min) (point-max)))))
-
+      (unless found
 	(wisi-process-parse-show-buffer parser)
 	(error "%s process died" (wisi-process--parser-exec-file parser)))
       )))
@@ -218,8 +209,6 @@ parse region."
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
-    (when (> wisi-process-parse-debug 0)
-      (message msg))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
@@ -237,8 +226,6 @@ complete."
   (let* ((cmd (format "noop %d" (1- (position-bytes (point-max)))))
 	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
-    (when (> wisi-process-parse-debug 0)
-      (message msg))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
@@ -522,7 +509,6 @@ Send BEGIN thru SEND-END to external parser."
 	       response-end
 	       (response-count 0)
 	       (sexp-start (point-min))
-	       (wait-count 0)
 	       (need-more nil) ;; point-max if need more, to check for new input
 	       (done nil)
 	       start-wait-time)
@@ -665,7 +651,6 @@ Send BEGIN thru SEND-END to external parser."
 		  (insert content)
 		  (error "parser failed; error messages in %s" buf-name)))
 
-	      (setq wait-count (1+ wait-count))
 	      (setq start-wait-time (float-time))
 
 	      ;; If we specify no time-out here, we get messages about
@@ -685,7 +670,7 @@ Send BEGIN thru SEND-END to external parser."
 		       (- (float-time) start-wait-time)))
 
 	      (when (and (= (point-max) need-more)
-			 (> wait-count 5))
+			 (> (wisi-process--parser-total-wait-time parser) wisi-process-time-out))
 		(error "wisi-process-parse not getting more text (or bad syntax in process output)"))
 
 	      (setq need-more nil))

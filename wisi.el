@@ -626,9 +626,10 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (setq default-directory dir)
 	  (setq next-error-last-buffer (current-buffer))
 	  (setq buffer-read-only nil)
+	  (setq window-size-fixed nil)
 	  (erase-buffer)
 	  ;; compilation-nex-error-function assumes there is not an
-	  ;; error at point min, so we need a comment.
+	  ;; error at point-min, so we need a comment.
 	  (insert "wisi syntax errors")
 	  (newline)
 	  (dolist (err lexer-errs)
@@ -651,6 +652,8 @@ Used to ignore whitespace changes in before/after change hooks.")
 	(display-buffer wisi-error-buffer
 			(cons #'display-buffer-at-bottom
 			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
+	(setq window-size-fixed t)
+
 	(next-error))
       ))
 
@@ -1133,18 +1136,23 @@ Called with BEGIN END.")
   "Return cached indent for point (must be bol), after correcting
 for parse errors. BEGIN, END is the parsed region."
   (let ((indent (get-text-property (1- (point)) 'wisi-indent)))
-    (unless indent
-      (error "nil indent for line %d" (line-number-at-pos (point))))
-    (when (and (wisi-partial-parse-p begin end)
-	       (< 0 (length (wisi-parser-parse-errors wisi--parser))))
-      (dolist (err (wisi-parser-parse-errors wisi--parser))
-	(dolist (repair (wisi--parse-error-repair err))
-	  ;; point is at bol; error pos may be at first token on same line.
-	  (save-excursion
-	    (back-to-indentation)
-	    (when (>= (point) (wisi--parse-error-repair-pos repair))
-	      (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
-	    ))))
+    (if indent
+	(when (and (wisi-partial-parse-p begin end)
+		   (< 0 (length (wisi-parser-parse-errors wisi--parser))))
+	  (dolist (err (wisi-parser-parse-errors wisi--parser))
+	    (dolist (repair (wisi--parse-error-repair err))
+	      ;; point is at bol; error pos may be at first token on same line.
+	      (save-excursion
+		(back-to-indentation)
+		(when (>= (point) (wisi--parse-error-repair-pos repair))
+		  (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
+		))))
+      ;; parse did not compute indent for point. Assume the error will
+      ;; go away soon as the user edits the code, so just return 0.
+      (if (= wisi-debug 0)
+	  (setq indent 0)
+	(error "nil indent for line %d" (line-number-at-pos (point)))))
+
     indent))
 
 (defun wisi-indent-region (begin end &optional indent-blank-lines)
@@ -1386,7 +1394,7 @@ If non-nil, only repair errors in BEG END region."
     (cons begin end)))
 
 (defun wisi-next-name ()
-  "Return the next text at or after POS with text property 'wisi-name'."
+  "Return the text at or after point with text property 'wisi-name'."
   (let ((region (wisi-next-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 

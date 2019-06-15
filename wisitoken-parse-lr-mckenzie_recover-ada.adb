@@ -898,7 +898,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --
          --  ... <subprogram|package start> begin ... <variable_name> : [constant] <type_name>;
          --
-         --  There is a missing 'end;' before the <variable_name>. See test/ada_mode-recover_25.adb
+         --  The variable_name looks like a block_label. There is a missing
+         --  'end;' before the <variable_name>. Minimal_Complete_Actions does
+         --  not handle this case, because the variable_name is not recognized
+         --  as a statement start. See test/ada_mode-recover_25.adb
 
          declare
             New_Config : Configuration := Config;

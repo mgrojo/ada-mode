@@ -15,7 +15,6 @@
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list."
   (save-excursion
-    (wisi-validate-cache (line-beginning-position 0) (line-end-position 5) nil 'face)
     (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
@@ -23,6 +22,9 @@ FACE may be a list."
 	(search-forward token (line-end-position 5))
       (error
        (error "can't find '%s'" token)))
+
+    (save-match-data
+      (wisi-validate-cache (line-beginning-position 0) (line-end-position 5) nil 'face))
 
     ;; We don't use face-at-point, because it doesn't respect
     ;; font-lock-face set by the parser! And we want to check for

@@ -562,7 +562,7 @@ button was clicked."
     ;; Partial parse may think 'begin' is just the start of a
     ;; statement, when it's actually part of a larger declaration. So
     ;; don't indent 'begin'. Similarly for 'else'; error recovery will
-    ;; probaly insert 'if then' immediately before it
+    ;; probably insert 'if then' immediately before it
     (forward-char -1)
     (funcall indent-line-function)
     (forward-char 1))
@@ -2163,11 +2163,11 @@ other file.")
     (funcall ada-goto-subunit-name)))
 
 (defun ada-add-log-current-function ()
-  "For `add-log-current-defun-function'; uses `ada-which-function'."
+  "For `add-log-current-defun-function'."
   ;; add-log-current-defun is typically called with point at the start
   ;; of an ediff change section, which is before the start of the
   ;; declaration of a new item. So go to the end of the current line
-  ;; first, then call `ada-which-function'
+  ;; first
   (save-excursion
     (end-of-line 1)
     (ada-which-function t)))
@@ -2253,7 +2253,7 @@ set."
   (interactive)
   (ada-check-current-project (buffer-file-name))
 
-  ;; clear ff-function-name, so it either ff-special-constructs or
+  ;; clear ff-function-name, so either ff-special-constructs or
   ;; ada-which-function will set it.
   (setq ff-function-name nil)
 
@@ -2650,8 +2650,6 @@ compiler-specific compilation filters."
 (defvar ada-goto-declaration-start nil
   ;; Supplied by indentation engine.
   ;;
-  ;; This is run from ff-pre-load-hook, so ff-function-name may have
-  ;; been set by ff-treat-special; don't reset it.
   "For `beginning-of-defun-function'. Function to move point to
 start of the generic, package, protected, subprogram, or task
 declaration point is currently in or just after.  Called with no
@@ -2873,6 +2871,8 @@ The paragraph is indented on the first line."
    (list (concat "\\_<" (regexp-opt ada-keywords t) "\\_>") '(0 font-lock-keyword-face))
    ))
 
+(defvar which-func-functions nil) ;; which-func.el
+
 ;;;; ada-mode
 
 ;; ada-mode does not derive from prog-mode, because we need to call
@@ -2929,10 +2929,10 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
-  (setq ff-post-load-hook    'ada-set-point-accordingly
-	ff-file-created-hook 'ada-ff-create-body)
-  (add-hook 'ff-pre-load-hook 'ada-goto-push-pos)
-  (add-hook 'ff-pre-load-hook 'ada-which-function)
+  (setq ff-post-load-hook    #'ada-set-point-accordingly
+	ff-file-created-hook #'ada-ff-create-body)
+  (add-hook 'ff-pre-load-hook #'ada-goto-push-pos)
+  (add-hook 'ff-pre-load-hook #'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
   (when (null (car compilation-search-path))
     ;; find-file doesn't handle nil in search path
@@ -2942,10 +2942,12 @@ The paragraph is indented on the first line."
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
-       'ada-add-log-current-function)
+       #'ada-add-log-current-function)
 
-  (when (boundp 'which-func-functions)
-    (add-hook 'which-func-functions 'ada-which-function nil t))
+  ;; We set this even if which-func.el is not loaded, because if it is
+  ;; loaded later, it will use the add-log which-function, which
+  ;; forces a navigate parse.
+  (add-hook 'which-func-functions #'ada-which-function nil t)
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)

@@ -108,12 +108,13 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-elisp-gpr_query.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-two : RUN_ARGS ?= ../gen_emacs_wisi_lr_parse.adb Face 1481 2415 2365 1481 41 66 3 --verbosity 1 1 0
-RUN_ARGS ?= c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
+# two : RUN_ARGS ?= ../gen_emacs_wisi_lr_parse.adb Face 1481 2415 2365 1481 41 66 3 --verbosity 1 1 0
+# RUN_ARGS ?= c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
 two : build_ada_executables
 #	../run_ada_lalr_parse.exe $(RUN_ARGS)
 	../run_ada_lr1_parse.exe $(RUN_ARGS)
@@ -215,7 +216,7 @@ endif
 
 zip :
 	rm -rf ../../$(TAR_FILE)
-	mtn checkout --branch $(BRANCH) ../../$(TAR_FILE)
+	mtn checkout --branch $(BRANCH) -r t:$(TAR_FILE) ../../$(TAR_FILE)
 	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
 
 
@@ -256,7 +257,7 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../*parse.ad? $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../*parse.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
