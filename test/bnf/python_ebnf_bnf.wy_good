@@ -1,0 +1,82 @@
+;;; generated from python_ebnf.wy -*- buffer-read-only:t -*-
+;;;
+;; Python ebnf constructs that were problematic.
+
+%meta_syntax BNF
+
+%keyword IN "in"
+%keyword FOR "for"
+%generate None
+
+%start dictorsetmaker
+
+%token <symbol> NAME %[ [$a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%token <number> NUMBER %[ ([0-9])|([0-9][0-9eE._-]*[0-9]) ]%
+
+%token <punctuation> COLON ":"
+%token <punctuation> COMMA ","
+%token <punctuation> STAR "*"
+%token <punctuation> STAR_STAR "**"
+
+test
+  : expr
+star_expr
+  : STAR expr
+expr
+  : atom
+atom
+  : NAME  | NUMBER
+
+;; This nonterminal matches part of dictorsetmaker
+testlist_comp
+  : nonterminal_005 nonterminal_010
+dictorsetmaker
+  : nonterminal_025
+
+comp_for
+  : FOR expr IN test
+;; end of file
+nonterminal_005
+  : test
+  | star_expr
+  ;
+nonterminal_008
+  : COMMA nonterminal_005
+  ;
+nonterminal_007_list
+  : nonterminal_008
+  | nonterminal_007_list nonterminal_008
+  ;
+nonterminal_010
+  : comp_for
+  | nonterminal_007_list COMMA
+  | nonterminal_007_list
+  | COMMA
+  | ;; empty
+  ;
+nonterminal_013
+  : test COLON test
+  | STAR_STAR expr
+  ;
+nonterminal_018
+  : COMMA nonterminal_013
+  ;
+nonterminal_017_list
+  : nonterminal_018
+  | nonterminal_017_list nonterminal_018
+  ;
+nonterminal_020
+  : comp_for
+  | nonterminal_017_list COMMA
+  | nonterminal_017_list
+  | COMMA
+  | ;; empty
+  ;
+nonterminal_021
+  : nonterminal_013 nonterminal_020
+  ;
+nonterminal_025
+  : nonterminal_021
+  | testlist_comp
+  ;

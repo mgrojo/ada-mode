@@ -128,7 +128,7 @@ begin
          First_Nonterminal => Generate_Data.Descriptor.First_Nonterminal,
          Last_Nonterminal  => Generate_Data.Descriptor.Last_Nonterminal);
 
-      Recursions : WisiToken.Generate.Recursion_Array;
+      Recursions : WisiToken.Generate.Recursions;
    begin
       case Gen_Alg is
       when WisiToken.BNF.LALR =>
@@ -153,10 +153,13 @@ begin
       WisiToken.Trace_Generate := Trace_Generate; -- Only trace the part we are interested in.
       Time := Ada.Calendar.Clock;
 
-      Recursions := WisiToken.Generate.Compute_Recursion (Descriptor, Generate_Data.Grammar);
+      Recursions :=
+        (if Input_Data.Language_Params.Partial_Recursion
+         then WisiToken.Generate.Compute_Partial_Recursion (Generate_Data.Grammar)
+         else WisiToken.Generate.Compute_Full_Recursion (Generate_Data.Grammar));
       if Trace_Generate > Outline then
          Put_Line ("time grammar recursions:" & Duration'Image (Ada.Calendar.Clock - Time));
-         Put_Line (Recursions.Length'Image & " recursions");
+         Put_Line (Recursions.Recursions.Length'Image & " recursions");
       end if;
       --  declare
       --     Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=

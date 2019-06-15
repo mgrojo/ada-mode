@@ -50,6 +50,8 @@ statement
 expression
   : TRUE
   ;
+
+;; end of file
 nonterminal_012
   : ELSIF statement ELSE statement
   | ELSIF statement

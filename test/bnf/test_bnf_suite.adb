@@ -68,6 +68,7 @@ begin
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"java_types_ch19", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"python_ebnf", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"range_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"skip_to_grammar", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));

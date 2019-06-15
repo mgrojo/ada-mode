@@ -1,0 +1,31 @@
+;; Python ebnf constructs that were problematic.
+
+%meta_syntax EBNF
+
+%generate None
+
+%start dictorsetmaker
+
+%token <symbol> NAME %[ [$a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%token <number> NUMBER %[ ([0-9])|([0-9][0-9eE._-]*[0-9]) ]%
+
+%token <punctuation> COLON ":"
+%token <punctuation> COMMA ","
+%token <punctuation> STAR "*"
+%token <punctuation> STAR_STAR "**"
+
+test: expr
+star_expr: '*' expr
+expr: atom
+atom:  NAME | NUMBER
+
+;; This nonterminal matches part of dictorsetmaker
+testlist_comp: (test|star_expr) ( comp_for | (',' (test|star_expr))* [','] )
+dictorsetmaker: ( ((test ':' test | '**' expr)
+                   (comp_for | (',' (test ':' test | '**' expr))* [','])) |
+                  ((test | star_expr)
+                   (comp_for | (',' (test | star_expr))* [','])) )
+
+comp_for: 'for' expr 'in' test
+;; end of file

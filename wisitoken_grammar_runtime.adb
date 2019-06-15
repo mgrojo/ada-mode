@@ -1566,13 +1566,13 @@ package body WisiToken_Grammar_Runtime is
             --  | | | rhs_alternative_list: Child (Node, 2)
             --  | | | RIGHT_PAREN
 
-            --  See if we've already created a nonterminal for this content.
+            --  See if there's an existing nonterminal for this content.
             declare
-               Element_Content : constant String := Get_Text (Data, Tree, Tree.Child (Node, 2));
-               Temp            : Node_Index      := First_List_Element
+               Element_Content : constant String       := Get_Text (Data, Tree, Tree.Child (Node, 2));
+               Temp            : Node_Index            := First_List_Element
                  (Tree.Child (Tree.Root, 1), +compilation_unit_ID);
                Name_Node       : Node_Index;
-               New_Identifier  : Base_Identifier_Index := Invalid_Identifier_Index;
+               New_Ident       : Base_Identifier_Index := Invalid_Identifier_Index;
             begin
                loop
                   pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
@@ -1594,10 +1594,12 @@ package body WisiToken_Grammar_Runtime is
                         then
                            Name_Node := Tree.Child (Tree.Child (Temp, 1), 1);
                            case Tree.Label (Name_Node) is
+                           when Shared_Terminal =>
+                              New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
                            when Virtual_Identifier =>
-                              New_Identifier := Tree.Identifier (Name_Node);
+                              New_Ident := Tree.Identifier (Name_Node);
                            when others =>
-                              raise SAL.Programmer_Error;
+                              Raise_Programmer_Error ("process_node rhs_group_item", Tree, Name_Node);
                            end case;
 
                            exit;
@@ -1609,12 +1611,12 @@ package body WisiToken_Grammar_Runtime is
                   exit when Temp = Invalid_Node_Index;
                end loop;
 
-               if New_Identifier = Invalid_Identifier_Index then
-                  New_Identifier := Next_Nonterm_Name;
-                  New_Nonterminal (New_Identifier, Tree.Child (Node, 2));
+               if New_Ident = Invalid_Identifier_Index then
+                  New_Ident := Next_Nonterm_Name;
+                  New_Nonterminal (New_Ident, Tree.Child (Node, 2));
                end if;
 
-               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
+               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Ident);
                Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
                Clear_EBNF_Node (Node);
             end;
@@ -2782,8 +2784,6 @@ package body WisiToken_Grammar_Runtime is
                      Put (File, "  ;");
                      Put_Comments (Children (4));
                   end if;
-               else
-                  Put_Comments (Children (3));
                end if;
             end;
 
