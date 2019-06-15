@@ -38,26 +38,6 @@ package body SAL.Gen_Graphs.Gen_AUnit is
       Check (Label & ".Edges", Computed.Edges, Expected.Edges);
    end Check;
 
-   function "<" (Left, Right : in Path) return Boolean
-   is begin
-      for I in Left'Range loop
-         if Left'First /= Right'First then
-            raise SAL.Programmer_Error;
-         elsif Left'Last /= Right'Last then
-            return Left'Last < Right'Last;
-         elsif Left (I).Vertex < Right (I).Vertex then
-            return True;
-         elsif Left (I).Vertex > Right (I).Vertex then
-            return False;
-         else
-            --  =; check remaining elements
-            null;
-         end if;
-      end loop;
-      --  All =
-      return False;
-   end "<";
-
    function "&" (Left : in Edge_Lists.List; Right : in Edge_Item) return Edge_Lists.List
    is
       use Edge_Lists;

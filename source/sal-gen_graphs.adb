@@ -106,6 +106,15 @@ package body SAL.Gen_Graphs is
       end return;
    end "+";
 
+   function Edges (Graph : in Gen_Graphs.Graph; Vertex : in Vertex_Index) return Edge_Lists.List
+   is begin
+      return Result : Edge_Lists.List do
+         for E of Graph.Vertices (Vertex) loop
+            Result.Append ((E.ID, E.Data));
+         end loop;
+      end return;
+   end Edges;
+
    function Image (Item : in Path) return String
    is
       use Ada.Strings.Unbounded;
@@ -119,6 +128,24 @@ package body SAL.Gen_Graphs is
       Result := Result & ")";
       return To_String (Result);
    end Image;
+
+   function "<" (Left, Right : in Path) return Boolean
+   is begin
+      for I in Left'Range loop
+         if I > Right'Last then
+            return False;
+         elsif Left (I).Vertex < Right (I).Vertex then
+            return True;
+         elsif Left (I).Vertex > Right (I).Vertex then
+            return False;
+         else
+            --  =; check remaining elements
+            null;
+         end if;
+      end loop;
+      --  All =
+      return False;
+   end "<";
 
    function Find_Paths
      (Graph : in out Gen_Graphs.Graph;
@@ -509,7 +536,7 @@ package body SAL.Gen_Graphs is
                Subgraph (V) := Delete_Edges (Edited_Graph.Vertices (V));
             end loop;
 
-            Components := Strongly_Connected_Components (Subgraph);
+            Components := Strongly_Connected_Components (Subgraph, Non_Trivial_Only => True);
             Cur        := Components.First;
             loop
                exit when not Has_Element (Cur);
@@ -588,6 +615,20 @@ package body SAL.Gen_Graphs is
       return Result;
    end Find_Cycles;
 
+   function Loops (Graph : in Gen_Graphs.Graph) return Vertex_Lists.List
+   is begin
+      return Result : Vertex_Lists.List do
+         for V in Graph.Vertices.First_Index .. Graph.Vertices.Last_Index loop
+            for Edge of Graph.Vertices (V) loop
+               if V = Edge.Vertex_B then
+                  Result.Append (V);
+                  exit;
+               end if;
+            end loop;
+         end loop;
+      end return;
+   end Loops;
+
    function To_Adjancency (Graph : in Gen_Graphs.Graph) return Adjacency_Structures.Vector
    is
       function To_Vertex_List (Edges : in Edge_Node_Lists.List) return Vertex_Lists.List
@@ -607,7 +648,10 @@ package body SAL.Gen_Graphs is
       end return;
    end To_Adjancency;
 
-   function Strongly_Connected_Components (Graph : in Adjacency_Structures.Vector) return Component_Lists.List
+   function Strongly_Connected_Components
+     (Graph            : in Adjacency_Structures.Vector;
+      Non_Trivial_Only : in Boolean := False)
+     return Component_Lists.List
    is
       --  Implements [4] section 4.
 
@@ -645,12 +689,15 @@ package body SAL.Gen_Graphs is
          if Low_Link (V) = Number (V) then
             --  v is the root of a component
             declare
+               use all type Ada.Containers.Count_Type;
                Component : Vertex_Lists.List;
             begin
                while (not Points.Is_Empty) and then Number (Points.Peek) >= Number (V) loop
                   Component.Append (Points.Pop);
                end loop;
-               Result.Append (Component);
+               if (not Non_Trivial_Only) or Component.Length > 1 then
+                  Result.Append (Component);
+               end if;
             end;
          end if;
       end Strong_Connect;

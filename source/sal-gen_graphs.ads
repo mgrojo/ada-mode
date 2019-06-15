@@ -86,6 +86,9 @@ package SAL.Gen_Graphs is
 
    function "+" (Right : in Edge_Item) return Edge_Lists.List;
 
+   function Edges (Graph : in Gen_Graphs.Graph; Vertex : in Vertex_Index) return Edge_Lists.List;
+   --  All edges from Vertex, as set by Add_Edge.
+
    function Image is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_Image
      (Element_Type  => Edge_Item,
       Lists         => Edge_Lists,
@@ -106,6 +109,10 @@ package SAL.Gen_Graphs is
    --  For trace, debugging.
 
    package Path_Arrays is new Ada.Containers.Indefinite_Vectors (Path_Index, Path);
+
+   function "<" (Left, Right : in Path) return Boolean;
+
+   package Sort_Paths is new Path_Arrays.Generic_Sorting;
 
    function Find_Paths
      (Graph : in out Gen_Graphs.Graph;
@@ -138,6 +145,9 @@ package SAL.Gen_Graphs is
    function Image is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_Image
      (Vertex_Index, "=", Vertex_Lists, Trimmed_Image);
 
+   function Loops (Graph : in Gen_Graphs.Graph) return Vertex_Lists.List;
+   --  List of vertices that have an edge to themselves.
+
    package Adjacency_Structures is new SAL.Gen_Unbounded_Definite_Vectors
      (Vertex_Index, Vertex_Lists.List, Vertex_Lists.Empty_List);
    --  Graphs with no Edge_ID or Edge_Data; useful as intermediate results.
@@ -146,8 +156,12 @@ package SAL.Gen_Graphs is
 
    package Component_Lists is new Ada.Containers.Doubly_Linked_Lists (Vertex_Lists.List, Vertex_Lists."=");
 
-   function Strongly_Connected_Components (Graph : in Adjacency_Structures.Vector) return Component_Lists.List;
-   --  Find strongly connected components of Graph, using algorithm in [4]
+   function Strongly_Connected_Components
+     (Graph            : in Adjacency_Structures.Vector;
+      Non_Trivial_Only : in Boolean := False)
+     return Component_Lists.List;
+   --  Find strongly connected components of Graph, using algorithm in [4].
+   --  If Non_Trivial_Only, don't include single-vertex components.
 
    Trace : Integer := 0;
    --  Some bodies output debug info to Text_IO.Current_Output for

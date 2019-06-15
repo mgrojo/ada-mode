@@ -49,10 +49,6 @@ package SAL.Gen_Graphs.Gen_AUnit is
       Computed : in Path_Item;
       Expected : in Path_Item);
 
-   function "<" (Left, Right : in Path) return Boolean;
-
-   package Sort_Paths is new Path_Arrays.Generic_Sorting;
-
    procedure Check_Path is new AUnit.Checks.Gen_Check_Unconstrained_Array
      --  Has "Strict_Indices" param
      (Item_Type   => Path_Item,
