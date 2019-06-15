@@ -18,13 +18,14 @@
 ;;  This loop is not due to recursion, just grammar design and choice
 ;;  of minimal action.
 ;;
-;;  In addition, state 8 has no minimial_complete_action; the accept
-;;  state is not the only state for which that is true.
+;;  In addition, state 8 has minimial_complete_action even though all
+;;  productions are recursive..
 
 %generate LR1 Ada re2c
 
 %start CompilationUnit
 %meta_syntax BNF
+%partial_recursion
 
 %mckenzie_cost_default 3 3 2 0
 %mckenzie_enqueue_limit 10_000

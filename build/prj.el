@@ -63,7 +63,7 @@
 
 (defun wisitoken-ediff-good ()
   (interactive)
-  ;; point is on a file in a test fail message:
+  ;; point is on a file in a diff test fail message:
   ;;
   ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
   ;;     empty_production_2_lalr.parse_table:91
@@ -79,6 +79,27 @@
      (filename-good (concat filename "_good")))
     (ediff (locate-file filename-good compilation-search-path)
        (locate-file filename compilation-search-path))))
+
+(defun wisitoken-update-good ()
+  (interactive)
+  ;; point is on a file in a diff test fail message:
+  ;;
+  ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
+  ;;     empty_production_2_lalr.parse_table:91
+  ;;
+  ;; replace the corresponding _good file with the new file.
+  ;;
+  ;; (thing-at-point ’filename) includes the trailing line number, so
+  ;; we need to strip it off.
+
+  (let* ((filename-line (thing-at-point 'filename))
+     (end (string-match ":[0-9]+$" filename-line))
+     (filename (if end (substring filename-line 0 end) filename-line))
+     (filename-good (concat filename "_good")))
+    (copy-file (locate-file filename compilation-search-path)
+	       (locate-file filename-good compilation-search-path)
+	       t)
+    (message "%s updated" filename-good)))
 
 (defun wisitoken-goto-aunit-fail ()
   (interactive)
@@ -125,6 +146,7 @@
   )
 
 (define-key compilation-mode-map "e" #'wisitoken-ediff-good)
+(define-key compilation-mode-map "u" #'wisitoken-update-good)
 (define-key compilation-mode-map "n" #'wisitoken-compilation-next)
 (define-key compilation-mode-map "p" #'wisitoken-compilation-prev)
 (define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)

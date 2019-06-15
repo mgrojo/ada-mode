@@ -740,11 +740,14 @@ package body WisiToken_Grammar_Runtime is
                   --  not in Other phase
                   null;
 
+               elsif Kind = "no_enum" then
+                  Data.Language_Params.Declare_Enums := False;
+
                elsif Kind = "no_language_runtime" then
                   Data.Language_Params.Use_Language_Runtime := False;
 
-               elsif Kind = "no_enum" then
-                  Data.Language_Params.Declare_Enums := False;
+               elsif Kind = "partial_recursion" then
+                  Data.Language_Params.Partial_Recursion := True;
 
                elsif Kind = "start" then
                   Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));

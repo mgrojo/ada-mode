@@ -12,11 +12,15 @@ Tokens:
 
 Productions:
 6.0: wisitoken_accept <= declarative_part Wisi_EOI
-7.0: declarations <= declarations body
-7.1: declarations <= body
-8.0: declarative_part <= declarations
+7.0: declarations <= declarations body ; (1, 2) LEFT
+7.1: declarations <= body ; (2) MIDDLE
+8.0: declarative_part <= declarations ; (2) MIDDLE
 8.1: declarative_part <=
-9.0: body <= IS declarative_part BEGIN SEMICOLON
+9.0: body <= IS declarative_part BEGIN SEMICOLON ; (2) MIDDLE
+
+Recursions:
+1 => (7 (0 LEFT) -> )
+2 => (7 (0 RIGHT, 1 SINGLE) -> 9 (0 MIDDLE) -> 8 (0 SINGLE) -> )
 
 LALR Parse Table:
 State 0:
@@ -92,7 +96,7 @@ State 6:
    Wisi_EOI         => reduce 2 tokens to declarations 7.0
    default          => ERROR
 
-   Minimal_Complete_Action => declarations
+   Minimal_Complete_Action => declarations recursive
 
 State 7:
       9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI

@@ -125,9 +125,10 @@ package WisiToken.Parse.LR is
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Kernel_Info is record
-      LHS              : Token_ID := Token_ID'First;
-      Before_Dot       : Token_ID := Token_ID'First;
+      LHS              : Token_ID                  := Token_ID'First;
+      Before_Dot       : Token_ID                  := Token_ID'First;
       Length_After_Dot : Ada.Containers.Count_Type := 0;
+      Recursive        : Boolean                   := False;
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
@@ -175,8 +176,11 @@ package WisiToken.Parse.LR is
       Kernel : Kernel_Info_Arrays.Vector;
 
       Minimal_Complete_Actions : Minimal_Action_Arrays.Vector;
+      Minimal_Complete_Actions_Recursive : Boolean := False;
       --  Parse actions that will most quickly complete a production in this
-      --  state. If more than one, resolved at runtime using Kernels.
+      --  state. If more than one, resolved at runtime using Kernels. If
+      --  Minimal_Complete_Actions_Recursive, at least one of the minimal
+      --  actions is recursive; this changes the algorithm.
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;

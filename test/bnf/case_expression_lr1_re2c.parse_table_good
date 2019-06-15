@@ -31,6 +31,8 @@ Productions:
 17.0: range_nt <= IDENTIFIER TICK RANGE
 17.1: range_nt <= factor_list DOT_DOT factor_list
 
+Recursions:
+
 LR1 Parse Table:
 State 0:
      10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI

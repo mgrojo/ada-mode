@@ -1,0 +1,155 @@
+Tokens:
+ 0 => EndOfLine_COMMENT
+ 1 => NEW_LINE
+ 2 => WHITESPACE
+ 3 => COMMA
+ 4 => LEFT_CURLY_BRACKET
+ 5 => RIGHT_CURLY_BRACKET
+ 6 => Identifier
+ 7 => Wisi_EOI
+ 8 => wisitoken_accept
+ 9 => EnumConstantList
+ 10 => EnumConstant
+ 11 => EnumBody
+
+Productions:
+8.0: wisitoken_accept <= EnumBody Wisi_EOI
+9.0: EnumConstantList <= EnumConstant ; (1) SINGLE
+9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1, 1) LEFT
+10.0: EnumConstant <= Identifier
+11.0: EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET
+11.1: EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET
+
+Partial recursions:
+1 => (9 (0 SINGLE, 1 LEFT, 1 RIGHT) -> )
+
+McKenzie:
+(Insert =>
+ COMMA               => 3,
+ LEFT_CURLY_BRACKET  => 3,
+ RIGHT_CURLY_BRACKET => 3,
+ Identifier          => 3,
+ Wisi_EOI            => 3)
+(Delete =>
+ COMMA               => 3,
+ LEFT_CURLY_BRACKET  => 3,
+ RIGHT_CURLY_BRACKET => 3,
+ Identifier          => 3,
+ Wisi_EOI            => 3)
+(Push_Back =>
+ COMMA               => 3,
+ LEFT_CURLY_BRACKET  => 3,
+ RIGHT_CURLY_BRACKET => 3,
+ Identifier          => 3,
+ Wisi_EOI            => 3)
+Ignore_Check_Fail => 0
+Task_Count        => 0
+Cost_Limit        => 2147483647
+Check_Limit       => 4
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 10000
+
+LR1 Parse Table:
+State 0:
+      8.0:wisitoken_accept <= ^ EnumBody Wisi_EOI, Wisi_EOI
+
+   LEFT_CURLY_BRACKET  => shift and goto state 1
+   default             => ERROR
+
+   EnumBody            goto state 2
+
+   Minimal_Complete_Action => LEFT_CURLY_BRACKET
+
+State 1:
+     11.0:EnumBody <= LEFT_CURLY_BRACKET ^ EnumConstantList COMMA RIGHT_CURLY_BRACKET, Wisi_EOI
+     11.1:EnumBody <= LEFT_CURLY_BRACKET ^ COMMA RIGHT_CURLY_BRACKET, Wisi_EOI
+
+   COMMA               => shift and goto state 3
+   Identifier          => shift and goto state 4
+   default             => ERROR
+
+   EnumConstantList    goto state 5
+   EnumConstant        goto state 6
+
+   Minimal_Complete_Action => COMMA
+
+State 2:
+      8.0:wisitoken_accept <= EnumBody ^ Wisi_EOI, Wisi_EOI
+
+   Wisi_EOI            => accept it 8.0
+   default             => ERROR
+
+   Minimal_Complete_Action => 
+
+State 3:
+     11.1:EnumBody <= LEFT_CURLY_BRACKET COMMA ^ RIGHT_CURLY_BRACKET, Wisi_EOI
+
+   RIGHT_CURLY_BRACKET => shift and goto state 7
+   default             => ERROR
+
+   Minimal_Complete_Action => RIGHT_CURLY_BRACKET
+
+State 4:
+     10.0:EnumConstant <= Identifier ^, COMMA
+
+   COMMA               => reduce 1 tokens to EnumConstant 10.0
+   default             => ERROR
+
+   Minimal_Complete_Action => EnumConstant
+
+State 5:
+      9.1:EnumConstantList <= EnumConstantList ^ COMMA EnumConstant, COMMA
+     11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList ^ COMMA RIGHT_CURLY_BRACKET, Wisi_EOI
+
+   COMMA               => shift and goto state 8
+   default             => ERROR
+
+   Minimal_Complete_Action => COMMA
+
+State 6:
+      9.0:EnumConstantList <= EnumConstant ^, COMMA
+
+   COMMA               => reduce 1 tokens to EnumConstantList 9.0
+   default             => ERROR
+
+   Minimal_Complete_Action => EnumConstantList
+
+State 7:
+     11.1:EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET ^, Wisi_EOI
+
+   Wisi_EOI            => reduce 3 tokens to EnumBody 11.1
+   default             => ERROR
+
+   Minimal_Complete_Action => EnumBody
+
+State 8:
+      9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant, COMMA
+     11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA ^ RIGHT_CURLY_BRACKET, Wisi_EOI
+
+   RIGHT_CURLY_BRACKET => shift and goto state 9
+   Identifier          => shift and goto state 4
+   default             => ERROR
+
+   EnumConstant        goto state 10
+
+   Minimal_Complete_Action => (Identifier, RIGHT_CURLY_BRACKET) recursive
+
+State 9:
+     11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET ^, Wisi_EOI
+
+   Wisi_EOI            => reduce 4 tokens to EnumBody 11.0
+   default             => ERROR
+
+   Minimal_Complete_Action => EnumBody
+
+State 10:
+      9.1:EnumConstantList <= EnumConstantList COMMA EnumConstant ^, COMMA
+
+   COMMA               => reduce 3 tokens to EnumConstantList 9.1
+   default             => ERROR
+
+   Minimal_Complete_Action => EnumConstantList recursive
+
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 3 rules, 0 user actions, 0 checks, 11 states, 24 parse actions

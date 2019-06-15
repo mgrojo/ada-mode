@@ -244,6 +244,22 @@ package WisiToken is
    function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
    function "+" (Item : in Production_ID) return Production_ID_Arrays.Vector is (To_Vector ((1 => Item)));
 
+   type Recursion is
+     (None,
+      Single, --  Single token in right hand side is recursive.
+      Middle, --  Multiple tokens in right hand side, recursive token not at either end.
+      Right,  --  Multiple tokens in right hand side, recursive token not at right end.
+      Left    --  Multiple tokens in right hand side, recursive token not at left end.
+     );
+   --  In worst-case order; Left recursion causes the most
+   --  problems in LR error recovery, and in Packrat.
+
+   function Worst_Recursion (A, B : in Recursion) return Recursion
+   is (Recursion'Max (A, B));
+
+   function Net_Recursion (A, B : in Recursion) return Recursion;
+   --  For finding the net recursion of a chain; Middle dominates.
+
    ----------
    --  Tokens
 

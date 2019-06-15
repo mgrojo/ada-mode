@@ -11,8 +11,11 @@ Tokens:
 Productions:
 5.0: wisitoken_accept <= upper_s Wisi_EOI
 6.0: upper_s <= upper_c upper_c
-7.0: upper_c <= LOWER_C upper_c
+7.0: upper_c <= LOWER_C upper_c ; (1) RIGHT
 7.1: upper_c <= LOWER_D
+
+Recursions:
+1 => (7 (0 RIGHT) -> )
 
 LALR Parse Table:
 State 0:
@@ -36,7 +39,7 @@ State 1:
 
    upper_c          goto state 5
 
-   Minimal_Complete_Action => LOWER_D
+   Minimal_Complete_Action => LOWER_D recursive
 
 State 2:
       7.1:upper_c <= LOWER_D ^, LOWER_C/LOWER_D/Wisi_EOI
@@ -75,7 +78,7 @@ State 5:
    Wisi_EOI         => reduce 2 tokens to upper_c 7.0
    default          => ERROR
 
-   Minimal_Complete_Action => upper_c
+   Minimal_Complete_Action => upper_c recursive
 
 State 6:
       6.0:upper_s <= upper_c upper_c ^, Wisi_EOI

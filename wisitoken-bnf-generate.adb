@@ -459,8 +459,9 @@ begin
                     (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                   Generate_Utils.To_McKenzie_Param
                     (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
-                  Put_Parse_Table  => True,
-                  Ignore_Conflicts => Ignore_Conflicts);
+                  Put_Parse_Table   => True,
+                  Ignore_Conflicts  => Ignore_Conflicts,
+                  Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
                if Do_Time then
                   Time_End := Clock;
@@ -487,7 +488,8 @@ begin
                   Generate_Utils.To_McKenzie_Param
                     (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
                   Put_Parse_Table  => True,
-                  Ignore_Conflicts => Ignore_Conflicts);
+                  Ignore_Conflicts => Ignore_Conflicts,
+                  Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
                if Do_Time then
                   Time_End := Clock;

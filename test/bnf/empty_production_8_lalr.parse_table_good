@@ -14,7 +14,7 @@ Tokens:
 
 Productions:
 7.0: wisitoken_accept <= object_declaration_list Wisi_EOI
-8.0: object_declaration_list <= object_declaration_list object_declaration
+8.0: object_declaration_list <= object_declaration_list object_declaration ; (1) LEFT
 8.1: object_declaration_list <= object_declaration
 9.0: object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON
 9.1: object_declaration <= IDENTIFIER constant_opt COLON_EQUAL SEMICOLON
@@ -22,6 +22,9 @@ Productions:
 10.1: aliased_opt <=
 11.0: constant_opt <= CONSTANT
 11.1: constant_opt <=
+
+Recursions:
+1 => (8 (0 LEFT) -> )
 
 LALR Parse Table:
 State 0:
@@ -116,7 +119,7 @@ State 8:
    Wisi_EOI                => reduce 2 tokens to object_declaration_list 8.0
    default                 => ERROR
 
-   Minimal_Complete_Action => object_declaration_list
+   Minimal_Complete_Action => object_declaration_list recursive
 
 State 9:
       9.0:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI

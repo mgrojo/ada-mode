@@ -24,20 +24,21 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Strings.Unbounded;
 with System.Multiprocessors;
-with BNF_WY_Test;
+with Test_McKenzie_Recover;
 with WisiToken;
 procedure Test_One_Harness
 is
    --  command line arguments (all optional, order matters):
    --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count cost_limit
+   --  1         2         3            4              5           6              7            8          9
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace or cost for all routines.
 
    Task_Count : constant System.Multiprocessors.CPU_Range :=
-     (if Argument_Count >= 7 then System.Multiprocessors.CPU_Range'Value (Argument (7)) else 0);
-   Cost_Limit : constant Natural := (if Argument_Count >= 8 then Natural'Value (Argument (8)) else Natural'Last);
-   pragma Unreferenced (Task_Count, Cost_Limit);
+     (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
+   Cost_Limit : constant Natural := (if Argument_Count >= 9 then Natural'Value (Argument (9)) else Natural'Last);
+   --  pragma Unreferenced (Task_Count, Cost_Limit);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -56,7 +57,7 @@ is
    is begin
       return Ada.Strings.Unbounded.String_Access'(new String'(Item));
    end "+";
-   --  pragma Unreferenced ("+");
+   pragma Unreferenced ("+");
 begin
    Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
 
@@ -87,7 +88,7 @@ begin
    WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
    WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
-   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count, Cost_Limit));
 
    Run (Suite, Options, Result, Status);
 

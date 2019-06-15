@@ -480,12 +480,13 @@ package body WisiToken.Generate.LR.LALR_Generate is
    end Add_Actions;
 
    function Generate
-     (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in WisiToken.Descriptor;
-      Known_Conflicts  : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param   : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Put_Parse_Table  : in Boolean             := False;
-      Ignore_Conflicts : in Boolean             := False)
+     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in WisiToken.Descriptor;
+      Known_Conflicts   : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      McKenzie_Param    : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table   : in Boolean             := False;
+      Ignore_Conflicts  : in Boolean             := False;
+      Partial_Recursion : in Boolean             := True)
      return Parse_Table_Ptr
    is
       use all type Ada.Containers.Count_Type;
@@ -498,8 +499,12 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
+      Recursions : constant WisiToken.Generate.Recursions :=
+        (if Partial_Recursion
+         then WisiToken.Generate.Compute_Partial_Recursion (Grammar)
+         else WisiToken.Generate.Compute_Full_Recursion (Grammar));
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
+        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Recursions);
 
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
@@ -575,7 +580,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end loop;
 
       if Put_Parse_Table then
-         WisiToken.Generate.LR.Put_Parse_Table (Table, "LALR", Grammar, Kernels, Conflict_Counts, Descriptor);
+         WisiToken.Generate.LR.Put_Parse_Table
+           (Table, "LALR", Grammar, Recursions, Minimal_Terminal_Sequences, Kernels, Conflict_Counts, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

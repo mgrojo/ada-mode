@@ -17,6 +17,8 @@ Productions:
 7.0: name <= IDENTIFIER
 8.0: parameter_specification <= IDENTIFIER mode name
 
+Recursions:
+
 LALR Parse Table:
 State 0:
       4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 

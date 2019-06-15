@@ -1,5 +1,6 @@
 --  Show various things related to Minimal_Actions for a grammar.
 
+with Ada.Calendar;
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -17,6 +18,7 @@ with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure Show_Minimal_Actions
 is
+   use all type Ada.Calendar.Time;
    use WisiToken;
    use WisiToken.Generate.LR;
 
@@ -33,7 +35,7 @@ is
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
    Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-
+   Time           : Ada.Calendar.Time;
 begin
    declare
       use Ada.Command_Line;
@@ -90,7 +92,7 @@ begin
       return;
    end;
 
-
+   Time := Ada.Calendar.Clock;
    declare
       Generate_Data  : constant WisiToken.BNF.Generate_Utils.Generate_Data :=
         WisiToken.BNF.Generate_Utils.Initialize (Input_Data);
@@ -126,6 +128,7 @@ begin
          First_Nonterminal => Generate_Data.Descriptor.First_Nonterminal,
          Last_Nonterminal  => Generate_Data.Descriptor.Last_Nonterminal);
 
+      Recursions : WisiToken.Generate.Recursion_Array;
    begin
       case Gen_Alg is
       when WisiToken.BNF.LALR =>
@@ -143,41 +146,44 @@ begin
          raise WisiToken.User_Error;
       end case;
 
+      if Trace_Generate > Outline then
+         Put_Line ("time grammar generate:" & Duration'Image (Ada.Calendar.Clock - Time));
+      end if;
+
       WisiToken.Trace_Generate := Trace_Generate; -- Only trace the part we are interested in.
-      declare
-         Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-           Generate.LR.Compute_Minimal_Terminal_Sequences (Descriptor, Generate_Data.Grammar);
-         Minimal_Terminal_First : constant WisiToken.Token_Array_Token_ID :=
-           Generate.LR.Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
+      Time := Ada.Calendar.Clock;
 
-      begin
-         Put_Line ("Minimal_Terminal_Sequences:");
-         for ID in Minimal_Terminal_Sequences'Range loop
-            Put_Line
-              (Image (ID, Descriptor) & " => " &
-                 Image (Minimal_Terminal_Sequences (ID), Descriptor, Association => True));
-         end loop;
-         New_Line;
+      Recursions := WisiToken.Generate.Compute_Recursion (Descriptor, Generate_Data.Grammar);
+      if Trace_Generate > Outline then
+         Put_Line ("time grammar recursions:" & Duration'Image (Ada.Calendar.Clock - Time));
+         Put_Line (Recursions.Length'Image & " recursions");
+      end if;
+      --  declare
+      --     Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
+      --       Generate.LR.Compute_Minimal_Terminal_Sequences (Descriptor, Generate_Data.Grammar, Recursions);
+      --     Minimal_Terminal_First : constant WisiToken.Token_Array_Token_ID :=
+      --       Generate.LR.Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
+      --  begin
 
-         for State in Table.States'Range loop
-            if Trace_Generate > Extra then
-               Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
-            end if;
+      --     for State in Table.States'Range loop
+      --        if Trace_Generate > Extra then
+      --           Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
+      --        end if;
 
-            Set_Minimal_Complete_Actions
-              (Table.States (State),
-               (case Gen_Alg is
-                when WisiToken.BNF.LALR =>
-                   Item_Sets (State),
-                when WisiToken.BNF.LR1 =>
-                   WisiToken.Generate.LR1_Items.Filter
-                     (Item_Sets (State), Generate_Data.Grammar, Descriptor,
-                      WisiToken.Generate.LR1_Items.In_Kernel'Access),
-                when others => raise WisiToken.User_Error),
-               Descriptor, Generate_Data.Grammar, Minimal_Terminal_Sequences, Minimal_Terminal_First);
-         end loop;
-         New_Line;
-      end;
+      --        Set_Minimal_Complete_Actions
+      --          (Table.States (State),
+      --           (case Gen_Alg is
+      --            when WisiToken.BNF.LALR =>
+      --               Item_Sets (State),
+      --            when WisiToken.BNF.LR1 =>
+      --               WisiToken.Generate.LR1_Items.Filter
+      --                 (Item_Sets (State), Generate_Data.Grammar, Descriptor,
+      --                  WisiToken.Generate.LR1_Items.In_Kernel'Access),
+      --            when others => raise WisiToken.User_Error),
+      --           Descriptor, Generate_Data.Grammar, Minimal_Terminal_Sequences, Minimal_Terminal_First);
+      --     end loop;
+      --     New_Line;
+      --  end;
    end;
 exception
 when E : others =>

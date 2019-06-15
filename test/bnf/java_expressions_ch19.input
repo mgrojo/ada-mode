@@ -5,4 +5,10 @@
 // PostIncrementExpression if state 8 has minimal action.
 { UpdateText (A) }
 
+// No errors; get out of resume_active from previous error
+{ A++;}
+
+// Missing assignment value; should use minimal_complete_actions
+{ B = }
+
 // end of file

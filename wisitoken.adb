@@ -214,6 +214,26 @@ package body WisiToken is
       end return;
    end To_Vector;
 
+   function Net_Recursion (A, B : in Recursion) return Recursion
+   is begin
+      return
+        (case A is
+         when None => B,
+         when Single =>
+           (case B is
+            when None => Single,
+            when others => B),
+         when Right =>
+           (case B is
+            when None | Single => Right,
+            when others => B),
+         when Left =>
+           (case B is
+            when None | Single | Left => Left,
+            when others => B),
+         when Middle => Middle);
+   end Net_Recursion;
+
    function Slice (Item : in Token_Array_Token_Set; I : in Token_ID) return Token_ID_Set
    is
       Result : Token_ID_Set := (Item'First (2) .. Item'Last (2) => False);
