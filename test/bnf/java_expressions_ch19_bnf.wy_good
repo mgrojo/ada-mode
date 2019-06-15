@@ -25,6 +25,7 @@
 
 %start CompilationUnit
 %meta_syntax BNF
+%partial_recursion
 
 %mckenzie_cost_default 3 3 2 0
 %mckenzie_enqueue_limit 10_000

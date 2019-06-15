@@ -36,6 +36,7 @@
 %generate LR1 Ada re2c
 %start expression
 %meta_syntax EBNF
+%partial_recursion
 
 %mckenzie_cost_default 3 3 2 0
 %mckenzie_minimal_complete_cost_delta -3

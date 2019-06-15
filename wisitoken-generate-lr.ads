@@ -153,7 +153,7 @@ package WisiToken.Generate.LR is
    function Compute_Minimal_Terminal_Sequences
      (Descriptor : in WisiToken.Descriptor;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Recursions : in Recursion_Array)
+      Recursions : in Generate.Recursions)
      return Minimal_Sequence_Array;
    --  For each production in Grammar, compute the minimal sequence of
    --  terminals that will complete it. Result is an empty sequence if
@@ -209,7 +209,7 @@ package WisiToken.Generate.LR is
      (Table                      : in Parse_Table_Ptr;
       Title                      : in String;
       Grammar                    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Recursions                 : in Recursion_Array;
+      Recursions                 : in Generate.Recursions;
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
       Kernels                    : in LR1_Items.Item_Set_List;
       Conflicts                  : in Conflict_Count_Lists.List;

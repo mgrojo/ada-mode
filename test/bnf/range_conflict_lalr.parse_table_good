@@ -24,16 +24,16 @@ Productions:
 13.1: membership_choice <= range_g ; (2, 3) MIDDLE
 14.0: primary <= IDENTIFIER
 14.1: primary <= STRING_LITERAL
-14.2: primary <= LEFT_PAREN relation RIGHT_PAREN ; (1, 3, 4) MIDDLE
-15.0: range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ; (2) MIDDLE
+14.2: primary <= LEFT_PAREN relation RIGHT_PAREN ; (1, 2, 4) MIDDLE
+15.0: range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ; (3) MIDDLE
 15.1: range_g <= IDENTIFIER TICK RANGE
-15.2: range_g <= primary DOT_DOT primary ; (3, 3) MIDDLE
+15.2: range_g <= primary DOT_DOT primary ; (2, 2) MIDDLE
 16.0: relation <= primary IN membership_choice ; (1, 2, 3, 4) MIDDLE
 
 Recursions:
 1 => (13 (0 SINGLE) -> 14 (2 MIDDLE) -> 16 (0 RIGHT) -> )
-2 => (13 (1 SINGLE) -> 15 (0 MIDDLE) -> 16 (0 RIGHT) -> )
-3 => (13 (1 SINGLE) -> 15 (2 LEFT, 2 RIGHT) -> 14 (2 MIDDLE) -> 16 (0 RIGHT) -> )
+2 => (13 (1 SINGLE) -> 15 (2 LEFT, 2 RIGHT) -> 14 (2 MIDDLE) -> 16 (0 RIGHT) -> )
+3 => (13 (1 SINGLE) -> 15 (0 MIDDLE) -> 16 (0 RIGHT) -> )
 4 => (14 (2 MIDDLE) -> 16 (0 LEFT) -> )
 
 LALR Parse Table:

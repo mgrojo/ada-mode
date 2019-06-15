@@ -12,24 +12,32 @@ all : test-clean tests doc
 # test_one_harness.adb
 # test_all_harness.adb
 #
-t_one :: one-clean
+#t_one :: one-clean
 t_one :: wisitoken-bnf-generate.exe
 t_one :: ada_lite_re2c.c
-t_one :: ada_lite_lr1_run.exe
-# t_one :: RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
+#t_one :: java_expressions_ch19_lr1_run.exe
 t_one :: test_one_harness.run
 
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
+t_bnf :: wisitoken-bnf-generate.exe
+t_bnf :: gen test-executables
+t_bnf :: test_bnf_harness.run
+
 one-clean :
-	rm -rf ada_lite*
+	rm -rf java_expressions_ch19*
 
-# one :: one-clean
+one :: one-clean
 one :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lr1_generate.log
+one :: java_expressions_ch19_re2c.c
+one :: java_expressions_ch19_lr1_run.exe
+	./java_expressions_ch19_lr1_run.exe -v 2 -t 1 -m 1 ../Test/bnf/java_expressions_ch19.input > debug.log
 
-#c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
+two :: show_minimal_actions.exe
+	./show_minimal_actions.exe $(RUN_ARGS)
+#c:/Projects/org.emacs.java-wisi.stephe-1/source/java_ch19.wy LR1 1
+# ../Test/bnf/ada_lite.wy LR1 1
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make

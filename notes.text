@@ -21,6 +21,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+python broken in translate_ebnf
+
 test_mckenzie use lr-parser-gen_aunit
 
 use First to compute String_ID_Set?

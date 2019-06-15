@@ -9,6 +9,7 @@
 
 %start compilationUnit
 %generate None
+%partial_recursion
 
 %token <punctuation> ADD_ASSIGN         '+='
 %token <punctuation> AND_ASSIGN         '&='

@@ -138,14 +138,28 @@ package WisiToken.Generate is
    subtype Recursion_Array is Grammar_Graphs.Path_Arrays.Vector;
    --  For the collection of all cycles.
 
+   type Recursions is record
+      Full       : Boolean;
+      Recursions : Recursion_Array;
+      --  If Full, elements are paths; edges at path (I) are to path (I). If
+      --  not Full, elements are strongly connected components; edges at
+      --  path (I) are from path (I).
+   end record;
+
    package Recursion_Lists is new Ada.Containers.Doubly_Linked_Lists (Recursion_Index);
    function Image is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_Image
      (Recursion_Index, "=", Recursion_Lists, Trimmed_Image);
 
-   function Compute_Recursion
-     (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
-     return Recursion_Array;
+   function To_Graph (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Grammar_Graphs.Graph;
+
+   function Compute_Full_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
+   --  Each element of result is a cycle in the grammar.
+
+   function Compute_Partial_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
+   --  Each element of the result contains all members of a non-trivial
+   --  strongly connected component in the grammar, in arbitrary order.
+   --  This is an approximation to the full recursion, when that is too
+   --  hard to compute (ie for Java).
 
    ----------
    --  Indented text output. Mostly used for code generation in wisi,

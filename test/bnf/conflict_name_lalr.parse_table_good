@@ -16,7 +16,7 @@ Productions:
 6.0: wisitoken_accept <= name Wisi_EOI
 7.0: aggregate <= LEFT_PAREN name RIGHT_PAREN ; (1) MIDDLE
 8.0: attribute_reference <= name TICK attribute_designator ; (2, 3) LEFT
-9.0: attribute_designator <= name ; (3) RIGHT
+9.0: attribute_designator <= name ; (2) RIGHT
 10.0: name <= IDENTIFIER
 10.1: name <= attribute_reference ; (2, 3) LEFT
 10.2: name <= qualified_expression ; (1, 4) LEFT
@@ -24,8 +24,8 @@ Productions:
 
 Recursions:
 1 => (7 (0 MIDDLE) -> 10 (2 SINGLE) -> 11 (0 RIGHT) -> )
-2 => (8 (0 LEFT) -> 10 (1 SINGLE) -> )
-3 => (8 (0 RIGHT) -> 9 (0 SINGLE) -> 10 (1 SINGLE) -> )
+2 => (8 (0 RIGHT) -> 9 (0 SINGLE) -> 10 (1 SINGLE) -> )
+3 => (8 (0 LEFT) -> 10 (1 SINGLE) -> )
 4 => (10 (2 SINGLE) -> 11 (0 LEFT) -> )
 
 LALR Parse Table:

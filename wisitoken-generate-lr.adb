@@ -59,7 +59,7 @@ package body WisiToken.Generate.LR is
       if Cycle'Length = 1 then
          for E of Cycle (Cycle'First).Edges loop
             if E.Data.RHS = RHS then
-               Result := E.Data.Recursive;
+               Result := Net_Recursion (Result, E.Data.Recursive);
             end if;
          end loop;
       else
@@ -72,16 +72,40 @@ package body WisiToken.Generate.LR is
       return Result;
    end Net_Recursion;
 
+   function Worst_Recursion (Cycle : in Recursion_Cycle; RHS : in Natural) return Recursion
+   is
+      Result : Recursion := None;
+   begin
+      if Cycle'Length = 1 then
+         for E of Cycle (Cycle'First).Edges loop
+            if E.Data.RHS = RHS then
+               Result := Worst_Recursion (Result, E.Data.Recursive);
+            end if;
+         end loop;
+      else
+         for Item of Cycle loop
+            for E of Item.Edges loop
+               Result := Worst_Recursion (Result, E.Data.Recursive);
+            end loop;
+         end loop;
+      end if;
+      return Result;
+   end Worst_Recursion;
+
    function Worst_Recursion
      (Recursion_IDs : in Recursion_Lists.List;
-      Recursions    : in Recursion_Array;
+      Recursions    : in Generate.Recursions;
       RHS           : in Natural)
      return Recursion
    is
       Result : Recursion := None;
    begin
       for ID of Recursion_IDs loop
-         Result := Worst_Recursion (Result, Net_Recursion (Recursions (ID), RHS));
+         Result := Worst_Recursion
+           (Result,
+            (if Recursions.Full
+             then Net_Recursion (Recursions.Recursions (ID), RHS)
+             else Worst_Recursion (Recursions.Recursions (ID), RHS)));
       end loop;
       return Result;
    end Worst_Recursion;
@@ -708,7 +732,7 @@ package body WisiToken.Generate.LR is
    function Compute_Minimal_Terminal_Sequences
      (Descriptor : in WisiToken.Descriptor;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Recursions : in Recursion_Array)
+      Recursions : in Generate.Recursions)
      return Minimal_Sequence_Array
    is
       --  Result (ID).Sequence.Length = 0 is a valid result (ie the
@@ -747,16 +771,18 @@ package body WisiToken.Generate.LR is
          end loop;
 
          --  Set Result.Recursions
-         for Recursion_ID in Recursions.First_Index .. Recursions.Last_Index loop
+         for Recursion_ID in Recursions.Recursions.First_Index .. Recursions.Recursions.Last_Index loop
             declare
-               Cycle : Recursion_Cycle renames Recursions (Recursion_ID);
+               Cycle : Recursion_Cycle renames Recursions.Recursions (Recursion_ID);
             begin
                for I in Cycle'Range loop
                   declare
                      Edges : constant Grammar_Graphs.Edge_Lists.List :=
-                       (if I = Cycle'Last
-                        then Cycle (Cycle'First).Edges
-                        else Cycle (I + 1).Edges);
+                       (if Recursions.Full then
+                          (if I = Cycle'Last
+                           then Cycle (Cycle'First).Edges
+                           else Cycle (I + 1).Edges)
+                        else Cycle (I).Edges);
                   begin
                      for E of Edges loop
                         Result (Cycle (I).Vertex)(E.Data.RHS).Recursion.Append (Recursion_ID);
@@ -777,7 +803,7 @@ package body WisiToken.Generate.LR is
             end loop;
          end loop;
 
-         if Trace_Generate > Outline then
+         if Trace_Generate > Detail then
             Ada.Text_IO.Put_Line ("Minimal_Terminal_Sequences:");
             for LHS in Result'Range loop
                Ada.Text_IO.Put_Line
@@ -1491,7 +1517,7 @@ package body WisiToken.Generate.LR is
      (Table                      : in Parse_Table_Ptr;
       Title                      : in String;
       Grammar                    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Recursions                 : in Recursion_Array;
+      Recursions                 : in Generate.Recursions;
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
       Kernels                    : in LR1_Items.Item_Set_List;
       Conflicts                  : in Conflict_Count_Lists.List;
@@ -1523,9 +1549,9 @@ package body WisiToken.Generate.LR is
       end loop;
 
       New_Line;
-      Put_Line ("Recursions:");
-      for I in Recursions.First_Index .. Recursions.Last_Index loop
-         Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Recursions (I)));
+      Put_Line ((if Recursions.Full then "Recursions:" else "Partial recursions:"));
+      for I in Recursions.Recursions.First_Index .. Recursions.Recursions.Last_Index loop
+         Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Recursions.Recursions (I)));
       end loop;
 
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit or
