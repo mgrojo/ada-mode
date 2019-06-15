@@ -21,6 +21,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+set_minimal_actions:
+    only need to check for loops at run time in minimal_complete because we assume cost eliminates it in normal explore
+        minimal_complete_delta can make recursion zero cost
+
+test_mckenzie use lr-parser-gen_aunit
+
 use First to compute String_ID_Set?
 
 make "canonical list" compatible with packrat?
