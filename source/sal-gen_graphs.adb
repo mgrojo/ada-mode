@@ -143,8 +143,13 @@ package body SAL.Gen_Graphs is
             null;
          end if;
       end loop;
-      --  All =
-      return False;
+
+      if Left'Last < Right'Last then
+         return True;
+      else
+         --  All =
+         return False;
+      end if;
    end "<";
 
    function Find_Paths

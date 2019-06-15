@@ -48,10 +48,15 @@ with Test_Unbounded_Definite_Vectors_Protected;
 with Test_Unbounded_Indefinite_Vectors;
 procedure Test_All_Harness
 is
-   --  command line arguments: [<verbose> [test_name [routine_name]]]
+   --  command line arguments (all optional, order matters):
+   --  <verbose> test_name routine_name trace
+   --  1         2         3            4
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
+   --
+   --  routine_name can be '' to set trace or cost for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
+   Trace  : Integer;
 
    Options : constant AUnit.Options.AUnit_Options :=
      (Global_Timer     => False,
@@ -91,6 +96,7 @@ begin
             end if;
          end;
       end case;
+      Trace := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    end;
 
    --  This is first because it's a suite.
@@ -101,7 +107,7 @@ begin
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
-   Add_Test (Suite, new Test_Graphs.Test_Case (Trace => 0));
+   Add_Test (Suite, new Test_Graphs.Test_Case (Trace));
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Vectors.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Vectors_Sorted.Test_Case);
@@ -116,7 +122,7 @@ begin
    Add_Test (Suite, new Test_Stats.Test_Case);
    Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Protected.Test_Case);
    Add_Test (Suite, new Test_Unbounded_Definite_Vectors.Test_Case);
-   Add_Test (Suite, new Test_Unbounded_Indefinite_Vectors.Test_Case (Trace => 0));
+   Add_Test (Suite, new Test_Unbounded_Indefinite_Vectors.Test_Case (Trace));
 
    Run (Suite, Options, Result, Status);
 
