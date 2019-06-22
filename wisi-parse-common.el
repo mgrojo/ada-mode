@@ -130,7 +130,7 @@ For use in grammar actions.")
 
   containing
   ;; Marker at the start of the containing statement for this token.
-  ;; nil only for first token in buffer
+  ;; nil for outermost containing.
 
   prev ;; marker at previous motion token in statement; nil if none
   next ;; marker at next motion token in statement; nil if none

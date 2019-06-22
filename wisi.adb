@@ -942,9 +942,9 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array)
    is
-      First_Item         : Boolean     := True;
-      Override_Start_Set : Boolean     := False;
-      Override_Start     : Navigate_Class_Type;
+      First_Item         : Boolean        := True;
+      Start_Set          : Boolean        := False;
+      Override_Start_Set : Boolean        := False;
       Containing_Pos     : Nil_Buffer_Pos := Nil; --  wisi first-keyword-pos
    begin
       for Pair of Params loop
@@ -964,26 +964,45 @@ package body Wisi is
 
          elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
             declare
-               Token  : constant Aug_Token_Ref      := Get_Aug_Token (Data, Tree, Tokens (Pair.Index));
-               Cursor : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
-                 (Data.Navigate_Caches.Iterate, Token.Char_Region.First,
+               use all type WisiToken.Syntax_Trees.Node_Label;
+               Token  : constant Aug_Token_Ref :=
+                  (if Pair.Class = Statement_End and then
+                    Tree.Label (Tokens (Pair.Index)) = WisiToken.Syntax_Trees.Nonterm
+                  then Data.Terminals.Variable_Ref (Tree.Max_Terminal_Index (Tokens (Pair.Index)))
+                  else Get_Aug_Token (Data, Tree, Tokens (Pair.Index)));
+
+               Cache_Pos : constant Buffer_Pos         := Token.Char_Region.First;
+               Cursor    : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
+                 (Data.Navigate_Caches.Iterate, Cache_Pos,
                   Direction => Navigate_Cache_Trees.Unknown);
             begin
                if Navigate_Cache_Trees.Has_Element (Cursor) then
                   declare
                      Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cursor);
                   begin
-                     Cache.Class          := (if Override_Start_Set then Override_Start else Pair.Class);
+                     if Pair.Class = Statement_Start then
+                        if Start_Set then
+                           Cache.Class := Motion;
+                        else
+                           Cache.Class := Statement_Start;
+                           Start_Set   := True;
+                        end if;
+                     elsif Override_Start_Set then
+                        Cache.Class := Statement_Start;
+                        Start_Set   := True;
+                     else
+                        Cache.Class := Pair.Class;
+                     end if;
                      Cache.Statement_ID   := Tree.ID (Nonterm);
                      Cache.Containing_Pos := Containing_Pos;
                   end;
                else
                   Cursor := Data.Navigate_Caches.Insert
-                    ((Pos            => Token.Char_Region.First,
+                    ((Pos            => Cache_Pos,
                       Statement_ID   => Tree.ID (Nonterm),
                       ID             => Token.ID,
                       Length         => Length (Token.Char_Region),
-                      Class          => (if Override_Start_Set then Override_Start else Pair.Class),
+                      Class          => (if Override_Start_Set then Statement_Start else Pair.Class),
                       Containing_Pos => Containing_Pos,
                       others         => Nil));
                end if;
@@ -999,17 +1018,14 @@ package body Wisi is
                end if;
 
                if Pair.Class = Statement_End and Containing_Pos.Set then
-                  Set_End (Data, Containing_Pos.Item, Token.Char_Region.First);
+                  Set_End (Data, Containing_Pos.Item, Cache_Pos);
                end if;
             end;
 
          else
             --  Token.Byte_Region is null
             if First_Item and Pair.Class = Statement_Start then
-               --  We don't reset First_Item here; next token may also be a start, if
-               --  this one is empty.
                Override_Start_Set := True;
-               Override_Start     := Pair.Class;
             end if;
          end if;
       end loop;

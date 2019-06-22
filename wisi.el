@@ -653,6 +653,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 			(cons #'display-buffer-at-bottom
 			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
 	(setq window-size-fixed t)
+	(set-window-dedicated-p (selected-window) t)
 
 	(next-error))
       ))
@@ -1393,9 +1394,23 @@ If non-nil, only repair errors in BEG END region."
 	 (end (next-single-property-change begin 'wisi-name)))
     (cons begin end)))
 
+(defun wisi-prev-name-region ()
+  "Return the prev region at or before point with text property 'wisi-name'."
+  (let* ((end
+	  (if (get-text-property (point) 'wisi-name)
+	      (point)
+	    (previous-single-property-change (point) 'wisi-name)))
+	 (begin (previous-single-property-change end 'wisi-name)))
+    (cons begin end)))
+
 (defun wisi-next-name ()
   "Return the text at or after point with text property 'wisi-name'."
   (let ((region (wisi-next-name-region)))
+    (buffer-substring-no-properties (car region) (cdr region))))
+
+(defun wisi-prev-name ()
+  "Return the text at or before point with text property 'wisi-name'."
+  (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
 (defun wisi-xref-identifier-completion-table ()

@@ -64,37 +64,72 @@ ada-add-log gives wrong result on procedure instantiation; sal-gen_graphs.adb tr
 motion in package spec does not stop at 'private'
     add test
 
-Eurocontrol bugs
-    bug#35124
+Eurocontrol/debbugs bugs
+https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
+    1913 non-ascii in regexp (2009!?)
+        ada-syntax-propertize assumes ASCII in character literals; wrong (ARM 3.5.2 Wide_Character, Wide_Wide_Character)
+        ada-parent-name-regexp is wrong; only used in ada-set-ff-special-constructs
+        ada-identifier-at-point is wrong; used in xref/navigation
+
+    33744 indentation of subexpressions
+        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=33744
+        need to identify subexpressions
+        test/hanging.adb need more test cases
+        waiting for money
+            procedure Operator_Indentation is
+            begin
+              if B
+                   or else C
+                     > 2 -- indented relative to "or else"
+              then
+                null;
+              end if;
+            end Operator_Indentation;
+
+    34029 multi-line trailing comments
+        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=34029
+        fixed
+
+    34043: 'Misc | Reset parser' throws an error
+        (point-min) /= 0! fixed
+
+    34045: contraint_error on open non-existent file
+        gen_emacs_wisi_lr_text_rep_parse.adb:149
+        fixed in wisi.el; don't parse empty buffer
+
+
+    35124
         test/ada_mode-debbugs_35124.ads
         can't fix original bug (no '.' in name)
         error recovery tries 'insert begin', but that fails on '.'
             set matching_token to 'package' if name has a dot.
 
-    bug#35143
+    35143
         partial parse vs RET; fixed in devel, posted new code
 
-    bug#35144
+    35144
         partial parse vs which-func
         don't get the error in master, but also don't get mode-line element
             something is resetting which-func-mode to nil
-            trace which-func-update
-                can't find it
+                apparently happens when which-func throws error or returns nil
 
-    bug#35924
+    35924
         wavefront compiler warns about 'new String' in descriptor; need named string access type
         posted fix
 
-    bug#36102
-        don't use parse for ada-wisi-which-function
-            changed to use grep in devel, no patch
-            oops; doesn't skip local subprograms
-            try min partial-parse size, before/after point.
+    36102
+        ada-wisi-which-function slow
+        trying min partial-parse size, before/after point; works
+
+    36278 auto-casing no longer honors casing of the declaration
+        it never did; you must create an exception. could automate that, make it file-local
 
 need wisi user guide
     explain actions
 
     explain how to patch grammar
+
+    wisi-anchored% - alias wisi-paren-anchored
 
 elpa package include simple makefile to build ada, gpr parser from patched .wy
 
@@ -311,52 +346,6 @@ elisp code has circular dependency
         in elisp so it can be added to batch-byte-compile
 
 other misc fixes from stefan
-
-wisi.el:1299:1:Warning: the following functions are not known to be defined:
-    wisi-process--parser-total-wait-time, wisi-process--parser-response-count,
-    wisi-process--parser-p
-    move definition of time, or add declare-function
-
-https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
-    33742 fixed, ludovic agrees
-    33743 fixed, ludovic agrees
-    33746 fixed, ludovic agrees
-
-    33744 indentation of subexpressions
-        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=33744
-        need to identify subexpressions
-        test/hanging.adb need more test cases
-        waiting for money
-            procedure Operator_Indentation is
-            begin
-              if B
-                   or else C
-                     > 2 -- indented relative to "or else"
-              then
-                null;
-              end if;
-            end Operator_Indentation;
-
-    34029 multi-line trailing comments
-        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=34029
-        fixed
-
-    34043: 'Misc | Reset parser' throws an error
-        (point-min) /= 0! fixed
-
-    34045: contraint_error on open non-existent file
-        gen_emacs_wisi_lr_text_rep_parse.adb:149
-        fixed in wisi.el; don't parse empty buffer
-
-
-    33618 ada-mode sets global compilation-search-path => "breaks grep"
-        see bug discussion
-        applied Stefan's patch in emacs/master
-
-    1913 non-ascii in regexp (2009!?)
-        ada-syntax-propertize assumes ASCII in character literals; wrong (ARM 3.5.2 Wide_Character, Wide_Wide_Character)
-        ada-parent-name-regexp is wrong; only used in ada-set-ff-special-constructs
-        ada-identifier-at-point is wrong; used in xref/navigation
 
 possible Eurocontrol work
     gpr_query
@@ -1482,6 +1471,7 @@ check for ELPA patches by others
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    to update a bug: nnn@debbugs.gnu.org
     to close: control@debbugs.gnu.org
         close nnn 6.0.2
 
