@@ -74,16 +74,16 @@ private
    --
    --  See Next_Token for more info.
 
-   procedure Current_Token_ID_Peek_2
+   procedure Current_Token_ID_Peek_3
      (Terminals             : in     Base_Token_Arrays.Vector;
       Terminals_Current     : in     Base_Token_Index;
       Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
       Current_Insert_Delete : in     SAL.Base_Peek_Type;
       Prev_Deleted          : in     Recover_Token_Index_Arrays.Vector;
-      Current_Token         :    out Token_ID;
-      Next_Token            :    out Token_ID);
-   --  Return the current token, from either Terminals or Insert_Delete,
-   --  without setting up for Next_Token.
+      Tokens                :    out Token_ID_Array_1_3);
+   --  Return the current token (in Tokens (1)) from either Terminals or
+   --  Insert_Delete, without setting up for Next_Token. Return the two
+   --  following tokens in Tokens (2 .. 3).
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID);
    --  Append a Delete op to Config.Ops, and insert it in

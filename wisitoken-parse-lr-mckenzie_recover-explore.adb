@@ -1514,15 +1514,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Matching_Begin_Token         := Invalid_Token_ID;
       else
          declare
-            Current_Token : Token_ID;
-            Next_Token    : Token_ID;
+            Tokens : Token_ID_Array_1_3;
          begin
-            Current_Token_ID_Peek_2
+            Current_Token_ID_Peek_3
               (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete,
-               Super.Parser_State (Parser_Index).Prev_Deleted, Current_Token, Next_Token);
+               Super.Parser_State (Parser_Index).Prev_Deleted, Tokens);
 
             Shared.Language_Use_Minimal_Complete_Actions
-              (Current_Token, Next_Token, Config,
+              (Tokens, Config,
                Use_Complete         => Use_Minimal_Complete_Actions,
                Matching_Begin_Token => Matching_Begin_Token);
          end;

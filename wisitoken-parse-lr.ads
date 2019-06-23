@@ -53,6 +53,9 @@ package WisiToken.Parse.LR is
    --  Pause is only used for error recovery, to allow parallel parsers
    --  to re-sync on the same input terminal.
 
+   subtype Token_ID_Array_1_3 is Token_ID_Array (1 .. 3);
+   --  For Use_Minimal_Complete_Actions in McDenzie_Recover.
+
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>

@@ -54,16 +54,15 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Use_Minimal_Complete_Actions_Access is access procedure
-     (Current_Token        : in     Token_ID;
-      Next_Token           : in     Token_ID;
+     (Tokens               : in     Token_ID_Array_1_3;
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
       Matching_Begin_Token :    out Token_ID);
-   --  Current_Token caused a parse error; Next_Token is the token
-   --  following that (Invalid_Token_ID if none). Set Use_Complete True
-   --  if using Minimal_Complete_Actions is appropriate. Set
-   --  Matching_Begin_Token to token that starts a production matching
-   --  Next_Token (and following tokens, if any).
+   --  Tokens (1) caused a parse error; Tokens (2 .. 3) are the following
+   --  tokens (Invalid_Token_ID if none). Set Use_Complete True if using
+   --  Minimal_Complete_Actions is appropriate. Set Matching_Begin_Token
+   --  to token that starts a production matching Next_Token (and
+   --  following tokens, if any).
    --
    --  For example, if Next_Token is a block end, Set Use_Complete True
    --  to complete the current statement/declaration as quickly as

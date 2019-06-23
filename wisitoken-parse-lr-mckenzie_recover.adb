@@ -752,14 +752,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Current_Token;
 
-   procedure Current_Token_ID_Peek_2
+   procedure Current_Token_ID_Peek_3
      (Terminals             : in     Base_Token_Arrays.Vector;
       Terminals_Current     : in     Base_Token_Index;
       Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
       Current_Insert_Delete : in     SAL.Base_Peek_Type;
       Prev_Deleted          : in     Recover_Token_Index_Arrays.Vector;
-      Current_Token         :    out Token_ID;
-      Next_Token            :    out Token_ID)
+      Tokens                :    out Token_ID_Array_1_3)
    is
       use all type SAL.Base_Peek_Type;
       Terminals_Next : WisiToken.Token_Index := Terminals_Current + 1;
@@ -769,54 +768,49 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          raise Bad_Config;
       end if;
 
+      --  First set Tokens from Terminals; may be overridden by
+      --  Insert_Delete below.
+      Tokens (1) := Terminals (Terminals_Current).ID;
       loop
          exit when not Prev_Deleted.Contains (Terminals_Next);
          Terminals_Next := Terminals_Next + 1;
       end loop;
       if Terminals_Next <= Terminals.Last_Index then
-         Next_Token := Terminals (Terminals_Next).ID;
+         Tokens (2) := Terminals (Terminals_Next).ID;
+         loop
+            Terminals_Next := Terminals_Next + 1;
+            exit when not Prev_Deleted.Contains (Terminals_Next);
+         end loop;
+         if Terminals_Next <= Terminals.Last_Index then
+            Tokens (3) := Terminals (Terminals_Next).ID;
+         else
+            Tokens (3) := Invalid_Token_ID;
+         end if;
       else
-         Next_Token := Invalid_Token_ID;
+         Tokens (2) := Invalid_Token_ID;
+         Tokens (3) := Invalid_Token_ID;
       end if;
 
-      if Current_Insert_Delete = No_Insert_Delete then
-         Current_Token := Terminals (Terminals_Current).ID;
+      for I in Tokens'Range loop
+         if Current_Insert_Delete = No_Insert_Delete then
+            Tokens (I) := Terminals (Terminals_Current).ID;
 
-      elsif Token_Index (Insert_Delete (Current_Insert_Delete)) = Terminals_Current then
-         declare
-            Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete);
-         begin
-            case Insert_Delete_Op_Label (Op.Op) is
-            when Insert =>
-               Current_Token := Op.Ins_ID;
+         elsif Token_Index (Insert_Delete (Current_Insert_Delete + SAL.Peek_Type (I) - 1)) = Terminals_Current then
+            declare
+               Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete);
+            begin
+               case Insert_Delete_Op_Label (Op.Op) is
+               when Insert =>
+                  Tokens (I) := Op.Ins_ID;
 
-            when Delete =>
-               --  This should have been handled in Check
-               raise SAL.Programmer_Error;
-            end case;
-         end;
-      else
-         Current_Token := Terminals (Terminals_Current).ID;
-      end if;
-
-      if Current_Insert_Delete = Insert_Delete.Last_Index then
-         null;
-
-      elsif Token_Index (Insert_Delete (Current_Insert_Delete + 1)) = Terminals_Current then
-         declare
-            Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete + 1);
-         begin
-            case Insert_Delete_Op_Label'(Op.Op) is
-            when Insert =>
-               Next_Token := Op.Ins_ID;
-
-            when Delete =>
-               --  This should have been handled in Check
-               raise SAL.Programmer_Error;
-            end case;
-         end;
-      end if;
-   end Current_Token_ID_Peek_2;
+               when Delete =>
+                  --  This should have been handled in Check
+                  raise SAL.Programmer_Error;
+               end case;
+            end;
+         end if;
+      end loop;
+   end Current_Token_ID_Peek_3;
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID)
    is
