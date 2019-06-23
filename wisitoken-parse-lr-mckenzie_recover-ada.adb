@@ -963,42 +963,50 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    end Language_Fixes;
 
    procedure Use_Minimal_Complete_Actions
-     (Current_Token        : in     Token_ID;
-      Next_Token           : in     Token_ID;
+     (Tokens               : in     Token_ID_Array_1_3;
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
       Matching_Begin_Token :    out Token_ID)
    is
       use all type SAL.Base_Peek_Type;
+      use Ada_Process_Actions;
    begin
-      if Config.Stack.Depth = 1 and Current_Token = Descriptor.EOI_ID then
+      if Config.Stack.Depth = 1 and Tokens (1) = Descriptor.EOI_ID then
          --  Empty input buffer
          Use_Complete         := True;
          Matching_Begin_Token := +IDENTIFIER_ID;
 
-      elsif Minimal_Complete_Action_IDs (Current_Token) then
+      elsif Minimal_Complete_Action_IDs (Tokens (1)) then
          Use_Complete := True;
-         case Ada_Process_Actions.Token_Enum_ID'(-Current_Token) is
+         case To_Token_Enum (Tokens (1)) is
          when END_ID =>
-            case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
-            when CASE_ID | IF_ID | LOOP_ID | RETURN_ID | SELECT_ID =>
-               Matching_Begin_Token := Next_Token;
-            when IDENTIFIER_ID | SEMICOLON_ID =>
-               Matching_Begin_Token := +BEGIN_ID;
-            when others =>
-               --  'end' is misplaced (see test_mckenzie_recover.adb Conflict_1);
-               --  best to delete it.
+            if Tokens (2) /= Invalid_Token_ID then
+               case To_Token_Enum (Tokens (2)) is
+               when CASE_ID | IF_ID | LOOP_ID | RETURN_ID | SELECT_ID =>
+                  Matching_Begin_Token := Tokens (2);
+               when IDENTIFIER_ID | SEMICOLON_ID =>
+                  if Tokens (3) /= Invalid_Token_ID and then To_Token_Enum (Tokens (3)) = DOT_ID then
+                     Matching_Begin_Token := +PACKAGE_ID;
+                  else
+                     Matching_Begin_Token := +BEGIN_ID;
+                  end if;
+               when others =>
+                  --  'end' is misplaced (see test_mckenzie_recover.adb Conflict_1);
+                  --  best to delete it.
+                  Use_Complete         := False;
+                  Matching_Begin_Token := Invalid_Token_ID;
+               end case;
+            else
                Use_Complete         := False;
                Matching_Begin_Token := Invalid_Token_ID;
-            end case;
-
+            end if;
          when ELSE_ID | ELSIF_ID | THEN_ID =>
             Matching_Begin_Token := +IF_ID;
 
          when EXCEPTION_ID =>
             Matching_Begin_Token := +BEGIN_ID;
 
-         --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
+            --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
 
          when IS_ID | WHEN_ID =>
             --  'IS' could also be FUNCTION, PACKAGE, PROCEDURE; 'WHEN' could also be EXCEPTION.
@@ -1017,7 +1025,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
      (Descriptor        : in WisiToken.Descriptor;
       String_Literal_ID : in Token_ID)
      return Token_ID_Set
-   is begin
+   is
+      use Ada_Process_Actions;
+   begin
       --  Character literal can be part of a string primary, so the nonterms
       --  are independent of String_Literal_ID.
 

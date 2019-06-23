@@ -31,8 +31,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Ada is
    --  See wisitoken-parse-lr-parser.ads Language_Fixes_Access for description.
 
    procedure Use_Minimal_Complete_Actions
-     (Current_Token        : in     Token_ID;
-      Next_Token           : in     Token_ID;
+     (Tokens               : in     Token_ID_Array_1_3;
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
       Matching_Begin_Token :    out Token_ID);
