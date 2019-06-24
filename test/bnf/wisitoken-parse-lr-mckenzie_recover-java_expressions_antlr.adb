@@ -33,22 +33,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
           Descriptor.EOI_ID);
 
    procedure Use_Minimal_Complete_Actions
-     (Current_Token        : in     Token_ID;
-      Next_Token           : in     Token_ID;
+     (Tokens               : in     Token_ID_Array_1_3;
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
       Matching_Begin_Token :    out Token_ID)
    is
-      pragma Unreferenced (Next_Token);
       use all type SAL.Base_Peek_Type;
       use Java_Expressions_Antlr_Actions;
    begin
-      if Config.Stack.Depth = 1 and Current_Token = Descriptor.EOI_ID then
+      if Config.Stack.Depth = 1 and Tokens (1) = Descriptor.EOI_ID then
          --  Empty input buffer
          Use_Complete         := True;
          Matching_Begin_Token := +IDENTIFIER_ID;
 
-      elsif Minimal_Complete_Action_IDs (Current_Token) then
+      elsif Minimal_Complete_Action_IDs (Tokens (1)) then
          Use_Complete := True;
          Matching_Begin_Token := Invalid_Token_ID;
       else

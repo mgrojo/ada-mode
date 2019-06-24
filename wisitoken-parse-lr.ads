@@ -272,20 +272,20 @@ package WisiToken.Parse.LR is
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
-     (First_Terminal    => Token_ID'Last,
-      Last_Terminal     => Token_ID'First,
-      First_Nonterminal => Token_ID'Last,
-      Last_Nonterminal  => Token_ID'First,
-      Insert            => (others => 0),
-      Delete            => (others => 0),
-      Push_Back         => (others => 0),
+     (First_Terminal              => Token_ID'Last,
+      Last_Terminal               => Token_ID'First,
+      First_Nonterminal           => Token_ID'Last,
+      Last_Nonterminal            => Token_ID'First,
+      Insert                      => (others => 0),
+      Delete                      => (others => 0),
+      Push_Back                   => (others => 0),
       Minimal_Complete_Cost_Delta => -1,
-      Ignore_Check_Fail => 0,
-      Task_Count        => System.Multiprocessors.CPU_Range'Last,
-      Cost_Limit        => Natural'Last,
-      Check_Limit       => 4,
-      Check_Delta_Limit => Natural'Last,
-      Enqueue_Limit     => Natural'Last);
+      Ignore_Check_Fail           => 0,
+      Task_Count                  => System.Multiprocessors.CPU_Range'Last,
+      Cost_Limit                  => Natural'Last,
+      Check_Limit                 => 4,
+      Check_Delta_Limit           => Natural'Last,
+      Enqueue_Limit               => Natural'Last);
 
    type Parse_Table
      (State_First       : State_Index;
@@ -431,6 +431,7 @@ package WisiToken.Parse.LR is
       end case;
    end record;
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
+   subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
    function Token_Index (Op : in Insert_Delete_Op) return WisiToken.Token_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
@@ -444,6 +445,9 @@ package WisiToken.Parse.LR is
 
    function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result;
    --  Compare token_index.
+
+   function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean;
+   --  Ignore state, stack_depth
 
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
 

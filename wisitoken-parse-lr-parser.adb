@@ -652,7 +652,7 @@ package body WisiToken.Parse.LR.Parser is
                               Temp := Current_Parser;
                               Current_Parser.Next;
                               Shared_Parser.Parsers.Terminate_Parser
-                                (Temp, "errors", Shared_Parser.Trace.all, Shared_Parser.Terminals);
+                                (Temp, "recover cost/length", Shared_Parser.Trace.all, Shared_Parser.Terminals);
                            end if;
                            exit when Current_Parser.Is_Done;
                         end loop;

@@ -21,6 +21,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+delete cost limit?
+    minimal_complete with delta_cost < 0 makes cost limit unreliable
+
 set_minimal_actions:
     only need to check for loops at run time in minimal_complete because we assume cost eliminates it in normal explore
         minimal_complete_delta can make recursion zero cost

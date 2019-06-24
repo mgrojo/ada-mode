@@ -793,7 +793,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       for I in Tokens'Range loop
          if Current_Insert_Delete = No_Insert_Delete then
-            Tokens (I) := Terminals (Terminals_Current).ID;
+            null;
 
          elsif Token_Index (Insert_Delete (Current_Insert_Delete + SAL.Peek_Type (I) - 1)) = Terminals_Current then
             declare

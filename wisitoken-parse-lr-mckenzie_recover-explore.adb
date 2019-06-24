@@ -61,6 +61,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  Cost_Delta /= 0 comes from Try_Insert_Terminal when
          --  Minimal_Complete_Actions is useful. That doesn't mean it is better
          --  than any other solution, so don't let cost be 0.
+         --
+         --  We don't just eliminate all cost for Minimal_Complete_Actions;
+         --  that leads to using it far too much at the expense of better
+         --  solutions.
          Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
       end if;
 
@@ -357,7 +361,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
-      use all type Parser.Language_Fixes_Access;
 
       Parse_Items : Parse.Parse_Item_Arrays.Vector;
    begin
@@ -371,69 +374,53 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
 
       --  All Parse_Items failed; enqueue them so Language_Fixes can try to fix them.
-      declare
-         Parse_Error_Found : Boolean := False;
-      begin
-         for Item of Parse_Items loop
+      for Item of Parse_Items loop
 
-            if Item.Config.Error_Token.ID /= Invalid_Token_ID and Item.Config.Check_Status.Label = Ok then
-               Parse_Error_Found := True;
+         if Item.Config.Error_Token.ID /= Invalid_Token_ID and Item.Config.Check_Status.Label = Ok then
 
-               if Item.Shift_Count = 0 or
-                 ((Item.Config.Ops.Length > 0 and then
-                     Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Undo_Reduce | Push_Back) and
-                    Item.Config.Current_Shared_Token = Config.Current_Shared_Token)
-               then
-                  --  (Item.config.ops is empty on the very first Check). This is the
-                  --  same error Config originally found; report it in Config, so
-                  --  Use_Minimal_Complete_Actions can see it.
-                  Config.Error_Token  := Item.Config.Error_Token;
-                  Config.Check_Status := (Label => Ok);
-               end if;
-            end if;
-
-            if Item.Shift_Count > 0 and then
-              (Item.Config.Check_Status.Label /= Ok or
-                 Item.Config.Error_Token.ID /= Invalid_Token_ID)
+            if Item.Shift_Count = 0 or
+              ((Item.Config.Ops.Length > 0 and then
+                  Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Undo_Reduce | Push_Back) and
+                 Item.Config.Current_Shared_Token = Config.Current_Shared_Token)
             then
-               --  Some progress was made; let Language_Fixes try to fix the new
-               --  error.
-               --
-               --  This is abandoning the original location of the error, which may
-               --  not be entirely fixed. So we increase the cost. See
-               --  test_mckenzie_recover Loop_Bounds.
-               Item.Config.Cost := Item.Config.Cost + 1;
-               begin
-                  if Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward then
-                     Item.Config.Ops (Item.Config.Ops.Last_Index).FF_Token_Index :=
-                       Item.Config.Current_Shared_Token;
-                  else
-                     Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
-                  end if;
-               exception
-               when SAL.Container_Full =>
-                  raise Bad_Config;
-               end;
-               Local_Config_Heap.Add (Item.Config);
-               if Trace_McKenzie > Detail then
-                  Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
-               end if;
-            end if;
-         end loop;
-
-         if Parse_Error_Found then
-            return Continue;
-         else
-            --  Failed due to Semantic_Check
-            if Shared.Language_Fixes = null then
-               --  Only fix is to ignore the error
-               return Continue;
-            else
-               --  Assume Language_Fixes handles this, not Explore.
-               return Abandon;
+               --  (Item.config.ops is empty on the very first Check). This is the
+               --  same error Config originally found; report it in Config, so
+               --  Use_Minimal_Complete_Actions can see it.
+               Config.Error_Token  := Item.Config.Error_Token;
+               Config.Check_Status := (Label => Ok);
             end if;
          end if;
-      end;
+
+         if Item.Shift_Count > 0 and then
+           (Item.Config.Check_Status.Label /= Ok or
+              Item.Config.Error_Token.ID /= Invalid_Token_ID)
+         then
+            --  Some progress was made; let Language_Fixes try to fix the new
+            --  error.
+            --
+            --  This is abandoning the original location of the error, which may
+            --  not be entirely fixed. So we increase the cost. See
+            --  test_mckenzie_recover Loop_Bounds.
+            Item.Config.Cost := Item.Config.Cost + 1;
+            begin
+               if Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward then
+                  Item.Config.Ops (Item.Config.Ops.Last_Index).FF_Token_Index :=
+                    Item.Config.Current_Shared_Token;
+               else
+                  Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+               end if;
+            exception
+            when SAL.Container_Full =>
+               raise Bad_Config;
+            end;
+            Local_Config_Heap.Add (Item.Config);
+            if Trace_McKenzie > Detail then
+               Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
+            end if;
+         end if;
+      end loop;
+
+      return Continue;
    exception
    when Bad_Config =>
       return Abandon;
@@ -590,8 +577,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
               ID /= Invalid_Token_ID and then -- invalid when Verb = Error
               (Config.Ops.Length = 0 or else
                  --  Don't insert an ID we just pushed back or deleted; we know that failed.
-                 (Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token) and
-                    Config.Ops (Config.Ops.Last_Index) /= (Delete, ID, Config.Current_Shared_Token)))
+                 (not (Config.Ops (Config.Ops.Last_Index) = (Push_Back, ID, Config.Current_Shared_Token) or
+                          Config.Ops (Config.Ops.Last_Index) = (Delete, ID, Config.Current_Shared_Token) or
+                          Config.Ops (Config.Ops.Last_Index) = (Push_Back, ID, Config.Current_Shared_Token - 1) or
+                          Config.Ops (Config.Ops.Last_Index) = (Delete, ID, Config.Current_Shared_Token - 1))))
             then
                case Action.Verb is
                when Shift =>
@@ -697,7 +686,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          if Config.Ops.Length > 0 and then
            --  Don't insert an ID we just pushed back or deleted; we know that failed.
-           (Config.Ops (Config.Ops.Last_Index) = (Push_Back, Action.ID, Config.Current_Shared_Token) or
+           (Config.Ops (Config.Ops.Last_Index) = (Push_Back, Action.ID, Config.Current_Shared_Token - 1) or
+              Config.Ops (Config.Ops.Last_Index) = (Delete, Action.ID, Config.Current_Shared_Token - 1) or
+              Config.Ops (Config.Ops.Last_Index) = (Push_Back, Action.ID, Config.Current_Shared_Token) or
               Config.Ops (Config.Ops.Last_Index) = (Delete, Action.ID, Config.Current_Shared_Token))
          then
             if Trace_McKenzie > Extra then
@@ -840,6 +831,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                      case Actions.Length is
                      when 0 =>
+                        if Trace_McKenzie > Extra then
+                           Put_Line
+                             (Super.Trace.all, Super.Label (Parser_Index),
+                              "Minimal_Complete_Actions abandoned: no actions");
+                        end if;
                         exit;
                      when 1 =>
                         case Actions (Actions.First_Index).Verb is
@@ -924,7 +920,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Parser_Index                 : in              SAL.Base_Peek_Type;
       Config                       : in              Configuration;
       Local_Config_Heap            : in out          Config_Heaps.Heap_Type;
-      Use_Minimal_Complete_Actions : in              Boolean;
+      Use_Minimal_Complete_Actions : in out          Boolean;
       Matching_Begin_Token         : in              Token_ID)
    is begin
       if Use_Minimal_Complete_Actions then
@@ -932,6 +928,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if Matching_Begin_Token = Invalid_Token_ID or else
               not Insert_Matching_Begin (Super, Shared, Parser_Index, Config, Local_Config_Heap, Matching_Begin_Token)
             then
+               Use_Minimal_Complete_Actions := False;
                Insert_From_Action_List (Super, Shared, Parser_Index, Config, Local_Config_Heap);
             end if;
          else
@@ -1283,6 +1280,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
       --  Try deleting (= skipping) the current shared input token.
+
+      use all type Ada.Containers.Count_Type;
       Trace       : WisiToken.Trace'Class renames Super.Trace.all;
       EOF_ID      : Token_ID renames Trace.Descriptor.EOI_ID;
       Check_Limit : WisiToken.Token_Index renames Shared.Table.McKenzie_Param.Check_Limit;
@@ -1291,8 +1290,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       ID : constant Token_ID := Shared.Terminals.all (Config.Current_Shared_Token).ID;
    begin
-      if ID /= EOF_ID then
+      if ID /= EOF_ID and then
          --  can't delete EOF
+         (Config.Ops.Length = 0 or else
+           --  Don't delete an ID we just inserted; waste of time
+           (not Equal (Config.Ops (Config.Ops.Last_Index), (Insert, ID, Config.Current_Shared_Token, 1, 0))))
+      then
          declare
             New_Config : Configuration := Config;
          begin
@@ -1390,9 +1393,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          return;
       end if;
 
-      if Trace_McKenzie > Extra then
+      if Trace_McKenzie > Detail then
          Base.Put ("dequeue", Super, Shared, Parser_Index, Config);
-         Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
+         if Trace_McKenzie > Extra then
+            Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
+         end if;
       end if;
 
       if Config.Current_Insert_Delete = 1 then
@@ -1427,8 +1432,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if Config.Check_Status.Label = Ok then
                --  Parse table Error action.
                --
-               --  We don't clear Config.Error_Token here, because Try_Insert_Terminal calls
-               --  Language_Use_Minimal_Complete_Actions, which needs it. We only clear it
+               --  We don't clear Config.Error_Token here, because
+               --  Language_Use_Minimal_Complete_Actions needs it. We only clear it
                --  when a parse results in no error (or a different error), or a
                --  push_back moves the Current_Token.
                null;
@@ -1482,19 +1487,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config.Insert_Delete.Delete_First (Config.Current_Insert_Delete - 1);
          Config.Current_Insert_Delete := 1;
       else
-         case Check (Super, Shared, Parser_Index, Config, Local_Config_Heap) is
-         when Success =>
-            Super.Success (Parser_Index, Config, Local_Config_Heap);
-            return;
-
-         when Abandon =>
-            Super.Put (Parser_Index, Local_Config_Heap);
-            return;
-
-         when Continue =>
+         if Config.Strategy_Counts (Language_Fix) > 0 and then
+           (for all Op of Config.Ops => Op.Op in Undo_Reduce | Push_Back)
+         then
+            --  language_fixes did a push_back only; nothing to check
             null;
+         else
+            case Check (Super, Shared, Parser_Index, Config, Local_Config_Heap) is
+            when Success =>
+               Super.Success (Parser_Index, Config, Local_Config_Heap);
+               return;
 
-         end case;
+            when Abandon =>
+               Super.Put (Parser_Index, Local_Config_Heap);
+               return;
+
+            when Continue =>
+               null;
+
+            end case;
+         end if;
       end if;
 
       if Trace_McKenzie > Detail then
@@ -1508,6 +1520,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  solutions found. We reset the grouping after each fast_forward.
       --
       --  All possible permutations will be explored.
+      --
+      --  It is tempting to exclude other actions when
+      --  Use_Minimal_Complete_Actions is True. However, that is not always
+      --  the best approach to a solution.
 
       if Shared.Language_Use_Minimal_Complete_Actions = null then
          Use_Minimal_Complete_Actions := False;
@@ -1527,6 +1543,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end;
       end if;
 
+      if Allow_Insert_Terminal (Config) then
+         Try_Insert_Terminal
+           (Super, Shared, Parser_Index, Config, Local_Config_Heap, Use_Minimal_Complete_Actions, Matching_Begin_Token);
+      end if;
+
       if None_Since_FF (Config.Ops, Delete) and then
         None_Since_FF (Config.Ops, Insert) and then
         Config.Stack.Depth > 1 and then -- can't delete the first state
@@ -1534,11 +1555,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         --  If Config reduces to the start nonterm, there's no point in push_back.
       then
          Try_Push_Back (Super, Shared, Parser_Index, Config, Local_Config_Heap);
-      end if;
-
-      if Allow_Insert_Terminal (Config) then
-         Try_Insert_Terminal
-           (Super, Shared, Parser_Index, Config, Local_Config_Heap, Use_Minimal_Complete_Actions, Matching_Begin_Token);
       end if;
 
       if Config.Current_Insert_Delete = No_Insert_Delete then

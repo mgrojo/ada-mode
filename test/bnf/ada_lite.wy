@@ -108,7 +108,7 @@
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 
-%mckenzie_cost_limit 10
+%mckenzie_enqueue_limit 1000
 %mckenzie_check_limit 3
 
 ;; Default cost for insert terminal, delete terminal, push back, ignore check fail.
@@ -119,14 +119,14 @@
 ;; subprogram name
 %mckenzie_cost_default 4 4 4 4
 
+;; Cancel out cost of inserting common keywords if using Minimal_Complete_Actions
+%mckenzie_minimal_complete_cost_delta -3
+
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.
 ;;
 ;; LEFT_PAREN is _not_ here, because inserting that turns a missing
 ;; 'then' into a function call; not a likely error.
-;;
-;; IDENTIFIER is here, so if we are inserting an expression, it is
-;; prefered over "null".
 %mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
 %mckenzie_cost_insert DECLARE 3
@@ -135,7 +135,6 @@
 %mckenzie_cost_insert EXIT 3
 %mckenzie_cost_insert FUNCTION 3
 %mckenzie_cost_insert IS 3
-%mckenzie_cost_insert IDENTIFIER 3
 %mckenzie_cost_insert NEW 3
 %mckenzie_cost_insert PROCEDURE 3
 %mckenzie_cost_insert RETURN 3

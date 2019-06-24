@@ -823,6 +823,13 @@ package body WisiToken.Parse.LR is
       end if;
    end Compare;
 
+   function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
+   is begin
+      return Left.Op = Insert and then
+        Left.Ins_ID = Right.Ins_ID and then
+        Left.Ins_Token_Index = Right.Ins_Token_Index;
+   end Equal;
+
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is begin
       for O of reverse Ops loop
