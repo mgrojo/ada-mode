@@ -1395,9 +1395,9 @@ package body WisiToken.Generate.LR is
             Put_Line (",");
          end if;
       end loop;
+      Put_Line ("Minimal_Complete_Cost_Delta => " & Integer'Image (Item.Minimal_Complete_Cost_Delta));
       Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
       Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
-      Put_Line ("Cost_Limit        =>" & Integer'Image (Item.Cost_Limit));
       Put_Line ("Check_Limit       =>" & Token_Index'Image (Item.Check_Limit));
       Put_Line ("Check_Delta_Limit =>" & Integer'Image (Item.Check_Delta_Limit));
       Put_Line ("Enqueue_Limit     =>" & Integer'Image (Item.Enqueue_Limit));
@@ -1554,8 +1554,7 @@ package body WisiToken.Generate.LR is
          Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Recursions.Recursions (I)));
       end loop;
 
-      if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit or
-          Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
+      if Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
           Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
           Table.McKenzie_Param.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit
       then

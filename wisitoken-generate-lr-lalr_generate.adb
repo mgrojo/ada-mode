@@ -558,7 +558,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Minimal_Complete_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Cost_Delta,
             Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,
             Task_Count                  => Default_McKenzie_Param.Task_Count,
-            Cost_Limit                  => Default_McKenzie_Param.Cost_Limit,
             Check_Limit                 => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,
             Enqueue_Limit               => Default_McKenzie_Param.Enqueue_Limit);

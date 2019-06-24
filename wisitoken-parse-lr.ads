@@ -265,7 +265,6 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Cost_Limit        : Natural;     -- max cost of configurations to look at
       Check_Limit       : Token_Index; -- max tokens to parse ahead when checking a configuration.
       Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
       Enqueue_Limit     : Natural;     -- max configs enqueued.
@@ -282,7 +281,6 @@ package WisiToken.Parse.LR is
       Minimal_Complete_Cost_Delta => -1,
       Ignore_Check_Fail           => 0,
       Task_Count                  => System.Multiprocessors.CPU_Range'Last,
-      Cost_Limit                  => Natural'Last,
       Check_Limit                 => 4,
       Check_Delta_Limit           => Natural'Last,
       Enqueue_Limit               => Natural'Last);

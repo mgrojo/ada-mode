@@ -84,7 +84,6 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    protected type Supervisor
      (Trace             : not null access WisiToken.Trace'Class;
-      Cost_Limit        : Natural;
       Check_Delta_Limit : Natural;
       Enqueue_Limit     : Natural;
       Parser_Count      : SAL.Peek_Type)

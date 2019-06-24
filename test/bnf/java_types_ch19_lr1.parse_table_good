@@ -116,9 +116,9 @@ McKenzie:
  RIGHT_SQUARE_BRACKET => 3,
  Identifier           => 3,
  Wisi_EOI             => 3)
+Minimal_Complete_Cost_Delta => -3
 Ignore_Check_Fail => 0
 Task_Count        => 0
-Cost_Limit        => 2147483647
 Check_Limit       => 4
 Check_Delta_Limit => 2147483647
 Enqueue_Limit     => 10000

@@ -47,7 +47,7 @@ with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count cost_limit
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
@@ -56,7 +56,6 @@ is
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
    Task_Count : System.Multiprocessors.CPU_Range;
-   Cost_Limit : Natural;
 
    Options : constant AUnit.Options.AUnit_Options :=
      (Global_Timer     => False,
@@ -102,7 +101,6 @@ begin
       WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
       Task_Count := (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
-      Cost_Limit := (if Argument_Count >= 9 then Natural'Value (Argument (9)) else Natural'Last);
 
    end;
 
@@ -117,7 +115,7 @@ begin
    Add_Test (Suite, new Test_Accept_State.Test_Case);
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting_Terminal_Sequence.Test_Case);
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count, Cost_Limit));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count));
    Add_Test (Suite, new Test_Partial_Parse.Test_Case);
    Add_Test (Suite, new Test_Skip_To.Test_Case);
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case);

@@ -208,7 +208,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Super : aliased Base.Supervisor
         (Trace'Access,
-         Cost_Limit        => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
          Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
          Enqueue_Limit     => Shared_Parser.Table.McKenzie_Param.Enqueue_Limit,
          Parser_Count      => Parsers.Count);
@@ -357,7 +356,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                        (Integer'Image (Cur.Label) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
-                          ", cost_limit: " & Integer'Image (Shared_Parser.Table.McKenzie_Param.Cost_Limit) &
                           ", max shared_token " & WisiToken.Token_Index'Image (Shared_Parser.Terminals.Last_Index));
                   end if;
                end if;

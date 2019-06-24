@@ -2,7 +2,7 @@
 --
 --  Test McKenzie error recovery.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,10 +22,7 @@ with AUnit.Test_Cases;
 with System.Multiprocessors;
 package Test_McKenzie_Recover is
 
-   type Test_Case
-     (Task_Count : System.Multiprocessors.CPU_Range;
-      Cost_Limit : Integer)
-     is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (Task_Count : System.Multiprocessors.CPU_Range) is new AUnit.Test_Cases.Test_Case with null record;
    --  Test_One_Harness sets Trace_Parse, Trace_McKenzie.
 
    type Test_Case_Access is access all Test_Case;

@@ -121,9 +121,9 @@ McKenzie:
  SEMICOLON   => 4,
  SYMBOL      => 4,
  Wisi_EOI    => 4)
+Minimal_Complete_Cost_Delta => -1
 Ignore_Check_Fail => 4
 Task_Count        => 0
-Cost_Limit        => 10
 Check_Limit       => 3
 Check_Delta_Limit => 200
 Enqueue_Limit     => 10000

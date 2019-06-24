@@ -738,7 +738,6 @@ package body WisiToken.BNF.Generate_Utils is
          Minimal_Complete_Cost_Delta => Item.Minimal_Complete_Cost_Delta,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,
          Task_Count                  => 0,
-         Cost_Limit                  => Item.Cost_Limit,
          Check_Limit                 => Item.Check_Limit,
          Check_Delta_Limit           => Item.Check_Delta_Limit,
          Enqueue_Limit               => Item.Enqueue_Limit);

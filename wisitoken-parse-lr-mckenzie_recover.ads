@@ -34,9 +34,7 @@ package WisiToken.Parse.LR.McKenzie_Recover is
    --  Raised when a config is determined to violate some programming
    --  convention; abandon it.
 
-   type Recover_Status is
-     (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left, Fail_Programmer_Error,
-      Success);
+   type Recover_Status is (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_No_Configs_Left, Fail_Programmer_Error, Success);
 
    function Recover (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to

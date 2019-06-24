@@ -384,13 +384,9 @@ package body WisiToken.Parse.LR.Parser is
       Parser.User_Data                           := User_Data;
 
       --  We can't use Table.McKenzie_Param /= Default_McKenzie_Param here,
-      --  because the discriminants are different. We also can't use just
-      --  Table.McKenzie_Param.Cost_Limit /=
-      --  Default_McKenzie_Param.Cost_Limit, because some grammars don't set
-      --  a Cost_Limit, just some other limit.
+      --  because the discriminants are different.
       Parser.Enable_McKenzie_Recover :=
-        Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit or
-          Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
+        Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
           Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
           Table.McKenzie_Param.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit;
 

@@ -717,10 +717,6 @@ package body WisiToken_Grammar_Runtime is
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
-               elsif Kind = "mckenzie_cost_limit" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Cost_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
-
                elsif Kind = "mckenzie_cost_push_back" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Push_Back.Append

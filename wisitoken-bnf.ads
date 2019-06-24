@@ -214,8 +214,6 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Minimal_Complete_Cost_Delta;
       Ignore_Check_Fail           : Natural               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
-      Cost_Limit                  : Natural               :=
-        WisiToken.Parse.LR.Default_McKenzie_Param.Cost_Limit;
       Check_Limit                 : WisiToken.Token_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
       Check_Delta_Limit           : Natural               :=

@@ -120,7 +120,6 @@
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 
-%mckenzie_cost_limit 10
 %mckenzie_check_limit 3
 
 ;; Default cost for insert terminal, delete terminal, push back, ignore check fail.

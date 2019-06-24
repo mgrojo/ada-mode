@@ -482,8 +482,6 @@ package body Test_McKenzie_Recover is
 
       --  Symmetric case where generic_instantiation is desired
 
-      Parser.Table.McKenzie_Param.Cost_Limit := 6;
-
       Parse_Text
         ("procedure Check_2 is end new Check_2;");
       --           |10       |20       |30       |40       |50       |60       |70       |80
@@ -605,7 +603,6 @@ package body Test_McKenzie_Recover is
    begin
       --  We used to use Language_Fixes to find a solution to these quickly, now
       --  Minimal_Complete_Actions does it.
-      Parser.Table.McKenzie_Param.Cost_Limit := 5;
 
       Parse_Text
         ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
@@ -1927,10 +1924,6 @@ package body Test_McKenzie_Recover is
 
       if T.Task_Count /= System.Multiprocessors.CPU_Range'Last then
          Parser.Table.McKenzie_Param.Task_Count := T.Task_Count;
-      end if;
-
-      if T.Cost_Limit /= Natural'Last then
-         Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;
       end if;
 
       WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
