@@ -1,3 +1,4 @@
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Use_Minimal_Complete_Actions
      (Current_Token        : in     Token_ID;
       Next_Token           : in     Token_ID;

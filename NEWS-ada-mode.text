@@ -9,6 +9,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada Mode
 
+** ada-auto-case can now take the value 'not-upper-case; typed words
+   that are all upper case are not adjusted.
+
 ** which-function-mode in large Ada buffers now uses partial parse;
    the new user variable ada-which-func-parse-size sets minimum size
    to parse, before and after point. It should be set to the largest

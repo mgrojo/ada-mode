@@ -190,14 +190,16 @@ before file local variables are processed.")
   :group 'languages)
 
 (defcustom ada-auto-case t
-  ;; can be per-buffer
   "Buffer-local value that may override project variable `auto_case'.
 Global value is default for project variable `auto_case'.
-Non-nil means automatically change case of preceding word while typing.
+t means automatically change case of preceding word while typing.
+not-upper-case means only change case if typed word is not all upper-case.
 Casing of Ada keywords is done according to `ada-case-keyword',
 identifiers are Mixed_Case."
-  :type  'boolean
-  :safe  #'booleanp)
+  :type  '(choice (const nil)
+		  (const t)
+		  (const not-upper-case))
+  :safe  (lambda (val) (memq val '(nil t not-upper-case))))
 (make-variable-buffer-local 'ada-auto-case)
 
 (defcustom ada-case-exception-file nil
@@ -1340,7 +1342,7 @@ otherwise, capitalize words in comments and strings.
 If ’ada-auto-case’ is nil, capitalize current word."
   (interactive "P")
   (cond
-   ((or (not ada-auto-case)
+   ((or (null ada-auto-case)
 	(and (not in-comment)
 	     (ada-in-string-or-comment-p)))
     (skip-syntax-backward "w_")
@@ -1382,21 +1384,32 @@ ARG is the prefix the user entered with \\[universal-argument]."
   (interactive "P")
 
   ;; character typed has not been inserted yet
-  (let ((lastk last-command-event))
+  (let ((lastk last-command-event)
+	(do-adjust nil))
+    (cond
+     ((null ada-auto-case))
+     ((eq ada-auto-case 'not-upper-case)
+      (save-excursion
+	(let* ((begin (progn (skip-syntax-backward "w_") (point)))
+	       (end  (progn (skip-syntax-forward "w_") (point)))
+	       (word (buffer-substring-no-properties begin end)))
+	  (setq do-adjust (not (string-equal word (upcase word)))))))
+     (t
+      (setq do-adjust t)))
 
     (cond
      ((eq lastk ?\n)
-        (when ada-auto-case
+        (when do-adjust
 	  (ada-case-adjust lastk))
 	(funcall ada-lfd-binding))
 
      ((memq lastk '(?\r return))
-      (when ada-auto-case
+      (when do-adjust
 	(ada-case-adjust lastk))
       (funcall ada-ret-binding))
 
      (t
-      (when ada-auto-case
+      (when do-adjust
 	(ada-case-adjust lastk))
       (self-insert-command (prefix-numeric-value arg)))
      )))
@@ -2171,10 +2184,10 @@ other file.")
   "For `add-log-current-defun-function'."
   ;; add-log-current-defun is typically called with point at the start
   ;; of an ediff change section, which is before the start of the
-  ;; declaration of a new item. So go to the end of the current line
+  ;; declaration of a new item. So go to the start of the current line
   ;; first
   (save-excursion
-    (end-of-line 1)
+    (back-to-indentation)
     (ada-which-function t)))
 
 (defun ada-set-point-accordingly ()

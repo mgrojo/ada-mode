@@ -54,15 +54,12 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+run all tests
+    test/ada_mode-debbugs_35124.ads
+        recover doesn't find (insert 'package <ident> is'); too expensive initially, even though cheaper eventually
+        don't set 'ready' if minimum_complete active.
+
 put --recover-log in info
-
-ada-add-log gives wrong result on procedure instantiation; sal-gen_graphs.adb trimmed_image
-    works if skip (end-of-line 1). sigh.
-    add test
-    use back-to-indentation, not end-of-line
-
-motion in package spec does not stop at 'private'
-    add test
 
 Eurocontrol/debbugs bugs
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
@@ -97,12 +94,13 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
         gen_emacs_wisi_lr_text_rep_parse.adb:149
         fixed in wisi.el; don't parse empty buffer
 
-
     35124
         test/ada_mode-debbugs_35124.ads
         can't fix original bug (no '.' in name)
         error recovery tries 'insert begin', but that fails on '.'
             set matching_token to 'package' if name has a dot.
+            change Use_Minimal_Complete_Actions to take Terminals, current_index
+            o.e.a.s-2
 
     35143
         partial parse vs RET; fixed in devel, posted new code
@@ -123,6 +121,7 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
 
     36278 auto-casing no longer honors casing of the declaration
         it never did; you must create an exception. could automate that, make it file-local
+        option to not auto-correct all uppercase
 
 need wisi user guide
     explain actions
@@ -506,10 +505,6 @@ make-subprogram-body should strip aspects.
 
 clean up gpr-mode; delete 'we reuse ada' comments
     refactor ada auto-case into wisi, use in gpr
-
-
-clean up Makefile, common.make
-    see wisi_grammar
 
 compute align in grammar actions
     align-list action on ':', '=>' etc
