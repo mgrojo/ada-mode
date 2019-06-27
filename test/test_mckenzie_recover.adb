@@ -425,7 +425,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +BEGIN_ID, 4) & (Push_Back, +declarative_part_ID, 4) &
            (Delete, +BEGIN_ID, 4),
          Strategy                => (Explore_Table => 3, others => 0),
-         Enqueue_Low             => 38,
+         Enqueue_Low             => 37,
          Check_Low               => 10,
          Cost                    => 1);
    end Extra_Begin;
@@ -571,7 +571,7 @@ package body Test_McKenzie_Recover is
            (Insert, +LOOP_ID, 10, 1, 0) & (Insert, +END_ID, 10, 1, 0) & (Insert, +LOOP_ID, 10, 1, 0) &
            (Fast_Forward, 11) & (Insert, +SEMICOLON_ID, 11, 1, 0),
          Strategy                => (Minimal_Complete => 1, Explore_Table => 4, others => 0),
-         Enqueue_Low             => 232,
+         Enqueue_Low             => 220,
          Check_Low               => 35,
          Cost                    => 7);
    end Loop_Bounds;
@@ -622,7 +622,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +CASE_ID, 14, 1, 0) & (Insert, +SEMICOLON_ID, 14, 1, 0) &
            (Fast_Forward, 16) & (Insert, +END_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0),
          Strategy                => (Minimal_Complete => 3, Explore_Table => 1, others => 0),
-         Enqueue_Low             => 26,
+         Enqueue_Low             => 25,
          Check_Low               => 8,
          Cost                    => 1);
 
@@ -953,7 +953,7 @@ package body Test_McKenzie_Recover is
            (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 14) &
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9, 1, 0) & (Fast_Forward, 9),
          Strategy                => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 12,
+         Enqueue_Low             => 11,
          Check_Low               => 2,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
@@ -991,7 +991,7 @@ package body Test_McKenzie_Recover is
              (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_ID, 1) &
              (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
          Strategy                => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 12,
+         Enqueue_Low             => 11,
          Check_Low               => 2,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
@@ -1627,7 +1627,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 7) & (Delete, +IDENTIFIER_ID, 7) &
            (Fast_Forward, 10) & (Insert, +END_ID, 10, 1, 0) & (Insert, +SEMICOLON_ID, 10, 1, 0),
          Strategy                => (Minimal_Complete => 2, String_Quote => 1, others => 0),
-         Enqueue_Low             => 48,
+         Enqueue_Low             => 47,
          Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_5;
@@ -1663,7 +1663,7 @@ package body Test_McKenzie_Recover is
          Ops_Race_Condition      => True,
          Strategy                => (others => 0),
          Enqueue_Low             => 50,
-         Enqueue_High            => 105,
+         Enqueue_High            => 117,
          Check_Low               => 7,
          Check_High              => 20,
          Cost                    => 0);
@@ -1771,7 +1771,7 @@ package body Test_McKenzie_Recover is
            (Fast_Forward, 44) & (Push_Back, +sequence_of_statements_ID, 10) & (Insert, +IF_ID, 10, 1, 0) &
            (Insert, +THEN_ID, 10, 1, 0) & (Fast_Forward, 43),
          Strategy                => (Language_Fix => 1, Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 87,
+         Enqueue_Low             => 86,
          Check_Low               => 25,
          Cost                    => 1);
    end Out_Of_Order_Ops;

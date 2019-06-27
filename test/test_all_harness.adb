@@ -27,35 +27,33 @@ with Ada.Command_Line;
 with Ada.Text_IO;
 with Association_Grammar_Test;
 with Dragon_4_43_LR1_Test;
-with Dragon_4_45_LALR_Test;
 with Dragon_4_43_Packrat_Gen;
+with Dragon_4_45_LALR_Test;
 with GNAT.Traceback.Symbolic;
 with Grune_9_30;
 with Name_Grammar_Test;
-with System.Multiprocessors;
 with Test_Accept_State;
+with Test_BNF_Suite;
 with Test_Follow;
 with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
 with Test_Skip_To;
-with Test_BNF_Suite;
 with Trivial_Productions_Test;
 with Warth_Left_Recurse_Expr_1;
+with WisiToken.BNF;
 with WisiToken.Generate.Packrat.Test;
 with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
    --  Trace_Action is used for verbosity in tests.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
-
-   Task_Count : System.Multiprocessors.CPU_Range;
 
    Options : constant AUnit.Options.AUnit_Options :=
      (Global_Timer     => False,
@@ -99,9 +97,6 @@ begin
       WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
       WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
       WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
-
-      Task_Count := (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
-
    end;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.
@@ -115,7 +110,8 @@ begin
    Add_Test (Suite, new Test_Accept_State.Test_Case);
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting_Terminal_Sequence.Test_Case);
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False));
    Add_Test (Suite, new Test_Partial_Parse.Test_Case);
    Add_Test (Suite, new Test_Skip_To.Test_Case);
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case);

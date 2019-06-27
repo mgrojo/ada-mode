@@ -610,6 +610,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       I : Action_List_Iterator := First (Table.States (Config.Stack.Peek.State));
 
+      Current_Token : constant Token_ID := Current_Token_ID_Peek
+        (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete);
+
       Dummy : Boolean;
       pragma Unreferenced (Dummy);
 
@@ -634,6 +637,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Put_Line
                        (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
                           ": undo push_back");
+                  end if;
+               elsif ID = Current_Token then
+                  --  This needed because we allow explore when the error is not at the
+                  --  explore point; it prevents inserting useless tokens (ie
+                  --  'identifier ;' in ada_lite).
+                  if Trace_McKenzie > Extra then
+                     Put_Line
+                       (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
+                          ": current token");
                   end if;
                else
                   case Action.Verb is
@@ -738,6 +750,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return;
             end if;
          end loop;
+
+         --  We don't check Action.ID = Current_Token; the error is at the
+         --  explore point, so ID is valid.
 
          if Just_Pushed_Back (Config, Action.ID) then
             if Trace_McKenzie > Extra then
@@ -928,6 +943,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Inserted : Boolean := False;
    begin
+      --  We don't check for insert = current token; that's either ok or a
+      --  severe bug in Language_Use_Minimal_Complete.
+
       if Just_Pushed_Back (Config, Matching_Begin_Tokens (Matching_Begin_Tokens.First_Index)) then
          if Trace_McKenzie > Extra then
             Put_Line

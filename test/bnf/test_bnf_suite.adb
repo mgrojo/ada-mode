@@ -44,9 +44,7 @@ begin
 
    --  generate succeeds; grammar file name order
 
-   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite", +"ada_lite_recover_repeatable"));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite"));
-   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite_recover_repeatable"));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"case_expression", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"character_literal", null));

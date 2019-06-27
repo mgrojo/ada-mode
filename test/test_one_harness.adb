@@ -23,22 +23,21 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Strings.Unbounded;
-with System.Multiprocessors;
 with Test_McKenzie_Recover;
-with WisiToken;
+with WisiToken.BNF;
 procedure Test_One_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count cost_limit
-   --  1         2         3            4              5           6              7            8          9
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action
+   --  1         2         3            4              5           6              7
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
-   --  routine_name can be '' to set trace or cost for all routines.
+   --  routine_name can be '' to set trace for all routines.
 
-   Task_Count : constant System.Multiprocessors.CPU_Range :=
-     (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
-   Cost_Limit : constant Natural := (if Argument_Count >= 9 then Natural'Value (Argument (9)) else Natural'Last);
-   --  pragma Unreferenced (Task_Count, Cost_Limit);
+   Force_High_Cost_Solutions : constant Boolean :=
+     (if Argument_Count >= 8 then 0 /= Integer'Value (Argument (8)) else False);
+   Force_Full_Explore : constant Boolean :=
+     (if Argument_Count >= 9 then 0 /= Integer'Value (Argument (9)) else False);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -88,7 +87,10 @@ begin
    WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
    WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count, Cost_Limit));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
+               (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
+               (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions));
 
    Run (Suite, Options, Result, Status);
 

@@ -103,15 +103,14 @@
 
 (defun wisitoken-goto-aunit-fail ()
   (interactive)
-  ;; point is on the first line in a failure message:
+  ;; point is on the first line in an AUnit test failure message:
   ;;
   ;; FAIL test_mckenzie_recover.adb : Empty_Comments
   ;;     1. 1.recover.ops. 1.id got  26 expecting  54
   ;;
   ;; goto that file and procedure
   (let (filename
-	subprogram-name
-	(table (project-file-completion-table (project-current) nil)))
+	subprogram-name)
     (save-excursion
       (beginning-of-line)
       (forward-word 2)
@@ -120,9 +119,13 @@
       (backward-word 1)
       (setq subprogram-name (thing-at-point 'filename))
       )
-    (let ((abs-file (car (completion-try-completion filename table nil 0))))
+    (let ((abs-file (project-expand-file-name (project-current) filename))
+	  (display-buffer-overriding-action
+	   (cons (list #'ofw-display-buffer-other-window) nil)))
+      (when (not (stringp abs-file))
+	(setq abs-file (car abs-file)))
       (find-file abs-file)
-      (search-forward subprogram-name))))
+      (xref-find-definitions (xref-expand-identifier (xref-find-backend) subprogram-name)))))
 
 (defun wisitoken-compilation-finish ()
   (forward-line)
@@ -135,13 +138,15 @@
 (defun wisitoken-compilation-prev ()
   (interactive)
   (forward-line -2)
-  (search-backward "FAIL")
+  (let ((case-fold-search nil))
+    (search-backward "FAIL"))
   (wisitoken-compilation-finish)
   )
 
 (defun wisitoken-compilation-next ()
   (interactive)
-  (search-forward "FAIL")
+  (let ((case-fold-search nil))
+    (search-forward "FAIL"))
   (wisitoken-compilation-finish)
   )
 
