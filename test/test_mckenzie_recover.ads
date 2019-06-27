@@ -19,11 +19,15 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-with System.Multiprocessors;
+with WisiToken.BNF;
 package Test_McKenzie_Recover is
 
-   type Test_Case (Task_Count : System.Multiprocessors.CPU_Range) is new AUnit.Test_Cases.Test_Case with null record;
-   --  Test_One_Harness sets Trace_Parse, Trace_McKenzie.
+   type Test_Case
+     (Alg                       : WisiToken.BNF.LR_Generate_Algorithm;
+      Force_Full_Explore        : Boolean;
+      Force_High_Cost_Solutions : Boolean)
+     is new AUnit.Test_Cases.Test_Case with null record;
+   --  Caller sets Trace_Parse, Trace_McKenzie.
 
    type Test_Case_Access is access all Test_Case;
 

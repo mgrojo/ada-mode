@@ -553,7 +553,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  Multiple push_backs can have the same Op.PB_Token_Index, so we may
                               --  already be at the target.
                               exit when Parser_State.Shared_Token <= Op.PB_Token_Index and
-                                Tree.Min_Terminal_Index (Parser_State.Stack (1).Token) /= Invalid_Token_Index;
+                                (Parser_State.Stack.Depth = 1 or else
+                                   Tree.Min_Terminal_Index (Parser_State.Stack (1).Token) /= Invalid_Token_Index);
                               --  also push back empty tokens.
 
                               declare
@@ -750,6 +751,45 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Current_Token;
 
+   function Current_Token_ID_Peek
+     (Terminals             : in     Base_Token_Arrays.Vector;
+      Terminals_Current     : in     Base_Token_Index;
+      Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in     SAL.Base_Peek_Type)
+     return Token_ID
+   is
+      use all type SAL.Base_Peek_Type;
+      Result : Token_ID;
+   begin
+      if Terminals_Current = Base_Token_Index'First then
+         --  Happens with really bad syntax.
+         raise Bad_Config;
+      end if;
+
+      --  First set Result from Terminals; may be overridden by
+      --  Insert_Delete below.
+      Result := Terminals (Terminals_Current).ID;
+
+      if Current_Insert_Delete = No_Insert_Delete then
+         null;
+
+      elsif Token_Index (Insert_Delete (Current_Insert_Delete)) = Terminals_Current then
+         declare
+            Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete);
+         begin
+            case Insert_Delete_Op_Label (Op.Op) is
+            when Insert =>
+               Result := Op.Ins_ID;
+
+            when Delete =>
+               --  This should have been handled in Check
+               raise SAL.Programmer_Error;
+            end case;
+         end;
+      end if;
+      return Result;
+   end Current_Token_ID_Peek;
+
    procedure Current_Token_ID_Peek_3
      (Terminals             : in     Base_Token_Arrays.Vector;
       Terminals_Current     : in     Base_Token_Index;
@@ -789,25 +829,32 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Tokens (3) := Invalid_Token_ID;
       end if;
 
-      for I in Tokens'Range loop
-         if Current_Insert_Delete = No_Insert_Delete then
-            null;
-
-         elsif Token_Index (Insert_Delete (Current_Insert_Delete + SAL.Peek_Type (I) - 1)) = Terminals_Current then
+      if Current_Insert_Delete = No_Insert_Delete then
+         null;
+      else
+         for I in Tokens'Range loop
             declare
-               Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete);
+               J : constant SAL.Base_Peek_Type := Current_Insert_Delete + SAL.Peek_Type (I) - 1;
             begin
-               case Insert_Delete_Op_Label (Op.Op) is
-               when Insert =>
-                  Tokens (I) := Op.Ins_ID;
+               if (J >= Insert_Delete.First_Index and J <= Insert_Delete.Last_Index) and then
+                 Token_Index (Insert_Delete (J)) = Terminals_Current
+               then
+                  declare
+                     Op : Insert_Delete_Op renames Insert_Delete (J);
+                  begin
+                     case Insert_Delete_Op_Label (Op.Op) is
+                     when Insert =>
+                        Tokens (I) := Op.Ins_ID;
 
-               when Delete =>
-                  --  This should have been handled in Check
-                  raise SAL.Programmer_Error;
-               end case;
+                     when Delete =>
+                        --  This should have been handled in Check
+                        raise SAL.Programmer_Error;
+                     end case;
+                  end;
+               end if;
             end;
-         end if;
-      end loop;
+         end loop;
+      end if;
    end Current_Token_ID_Peek_3;
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID)

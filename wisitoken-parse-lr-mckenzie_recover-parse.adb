@@ -168,7 +168,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                        Image (Conflict.Item, Descriptor));
                end if;
 
-               Parse_Items.Append ((Config, Conflict, Parsed => False, Shift_Count => 0));
+               Parse_Items.Append ((Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
             end if;
             Conflict := Conflict.Next;
          end loop;

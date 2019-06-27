@@ -841,16 +841,22 @@ package body WisiToken.Parse.LR is
       return True;
    end None_Since_FF;
 
-   function Match_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op) return Boolean
-   is begin
-      for O of reverse Ops loop
-         exit when O.Op = Fast_Forward;
-         if O = Op then
-            return True;
-         end if;
-      end loop;
-      return False;
-   end Match_Since_FF;
+   function Only_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Ops.Length = 0 or else Ops (Ops.Last_Index).Op /= Op then
+         return False;
+      else
+         for O of reverse Ops loop
+            exit when O.Op = Fast_Forward;
+            if O.Op /= Op then
+               return False;
+            end if;
+         end loop;
+         return True;
+      end if;
+   end Only_Since_FF;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is

@@ -21,8 +21,21 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-delete cost limit?
-    minimal_complete with delta_cost < 0 makes cost limit unreliable
+do commit
+
+run all tests
+    review ada_lite-lr1-ada_lite_recover_repeatable.parse
+        hangs in error_2; inserts 'begin end ;', fills ops
+
+    add lr1 option to test_mckenzie_recover
+        error_2 lr1 doesn't hang, passes test,  generates more possible solutions, some duplicate, no repeating
+        set force_high_cost/force_full_explore
+            => lalr matching_begin inserts identifier before ';' 70, then abandons identifier, then plain insert inserts semicolon.
+                because cost of matching_begin is 0?
+                    change to 1 or add param
+
+check should check all conflicts, enqueue conflicts on success
+    otherwise we are ignoring possible solutions.
 
 set_minimal_actions:
     only need to check for loops at run time in minimal_complete because we assume cost eliminates it in normal explore

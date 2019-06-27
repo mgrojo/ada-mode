@@ -117,7 +117,7 @@
 ;; test other strategies. Real languages may want 'ignore check fail'
 ;; cost to be zero, to allow parse to succeed while changing a
 ;; subprogram name
-%mckenzie_cost_default 4 4 4 4
+%mckenzie_cost_default 4 4 4 2
 
 ;; Cancel out cost of inserting common keywords if using Minimal_Complete_Actions
 %mckenzie_minimal_complete_cost_delta -3
@@ -149,12 +149,13 @@
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
 ;; parse stack. Similarly, we often have an extra 'end'; deleting that
-;; is simple.
+;; is simple. But pushing back or deleting 'end' leads to excessive
+;; use of Insert_Matching_Begin.
 %mckenzie_cost_push_back BEGIN 1
 %mckenzie_cost_delete BEGIN 1
 %mckenzie_cost_push_back declarative_part 1
-%mckenzie_cost_push_back END 1
-%mckenzie_cost_delete END 1
+%mckenzie_cost_push_back END 2
+%mckenzie_cost_delete END 2
 %mckenzie_cost_delete SEMICOLON 2
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the

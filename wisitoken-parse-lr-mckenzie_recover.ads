@@ -72,6 +72,15 @@ private
    --
    --  See Next_Token for more info.
 
+   function Current_Token_ID_Peek
+     (Terminals             : in     Base_Token_Arrays.Vector;
+      Terminals_Current     : in     Base_Token_Index;
+      Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in     SAL.Base_Peek_Type)
+     return Token_ID;
+   --  Return the current token from either Terminals or
+   --  Insert_Delete, without setting up for Next_Token.
+
    procedure Current_Token_ID_Peek_3
      (Terminals             : in     Base_Token_Arrays.Vector;
       Terminals_Current     : in     Base_Token_Index;
@@ -85,7 +94,10 @@ private
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID);
    --  Append a Delete op to Config.Ops, and insert it in
-   --  Config.Insert_Deleted in token_index order.
+   --  Config.Insert_Delete in token_index order.
+   --
+   --  This must be used instead of Config.Ops.Append (Delete...) unless
+   --  the code also takes care of changing Config.Current_Shared_Token.
 
    procedure Find_ID
      (Config         : in     Configuration;

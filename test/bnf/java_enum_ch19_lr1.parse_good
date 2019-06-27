@@ -19,7 +19,6 @@ EnumConstantList_1: (EnumConstantList, (18 . 21)) <= ((EnumConstantList, (18 . 1
  0: 8:  6:(Wisi_EOI, (23 . 22)) : ERROR
  0: 8: expecting: RIGHT_CURLY_BRACKET, Identifier
  0: zombie
-recover
 
  McKenzie error recovery
 
@@ -57,5 +56,6 @@ EnumBody_0: (EnumBody, (16 . 22)) <= ( 1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumC
  0: 2:  6:(Wisi_EOI, (23 . 22)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (16 . 22)) <= ((EnumBody, (16 . 22)))
  1: terminate (1 active): recover cost/length 6:(Wisi_EOI, (23 . 22))
+ 0: succeed
 java_enum_ch19.input:3:0: syntax error: expecting RIGHT_CURLY_BRACKET, Identifier, found ''
    recovered: ((INSERT, Identifier, 6), (INSERT, COMMA, 6), (INSERT, RIGHT_CURLY_BRACKET, 6))

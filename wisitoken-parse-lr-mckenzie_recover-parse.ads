@@ -44,9 +44,10 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  the goal.
       --
       --  Otherwise, the parser failed a semantic check, or encountered an
-      --  Error action. Shift_Count gives the number of shifts performed. If
-      --  Check_Status.Label is Error, Action.Item.Verb must be Reduce, and
-      --  Config is in the pre-reduce state.
+      --  Error action. Action gives the last action processed. Shift_Count
+      --  gives the number of shifts performed. If Check_Status.Label is
+      --  Error, Action.Item.Verb must be Reduce, and Config is in the
+      --  pre-reduce state.
    end record;
 
    package Parse_Item_Arrays is new SAL.Gen_Bounded_Definite_Vectors (Positive, Parse_Item, Capacity => 10);
@@ -63,8 +64,8 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Trace_Prefix      : in              String)
      return Boolean;
    --  Attempt to parse Config and any conflict configs. If not
-   --  All_Conflicts, return when Config.Inserted is all shifted, and
-   --  either Shared_Token_Goal = Invalid_Token_Index or
+   --  All_Conflicts, return when Config.Insert_Delete is all processed,
+   --  and either Shared_Token_Goal = Invalid_Token_Index or
    --  Shared_Token_Goal is shifted. If All_Conflicts, return when all
    --  conflict configs have been parsed.
    --

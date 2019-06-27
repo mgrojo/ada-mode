@@ -36,22 +36,23 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
      (Tokens               : in     Token_ID_Array_1_3;
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
-      Matching_Begin_Token :    out Token_ID)
+      Matching_Begin_Token :    out Token_ID_Arrays.Vector)
    is
       use all type SAL.Base_Peek_Type;
       use Java_Expressions_Antlr_Actions;
+      use Token_ID_Arrays;
    begin
       if Config.Stack.Depth = 1 and Tokens (1) = Descriptor.EOI_ID then
          --  Empty input buffer
          Use_Complete         := True;
-         Matching_Begin_Token := +IDENTIFIER_ID;
+         Matching_Begin_Token := To_Vector (+IDENTIFIER_ID);
 
       elsif Minimal_Complete_Action_IDs (Tokens (1)) then
          Use_Complete := True;
-         Matching_Begin_Token := Invalid_Token_ID;
+         Matching_Begin_Token := Empty_Vector;
       else
          Use_Complete := False;
-         Matching_Begin_Token := Invalid_Token_ID;
+         Matching_Begin_Token := Empty_Vector;
       end if;
    end Use_Minimal_Complete_Actions;
 

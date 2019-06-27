@@ -4,7 +4,6 @@
  0: 7:  3:(Wisi_EOI, (68 . 67)) : ERROR
  0: 7: expecting: AT, LESS, Identifier
  0: zombie
-recover
 
  McKenzie error recovery
 

@@ -162,6 +162,7 @@ package WisiToken is
    function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
+   function To_Vector (Item : in Token_ID_Array) return Token_ID_Arrays.Vector;
 
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.

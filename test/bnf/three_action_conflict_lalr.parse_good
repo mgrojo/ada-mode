@@ -148,7 +148,6 @@ lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)
  1: 15:  22:(IDENTIFIER, (150 . 152)) : ERROR
  1: 15: expecting: LBRACE
  1: zombie
-recover
 
  McKenzie error recovery
 

@@ -556,9 +556,6 @@ package body WisiToken.Parse.LR.Parser is
             begin
                if Count = 1 then
                   --  Nothing more to do
-                  if Trace_Parse > Outline then
-                     Trace.Put_Line (Integer'Image (Shared_Parser.Parsers.First.Label) & ": succeed");
-                  end if;
                   exit Main_Loop;
 
                elsif Zombie_Count + 1 = Count then
@@ -690,9 +687,6 @@ package body WisiToken.Parse.LR.Parser is
                --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Shared_Parser.Enable_McKenzie_Recover then
-                  if Trace_Parse > Outline then
-                     Trace.Put_Line ("recover");
-                  end if;
                   if Debug_Mode then
                      Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
                   end if;
@@ -973,6 +967,11 @@ package body WisiToken.Parse.LR.Parser is
          end loop Action_Loop;
          Error_Recovered := False;
       end loop Main_Loop;
+
+      if Trace_Parse > Outline then
+         Trace.Put_Line (Shared_Parser.Parsers.First.Label'Image & ": succeed");
+      end if;
+
       if Debug_Mode then
          Trace.Put_Clock ("finish");
       end if;

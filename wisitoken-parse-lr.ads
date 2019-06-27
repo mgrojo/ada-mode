@@ -497,9 +497,9 @@ package WisiToken.Parse.LR is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Match_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op) return Boolean;
-   --  True if Ops contains an Op after the last Fast_Forward (or ops.first, if
-   --  no Fast_Forward) that equals Op.
+   function Only_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   --  True if Ops contains only Op (at least one) after the last Fast_Forward (or ops.first, if
+   --  no Fast_Forward).
 
    function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for some O of Ops => O.Op = Op);

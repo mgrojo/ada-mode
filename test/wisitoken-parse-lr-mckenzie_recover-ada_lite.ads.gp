@@ -30,10 +30,10 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration);
 
    procedure Use_Minimal_Complete_Actions
-     (Tokens               : in     Token_ID_Array_1_3;
-      Config               : in     Configuration;
-      Use_Complete         :    out Boolean;
-      Matching_Begin_Token :    out Token_ID);
+     (Tokens                : in     Token_ID_Array_1_3;
+      Config                : in     Configuration;
+      Use_Complete          :    out Boolean;
+      Matching_Begin_Tokens :    out Token_ID_Arrays.Vector);
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

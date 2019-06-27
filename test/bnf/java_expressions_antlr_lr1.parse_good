@@ -4,7 +4,6 @@
  0: 28:  3:(Wisi_EOI, (58 . 57)) : ERROR
  0: 28: expecting: LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD
  0: zombie
-recover
 
  McKenzie error recovery
 
