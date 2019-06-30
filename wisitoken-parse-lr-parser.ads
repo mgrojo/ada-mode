@@ -53,21 +53,16 @@ package WisiToken.Parse.LR.Parser is
    --  For an Error action, Config.Error_Token gives the terminal that
    --  caused the error.
 
-   type Language_Use_Minimal_Complete_Actions_Access is access procedure
-     (Tokens                : in     Token_ID_Array_1_3;
-      Config                : in     Configuration;
-      Use_Complete          :    out Boolean;
-      Matching_Begin_Tokens :    out Token_ID_Arrays.Vector);
+   type Language_Matching_Begin_Tokens_Access is access function
+     (Tokens : in Token_ID_Array_1_3;
+      Config : in Configuration)
+     return Token_ID_Arrays.Vector;
    --  Tokens (1) caused a parse error; Tokens (2 .. 3) are the following
-   --  tokens (Invalid_Token_ID if none). Set Use_Complete True if using
-   --  Minimal_Complete_Actions is appropriate. Set Matching_Begin_Tokens
-   --  to a token sequence that starts a production matching Next_Token
-   --  (and following tokens, if any).
+   --  tokens (Invalid_Token_ID if none). Return a token sequence that
+   --  starts a production matching Tokens.
    --
-   --  For example, if Next_Token is a block end, set Use_Complete True
-   --  to complete the current statement/declaration as quickly as
-   --  possible, and set Matching_Begin_Tokens to the corresponding block
-   --  begin.
+   --  For example, if Tokens is a block end, return tokens that are the
+   --  corresponding block begin.
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;
@@ -82,7 +77,7 @@ package WisiToken.Parse.LR.Parser is
    type Parser is new WisiToken.Parse.Base_Parser with record
       Table                                 : Parse_Table_Ptr;
       Language_Fixes                        : Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : Language_Use_Minimal_Complete_Actions_Access;
+      Language_Matching_Begin_Tokens : Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set                : Language_String_ID_Set_Access;
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
@@ -115,16 +110,16 @@ package WisiToken.Parse.LR.Parser is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser                                :    out          LR.Parser.Parser;
-      Trace                                 : not null access WisiToken.Trace'Class;
-      Lexer                                 : in              WisiToken.Lexer.Handle;
-      Table                                 : in              Parse_Table_Ptr;
-      Language_Fixes                        : in              Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in              Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set                : in              Language_String_ID_Set_Access;
-      User_Data                             : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                          : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State                  : in              Boolean            := True);
+     (Parser                         :    out          LR.Parser.Parser;
+      Trace                          : not null access WisiToken.Trace'Class;
+      Lexer                          : in              WisiToken.Lexer.Handle;
+      Table                          : in              Parse_Table_Ptr;
+      Language_Fixes                 : in              Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
+      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                   : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      Terminate_Same_State           : in              Boolean            := True);
 
    overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of

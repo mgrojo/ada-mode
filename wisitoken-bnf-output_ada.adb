@@ -67,7 +67,6 @@ is
       use WisiToken.Generate;
 
       File_Name : constant String := Output_File_Name_Root & "_actions.adb";
-      --  No generate_algorithm when Test_Main; the generated actions file is independent of that.
 
       User_Data_Regexp : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive => False);
       Tree_Regexp      : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive      => False);

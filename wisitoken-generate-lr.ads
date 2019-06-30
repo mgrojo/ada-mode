@@ -213,6 +213,8 @@ package WisiToken.Generate.LR is
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
       Kernels                    : in LR1_Items.Item_Set_List;
       Conflicts                  : in Conflict_Count_Lists.List;
-      Descriptor                 : in WisiToken.Descriptor);
+      Descriptor                 : in WisiToken.Descriptor;
+      Include_Extra              : in Boolean := False);
+   --  "Extra" is recursions, lookaheads.
 
 end WisiToken.Generate.LR;

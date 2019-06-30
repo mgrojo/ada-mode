@@ -261,8 +261,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
             Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Use_Minimal_Complete_Actions : in");
-            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
+            Indent_Line ("   Language_Matching_Begin_Tokens : in");
+            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
             Indent_Line
               ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
@@ -755,8 +755,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
             Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Use_Minimal_Complete_Actions : in");
-            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
+            Indent_Line ("   Language_Matching_Begin_Tokens : in");
+            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
             Indent_Line
               ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
@@ -829,7 +829,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("   Table,");
          if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("   Language_Fixes,");
-            Indent_Line ("   Language_Use_Minimal_Complete_Actions,");
+            Indent_Line ("   Language_Matching_Begin_Tokens,");
             Indent_Line ("   Language_String_ID_Set,");
          end if;
          Indent_Line ("   User_Data,");

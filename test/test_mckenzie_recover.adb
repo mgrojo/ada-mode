@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Ada.Text_IO;
@@ -89,9 +88,6 @@ package body Test_McKenzie_Recover is
       end if;
 
       Check ("exception", True, Expect_Exception);
-      if Expect_Exception then
-         raise;
-      end if;
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
@@ -102,14 +98,14 @@ package body Test_McKenzie_Recover is
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops          : in WisiToken.Parse.LR.Config_Op_Arrays.Vector := WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
+      Ops         : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   := WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer                                      := 0;
       Enqueue_High            : in Integer                                      := Integer'Last;
       Check_Low               : in Integer                                      := 0;
       Check_High              : in Integer                                      := Integer'Last;
       Cost                    : in Integer;
-      Strategy                : in WisiToken.Parse.LR.Strategy_Counts           := (others => 0);
+      Strategy_Counts         : in WisiToken.Parse.LR.Strategy_Counts           := (others => 0);
       Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
       Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
    is
@@ -170,8 +166,8 @@ package body Test_McKenzie_Recover is
          end if;
 
          if not Ops_Race_Condition then
-            Check (Label_I & ".recover.ops", Error.Recover.Ops, Ops);
-            Check (Label_I & ".strategy_counts", Error.Recover.Strategy_Counts, Strategy);
+            Check (Label_I & ".ops", Error.Recover.Ops, Ops);
+            Check (Label_I & ".strategy_counts", Error.Recover.Strategy_Counts, Strategy_Counts);
          end if;
 
          --  The enqueue count depends on a race condition when there is more
@@ -185,13 +181,15 @@ package body Test_McKenzie_Recover is
          --
          --  Recover does not come from the same parser as Error if the
          --  succeeding parser was spawned after error recovery, but we copy
-         --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
+         --  Enqueue_Count and Check_Count in Parser_Lists.Prepend_Copy just
+         --  for this check.
          if Enqueue_Low = 0 and Enqueue_High = Integer'Last then
             --  Not checking enqueue or check counts
             null;
          elsif Enqueue_High = Integer'Last then
             Check (Label_I & ".enqueue_low", Parser_State.Recover.Enqueue_Count, Enqueue_Low);
             Check (Label_I & ".check_low", Parser_State.Recover.Check_Count, Check_Low);
+            Check (Label_I & ".config_full", Parser_State.Recover.Config_Full_Count, 0);
          else
             Check_Range (Label_I & ".enqueue_high", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
             Check_Range (Label_I & ".check_high", Parser_State.Recover.Check_Count, Check_Low, Check_High);
@@ -220,7 +218,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  The test is that there are no exceptions and only recovered errors.
+      --  Error recovery returns the cheapest minimal statement.
 
       Parse_Text ("");
       Check_Recover
@@ -228,11 +226,11 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +EXIT_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 3,
-         Check_Low               => 3,
-         Cost                    => 1);
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Enqueue_Low             => 116,
+         Check_Low               => 25,
+         Cost                    => 5);
 
       Parse_Text ("   ");
       Check_Recover
@@ -240,11 +238,11 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +EXIT_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 3,
-         Check_Low               => 3,
-         Cost                    => 1);
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Enqueue_Low             => 116,
+         Check_Low               => 25,
+         Cost                    => 5);
 
       Parse_Text ("--  a comment");
       Check_Recover
@@ -252,11 +250,11 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +EXIT_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 3,
-         Check_Low               => 3,
-         Cost                    => 1);
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Enqueue_Low             => 116,
+         Check_Low               => 25,
+         Cost                    => 5);
    end Empty_Comments;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -277,7 +275,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11, 1, 0),
-         Strategy                => (Minimal_Complete => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 1, others => 0),
          Enqueue_Low             => 4,
          Check_Low               => 2,
          Cost                    => 1);
@@ -296,25 +294,25 @@ package body Test_McKenzie_Recover is
 
       --  Missing "begin" for Block_2.
       --
-      --  Error 1 at 'Block_2' 63, expecting 'if'. Minimal_Complete finds
-      --  (insert 'if ;') etc cost 1, leaving "Block_2;" as a procedure call
-      --  in the else branch, and extra text starting with 19:'if'. A second
-      --  error recovery fixes that, with three solutions, one chosen at
-      --  random.
+      --  Error 1 at 'Block_2' 63, expecting 'if'. Explore finds the
+      --  solution below, leaving "Block_2;" as a procedure call in the else
+      --  branch.
       --
       --  The desired solution (push_back 'end' 59, push_back
-      --  sequence_of_statements_opt, insert 'begin') is cost 5
+      --  sequence_of_statements_opt, insert 'begin') is also found, but
+      --  terminated by duplicate state.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       Check_Recover
-        (Errors_Length           => 2,
-         Checking_Error          => 1,
+        (Errors_Length           => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (63, 69),
-         Ops                     => +(Insert, +IF_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0) &
-           (Fast_Forward, 19) & (Insert, +SEMICOLON_ID, 19, 1, 0),
-         Strategy                => (Minimal_Complete => 2, Explore_Table => 1, others => 0),
-         Cost                    => 1);
+         Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_ID, 15) &
+           (Delete, +END_ID, 15),
+         Strategy_Counts         => (Explore_Table => 3, others => 0),
+         Enqueue_Low             => 43,
+         Check_Low               => 9,
+         Cost                    => 2);
    end Error_2;
 
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -331,39 +329,52 @@ package body Test_McKenzie_Recover is
       --  Missing "end if" at 67.
       --
       --  Enters error recovery on 23:';' expecting 'if'. Finds the solution
-      --  below.
+      --  below. That encounters a second error at 100:'Water'.
+      --
+      --  The desired solution (insert 'end if ;') is cost 3.
 
       --  Confirm that the subprogram_body was parsed:
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (84, 84),
-         Ops                     => +(Insert, +IF_ID, 23, 1, 0) & (Insert, +SEMICOLON_ID, 23, 1, 0) &
-           (Insert, +END_ID, 23, 1, 0),
-         Strategy                => (Minimal_Complete => 3, others => 0),
-         Cost                    => 1,
+         Ops                     => +(Insert, +IF_ID, 23, 1, 0) & (Fast_Forward, 25) &
+           (Insert, +SEMICOLON_ID, 25, 1, 0) & (Fast_Forward, 26) & (Insert, +IDENTIFIER_ID, 26, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 2, Matching_Begin => 1, others => 0),
+         Cost                    => 2,
          Expecting               => WisiToken.To_Token_ID_Set
            (Descriptor.First_Terminal,
             Descriptor.Last_Terminal,
             (1                   => +IF_ID)));
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (100, 104),
+         Ops                     => +(Insert, +LOOP_ID, 28, 1, 0) & (Fast_Forward, 30) & (Insert, +END_ID, 30, 1, 0) &
+           (Insert, +LOOP_ID, 30, 1, 0) & (Insert, +SEMICOLON_ID, 30, 1, 0) & (Insert, +END_ID, 30, 1, 0) &
+           (Insert, +SEMICOLON_ID, 30, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 6, others => 0),
+         Enqueue_Low             => 450,
+         Check_Low               => 77,
+         Cost                    => 6,
+         Expecting               => WisiToken.To_Token_ID_Set
+           (Descriptor.First_Terminal,
+            Descriptor.Last_Terminal,
+            (1                   => +LOOP_ID)));
    end Error_3;
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
    begin
       Parse_Text ("when in the course of human events", Expect_Exception => True);
       --  Bogus syntax; test no exceptions due to empty stack, hit enqueue limit, etc.
 
-      Assert (False, "1.exception: did not get Syntax_Error");
-
-   exception
-   when WisiToken.Syntax_Error =>
-      --  One error message from the syntax error, one from recover fail
-      Check ("error.length", Parser.Parsers.First.State_Ref.Errors.Length, 2);
    end Error_4;
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -382,10 +393,10 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (27, 27),
          Ops                     => +(Insert, +END_ID, 7, 1, 0) & (Insert, +SEMICOLON_ID, 7, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 4,
-         Check_Low               => 3,
-         Cost                    => 1);
+         Strategy_Counts         => (Minimal_Complete => 2, others => 0),
+         Enqueue_Low             => 44,
+         Check_Low               => 6,
+         Cost                    => 2);
    end Check_Accept;
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -424,9 +435,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (26, 34),
          Ops                     => +(Push_Back, +BEGIN_ID, 4) & (Push_Back, +declarative_part_ID, 4) &
            (Delete, +BEGIN_ID, 4),
-         Strategy                => (Explore_Table => 3, others => 0),
-         Enqueue_Low             => 37,
-         Check_Low               => 10,
+         Strategy_Counts         => (Explore_Table => 3, others => 0),
+         Enqueue_Low             => 29,
+         Check_Low               => 6,
          Cost                    => 1);
    end Extra_Begin;
 
@@ -441,35 +452,22 @@ package body Test_McKenzie_Recover is
       --  Syntax error (extra 'end' 22) while two parsers are sorting out a
       --  conflict
       --
-      --  parser 1 for subprogram_body (should succeed) finds (insert
-      --  'begin') (fast-forward past 'end'), (insert ';'), cost 1. Continue
-      --  to EOI, succeed.
+      --  parser 1 for subprogram_body (should succeed) finds (delete
+      --  'end'), cost 2. Continues to EOI, succeed.
       --
-      --  parser 0 for generic_instantiation (should fail): finds: insert
-      --  'new identifier ;', delete 'end' cost 3; fails at EOI with
-      --  Extra_Name_Error.
-
-      --  Thus there is an ambiguous parse. But since there was an error,
-      --  one parser is chosen to succeed (the one with the minimum recover
-      --  cost).
-      --
-      --  This is an example of error recovery defeating conflict
-      --  resolution. In real programs it should not happen often; the
-      --  incorrect parser will not find a viable error resolution. However,
-      --  that means it will be slow, since error resolution only fails by
-      --  hitting the cost limit after trying hundreds of possible
-      --  solutions.
+      --  parser 0 for generic_instantiation (should fail): finds a solution
+      --  that later encounters an error and is terminated.
 
       Check_Recover
         (Label                   => "1",
-         Errors_Length           => 2,
-         Checking_Error          => 1,
+         Errors_Length           => 1,
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
-         Ops                     => +(Insert, +BEGIN_ID, 4, 1, 0) & (Fast_Forward, 5) &
-           (Insert, +SEMICOLON_ID, 5, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Cost                    => 1);
+         Ops                     => +(Delete, +END_ID, 4),
+         Strategy_Counts         => (Explore_Table => 1, others => 0),
+         Enqueue_Low             => 29,
+         Check_Low               => 7,
+         Cost                    => 2);
 
       --  Symmetric case where generic_instantiation is desired
 
@@ -491,9 +489,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
-         Strategy                => (Explore_Table => 1, others => 0),
-         Enqueue_Low             => 21,
-         Check_Low               => 5,
+         Strategy_Counts         => (Explore_Table => 1, others => 0),
+         Enqueue_Low             => 10,
+         Check_Low               => 4,
          Cost                    => 2);
    end Conflict_1;
 
@@ -514,8 +512,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 16, 1, 0),
-         Strategy                => (Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => 4,
+         Strategy_Counts         => (Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 7,
          Check_Low               => 2,
          Cost                    => 1);
    end Conflict_2;
@@ -538,9 +536,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IS_ID,
          Error_Token_Byte_Region => (69, 70),
          Ops                     => +(Insert, +RETURN_ID, 11, 1, 0) & (Insert, +IDENTIFIER_ID, 11, 1, 0),
-         Strategy                => (Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 6,
-         Check_Low               => 3,
+         Strategy_Counts         => (Minimal_Complete => 2, others => 0),
+         Enqueue_Low             => 12,
+         Check_Low               => 5,
          Cost                    => 2);
    end Missing_Return;
 
@@ -561,19 +559,30 @@ package body Test_McKenzie_Recover is
       --  error 1 at 'To' 35; expecting '..'.
       --
       --  The desired solution is (insert, '..') (delete 'To') cost 8.
-      --  Recover finds a more complex but cheaper solution.
+      --  Recover finds a more complex but cheaper solution, which leads to
+      --  a second error and solution.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
          Ops                     => +(Insert, +DOT_DOT_ID, 9, 1, 0) & (Fast_Forward, 10) &
-           (Insert, +LOOP_ID, 10, 1, 0) & (Insert, +END_ID, 10, 1, 0) & (Insert, +LOOP_ID, 10, 1, 0) &
-           (Fast_Forward, 11) & (Insert, +SEMICOLON_ID, 11, 1, 0),
-         Strategy                => (Minimal_Complete => 1, Explore_Table => 4, others => 0),
-         Enqueue_Low             => 220,
-         Check_Low               => 35,
-         Cost                    => 7);
+           (Insert, +LOOP_ID, 10, 1, 0) & (Fast_Forward, 11) & (Insert, +SEMICOLON_ID, 11, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Cost                    => 3);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (71, 73),
+         Ops                     => +(Insert, +LOOP_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0) &
+           (Insert, +END_ID, 16, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 48,
+         Check_Low               => 11,
+         Cost                    => 3);
    end Loop_Bounds;
 
    procedure Pattern_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -598,10 +607,10 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (58, 58),
          Ops                     => +(Insert, +CASE_ID, 14, 1, 0) & (Fast_Forward, 15) &
            (Insert, +END_ID, 15, 1, 0) & (Insert, +SEMICOLON_ID, 15, 1, 0),
-         Strategy                => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 10,
-         Check_Low               => 7,
-         Cost                    => 1);
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 74,
+         Check_Low               => 17,
+         Cost                    => 3);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       Parse_Text
@@ -613,6 +622,7 @@ package body Test_McKenzie_Recover is
       --  Missing 'end case;'
       --
       --  error 1 at ';' 56; expecting 'case'.
+      --
 
       Check_Recover
         ("2",
@@ -620,11 +630,11 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (59, 69),
          Ops                     => +(Insert, +CASE_ID, 14, 1, 0) & (Insert, +SEMICOLON_ID, 14, 1, 0) &
-           (Fast_Forward, 16) & (Insert, +END_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0),
-         Strategy                => (Minimal_Complete => 3, Explore_Table => 1, others => 0),
-         Enqueue_Low             => 25,
-         Check_Low               => 8,
-         Cost                    => 1);
+           (Insert, +END_ID, 14, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 43,
+         Check_Low               => 10,
+         Cost                    => 3);
 
       Parse_Text
         ("procedure Test_IF is begin if A then B; end;");
@@ -640,10 +650,10 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11, 1, 0) & (Fast_Forward, 12) &
            (Insert, +END_ID, 12, 1, 0) & (Insert, +SEMICOLON_ID, 12, 1, 0),
-         Strategy                => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 10,
-         Check_Low               => 7,
-         Cost                    => 1);
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 126,
+         Check_Low               => 21,
+         Cost                    => 3);
 
       Parse_Text
         ("procedure Test_LOOP is begin for I in A loop B; end;");
@@ -658,12 +668,12 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (52, 52),
-         Ops                     => +(Insert, +LOOP_ID, 13, 1, 0) & (Fast_Forward, 14) &
-           (Insert, +END_ID, 14, 1, 0) & (Insert, +SEMICOLON_ID, 14, 1, 0),
-         Strategy                => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 10,
-         Check_Low               => 7,
-         Cost                    => 1);
+         Ops                     => +(Insert, +LOOP_ID, 13, 1, 0) & (Insert, +IDENTIFIER_ID, 13, 1, 0) &
+           (Fast_Forward, 14) & (Insert, +END_ID, 14, 1, 0) & (Insert, +SEMICOLON_ID, 14, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 147,
+         Check_Low               => 28,
+         Cost                    => 3);
    end Pattern_1;
 
    procedure Revive_Zombie_Parser (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -706,10 +716,10 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (23, 25),
          Ops                     => +(Insert, +NEW_ID, 4, 1, 0),
-         Strategy                => (Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 1, others => 0),
          Enqueue_Low             => 4,
          Check_Low               => 2,
-         Cost                    => 3);
+         Cost                    => 1);
    end Revive_Zombie_Parser;
 
    procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -760,22 +770,20 @@ package body Test_McKenzie_Recover is
       --
       --  The subprogram_body parser has the error at 'if' 76; the desired
       --  solution is (push_back and delete 'exception,
-      --  sequence_of_statement_opt') cost 4 (since
+      --  sequence_of_statement_opt') cost 8 (since
       --  sequence_of_statements_opt is empty).
       --
-      --  Recover generates lots of bogus configs, often overflowing
-      --  Config.Ops. This is because we let Explore continue even when the
-      --  current error is not at the explore point. On balance, this
-      --  strategy produces better results, including the desired solution
-      --  in this case.
+      --  Minimal_Complete finds a cheaper solution for the
+      --  subprogram_body_stub parser, which leads to two more errors.
 
       Check_Recover
-        (Errors_Length           => 1,
-         Error_Token_ID          => +IF_ID,
-         Error_Token_Byte_Region => (76, 77),
-         Ops                     => +(Push_Back, +EXCEPTION_ID, 8) & (Push_Back, +sequence_of_statements_ID, 8) &
-           (Delete, +EXCEPTION_ID, 8),
-         Strategy                => (Explore_Table => 3, others => 0),
+        (Errors_Length           => 3,
+         Checking_Error          => 1,
+         Error_Token_ID          => +BEGIN_ID,
+         Error_Token_Byte_Region => (60, 64),
+         Ops                     => +(Insert, +SEPARATE_ID, 7, 1, 0) & (Insert, +SEMICOLON_ID, 7, 1, 0) &
+           (Fast_Forward, 9) & (Insert, +END_ID, 9, 1, 0) & (Insert, +SEMICOLON_ID, 9, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 4, others => 0),
          Cost                    => 4);
    end If_In_Handler;
 
@@ -799,13 +807,13 @@ package body Test_McKenzie_Recover is
       --  immediately. The first parser continues thru EOI.
 
       Check_Recover
-        (Errors_Length  => 1,
-         Error_Token_ID => +Wisi_EOI_ID,
-         Ops            => +(Insert, +IS_ID, 6, 1, 0) & (Insert, +END_ID, 6, 1, 0) & (Insert, +SEMICOLON_ID, 6, 1, 0),
-         Strategy       => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low    => 5,
-         Check_Low      => 4,
-         Cost           => 1);
+        (Errors_Length   => 1,
+         Error_Token_ID  => +Wisi_EOI_ID,
+         Ops             => +(Insert, +IS_ID, 6, 1, 0) & (Insert, +END_ID, 6, 1, 0) & (Insert, +SEMICOLON_ID, 6, 1, 0),
+         Strategy_Counts => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low     => 15,
+         Check_Low       => 4,
+         Cost            => 3);
    end Zombie_In_Resume;
 
    procedure Push_Back_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -828,12 +836,13 @@ package body Test_McKenzie_Recover is
       --  'end'); recover finds a different solution.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
-         Ops                     => +(Insert, +END_ID, 11, 1, 0) & (Insert, +LOOP_ID, 11, 1, 0) &
-           (Insert, +SEMICOLON_ID, 11, 1, 0) & (Insert, +END_ID, 11, 1, 0) & (Insert, +LOOP_ID, 11, 1, 0),
-         Strategy                => (Minimal_Complete => 5, others => 0),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 11, 1, 0) & (Fast_Forward, 13) &
+           (Insert, +LOOP_ID, 13, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Matching_Begin => 1, others => 0),
          Cost                    => 1);
    end Push_Back_1;
 
@@ -866,7 +875,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (50, 50),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
            (Fast_Forward, 14),
-         Strategy                => (String_Quote => 1, others => 0),
+         Strategy_Counts         => (String_Quote => 1, others => 0),
          Enqueue_Low             => 34,
          Check_Low               => 3,
          Cost                    => 1);
@@ -914,7 +923,7 @@ package body Test_McKenzie_Recover is
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9, 1, 0) & (Fast_Forward, 19) &
            (Push_Back, +SEMICOLON_ID, 18) & (Push_Back, +name_opt_ID, 17) & (Push_Back, +END_ID, 16) &
            (Insert, +END_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0) & (Fast_Forward, 16),
-         Strategy                => (Language_Fix => 2, others => 0),
+         Strategy_Counts         => (Language_Fix => 2, others => 0),
          Enqueue_Low             => 4,
          Check_Low               => 4,
          Cost                    => 1,
@@ -952,8 +961,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) &
            (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 14) &
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9, 1, 0) & (Fast_Forward, 9),
-         Strategy                => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 11,
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
+         Enqueue_Low             => 10,
          Check_Low               => 2,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
@@ -990,8 +999,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +name_opt_ID, 14) & (Push_Back, +END_ID, 13) &
              (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_ID, 1) &
              (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
-         Strategy                => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 11,
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
+         Enqueue_Low             => 10,
          Check_Low               => 2,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
@@ -1027,7 +1036,7 @@ package body Test_McKenzie_Recover is
            (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14) & (Fast_Forward, 18) & (Push_Back, +SEMICOLON_ID, 17) &
            (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15, 1, 0) &
            (Insert, +SEMICOLON_ID, 15, 1, 0) & (Fast_Forward, 15),
-         Strategy                => (Language_Fix => 2, others => 0),
+         Strategy_Counts         => (Language_Fix => 2, others => 0),
          Enqueue_Low             => 4,
          Check_Low               => 4,
          Cost                    => 1,
@@ -1055,7 +1064,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +name_ID,
          Error_Token_Byte_Region => (32, 37),
          Ops                     => +(Undo_Reduce, +package_body_ID, 9),
-         Strategy                => (others => 0), -- ignore error.
+         Strategy_Counts         => (others => 0), -- ignore error.
          Enqueue_Low             => 1,
          Check_Low               => 1,
          Cost                    => 2,
@@ -1089,7 +1098,7 @@ package body Test_McKenzie_Recover is
            (Push_Back, +name_opt_ID, 11) & (Push_Back, +END_ID, 10) &
            (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_ID, 1) &
            (Delete, +END_ID, 10) & (Delete, +SEMICOLON_ID, 11),
-         Strategy                => (Language_Fix => 1, others => 0),
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
          Cost                    => 1,
          Code                    => Missing_Name_Error);
 
@@ -1103,9 +1112,9 @@ package body Test_McKenzie_Recover is
            (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
            (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12, 1, 0) & (Fast_Forward, 12) &
            (Insert, +SEMICOLON_ID, 12, 1, 0),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => 13,
-         Check_Low               => 10,
+         Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 25,
+         Check_Low               => 5,
          Cost                    => 1,
          Code                    => Extra_Name_Error);
    end Missing_Name_5;
@@ -1132,7 +1141,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 17) &
            (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15, 1, 0) &
            (Fast_Forward, 15) & (Insert, +SEMICOLON_ID, 15, 1, 0),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
+         Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
          Enqueue_Low             => 17,
          Check_Low               => 3,
          Cost                    => 1,
@@ -1161,9 +1170,9 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +BEGIN_ID, 8, 1, 0) & (Fast_Forward, 11) &
            (Push_Back, +SEMICOLON_ID, 10) & (Push_Back, +name_opt_ID, 9) & (Push_Back, +END_ID, 8) &
            (Insert, +END_ID, 8, 1, 0) & (Insert, +SEMICOLON_ID, 8, 1, 0) & (Fast_Forward, 8),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => 8,
-         Check_Low               => 6,
+         Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 18,
+         Check_Low               => 4,
          Cost                    => 1);
    end Two_Parsers_1;
 
@@ -1197,8 +1206,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 11) &
            (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 11, 1, 0) & (Fast_Forward, 11) &
            (Insert, +SEMICOLON_ID, 11, 1, 0),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => 5,
+         Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 6,
          Check_Low               => 4,
          Cost                    => 1,
          Code                    => Extra_Name_Error);
@@ -1239,10 +1248,10 @@ package body Test_McKenzie_Recover is
              (Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Insert, +END_ID, 15, 1, 0) & (Insert, +SEMICOLON_ID, 15, 1, 0) & (Fast_Forward, 15) &
              (Insert, +BEGIN_ID, 15, 1, 0),
-         Strategy                => (Language_Fix => 2, Minimal_Complete => 2, others => 0),
-         Enqueue_Low             => 9,
+         Strategy_Counts         => (Language_Fix => 2, Minimal_Complete => 2, others => 0),
+         Enqueue_Low             => 15,
          Check_Low               => 7,
-         Cost                    => 1,
+         Cost                    => 2,
          Code                    => Extra_Name_Error);
    end Extra_Name_2;
 
@@ -1274,8 +1283,8 @@ package body Test_McKenzie_Recover is
            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 11) &
              (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 9, 1, 0) &
              (Fast_Forward, 9) & (Insert, +SEMICOLON_ID, 9, 1, 0),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => 4,
+         Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 5,
          Check_Low               => 3,
          Cost                    => 1,
          Code                    => Extra_Name_Error);
@@ -1317,10 +1326,10 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20, 1, 0) & (Fast_Forward, 20) &
              (Insert, +SEMICOLON_ID, 20, 1, 0),
-         Strategy                => (Language_Fix => 2, Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 28,
+         Strategy_Counts         => (Language_Fix => 2, Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 63,
          Check_Low               => 18,
-         Cost                    => 1,
+         Cost                    => 3,
          Code                    => Extra_Name_Error);
    end Two_Missing_Ends;
 
@@ -1354,9 +1363,9 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12, 1, 0) & (Insert, +SEMICOLON_ID, 12, 1, 0) &
              (Fast_Forward, 12),
-         Strategy                => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 11,
-         Check_Low               => 5,
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
+         Enqueue_Low             => 37,
+         Check_Low               => 7,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
@@ -1371,7 +1380,7 @@ package body Test_McKenzie_Recover is
       --           |10       |20       |30       |40       |50       |60       |70       |80
 
       --  Missing 'end;' 70. Enters error recovery on '.' 83
-      --  expecting ';'.
+      --  expecting ';'. Language_Fixes provides a solution.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1380,7 +1389,7 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15, 1, 0) &
              (Insert, +SEMICOLON_ID, 15, 1, 0) & (Fast_Forward, 15),
-         Strategy                => (Language_Fix => 1, others => 0),
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
          Enqueue_Low             => 5,
          Check_Low               => 2,
          Cost                    => 0);
@@ -1408,11 +1417,12 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (64, 66),
          Ops                     => +(Insert, +RIGHT_PAREN_ID, 13, 1, 0) & (Insert, +THEN_ID, 13, 1, 0) &
-             (Insert, +END_ID, 13, 1, 0) & (Insert, +IF_ID, 13, 1, 0) & (Insert, +SEMICOLON_ID, 13, 1, 0),
-         Strategy                => (Minimal_Complete => 5, others => 0),
-         Enqueue_Low             => 17,
-         Check_Low               => 8,
-         Cost                    => 1);
+           (Fast_Forward, 14) & (Insert, +IF_ID, 14, 1, 0) & (Insert, +SEMICOLON_ID, 14, 1, 0) &
+           (Insert, +END_ID, 14, 1, 0),
+      Strategy_Counts            => (Minimal_Complete => 5, others => 0),
+      Enqueue_Low                => 713,
+      Check_Low                  => 85,
+      Cost                       => 5);
    end Actual_Parameter_Part_1;
 
    procedure Unfinished_Subprogram_Type_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1437,19 +1447,23 @@ package body Test_McKenzie_Recover is
       Check_Recover
         (Errors_Length           => 2,
          Checking_Error          => 1,
-         Error_Token_ID          => +TYPE_ID,
-         Error_Token_Byte_Region => (90, 93),
-         Ops                     => +(Insert, +END_ID, 16, 1, 0) & (Insert, +SEMICOLON_ID, 16, 1, 0),
-         Strategy                => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
-         Cost                    => 1);
+         Error_Token_ID          => +BEGIN_ID,
+         Error_Token_Byte_Region => (84, 88),
+         Ops                     => +(Insert, +SEPARATE_ID, 15, 1, 0) & (Insert, +SEMICOLON_ID, 15, 1, 0) &
+           (Delete, +BEGIN_ID, 15),
+         Strategy_Counts         => (Minimal_Complete => 2, Explore_Table => 1, others => 0),
+         Cost                    => 3);
 
       Check_Recover
         (Errors_Length           => 2,
          Checking_Error          => 2,
          Error_Token_ID          => +RIGHT_PAREN_ID,
          Error_Token_Byte_Region => (124, 124),
-         Ops_Race_Condition      => True,
-         Cost                    => 4);
+         Ops                     => +(Insert, +IDENTIFIER_ID, 22, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 1, others => 0),
+         Enqueue_Low             => 4,
+         Check_Low               => 2,
+         Cost                    => 1);
    end Unfinished_Subprogram_Type_1;
 
    procedure String_Quote_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1486,9 +1500,9 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +SLASH_ID, 16) & (Delete, +BODY_ID, 17) & (Delete, +GREATER_ID, 18) &
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
-         Strategy                => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 25,
-         Check_Low               => 4,
+         Strategy_Counts         => (String_Quote => 1, others => 0),
+         Enqueue_Low             => 49,
+         Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_1;
 
@@ -1524,10 +1538,10 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) &
            (Insert, +SEMICOLON_ID, 28, 1, 0),
-         Strategy    => (Minimal_Complete => 1, String_Quote => 1, others => 0),
-         Enqueue_Low => 14,
-         Check_Low   => 3,
-         Cost        => 1);
+         Strategy_Counts => (Minimal_Complete => 1, String_Quote => 1, others => 0),
+         Enqueue_Low     => 101,
+         Check_Low       => 9,
+         Cost            => 2);
    end String_Quote_2;
 
    procedure String_Quote_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1556,11 +1570,10 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +LESS_ID, 16) & (Delete, +SLASH_ID, 17) & (Delete, +BODY_ID, 18) &
            (Delete, +GREATER_ID, 19) & (Delete, +LESS_ID, 20) & (Delete, +SLASH_ID, 21) &
            (Delete, +IDENTIFIER_ID, 22) & (Delete, +GREATER_ID, 23) & (Fast_Forward,  24),
-         Strategy                => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 26,
-         Check_Low               => 4,
+         Strategy_Counts         => (String_Quote => 1, others => 0),
+         Enqueue_Low             => 57,
+         Check_Low               => 6,
          Cost                    => 1);
-
    end String_Quote_3;
 
    procedure String_Quote_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1592,9 +1605,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (90, 100),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
-         Strategy                => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 47,
-         Check_Low               => 3,
+         Strategy_Counts         => (String_Quote => 1, others => 0),
+         Enqueue_Low             => 54,
+         Check_Low               => 4,
          Cost                    => 1);
    end String_Quote_4;
 
@@ -1626,10 +1639,10 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (33, 33),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 7) & (Delete, +IDENTIFIER_ID, 7) &
            (Fast_Forward, 10) & (Insert, +END_ID, 10, 1, 0) & (Insert, +SEMICOLON_ID, 10, 1, 0),
-         Strategy                => (Minimal_Complete => 2, String_Quote => 1, others => 0),
-         Enqueue_Low             => 47,
-         Check_Low               => 6,
-         Cost                    => 1);
+         Strategy_Counts         => (Minimal_Complete => 2, String_Quote => 1, others => 0),
+         Enqueue_Low             => 159,
+         Check_Low               => 20,
+         Cost                    => 3);
    end String_Quote_5;
 
    procedure Enqueue_Limit (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1643,16 +1656,10 @@ package body Test_McKenzie_Recover is
 
       Parser.Table.McKenzie_Param.Enqueue_Limit := 50;
 
-      begin
-         Parse_Text
-           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
-            Multiple_Tasks   => True,
-            Expect_Exception => True);
-         AUnit.Assertions.Assert (False, "did not get Syntax_Error");
-      exception
-      when WisiToken.Syntax_Error =>
-         null;
-      end;
+      Parse_Text
+        ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
+         Multiple_Tasks   => True,
+         Expect_Exception => True);
 
       --  One error message from the syntax error, one from recover fail
       Check_Recover
@@ -1661,7 +1668,6 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
          Ops_Race_Condition      => True,
-         Strategy                => (others => 0),
          Enqueue_Low             => 50,
          Enqueue_High            => 117,
          Check_Low               => 7,
@@ -1685,8 +1691,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +EXCEPTION_ID,
          Error_Token_Byte_Region => (4, 12),
          Ops                     => +(Insert, +BEGIN_ID, 3, 1, 0),
-         Strategy                => (Matching_Begin => 1, others => 0),
-         Enqueue_Low             => 3,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
          Check_Low               => 2,
          Cost                    => 0);
    end Minimal_Complete_Full_Reduce_1;
@@ -1705,9 +1711,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (4, 6),
          Ops                     => +(Insert, +IF_ID, 3, 1, 0) & (Insert, +THEN_ID, 3, 1, 0),
-         Strategy                => (Matching_Begin => 2, others => 0),
-         Enqueue_Low             => 6,
-         Check_Low               => 3,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
+         Check_Low               => 2,
          Cost                    => 0);
    end Minimal_Complete_Full_Reduce_2;
 
@@ -1725,8 +1731,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (2, 4),
          Ops                     => +(Insert, +LOOP_ID, 1, 1, 0),
-         Strategy                => (Matching_Begin => 1, others => 0),
-         Enqueue_Low             => 3,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
          Check_Low               => 2,
          Cost                    => 0);
    end Minimal_Complete_Full_Reduce_3;
@@ -1754,26 +1760,34 @@ package body Test_McKenzie_Recover is
            --       |230      |240      |250      |260      |270
            --  44
 
-      --  "end;" 218 in wrong place; should be at 270. First fix inserts
-      --  "end if ;", causing second error at "else"; that pushes back first
-      --  fix, inserts "if then".
+      --  "end;" 218 in wrong place; should be at 270.
       --
-      --  A simpler solution would be (delete 'end ;') at 218, followed by
-      --  (insert 'end ;') at 270. But that's more expensive, because we did
-      --  not make delete semicolon cheap.
+      --  In an earlier version, the first fix inserted
+      --  "end if ;", causing second error at "else"; which pushed back the first
+      --  fix (causing out-of-order token indices in Ops).
+      --
+      --  Now we find the simpler solution below.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (221, 221),
-         Ops                     => +(Insert, +IF_ID, 43, 1, 0) & (Insert, +SEMICOLON_ID, 43, 1, 0) &
-           (Insert, +END_ID, 43, 1, 0) &
-           (Fast_Forward, 44) & (Push_Back, +sequence_of_statements_ID, 10) & (Insert, +IF_ID, 10, 1, 0) &
-           (Insert, +THEN_ID, 10, 1, 0) & (Fast_Forward, 43),
-         Strategy                => (Language_Fix => 1, Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 86,
-         Check_Low               => 25,
-         Cost                    => 1);
+         Ops                     => +(Push_Back, +END_ID, 42) & (Undo_Reduce, +sequence_of_statements_ID, 1) &
+           (Insert, +BEGIN_ID, 42, 1, 0),
+         Strategy_Counts         => (Matching_Begin => 1, Explore_Table => 2, others => 0),
+         Cost                    => 3);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +LOOP_ID,
+         Error_Token_Byte_Region => (247, 250),
+         Ops                     => +(Insert, +SEMICOLON_ID, 51, 1, 0) & (Insert, +END_ID, 51, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 2, others => 0),
+         Enqueue_Low             => 53,
+         Check_Low               => 11,
+         Cost                    => 2);
    end Out_Of_Order_Ops;
 
    procedure Error_During_Resume_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1791,9 +1805,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (1, 3),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +COLON_ID, 1, 1, 0) &
            (Insert, +BEGIN_ID, 1, 1, 0),
-         Strategy                => (Matching_Begin => 3, others => 0),
-         Enqueue_Low             => 9,
-         Check_Low               => 4,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
+         Check_Low               => 2,
          Cost                    => 0);
    end Error_During_Resume_1;
 
@@ -1811,8 +1825,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (1, 3),
          Ops                     => +(Insert, +BEGIN_ID, 1, 1, 0),
-         Strategy                => (Matching_Begin => 1, others => 0),
-         Enqueue_Low             => 3,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
          Check_Low               => 2,
          Cost                    => 0);
    end Error_During_Resume_2;
@@ -1831,11 +1845,85 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (19, 21),
          Ops                     => +(Insert, +PACKAGE_ID, 4, 1, 0) & (Insert, +BODY_ID, 4, 1, 0) &
            (Insert, +IDENTIFIER_ID, 4, 1, 0) & (Insert, +IS_ID, 4, 1, 0),
-         Strategy                => (Matching_Begin => 4, others => 0),
-         Enqueue_Low             => 12,
-         Check_Low               => 5,
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 15,
+         Check_Low               => 2,
          Cost                    => 0);
    end Minimal_Complete_Finish_1;
+
+   procedure Always_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This test case provided the motivation for always doing
+      --  Insert_Minimal_Complete. The user is converting an 'if then'
+      --  statement to a 'case' statement. The best solution is to finish
+      --  the case statement, then start an 'if'. We used to use the error
+      --  token to determine if doing Minimal_Complete was appropriate;
+      --  that's not possible in this case.
+
+      Parse_Text
+        ("case Current_Token is " &
+           "= +RIGHT_PAREN_ID then Matching_Begin_Token := +LEFT_PAREN_ID; " &
+           "else Matching_Begin_Token := Invalid_Token_ID; end if;");
+
+      --  Recover entered at '='; minimal_complete partially completes the
+      --  case statement, explore_table inserts 'if' and one of
+      --  STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER, or deletes '=', all
+      --  of which pass check.
+      --
+      --  That leads to a second error at EOI; minimal complete finishes the
+      --  case statement.
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +EQUAL_ID,
+         Error_Token_Byte_Region => (23, 23),
+         Ops                     => +(Insert, +WHEN_ID, 4, 1, 0) & (Insert, +NUMERIC_LITERAL_ID, 4, 1, 0) &
+           (Insert, +EQUAL_GREATER_ID, 4, 1, 0) & (Insert, +IF_ID, 4, 1, 0) & (Insert, +STRING_LITERAL_ID, 4, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, Explore_Table => 2, others => 0),
+         Cost                    => 11);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +Wisi_EOI_ID,
+         Error_Token_Byte_Region => (139, 138),
+         Ops                     => +(Insert, +END_ID, 21, 1, 0) & (Insert, +CASE_ID, 21, 1, 0) &
+           (Insert, +SEMICOLON_ID, 21, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => 14,
+         Check_Low               => 4,
+         Cost                    => 3);
+   end Always_Minimal_Complete;
+
+   procedure Always_Matching_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This test case provided the motivation for always doing
+      --  Matching_Begin; otherwise Minimal_Complete finishes both enclosing
+      --  procedures before inserting 'loop'.
+
+      Parse_Text ("procedure Find_Node is begin Iter.Current := Next_Sibling (Iter.Current); end loop; end Find_Node;");
+      --           1         2         3  4     5   6 7      8  9           10 11 12 13   14 16
+
+      --  Because of the various cost settings, recover finds the desired
+      --  solution, below.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +LOOP_ID,
+         Error_Token_Byte_Region => (79, 82),
+         Ops                     => +(Insert, +SEMICOLON_ID, 17, 1, 0) & (Fast_Forward, 18) &
+           (Insert, +IDENTIFIER_ID, 18, 1, 0) & (Fast_Forward, 20) & (Insert, +LOOP_ID, 20, 1, 0),
+         Strategy_Counts         => (Minimal_Complete => 2, Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 69,
+         Check_Low               => 11,
+         Cost                    => 2);
+
+   end Always_Matching_Begin;
 
    ----------
    --  Public subprograms
@@ -1892,6 +1980,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Error_During_Resume_1'Access, "Error_During_Resume_1");
       Register_Routine (T, Error_During_Resume_2'Access, "Error_During_Resume_2");
       Register_Routine (T, Minimal_Complete_Finish_1'Access, "Minimal_Complete_Finish_1");
+      Register_Routine (T, Always_Minimal_Complete'Access, "Always_Minimal_Complete");
+      Register_Routine (T, Always_Matching_Begin'Access, "Always_Matching_Begin");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -1903,24 +1993,25 @@ package body Test_McKenzie_Recover is
    is begin
       --  Run before all tests in register
       case T.Alg is
-      when WisiToken.BNF.LALR =>
+      when WisiToken.BNF.LALR              =>
          Ada_Lite_LALR_Main.Create_Parser
            (Parser,
-            Language_Fixes                        => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            Language_Use_Minimal_Complete_Actions =>
-              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Use_Minimal_Complete_Actions'Access,
-            Language_String_ID_Set                => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            Trace                                 => Trace'Access,
-            User_Data                             => User_Data'Access);
-      when WisiToken.BNF.LR1 =>
+            Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+            Language_Matching_Begin_Tokens =>
+              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+            Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+            Trace                          => Trace'Access,
+            User_Data                      => User_Data'Access);
+
+      when WisiToken.BNF.LR1               =>
          Ada_Lite_LALR_Main.Create_Parser
            (Parser,
-            Language_Fixes                        => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            Language_Use_Minimal_Complete_Actions =>
-              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Use_Minimal_Complete_Actions'Access,
-            Language_String_ID_Set                => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            Trace                                 => Trace'Access,
-            User_Data                             => User_Data'Access);
+            Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+            Language_Matching_Begin_Tokens =>
+              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+            Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+            Trace                          => Trace'Access,
+            User_Data                      => User_Data'Access);
       end case;
 
       Orig_Params := Parser.Table.McKenzie_Param;

@@ -537,6 +537,8 @@ package WisiToken.Parse.LR is
    type Strategy_Counts is array (Strategies) of Natural;
    function Image is new SAL.Gen_Array_Image (Strategies, Natural, Strategy_Counts, Trimmed_Image);
 
+   type Minimal_Complete_State is (None, Active, Done);
+
    type Configuration is record
       Stack : Recover_Stacks.Stack;
       --  Initially built from the parser stack, then the stack after the
@@ -583,15 +585,13 @@ package WisiToken.Parse.LR is
       --  Insert and Delete ops that are not yet parsed are reflected in
       --  Insert_Delete, in token_index order.
 
-      Current_Ops : SAL.Base_Peek_Type := No_Insert_Delete;
-      --  If No_Insert_Delete, append new ops to Ops. Otherwise insert
-      --  before Current_Ops. This happens when Fast_Forward fails with the
-      --  remaining ops at Current_Shared_Token.
-
       Cost : Natural := 0;
 
       Strategy_Counts : LR.Strategy_Counts := (others => 0);
       --  Count of strategies that produced Ops.
+
+      Minimal_Complete_State : LR.Minimal_Complete_State := None;
+      Matching_Begin_Done    : Boolean                   := False;
    end record;
    type Configuration_Access is access all Configuration;
    for Configuration_Access'Storage_Size use 0;
@@ -611,11 +611,12 @@ package WisiToken.Parse.LR is
    subtype Non_Success_Status is Check_Status range Abandon .. Continue;
 
    type McKenzie_Data is tagged record
-      Config_Heap   : Config_Heaps.Heap_Type;
-      Enqueue_Count : Integer := 0;
-      Check_Count   : Integer := 0;
-      Results       : Config_Heaps.Heap_Type;
-      Success       : Boolean := False;
+      Config_Heap       : Config_Heaps.Heap_Type;
+      Enqueue_Count     : Integer := 0;
+      Config_Full_Count : Integer := 0;
+      Check_Count       : Integer := 0;
+      Results           : Config_Heaps.Heap_Type;
+      Success           : Boolean := False;
    end record;
    type McKenzie_Access is access all McKenzie_Data;
 

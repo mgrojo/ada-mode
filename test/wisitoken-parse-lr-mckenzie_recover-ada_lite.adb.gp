@@ -224,7 +224,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   Local_Config_Heap.Add (New_Config);
 
                   if Trace_McKenzie > Detail then
-                     Put ("Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
+                     Put ("Language_Fixes Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
                           New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -328,7 +328,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Language_Fixes Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -360,7 +360,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Insert (New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Language_Fixes Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -421,7 +421,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
                if Trace_McKenzie > Detail then
-                  Put ("unrecognized Extra_Name_Error case", Config);
+                  Put ("Language_Fixes unrecognized Extra_Name_Error case", Config);
                end if;
                return;
             end if;
@@ -454,7 +454,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   --  test_mckenzie_recover Two_Missing_Ends.
 
                   if Trace_McKenzie > Detail then
-                     Put ("Extra_Name_Error 1 " & Image
+                     Put ("Language_Fixes Extra_Name_Error 1 " & Image
                             (Config.Error_Token.ID, Descriptor), New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -488,7 +488,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   --  comment in case 1.
 
                   if Trace_McKenzie > Detail then
-                     Put (Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                     Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   end if;
                   Local_Config_Heap.Add (New_Config);
                end;
@@ -505,8 +505,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label = Ok
    is
-      use all type SAL.Base_Peek_Type;
-
       procedure Put (Message : in String; Config : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
@@ -550,7 +548,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             --  solutions.
 
             declare
-               Label        : constant String := "selected_component 1";
+               Label        : constant String := "Selected_Component 1 ";
                New_Config_1 : Configuration   := Config;
                New_Config_2 : Configuration;
             begin
@@ -585,7 +583,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                when others =>
                   if Trace_McKenzie > Outline then
-                     Put ("Language_Fixes " & Label & " missing case " & Image
+                     Put ("Language_Fixes " & Label & "missing case " & Image
                             (New_Config_1.Stack (3).Token.ID, Descriptor), Config);
                      Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
                   end if;
@@ -604,49 +602,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Local_Config_Heap.Add (New_Config_1);
             end;
          end if;
-
-      elsif Actions.Token_Enum_ID'(-Config.Error_Token.ID) in ELSE_ID | ELSIF_ID then
-         declare
-            Label          : constant String := "missing 'if then' ";
-            New_Config     : Configuration;
-            Matching_Index : SAL.Peek_Type   := 1;
-         begin
-            Find_ID (Config, +IF_ID, Matching_Index);
-            if Matching_Index = Config.Stack.Depth then
-               --  missing 'if .. then'
-               --
-               --  We don't handle missing 'if' alone; less likely.
-
-               New_Config := Config;
-               New_Config.Error_Token.ID := Invalid_Token_ID;
-
-               if New_Config.Stack (1).Token.ID /= Invalid_Token_ID then
-                  case Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
-                  when sequence_of_statements_ID =>
-                     Push_Back_Check (New_Config, +sequence_of_statements_ID);
-                     if -New_Config.Stack (1).Token.ID = +block_label_opt_ID then
-                        Push_Back_Check (New_Config, +block_label_opt_ID);
-                     end if;
-
-                  when others =>
-                     if Trace_McKenzie > Outline then
-                        Trace.Put_Line
-                          ("Language_Fixes " & Label & " unimplemented token_id " &
-                             Image (New_Config.Stack (1).Token.ID, Descriptor));
-                     end if;
-                  end case;
-               end if;
-               Insert (New_Config, (+IF_ID, +THEN_ID));
-               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-               Local_Config_Heap.Add (New_Config);
-               if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               end if;
-            end if;
-         exception
-         when Bad_Config =>
-            null;
-         end;
       end if;
    end Handle_Parse_Error;
 
@@ -664,18 +619,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration)
    is
       pragma Unreferenced (Parse_Table);
-      use all type SAL.Base_Peek_Type;
    begin
       if Trace_McKenzie > Extra then
          Put ("Language_Fixes", Trace, Parser_Label, Terminals, Config);
-      end if;
-
-      if Config.Current_Ops /= No_Insert_Delete then
-         if Trace_McKenzie > Outline then
-            --  No task_id here, because this message appears in .parse_good
-            Put_Line (Trace, Parser_Label, "Language_Fixes: Config.Current_Ops /= No_Insert_Delete", Task_ID => False);
-         end if;
-         return;
       end if;
 
       case Config.Check_Status.Label is
@@ -687,84 +633,81 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       end case;
    end Fixes;
 
-   procedure Use_Minimal_Complete_Actions
-     (Tokens                : in     Token_ID_Array_1_3;
-      Config                : in     Configuration;
-      Use_Complete          :    out Boolean;
-      Matching_Begin_Tokens :    out Token_ID_Arrays.Vector)
+   function Matching_Begin_Tokens
+     (Tokens : in Token_ID_Array_1_3;
+      Config : in Configuration)
+     return Token_ID_Arrays.Vector
    is
       use all type SAL.Base_Peek_Type;
       use Token_ID_Arrays;
 
       function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector
       is begin
-         if Tokens (Next_Index) = Invalid_Token_ID then
-            return To_Vector (+BEGIN_ID);
-         else
-            case To_Token_Enum (Tokens (Next_Index)) is
-            when IF_ID =>
-               return To_Vector ((+IF_ID, +THEN_ID));
+         return Result : Token_ID_Arrays.Vector do
+            if Tokens (Next_Index) = Invalid_Token_ID then
+               Result := To_Vector (+BEGIN_ID);
+            else
+               case To_Token_Enum (Tokens (Next_Index)) is
+               when IF_ID =>
+                  Result := To_Vector ((+IF_ID, +THEN_ID));
 
-            when IDENTIFIER_ID =>
-               if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
-                 To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
-               then
-                  return To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
-               else
-                  return To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
-               end if;
+               when IDENTIFIER_ID =>
+                  if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
+                    To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
+                  then
+                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
+                  else
+                     Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
+                  end if;
 
-            when SEMICOLON_ID =>
-               return To_Vector (+BEGIN_ID);
+               when SEMICOLON_ID =>
+                  Result := To_Vector (+BEGIN_ID);
 
-            when LOOP_ID =>
-               return To_Vector (+LOOP_ID);
+               when LOOP_ID =>
+                  Result := To_Vector (+LOOP_ID);
 
-            when others =>
-               return Empty_Vector;
-            end case;
-         end if;
+               when others =>
+                  null;
+               end case;
+            end if;
+         end return;
       end Matching_Begin_For_End;
 
    begin
-      if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
-         Use_Complete          := True;
-         Matching_Begin_Tokens := Matching_Begin_For_End (1);
+      return Result : Token_ID_Arrays.Vector do
+         if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
+            Result := Matching_Begin_For_End (1);
 
-      else
-         case Actions.Token_Enum_ID'(-Tokens (1)) is
-         when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
-
-            Use_Complete := Config.Stack.Depth > 1;
-
+         else
             case Actions.Token_Enum_ID'(-Tokens (1)) is
-            when END_ID =>
-               Matching_Begin_Tokens := Matching_Begin_For_End (2);
+            when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
 
-            when EXCEPTION_ID =>
-               Matching_Begin_Tokens := To_Vector (+BEGIN_ID);
+               case Actions.Token_Enum_ID'(-Tokens (1)) is
+               when END_ID =>
+                  Result := Matching_Begin_For_End (2);
 
-            when IS_ID =>
-               Matching_Begin_Tokens := To_Vector (+PROCEDURE_ID);
+               when EXCEPTION_ID =>
+                  Result := To_Vector (+BEGIN_ID);
 
-            when SEMICOLON_ID =>
-               Matching_Begin_Tokens := To_Vector (+IDENTIFIER_ID);
+               when IS_ID =>
+                  Result := To_Vector (+PROCEDURE_ID);
+
+               when SEMICOLON_ID =>
+                  Result := To_Vector (+IDENTIFIER_ID);
+
+               when others =>
+                  null;
+               end case;
+
+            when Wisi_EOI_ID =>
+               Result := Empty_Vector;
 
             when others =>
-               Matching_Begin_Tokens := Empty_Vector;
+               Result := Empty_Vector;
             end case;
-
-         when Wisi_EOI_ID =>
-            Use_Complete          := True;
-            Matching_Begin_Tokens := Empty_Vector;
-
-         when others =>
-            Use_Complete          := False;
-            Matching_Begin_Tokens := Empty_Vector;
-         end case;
-      end if;
-
-   end Use_Minimal_Complete_Actions;
+         end if;
+      end return;
+   end Matching_Begin_Tokens;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

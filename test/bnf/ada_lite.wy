@@ -119,43 +119,27 @@
 ;; subprogram name
 %mckenzie_cost_default 4 4 4 2
 
-;; Cancel out cost of inserting common keywords if using Minimal_Complete_Actions
+;; Almost cancel out cost of inserting if using
+;; Minimal_Complete_Actions; allow other solutions to be cheaper than
+;; completing the entire compilation_unit before the error point.
+;; -2 is too expensive; hits enqueue_limit before finding solutions.
 %mckenzie_minimal_complete_cost_delta -3
 
-;; Prefer inserting keywords over identifiers and operators to take
-;; advantage of empty expressions.
-;;
-;; LEFT_PAREN is _not_ here, because inserting that turns a missing
-;; 'then' into a function call; not a likely error.
-%mckenzie_cost_insert BEGIN 3
-%mckenzie_cost_insert CASE 3
-%mckenzie_cost_insert DECLARE 3
-%mckenzie_cost_insert ELSE 3
-%mckenzie_cost_insert ELSIF 3
-%mckenzie_cost_insert EXIT 3
-%mckenzie_cost_insert FUNCTION 3
-%mckenzie_cost_insert IS 3
-%mckenzie_cost_insert NEW 3
-%mckenzie_cost_insert PROCEDURE 3
-%mckenzie_cost_insert RETURN 3
-%mckenzie_cost_insert RIGHT_PAREN 3
-%mckenzie_cost_insert THEN 3
-%mckenzie_cost_insert WHEN 3
-
-;; These can follow 'end', or start new statements
-%mckenzie_cost_insert IF 2
-%mckenzie_cost_insert LOOP 2
+;; We don't reduce the cost of inserting any tokens; Minimal_Complete
+;; reduces some appropriately.
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
-;; parse stack. Similarly, we often have an extra 'end'; deleting that
-;; is simple. But pushing back or deleting 'end' leads to excessive
-;; use of Insert_Matching_Begin.
+;; parse stack. Similarly, we often have an extra 'end'. But pushing
+;; back or deleting 'end' leads to excessive use of
+;; Insert_Matching_Begin, so it costs a little more.
 %mckenzie_cost_push_back BEGIN 1
 %mckenzie_cost_delete BEGIN 1
-%mckenzie_cost_push_back declarative_part 1
+%mckenzie_cost_push_back declarative_part 0
 %mckenzie_cost_push_back END 2
 %mckenzie_cost_delete END 2
+%mckenzie_cost_push_back handled_sequence_of_statements 0
+%mckenzie_cost_push_back sequence_of_statements 0
 %mckenzie_cost_delete SEMICOLON 2
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the
@@ -164,11 +148,6 @@
 ;; STRING_LITERAL, so make that cheaper than inserting operators and
 ;; keywords.
 %mckenzie_cost_delete STRING_LITERAL 2
-
-;; Prefer insert these over everything; lets us finish a
-;; statement.
-%mckenzie_cost_insert END 1
-%mckenzie_cost_insert SEMICOLON 1
 
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN

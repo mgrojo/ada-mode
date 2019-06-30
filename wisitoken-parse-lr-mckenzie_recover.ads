@@ -26,6 +26,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Task_Attributes;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
 package WisiToken.Parse.LR.McKenzie_Recover is
@@ -234,5 +235,7 @@ private
       Tree     : in     Syntax_Trees.Tree;
       Expected : in     Token_ID_Array);
    --  Call Undo_Reduce_Check for each item in Expected.
+
+   package Task_Attributes is new Ada.Task_Attributes (Integer, 0);
 
 end WisiToken.Parse.LR.McKenzie_Recover;

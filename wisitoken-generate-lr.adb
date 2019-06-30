@@ -1521,7 +1521,8 @@ package body WisiToken.Generate.LR is
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array;
       Kernels                    : in LR1_Items.Item_Set_List;
       Conflicts                  : in Conflict_Count_Lists.List;
-      Descriptor                 : in WisiToken.Descriptor)
+      Descriptor                 : in WisiToken.Descriptor;
+      Include_Extra              : in Boolean := False)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
@@ -1537,7 +1538,7 @@ package body WisiToken.Generate.LR is
          begin
             for RHS in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                Put (WisiToken.Productions.Image (Prod.LHS, RHS, Prod.RHSs (RHS).Tokens, Descriptor));
-               if Minimal_Terminal_Sequences (LHS)(RHS).Recursion.Length = 0 then
+               if not Include_Extra or Minimal_Terminal_Sequences (LHS)(RHS).Recursion.Length = 0 then
                   New_Line;
                else
                   Put_Line
@@ -1548,11 +1549,13 @@ package body WisiToken.Generate.LR is
          end;
       end loop;
 
-      New_Line;
-      Put_Line ((if Recursions.Full then "Recursions:" else "Partial recursions:"));
-      for I in Recursions.Recursions.First_Index .. Recursions.Recursions.Last_Index loop
-         Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Recursions.Recursions (I)));
-      end loop;
+      if Include_Extra then
+         New_Line;
+         Put_Line ((if Recursions.Full then "Recursions:" else "Partial recursions:"));
+         for I in Recursions.Recursions.First_Index .. Recursions.Recursions.Last_Index loop
+            Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Recursions.Recursions (I)));
+         end loop;
+      end if;
 
       if Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
           Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
@@ -1567,7 +1570,8 @@ package body WisiToken.Generate.LR is
       Put_Line (Title & " Parse Table:");
 
       for State_Index in Table.States'Range loop
-         LR1_Items.Put (Grammar, Descriptor, Kernels (State_Index), Kernel_Only => True, Show_Lookaheads => True);
+         LR1_Items.Put
+           (Grammar, Descriptor, Kernels (State_Index), Kernel_Only => True, Show_Lookaheads => Include_Extra);
          New_Line;
          Put (Descriptor, Table.States (State_Index));
 

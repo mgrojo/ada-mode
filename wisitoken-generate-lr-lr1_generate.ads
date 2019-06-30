@@ -35,6 +35,7 @@ package WisiToken.Generate.LR.LR1_Generate is
       Known_Conflicts   : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param    : in McKenzie_Param_Type := Default_McKenzie_Param;
       Put_Parse_Table   : in Boolean             := False;
+      Include_Extra     : in Boolean             := False;
       Ignore_Conflicts  : in Boolean             := False;
       Partial_Recursion : in Boolean             := True)
      return Parse_Table_Ptr

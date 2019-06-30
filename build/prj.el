@@ -17,8 +17,6 @@
   (project-menu-select-by-name prj-name)
   )
 
-;; extensions to ada-fix-error
-
 (defun wisitoken-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
 
@@ -110,30 +108,49 @@
   ;;
   ;; goto that file and procedure
   (let (filename
-	subprogram-name)
-    (save-excursion
-      (beginning-of-line)
-      (forward-word 2)
-      (setq filename (thing-at-point 'filename))
-      (end-of-line)
-      (backward-word 1)
-      (setq subprogram-name (thing-at-point 'filename))
-      )
+	subprogram-name
+	test-label error-number field)
+    (beginning-of-line)
+    (forward-word 2)
+    (setq filename (thing-at-point 'filename))
+    (end-of-line)
+    (backward-word 1)
+    (setq subprogram-name (thing-at-point 'filename))
+    (when (string-equal filename "test_mckenzie_recover.adb")
+      (forward-line 1)
+      (back-to-indentation)
+      (looking-at "\\([0-9]+\\)?\\. \\([0-9]+\\)\\.\\([^ .']+\\)")
+      (setq test-label (match-string 1))
+      (setq error-number (match-string 2))
+      (setq field (match-string 3))
+      ;; leave cursor on 'got' value
+      (search-forward "got")
+      (forward-char 2))
     (let ((abs-file (project-expand-file-name (project-current) filename))
 	  (display-buffer-overriding-action
 	   (cons (list #'ofw-display-buffer-other-window) nil)))
       (when (not (stringp abs-file))
 	(setq abs-file (car abs-file)))
       (find-file abs-file)
-      (xref-find-definitions (xref-expand-identifier (xref-find-backend) subprogram-name)))))
+      (xref-find-definitions (xref-expand-identifier (xref-find-backend) subprogram-name))
+      (when (string-equal filename "test_mckenzie_recover.adb")
+	(search-forward "Check_Recover")
+	(when test-label (search-forward (concat "\"" test-label "\"")))
+	(when (not (string-equal error-number "1")) (search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	(search-forward field)
+	(end-of-line)
+	(forward-char -1))
+      )))
 
 (defun wisitoken-compilation-finish ()
   (forward-line)
   (back-to-indentation)
   (unless (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+") ;; a file diff failed
+    ;; an AUnit test failed
     (forward-line -1)
-    (forward-word 2)) ;; an AUnit test failed
-  )
+    (forward-word 1)
+    (forward-char 1)
+  ))
 
 (defun wisitoken-compilation-prev ()
   (interactive)
@@ -155,4 +172,46 @@
 (define-key compilation-mode-map "n" #'wisitoken-compilation-next)
 (define-key compilation-mode-map "p" #'wisitoken-compilation-prev)
 (define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)
-;; end of file
+
+(defun wisitoken-fix-ops ()
+  (interactive)
+  ;; in test_mckenzie_recover.adb, point is on '(' in an Ops
+  ;; list. Assume it was copied from compilation; convert one op to
+  ;; required syntax.
+  (forward-char 1)
+  (let ((insertp (looking-at "INSERT"))
+	(ffp (looking-at "FAST_FORWARD")))
+    (forward-word 1)
+    (ada-case-adjust-at-point)
+    (cond
+     ((not ffp)
+      (forward-char 2)
+      (insert "+")
+      (forward-word)
+      (insert "_ID")
+      (forward-word 1)
+      (when (= ?, (char-after))
+	;; extra insert state
+	(delete-char 1)
+	(kill-word 2))
+      (when insertp
+	(insert ", 1, 0"))
+      (forward-char 1); ')'
+      (delete-char 1)
+      (insert " &")
+      (forward-char 1))
+
+     (ffp
+      (forward-char 2)
+      (delete-char 1)
+      (forward-word)
+      (forward-char 1); ')'
+      (delete-char 1)
+      (insert " &")
+      (forward-char 1))
+     )))
+
+(define-key ada-mode-map "\C-ca" #'wisitoken-fix-ops)
+
+
+;; End of file

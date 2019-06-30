@@ -21,12 +21,20 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+check should clear matching_begin_done, minimal_complete_status when append fast_forward.
+
+run all tests
+
+possible new strategy delete_to_keyword
+    cost one per token? don't delete entire procedure calls, assignments.
+    allows matching_begin quickly
+        always do that if available!
+    allows determining statement/declaration
+
 check should check all conflicts, enqueue conflicts on success
     otherwise we are ignoring possible solutions.
 
-set_minimal_actions:
-    only need to check for loops at run time in minimal_complete because we assume cost eliminates it in normal explore
-        minimal_complete_delta can make recursion zero cost
+run all tests
 
 test_mckenzie use lr-parser-gen_aunit
 

@@ -305,7 +305,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
-         --  We copy Recover.Enqueue_Count, .Check_Count for unit tests.
+         --  We copy Recover.Enqueue_Count .. Check_Count for unit tests.
          New_Item :=
            (Shared_Token           => Item.Shared_Token,
             Recover_Insert_Delete  => Item.Recover_Insert_Delete,
@@ -316,6 +316,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Tree                   => Item.Tree,
             Recover                =>
               (Enqueue_Count       => Item.Recover.Enqueue_Count,
+               Config_Full_Count   => Item.Recover.Config_Full_Count,
                Check_Count         => Item.Recover.Check_Count,
                others              => <>),
             Resume_Active          => Item.Resume_Active,

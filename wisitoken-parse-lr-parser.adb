@@ -362,26 +362,26 @@ package body WisiToken.Parse.LR.Parser is
    end Finalize;
 
    procedure New_Parser
-     (Parser                                :    out          LR.Parser.Parser;
-      Trace                                 : not null access WisiToken.Trace'Class;
-      Lexer                                 : in              WisiToken.Lexer.Handle;
-      Table                                 : in              Parse_Table_Ptr;
-      Language_Fixes                        : in              Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in              Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set                : in              Language_String_ID_Set_Access;
-      User_Data                             : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                          : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State                  : in              Boolean            := True)
+     (Parser                         :    out          LR.Parser.Parser;
+      Trace                          : not null access WisiToken.Trace'Class;
+      Lexer                          : in              WisiToken.Lexer.Handle;
+      Table                          : in              Parse_Table_Ptr;
+      Language_Fixes                 : in              Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
+      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                   : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      Terminate_Same_State           : in              Boolean            := True)
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
-      Parser.Lexer                               := Lexer;
-      Parser.Trace                               := Trace;
-      Parser.Table                               := Table;
-      Parser.Language_Fixes                      := Language_Fixes;
-      Parser.Language_Use_Minimal_Complete_Actions := Language_Use_Minimal_Complete_Actions;
-      Parser.Language_String_ID_Set              := Language_String_ID_Set;
-      Parser.User_Data                           := User_Data;
+      Parser.Lexer                          := Lexer;
+      Parser.Trace                          := Trace;
+      Parser.Table                          := Table;
+      Parser.Language_Fixes                 := Language_Fixes;
+      Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
+      Parser.Language_String_ID_Set         := Language_String_ID_Set;
+      Parser.User_Data                      := User_Data;
 
       --  We can't use Table.McKenzie_Param /= Default_McKenzie_Param here,
       --  because the discriminants are different.
@@ -563,9 +563,6 @@ package body WisiToken.Parse.LR.Parser is
                   Current_Parser := Shared_Parser.Parsers.First;
                   loop
                      if Current_Parser.Verb = Accept_It then
-                        if Trace_Parse > Outline then
-                           Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": succeed with zombies");
-                        end if;
                         Current_Parser.Next;
                      else
                         Temp := Current_Parser;

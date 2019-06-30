@@ -19,7 +19,6 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada.Exceptions;
-with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 with System.Multiprocessors;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
@@ -33,7 +32,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    task type Worker_Task is
       entry Start
-        (Super  : in Supervisor_Access;
+        (ID     : in Integer;
+         Super  : in Supervisor_Access;
          Shared : in Shared_Access);
       --  Start getting parser/configs to check from Config_Store. Stop when
       --  Super reports All_Done;
@@ -56,10 +56,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       loop
          select
             accept Start
-              (Super  : in Supervisor_Access;
+              (ID     : in Integer;
+               Super  : in Supervisor_Access;
                Shared : in Shared_Access)
 
             do
+               Task_Attributes.Set_Value (ID);
                Worker_Task.Super  := Super;
                Worker_Task.Shared := Shared;
             end Start;
@@ -217,7 +219,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Shared_Parser.Lexer.all'Access,
          Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
-         Shared_Parser.Language_Use_Minimal_Complete_Actions,
+         Shared_Parser.Language_Matching_Begin_Tokens,
          Shared_Parser.Language_String_ID_Set,
          Shared_Parser.Terminals'Access,
          Shared_Parser.Line_Begin_Token'Access);
@@ -260,7 +262,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end if;
          end if;
 
-         Worker_Tasks (I).Start (Super'Unchecked_Access, Shared'Unchecked_Access);
+         Worker_Tasks (I).Start (Integer (I), Super'Unchecked_Access, Shared'Unchecked_Access);
       end loop;
 
       declare
@@ -1132,7 +1134,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        (if Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
+        (if Task_ID then +"task" & Task_Attributes.Value'Image else +"") &
         Integer'Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
@@ -1161,6 +1163,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
 
       Result := Result & Image (Config.Ops, Descriptor);
+      if Config.Minimal_Complete_State /= None then
+         Result := Result & " minimal_complete " & Config.Minimal_Complete_State'Image;
+      end if;
       Trace.Put_Line (-Result);
    end Put;
 
@@ -1171,7 +1176,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Task_ID      : in     Boolean := True)
    is begin
       Trace.Put_Line
-        ((if Task_ID then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else "") &
+        ((if Task_ID then "task" & Task_Attributes.Value'Image else "") &
            Integer'Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
