@@ -236,7 +236,7 @@ private
    function Undo_Reduce_Valid (Stack : in out Recover_Stacks.Stack) return Boolean
      is (Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index or
            (Stack.Peek.Tree_Index = WisiToken.Syntax_Trees.Invalid_Node_Index and
-              (not Stack.Peek.Token.Virtual or
+              (not Stack.Peek.Token.Virtual and
                  Stack.Peek.Token.Byte_Region = Null_Buffer_Region)));
    --  Undo_Reduce needs to know what tokens the nonterm contains, to
    --  push them on the stack. Thus we need either a valid Tree index, or

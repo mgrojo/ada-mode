@@ -1902,7 +1902,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +END_ID, 21, 1, 0) & (Insert, +CASE_ID, 21, 1, 0) &
            (Insert, +SEMICOLON_ID, 21, 1, 0),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 14,
+         Enqueue_Low             => 15,
          Check_Low               => 4,
          Cost                    => 3);
    end Always_Minimal_Complete;
