@@ -10,23 +10,23 @@ begin
    loop
       declare
 
-      Next_Token (Lexer, Token);
-      case Name (Token) is
-         when End_Of_File =>
-            return;
+         Next_Token (Lexer, Token);
+         case Name (Token) is
+            when End_Of_File =>
+               return;
 
-         when Bad_Token =>
-            if not Ignore_HTML_Syntax then
-               Syntax_Error ("HTML syntax error " & Lexeme (Token), Token);
-            end if;
+            when Bad_Token =>
+               if not Ignore_HTML_Syntax then
+                  Syntax_Error ("HTML syntax error " & Lexeme (Token), Token);
+               end if;
 
-         when Start_Tag_Opener =>
-            Parse_Tag (Lexer);
+            when Start_Tag_Opener =>
+               Parse_Tag (Lexer);
 
-         when others =>
-            null;
+            when others =>
+               null;
 
-      end case;
+         end case;
    end loop;
 
 end Ada_Mode.Recover_Extra_Declare;

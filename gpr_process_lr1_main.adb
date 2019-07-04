@@ -31,8 +31,8 @@ package body Gpr_Process_LR1_Main is
    procedure Create_Parser
      (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
       Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in
-     WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_Matching_Begin_Tokens : in
+     WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
@@ -52,10 +52,13 @@ package body Gpr_Process_LR1_Main is
          Push_Back =>
            (2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
+         Undo_Reduce =>
+           (2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
          Minimal_Complete_Cost_Delta => -1,
+         Fast_Forward =>  0,
+         Matching_Begin =>  0,
          Ignore_Check_Fail  => 2,
          Task_Count  => 0,
-         Cost_Limit  => 20,
          Check_Limit => 3,
          Check_Delta_Limit => 200,
          Enqueue_Limit => 10000);
@@ -2131,7 +2134,7 @@ package body Gpr_Process_LR1_Main is
          Lexer.New_Lexer (Trace.Descriptor),
          Table,
          Language_Fixes,
-         Language_Use_Minimal_Complete_Actions,
+         Language_Matching_Begin_Tokens,
          Language_String_ID_Set,
          User_Data,
          Max_Parallel         => 15,

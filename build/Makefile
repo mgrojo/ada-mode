@@ -47,8 +47,8 @@ docs : info html
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
-update-elisp : autoloads
 update-elisp : build_ada_executables
+update-elisp : autoloads
 update-elisp : byte-compile
 
 # This updates and installs everything after any source change, without running the
@@ -75,7 +75,6 @@ byte-compile-clean :
 test : test-wisi
 ifeq ($(TEST_DIR),source)
 test : build_ada_executables
-test : ada_unit_tests
 endif
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
@@ -98,25 +97,27 @@ summarize :
 	cat test.log
 
 ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILES ?= ada_mode-partial_parse.adb
+#ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
+#ONE_TEST_FILES ?= ada_mode-recover_29.adb
 one :: build_ada_executables
-one :: byte-compile
+# one :: byte-compile
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
+	rm -f test.log
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-elisp-gpr_query.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+	find . -name "*.diff" -not -size 0 >> test.log
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-# two : RUN_ARGS ?= ../gen_emacs_wisi_lr_parse.adb Face 1481 2415 2365 1481 41 66 3 --verbosity 1 1 0
-# RUN_ARGS ?= c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
+two : RUN_ARGS ?= ../test/ada_mode-recover_29.adb Indent --verbosity 1 1 0 --enqueue_limit 120_000
 two : build_ada_executables
-#	../run_ada_lalr_parse.exe $(RUN_ARGS)
+	../run_ada_lalr_parse.exe $(RUN_ARGS)
 	../run_ada_lr1_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
@@ -216,7 +217,7 @@ endif
 
 zip :
 	rm -rf ../../$(TAR_FILE)
-	mtn checkout --branch $(BRANCH) -r t:$(TAR_FILE) ../../$(TAR_FILE)
+	mtn checkout --branch $(BRANCH) ../../$(TAR_FILE)
 	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
 
 
@@ -413,17 +414,6 @@ build_ada_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c f
 
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
-
-test_harness.exe : force
-	gprbuild -p ../ada_mode_unit_tests.gpr $(GPRBUILD_ARGS)
-
-ada_unit_tests : build_ada_executables test_harness.exe
-	../test_harness.exe $(RUN_ARGS)
-
-# only needed for editing, not compiling/running.
-# (load-file "ada_mode_unit_tests.el")
-# (project-menu-select-by-name "ada_mode_wisi_parse main")
-# (project-menu-select-by-name "ada_mode_unit_tests main")
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:

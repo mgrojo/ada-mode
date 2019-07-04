@@ -54,10 +54,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-run all tests
-    test/ada_mode-debbugs_35124.ads
-        recover doesn't find (insert 'package <ident> is'); too expensive initially, even though cheaper eventually
-        don't set 'ready' if minimum_complete active.
+speed up recover in o.w.s-2, o.e.a.s-4
+    tolerate larger enqueue_limit.
+    benchmark: ada_mode-recover_29.adb
 
 put --recover-log in info
 

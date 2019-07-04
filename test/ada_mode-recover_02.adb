@@ -16,7 +16,7 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Token;
-package body Ada_Mode.Recover_2 is
+package body Ada_Mode.Recover_02 is
 
    procedure Check_One
      (Parser_Label : Natural;
@@ -34,6 +34,7 @@ package body Ada_Mode.Recover_2 is
         (Parser_label
 
          -- Copied from above, intending to move the function call here.
+         -- recover finishes Check_One and Ada_Mode_Recover_02, inserts "declare"
    Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
 if Check (Data, Config, Current_Input) then
@@ -51,7 +52,7 @@ task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.C
    --  Terminate; no more configs to check.
 end Check_Parser_Config;
 
-end Ada_Mode.Recover_2;
+end Ada_Mode.Recover_02;
 -- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

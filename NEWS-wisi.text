@@ -9,11 +9,14 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi
 
+** parser process protocol version 3
+
+** User variable wisi-mckenzie-cost-limit is deleted; set
+   wisi-mckenzie-enqueue-limit instead, it gives better results.
+
 ** Support 'nil' as an indent argument; useful for the first token,
    whose indent is typically unknown. Indent functions that do not
    accumulate now only check for "nil", not "zero or nil".
-
-** parser process protocol version 3
 
 ** New file wisi-xref.el provides a completion table built from tokens
    marked by the new grammar action `wisi-name-action'.

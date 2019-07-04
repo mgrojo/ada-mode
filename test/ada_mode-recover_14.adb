@@ -8,15 +8,15 @@ procedure Ada_Mode.Recover_14
 is
    procedure Create_Ada_Test_Main
    is begin --  extra 'begin'
-      use Wisi.Utils;
+   use Wisi.Utils;
 
-   begin
-      Create (Body_File, Out_File, File_Name);
-      Set_Output (Body_File);
-      Indent := 1;
-      Common_Data.Table_Actions_Count := 0;
+begin
+   Create (Body_File, Out_File, File_Name);
+   Set_Output (Body_File);
+   Indent := 1;
+   Common_Data.Table_Actions_Count := 0;
 
-   end Create_Ada_Test_Main;
+end Create_Ada_Test_Main;
 
 begin
    case Common_Data.Lexer is

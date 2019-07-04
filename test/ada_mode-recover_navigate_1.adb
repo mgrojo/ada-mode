@@ -6,13 +6,13 @@
 package body Ada_Mode.Recover_Navigate_1 is
    procedure Add_Param (Name : in String; Value : in String)
    is begin
-         if Need_Comma then
-            Statement := Statement & ", ";
-         end if;
-         Need_Comma := True;
+      if Need_Comma then
+         Statement := Statement & ", ";
+      end if;
+      Need_Comma := True;
 
-         --  Deleted 'if then' here
-         Statement := Statement & Name & " = ?";
+      --  Deleted 'if then' here
+      Statement := Statement & Name & " = ?";
       else
          Statement := Statement & Name;
          Values    := Values & "?";

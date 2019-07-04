@@ -13,7 +13,7 @@ is
          --
          -- have not typed this yet. Error recovery pushes back the following
          -- block, inserts the missing 'end;' in the right place.
-   begin
+      begin
    end Process_CSV_File;
 begin
    A := 1;

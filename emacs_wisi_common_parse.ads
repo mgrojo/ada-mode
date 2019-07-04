@@ -100,7 +100,6 @@ package Emacs_Wisi_Common_Parse is
       Action_Verbosity     : Integer;
       McKenzie_Disable     : Integer;
       Task_Count           : Integer;
-      Cost_Limit           : Integer;
       Check_Limit          : Integer;
       Enqueue_Limit        : Integer;
       Max_Parallel         : Integer;

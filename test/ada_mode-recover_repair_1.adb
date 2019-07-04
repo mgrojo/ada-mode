@@ -12,19 +12,19 @@ procedure Ada_Mode.Recover_Repair_1
 is
    A : Integer;
 begin
-   -- We have "a_bogus_identifier" because that's what the error
-   -- repair inserts. (forward-sexp) triggers a parse.
+   -- We insert 'and' to cause a syntax error; 'wisi-repair-errors'
+   -- deletes it. (forward-sexp) triggers a navigate parse.
 
-   --EMACSCMD:(progn(forward-line 3)(forward-word 1)(kill-word 3))
+   --EMACSCMD:(progn(forward-line 3)(forward-word 1)(insert " and"))
    --EMACSCMD:(progn(forward-line 2)(forward-word 1)(forward-sexp)(looking-at "then"))
    --EMACSRESULT:t
-   if a_bogus_identifier and
+   if
      Expect
    then
       Expecting;
    end if;
 
-   --EMACSCMD:(progn(wisi-repair-errors)(and (looking-at "and") (looking-back "a_bogus_identifier ")))
+   --EMACSCMD:(progn(wisi-repair-errors)(and (looking-at "Expect")(backward-word 1) (looking-at "if")))
    --EMACSRESULT:t
 
 end Ada_Mode.Recover_Repair_1;

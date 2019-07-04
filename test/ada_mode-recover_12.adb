@@ -20,7 +20,7 @@ package body Ada_Mode.Recover_12 is
                if Id in Nonterminal then
                   exit Id_Loop;
                end if;
-            end loop Id_Loop;
-         end loop Rhs_Loop;
+         end loop Id_Loop;
+      end loop Rhs_Loop;
    end Recursive;
 end Ada_Mode.Recover_12;

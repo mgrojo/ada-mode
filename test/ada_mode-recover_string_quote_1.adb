@@ -1,9 +1,4 @@
 -- Real error of missing string quote, now successfully recovered.
---
--- However, there are two possible results, with equal cost and equal
--- recover op length, so it's a race condition which is used. The
--- indent results are the same but we can't test the results of
--- actually doing the recover.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -23,3 +18,6 @@ package body Ada_Mode.Recover_String_Quote_1 is
    end Quote_Unquote;
 
 end Ada_Mode.Recover_String_Quote_1;
+--  Local Variables:
+--  wisi-mckenzie-task-count: 1
+--  End:

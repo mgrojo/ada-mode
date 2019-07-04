@@ -19,12 +19,12 @@ package body Ada_Mode.Recover_26 is
                      return Index;
                   else
 
-                     end Find_Terminal;
+            end Find_Terminal;
 
-                     begin
-                        Find_Production;
-                     end;
-                  end if;
-               end Create_Tree_Node;
+         begin
+            Find_Production;
+         end;
+      end if;
+   end Create_Tree_Node;
 
-            end Ada_Mode.Recover_26;
+end Ada_Mode.Recover_26;

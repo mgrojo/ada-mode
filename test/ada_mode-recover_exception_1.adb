@@ -15,7 +15,7 @@ package body Ada_Mode.Recover_Exception_1 is
             use Ada.Exceptions;
             Raise_Exception (Ada.Exceptions.Exception_ID (E), Name (File.Stream) & ": " &
                                Ada.Exceptions.Exception_Message (E));
-   end All_Frames;
+         end All_Frames;
 
 end Ada_Mode.Recover_Exception_1;
 

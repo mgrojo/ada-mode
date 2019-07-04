@@ -1,5 +1,4 @@
--- -*- wisi-mckenzie-enqueue-limit: 120000 -*-
---  LR1 error recovery fails with default enqueue_limit. IMPROVEME: detect splitting strings across a line
+--  LR1 error recovery used to fails with enqueue_limit. Now finds a solution quickly.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(switch-to-lr1)

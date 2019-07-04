@@ -17,7 +17,7 @@
 --
 --  Does not compile.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -85,7 +85,7 @@ package body Ada_Mode.Recover_Match_Names is
    Loop_1 :
       for I in B'Range loop
          if then
-         if; -- meant 'end if;'
+            if; -- meant 'end if;'
       end loop Loop_1;
    end Loop_Statement_0;
 
@@ -97,7 +97,7 @@ package body Ada_Mode.Recover_Match_Names is
       loop
          exit when C;
          if then
-         if; -- meant 'end if;'
+            if; -- meant 'end if;'
       end loop Loop_1;
    end Loop_Statement_1;
 

@@ -8,3 +8,6 @@ end loop;
 
 if Min_Length < Ada.Containers.Count_Type'Last then
    I := Working_Set.First;
+-- Local Variable:
+-- wisi-mckenzie-task-count: 1
+-- End:

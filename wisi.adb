@@ -329,8 +329,10 @@ package body Wisi is
 
    procedure Put (Cache : in WisiToken.Buffer_Region)
    is begin
-      Ada.Text_IO.Put_Line
-        ("[" & Name_Property_Code & Buffer_Pos'Image (Cache.First) & Buffer_Pos'Image (Cache.Last) & "]");
+      if Cache /= Null_Buffer_Region then
+         Ada.Text_IO.Put_Line
+           ("[" & Name_Property_Code & Buffer_Pos'Image (Cache.First) & Buffer_Pos'Image (Cache.Last) & "]");
+      end if;
    end Put;
 
    procedure Put (Cache : in Face_Cache_Type)

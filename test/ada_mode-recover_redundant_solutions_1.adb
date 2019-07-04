@@ -8,9 +8,8 @@ begin
          Debug_Log.Put (Songs.Slice (Song_Count, Songs.Length));
          Songs.Delete_Last (Songs.Length - Song_Count);
       end if;
-      -- Missing 'end if'; recover used to find two equivalent solutions,
-      -- which were handled gracefully via duplicate state, but is
-      -- inefficient, and could be a problem in other situations.
-      -- FIXME: error on equivalent solutions
+      -- Missing 'end if'; recover finds two equivalent solutions, which are
+      -- handled gracefully via duplicate state, but only at eob, which is
+      -- inefficient.
 
 end Ada_Mode.Recover_Redundant_Solutions_1;

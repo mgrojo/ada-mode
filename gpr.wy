@@ -102,7 +102,6 @@
 %elisp_face nil
 
 %mckenzie_cost_default 4 4 2 2
-%mckenzie_cost_limit 20
 %mckenzie_enqueue_limit 10_000
 %mckenzie_check_limit 3
 %mckenzie_check_delta_limit 200

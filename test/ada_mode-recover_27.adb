@@ -1,4 +1,4 @@
--- Encounters "Insert_Delete is out of sync with Ops"
+-- From a real editing session
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
@@ -12,44 +12,37 @@ package body Wisi.Libadalang is
       is
          W_Token_ID : WisiToken.Token_ID := L_Node_To_Wisi_ID (Kind (Ast_Node));
       begin
-
-
          if W_Token_ID = No_Direct_Map then
          else
             declare
                use WisiToken.Syntax_Trees;
 
                procedure Find_Production
-                 is begin --  extra 'begin'
-               Prod : WisiToken.Productions.Instance renames Grammar
-                 (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+               is begin --  extra 'begin'
+                  Prod : WisiToken.Productions.Instance renames Grammar
+                    (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+               begin
+                  for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                     declare
+                        use all type SAL.Base_Peek_Type;
+                     begin
+                        for J in Tokens.First_Index .. Tokens.Last_Index loop
+                        end loop;
+                     end;
+                     Prod_ID.RHS := I;
+                     return;
+                  <<Next_RHS>>
+                  end loop;
+                  exit when not K > Descendants.Last_Index;
+                  K := K + 1;
+                  end loop; --  missing 'loop'
+                  raise SAL.Programmer_Error with "production not found";
+               end Find_Production;
             begin
-
-               for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
-                  declare
-                     use all type SAL.Base_Peek_Type;
-                  begin
-                     for J in Tokens.First_Index .. Tokens.Last_Index loop
-                     end loop;
-                  end;
-                  Prod_ID.RHS := I;
-                  return;
-               <<Next_RHS>>
-               end loop;
-               exit when not K > Descendants.Last_Index;
-               K := K + 1;
-            end loop; --  missing 'loop'
-            raise SAL.Programmer_Error with "production not found; " &
-              WisiToken.Image (W_Token_ID, Data.Descriptor.all) & ", " &
-              Tree.Image (Tree_Children.Nodes, Data.Descriptor.all);
-         end Find_Production;
-
-         begin
-            Find_Production;
-         end;
+               Find_Production;
+            end;
          end if;
       end Create_Tree_Node;
-
    begin
    end To_WisiToken_Tree;
 

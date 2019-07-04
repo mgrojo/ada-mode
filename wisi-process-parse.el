@@ -178,7 +178,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse,adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -200,7 +200,6 @@ parse region."
 		      wisi-trace-action
 		      (if wisi-mckenzie-disable 1 0)
 		      (or wisi-mckenzie-task-count -1)
-		      (or wisi-mckenzie-cost-limit -1)
 		      (or wisi-mckenzie-check-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
 		      (or wisi-parse-max-parallel -1)

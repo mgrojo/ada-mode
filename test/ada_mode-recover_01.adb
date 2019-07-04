@@ -19,18 +19,13 @@ is begin
             end if;
             exit when C;
          end; -- error reported here
-   end
-   loop
-   ;
+   end loop;
 
    --  This used to give "error during resume"; fixed now.
    if File_Head.Version_Msb = 4 and
-   then
-      null;
+     then -- recover sees 'and then', part of the boolean expression.
+     null;
    end if;
 
-   -- This used to have a newline after the '.'; that confuses the
-   -- Match_Name check. It's not a credible style, so we don't have it
-   -- here any more.
 end Ada_Mode.Recover_1;
 -- end of file

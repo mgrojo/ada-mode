@@ -7,7 +7,9 @@
 procedure Ada_Mode.Recover_Indent_1
 is
 begin
-   Check ("v - r", Graph.Find_Path (V, (Vertex, R)) -- syntax error here; missing ');'; recover inserts that
+   Check ("v - r", Graph.Find_Path (V, (Vertex, R))
+          -- syntax error here; missing ');'
+          -- recover inserts '=>' (legal according to its relaxed grammar)
 
-   Check ("1a", Graph, (5, 4, 3, 2, 1));
+          Check ("1a", Graph, (5, 4, 3, 2, 1));
 end Ada_Mode.Recover_Indent_1;
