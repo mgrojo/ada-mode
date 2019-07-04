@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017-2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -147,10 +147,10 @@ package body Association_Grammar_Test is
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
-         User_Data                             => null,
-         Language_Fixes                        => null,
-         Language_Use_Minimal_Complete_Actions => null,
-         Language_String_ID_Set                => null);
+         User_Data                      => null,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;
 

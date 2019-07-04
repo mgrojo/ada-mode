@@ -711,15 +711,31 @@ package body WisiToken_Grammar_Runtime is
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
+               elsif Kind = "mckenzie_cost_fast_forward" then
+                  Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Fast_Forward :=
+                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+
                elsif Kind = "mckenzie_cost_insert" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Insert.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
+               elsif Kind = "mckenzie_cost_matching_begin" then
+                  Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Matching_Begin :=
+                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+
                elsif Kind = "mckenzie_cost_push_back" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Push_Back.Append
+                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
+                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+
+               elsif Kind = "mckenzie_cost_undo_reduce" then
+                  Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Undo_Reduce.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
@@ -2814,3 +2830,6 @@ package body WisiToken_Grammar_Runtime is
    end Print_Source;
 
 end WisiToken_Grammar_Runtime;
+--  Local Variables:
+--  ada-which-func-parse-size: 30000
+--  End:

@@ -162,10 +162,10 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate (Top_Level.Grammar, LALR_Descriptor),
-         User_Data                             => null,
-         Language_Fixes                        => null,
-         Language_Use_Minimal_Complete_Actions => null,
-         Language_String_ID_Set                => null);
+         User_Data                      => null,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null);
 
       Execute
         ("set A = 2",

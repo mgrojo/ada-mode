@@ -380,7 +380,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             begin
                --  Can't have active 'renames State_Ref' when terminate a parser
                declare
-                  use all type Syntax_Trees.Node_Index;
                   use Parser_Lists;
 
                   Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
@@ -533,6 +532,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            when Syntax_Trees.Shared_Terminal |
                              Syntax_Trees.Virtual_Identifier |
                              Syntax_Trees.Virtual_Terminal =>
+                              if Trace_McKenzie > Outline then
+                                 Put_Line
+                                   (Trace, Parser_State.Label, "expecting nonterminal, found " &
+                                      Image (Tree.ID (Item.Token), Trace.Descriptor.all),
+                                    Task_ID => False);
+                              end if;
                               raise Bad_Config;
 
                            when Syntax_Trees.Nonterm =>
@@ -859,17 +864,39 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
    end Current_Token_ID_Peek_3;
 
-   procedure Delete (Config : in out Configuration; ID : in Token_ID)
+   procedure Delete_Check
+     (Terminals : in     Base_Token_Arrays.Vector;
+      Config    : in out Configuration;
+      ID        : in     Token_ID)
    is
       Op : constant Config_Op := (Delete, ID, Config.Current_Shared_Token);
    begin
+      Check (Terminals (Config.Current_Shared_Token).ID, ID);
       Config.Ops.Append (Op);
       Config.Insert_Delete.Insert (Op);
       Config.Current_Insert_Delete := 1;
    exception
    when SAL.Container_Full =>
       raise Bad_Config;
-   end Delete;
+   end Delete_Check;
+
+   procedure Delete_Check
+     (Terminals : in     Base_Token_Arrays.Vector;
+      Config    : in out Configuration;
+      Index     : in out     WisiToken.Token_Index;
+      ID        : in     Token_ID)
+   is
+      Op : constant Config_Op := (Delete, ID, Index);
+   begin
+      Check (Terminals (Index).ID, ID);
+      Config.Ops.Append (Op);
+      Config.Insert_Delete.Insert (Op);
+      Config.Current_Insert_Delete := 1;
+      Index := Index + 1;
+   exception
+   when SAL.Container_Full =>
+      raise Bad_Config;
+   end Delete_Check;
 
    procedure Find_ID
      (Config         : in     Configuration;
@@ -980,7 +1007,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
-               then Token.Byte_Region
+               then Token.Byte_Region -- FIXME: why not only Token.name?
                else Token.Name);
          begin
             exit when Name_Region /= Null_Buffer_Region and then
@@ -1090,7 +1117,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Config.Current_Shared_Token := Token_Index;
          for I in Config.Ops.First_Index .. Config.Ops.Last_Index loop
             if Compare (Token_Index, Config.Ops (I)) then
-               Config.Insert_Delete.Insert (Config.Ops (I));
+               Config.Insert_Delete.Insert (Config.Ops (I), Ignore_If_Equal => True);
             end if;
          end loop;
       end if;
@@ -1185,13 +1212,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
    is
-      Nonterm_Item : constant Recover_Stack_Item                  := Stack.Pop;
-      Children     : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
+      Nonterm_Item : constant Recover_Stack_Item := Stack.Pop;
    begin
-      for C of Children loop
-         Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
-      end loop;
-      return Children'Length;
+      if Nonterm_Item.Token.Byte_Region = Null_Buffer_Region then
+         return 0;
+      end if;
+      declare
+         Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
+      begin
+         for C of Children loop
+            Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
+         end loop;
+         return Children'Length;
+      end;
    end Undo_Reduce;
 
    procedure Undo_Reduce_Check

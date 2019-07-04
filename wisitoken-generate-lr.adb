@@ -1387,15 +1387,26 @@ package body WisiToken.Generate.LR is
          end if;
       end loop;
       Put_Line ("(Push_Back =>");
-      for I in Item.Delete'Range loop
-         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Delete (I)));
-         if I = Item.Delete'Last then
+      for I in Item.Push_Back'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Push_Back (I)));
+         if I = Item.Push_Back'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("(Undo_Reduce =>");
+      for I in Item.Undo_Reduce'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Undo_Reduce (I)));
+         if I = Item.Undo_Reduce'Last then
             Put_Line (")");
          else
             Put_Line (",");
          end if;
       end loop;
       Put_Line ("Minimal_Complete_Cost_Delta => " & Integer'Image (Item.Minimal_Complete_Cost_Delta));
+      Put_Line ("Fast_Forward      => " & Integer'Image (Item.Fast_Forward));
+      Put_Line ("Matching_Begin    => " & Integer'Image (Item.Matching_Begin));
       Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
       Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
       Put_Line ("Check_Limit       =>" & Token_Index'Image (Item.Check_Limit));

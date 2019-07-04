@@ -860,7 +860,7 @@ package body WisiToken.Parse.LR is
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is
-      use all type Syntax_Trees.Node_Index;
+      use all type WisiToken.Syntax_Trees.Node_Index;
    begin
       for I in 1 .. Depth loop
          if Stack (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then

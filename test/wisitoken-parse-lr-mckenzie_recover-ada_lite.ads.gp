@@ -29,10 +29,11 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
 
-   function Matching_Begin_Tokens
-     (Tokens : in Token_ID_Array_1_3;
-      Config : in Configuration)
-      return Token_ID_Arrays.Vector;
+   procedure Matching_Begin_Tokens
+     (Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean);
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

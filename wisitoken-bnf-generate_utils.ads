@@ -145,9 +145,8 @@ package WisiToken.BNF.Generate_Utils is
      return Token_ID_Set;
 
    function To_McKenzie_Param
-     (Data             : aliased in Generate_Data;
-      Item             :         in McKenzie_Recover_Param_Type;
-      Source_File_Name :         in String)
+     (Data : aliased in Generate_Data;
+      Item :         in McKenzie_Recover_Param_Type)
      return WisiToken.Parse.LR.McKenzie_Param_Type;
 
    procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);

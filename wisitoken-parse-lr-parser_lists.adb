@@ -27,7 +27,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
-      use all type Syntax_Trees.Node_Index;
       use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
 
@@ -40,6 +39,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    begin
       for I in 1 .. Last loop
          declare
+            use all type WisiToken.Syntax_Trees.Node_Index;
             Item : Parser_Stack_Item renames Stack.Peek (I);
          begin
             Result := Result &

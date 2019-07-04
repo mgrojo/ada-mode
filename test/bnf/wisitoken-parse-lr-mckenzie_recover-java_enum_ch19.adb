@@ -24,43 +24,31 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Enum_Ch19 is
 
    Descriptor : WisiToken.Descriptor renames Java_Enum_Ch19_Actions.Descriptor;
 
-   subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
-
-   Minimal_Complete_Action_IDs : constant Terminal_Token_ID_Set :=
-     To_Token_ID_Set
-       (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-          (+RIGHT_CURLY_BRACKET_ID) &
-          Descriptor.EOI_ID);
-
-   procedure Use_Minimal_Complete_Actions
-     (Tokens               : in     Token_ID_Array_1_3;
-      Config               : in     Configuration;
-      Use_Complete         :    out Boolean;
-      Matching_Begin_Token :    out Token_ID_Arrays.Vector)
+   procedure Matching_Begin_Tokens
+     (Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Begin_Tokens   :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean)
    is
       use all type SAL.Base_Peek_Type;
       use Java_Enum_Ch19_Actions;
       use Token_ID_Arrays;
    begin
+      Forbid_Minimal_Complete := False;
+
       if Config.Stack.Depth = 1 and Tokens (1) = Descriptor.EOI_ID then
          --  Empty input buffer
-         Use_Complete         := True;
-         Matching_Begin_Token := To_Vector (+Identifier_ID);
+         Matching_Begin_Tokens := To_Vector (+Identifier_ID);
 
-      elsif Minimal_Complete_Action_IDs (Tokens (1)) then
-         Use_Complete := True;
-
+      else
          case To_Token_Enum (Tokens (1)) is
          when RIGHT_CURLY_BRACKET_ID =>
-            Matching_Begin_Token := To_Vector (+LEFT_CURLY_BRACKET_ID);
+            Matching_Begin_Tokens := To_Vector (+LEFT_CURLY_BRACKET_ID);
          when others =>
-            Matching_Begin_Token := Empty_Vector;
+            Matching_Begin_Tokens := Empty_Vector;
          end case;
-      else
-         Use_Complete := False;
-         Matching_Begin_Token := Empty_Vector;
       end if;
-   end Use_Minimal_Complete_Actions;
+   end Matching_Begin_Tokens;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

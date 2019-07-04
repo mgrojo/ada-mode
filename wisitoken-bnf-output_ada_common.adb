@@ -455,8 +455,11 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put ("Insert", Table.McKenzie_Param.Insert);
       Put ("Delete", Table.McKenzie_Param.Delete);
       Put ("Push_Back", Table.McKenzie_Param.Push_Back);
+      Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
       Indent_Line
         ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
+      Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
+      Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
       Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
       Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
                      (Table.McKenzie_Param.Task_Count) & ",");
@@ -753,14 +756,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       case Common_Data.Interface_Kind is
       when Process =>
          if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Matching_Begin_Tokens : in");
-            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
+            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("   Language_Matching_Begin_Tokens : in     " &
+                           "WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
             Indent_Line
               ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
-            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
+            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");

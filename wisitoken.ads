@@ -361,13 +361,14 @@ package WisiToken is
 
       Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
       --  For terminals, index of this token in Shared_Parser.Terminals. For
-      --  nonterminals, minimum of contained tokens. For virtuals,
-      --  Invalid_Token_Index. Used for push_back of nonterminals.
+      --  nonterminals, minimum of contained tokens (Invalid_Token_Index if
+      --  empty). For virtuals, Invalid_Token_Index. Used for push_back of
+      --  nonterminals.
 
       Name : Buffer_Region := Null_Buffer_Region;
       --  Set and used by semantic_checks.
 
-      Virtual : Boolean := False;
+      Virtual : Boolean := True;
       --  For terminals, True if inserted by recover. For nonterminals, True
       --  if any contained token has Virtual = True. Used by Semantic_Checks
       --  and push_back.

@@ -13,12 +13,12 @@ package WisiToken.Parse.LR.McKenzie_Recover.Java_Enum_Ch19 is
       Config            : in     Configuration)
    is null;
 
-   procedure Use_Minimal_Complete_Actions
-     (Tokens               : in     Token_ID_Array_1_3;
-      Config               : in     Configuration;
-      Use_Complete         :    out Boolean;
-      Matching_Begin_Token :    out Token_ID_Arrays.Vector);
-   --  See wisitoken-parse-lr-parser.ads Language_Use_Minimal_Complete_Actions_Access
+   procedure Matching_Begin_Tokens
+     (Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Begin_Tokens   :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean);
+   --  See wisitoken-parse-lr-parser.ads Language_Matching_Begin_Tokens_Access
    --  for description.
 
    function String_ID_Set

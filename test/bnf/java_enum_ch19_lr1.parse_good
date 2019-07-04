@@ -26,10 +26,10 @@ parser 0: State 8 Current_Token 6:(Wisi_EOI, (23 . 22)) Resume_Token_Goal 10
 Action
 
  7 parallel tasks
- 0: succeed 2, enqueue 6, check  5, cost:  1
+ 0: succeed 2, enqueue 7, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
- 1:  1, ( 0 1 0 0 0), (9 : (RIGHT_CURLY_BRACKET))| 6:(Wisi_EOI, (23 . 22))|((INSERT, RIGHT_CURLY_BRACKET, 6))
- 0:  1, ( 0 3 0 0 0), (9 : (RIGHT_CURLY_BRACKET))| 6:(Wisi_EOI, (23 . 22))|((INSERT, Identifier, 6), (INSERT, COMMA, 6), (INSERT, RIGHT_CURLY_BRACKET, 6))
+ 1:  1, ( 0 1 0 0 0), (9 : (RIGHT_CURLY_BRACKET))| 6:(Wisi_EOI, (23 . 22))|((INSERT, RIGHT_CURLY_BRACKET, 6)) minimal_complete ACTIVE
+ 0:  1, ( 0 3 0 0 0), (9 : (RIGHT_CURLY_BRACKET))| 6:(Wisi_EOI, (23 . 22))|((INSERT, Identifier, 6), (INSERT, COMMA, 6), (INSERT, RIGHT_CURLY_BRACKET, 6)) minimal_complete ACTIVE
 recover: succeed, parser count 2
  1: Current_Token (RIGHT_CURLY_BRACKET) Shared_Token  6:(Wisi_EOI, (23 . 22))
  1: resume_active: True, token goal 10

@@ -281,11 +281,11 @@ package body Test_Partial_Parse is
       --  Run before all tests in register
       Create_Parser
         (Parser,
-         Language_Fixes                        => null,
-         Language_Use_Minimal_Complete_Actions => null,
-         Language_String_ID_Set                => null,
-         Trace                                 => Trace'Access,
-         User_Data                             => User_Data'Access);
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null,
+         Trace                          => Trace'Access,
+         User_Data                      => User_Data'Access);
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)

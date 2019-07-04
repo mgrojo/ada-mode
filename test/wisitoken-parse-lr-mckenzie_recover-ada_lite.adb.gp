@@ -113,7 +113,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    with Pre => Config.Check_Status.Label /= Ok
    is
       use all type SAL.Base_Peek_Type;
-      use all type Syntax_Trees.Node_Index;
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
@@ -499,7 +498,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Handle_Parse_Error
      (Trace             : in out WisiToken.Trace'Class;
+      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
+      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
@@ -602,6 +603,65 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Local_Config_Heap.Add (New_Config_1);
             end;
          end if;
+
+      elsif Config.Error_Token.ID in +IDENTIFIER_ID and
+        Config.Stack.Peek.Token.ID = +END_ID
+      then
+         --  We've encountered an identifier or semicolon after 'end' when
+         --  expecting a keyword. See test_mckenzie_recover.adb
+         --  Forbid_Minimal_Complete.
+         --
+         --  If a matching 'begin name' is found on the stack, the input looks
+         --  like:
+         --
+         --  1) "<begin_name_token> ... begin ... <compound_statement_begin> ... end <end_name_token> ;"
+         --
+         --  There is a missing 'end <compound_statement_id> ;' before the
+         --  'end'. We can get the ID to insert from Parse_Table
+         --  Minimal_Complete_Actions.
+         --
+         --  Minimal_Complete_Actions does not handle this case well; it
+         --  ignores the name.
+         declare
+            use all type Ada.Containers.Count_Type;
+            use all type SAL.Base_Peek_Type;
+            End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
+              (Config.Stack.Peek.State).Minimal_Complete_Actions;
+            End_Name       : constant String := Lexer.Buffer_Text (Config.Error_Token.Byte_Region);
+
+            Matching_Name_Index : SAL.Peek_Type := 2; -- start search before 'end'
+         begin
+            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
+
+            if Matching_Name_Index < Config.Stack.Depth and then
+              End_ID_Actions.Length = 1 and then
+              End_ID_Actions (End_ID_Actions.First_Index).Verb = Shift
+            then
+               declare
+                  Label      : constant String := "missing end keyword";
+                  New_Config : Configuration   := Config;
+               begin
+                  New_Config.Error_Token.ID := Invalid_Token_ID;
+
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
+                  Push_Back_Check (New_Config, +END_ID);
+
+                  --  Inserting the end keyword and semicolon here avoids the costs added by
+                  --  Insert_Minimal_Complete_Actions.
+                  Insert (New_Config, (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
+
+                  Local_Config_Heap.Add (New_Config);
+                  if Trace_McKenzie > Detail then
+                     Put ("Language_Fixes " & Label, New_Config);
+                  end if;
+               exception
+               when Bad_Config =>
+                  null;
+               end;
+            end if;
+         end;
+
       end if;
    end Handle_Parse_Error;
 
@@ -617,26 +677,25 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
-   is
-      pragma Unreferenced (Parse_Table);
-   begin
+   is begin
       if Trace_McKenzie > Extra then
          Put ("Language_Fixes", Trace, Parser_Label, Terminals, Config);
       end if;
 
       case Config.Check_Status.Label is
       when Ok =>
-         Handle_Parse_Error (Trace, Parser_Label, Terminals, Local_Config_Heap, Config);
+         Handle_Parse_Error (Trace, Lexer, Parser_Label, Parse_Table, Terminals, Local_Config_Heap, Config);
 
       when others =>
          Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
       end case;
    end Fixes;
 
-   function Matching_Begin_Tokens
-     (Tokens : in Token_ID_Array_1_3;
-      Config : in Configuration)
-     return Token_ID_Arrays.Vector
+   procedure Matching_Begin_Tokens
+     (Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean)
    is
       use all type SAL.Base_Peek_Type;
       use Token_ID_Arrays;
@@ -674,39 +733,47 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       end Matching_Begin_For_End;
 
    begin
-      return Result : Token_ID_Arrays.Vector do
-         if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
-            Result := Matching_Begin_For_End (1);
+      if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
+         Matching_Tokens := Matching_Begin_For_End (1);
 
-         else
+      else
+         case Actions.Token_Enum_ID'(-Tokens (1)) is
+         when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
+
             case Actions.Token_Enum_ID'(-Tokens (1)) is
-            when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
+            when END_ID =>
+               Matching_Tokens := Matching_Begin_For_End (2);
 
-               case Actions.Token_Enum_ID'(-Tokens (1)) is
-               when END_ID =>
-                  Result := Matching_Begin_For_End (2);
+            when EXCEPTION_ID =>
+               Matching_Tokens := To_Vector (+BEGIN_ID);
 
-               when EXCEPTION_ID =>
-                  Result := To_Vector (+BEGIN_ID);
+            when IS_ID =>
+               Matching_Tokens := To_Vector (+PROCEDURE_ID);
 
-               when IS_ID =>
-                  Result := To_Vector (+PROCEDURE_ID);
-
-               when SEMICOLON_ID =>
-                  Result := To_Vector (+IDENTIFIER_ID);
-
-               when others =>
-                  null;
-               end case;
-
-            when Wisi_EOI_ID =>
-               Result := Empty_Vector;
+            when SEMICOLON_ID =>
+               Matching_Tokens := To_Vector (+IDENTIFIER_ID);
 
             when others =>
-               Result := Empty_Vector;
+               null;
             end case;
-         end if;
-      end return;
+
+         when Wisi_EOI_ID =>
+            Matching_Tokens := Empty_Vector;
+
+         when others =>
+            Matching_Tokens := Empty_Vector;
+         end case;
+      end if;
+
+      if Config.Stack.Peek.Token.ID = +END_ID and
+        Tokens (1) = +IDENTIFIER_ID and
+        (Tokens (2) /= Invalid_Token_ID and then
+           -Tokens (2) in DOT_ID | SEMICOLON_ID)
+      then
+         Forbid_Minimal_Complete := True;
+      else
+         Forbid_Minimal_Complete := False;
+      end if;
    end Matching_Begin_Tokens;
 
    function String_ID_Set

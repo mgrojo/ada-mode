@@ -718,9 +718,8 @@ package body WisiToken.BNF.Generate_Utils is
    end To_Nonterminal_ID_Set;
 
    function To_McKenzie_Param
-     (Data             : aliased in Generate_Data;
-      Item             :         in McKenzie_Recover_Param_Type;
-      Source_File_Name :         in String)
+     (Data : aliased in Generate_Data;
+      Item :         in McKenzie_Recover_Param_Type)
      return WisiToken.Parse.LR.McKenzie_Param_Type
    is
       use Ada.Strings.Unbounded;
@@ -735,31 +734,27 @@ package body WisiToken.BNF.Generate_Utils is
          Insert                      => (others => Item.Default_Insert),
          Delete                      => (others => Item.Default_Delete_Terminal),
          Push_Back                   => (others => Item.Default_Push_Back),
+         Undo_Reduce                 => (others => Item.Default_Push_Back), -- no separate default for undo_reduce
          Minimal_Complete_Cost_Delta => Item.Minimal_Complete_Cost_Delta,
+         Fast_Forward                => Item.Fast_Forward,
+         Matching_Begin              => Item.Matching_Begin,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,
          Task_Count                  => 0,
          Check_Limit                 => Item.Check_Limit,
          Check_Delta_Limit           => Item.Check_Delta_Limit,
          Enqueue_Limit               => Item.Enqueue_Limit);
-
-      ID : Token_ID;
    begin
       for Pair of Item.Delete loop
-         ID := Find_Token_ID (Data, -Pair.Name);
-         if ID in Result.Delete'Range then
-            Result.Delete (ID) := Natural'Value (-Pair.Value);
-         else
-            Put_Error
-              (Error_Message
-                 (Source_File_Name, Item.Source_Line, "delete cost is only valid for terminals (" &
-                    WisiToken.Image (ID, Data.Descriptor.all) & ")"));
-         end if;
+         Result.Delete (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
       for Pair of Item.Insert loop
          Result.Insert (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
       for Pair of Item.Push_Back loop
          Result.Push_Back (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
+      end loop;
+      for Pair of Item.Undo_Reduce loop
+         Result.Undo_Reduce (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
 
       return Result;

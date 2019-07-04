@@ -197,7 +197,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                            Put_Line
                              (Trace.all,
                               P_Status.Parser_State.Label, "fail; enqueue limit (" &
-                                Integer'Image (Enqueue_Limit) & ")",
+                                Enqueue_Limit'Image & " cost" &
+                                P_Status.Parser_State.Recover.Config_Heap.Min_Key'Image & ")",
                               Task_ID => False);
                         end if;
                         P_Status.Recover_State := Fail;

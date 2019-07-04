@@ -139,6 +139,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    begin
       if Trace_McKenzie > Detail then
+         if Trace_McKenzie > Extra then
+            if Config.Current_Insert_Delete /= No_Insert_Delete then
+               Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
+                           Image (Insert_Delete_Arrays.Vector (Config.Insert_Delete), Trace.Descriptor.all));
+            end if;
+         end if;
+
          Base.Put (Trace_Prefix & ": " & Image (Current_Token, Descriptor), Super, Shared, Parser_Index, Config);
          if Shared_Token_Goal /= Invalid_Token_Index then
             Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &

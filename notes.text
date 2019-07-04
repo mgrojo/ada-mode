@@ -21,15 +21,25 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-check should clear matching_begin_done, minimal_complete_status when append fast_forward.
+* wisitoken-parse-lr-mckenzie_recover.adb (Find_Matching_Name): FIXME:
 
-run all tests
+change mckenzie implementation
+    get timing benchmarks first; see Ada_mode notes.
+    don't do parse before enqueue config =>
+        saves time on high cost configs that are never dequeued (the vast majority).
+        not clear when to mark fast_forward?
+            whenever error point changes; rename to Error_Point?
 
-possible new strategy delete_to_keyword
-    cost one per token? don't delete entire procedure calls, assignments.
-    allows matching_begin quickly
-        always do that if available!
-    allows determining statement/declaration
+    minimize config copy
+        add to heap return reference, use that to edit
+            in a declare block if need more than one edit.
+
+allow undo_reduce after insert/fast_forward
+    in Recover, processing ops
+        need test case; ada_mode.recover_25 with language_fix that does not push_back declarative_part_opt
+        ada_mode-recover_27.adb uses Undo_Reduce (to allow 'insert loop'), but not after insert.
+        if no useful test cases, delete Try_Undo_Reduce, and doc why.
+        or add None_At_All (Insert) to try_Undo_Reduce.
 
 check should check all conflicts, enqueue conflicts on success
     otherwise we are ignoring possible solutions.

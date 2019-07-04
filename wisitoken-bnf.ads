@@ -206,12 +206,17 @@ package WisiToken.BNF is
 
       Default_Insert              : Natural               := 0;
       Default_Delete_Terminal     : Natural               := 0;
-      Default_Push_Back           : Natural               := 0;
+      Default_Push_Back           : Natural               := 0; -- also default for undo_reduce
       Delete                      : String_Pair_Lists.List;
       Insert                      : String_Pair_Lists.List;
       Push_Back                   : String_Pair_Lists.List;
+      Undo_Reduce                 : String_Pair_Lists.List;
       Minimal_Complete_Cost_Delta : Integer               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Minimal_Complete_Cost_Delta;
+      Fast_Forward                : Integer               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Fast_Forward;
+      Matching_Begin              : Integer               :=
+        WisiToken.Parse.LR.Default_McKenzie_Param.Matching_Begin;
       Ignore_Check_Fail           : Natural               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
       Check_Limit                 : WisiToken.Token_Index :=

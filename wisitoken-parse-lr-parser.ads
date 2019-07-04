@@ -53,16 +53,21 @@ package WisiToken.Parse.LR.Parser is
    --  For an Error action, Config.Error_Token gives the terminal that
    --  caused the error.
 
-   type Language_Matching_Begin_Tokens_Access is access function
-     (Tokens : in Token_ID_Array_1_3;
-      Config : in Configuration)
-     return Token_ID_Arrays.Vector;
+   type Language_Matching_Begin_Tokens_Access is access procedure
+     (Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean);
    --  Tokens (1) caused a parse error; Tokens (2 .. 3) are the following
-   --  tokens (Invalid_Token_ID if none). Return a token sequence that
-   --  starts a production matching Tokens.
+   --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a token
+   --  sequence that starts a production matching Tokens. If
+   --  Minimal_Complete would produce a bad solution at this error point,
+   --  set Forbid_Minimal_Complete True.
    --
    --  For example, if Tokens is a block end, return tokens that are the
-   --  corresponding block begin.
+   --  corresponding block begin. If the error point is inside a
+   --  multi-token 'end' (ie 'end if;', or 'end <name>;'), set
+   --  Forbid_Minimal_Complete True.
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017, 2018 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2019 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -58,11 +58,11 @@ is
    begin
       Create_Parser
         (Parser,
-         Language_Fixes                        => Language_Fixes,
-         Language_Use_Minimal_Complete_Actions => Language_Use_Minimal_Complete_Actions,
-         Language_String_ID_Set                => Language_String_ID_Set,
-         Trace                                 => Trace'Unchecked_Access,
-         User_Data                             => null);
+         Language_Fixes                 => Language_Fixes,
+         Language_Matching_Begin_Tokens => Language_Matching_Begin_Tokens,
+         Language_String_ID_Set         => Language_String_ID_Set,
+         Trace                          => Trace'Unchecked_Access,
+         User_Data                      => null);
 
       if Task_Count /= System.Multiprocessors.CPU_Range'Last then
          Parser.Table.McKenzie_Param.Task_Count := Task_Count;

@@ -51,6 +51,7 @@ package WisiToken.Parse.LR.McKenzie_Recover is
    --  and forces at least three.
 
 private
+   use all type WisiToken.Syntax_Trees.Node_Index;
 
    ----------
    --  Visible for language-specific child packages. Alphabetical.
@@ -93,12 +94,29 @@ private
    --  Insert_Delete, without setting up for Next_Token. Return the two
    --  following tokens in Tokens (2 .. 3).
 
-   procedure Delete (Config : in out Configuration; ID : in Token_ID);
-   --  Append a Delete op to Config.Ops, and insert it in
-   --  Config.Insert_Delete in token_index order.
+   procedure Delete_Check
+     (Terminals : in     Base_Token_Arrays.Vector;
+      Config    : in out Configuration;
+      ID        : in     Token_ID);
+   --  Check that Terminals (Config.Current_Shared_Token) = ID. Append a
+   --  Delete op to Config.Ops, and insert it in Config.Insert_Delete in
+   --  token_index order.
    --
-   --  This must be used instead of Config.Ops.Append (Delete...) unless
-   --  the code also takes care of changing Config.Current_Shared_Token.
+   --  This or the next routine must be used instead of Config.Ops.Append
+   --  (Delete...) unless the code also takes care of changing
+   --  Config.Current_Shared_Token. Note that this routine does _not_
+   --  increment Config.Current_Shared_Token, so it can only be used to
+   --  delete one token.
+
+   procedure Delete_Check
+     (Terminals : in     Base_Token_Arrays.Vector;
+      Config    : in out Configuration;
+      Index     : in out     WisiToken.Token_Index;
+      ID        : in     Token_ID);
+   --  Check that Terminals (Index) = ID. Append a Delete op to
+   --  Config.Ops, and insert it in Config.Insert_Delete in token_index
+   --  order. Increments Index, for convenience when deleting several
+   --  tokens.
 
    procedure Find_ID
      (Config         : in     Configuration;
@@ -215,11 +233,21 @@ private
       Task_ID      : in     Boolean := True);
    --  Put message to Trace, with parser and task info.
 
+   function Undo_Reduce_Valid (Stack : in out Recover_Stacks.Stack) return Boolean
+     is (Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index or
+           (Stack.Peek.Tree_Index = WisiToken.Syntax_Trees.Invalid_Node_Index and
+              (not Stack.Peek.Token.Virtual or
+                 Stack.Peek.Token.Byte_Region = Null_Buffer_Region)));
+   --  Undo_Reduce needs to know what tokens the nonterm contains, to
+   --  push them on the stack. Thus we need either a valid Tree index, or
+   --  an empty nonterm. If Token.Virtual, we can't trust
+   --  Token.Byte_Region to determine empty.
+
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
-   with Pre => Tree.Is_Nonterm (Stack (1).Tree_Index);
+   with Pre => Undo_Reduce_Valid (Stack);
    --  Undo the reduction that produced the top stack item, return the
    --  token count for that reduction.
 

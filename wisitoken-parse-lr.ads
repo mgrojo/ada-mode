@@ -249,13 +249,21 @@ package WisiToken.Parse.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
-      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
-      Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Insert      : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
+      Delete      : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
+      Push_Back   : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
 
       Minimal_Complete_Cost_Delta : Integer;
       --  Reduction in cost due to using Minimal_Complete_Action.
+
+      Matching_Begin : Integer;
+      --  Cost of Matching_Begin strategy (applied once, independent of
+      --  token count).
+
+      Fast_Forward : Integer;
+      --  Cost of moving the edit point forward over input tokens.
 
       Ignore_Check_Fail : Natural;
       --  Cost of ignoring a semantic check failure. Should be at least the
@@ -278,7 +286,10 @@ package WisiToken.Parse.LR is
       Insert                      => (others => 0),
       Delete                      => (others => 0),
       Push_Back                   => (others => 0),
+      Undo_Reduce                 => (others => 0),
       Minimal_Complete_Cost_Delta => -1,
+      Fast_Forward                => 0,
+      Matching_Begin              => 0,
       Ignore_Check_Fail           => 0,
       Task_Count                  => System.Multiprocessors.CPU_Range'Last,
       Check_Limit                 => 4,
@@ -459,11 +470,6 @@ package WisiToken.Parse.LR is
    --  config does hit that limit, it is abandoned; some other config is
    --  likely to be cheaper.
 
-   package Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Insert_Delete_Op, Capacity => 80);
-
-   package Sorted_Insert_Delete_Arrays is new Insert_Delete_Arrays.Gen_Sorted (Compare);
-
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
            (case Item.Op is
@@ -490,7 +496,7 @@ package WisiToken.Parse.LR is
      renames Config_Op_Array_Image;
 
    function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is (for all O of Ops => O.Op /= Op);
+     is (for all O of Ops => O.Op /= Op);
    --  True if Ops contains no Op.
 
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
@@ -502,13 +508,26 @@ package WisiToken.Parse.LR is
    --  no Fast_Forward).
 
    function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is (for some O of Ops => O.Op = Op);
+     is (for some O of Ops => O.Op = Op);
    --  True if Ops contains at least one Op.
 
+   package Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Insert_Delete_Op, Capacity => 80);
+
+   package Sorted_Insert_Delete_Arrays is new Insert_Delete_Arrays.Gen_Sorted (Compare);
+
+   function Image is new Insert_Delete_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+
    type Recover_Stack_Item is record
-      State      : Unknown_State_Index;
+      State : Unknown_State_Index;
+
       Tree_Index : Syntax_Trees.Node_Index;
-      Token      : Recover_Token;
+      --  Valid if copied at recover initialize, Invalid if pushed during
+      --  recover.
+
+      Token : Recover_Token;
+      --  Virtual is False if token is from input text; True if inserted
+      --  during recover.
    end record;
 
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
