@@ -93,4 +93,14 @@
    nil
    ])
 
+(defconst wisitoken_grammar_1-elisp-keyword-table-raw
+  '(
+   ("code" . CODE)
+   ("end" . END)
+   ("if" . IF)
+   ("keyword" . KEYWORD)
+   ("non_grammar" . NON_GRAMMAR)
+   ("token" . TOKEN)
+   ))
+
 (provide 'wisitoken_grammar_1-process)

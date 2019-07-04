@@ -142,7 +142,7 @@
   "Starting at BEGIN, search backward for a parse start point."
   (goto-char begin)
   (cond
-   ((wisi-search-backward-skip "[%:]" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-backward-skip "^%[^({[]\\|:" #'wisitoken-grammar-in-action-or-comment)
     (when (looking-at ":")
       ;; Move back to before the nonterminal name
       (forward-comment (- (line-number-at-pos (point))))
@@ -157,7 +157,7 @@
   "Starting at END, search forward for a parse end point."
   (goto-char end)
   (cond
-   ((wisi-search-forward-skip "[%;]" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-forward-skip "^%\\|;$" #'wisitoken-grammar-in-action-or-comment)
     (point))
 
    (t
