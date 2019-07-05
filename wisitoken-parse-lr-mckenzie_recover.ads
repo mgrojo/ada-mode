@@ -233,8 +233,12 @@ private
       Task_ID      : in     Boolean := True);
    --  Put message to Trace, with parser and task info.
 
-   function Undo_Reduce_Valid (Stack : in out Recover_Stacks.Stack) return Boolean
-     is (Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index or
+   function Undo_Reduce_Valid
+     (Stack : in out Recover_Stacks.Stack;
+      Tree  : in     Syntax_Trees.Tree)
+     return Boolean
+     is ((Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index and then
+            Tree.Is_Nonterm (Stack.Peek.Tree_Index)) or
            (Stack.Peek.Tree_Index = WisiToken.Syntax_Trees.Invalid_Node_Index and
               (not Stack.Peek.Token.Virtual and
                  Stack.Peek.Token.Byte_Region = Null_Buffer_Region)));
@@ -247,7 +251,7 @@ private
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
-   with Pre => Undo_Reduce_Valid (Stack);
+   with Pre => Undo_Reduce_Valid (Stack, Tree);
    --  Undo the reduction that produced the top stack item, return the
    --  token count for that reduction.
 

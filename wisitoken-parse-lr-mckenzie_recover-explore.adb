@@ -547,9 +547,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
-      subtype Nonterminals is Token_ID range Shared.Trace.Descriptor.First_Nonterminal ..
-        Shared.Trace.Descriptor.Last_Nonterminal;
-
       Trace : WisiToken.Trace'Class renames Super.Trace.all;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
@@ -558,7 +555,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Try expanding the nonterm on the stack top, to allow pushing_back
       --  its components, or insert and other operations at that point.
 
-      if Token.ID in Nonterminals and then Undo_Reduce_Valid (Config.Stack) then
+      if Undo_Reduce_Valid (Config.Stack, Super.Parser_State (Parser_Index).Tree) then
          declare
             New_Config  : Configuration := Config;
             Token_Count : Ada.Containers.Count_Type;
