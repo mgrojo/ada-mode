@@ -54,6 +54,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+release
+    clean up elpa packages for ada-project
+
 speed up recover in o.w.s-2, o.e.a.s-4
     tolerate larger enqueue_limit.
     benchmark: ada_mode-recover_29.adb

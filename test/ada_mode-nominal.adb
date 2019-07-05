@@ -5,6 +5,9 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
+--EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(= (point) (point-min)))
+--EMACSRESULT:t
+
 --EMACSCMD:(progn (goto-char (car (ada-fix-context-clause))) (looking-at "with Ada.Strings"))
 --EMACSRESULT:t
 pragma License (Unrestricted); -- for testing ada-wisi-context-clause

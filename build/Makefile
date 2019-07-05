@@ -47,7 +47,7 @@ docs : info html
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
-update-elisp : build_ada_executables
+update-elisp : build_executables
 update-elisp : autoloads
 update-elisp : byte-compile
 
@@ -58,7 +58,7 @@ update-install : install
 update-install : docs
 
 install : install_gpr_query
-install : install_ada_executables
+install : install_executables
 
 # *-elisp.el are in monotone, so this is all we need after a monotone
 # update. Doing byte-compile-clean first avoids errors caused by
@@ -74,7 +74,7 @@ byte-compile-clean :
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
 ifeq ($(TEST_DIR),source)
-test : build_ada_executables
+test : build_executables
 endif
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
@@ -99,8 +99,8 @@ summarize :
 ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
 #ONE_TEST_FILES ?= ada_mode-recover_29.adb
-one :: build_ada_executables
-# one :: byte-compile
+#one :: build_executables
+#one :: byte-compile
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
@@ -109,24 +109,24 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-elisp-gpr_query.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
-	find . -name "*.diff" -not -size 0 >> test.log
+#	find . -name "*.diff" -not -size 0 >> test.log
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
 two : RUN_ARGS ?= ../test/ada_mode-recover_29.adb Indent --verbosity 1 1 0 --enqueue_limit 120_000
-two : build_ada_executables
+two : build_executables
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
 	../run_ada_lr1_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
-two_mem : build_ada_executables
+two_mem : build_executables
 	../exec_mem/run_ada_lalr_parse.exe c:/tmp/regulation-iflight.adb Face
 	gnatmem ../exec_mem/run_ada_lalr_parse.exe > regulation_iflight.memory
 
 two_pro : export Standard_Common_Profile := On
-two_pro : build_ada_executables
+two_pro : build_executables
 	../exec_pro/run_ada_lr1_parse.exe c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
 	gprof ../exec_pro/run_ada_lr1_parse.exe > query_display-flight_operations.profile
 
@@ -157,8 +157,11 @@ include rules.make
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
 
+update-test-log : force
+	find . -name "*.diff" -not -size 0 >> test.log
+
 test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
-test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_ELISP_TEST_FILES)))
 
 test-ada-elisp-gpr_query.stamp : force
 	rm -f *.diff *.tmp
@@ -409,10 +412,10 @@ trace :
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
-build_ada_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c force
+build_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
-install_ada_executables : build_ada_executables
+install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
 # Load both Ada mode projects, so we can choose one via the menu

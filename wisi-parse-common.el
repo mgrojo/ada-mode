@@ -230,15 +230,6 @@ value from grammar file."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-task-count)
 
-(defcustom wisi-mckenzie-cost-limit nil
-  "If integer, sets McKenzie error recovery algorithm cost limit.
-Higher value has more recover power, but takes longer.  If nil,
-uses value from grammar file."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-cost-limit)
-
 (defcustom wisi-mckenzie-check-limit nil
   "If integer, sets McKenzie error recovery algorithm token check limit.
 This sets the number of tokens past the error point that must be

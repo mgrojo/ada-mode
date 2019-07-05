@@ -5,4 +5,4 @@ procedure Ada_Mode.Child_Procedure
 is
 begin
    null;
-end;
+end Ada_Mode.Child_Procedure;

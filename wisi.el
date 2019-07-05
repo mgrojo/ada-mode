@@ -195,7 +195,7 @@ Useful when debugging parser or parser actions."
 Regions in a list are in random order.")
 
 (defun wisi--contained-region (begin end region)
-  "Non-nil if BEGIN END (buffer positions) is contained in REGION (a cons of positions)."
+  "Non-nil if BEGIN and END (buffer positions) are both contained in REGION (a cons of positions)."
   ;; We assume begin < end
   (and (<= (car region) begin)
        (<= end (cdr region))))
@@ -621,12 +621,12 @@ Used to ignore whitespace changes in before/after change hooks.")
 	    (parse-errs (nreverse (cl-copy-seq (wisi-parser-parse-errors wisi--parser))))
 	    (dir default-directory))
 	(with-current-buffer wisi-error-buffer
+	  (setq window-size-fixed nil)
 	  (compilation-mode)
 	  (setq-local compilation-search-path (list dir))
 	  (setq default-directory dir)
 	  (setq next-error-last-buffer (current-buffer))
 	  (setq buffer-read-only nil)
-	  (setq window-size-fixed nil)
 	  (erase-buffer)
 	  ;; compilation-nex-error-function assumes there is not an
 	  ;; error at point-min, so we need a comment.
@@ -649,12 +649,14 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (setq buffer-read-only t)
 	  (goto-char (point-min)))
 
-	(display-buffer wisi-error-buffer
-			(cons #'display-buffer-at-bottom
-			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
-	(setq window-size-fixed t)
-	(set-window-dedicated-p (selected-window) t)
+	(let ((win (display-buffer
+		    wisi-error-buffer
+		    (cons #'display-buffer-at-bottom
+			  (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))))
+	  (set-window-dedicated-p win t))
 
+	(with-current-buffer wisi-error-buffer
+	  (setq window-size-fixed t))
 	(next-error))
       ))
 
@@ -1370,7 +1372,7 @@ If non-nil, only repair errors in BEG END region."
     (if t-prop
 	(funcall other-function ident file line column)
 
-      (list (xref-make ident (xref-make-file-location file line column)))
+      (list (xref-make ident (xref-make-file-location file (or line 1) column)))
       )))
 
 (defun wisi-xref-identifier-at-point ()

@@ -34,8 +34,8 @@ package body Ada_Mode.Recover_02 is
         (Parser_label
 
          -- Copied from above, intending to move the function call here.
-         -- recover finishes Check_One and Ada_Mode_Recover_02, inserts "declare"
-   Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
+         -- recover finishes Check_One and Ada_Mode_Recover_02
+Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
 if Check (Data, Config, Current_Input) then
 

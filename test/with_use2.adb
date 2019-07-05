@@ -13,7 +13,7 @@ use Ada.Text_IO,
       Ada.Numerics,   --  used to be indented with ada-broken-indent
       Ada.Strings;
 
-procedure With_Use2 is begin null; end;
+procedure With_Use2 is begin null; end With_Use2;
 
 -- Local Variables:
 -- ada-indent-with: 3

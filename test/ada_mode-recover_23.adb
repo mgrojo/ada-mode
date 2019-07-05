@@ -20,7 +20,7 @@ is begin
          else
             raise WisiToken.Programmer_Error;
          end if;
-      end loop;
+   end loop;
 end Ada_Mode.Recover_23;
 -- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:

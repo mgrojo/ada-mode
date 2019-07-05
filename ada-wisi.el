@@ -286,6 +286,7 @@ Also return cache at start."
 		     (eq (wisi-cache-token cache) 'PROTECTED))
 
 		    ((abstract_subprogram_declaration
+		      expression_function_declaration
 		      subprogram_body
 		      subprogram_declaration
 		      subprogram_renaming_declaration
@@ -313,46 +314,38 @@ Also return cache at start."
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let ((done nil)
-	(first t)
 	start-pos
 	(in-package-spec nil)
-	(cache
-	 (or
-	  (wisi-get-cache (point))
-	  ;; we use forward-cache here, to handle the case where point is after a subprogram declaration:
-	  ;; declare
-	  ;;     ...
-	  ;;     function ... is ... end;
-	  ;;     <point>
-	  ;;     function ... is ... end;
-	  (wisi-forward-cache))))
+	(cache (or (wisi-get-cache (point))
+		   (wisi-backward-cache))))
 
-    ;; If this is called with point in a comment after 'is', then the
-    ;; declarative region starts after the comment; don't hang in a
-    ;; package spec.
-    (setq start-pos (point))
-    (while (not done)
-      (if (and (or (not in-package-spec)
-		   (< (point) start-pos))
-	       (ada-wisi-declarative-region-start-p cache))
-	  (progn
-	    (wisi-forward-token)
-	    (setq done t))
-	(cl-case (wisi-cache-class cache)
-	  ((motion statement-end)
-	   (goto-char
-	    (or (wisi-cache-prev cache)
-		(wisi-cache-containing cache)))
-	   (setq cache (wisi-get-cache (point))))
+    ;; We use backward-cache, not forward-cache, to handle the case
+    ;; where point is in the whitespace or comment before a block; we
+    ;; want the containing block, not the next block.
 
-	  (statement-start
-	   (if first
-	       ;; This is the cache at or after point when this
-	       ;; command was invoked; we want the declarative region
-	       ;; of the containing statement, not the declarative
-	       ;; region of this statement.
-	       (setq cache (wisi-goto-containing cache t))
+    (when cache ;; nil at bob
+      ;; If this is called with point in a comment after 'is', then the
+      ;; declarative region starts after the comment; don't hang in a
+      ;; package spec.
+      (setq start-pos (point))
+      (while (not done)
+	(if (and (or (not in-package-spec)
+		     (< (point) start-pos))
+		 (ada-wisi-declarative-region-start-p cache))
+	    (progn
+	      (wisi-forward-token)
+	      (setq done t))
+	  (cl-case (wisi-cache-class cache)
+	    (motion
+	     (goto-char (wisi-cache-prev cache))
+	     (setq cache (wisi-get-cache (point))))
 
+	    (statement-end
+	     (goto-char (wisi-cache-containing cache));; statement-start
+	     (goto-char (wisi-cache-containing (wisi-get-cache (point))));; containing scope
+	     (setq cache (wisi-get-cache (point))))
+
+	    (statement-start
 	     (cl-case (wisi-cache-nonterm cache)
 	       (package_declaration
 		(setq in-package-spec t)
@@ -374,18 +367,17 @@ Also return cache at start."
 
 	       (t
 		(setq cache (wisi-goto-containing cache t)))
-	       )))
+	       ))
 
-	  (t
-	   (setq cache (wisi-goto-containing cache t)))
-	  ))
-      (setq first nil))
+	    (t
+	     (setq cache (wisi-goto-containing cache t)))
+	    )))
 
-    ;; point is at start of first code statement after
-    ;; declaration-start keyword and comment; move back to end of
-    ;; keyword.
-    (while (forward-comment -1))
-    ))
+      ;; point is at start of first code statement after
+      ;; declaration-start keyword and comment; move back to end of
+      ;; keyword.
+      (while (forward-comment -1))
+      )))
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)
   "For `ada-in-paramlist-p'."
@@ -789,7 +781,8 @@ TOKEN-TEXT; move point to just past token."
 
 (defun ada-wisi-find-end ()
   "Starting at current point, search forward for a reasonable parse end point."
-  (unless (bolp) (forward-line 1)) ;; get out of any current comment
+  (forward-comment (point-max)) ;; get past any current comments
+  (forward-line 1) ;; contain at least some code (see ada_mode-partial_parse.adb 'blank line before "end"')
 
   (let ((start (point))
 	match
@@ -874,10 +867,11 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Error token terminates the block containing the start token
     (- indent ada-indent))
 
-   ((memq 'CASE (wisi--parse-error-repair-inserted repair))
-    ;; We don't need to handle comments between 'case' and 'when'; the
-    ;; 'case' is virtual.
-    (- indent (+ ada-indent ada-indent-when)))
+   ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
+        (- indent (+ ada-indent ada-indent-when)))
+
+   ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
+        (+ indent (+ ada-indent ada-indent-when)))
 
    (t indent)
    ))

@@ -200,7 +200,8 @@ FACE may be a list."
 	(message "DEBUG: %s:%d %s"
 		 (current-buffer)
 		 (line-number-at-pos)
-		 (eval (car (read-from-string (match-string 0))))))
+		 (save-excursion
+		  (eval (car (read-from-string (match-string 0)))))))
 
        (t
 	(setq error-count (1+ error-count))

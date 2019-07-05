@@ -21,8 +21,8 @@ package body Ada_Mode.Recover_Indent_4 is
               -- (object, args) to object.function (args)
               -- recover inserts '=>'
             Anchor_Token.Line, Anchor_Token)).Char_Region.First);
-      begin
-      return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
-   end Current_Indent_Offset;
+begin
+   return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
+end Current_Indent_Offset;
 
 end Ada_Mode.Recover_Indent_4;

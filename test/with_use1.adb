@@ -16,7 +16,8 @@ procedure With_Use1 is
        Ada.Numerics,   --  used to be indented with ada-broken-indent
        Ada.Strings;
 
-begin null; end;
+begin null;
+end With_Use1;
 -- Local Variables:
 -- ada-indent-with: 5
 -- ada-indent-use: 4

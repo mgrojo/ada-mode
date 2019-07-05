@@ -50,7 +50,7 @@ is
    end Nested;
 
    --  There can be several compilation_units in a requested parse region.
-   --EMACSCMD:(progn (forward-line 2) (insert "  ") (forward-line 4) (insert "  ") )
+   --EMACSCMD:(progn (forward-line 2) (insert "  ") (forward-line 2) (insert "  ") )
    --EMACSCMD:(wisi-indent-region (line-beginning-position 2) (line-end-position 5))
    procedure Small_1 is begin null; end Small_1;
    procedure Small_2 is begin null; end Small_2;
@@ -129,7 +129,7 @@ begin
    else
       C;
 
-      --  Parse region starts after 'end case;', but the inserted 'if is an ending.
+      --  Parse region starts after 'end case;', ends at 'end if;'.
       --EMACSCMD:(progn (forward-line 2)(forward-word 1)(delete-char 4)(indent-for-tab-command)(back-to-indentation)(current-column))
       --EMACSRESULT: 3
    end if;

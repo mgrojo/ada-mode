@@ -14,8 +14,7 @@ procedure Ada_Mode.Recover_3 is
    is
       Node_Id : Token_Id
 
-        --  'renames' is deleted; ensure indent is computed for 'begin'
-   renames begin
+        renames begin
       return Node.Id = Id;
    end Process_1;
 end Ada_Mode.Recover_3;

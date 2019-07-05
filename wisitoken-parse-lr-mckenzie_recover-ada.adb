@@ -360,7 +360,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-               case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+               case To_Token_Enum (Config.Error_Token.ID) is
                when block_statement_ID | package_body_ID | subprogram_body_ID | task_body_ID =>
                   Semicolon_Item := Stack.Peek (1);
                   End_Item       := Stack.Peek (3);
@@ -633,7 +633,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         end;
                      end if;
 
-                     if Undo_Reduce_Valid (New_Config.Stack) then
+                     if Undo_Reduce_Valid (New_Config.Stack, Tree) then
                         Undo_Reduce_Check (New_Config, Tree, +sequence_of_statements_ID);
                      else
                         Push_Back_Check (New_Config, +sequence_of_statements_ID);
@@ -943,7 +943,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
             --  Case 2.
             Push_Back_Check (New_Config_2, +BEGIN_ID);
-            Undo_Reduce_Check (New_Config_2, Tree, +declarative_part_opt_ID);
+            if Undo_Reduce_Valid (New_Config_2.Stack, Tree) then
+               Undo_Reduce_Check (New_Config_2, Tree, +declarative_part_opt_ID);
+            else
+               return;
+            end if;
             Delete_Check (Terminals, New_Config_2, +BEGIN_ID);
 
             --  This is a guess, so add a cost.
@@ -1047,7 +1051,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
                     To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
                   then
-                     Result := To_Vector ((+PACKAGE_ID, +IDENTIFIER_ID, +IS_ID)); -- package spec
+                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); --  package body
                   else
                      Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID)); -- named block begin
                   end if;
@@ -1078,6 +1082,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             Matching_Tokens := To_Vector (+BEGIN_ID);
 
             --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
+
+         when WHEN_ID =>
+            Matching_Tokens := To_Vector ((+CASE_ID, +IDENTIFIER_ID, +IS_ID));
 
          when others =>
             null;
