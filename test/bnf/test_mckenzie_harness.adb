@@ -28,11 +28,17 @@ with WisiToken;
 procedure Test_McKenzie_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_parse trace_mckenzie trace_action
-   --  1         2         3            4           5              6
+   --  <verbose> LALR|LR1 routine_name trace_parse trace_mckenzie trace_action
+   --  1         2        3            4           5              6
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines.
+
+   File_Name : constant String := "test_mckenzie_recover.adb ";
+
+   use all type WisiToken.BNF.Generate_Algorithm;
+   Alg : constant WisiToken.BNF.Generate_Algorithm :=
+     (if Argument_Count >= 2 then WisiToken.BNF.Generate_Algorithm'Value (Argument (2)) else None);
 
    Force_High_Cost_Solutions : constant Boolean :=
      (if Argument_Count >= 7 then 0 /= Integer'Value (Argument (7)) else False);
@@ -60,16 +66,14 @@ begin
       null;
 
    when 2 =>
-      Filter.Set_Name (Argument (2)); -- test name only
+      Filter.Set_Name (File_Name & Argument (2)); -- test name only
 
    when others =>
       declare
-         Test_Name    : String renames Argument (2);
+         Test_Name    : constant String := File_Name & Argument (2);
          Routine_Name : String renames Argument (3);
       begin
-         if Test_Name = "" then
-            Filter.Set_Name (Routine_Name);
-         elsif Routine_Name = "" then
+         if Routine_Name = "" then
             Filter.Set_Name (Test_Name);
          else
             Filter.Set_Name (Test_Name & " : " & Routine_Name);
@@ -81,10 +85,15 @@ begin
    WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
    WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-               (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-               (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions));
+   if Alg in None | LALR then
+      Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
+                  (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions));
+   end if;
+
+   if Alg in None | LR1 then
+      Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
+                  (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions));
+   end if;
 
    Run (Suite, Options, Result, Status);
 

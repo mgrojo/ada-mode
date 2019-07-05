@@ -990,10 +990,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             use all type SAL.Base_Peek_Type;
             Parse_Items : Parse.Parse_Item_Arrays.Vector;
-            Dummy : Boolean :=  Parse.Parse
+            Dummy : constant Boolean :=  Parse.Parse
               (Super, Shared, Parser_Index, Parse_Items, New_Config,
                Shared_Token_Goal => Invalid_Token_Index,
-               All_Conflicts     => False,
+               All_Conflicts     => True,
                Trace_Prefix      => "parse Matching_Begin");
          begin
             for Item of Parse_Items loop
@@ -1010,15 +1010,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         Super, Shared, Parser_Index, Item.Config);
                   end if;
                   Local_Config_Heap.Add (Item.Config);
-                  return;
+               else
+                  if Trace_McKenzie > Detail then
+                     Base.Put
+                     ("Matching_Begin: abandon " & Image (Matching_Begin_Tokens, Descriptor) & ": parse fail",
+                        Super, Shared, Parser_Index, Item.Config);
+                  end if;
                end if;
             end loop;
-            --  None parsed successfully
-            if Trace_McKenzie > Detail then
-               Base.Put
-                 ("Matching_Begin: abandon " & Image (Matching_Begin_Tokens, Descriptor) & ": parse fail",
-                  Super, Shared, Parser_Index, New_Config);
-            end if;
          end;
       end;
    exception

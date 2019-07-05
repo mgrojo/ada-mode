@@ -235,7 +235,8 @@ case_statement_alternative_list
 ;; We don't allow an empty compilation unit; that causes too many
 ;; ambiguities.
 compilation_unit
-  : package_body
+  : package_specification
+  | package_body
   | subprogram_declaration
   | subprogram_body
   | generic_instantiation
@@ -433,6 +434,12 @@ package_body
   | PACKAGE BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON
     %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, 3, 8, End_Name_Optional);)%
+  ;
+
+package_specification
+  : PACKAGE name aspect_specification_opt IS declarative_part END name_opt SEMICOLON
+    %()%
+    %(return Match_Names (Lexer, Descriptor, Tokens, 2, 7, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile

@@ -168,14 +168,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
                end if;
             else
-               if Trace_McKenzie > Detail then
-                  Put_Line
-                    (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image
-                       (Config.Stack.Peek.State) & ": add conflict " &
-                       Image (Conflict.Item, Descriptor));
-               end if;
+               declare
+                  New_Config : Configuration := Config;
+               begin
+                  New_Config.Current_Shared_Token := Restore_Terminals_Current;
 
-               Parse_Items.Append ((Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+                  if Trace_McKenzie > Detail then
+                     Put_Line
+                       (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                          (New_Config.Stack.Peek.State) & ": add conflict " &
+                          Image (Conflict.Item, Descriptor));
+                  end if;
+
+                  Parse_Items.Append ((New_Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+               end;
             end if;
             Conflict := Conflict.Next;
          end loop;
@@ -185,7 +191,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
               (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image (Config.Stack.Peek.State) &
                  " :" & WisiToken.Token_Index'Image (Config.Current_Shared_Token) &
                  ":" & Image (Current_Token, Descriptor) &
-                 " : " & Image (Action.Item, Descriptor));
+                 " : " & Image (Action.Item, Descriptor) &
+                 (if Action.Item.Verb = Reduce
+                  then " via" & Config.Stack (SAL.Peek_Type (Action.Item.Token_Count + 1)).State'Image
+                  else ""));
          end if;
 
          case Action.Item.Verb is

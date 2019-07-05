@@ -191,7 +191,7 @@ private
    --  Last_Index; Insert_Delete is cleared and Current_Insert_Delete
    --  reset on next call.
    --
-   --  When done parsing, reset actual Terminals_Current to
+   --  When done parsing, caller must reset actual Terminals_Current to
    --  Restore_Terminals_Current.
    --
    --  Insert_Delete contains only Insert and Delete ops, in token_index

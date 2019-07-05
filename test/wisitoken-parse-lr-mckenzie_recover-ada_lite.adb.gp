@@ -714,7 +714,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
                     To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
                   then
-                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
+                     Result := To_Vector ((+PACKAGE_ID, +IDENTIFIER_ID, +IS_ID));
+                     --  Deliberately leaving out BODY_ID, so we encounter a conflict
+                     --  between package_specification and generic_instantiation; see
+                     --  test_mckenzie_recover.adb Check_Parse_All_Conflicts.
                   else
                      Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
                   end if;

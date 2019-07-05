@@ -259,12 +259,12 @@ package body WisiToken.BNF.Output_Ada_Common is
       is begin
          Indent_Line ("procedure Create_Parser");
          if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Matching_Begin_Tokens : in");
-            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
-            Indent_Line
-              ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
+            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("   Language_Matching_Begin_Tokens : in     " &
+                           "WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
+            Indent_Line ("   Language_String_ID_Set         : in     " &
+                           "WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
             Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
          end if;

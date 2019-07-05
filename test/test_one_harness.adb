@@ -23,21 +23,16 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Strings.Unbounded;
-with Test_McKenzie_Recover;
-with WisiToken.BNF;
+with Test_Partial_Parse;
+with WisiToken;
 procedure Test_One_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action
-   --  1         2         3            4              5           6              7
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_action
+   --  1         2         3            4              5           6
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines.
-
-   Force_High_Cost_Solutions : constant Boolean :=
-     (if Argument_Count >= 8 then 0 /= Integer'Value (Argument (8)) else False);
-   Force_Full_Explore : constant Boolean :=
-     (if Argument_Count >= 9 then 0 /= Integer'Value (Argument (9)) else False);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -84,17 +79,12 @@ begin
 
    WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
-   WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
+   WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-               (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-               (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions));
+   Add_Test (Suite, new Test_Partial_Parse.Test_Case);
 
    Run (Suite, Options, Result, Status);
 
-   --  Provide command line option -v to set verbose mode
    AUnit.Reporter.Text.Report (Reporter, Result);
 
 end Test_One_Harness;

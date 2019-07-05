@@ -65,9 +65,9 @@ package body WisiToken.Generate.Packrat.Test is
            (Grammar_File_Name, Generate_Data.Grammar,
             Generate_Data.Source_Line_Map, Generate_Data.Descriptor.First_Terminal);
 
-         --  From ada_lite.parse_table
+         --  From ada_lite_lalr.parse_table
          Name_ID               : constant Token_ID := 103;
-         Selected_Component_ID : constant Token_ID := 123;
+         Selected_Component_ID : constant Token_ID := 124;
 
          Expected : Token_Array_Token_Set :=
            (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index =>

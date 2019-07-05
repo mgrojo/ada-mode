@@ -109,14 +109,18 @@
   ;; goto that file and procedure
   (let (filename
 	subprogram-name
-	test-label error-number field)
+	alg test-label error-number field
+	(large-case-alg-present nil)
+	(small-case-alg-present nil))
     (beginning-of-line)
     (forward-word 2)
     (setq filename (thing-at-point 'filename))
     (end-of-line)
     (backward-word 1)
-    (setq subprogram-name (thing-at-point 'filename))
+    (setq subprogram-name (thing-at-point 'symbol))
     (when (string-equal filename "test_mckenzie_recover.adb")
+      (forward-symbol -2)
+      (setq alg (thing-at-point 'symbol))
       (forward-line 1)
       (back-to-indentation)
       (looking-at "\\([0-9]+\\)?\\. \\([0-9]+\\)\\.\\([^ .']+\\)")
@@ -134,12 +138,50 @@
       (find-file abs-file)
       (xref-find-definitions (xref-expand-identifier (xref-find-backend) subprogram-name))
       (when (string-equal filename "test_mckenzie_recover.adb")
-	(search-forward "Check_Recover")
-	(when test-label (search-forward (concat "\"" test-label "\"")))
-	(when (not (string-equal error-number "1")) (search-forward-regexp (concat "Checking_Error +=> " error-number)))
-	(search-forward field)
-	(end-of-line)
-	(forward-char -1))
+	(let ((begin (point))
+	      end)
+	  (save-excursion
+	    (wisi-goto-statement-end)
+	    (setq end (point))
+	    (goto-char begin)
+	    (when (search-forward "case Test.Alg" end t)
+	      (if (looking-back "(case Test.Alg")
+		  (setq small-case-alg-present t)
+		(setq large-case-alg-present t))
+	      ))
+
+	  (when test-label (search-forward (concat "\"" test-label "\"")))
+
+	  (cond
+	   (large-case-alg-present
+	    (search-forward (concat "when " alg))
+	    (unless test-label (search-forward "Check_Recover"))
+	    (when (not (string-equal error-number "1"))
+	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	    (search-forward field)
+	    (end-of-line)
+	    (forward-char -1))
+
+	   (small-case-alg-present
+	    (if (string-equal error-number "1")
+		(unless test-label
+		  (search-forward "Check_Recover"))
+	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	    (search-forward field)
+	    (if (search-forward "(case Test.Alg" (line-end-position) t)
+		(progn (search-forward (concat "when " alg))
+		       (forward-word 3))
+	      (end-of-line)
+	      (forward-char -1)))
+
+	   (t
+	    (unless test-label (search-forward "Check_Recover"))
+	    (when (not (string-equal error-number "1"))
+	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	    (search-forward field)
+	    (end-of-line)
+	    (forward-char -1))
+	   )))
       )))
 
 (defun wisitoken-compilation-finish ()

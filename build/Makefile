@@ -13,9 +13,6 @@ all : test-clean tests doc
 # test_all_harness.adb
 #
 #t_one :: one-clean
-t_one :: wisitoken-bnf-generate.exe
-t_one :: ada_lite_re2c.c
-#t_one :: java_expressions_ch19_lr1_run.exe
 t_one :: test_one_harness.run
 
 t_all :: wisitoken-bnf-generate.exe gen test-executables
@@ -25,14 +22,24 @@ t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
 
+t_mck :: wisitoken-bnf-generate.exe
+t_mck :: ada_lite_re2c.c
+t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
+t_mck :: test_mckenzie_harness.run
+
 one-clean :
-	rm -rf java_expressions_ch19*
+	rm -rf ada_lite*
 
 one :: one-clean
 one :: wisitoken-bnf-generate.exe
-one :: java_expressions_ch19_re2c.c
-one :: java_expressions_ch19_lr1_run.exe
-	./java_expressions_ch19_lr1_run.exe -v 2 -t 1 -m 1 ../Test/bnf/java_expressions_ch19.input > debug.log
+one :: ada_lite_re2c.c
+one :: ada_lite_lr1_run.exe
+	./ada_lite_lr1_run.exe -v 2 -m 1 -t 1 ../Test/bnf/ada_lite_recover.input > ada_lite-lr1-ada_lite_recover_repeatable.parse
+
+#../test/bnf/debug.input > debug.log
+
+#../Test/bnf/ada_lite_recover.input > ada_lite-lalr-ada_lite_recover_repeatable.parse
 
 two :: show_minimal_actions.exe
 	./show_minimal_actions.exe $(RUN_ARGS)
