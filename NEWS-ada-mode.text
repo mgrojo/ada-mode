@@ -13,9 +13,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    that are all upper case are not adjusted.
 
 ** which-function-mode in large Ada buffers now uses partial parse;
-   the new user variable ada-which-func-parse-size sets minimum size
-   to parse, before and after point. It should be set to the largest
-   subprogram size.
+   the new user variable ada-which-func-parse-size sets minimum region
+   to parse, centered point. It should be set to the largest
+   subprogram size that parses in an acceptable time.
 
 ** gpr-mode supports new gpr syntax "at n" in an attribute specification.
 

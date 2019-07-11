@@ -133,10 +133,14 @@
 (make-variable-buffer-local 'wisi-size-threshold)
 
 (defcustom wisi-partial-parse-threshold 100001
-  "Min size (in characters) for using partial wisi parser.
-The partial parser finds a nearby start point, and parses a small
-portion of the file containing the region to parse. For indent,
-it assumes the start point is properly indented."
+  "Minimum size that will be parsed by each call to the parser.
+A parse is always requested at a point (or on a region); the
+point is first expanded to a start point before the region and an
+end point after the region, that the parser can gracefully
+handle. If the final region covers the entire buffer, a complete
+parse is done. Indent assumes the start point of the parse region
+is properly indented. Most navigate parses ignore this setting
+and parse the whole buffer."
   :type 'integer
   :group 'wisi
   :safe 'integerp)

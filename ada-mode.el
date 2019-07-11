@@ -329,8 +329,8 @@ slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada-indentation)
 
-(defcustom ada-which-func-parse-size 15000
-  "Half the size of region surrounding point that is parsed for `which-function-mode'."
+(defcustom ada-which-func-parse-size 30000
+  "Minimum size of the region surrounding point that is parsed for `which-function-mode'."
   :type 'integer
   :safe #'integerp)
 

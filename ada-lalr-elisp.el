@@ -1191,8 +1191,8 @@
         (wisi-motion-action [1 4 6])
         (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                    9 font-lock-function-name-face font-lock-function-name-face])
-        (wisi-indent-action [nil ada-indent-broken nil nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil
-                                 nil])))
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil [ada-indent ada-indent] nil
+                             [ada-indent ada-indent] nil nil])))
        ((PACKAGE name aspect_specification_opt IS declarative_part_opt END name_opt )
         (progn
       (wisi-statement-action [1 statement-start 4 motion])

@@ -66,7 +66,7 @@ install : install_executables
 #
 # 'package-initialize' is required for 'queue'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(ELPA_ROOT)/packages/uniquify-files -L $(ELPA_ROOT)/packages/path-iterator --eval '(progn (package-initialize)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(ELPA_ROOT)/packages/uniquify-files --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -242,7 +242,8 @@ html : $(addsuffix .html, $(MANUALS))
 	for file in $(INFO_FILES); do install-info ../$$file ../dir-ada-mode; done
 
 VPATH := ..
-# Publish Gnu ELPA packages
+
+### Publish Gnu ELPA packages
 # First delete all files in Gnu ELPA, so we catch files deleted here.
 #
 # Copy files to Gnu ELPA ada-mode package
@@ -336,7 +337,6 @@ build-elpa : force
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
-#	cp -a $(ELPA_ROOT)/packages/path-iterator $(ELPA_ROOT)/archive-tmp/packages
 #	cp -a $(ELPA_ROOT)/packages/uniqufy-files $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive

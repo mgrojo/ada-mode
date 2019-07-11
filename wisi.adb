@@ -329,10 +329,8 @@ package body Wisi is
 
    procedure Put (Cache : in WisiToken.Buffer_Region)
    is begin
-      if Cache /= Null_Buffer_Region then
-         Ada.Text_IO.Put_Line
-           ("[" & Name_Property_Code & Buffer_Pos'Image (Cache.First) & Buffer_Pos'Image (Cache.Last) & "]");
-      end if;
+      Ada.Text_IO.Put_Line
+        ("[" & Name_Property_Code & Buffer_Pos'Image (Cache.First) & Buffer_Pos'Image (Cache.Last) & "]");
    end Put;
 
    procedure Put (Cache : in Face_Cache_Type)
@@ -1067,12 +1065,14 @@ package body Wisi is
            (Data.Name_Caches.Iterate, Name_Token.Char_Region.First,
             Direction => Name_Cache_Trees.Unknown);
       begin
-         if Has_Element (Cursor) then
-               raise Fatal_Error with Error_Message
-                 (File_Name => -Data.Source_File_Name,
-                  Line      => Name_Token.Line,
-                  Column    => Name_Token.Column,
-                  Message   => "wisi-name-action: name set twice.");
+         if Name_Token.Char_Region = Null_Buffer_Region then
+            return;
+         elsif Has_Element (Cursor) then
+            raise Fatal_Error with Error_Message
+              (File_Name => -Data.Source_File_Name,
+               Line      => Name_Token.Line,
+               Column    => Name_Token.Column,
+               Message   => "wisi-name-action: name set twice.");
          else
             Data.Name_Caches.Insert (Name_Token.Char_Region);
          end if;

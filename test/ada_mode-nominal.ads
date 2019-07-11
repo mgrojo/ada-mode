@@ -77,8 +77,8 @@ with Ada_Mode.Function_2;
 --EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:t
 package Ada_Mode.Nominal
-with
-  Spark_Mode => On
+  with
+    Spark_Mode => On
 is -- target 0
    --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
    --EMACSRESULT:t

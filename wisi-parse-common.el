@@ -61,9 +61,8 @@ for the language-specific parser options."
 
 (cl-defgeneric wisi-parse-expand-region ((parser wisi-parser) begin end)
   "Return a cons SEND-BEGIN . SEND-END that is an expansion of
-region BEGIN END that starts at a valid parse start point,
-contains END, and ends at a point the parser can handle
-gracefully."
+region BEGIN END that starts and ends at points the parser can
+handle gracefully."
   (cons begin end))
 
 (defun wisi-search-backward-skip (regexp skip-p)

@@ -81,7 +81,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_indent_1.adb",
       "ada_mode-recover_indent_2.adb",
       "ada_mode-recover_indent_3.adb",
-      "ada_mode-recover_indent_4.adb",
       "ada_mode-recover_match_names.adb",
       "ada_mode-recover_navigate_1.adb",
       "ada_mode-recover_new_generic.ads",

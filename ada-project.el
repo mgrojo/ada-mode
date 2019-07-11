@@ -21,7 +21,6 @@
 
 (require 'ada-mode)
 (require 'env-project)
-(require 'path-iterator)
 (require 'uniquify-files)
 
 (cl-defstruct (ada-project
@@ -34,8 +33,10 @@
 			      &aux
 			      (ada-prj (expand-file-name ada-prj-file))))
 	       )
-  ada-prj
-  ;; The ada-mode project file name (absolute).
+  ada-prj ;; The ada-mode project file name (absolute).
+
+  file-pred ;; Function taking an absolute file name, returns non-nil
+	    ;; if the file should be included in `project-files'.
   )
 
 (cl-defmethod project-id ((prj ada-project))
@@ -46,41 +47,19 @@
   ;; Not meaningful
   nil)
 
-(cl-defmethod project-files ((_prj ada-project) &optional _dirs)
-  (let ((iter (make-path-iterator
-	       :user-path-non-recursive (ada-prj-get 'src_dir)
-	       :user-path-recursive nil
-	       :ignore-function nil)))
-    (path-iter-files iter nil)))
-
-(cl-defmethod project-file-completion-table ((_prj ada-project) _dirs)
-  ;; (ada-prj-get 'src_dir) is more accurate than project-*roots
-  (cond
-   ((fboundp 'uniq-file-get-data-string)
-    ;; elpa package
-    (let ((iter (make-path-iterator
-		 :user-path-non-recursive (ada-prj-get 'src_dir)
-		 :user-path-recursive nil
-		 :ignore-function nil)))
-      ;; FIXME: exclude .exe
-      (apply-partially #'uniq-file-completion-table iter)
-      ))
-
-   ((fboundp 'uniq-file-uniquify)
-    ;; emacs 27
-    (let* ((iter (make-path-iterator
-		:user-path-non-recursive (ada-prj-get 'src_dir)
-		:user-path-recursive nil
-		:ignore-function nil))
-	   (files
-	    (path-iter-files
-	     iter
-	     (lambda (abs-file-name)
-	       (not (string-equal "exe" (file-name-extension abs-file-name))))))
-	   (alist (uniq-file-uniquify files)))
-      (apply-partially #'uniq-file-completion-table alist)
-      ))
-   ))
+(cl-defmethod project-files ((prj ada-project) &optional dirs)
+  (let (result)
+    (dolist (dir (or dirs (ada-prj-get 'src_dir)))
+      (mapc
+       (lambda (absfile)
+	 (when (and (not (string-equal "." (substring absfile -1)))
+		    (not (string-equal ".." (substring absfile -2)))
+		    (not (file-directory-p absfile))
+                    (or (null (ada-project-file-pred prj))
+			(funcall (ada-project-file-pred prj) absfile)))
+	   (push absfile result)))
+       (directory-files dir t)))
+    result))
 
 (cl-defmethod project-select :after ((prj ada-project))
   ;; :after ensures env-project project-select is run first, setting env vars.

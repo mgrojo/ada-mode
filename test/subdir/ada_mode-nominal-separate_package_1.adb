@@ -6,7 +6,7 @@
 with Ada.Text_IO;
 --EMACSRESULT:t
 -- Other file from a subunit on a context clause.
---EMACSCMD:(progn (forward-line -3)(ada-find-other-file)(looking-at "package Ada.Text_IO is"))
+--EMACSCMD:(progn (forward-line -3)(ada-find-other-file)(looking-at "package Ada.Text_IO"))
 --EMACSRESULT:t
 
 --  WORKAROUND: GNAT GPL 2016 doesn't produce a .ali file for this

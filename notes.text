@@ -54,8 +54,35 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+adding 'if' in wisi.adb Name_Action got indent wrong with w-p-p-t = 0
+
 release
-    clean up elpa packages for ada-project
+    not including ada-project yet.
+
+major cleanup
+    preparing for more emacs project work (project-menu?)
+    use cl-defgeneric, not function vars
+    assume wisi
+    don't assume gnat
+    minimize use, scope of env vars
+        merge other stuff from project-env.el into project-menu.el
+    set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
+        including xref
+        or make them local somehow
+
+    bump major version?
+
+clean up elpa packages for ada-project, build/ada_mode_wisi_parse.el
+    eliminate env-project.el
+        used to store WISITOKEN, LIBADALANG
+            only needed in compilation-environment?
+                nope; used in ada_mode_wisi_parse.prj
+                    which is parsed by ada-prj-*, not under compilation-environment
+                        it could be
+                        but that should be merged into ada-project, which could have its own environment
+
+        also declares project-refresh, -select, -deselect
+            used by project-menu, which is used by ada_mode_wisi_parse.el
 
 speed up recover in o.w.s-2, o.e.a.s-4
     tolerate larger enqueue_limit.
