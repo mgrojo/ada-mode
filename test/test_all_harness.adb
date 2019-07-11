@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Options;
 with AUnit.Reporter.Text;
 with AUnit.Test_Filters.Verbose;
@@ -101,23 +102,23 @@ begin
 
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new Association_Grammar_Test.Test_Case);
-   Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case);
-   Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case);
-   Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
-   Add_Test (Suite, new Grune_9_30.Test_Case);
-   Add_Test (Suite, new Name_Grammar_Test.Test_Case);
-   Add_Test (Suite, new Test_Accept_State.Test_Case);
-   Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_LR_Expecting_Terminal_Sequence.Test_Case);
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False));
-   Add_Test (Suite, new Test_Partial_Parse.Test_Case);
-   Add_Test (Suite, new Test_Skip_To.Test_Case);
-   Add_Test (Suite, new Trivial_Productions_Test.Test_Case);
-   Add_Test (Suite, new Warth_Left_Recurse_Expr_1.Test_Case);
-   Add_Test (Suite, new WisiToken.Syntax_Trees.Test.Test_Case);
-   Add_Test (Suite, new WisiToken.Generate.Packrat.Test.Test_Case);
+   Add_Test (Suite, Test_Case_Access'(new Association_Grammar_Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Dragon_4_43_LR1_Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Dragon_4_45_LALR_Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Dragon_4_43_Packrat_Gen.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Grune_9_30.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Name_Grammar_Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Accept_State.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Warth_Left_Recurse_Expr_1.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new WisiToken.Generate.Packrat.Test.Test_Case));
 
    --  end test cases
 

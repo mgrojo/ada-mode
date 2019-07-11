@@ -1723,7 +1723,7 @@ package body Test_McKenzie_Recover is
          Ops_Race_Condition      => True,
          Enqueue_Low             => 50,
          Enqueue_High            => 117,
-         Check_Low               => 7,
+         Check_Low               => 6,
          Check_High              => 20,
          Cost                    => 0);
    end Enqueue_Limit;

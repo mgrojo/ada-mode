@@ -21,8 +21,8 @@ review todo list
 doc changes since last release
     ../Docs/wisitoken.html
         add to history (no NEWS.text)
-    $ cd org.wisitoken
     # review mtn log since last release date
+    $ cd org.wisitoken
     $ mtn log --to d:yyyy-mm-dd > release.log
     ../release.log
 
@@ -44,7 +44,7 @@ bump version
 
     ../wisitoken-bnf-generate.adb
         version in Put_Usage
-            independent of ada-mode parser version (?)
+            independent of ada-mode parser version
             bump if changes affect ada-mode or other clients
 
     d:/Web/savannah/ada-mode/index.html
@@ -63,7 +63,7 @@ loop until no changes:
 
         $ mtn_sync_ada_france.sh
 
-    Debian:
+    Debian stable:
 
         $ mtn_sync_ada_france.sh
         (dvc-sync-review)

@@ -38,12 +38,12 @@ package body WisiToken.Generate.LR.LALR_Generate is
    --  IMPROVEME: should be a 3D array indexed by Prod, rhs_index,
    --  dot_index. But it's not broken or slow, so we're not fixing it.
 
-   function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return access LR1_Items.Lookahead
+   function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return Token_ID_Set_Access
    is begin
       return new Token_ID_Set'(LR1_Items.To_Lookahead (Descriptor.Last_Lookahead, Descriptor));
    end Propagate_Lookahead;
 
-   function Null_Lookahead (Descriptor : in WisiToken.Descriptor) return access LR1_Items.Lookahead
+   function Null_Lookahead (Descriptor : in WisiToken.Descriptor) return Token_ID_Set_Access
    is begin
       return new Token_ID_Set'(Descriptor.First_Terminal .. Descriptor.Last_Lookahead => False);
    end Null_Lookahead;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -15,12 +15,8 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
---
---  As a special exception under Section 7 of GPL version 3, you are granted
---  additional permissions described in the GCC Runtime Library Exception,
---  version 3.1, as published by the Free Software Foundation.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with AUnit.Checks.Containers;
 with SAL.AUnit;

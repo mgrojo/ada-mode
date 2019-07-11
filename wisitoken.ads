@@ -20,13 +20,12 @@
 --
 --  This file is part of the WisiToken package.
 --
---  The WisiToken package is free software; you can redistribute it
---  and/or modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. This library is distributed in
---  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
---  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
---  PARTICULAR PURPOSE.
+--  This library is free software;  you can redistribute it and/or modify it
+--  under terms of the  GNU General Public License  as published by the Free
+--  Software  Foundation;  either version 3,  or (at your  option) any later
+--  version. This library is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
+--  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 --
 --  As a special exception under Section 7 of GPL version 3, you are granted
 --  additional permissions described in the GCC Runtime Library Exception,
@@ -135,6 +134,8 @@ package WisiToken is
       --  Last_Lookahead. After the LR table is generated, Last_Lookahead is
       --  no longer used.
    end record;
+   type Descriptor_Access is access Descriptor;
+   type Descriptor_Access_Constant is access constant Descriptor;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
@@ -168,6 +169,7 @@ package WisiToken is
    --  Return last index in A of a prefix shared between A, B; 0 if none.
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
+   type Token_ID_Set_Access is access Token_ID_Set;
 
    function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set;
    --  Include Left and Right in result.
@@ -462,8 +464,9 @@ package WisiToken is
      return String;
    --  Return Gnu-formatted error message.
 
-   type Names_Array is array (Integer range <>) of access constant String;
+   type Names_Array is array (Integer range <>) of String_Access_Constant;
    type Names_Array_Access is access Names_Array;
    type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
+   type Names_Array_Array_Access is access Names_Array_Array;
 
 end WisiToken;

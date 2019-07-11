@@ -16,6 +16,7 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Options;
 with AUnit.Reporter.Text;
 with AUnit.Test_Filters.Verbose;
@@ -81,7 +82,7 @@ begin
    WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
    WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, new Test_Partial_Parse.Test_Case);
+   Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
 
    Run (Suite, Options, Result, Status);
 

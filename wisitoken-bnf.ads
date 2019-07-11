@@ -49,7 +49,7 @@ package WisiToken.BNF is
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
 
-   Generate_Algorithm_Image : constant array (Generate_Algorithm) of access constant String :=
+   Generate_Algorithm_Image : constant array (Generate_Algorithm) of String_Access_Constant :=
      (None         => new String'("None"),
       LALR         => new String'("LALR"),
       LR1          => new String'("LR1"),
@@ -69,7 +69,7 @@ package WisiToken.BNF is
    --  _Lang to avoid colliding with the standard package Ada and
    --  WisiToken packages named *.Ada. In the grammar file, they
    --  are named by (case insensitive):
-   Output_Language_Image : constant array (Output_Language) of access constant String :=
+   Output_Language_Image : constant array (Output_Language) of String_Access_Constant :=
      (Ada_Lang       => new String'("Ada"),
       Ada_Emacs_Lang => new String'("Ada_Emacs"),
       Elisp_Lang     => new String'("elisp"));
@@ -82,7 +82,7 @@ package WisiToken.BNF is
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
-   Lexer_Image : constant array (Lexer_Type) of access constant String :=
+   Lexer_Image : constant array (Lexer_Type) of String_Access_Constant :=
      (None        => new String'("none"),
       Elisp_Lexer => new String'("elisp"),
       re2c_Lexer  => new String'("re2c"));

@@ -45,13 +45,13 @@ projects.
 for recursive-descent, adding syntax error correction in the parser,
 and adding support for simple Packrat parsers.
 
-<h1>current version: 1.1.0</h1>
+<h1>current version: 1.2.0</h1>
 
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
 <p>WisiToken may be obtained in two ways:
 <ul>
-  <li><a href="wisitoken-1.10.tar.bz2">source Gnu tar bzip2 wisitoken-1.10.tar.bz2</a>
+  <li><a href="wisitoken-1.2.0.tar.bz2">source Gnu tar bzip2 wisitoken-1.2.0.tar.bz2</a>
   <li><a href="/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.wisitoken. The ada-france server is maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
 </ul>
 <p>It relies on external libraries:
@@ -73,14 +73,27 @@ Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
 
-<h3>Version ? </h3>
+<h3>Version 1.2.0 </h3>
 <ul>
+  <li> 11 Jul 2019
   <li>Add support for several flavors of extended Backus Naur Form
     (EBNF), to allow parsing the Java and Python grammars. LR parser
     generation is supported by translating the EBNF syntax to BNF.
     Packrat does not yet support EBNF.
   <li>Allow more than two actions in a conflict; required by the
     Java and Python grammars.
+  <li>Support new wisi action wisi-name-action.
+  <li>Recursion computation in Compute_Minimal_Terminal_Sequences is
+  improved, using SAL.Gen_Graphs. A grammar file option
+  %partial_recursion allows a less accurate but more tractable
+  computation using only strongly connected components; necessary for
+  Java.
+  <li>Grammar file option %mckenzie_cost_limit is deleted; use
+  %mckenzie_enqueue_limit instead.
+  <li>New grammar file options for cost of undo_reduce, fast_forward, matching_begin.
+  <li>Language function Use_Minimal_Complete_Actions is renamed
+  Matching_Begin_Tokens, with different parameters.
+  <li>Error recovery is improved.
 </ul>
 
 <h3>Version 1.1.0 </h3>
@@ -119,6 +132,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sat Apr 13 12:11:56 Pacific Daylight Time 2019 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Thu Jul 11 11:41:50 Pacific Daylight Time 2019 <!-- hhmts end -->
 </body>
 </html>

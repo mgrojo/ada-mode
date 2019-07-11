@@ -2,7 +2,7 @@
 --
 --  Stuff needed by Skip_To_Grammar and Test_Skip_To.
 --
---  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -11,11 +11,7 @@
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
---  As a special exception under Section 7 of GPL version 3, you are granted
---  additional permissions described in the GCC Runtime Library Exception,
---  version 3.1, as published by the Free Software Foundation.
-
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with WisiToken.Lexer;
 package Test_Skip_To_Aux is

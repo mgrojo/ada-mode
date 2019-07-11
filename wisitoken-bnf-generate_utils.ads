@@ -35,11 +35,11 @@ package WisiToken.BNF.Generate_Utils is
 
    type Generate_Data is limited record
       Tokens     : access constant WisiToken.BNF.Tokens;
-      Descriptor : access WisiToken.Descriptor;
+      Descriptor : WisiToken.Descriptor_Access;
       Grammar    : WisiToken.Productions.Prod_Arrays.Vector;
 
-      Action_Names : access Names_Array_Array;
-      Check_Names  : access Names_Array_Array;
+      Action_Names : Names_Array_Array_Access;
+      Check_Names  : Names_Array_Array_Access;
       --  Names of subprograms for each grammar semantic action and check;
       --  non-null only if there is an action or check in the grammar.
 

@@ -2,12 +2,12 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 1.1.0
+ZIP_VERSION := 1.2.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests doc
 
-#export Standard_Common_Build := Debug
+# export Standard_Common_Build := Debug
 
 # test_one_harness.adb
 # test_all_harness.adb
@@ -29,17 +29,13 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
 one-clean :
-	rm -rf ada_lite*
+	rm -rf ada_lite* *_recover-ada_lite.ad*
 
 one :: one-clean
 one :: wisitoken-bnf-generate.exe
-one :: ada_lite_re2c.c
-one :: ada_lite_lr1_run.exe
-	./ada_lite_lr1_run.exe -v 2 -m 1 -t 1 ../Test/bnf/ada_lite_recover.input > ada_lite-lr1-ada_lite_recover_repeatable.parse
-
-#../test/bnf/debug.input > debug.log
-
-#../Test/bnf/ada_lite_recover.input > ada_lite-lalr-ada_lite_recover_repeatable.parse
+one :: java_expressions_ch19_re2c.c
+one :: java_expressions_ch19_lr1_run.exe
+	./java_expressions_ch19_lr1_run.exe -v 2 -t 1 -m 1 ../Test/bnf/java_expressions_ch19.input > debug.log
 
 two :: show_minimal_actions.exe
 	./show_minimal_actions.exe $(RUN_ARGS)
