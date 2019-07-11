@@ -19,6 +19,7 @@ pragma License (GPL);
 
 with AUnit.Options;
 with AUnit.Reporter.Text;
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
@@ -102,27 +103,26 @@ begin
    --  This is first because it's a suite.
    Add_Test (Suite, Test.Config_Files.All_Suite);
 
-
-   Add_Test (Suite, new SAL.CSV.Test.Test_Case);
-   Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
-   Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
-   Add_Test (Suite, new Test_Gen_Images.Test_Case);
-   Add_Test (Suite, new Test_Graphs.Test_Case (Trace));
-   Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
-   Add_Test (Suite, new Test_Bounded_Definite_Vectors.Test_Case);
-   Add_Test (Suite, new Test_Bounded_Definite_Vectors_Sorted.Test_Case);
-   Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists.Test_Case);
-   Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists_Sorted.Test_Case);
-   Add_Test (Suite, new Test_Min_Heap_Binary.Test_Case);
-   Add_Test (Suite, new Test_Min_Heaps_Fibonacci.Test_Case);
-   Add_Test (Suite, new Test_Network_Order.Test_Case);
-   Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_Red_Black_Trees.Test_Case);
-   Add_Test (Suite, new Test_Stacks.Test_Case);
-   Add_Test (Suite, new Test_Stats.Test_Case);
-   Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Protected.Test_Case);
-   Add_Test (Suite, new Test_Unbounded_Definite_Vectors.Test_Case);
-   Add_Test (Suite, new Test_Unbounded_Indefinite_Vectors.Test_Case (Trace));
+   Add_Test (Suite, Test_Case_Access'(new SAL.CSV.Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new SAL.File_Names.Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new SAL.Time_Conversions.Test.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Gen_Images.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Graphs.Test_Case (Trace)));
+   Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Queues.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors_Sorted.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Definite_Doubly_Linked_Lists.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Definite_Doubly_Linked_Lists_Sorted.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Min_Heap_Binary.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Min_Heaps_Fibonacci.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Network_Order.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Randomize_Lists.Test_Case (Debug => False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_Red_Black_Trees.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Stacks.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Stats.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors_Protected.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Indefinite_Vectors.Test_Case (Trace)));
 
    Run (Suite, Options, Result, Status);
 

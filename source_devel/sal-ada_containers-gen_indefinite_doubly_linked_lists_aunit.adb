@@ -15,12 +15,8 @@
 --  with SAL; see file COPYING. If not, write to the Free Software
 --  Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 --  USA.
---
---  As a special exception under Section 7 of GPL version 3, you are granted
---  additional permissions described in the GCC Runtime Library Exception,
---  version 3.1, as published by the Free Software Foundation.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with AUnit.Checks;
 package body SAL.Ada_Containers.Gen_Indefinite_Doubly_Linked_Lists_AUnit is

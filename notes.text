@@ -1,3 +1,10 @@
+branches:
+org.stephe_leake.sal            : main/release
+org.stephe_leake.sal.stephe-1   : work
+org.stephe_leake.sal.stephe-2   : spark
+
+
+
 
 Release process:
 
