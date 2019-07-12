@@ -24,6 +24,9 @@ build/Makefile
     # bump version
     # includes aunit_ext, makerules
 
+~/Web/Makefile
+    SAL_ZIP_VERSION bump
+
 source/sal.html
     doc version
     # review mtn log since last release date
@@ -40,10 +43,12 @@ d:/Web/stephe-leake/ada/
     delete old *.bz2*
 
 upload to savannah for Emacs Ada mode:
-    in Cygwin Console (for gpg2 prompts):
+    in Cygwin Console (for gpg prompts):
     cd /cygdrive/c/Projects/org.stephe_leake.sal/build/
     rm org.stephe_leake.sal-<old>.*
     gpg -b *.tar.bz2
 
-    scp *.tar.bz2     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    scp *.tar.bz2.sig stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+
+Update web:
+    ~/Web/Makefile sal sync

@@ -2,7 +2,7 @@
 --
 --  Generic leading zero unsigned decimal image
 --
---  Copyright (C) 2004, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009, 2019 Free Software Foundation.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

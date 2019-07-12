@@ -2,7 +2,7 @@
 --
 --  A generic queue, allowing definite non-limited item types.
 --
---  Copyright (C) 2004, 2008, 2009, 2011, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2008, 2009, 2011, 2017, 2019 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
