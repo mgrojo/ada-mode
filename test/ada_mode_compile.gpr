@@ -18,6 +18,8 @@ project Ada_Mode_Compile is
 
       "ada_mode-debbugs_35124.ads", -- spec
 
+      "ada_mode-debbugs_36548.adb", -- partial syntax
+
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
 

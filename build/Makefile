@@ -18,9 +18,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 6.1.0
+export ADA_MODE_VERSION    := 6.1.1
 export ADA_REF_MAN_VERSION := 2012.5
-export WISI_VERSION        := 2.1.0
+export WISI_VERSION        := 2.1.1
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -33,7 +33,7 @@ WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 else
 # test with installed elpa package
 ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.1.0/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.1.1/wisitoken-bnf-generate.exe
 endif
 
 # compile with debug to get assertions for testing new code
@@ -304,12 +304,15 @@ pub-wisi : force
 	cp $(WISITOKEN)/build/wisitoken-elpa.gpr  $(ELPA_ROOT)/packages/wisi/wisitoken.gpr
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-ada_containers* $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_array_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_graphs.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_trimmed_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_min_heaps_fibonacci.ad? $(ELPA_ROOT)/packages/wisi
@@ -320,6 +323,7 @@ pub-wisi : force
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-generic_decimal_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi
 # for wisitoken-bnf-generate:
 	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi

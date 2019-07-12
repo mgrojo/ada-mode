@@ -1,3 +1,4 @@
+-- -*- wisi-mckenzie-task-count: 1 -*-
 -- From a real editing session. LR1 parser encountered enqueue limit.
 -- Now it succeeds nicely.
 

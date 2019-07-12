@@ -544,8 +544,8 @@ Also return cache at start."
   "For `ada-which-function'."
   ;; Fail gracefully and silently, since this could be called from
   ;; which-function-mode.
-  (let ((parse-begin (max (point-min) (- (point) ada-which-func-parse-size)))
-	(parse-end   (min (point-max) (+ (point) ada-which-func-parse-size))))
+  (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
+	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
     (wisi-validate-cache parse-begin parse-end nil 'navigate)
     (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
       (save-excursion

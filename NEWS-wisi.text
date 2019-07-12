@@ -1,18 +1,24 @@
 GNU Emacs wisi NEWS -- history of user-visible changes.
 
-Copyright (C) 2018 Free Software Foundation, Inc.
-See the end of the file for license conditions.
+Copyright (C) 2019 Free Software Foundation, Inc.
 
 Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi
+* wisi 2.1.1
+11 Jul 2019
 
 ** parser process protocol version 3
 
 ** User variable wisi-mckenzie-cost-limit is deleted; set
    wisi-mckenzie-enqueue-limit instead, it gives better results.
+
+** `wisi-show-parse-errors' now shows errors in a dedicated window, so
+   it will not be resized or reused.
+
+** New grammar action `wisi-name-action'; sets a name that will be
+   fontified. This replaces the previous 'name' navigate class.
 
 ** Support 'nil' as an indent argument; useful for the first token,
    whose indent is typically unknown. Indent functions that do not
@@ -20,6 +26,16 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** New file wisi-xref.el provides a completion table built from tokens
    marked by the new grammar action `wisi-name-action'.
+
+** The process parser checks the parser process protocol version, to
+   ensure the elisp code matches the process code.
+
+** The process parser supports passing data to a language-specific
+   elisp function, via the `language-action-table' field of the
+   `wisi-process--parser' struct.
+
+** New user option `wisi-parse-max-parallel' to set the number of
+   parallel parsers used; Java needs more than Ada.
 
 * wisi 2.1.0
 21 Mar 2019

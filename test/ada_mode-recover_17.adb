@@ -36,3 +36,6 @@ is begin
             raise SAL.Invalid_Format;
       end case;
 end Slow_Recover_4;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

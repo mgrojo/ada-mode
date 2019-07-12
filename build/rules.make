@@ -3,7 +3,7 @@
 ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
-ADA_ELISP_TEST_FILES := $(filter-out %recover%, $(ADA_TEST_FILES))
+ADA_ELISP_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 
 GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))

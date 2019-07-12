@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 6.1.0
-;; package-requires: ((wisi "2.1.0") (cl-lib "1.0") (emacs "25.0"))
+;; Version: 6.1.1
+;; package-requires: ((wisi "2.1.1") (cl-lib "1.0") (emacs "25.0"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -169,7 +169,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "6.1.0"))
+  (let ((version-string "6.1.1"))
     ;; must match:
     ;; ada-mode.texi
     ;; README-ada-mode
@@ -3108,4 +3108,4 @@ simple: indent to previous line.")
 (when (featurep 'imenu)
   (require 'ada-imenu))
 
-;;; end of file
+;;; ada-mode.el ends here

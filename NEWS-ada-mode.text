@@ -1,25 +1,26 @@
 GNU Emacs Ada mode NEWS -- history of user-visible changes.
 
-Copyright (C) 2018 Free Software Foundation, Inc.
-See the end of the file for license conditions.
+Copyright (C) 2019 Free Software Foundation, Inc.
 
 Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* Ada Mode
+* Ada Mode 6.1.1
+11 Jul 2019
 
-** ada-auto-case can now take the value 'not-upper-case; typed words
+** parser Ada language protocol version 1
+** parser gpr language protocol version 1
+
+** ada-auto-case can now take the value `not-upper-case'; typed words
    that are all upper case are not adjusted.
 
 ** which-function-mode in large Ada buffers now uses partial parse;
-   the new user variable ada-which-func-parse-size sets minimum region
-   to parse, centered point. It should be set to the largest
+   the new user variable `ada-which-func-parse-size' sets the minimum
+   region to parse, centered on point. It should be set to the largest
    subprogram size that parses in an acceptable time.
 
 ** gpr-mode supports new gpr syntax "at n" in an attribute specification.
-
-** parser language protocol version 1
 
 ** The ada-mode xref backend now includes object names in the local
    file name completion table.

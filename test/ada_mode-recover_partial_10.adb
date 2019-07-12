@@ -13,11 +13,12 @@ package body Ada_Mode.Recover_Partial_10 is
 
       --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(current-column))
       --EMACSRESULT:6
-      end Is_Reduce;
+   end Is_Reduce;
 
 
 end Ada_Mode.Recover_Partial_10;
 -- Local Variables:
 -- wisi-partial-parse-threshold: 0
 -- wisi-disable-face: t
+-- wisi-mckenzie-task-count: 1
 -- End:

@@ -484,6 +484,8 @@ package body Wisi.Ada is
       --
       --  Args (1) is the token ID of the anchor (= TYPE); it appears as a
       --  direct child in an ancestor 'full_type_declaration'.
+
+      use all type WisiToken.Syntax_Trees.Node_Label;
       use Ada_Process_Actions;
 
       Full_Type_Declaration : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Ancestor
@@ -491,18 +493,25 @@ package body Wisi.Ada is
 
       Tree_Anchor : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Child
         (Full_Type_Declaration, Token_ID (Integer'(Args (1))));
-
-      Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Anchor);
-
-      --  Args (2) is the index of RECORD in Tokens
-      Record_Token : constant Aug_Token_Ref := Get_Aug_Token
-        (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (2)))));
-
-      Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
    begin
-      --  Args (3) is the offset
-      return Indent_Record
-        (Parse_Data_Type (Data), Anchor_Token, Record_Token, Indenting_Token, Indenting_Comment, Args (3));
+      if Tree.Label (Tree_Anchor) /= WisiToken.Syntax_Trees.Shared_Terminal then
+         --  Anchor is virtual; Indent_Record would return Null_Delta
+         return Null_Delta;
+      end if;
+
+      declare
+         Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Anchor);
+
+         --  Args (2) is the index of RECORD in Tokens
+         Record_Token : constant Aug_Token_Ref := Get_Aug_Token
+           (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (2)))));
+
+         Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      begin
+         --  Args (3) is the offset
+         return Indent_Record
+           (Parse_Data_Type (Data), Anchor_Token, Record_Token, Indenting_Token, Indenting_Comment, Args (3));
+      end;
    end Ada_Indent_Record_1;
 
 end Wisi.Ada;

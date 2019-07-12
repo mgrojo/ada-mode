@@ -56,9 +56,6 @@ run test from emacs -Q using source:
  current work
 adding 'if' in wisi.adb Name_Action got indent wrong with w-p-p-t = 0
 
-release
-    not including ada-project yet.
-
 major cleanup
     preparing for more emacs project work (project-menu?)
     use cl-defgeneric, not function vars
@@ -150,7 +147,10 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
 
     36278 auto-casing no longer honors casing of the declaration
         it never did; you must create an exception. could automate that, make it file-local
-        option to not auto-correct all uppercase
+        option to not auto-correct all uppercase; set ada-auto-case to 'not-upper-case
+
+    36548 programmer_error in get_aug_token; virtual_terminal
+        fixed in devel.
 
 need wisi user guide
     explain actions
@@ -1480,15 +1480,16 @@ build/Makefile uninstall-elpa
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
-        revert local changes
+        revert local changes in ada, wisi; commit in uniquify
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
         update
         clean sync
-    cd /Projects/elpa
+    cd c:/Projects/elpa
     git log -2 -- packages/wisi
     git log -2 -- packages/ada-mode
     git log -2 -- packages/ada-ref-man
+    git log -2 -- packages/uniquify-files
     if changes:
         (dvc-log "/Projects/elpa/packages/<dir>/<file>")
         apply changes to current
@@ -1496,8 +1497,6 @@ check for ELPA patches by others
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     to update a bug: nnn@debbugs.gnu.org
-    to close: control@debbugs.gnu.org
-        close nnn 6.0.2
 
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
@@ -1520,13 +1519,13 @@ compare:
         install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-2.0.1" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "~/.emacs.d/elpa/wisi-2.1.0" "/Projects/elpa/packages/wisi" nil)
         NEWS-wisi.text
             copyright date
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.0.1" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.1.0" "/Projects/elpa/packages/ada-mode" nil)
         NEWS-ada-mode.text
             add release date
             add new features
@@ -1569,19 +1568,12 @@ bump versions
     ada-ref-man.el
         Version:
 
-    emacs_wisi_common_parse.ads
-        Protocol_Version ; integer; bump if wisi-process-parse would break with old version
-            should have been changed already if required
-
-    wisi-process-parse.el
-        wisi-process-parse-protocol-version match Protocol_Version
-            should have been changed already if required
-
     build/Makefile
         run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
+        WISITOKEN_GENERATE in ~/.emacs.d/elpa
 
     d:/Web/savannah/ada-mode/index.html
         find-replace ada-mode i.j.k
@@ -1589,7 +1581,6 @@ bump versions
         _not_ WisiToken
 
     _not_ d:/Web/stephe-leake/ada/wisitoken.html - that's wisitoken ada code, not emacs wisi
-
 
     ~/Web/Makefile
         ADA_MODE_VERSION
@@ -1605,15 +1596,19 @@ prep for elpa tests:
     # pushes to elpa workspace, builds archive
 
 Check copyright on files in published in elpa
-    elpa/GNUMakefile check_copyrights
+    c:/Projects/elpa/GNUMakefile check_copyrights
     change to FSF
 
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
     build/Makefile install-elpa
-    cd ~/.emacs.d/elpa/ada-mode-6.1.0; ./build.sh
-    cd ~/.emacs.d/elpa/wisi-2.1.0; ./build-wisitoken-bnf-generate.sh
+    # check for errors in *Messages*
+    (gpr-query-kill-all-sessions)
+    (list-processes)
+    # 'd' = kill gpr_mode_wisi_parse.exe, ada_mode_lr1_wisi_parse.exe
+    cd ~/.emacs.d/elpa/ada-mode-6.1.1; ./build.sh
+    cd ~/.emacs.d/elpa/wisi-2.1.1; ./build-wisitoken-bnf-generate.sh
 
     restart Emacs to set load-path
 
@@ -1762,6 +1757,7 @@ mark fixed bugs
     http://debbugs.gnu.org/Developer.html
     email to nnn@debugs.gnu.org giving ada-mode version containing fix
     email to nnn-close@debbugs.gnu.org
+    subject: 'closed by ada-mode version i.j.k'
     don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 
