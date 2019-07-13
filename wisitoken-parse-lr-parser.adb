@@ -676,6 +676,7 @@ package body WisiToken.Parse.LR.Parser is
                Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover_Status'First;
 
                Pre_Recover_Parser_Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
+               Start : Ada.Calendar.Time;
             begin
                --  Recover algorithms expect current token at
                --  Parsers(*).Current_Token, will set
@@ -686,10 +687,17 @@ package body WisiToken.Parse.LR.Parser is
                if Shared_Parser.Enable_McKenzie_Recover then
                   if Debug_Mode then
                      Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
+                     Start := Ada.Calendar.Clock;
                   end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
                   if Debug_Mode then
-                     Trace.Put_Clock ("post-recover" & Shared_Parser.Parsers.Count'Img & " active");
+                     declare
+                        use Ada.Calendar;
+                        Recover_Duration : constant Duration := Clock - Start;
+                     begin
+                        Trace.Put_Clock
+                          ("post-recover" & Shared_Parser.Parsers.Count'Img & " active," & Recover_Duration'Image);
+                     end;
                   end if;
 
                   if Trace_Parse > Outline then
@@ -970,7 +978,7 @@ package body WisiToken.Parse.LR.Parser is
       end if;
 
       if Debug_Mode then
-         Trace.Put_Clock ("finish");
+         Trace.Put_Clock ("finish parse");
       end if;
 
       --  We don't raise Syntax_Error for lexer errors, since they are all

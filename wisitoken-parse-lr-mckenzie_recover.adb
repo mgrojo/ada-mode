@@ -1007,7 +1007,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
-               then Token.Byte_Region -- FIXME: why not only Token.name?
+               then Token.Byte_Region
                else Token.Name);
          begin
             exit when Name_Region /= Null_Buffer_Region and then

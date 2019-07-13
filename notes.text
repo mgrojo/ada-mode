@@ -3,7 +3,7 @@ build/Makefile
 branches:
 org.wisitoken          - main, used by o.e.a
 org.wisitoken.stephe-1 - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2 - available
+org.wisitoken.stephe-2 - speed up recover
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -21,29 +21,15 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-parse_one_item Current_Token
-    start parse first action (shift 'is' for generic instantiation):
-        terminals_current: 4
-        current_insert_delete: 3
-        restore_terminals_current : 0
-
-    start parse second action (reduce 0 to aspect_specification_opt for package spec):
-        terminals_current: 3 : error - not restored!
-            do restore before enqueue conflict!
-        current_insert_delete: 3
-        restore_terminals_current : 0
-
-* wisitoken-parse-lr-mckenzie_recover.adb (Find_Matching_Name): FIXME:
-
 change mckenzie implementation
-    get timing benchmarks first; see Ada_mode notes.
+    timing benchmarks in ada-mode notes.text
     don't do parse before enqueue config =>
         saves time on high cost configs that are never dequeued (the vast majority).
         not clear when to mark fast_forward?
             whenever error point changes; rename to Error_Point?
 
     minimize config copy
-        add to heap return reference, use that to edit
+        local_heap.add return reference, use that to edit?
             in a declare block if need more than one edit.
 
 allow undo_reduce after insert/fast_forward
