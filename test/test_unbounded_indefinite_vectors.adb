@@ -220,7 +220,7 @@ is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_unbounded_definite_vectors.adb");
+      return new String'("test_unbounded_indefinite_vectors.adb");
    end Name;
 
 end Test_Unbounded_Indefinite_Vectors;

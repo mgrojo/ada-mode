@@ -6,7 +6,7 @@
 --  read/write of the vector indices (ie, any operation that might
 --  grow the underlying array), but not individual element content.
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -115,19 +115,15 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
       Container.Guard.Release_Write;
    end Prepend;
 
-   procedure Set_First (Container : in out Vector; First : in Index_Type)
+   procedure Set_First_Last
+     (Container : in out Vector;
+      First : in Index_Type;
+      Last : in Index_Type)
    is begin
       Container.Guard.Acquire_Write;
-      Container.Super.Set_First (First);
+      Container.Super.Set_First_Last (First, Last);
       Container.Guard.Release_Write;
-   end Set_First;
-
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type)
-   is begin
-      Container.Guard.Acquire_Write;
-      Container.Super.Set_Last (Last);
-      Container.Guard.Release_Write;
-   end Set_Last;
+   end Set_First_Last;
 
    --  function Constant_Reference
    --    (Container : aliased in Vector;

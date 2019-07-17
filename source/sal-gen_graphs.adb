@@ -55,10 +55,9 @@ package body SAL.Gen_Graphs is
             Graph.Vertices.Set_First_Last (Vertex, Vertex);
          else
             if Vertex < Graph.Vertices.First_Index then
-               Graph.Vertices.Set_First (Vertex);
-            end if;
-            if Vertex > Graph.Vertices.Last_Index then
-               Graph.Vertices.Set_Last (Vertex);
+               Graph.Vertices.Set_First_Last (Vertex, Graph.Vertices.Last_Index);
+            elsif Vertex > Graph.Vertices.Last_Index then
+               Graph.Vertices.Set_First_Last (Graph.Vertices.First_Index, Vertex);
             end if;
          end if;
       end Update_First_Last;

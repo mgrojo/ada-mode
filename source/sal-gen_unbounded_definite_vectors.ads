@@ -56,6 +56,12 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
    function Capacity (Container : in Vector) return Ada.Containers.Count_Type;
 
+   procedure Set_Capacity
+     (Container : in out Vector;
+      First     : in     Index_Type;
+      Last      : in     Extended_Index);
+   --  Allocates memory, but does not change Container.First, Container.Last.
+
    procedure Clear (Container : in out Vector)
    renames Finalize;
 
@@ -113,18 +119,11 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    function "&" (Left, Right : in Element_Type) return Vector;
    function "&" (Left : in Vector; Right : in Element_Type) return Vector;
 
-   procedure Set_First (Container : in out Vector; First : in Index_Type);
-   procedure Set_Last (Container : in out Vector; Last : in Extended_Index);
    procedure Set_First_Last
      (Container : in out Vector;
       First     : in     Index_Type;
       Last      : in     Extended_Index);
-   --  Default First is Index_Type'First.
-   --  Elements with First <= index <= Last that have not been set have
-   --  Default_Element value.
-
-   procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type);
-   --  Set Last so Container.Length returns Length. New elements have
+   --  Elements in First .. Last that have not been set have
    --  Default_Element value.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
@@ -138,14 +137,14 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    with Implicit_Dereference => Element;
 
    function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
-   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
+   with Pre => Index in Container.First_Index .. Container.Last_Index;
    pragma Inline (Constant_Ref);
 
    type Variable_Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
-   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
+   with Pre => Index in Container.First_Index .. Container.Last_Index;
    pragma Inline (Variable_Ref);
 
    type Cursor is private;
@@ -189,6 +188,9 @@ private
    type Vector is new Ada.Finalization.Controlled with
    record
       Elements : Array_Access;
+      --  Elements may be non-null with First = No_Index, after
+      --  Set_Capacity. If First /= No_Index and Last >= First, Elements /=
+      --  null.
       First    : Extended_Index := No_Index;
       Last     : Extended_Index := No_Index;
    end record;
@@ -226,5 +228,7 @@ private
 
    function To_Peek_Type (Item : in Extended_Index) return Base_Peek_Type with Inline;
    function To_Index_Type (Item : in Base_Peek_Type) return Extended_Index;
+
+   procedure Grow (Elements : in out Array_Access; Index : in Base_Peek_Type);
 
 end SAL.Gen_Unbounded_Definite_Vectors;

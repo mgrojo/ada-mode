@@ -27,7 +27,6 @@ package body Test_Min_Heaps_Fibonacci is
       Data : Float;
       Key  : Integer;
    end record;
-   type Element_Access is access all Element_Type;
 
    function Key (Element : in Element_Type) return Integer is (Element.Key);
    procedure Set_Key (Element : in out Element_Type; Key : in Integer)
@@ -36,12 +35,11 @@ package body Test_Min_Heaps_Fibonacci is
    end Set_Key;
 
    package Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
-     (Element_Type   => Element_Type,
-      Element_Access => Element_Access,
-      Key_Type       => Integer,
-      Key            => Key,
-      Set_Key        => Set_Key,
-      "<"            => "<");
+     (Element_Type => Element_Type,
+      Key_Type     => Integer,
+      Key          => Key,
+      Set_Key      => Set_Key,
+      "<"          => "<");
 
    procedure Check
      (Label    : in String;

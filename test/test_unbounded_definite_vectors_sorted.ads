@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test SAL.Gen_Bounded_Definite_Vectors_Sorted
+--  Test SAL.Gen_Unbounded_Definite_Vectors_Sorted
 --
---  Copyright (C) 2018, 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Bounded_Definite_Vectors_Sorted is
+package Test_Unbounded_Definite_Vectors_Sorted is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Bounded_Definite_Vectors_Sorted is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Bounded_Definite_Vectors_Sorted;
+end Test_Unbounded_Definite_Vectors_Sorted;

@@ -60,10 +60,10 @@ is
       Test_Item   : Vector;
       Test_Item_2 : Vector;
    begin
-      Test_Item.Set_First (1);
       Check ("0a", Test_Item.First_Index, No_Index + 1);
       Check ("0b", Test_Item.Last_Index, No_Index);
 
+      Test_Item.Set_First_Last (1, 0);
       Test_Item.Append (1);
       Test_Item.Append (2);
 
@@ -91,23 +91,23 @@ is
       Check ("4", Test_Item, (-1 => 4, 0 => 3, 1 => 1, 2 => 2, 3 => 5, 4 => 4, 5 => 5));
    end Nominal;
 
-   procedure Test_Set_First (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Set_First_Last (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
       Test_Item   : Vector;
       Test_Item_2 : Vector;
    begin
-      Test_Item.Set_First (-4);
-      Check ("0a", Test_Item.First_Index, No_Index + 1);
-      Check ("0b", Test_Item.Last_Index, No_Index);
+      Test_Item.Set_First_Last (-4, -5);
+      Check ("0a", Test_Item.First_Index, -4);
+      Check ("0b", Test_Item.Last_Index, -5);
 
       Test_Item.Append (3);
       Check ("1", Test_Item, (-4 => 3));
 
       Finalize (Test_Item);
 
-      Test_Item.Set_First (4);
+      Test_Item.Set_First_Last (4, 3);
       Test_Item.Prepend (3);
       Check ("2", Test_Item, (3 => 3));
 
@@ -116,39 +116,10 @@ is
       Test_Item_2.Append (4);
       Test_Item_2.Append (5);
 
-      Test_Item.Set_First (3);
+      Test_Item.Set_First_Last (3, 2);
       Test_Item.Append (Test_Item_2);
       Check ("3", Test_Item, (3 => 4, 4 => 5));
-   end Test_Set_First;
-
-   procedure Test_Set_Length (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use AUnit.Checks;
-
-      Test_Item : Vector;
-   begin
-      Test_Item.Set_Length (0);
-      Check ("-1a", Test_Item.First_Index, No_Index + 1);
-      Check ("-1b", Test_Item.Last_Index, No_Index);
-
-      Test_Item.Set_Length (3);
-      Check ("0a", Test_Item.First_Index, Index_Type'First);
-      Check ("0b", Test_Item.Last_Index, Index_Type'First + 2);
-
-      Test_Item (-10) := 2;
-      Test_Item (-9)  := 3;
-      Test_Item (-8)  := 4;
-
-      Check ("1", Test_Item, (-10 => 2, -9 => 3, -8 => 4));
-
-      Test_Item.Set_Length (6);
-      Check ("2.first", Test_Item.First_Index, -10);
-      Check ("2.last", Test_Item.Last_Index, -5);
-
-      Test_Item (-5) := 5;
-      Check ("2", Test_Item (-5), 5);
-   end Test_Set_Length;
+   end Test_Set_First_Last;
 
    procedure Prepend (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -159,12 +130,12 @@ is
    begin
       --  This test mimics the use of vectors in WisiToken.Syntax_Trees.Branched.
 
-      Shared_Nodes.Set_First (1);
+      Shared_Nodes.Set_First_Last (1, 0);
       Shared_Nodes.Append (1);
       Shared_Nodes.Append (2);
       Shared_Nodes.Append (3);
 
-      Branched_Nodes.Set_First (4);
+      Branched_Nodes.Set_First_Last (4, 3);
       Branched_Nodes.Append (4);
       Branched_Nodes.Append (5);
 
@@ -180,10 +151,10 @@ is
    begin
       --  Test loop in Grow when it needs to execute more than once
 
-      Nodes.Set_First (1);
+      Nodes.Set_First_Last (1, 0);
       Nodes.Append (1);
 
-      Nodes.Set_First (-2);
+      Nodes.Set_First_Last (-2, 1);
       Check ("1", Nodes.First_Index, -2);
    end Test_Grow_1;
 
@@ -207,8 +178,7 @@ is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
-      Register_Routine (T, Test_Set_First'Access, "Test_Set_First");
-      Register_Routine (T, Test_Set_Length'Access, "Test_Set_Length");
+      Register_Routine (T, Test_Set_First_Last'Access, "Test_Set_First_Last");
       Register_Routine (T, Prepend'Access, "Prepend");
       Register_Routine (T, Test_Grow_1'Access, "Test_Grow_1");
       Register_Routine (T, Test_To_Vector_1'Access, "Test_To_Vector_1");
