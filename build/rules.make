@@ -72,7 +72,7 @@ uninstall:
 	make -f Install.make install-clean
 
 library:
-	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
+	gprbuild -p -j8 --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
 
 clean :: test-clean
 	rm -rf obj *.exe
@@ -108,10 +108,10 @@ update-wisitoken_grammar : wisitoken_grammar-clean ../wisitoken_grammar_re2c.c
 # Executables are normally compiled by the test project file, which requires AUnit
 # Override the project file for wisitoken-bnf-generate.exe, for use with Emacs Ada mode without AUnit
 wisitoken-bnf-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-bnf-generate $(GPRBUILD_LINK_ARGS)
+	gprbuild -p -j8 --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-bnf-generate $(GPRBUILD_LINK_ARGS)
 
 test-executables : force
-	gprbuild -p --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
+	gprbuild -p -j8 --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
 
 wisitoken-parse-lr-mckenzie_recover-ada_lite.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
 	gnatprep -b -r -T -DADA_LITE=Ada_Lite $^ $@
@@ -132,7 +132,7 @@ DIFF_OPT := -u -w
 	./wisitoken-bnf-generate.exe --test_main $<
 	dos2unix -q $**
 
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
+%.exe : force; gprbuild -p -j8 --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<

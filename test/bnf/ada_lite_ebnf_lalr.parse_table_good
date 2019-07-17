@@ -6615,4 +6615,4 @@ States with conflicts: 64 182 262
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 2 reduce/reduce conflicts
 
- 89 rules, 18 user actions, 19 checks, 345 states, 2739 parse actions
+ 89 rules, 18 user actions, 19 checks, 345 states

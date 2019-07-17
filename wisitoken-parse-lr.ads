@@ -38,10 +38,11 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
+with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
+with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
@@ -54,7 +55,7 @@ package WisiToken.Parse.LR is
    --  to re-sync on the same input terminal.
 
    subtype Token_ID_Array_1_3 is Token_ID_Array (1 .. 3);
-   --  For Use_Minimal_Complete_Actions in McDenzie_Recover.
+   --  For Language_Matching_Begin_Tokens.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
@@ -99,23 +100,20 @@ package WisiToken.Parse.LR is
    function Is_In (Item : in Parse_Action_Rec; List : in Parse_Action_Node_Ptr) return Boolean;
    --  True if Item is Equal to any element of List.
 
-   type Action_Node;
-   type Action_Node_Ptr is access Action_Node;
-
    type Action_Node is record
-      Symbol : Token_ID := Invalid_Token_ID; -- ignored if Action is Error
-      Action : Parse_Action_Node_Ptr;
-      Next   : Action_Node_Ptr;
+      Symbol  : Token_ID := Invalid_Token_ID; -- ignored if Action is Error
+      Actions : Parse_Action_Node_Ptr;
    end record;
-   procedure Free is new Ada.Unchecked_Deallocation (Action_Node, Action_Node_Ptr);
 
-   function Find
-     (Symbol      : in Token_ID;
-      Action_List : in Action_Node_Ptr)
-     return Action_Node_Ptr;
+   function To_Key (Item : in Action_Node) return Token_ID is (Item.Symbol);
+
+   function Compare (Left, Right : in Token_ID) return SAL.Compare_Result;
+
+   package Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
+     (Action_Node, Token_ID, To_Key, Compare);
 
    procedure Add
-     (List   : in out Action_Node_Ptr;
+     (List   : in out Action_Arrays.Vector;
       Symbol : in     Token_ID;
       Action : in     Parse_Action_Rec);
    --  Add action to List, sorted on ascending Symbol.
@@ -172,7 +170,7 @@ package WisiToken.Parse.LR is
    function Strict_Image is new Minimal_Action_Arrays.Gen_Image (Strict_Image);
 
    type Parse_State is record
-      Action_List : Action_Node_Ptr;
+      Action_List : Action_Arrays.Vector;
       Goto_List   : Goto_Node_Ptr;
 
       --  The following are used in error recovery.
@@ -187,17 +185,6 @@ package WisiToken.Parse.LR is
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
-
-   type Action_List_Iterator is tagged private;
-   --  Iterates over all shift/reduce actions for a state, including
-   --  conflicts.
-
-   function First (State : in Parse_State) return Action_List_Iterator;
-   function Is_Done (Iter : in Action_List_Iterator) return Boolean;
-   procedure Next (Iter : in out Action_List_Iterator);
-
-   function Symbol (Iter : in Action_List_Iterator) return Token_ID;
-   function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec;
 
    procedure Add_Action
      (State       : in out Parse_State;
@@ -233,9 +220,6 @@ package WisiToken.Parse.LR is
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce conflict to State.
-
-   procedure Add_Error (State  : in out Parse_State);
-   --  Add an Error action to State, at tail of action list.
 
    procedure Add_Goto
      (State    : in out Parse_State;
@@ -306,6 +290,7 @@ package WisiToken.Parse.LR is
      is tagged
    record
       States         : Parse_State_Array (State_First .. State_Last);
+      Error_Action   : Parse_Action_Node_Ptr;
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
    end record;
 
@@ -327,7 +312,8 @@ package WisiToken.Parse.LR is
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
-     return Parse_Action_Node_Ptr;
+     return Parse_Action_Node_Ptr
+   with Post => Action_For'Result /= null;
    --  Return the action for State, terminal ID.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
@@ -511,12 +497,10 @@ package WisiToken.Parse.LR is
      is (for some O of Ops => O.Op = Op);
    --  True if Ops contains at least one Op.
 
-   package Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Insert_Delete_Op, Capacity => 80);
+   package Sorted_Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors_Sorted
+     (Insert_Delete_Op, Compare, Capacity => 80);
 
-   package Sorted_Insert_Delete_Arrays is new Insert_Delete_Arrays.Gen_Sorted (Compare);
-
-   function Image is new Insert_Delete_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Sorted_Insert_Delete_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index;
@@ -612,8 +596,6 @@ package WisiToken.Parse.LR is
       Minimal_Complete_State : LR.Minimal_Complete_State := None;
       Matching_Begin_Done    : Boolean                   := False;
    end record;
-   type Configuration_Access is access all Configuration;
-   for Configuration_Access'Storage_Size use 0;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
 
@@ -621,7 +603,6 @@ package WisiToken.Parse.LR is
 
    package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
      (Element_Type   => Configuration,
-      Element_Access => Configuration_Access,
       Key_Type       => Integer,
       Key            => Key,
       Set_Key        => Set_Key);
@@ -674,10 +655,5 @@ private
       Next       : Goto_Node_Ptr;
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Node, Goto_Node_Ptr);
-
-   type Action_List_Iterator is tagged record
-      Node : Action_Node_Ptr;
-      Item : Parse_Action_Node_Ptr;
-   end record;
 
 end WisiToken.Parse.LR;

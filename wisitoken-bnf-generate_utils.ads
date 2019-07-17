@@ -49,11 +49,10 @@ package WisiToken.BNF.Generate_Utils is
       --  The following fields are LR specific; so far, it's not worth
       --  splitting them out.
 
-      Ignore_Conflicts    : Boolean                       := False;
-      Conflicts           : WisiToken.Generate.LR.Conflict_Lists.List;
-      LR_Parse_Table      : WisiToken.Parse.LR.Parse_Table_Ptr;
-      Table_Actions_Count : Integer                       := -1; -- parse, not user, actions
-      Parser_State_Count  : WisiToken.Unknown_State_Index := 0;
+      Ignore_Conflicts   : Boolean                       := False;
+      Conflicts          : WisiToken.Generate.LR.Conflict_Lists.List;
+      LR_Parse_Table     : WisiToken.Parse.LR.Parse_Table_Ptr;
+      Parser_State_Count : WisiToken.Unknown_State_Index := 0;
    end record;
 
    function Initialize
@@ -149,14 +148,9 @@ package WisiToken.BNF.Generate_Utils is
       Item :         in McKenzie_Recover_Param_Type)
      return WisiToken.Parse.LR.McKenzie_Param_Type;
 
-   procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);
-
    procedure Put_Stats
      (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data);
-
-   function Actions_Length (State : in Parse.LR.Parse_State) return Integer;
-   --  Not including Error.
 
 private
 

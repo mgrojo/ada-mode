@@ -467,6 +467,7 @@ package WisiToken.Syntax_Trees is
    --  Text_IO.Current_Output, for debugging.
 
 private
+   use all type Ada.Containers.Count_Type;
 
    type Node (Label : Node_Label := Virtual_Terminal) is
    --  Label has a default to allow changing the label during tree editing.
@@ -562,6 +563,12 @@ private
 
       Root : Node_Index := Invalid_Node_Index;
    end record with
-     Type_Invariant => (if Tree.Flush then not Tree.Has_Branched_Nodes);
+     Type_Invariant =>
+       (Shared_Tree = null or else
+        (if Tree.Flush
+         then Last_Shared_Node = Shared_Tree.Nodes.Last_Index and
+            Branched_Nodes.Length = 0
+         else Last_Shared_Node <= Shared_Tree.Nodes.Last_Index and
+            Last_Shared_Node < Branched_Nodes.First_Index));
 
 end WisiToken.Syntax_Trees;

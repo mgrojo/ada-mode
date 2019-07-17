@@ -142,7 +142,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          if Trace_McKenzie > Extra then
             if Config.Current_Insert_Delete /= No_Insert_Delete then
                Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
-                           Image (Insert_Delete_Arrays.Vector (Config.Insert_Delete), Trace.Descriptor.all));
+                           Image (Config.Insert_Delete, Trace.Descriptor.all));
             end if;
          end if;
 

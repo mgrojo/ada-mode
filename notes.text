@@ -1,9 +1,9 @@
 build/Makefile
 
 branches:
-org.wisitoken          - main, used by o.e.a
-org.wisitoken.stephe-1 - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2 - speed up recover
+org.wisitoken/o.s_l.sal                   - main, used by o.e.a
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-*
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - speed up recover
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -21,16 +21,43 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-change mckenzie implementation
+speed up mckenzie
     timing benchmarks in ada-mode notes.text
-    don't do parse before enqueue config =>
-        saves time on high cost configs that are never dequeued (the vast majority).
-        not clear when to mark fast_forward?
-            whenever error point changes; rename to Error_Point?
 
-    minimize config copy
-        local_heap.add return reference, use that to edit?
-            in a declare block if need more than one edit.
+    get performance trace
+        o.e.a/build/recover_partial_02.profile - never returns (sigh). doesn't hang with task_count 1
+        lr1 get_text_rep confusing things
+        lalr results slightly better, but still not helpful
+        try valgrind on linux; much better.
+            dominated by fibonacci heap remove, add - nothing to improve there.
+            wisitoken__parse__lr__mckenzie_recover__explore__insert_from_action_list
+                speeded up just_pushed_back_or_deleted
+                speeded up action_for; unbounded_array, binary search
+
+                speed up goto_for
+
+                alternate table rep for duplicate reduce actions?
+
+            wisitoken__parse__lr__mckenzie_recover__parse__reduce_stack
+                bounded stack, size in .wy
+
+            wisitoken__parse__lr__goto_for
+                sorted in ID order => use binary search => need array or tree, not list
+
+            wisitoken__parse__lr__recover_stacks__adjust
+                bounded stack?
+
+            wisitoken__parse__lr__mckenzie_recover__explore__do_reduce_1.constprop.123
+                find out what this is
+
+            wisitoken__parse__lr__recover_stacks__constant_ref
+                used implicitly in something
+
+    minimize config copy => slower
+
+    fixed size config.stack?
+
+    do spark on SAL.Gen_Bounded_Definite_Vectors, check for full rather than handle exception
 
 allow undo_reduce after insert/fast_forward
     in Recover, processing ops

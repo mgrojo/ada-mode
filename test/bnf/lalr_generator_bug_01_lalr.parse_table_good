@@ -555,4 +555,4 @@ States with conflicts: 10 28
 
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
 
- 16 rules, 0 user actions, 0 checks, 47 states, 126 parse actions
+ 16 rules, 0 user actions, 0 checks, 47 states

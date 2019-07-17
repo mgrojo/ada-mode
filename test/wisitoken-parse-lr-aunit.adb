@@ -46,7 +46,6 @@ package body WisiToken.Parse.LR.AUnit is
       end case;
    end Check;
 
-
    procedure Check
      (Label    : in String;
       Computed : in Parse_Action_Rec;
@@ -105,33 +104,12 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Action_Node_Ptr;
-      Expected : in Action_Node_Ptr)
+      Computed : in Action_Node;
+      Expected : in Action_Node)
    is
-      use Standard.AUnit.Checks;
-      use Standard.AUnit.Assertions;
-      use WisiToken.AUnit;
-      Computed_I : Action_Node_Ptr := Computed;
-      Expected_I : Action_Node_Ptr := Expected;
-      Index      : Integer  := 1;
    begin
-      if Computed /= null or Expected /= null then
-         Assert (Computed /= null, Label & " Computed is null");
-         Assert (Expected /= null, Label & " Expected is null");
-      else
-         --  both are null
-         return;
-      end if;
-
-      loop
-         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
-         Check (Label & Integer'Image (Index) & ".Action", Computed_I.Action, Expected_I.Action);
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
-         Index      := Index + 1;
-         exit when Computed_I = null;
-      end loop;
+      WisiToken.AUnit.Check (Label & ".Symbol", Computed.Symbol, Expected.Symbol);
+      Check (Label & ".Actions", Computed.Actions, Expected.Actions);
    end Check;
 
    procedure Check
@@ -171,7 +149,7 @@ package body WisiToken.Parse.LR.AUnit is
       Expected : in Parse_State)
    is
    begin
-      Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
+      Action_Arrays_AUnit.Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
       Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
       if Strict then
          raise SAL.Programmer_Error;

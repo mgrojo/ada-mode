@@ -119,7 +119,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-      Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
+      Config : Configuration;
       Error  : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
    begin
       Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;
@@ -160,7 +160,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       when Action =>
          Config.Error_Token := Parser_State.Tree.Recover_Token (Error.Error_Token);
          if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
+            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
                  Task_ID => False);
          end if;
 
@@ -168,7 +168,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          if Shared_Parser.Language_Fixes = null then
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
-               Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
+               Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
                     Task_ID => False);
             end if;
 
@@ -187,7 +187,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             if Trace_McKenzie > Detail then
                Put ("undo_reduce " & Image
                       (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
-                    Shared_Parser.Terminals, Config.all, Task_ID => False);
+                    Shared_Parser.Terminals, Config, Task_ID => False);
             end if;
          end if;
 
@@ -196,6 +196,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          --  recovery.
          raise SAL.Programmer_Error;
       end case;
+
+      Parser_State.Recover.Config_Heap.Add (Config);
    end Recover_Init;
 
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status

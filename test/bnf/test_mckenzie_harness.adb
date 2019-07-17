@@ -18,6 +18,7 @@
 
 with AUnit.Options;
 with AUnit.Reporter.Text;
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
@@ -86,13 +87,19 @@ begin
    WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
    if Alg in None | LALR then
-      Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-                  (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions));
+      Add_Test
+        (Suite,
+         Test_Case_Access'
+           (new Test_McKenzie_Recover.Test_Case
+              (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions)));
    end if;
 
    if Alg in None | LR1 then
-      Add_Test (Suite, new Test_McKenzie_Recover.Test_Case
-                  (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions));
+      Add_Test
+        (Suite,
+         Test_Case_Access'
+           (new Test_McKenzie_Recover.Test_Case
+              (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions)));
    end if;
 
    Run (Suite, Options, Result, Status);

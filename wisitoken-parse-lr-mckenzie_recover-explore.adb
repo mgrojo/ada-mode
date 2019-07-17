@@ -532,10 +532,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             Last_Op : Config_Op renames Config.Ops (Config.Ops.Last_Index);
          begin
-            return Last_Op = (Push_Back, ID, Config.Current_Shared_Token) or
-              Last_Op = (Push_Back, ID, Config.Current_Shared_Token - 1) or
-            Last_Op = (Delete, ID, Config.Current_Shared_Token) or
-              Last_Op = (Delete, ID, Config.Current_Shared_Token - 1);
+            return
+              (Last_Op.Op = Push_Back and then Last_Op.PB_ID = ID) or
+              (Last_Op.Op = Delete and then Last_Op.Del_ID = ID);
          end;
       end if;
    end Just_Pushed_Back_Or_Deleted;
@@ -606,8 +605,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  conflicts or semantic check fails encountered, they create other
       --  configs to enqueue.
 
-      I : Action_List_Iterator := First (Table.States (Config.Stack.Peek.State));
-
       Current_Token : constant Token_ID := Current_Token_ID_Peek
         (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete);
 
@@ -616,92 +613,93 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Most of the time, all the reductions in a state are the same. So
       --  we cache the first result. This includes one reduction; if an
       --  associated semantic check failed, this does not include the fixes.
+
+      I : Parse_Action_Node_Ptr;
    begin
+      for Node of Table.States (Config.Stack.Peek.State).Action_List loop
+         I := Node.Actions;
+         loop
+            exit when I = null;
+            declare
+               ID     : constant Token_ID := Node.Symbol;
+               Action : Parse_Action_Rec renames I.Item;
+            begin
+               if ID /= EOF_ID and then -- can't insert eof
+                 ID /= Invalid_Token_ID -- invalid when Verb = Error
+               then
+                  if Just_Pushed_Back_Or_Deleted (Config, ID) then
+                     if Trace_McKenzie > Extra then
+                        Put_Line
+                          (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
+                             ": undo push_back");
+                     end if;
+                  elsif ID = Current_Token then
+                     --  This needed because we allow explore when the error is not at the
+                     --  explore point; it prevents inserting useless tokens (ie
+                     --  'identifier ;' in ada_lite).
+                     if Trace_McKenzie > Extra then
+                        Put_Line
+                          (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
+                             ": current token");
+                     end if;
 
-      loop
-         exit when I.Is_Done;
+                  elsif (for some Minimal of Minimal_Insert => ID = Minimal) then
+                     --  Was inserted by Insert_Minimal_Complete_Actions
+                     null;
 
-         declare
-            ID     : constant Token_ID := I.Symbol;
-            Action : Parse_Action_Rec renames I.Action;
-         begin
-            if ID /= EOF_ID and then --  can't insert eof
-              ID /= Invalid_Token_ID -- invalid when Verb = Error
-            then
-               if Just_Pushed_Back_Or_Deleted (Config, ID) then
-                  if Trace_McKenzie > Extra then
-                     Put_Line
-                       (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
-                          ": undo push_back");
-                  end if;
-               elsif ID = Current_Token then
-                  --  This needed because we allow explore when the error is not at the
-                  --  explore point; it prevents inserting useless tokens (ie
-                  --  'identifier ;' in ada_lite).
-                  if Trace_McKenzie > Extra then
-                     Put_Line
-                       (Super.Trace.all, Super.Label (Parser_Index), "Insert: abandon " & Image (ID, Descriptor) &
-                          ": current token");
-                  end if;
-
-               elsif (for some Minimal of Minimal_Insert => ID = Minimal) then
-                  --  Was inserted by Insert_Minimal_Complete_Actions
-                  null;
-
-               else
-                  case Action.Verb is
-                  when Shift =>
-                     declare
-                        New_Config : Configuration := Config;
-                     begin
-                        New_Config.Error_Token.ID := Invalid_Token_ID;
-                        New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
-
-                        Do_Shift
-                          ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID,
-                           Cost_Delta => 0,
-                           Strategy   => Explore_Table);
-                     end;
-
-                  when Reduce =>
-                     if not Equal (Action, Cached_Action) then
+                  else
+                     case Action.Verb is
+                     when Shift =>
                         declare
                            New_Config : Configuration := Config;
                         begin
-                           New_Config.Error_Token.ID := Invalid_Token_ID;
-                           New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
-
-                           Do_Reduce_1 ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
-                           Cached_Config := New_Config;
-                           Cached_Action := Action;
-
-                           Do_Reduce_2
-                             ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
+                           Do_Shift
+                             ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID,
                               Cost_Delta => 0,
                               Strategy   => Explore_Table);
                         end;
 
-                     else
-                        declare
-                           New_Config : Configuration := Cached_Config;
-                        begin
-                           Do_Reduce_2
-                             ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
-                              Cost_Delta => 0,
-                              Strategy   => Explore_Table);
-                        end;
-                     end if;
+                     when Reduce =>
+                        if not Equal (Action, Cached_Action) then
+                           declare
+                              New_Config : Configuration := Config;
+                           begin
+                              New_Config.Error_Token.ID := Invalid_Token_ID;
+                              New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-                  when Accept_It =>
-                     raise SAL.Programmer_Error with "found test case for Process_One Accept_It";
+                              Do_Reduce_1
+                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
+                              Cached_Config := New_Config;
+                              Cached_Action := Action;
 
-                  when Error =>
-                     null;
-                  end case;
+                              Do_Reduce_2
+                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
+                                 Cost_Delta => 0,
+                                 Strategy   => Explore_Table);
+                           end;
+
+                        else
+                           declare
+                              New_Config : Configuration := Cached_Config;
+                           begin
+                              Do_Reduce_2
+                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
+                                 Cost_Delta => 0,
+                                 Strategy   => Explore_Table);
+                           end;
+                        end if;
+
+                     when Accept_It =>
+                        raise SAL.Programmer_Error with "found test case for Process_One Accept_It";
+
+                     when Error =>
+                        null;
+                     end case;
+                  end if;
                end if;
-            end if;
-         end;
-         I.Next;
+            end;
+            I := I.Next;
+         end loop;
       end loop;
    end Insert_From_Action_List;
 

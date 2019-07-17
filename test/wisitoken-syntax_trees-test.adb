@@ -87,7 +87,7 @@ package body WisiToken.Syntax_Trees.Test is
 
       Check ("node 5", Node_Ident_2, 5);
 
-      Expected_Branched_Nodes.Set_First (2);
+      Expected_Branched_Nodes.Set_First_Last (2, 1);
       Expected_Branched_Nodes.Append
         ((Shared_Terminal,
           Parent      => 4,

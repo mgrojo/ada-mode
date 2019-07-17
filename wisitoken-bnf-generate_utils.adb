@@ -106,10 +106,8 @@ package body WisiToken.BNF.Generate_Utils is
       use WisiToken.Wisi_Ada;
       Descriptor : WisiToken.Descriptor renames Data.Descriptor.all;
    begin
-      Data.Grammar.Set_First (Descriptor.First_Nonterminal);
-      Data.Grammar.Set_Last (Descriptor.Last_Nonterminal);
-      Data.Source_Line_Map.Set_First (Descriptor.First_Nonterminal);
-      Data.Source_Line_Map.Set_Last (Descriptor.Last_Nonterminal);
+      Data.Grammar.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
+      Data.Source_Line_Map.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
 
       Data.Action_Names := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
       Data.Check_Names  := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
@@ -121,8 +119,7 @@ package body WisiToken.BNF.Generate_Utils is
              (Find_Token_ID (Data, Start_Token) & Descriptor.EOI_ID + WisiToken.Syntax_Trees.Null_Action);
 
          Data.Source_Line_Map (Descriptor.Accept_ID).Line := Line_Number_Type'First;
-         Data.Source_Line_Map (Descriptor.Accept_ID).RHS_Map.Set_First (0);
-         Data.Source_Line_Map (Descriptor.Accept_ID).RHS_Map.Set_Last (0);
+         Data.Source_Line_Map (Descriptor.Accept_ID).RHS_Map.Set_First_Last (0, 0);
          Data.Source_Line_Map (Descriptor.Accept_ID).RHS_Map (0) := Line_Number_Type'First;
       exception
       when Not_Found =>
@@ -144,12 +141,10 @@ package body WisiToken.BNF.Generate_Utils is
          begin
             LHS := Find_Token_ID (Data, -Rule.Left_Hand_Side);
 
-            RHSs.Set_First (RHS_Index);
-            RHSs.Set_Last (Natural (Rule.Right_Hand_Sides.Length) - 1);
+            RHSs.Set_First_Last (RHS_Index, Natural (Rule.Right_Hand_Sides.Length) - 1);
 
             Data.Source_Line_Map (LHS).Line := Rule.Source_Line;
-            Data.Source_Line_Map (LHS).RHS_Map.Set_First (RHSs.First_Index);
-            Data.Source_Line_Map (LHS).RHS_Map.Set_Last (RHSs.Last_Index);
+            Data.Source_Line_Map (LHS).RHS_Map.Set_First_Last (RHSs.First_Index, RHSs.Last_Index);
 
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
@@ -159,8 +154,7 @@ package body WisiToken.BNF.Generate_Utils is
                   I      : Integer := 1;
                begin
                   if Right_Hand_Side.Tokens.Length > 0 then
-                     Tokens.Set_First (I);
-                     Tokens.Set_Last (Integer (Right_Hand_Side.Tokens.Length));
+                     Tokens.Set_First_Last (I, Integer (Right_Hand_Side.Tokens.Length));
                      for Token of Right_Hand_Side.Tokens loop
                         Tokens (I) := Find_Token_ID (Data, -Token.Identifier);
                         I := I + 1;
@@ -760,15 +754,6 @@ package body WisiToken.BNF.Generate_Utils is
       return Result;
    end To_McKenzie_Param;
 
-   procedure Count_Actions (Data : in out Generate_Utils.Generate_Data)
-   is begin
-      Data.Table_Actions_Count := 0;
-      for State_Index in Data.LR_Parse_Table.States'Range loop
-         Data.Table_Actions_Count := Data.Table_Actions_Count +
-           Actions_Length (Data.LR_Parse_Table.States (State_Index)) + 1;
-      end loop;
-   end Count_Actions;
-
    procedure Put_Stats
      (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data)
@@ -780,24 +765,7 @@ package body WisiToken.BNF.Generate_Utils is
         (Integer'Image (Input_Data.Rule_Count) & " rules," &
            Integer'Image (Input_Data.Action_Count) & " user actions," &
            Integer'Image (Input_Data.Check_Count) & " checks," &
-           WisiToken.State_Index'Image (Generate_Data.Parser_State_Count) & " states," &
-           Integer'Image (Generate_Data.Table_Actions_Count) & " parse actions");
+           WisiToken.State_Index'Image (Generate_Data.Parser_State_Count) & " states");
    end Put_Stats;
-
-   function Actions_Length (State : in Parse.LR.Parse_State) return Integer
-   is
-      use all type WisiToken.Parse.LR.Action_Node_Ptr;
-      Node : Parse.LR.Action_Node_Ptr := State.Action_List;
-   begin
-      return Result : Integer := 0
-      do
-         loop
-            exit when Node = null;
-            Result := Result + 1;
-            Node := Node.Next;
-            exit when Node.Next = null; -- don't count Error
-         end loop;
-      end return;
-   end Actions_Length;
 
 end WisiToken.BNF.Generate_Utils;

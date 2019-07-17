@@ -752,4 +752,4 @@ State 55:
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
- 11 rules, 20 user actions, 3 checks, 56 states, 195 parse actions
+ 11 rules, 20 user actions, 3 checks, 56 states

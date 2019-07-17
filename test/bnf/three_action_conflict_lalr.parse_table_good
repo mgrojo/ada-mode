@@ -335,4 +335,4 @@ States with conflicts: 11
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 1 reduce/reduce conflicts
 
- 7 rules, 0 user actions, 0 checks, 23 states, 67 parse actions
+ 7 rules, 0 user actions, 0 checks, 23 states

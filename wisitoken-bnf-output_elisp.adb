@@ -35,6 +35,7 @@ is
 
    procedure Action_Table (Table : in WisiToken.Parse.LR.Parse_Table; Descriptor : in WisiToken.Descriptor)
    is
+      use all type SAL.Base_Peek_Type;
       use WisiToken.Parse.LR;
    begin
       Put ("     [");
@@ -47,76 +48,60 @@ is
 
          Put ("(default . error)");
 
-         declare
-            Action : Action_Node_Ptr := Table.States (State).Action_List;
-         begin
-            loop
-               declare
-                  Parse_Action_Node : Parse_Action_Node_Ptr := Action.Action;
-                  Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
-               begin
-                  Put (" (" & Image (Action.Symbol, Descriptor) & " . ");
+         for I in Table.States (State).Action_List.First_Index .. Table.States (State).Action_List.Last_Index loop
+            declare
+               Action : Action_Node renames Table.States (State).Action_List (I);
+               Parse_Action_Node : Parse_Action_Node_Ptr := Action.Actions;
+               Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
+            begin
+               Put (" (" & Image (Action.Symbol, Descriptor) & " . ");
 
-                  if Conflict then
-                     Put ("(");
-                  end if;
+               if Conflict then
+                  Put ("(");
+               end if;
 
-                  loop
-                     declare
-                        Parse_Action : Parse_Action_Rec renames Parse_Action_Node.Item;
-                     begin
-                        case Parse_Action.Verb is
-                        when Accept_It =>
-                           Put ("accept");
+               loop
+                  declare
+                     Parse_Action : Parse_Action_Rec renames Parse_Action_Node.Item;
+                  begin
+                     case Parse_Action.Verb is
+                     when Accept_It =>
+                        Put ("accept");
 
-                        when Error =>
-                           Put ("error");
+                     when Error =>
+                        raise SAL.Programmer_Error;
 
-                        when Reduce =>
-                           Put
-                             ("(" & Image (Parse_Action.Production.LHS, Descriptor) & " ." &
-                                Integer'Image (Parse_Action.Production.RHS) & ")");
+                     when Reduce =>
+                        Put
+                          ("(" & Image (Parse_Action.Production.LHS, Descriptor) & " ." &
+                             Integer'Image (Parse_Action.Production.RHS) & ")");
 
-                        when Shift =>
-                           Put (State_Index'Image (Parse_Action.State));
+                     when Shift =>
+                        Put (State_Index'Image (Parse_Action.State));
 
-                        end case;
+                     end case;
 
-                        if Parse_Action_Node.Next = null then
-                           if Conflict then
-                              Put (")");
-                           end if;
+                     if Parse_Action_Node.Next = null then
+                        if Conflict then
                            Put (")");
-                           exit;
-                        else
-                           Put (" ");
-                           Parse_Action_Node := Parse_Action_Node.Next;
                         end if;
-                     end;
-                  end loop;
-               end;
-
-               Action := Action.Next;
-
-               if Action.Next = null then
-                  if Action.Action.Item.Verb /= Error then
-                     raise SAL.Programmer_Error with "state" &
-                       State_Index'Image (State) & ": default action is not error";
-                  end if;
-                  --  let default handle it
-                  Action := null;
+                        Put (")");
+                        exit;
+                     else
+                        Put (" ");
+                        Parse_Action_Node := Parse_Action_Node.Next;
+                     end if;
+                  end;
+               end loop;
+            end;
+            if I = Table.States (State).Action_List.Last_Index then
+               if State = Table.States'Last then
+                  Put (")");
+               else
+                  Put_Line (")");
                end if;
-
-               if Action = null then
-                  if State = Table.States'Last then
-                     Put (")");
-                  else
-                     Put_Line (")");
-                  end if;
-                  exit;
-               end if;
-            end loop;
-         end;
+            end if;
+         end loop;
       end loop;
       Put_Line ("]");
    end Action_Table;

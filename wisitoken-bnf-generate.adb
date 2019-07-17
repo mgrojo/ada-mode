@@ -474,7 +474,6 @@ begin
 
                Generate_Data.Parser_State_Count :=
                  Generate_Data.LR_Parse_Table.State_Last - Generate_Data.LR_Parse_Table.State_First + 1;
-               WisiToken.BNF.Generate_Utils.Count_Actions (Generate_Data);
                WisiToken.BNF.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
             when LR1 =>
@@ -502,7 +501,6 @@ begin
 
                Generate_Data.Parser_State_Count :=
                  Generate_Data.LR_Parse_Table.State_Last - Generate_Data.LR_Parse_Table.State_First + 1;
-               WisiToken.BNF.Generate_Utils.Count_Actions (Generate_Data);
                WisiToken.BNF.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
             when Packrat_Generate_Algorithm =>

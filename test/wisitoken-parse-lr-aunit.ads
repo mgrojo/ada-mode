@@ -21,11 +21,19 @@ pragma License (GPL);
 with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
+with SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit;
 package WisiToken.Parse.LR.AUnit is
 
    Strict : Boolean := False;
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (All_Parse_Action_Verbs);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Action_Node;
+      Expected : in Action_Node);
+
+   package Action_Arrays_AUnit is new Action_Arrays.Gen_AUnit (Check);
 
    procedure Check
      (Label    : in String;

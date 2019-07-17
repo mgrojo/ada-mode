@@ -3915,4 +3915,4 @@ States with conflicts: 54 71 105 106 119 120 121 138 151 152 165 166 177 178 180
 
  0 accept/reduce conflicts, 144 shift/reduce conflicts, 0 reduce/reduce conflicts
 
- 15 rules, 0 user actions, 0 checks, 186 states, 1872 parse actions
+ 15 rules, 0 user actions, 0 checks, 186 states

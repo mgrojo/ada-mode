@@ -357,7 +357,7 @@ package body WisiToken_Grammar_Runtime is
          if Data.Terminals.Length = 0 then
             Data.Non_Grammar (0).Append (Token);
          else
-            Data.Non_Grammar.Set_Last (Data.Terminals.Last_Index);
+            Data.Non_Grammar.Set_First_Last (0, Data.Terminals.Last_Index);
             Data.Non_Grammar (Data.Terminals.Last_Index).Append (Token);
          end if;
       end if;
