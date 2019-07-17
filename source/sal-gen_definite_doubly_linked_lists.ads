@@ -52,6 +52,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
    overriding procedure Finalize (Container : in out List);
    --  Free all items in List.
 
+   procedure Clear (Container : in out List) renames Finalize;
+
    function Length (Container : in List) return Ada.Containers.Count_Type;
 
    procedure Append (Container : in out List; Element : in Element_Type);
@@ -82,6 +84,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    with Pre => Position /= No_Element;
+
+   procedure Delete_First (Container : in out List);
 
    procedure Insert
      (Container : in out List;
