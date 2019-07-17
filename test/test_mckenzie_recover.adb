@@ -1707,7 +1707,7 @@ package body Test_McKenzie_Recover is
       --  When Enqueue_Limit is hit, worker tasks stop dequeing configs, but
       --  any active workers will finish enqueuing new ones.
 
-      Parser.Table.McKenzie_Param.Enqueue_Limit := 50;
+      Parser.Table.McKenzie_Param.Enqueue_Limit := 20;
 
       Parse_Text
         ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
@@ -1721,9 +1721,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
          Ops_Race_Condition      => True,
-         Enqueue_Low             => 50,
-         Enqueue_High            => 117,
-         Check_Low               => 6,
+         Enqueue_Low             => 20,
+         Enqueue_High            => 70,
+         Check_Low               => 3,
          Check_High              => 20,
          Cost                    => 0);
    end Enqueue_Limit;

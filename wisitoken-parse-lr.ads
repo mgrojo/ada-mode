@@ -118,12 +118,15 @@ package WisiToken.Parse.LR is
       Action : in     Parse_Action_Rec);
    --  Add action to List, sorted on ascending Symbol.
 
-   type Goto_Node is private;
-   type Goto_Node_Ptr is access Goto_Node;
+   type Goto_Node is record
+      Symbol : Token_ID;
+      State  : State_Index;
+   end record;
 
-   function Symbol (List : in Goto_Node_Ptr) return Token_ID;
-   function State (List : in Goto_Node_Ptr) return State_Index;
-   function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
+   function To_Key (Item : in Goto_Node) return Token_ID is (Item.Symbol);
+
+   package Goto_Arrays is  new SAL.Gen_Unbounded_Definite_Vectors_Sorted
+     (Goto_Node, Token_ID, To_Key, Compare);
 
    type Kernel_Info is record
       LHS              : Token_ID                  := Token_ID'First;
@@ -171,7 +174,7 @@ package WisiToken.Parse.LR is
 
    type Parse_State is record
       Action_List : Action_Arrays.Vector;
-      Goto_List   : Goto_Node_Ptr;
+      Goto_List   : Goto_Arrays.Vector;
 
       --  The following are used in error recovery.
       Kernel : Kernel_Info_Arrays.Vector;
@@ -299,11 +302,6 @@ package WisiToken.Parse.LR is
       State : in State_Index;
       ID    : in Token_ID)
      return Unknown_State_Index;
-   function Goto_For
-     (Table : in Parse_Table;
-      State : in State_Index;
-      ID    : in Token_ID)
-     return Goto_Node_Ptr;
    --  Return next state after reducing stack by nonterminal ID;
    --  Unknown_State if none (only possible during error recovery).
    --  Second form allows retrieving Production.
@@ -646,14 +644,5 @@ package WisiToken.Parse.LR is
    end record;
 
    package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
-
-private
-
-   type Goto_Node is record
-      Symbol     : Token_ID;
-      State      : State_Index;
-      Next       : Goto_Node_Ptr;
-   end record;
-   procedure Free is new Ada.Unchecked_Deallocation (Goto_Node, Goto_Node_Ptr);
 
 end WisiToken.Parse.LR;

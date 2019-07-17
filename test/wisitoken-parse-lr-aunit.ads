@@ -37,6 +37,13 @@ package WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
+      Computed : in Goto_Node;
+      Expected : in Goto_Node);
+
+   package Goto_Arrays_AUnit is new Goto_Arrays.Gen_AUnit (Check);
+
+   procedure Check
+     (Label    : in String;
       Computed : in Minimal_Action;
       Expected : in Minimal_Action);
    --  If Expected.State is State_Index'Last, ignore it.

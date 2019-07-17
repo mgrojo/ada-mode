@@ -106,41 +106,20 @@ package body WisiToken.Parse.LR.AUnit is
      (Label    : in String;
       Computed : in Action_Node;
       Expected : in Action_Node)
-   is
-   begin
+   is begin
       WisiToken.AUnit.Check (Label & ".Symbol", Computed.Symbol, Expected.Symbol);
       Check (Label & ".Actions", Computed.Actions, Expected.Actions);
    end Check;
 
    procedure Check
      (Label    : in String;
-      Computed : in Goto_Node_Ptr;
-      Expected : in Goto_Node_Ptr)
+      Computed : in Goto_Node;
+      Expected : in Goto_Node)
    is
-      use Standard.AUnit.Checks;
-      use Standard.AUnit.Assertions;
       use WisiToken.AUnit;
-      Computed_I : Goto_Node_Ptr := Computed;
-      Expected_I : Goto_Node_Ptr := Expected;
-      Index      : Integer  := 1;
    begin
-      if Computed /= null or Expected /= null then
-         Assert (Computed /= null, Label & " Computed is null");
-         Assert (Expected /= null, Label & " Expected is null");
-      else
-         --  both are null
-         return;
-      end if;
-
-      loop
-         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
-         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
-         Computed_I := Next (Computed_I);
-         Expected_I := Next (Expected_I);
-         Index      := Index + 1;
-         exit when Computed_I = null;
-      end loop;
+      Check (Label & ".Symbol", Computed.Symbol, Expected.Symbol);
+      Check (Label & ".State", Computed.State, Expected.State);
    end Check;
 
    procedure Check
@@ -150,7 +129,7 @@ package body WisiToken.Parse.LR.AUnit is
    is
    begin
       Action_Arrays_AUnit.Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
-      Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
+      Goto_Arrays_AUnit.Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
       if Strict then
          raise SAL.Programmer_Error;
          --  Check (Label & ".Kernel", Computed.Kernel, Expected.Kernel);

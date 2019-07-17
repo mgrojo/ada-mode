@@ -18,7 +18,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - speed up recover
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
 speed up mckenzie
@@ -33,8 +33,7 @@ speed up mckenzie
             wisitoken__parse__lr__mckenzie_recover__explore__insert_from_action_list
                 speeded up just_pushed_back_or_deleted
                 speeded up action_for; unbounded_array, binary search
-
-                speed up goto_for
+                goto_for binary search makes it no slower, no faster
 
                 alternate table rep for duplicate reduce actions?
 

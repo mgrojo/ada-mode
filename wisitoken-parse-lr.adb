@@ -144,21 +144,6 @@ package body WisiToken.Parse.LR is
       List.Insert ((Symbol, new Parse_Action_Node'(Action, null)));
    end Add;
 
-   function Symbol (List : in Goto_Node_Ptr) return Token_ID
-   is begin
-      return List.Symbol;
-   end Symbol;
-
-   function State (List : in Goto_Node_Ptr) return State_Index
-   is begin
-      return List.State;
-   end State;
-
-   function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr
-   is begin
-      return List.Next;
-   end Next;
-
    function To_Vector (Item : in Kernel_Info_Array) return Kernel_Info_Arrays.Vector
    is begin
       return Result : Kernel_Info_Arrays.Vector do
@@ -276,31 +261,8 @@ package body WisiToken.Parse.LR is
      (State      : in out LR.Parse_State;
       Symbol     : in     Token_ID;
       To_State   : in     State_Index)
-   is
-      List     : Goto_Node_Ptr renames State.Goto_List;
-      New_Item : constant Goto_Node_Ptr := new Goto_Node'(Symbol, To_State, null);
-      I        : Goto_Node_Ptr := List;
-   begin
-      if I = null then
-         List := New_Item;
-      else
-         if List.Symbol > Symbol then
-            New_Item.Next := List;
-            List          := New_Item;
-         else
-            if List.Next = null then
-               List.Next := New_Item;
-            else
-               I := List;
-               loop
-                  exit when I.Next = null or List.Symbol > Symbol;
-                  I := I.Next;
-               end loop;
-               New_Item.Next := I.Next;
-               I.Next        := New_Item;
-            end if;
-         end if;
-      end if;
+   is begin
+      State.Goto_List.Insert ((Symbol, To_State));
    end Add_Goto;
 
    function Goto_For
@@ -309,29 +271,14 @@ package body WisiToken.Parse.LR is
       ID    : in Token_ID)
      return Unknown_State_Index
    is
-      Goto_Node : constant Goto_Node_Ptr := Goto_For (Table, State, ID);
+      Ref : constant Goto_Arrays.Find_Reference_Constant_Type := Table.States (State).Goto_List.Find_Constant (ID);
    begin
-      if Goto_Node = null then
+      if Ref.Element = null then
          --  We can only get here during error recovery.
          return Unknown_State;
       else
-         return Goto_Node.State;
+         return Ref.State;
       end if;
-   end Goto_For;
-
-   function Goto_For
-     (Table : in Parse_Table;
-      State : in State_Index;
-      ID    : in Token_ID)
-     return Goto_Node_Ptr
-   is
-      Goto_Node : Goto_Node_Ptr := Table.States (State).Goto_List;
-   begin
-      while Goto_Node /= null and then Goto_Node.Symbol /= ID loop
-         Goto_Node := Goto_Node.Next;
-      end loop;
-
-      return Goto_Node;
    end Goto_For;
 
    function Action_For
@@ -364,8 +311,6 @@ package body WisiToken.Parse.LR is
       procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
       Parse_Action      : Parse_Action_Node_Ptr;
       Temp_Parse_Action : Parse_Action_Node_Ptr;
-      Got               : Goto_Node_Ptr;
-      Temp_Got          : Goto_Node_Ptr;
    begin
       if Table = null then
          return;
@@ -380,14 +325,6 @@ package body WisiToken.Parse.LR is
                Parse_Action := Parse_Action.Next;
                Free (Temp_Parse_Action);
             end loop;
-         end loop;
-
-         Got := State.Goto_List;
-         loop
-            exit when Got = null;
-            Temp_Got := Got;
-            Got := Got.Next;
-            Free (Temp_Got);
          end loop;
       end loop;
 
@@ -535,6 +472,8 @@ package body WisiToken.Parse.LR is
             declare
                Actions_Done : Boolean := False;
             begin
+               State.Action_List.Set_Capacity (Next_Count_Type);
+
                loop
                   declare
                      Node_I      : Action_Node;
@@ -605,16 +544,15 @@ package body WisiToken.Parse.LR is
                --  No Gotos
                null;
             else
+               State.Goto_List.Set_Capacity (Next_Count_Type);
                declare
-                  Node_I : Goto_Node_Ptr := new Goto_Node;
+                  Node : Goto_Node;
                begin
-                  State.Goto_List  := Node_I;
                   loop
-                     Node_I.Symbol := Next_Token_ID;
-                     Node_I.State  := Next_State_Index;
+                     Node.Symbol := Next_Token_ID;
+                     Node.State  := Next_State_Index;
+                     State.Goto_List.Insert (Node);
                      exit when Check_Semicolon;
-                     Node_I.Next   := new Goto_Node;
-                     Node_I        := Node_I.Next;
                   end loop;
                end;
             end if;

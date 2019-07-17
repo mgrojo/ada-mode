@@ -112,16 +112,14 @@ is
 
       subtype Nonterminals is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
 
-      function Count_Nonterminals (List : in Goto_Node_Ptr) return Integer
+      function Count_Nonterminals (List : in Goto_Arrays.Vector) return Integer
       is
-         Item  : Goto_Node_Ptr := List;
-         Count : Integer       := 0;
+         Count : Integer := 0;
       begin
-         while Item /= null loop
-            if Symbol (Item) in Nonterminals then
+         for Item of List loop
+            if Item.Symbol in Nonterminals then
                Count := Count + 1;
             end if;
-            Item := Next (Item);
          end loop;
          return Count;
       end Count_Nonterminals;
@@ -131,7 +129,6 @@ is
       for State in Table.States'Range loop
          declare
             Nonterminal_Count : constant Integer := Count_Nonterminals (Table.States (State).Goto_List);
-            Gotos             : Goto_Node_Ptr    := Table.States (State).Goto_List;
          begin
             if Nonterminal_Count = 0 then
                if State = Table.States'First then
@@ -149,13 +146,10 @@ is
                else
                   Put ("      (");
                end if;
-               loop
-                  if Symbol (Gotos) in Nonterminals then
-                     Put ("(" & Image (Symbol (Gotos), Descriptor) & " ." &
-                            State_Index'Image (Parse.LR.State (Gotos)) & ")");
+               for Item of Table.States (State).Goto_List loop
+                  if Item.Symbol in Nonterminals then
+                     Put ("(" & Image (Item.Symbol, Descriptor) & " ." & Item.State'Image & ")");
                   end if;
-                  Gotos := Next (Gotos);
-                  exit when Gotos = null;
                end loop;
                if State = Table.States'Last then
                   Put (")");

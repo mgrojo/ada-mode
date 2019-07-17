@@ -1193,6 +1193,7 @@ package body WisiToken.Generate.LR is
       New_Line (File);
 
       for State of Table.States loop
+         Put (File, Trimmed_Image (State.Action_List.Length) & ' ');
          for I in State.Action_List.First_Index .. State.Action_List.Last_Index loop
             --  Action first, for historical reasons
             declare
@@ -1245,17 +1246,14 @@ package body WisiToken.Generate.LR is
             end if;
          end loop;
 
-         declare
-            Node_I : Goto_Node_Ptr := State.Goto_List;
-         begin
-            loop
-               exit when Node_I = null;
-               Put (File, Token_ID'Image (Symbol (Node_I)) & State_Index'Image (Parse.LR.State (Node_I)));
-               Node_I := Next (Node_I);
+         if State.Goto_List.Length > 0 then
+            Put (File, Trimmed_Image (State.Goto_List.Length));
+            for Node of State.Goto_List loop
+               Put (File, Node.Symbol'Image & Node.State'Image);
             end loop;
-            Put (File, ';');
-            New_Line (File);
-         end;
+         end if;
+         Put (File, ';');
+         New_Line (File);
 
          if State.Kernel.Length = 0 then
             --  Not set for state 0
@@ -1404,8 +1402,6 @@ package body WisiToken.Generate.LR is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
-
-      Goto_Ptr : Goto_Node_Ptr := State.Goto_List;
    begin
       for Action of State.Action_List loop
          Put ("   " & Image (Action.Symbol, Descriptor) &
@@ -1418,16 +1414,15 @@ package body WisiToken.Generate.LR is
       --  The error line is redundant, but we keep it to match existing good parse tables.
       Put_Line ("   default" & (Descriptor.Image_Width - 7) * ' ' & " => ERROR");
 
-      if Goto_Ptr /= null then
+      if State.Goto_List.Length > 0 then
          New_Line;
       end if;
 
-      while Goto_Ptr /= null loop
+      for Item of State.Goto_List loop
          Put_Line
-           ("   " & Image (Symbol (Goto_Ptr), Descriptor) &
-              (Descriptor.Image_Width - Image (Symbol (Goto_Ptr), Descriptor)'Length) * ' ' &
-              " goto state" & State_Index'Image (Parse.LR.State (Goto_Ptr)));
-         Goto_Ptr := Next (Goto_Ptr);
+           ("   " & Image (Item.Symbol, Descriptor) &
+              (Descriptor.Image_Width - Image (Item.Symbol, Descriptor)'Length) * ' ' &
+              " goto state" & Item.State'Image);
       end loop;
 
       New_Line;

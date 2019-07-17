@@ -676,19 +676,18 @@ package body WisiToken.BNF.Output_Ada_Common is
             end if;
          end Actions;
 
+         if Table.States (State_Index).Goto_List.Length > 0 then
+            Indent_Line
+              ("Table.States (" & Trimmed_Image (State_Index) & ").Goto_List.Set_Capacity (" &
+                 Trimmed_Image (Table.States (State_Index).Goto_List.Length) & ");");
+         end if;
          Gotos :
-         declare
-            Node : Goto_Node_Ptr := Table.States (State_Index).Goto_List;
-         begin
-            loop
-               exit when Node = null;
-               Set_Col (Indent);
-               Put ("Add_Goto (Table.States (" & Trimmed_Image (State_Index) & "), ");
-               Put_Line (Trimmed_Image (Symbol (Node)) & ", " & Trimmed_Image (State (Node)) & ");");
-               Line_Count := Line_Count + 1;
-               Node := Next (Node);
-            end loop;
-         end Gotos;
+         for Node of Table.States (State_Index).Goto_List loop
+            Set_Col (Indent);
+            Put ("Add_Goto (Table.States (" & Trimmed_Image (State_Index) & "), ");
+            Put_Line (Trimmed_Image (Node.Symbol) & ", " & Trimmed_Image (Node.State) & ");");
+            Line_Count := Line_Count + 1;
+         end loop Gotos;
 
          if Input_Data.Language_Params.Error_Recover then
             if Table.States (State_Index).Kernel.Length > 0 then
