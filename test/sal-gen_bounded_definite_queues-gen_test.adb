@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,12 +18,12 @@
 
 package body SAL.Gen_Bounded_Definite_Queues.Gen_Test is
 
-   function Get_Head (Queue : in Queue_Type) return Integer is
+   function Get_Head (Queue : in Queue_Type) return Base_Peek_Type is
    begin
       return Queue.Head;
    end Get_Head;
 
-   function Get_Tail (Queue : in Queue_Type) return Integer is
+   function Get_Tail (Queue : in Queue_Type) return Base_Peek_Type is
    begin
       return Queue.Tail;
    end Get_Tail;

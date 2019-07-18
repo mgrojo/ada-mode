@@ -2,7 +2,7 @@
 --
 --  Test SAL.Gen_Bounded_Definite_Queues.
 --
---  Copyright (C) 2004, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009, 2015, 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the

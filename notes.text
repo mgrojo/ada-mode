@@ -2,11 +2,18 @@ branches:
 org.stephe_leake.sal            : main/release
 org.stephe_leake.sal.stephe-1   : work
 org.stephe_leake.sal.stephe-2   : spark
-
 
+ current work
+adding spark to bounded_queues
+    add pragma Suppress (All_Checks) after get timing
 
-
-Release process:
+ references
+d:/Apps/GNAT-gpl_2018/share/doc/spark/pdf/spark2014_rm.pdf
+d:/Apps/GNAT-gpl_2018/share/doc/spark/pdf/spark2014_ug.pdf
+https://www.adacore.com/books/implementation-guidance-spark
+    d:/Archive/GNAT/gpl-2019/ePDF-ImplementationGuidanceSPARK.pdf
+
+ Release process:
 
 (no separate aunit_ext release)
 

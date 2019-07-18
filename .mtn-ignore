@@ -6,6 +6,7 @@
 ^build/.*\.out$
 ^build/.*\.sig$
 ^build/exec_pro$
+^build/gnatprove$
 ^build/gpr_query\.db$
 ^build/gpr_query\.db-shm$
 ^build/gpr_query\.db-wal$

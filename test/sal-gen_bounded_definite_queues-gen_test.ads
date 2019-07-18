@@ -2,7 +2,7 @@
 --
 --  Access to private part of parent for unit test
 --
---  Copyright (C) 2004, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,7 @@ generic
 package SAL.Gen_Bounded_Definite_Queues.Gen_Test is
    pragma Pure;
 
-   function Get_Head (Queue : in Queue_Type) return Integer;
-   function Get_Tail (Queue : in Queue_Type) return Integer;
+   function Get_Head (Queue : in Queue_Type) return Base_Peek_Type;
+   function Get_Tail (Queue : in Queue_Type) return Base_Peek_Type;
 
 end SAL.Gen_Bounded_Definite_Queues.Gen_Test;
