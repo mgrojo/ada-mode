@@ -143,7 +143,7 @@ private
       Data : Element_Array_Access;
 
       --  Top of stack is at Data (Top).
-      --  Data (1 .. Last_Index) has been set at some point.
+      --  Data (1 .. Top) has been set at some point.
    end record;
 
    type Stack_Access is access all Stack;

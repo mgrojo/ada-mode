@@ -6,12 +6,14 @@ include ../../org.stephe_leake.makerules/common_rules.make
 # ignore whitespace in diff, so we can ignore Unix vs DOS line endings
 # in test output files. Note that this has to come _after_
 # common_rules.make.
-
 DIFF_OPT = -u -w
 
 vpath %.adb      ../source
 vpath %.adb      ../test
 vpath %.good_out ../test
+
+SPARK_FILES += prove_integer_queues.ads
+SPARK_FILES += prove_integer_stacks.ads
 
 clean :: test-clean
 clean :: profile-clean
