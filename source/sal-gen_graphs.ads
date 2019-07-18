@@ -20,7 +20,7 @@
 --  Tarjan, SIAM J. Comput. Vol. 1, No 2, June 1972.
 --  https://epubs.siam.org/doi/abs/10.1137/0201010
 --
---  Copyright (C) 2017, 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2019 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free

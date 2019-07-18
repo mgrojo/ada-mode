@@ -99,7 +99,7 @@ is
       Test_Task_2 : Test_Task;
       Value       : Integer;
    begin
-      Shared.Set_First (10); -- so there is room for prepend
+      Shared.Set_First_Last (10, 9); -- so there is room for prepend
 
       --  Start with empty vector; append must allocate.
       Test_Task_1.Append (1);

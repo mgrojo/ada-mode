@@ -4,13 +4,15 @@
 
 with AUnit.Options;
 with AUnit.Reporter.Text;
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Test_Graphs;
+with Test_Unbounded_Definite_Vectors_Sorted;
+with Test_Bounded_Definite_Vectors_Sorted;
 procedure Test_One_Harness
 is
    --  command line arguments (all optional, order matters):
@@ -21,7 +23,8 @@ is
    --  routine_name can be '' to set trace or cost for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
-   Trace  : Integer;
+   Trace  : constant Integer := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+   pragma Unreferenced (Trace);
 
    Options : constant AUnit.Options.AUnit_Options :=
      (Global_Timer     => False,
@@ -59,9 +62,8 @@ begin
       end;
    end case;
 
-   Trace := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-
-   Add_Test (Suite, new Test_Graphs.Test_Case (Trace));
+   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors_Sorted.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors_Sorted.Test_Case));
 
    Run (Suite, Options, Result, Status);
 

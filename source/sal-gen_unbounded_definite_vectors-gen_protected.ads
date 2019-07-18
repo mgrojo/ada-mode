@@ -9,7 +9,7 @@
 --  This does not guard simultaneous read/write of individual element
 --  content.
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -50,8 +50,7 @@ package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
 
-   procedure Set_First (Container : in out Vector; First : in Index_Type);
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
+   procedure Set_First_Last (Container : in out Vector; First : in Index_Type; Last : in Index_Type);
 
    --  WORKAROUND: GNAT GPL 2017 does not properly finalize the
    --  *_Reference object after a reference completes, leaving the Vector

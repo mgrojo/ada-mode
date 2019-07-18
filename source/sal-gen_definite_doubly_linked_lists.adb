@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,6 +23,21 @@
 pragma License (Modified_GPL);
 
 package body SAL.Gen_Definite_Doubly_Linked_Lists is
+
+   procedure Delete_Node (Container : in out List; Node : in out Node_Access)
+   is begin
+      if Node.Next = null then
+         Container.Tail := Node.Prev;
+      else
+         Node.Next.Prev := Node.Prev;
+      end if;
+      if Node.Prev = null then
+         Container.Head := Node.Next;
+      else
+         Node.Prev.Next := Node.Next;
+      end if;
+      Free (Node);
+   end Delete_Node;
 
    ---------
    --  Public operations, declaration order.
@@ -186,22 +201,20 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
       use all type Ada.Containers.Count_Type;
-      Node : Node_Access renames Position.Ptr;
    begin
-      if Node.Next = null then
-         Container.Tail := Node.Prev;
-      else
-         Node.Next.Prev := Node.Prev;
-      end if;
-      if Node.Prev = null then
-         Container.Head := Node.Next;
-      else
-         Node.Prev.Next := Node.Next;
-      end if;
-      Free (Node);
+      Delete_Node (Container, Position.Ptr);
       Position        := No_Element;
       Container.Count := Container.Count - 1;
    end Delete;
+
+   procedure Delete_First (Container : in out List)
+   is
+      use all type Ada.Containers.Count_Type;
+      Node : Node_Access := Container.Head;
+   begin
+      Delete_Node (Container, Node);
+      Container.Count := Container.Count - 1;
+   end Delete_First;
 
    procedure Insert
      (Container : in out List;

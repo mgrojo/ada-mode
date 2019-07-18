@@ -2,7 +2,7 @@
 --
 --  Root of extensions to Ada.Containers.
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free

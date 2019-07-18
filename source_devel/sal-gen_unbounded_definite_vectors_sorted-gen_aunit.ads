@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  AUnit check for Ada.Containers.Doubly_Linked_Lists
+--  AUnit check for parent
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -13,15 +13,13 @@
 
 pragma License (GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
 generic
-   type Element_Type is private;
-
-   with function "=" (Left, Right : Element_Type) return Boolean is <>;
-
-   with package Lists is new Ada.Containers.Doubly_Linked_Lists (Element_Type, "=");
-
    with procedure Check_Element (Label : in String; Computed, Expected : in Element_Type);
+package SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit is
 
-procedure SAL.Ada_Containers.Gen_Doubly_Linked_Lists_AUnit
-  (Label : in String; Computed : in Lists.List; Expected : in Lists.List);
+   procedure Check
+     (Label    : in String;
+      Computed : in Vector;
+      Expected : in Vector);
+
+end SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit;

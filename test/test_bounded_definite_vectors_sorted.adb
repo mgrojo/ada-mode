@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,18 +17,16 @@
 --  330, Boston, MA 02111-1307, USA.
 
 with AUnit.Checks.Containers;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
+with SAL.Gen_Bounded_Definite_Vectors_Sorted;
 package body Test_Bounded_Definite_Vectors_Sorted
 is
-   package Integer_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-     (Index_Type   => Positive,
-      Element_Type => Integer,
-      Capacity     => 5);
-
    function Compare (Left, Right : in Integer) return SAL.Compare_Result is
      (if Left < Right then SAL.Less elsif Left = Right then SAL.Equal else SAL.Greater);
 
-   package Sorted_Integer_Vectors is new Integer_Vectors.Gen_Sorted (Compare);
+   package Sorted_Integer_Vectors is new SAL.Gen_Bounded_Definite_Vectors_Sorted
+     (Element_Type    => Integer,
+      Capacity        => 5,
+      Element_Compare => Compare);
    use Sorted_Integer_Vectors;
 
    type Check_Array_Type is array (Positive range <>) of Integer;
@@ -40,10 +38,12 @@ is
    is
       use AUnit.Checks;
       use AUnit.Checks.Containers;
+      I : Positive := Positive'First;
    begin
       Check (Label & ".length", Computed.Length, Expected'Length);
-      for I in Expected'Range loop
-         Check (Label & "." & Integer'Image (I), Computed.Element (I), Expected (I));
+      for Element of Computed loop
+         Check (Label & "." & I'Image, Element, Expected (I));
+         I := I + 1;
       end loop;
    end Check;
 
@@ -72,7 +72,7 @@ is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_bounded_definite_vectors.adb");
+      return new String'("test_bounded_definite_vectors_sorted.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
