@@ -359,6 +359,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Trace.Put_Line
                        (Integer'Image (Cur.Label) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
+                          (if Data.Config_Full_Count > 0 then ", config_full" & Data.Config_Full_Count'Image else "") &
                           ", check " & Integer'Image (Data.Check_Count) &
                           ", max shared_token " & WisiToken.Token_Index'Image (Shared_Parser.Terminals.Last_Index));
                   end if;

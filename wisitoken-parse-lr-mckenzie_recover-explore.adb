@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
+with SAL.Gen_Bounded_Definite_Queues;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 with WisiToken.Parse.LR.Parser;
 package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
@@ -725,9 +726,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config : Configuration;
       end record;
 
-      package Item_Queues is new SAL.Gen_Unbounded_Definite_Queues (Work_Item);
+      package Item_Queues is new SAL.Gen_Bounded_Definite_Queues (Work_Item);
+      use Item_Queues;
 
-      Work : Item_Queues.Queue;
+      Work : Queue_Type (10);
+      --  The required queue size depends on the number of multiple-item
+      --  Minimal_Complete_Actions encountered. That is limited by compound
+      --  statement nesting, and by the frequency of such actions.
 
       function To_Reduce_Action (Action : in Minimal_Action) return Reduce_Action_Rec
         is (Reduce, (Action.Nonterm, 0), null, null, Action.Token_Count);
@@ -802,7 +807,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return;
          elsif Actions.Length = 1 then
             if (not Reduce_Only) or Actions (Actions.First_Index).Verb = Reduce then
-               Work.Add ((Actions (Actions.First_Index), Config));
+               if Is_Full (Work) then
+                  Super.Config_Full (Parser_Index);
+                  raise Bad_Config;
+               else
+                  Add (Work, (Actions (Actions.First_Index), Config));
+               end if;
             end if;
             return;
          end if;
@@ -846,7 +856,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          for I in Length'Range loop
             if (Use_Recursive and Item_Not_Recursive (I)) or ((not Use_Recursive) and Length (I) = Min_Length) then
-               Work.Add ((Actions (I), Config));
+               if Is_Full (Work) then
+                  Super.Config_Full (Parser_Index);
+                  raise Bad_Config;
+               else
+                  Add (Work, (Actions (I), Config));
+               end if;
             elsif Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
@@ -876,10 +891,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Orig_Config, Reduce_Only => False);
 
       loop
-         exit when Work.Is_Empty;
+         exit when Is_Empty (Work);
 
          declare
-            Item : Work_Item := Work.Get;
+            Item : Work_Item := Get (Work);
          begin
             if Trace_McKenzie > Extra then
                Put_Line
