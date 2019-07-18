@@ -23,6 +23,7 @@ package SAL.Gen_Bounded_Definite_Queues
   with Spark_Mode
 is
    pragma Pure;
+   pragma Suppress (All_Checks); --  Users must check Is_Full before Add, Is_Empty before Remove.
 
    subtype Size_Type is Peek_Type range 1 .. Peek_Type'Last / 2;
    --  The upper limit is needed to avoid overflow in Peek.

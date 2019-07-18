@@ -157,8 +157,10 @@ package body SAL.Gen_Graphs is
       To    : in     Edge_Data)
      return Path_Arrays.Vector
    is
-      Vertex_Queue  : Vertex_Queues.Queue_Type
-        (Size => Integer (Graph.Vertices.Last_Index - Graph.Vertices.First_Index + 1));
+      use Vertex_Queues;
+
+      Vertex_Queue  : Queue_Type
+        (Size => Peek_Type (Graph.Vertices.Last_Index - Graph.Vertices.First_Index + 1));
 
       type Colors is (White, Gray, Black);
 
@@ -226,11 +228,11 @@ package body SAL.Gen_Graphs is
          end if;
       end loop;
 
-      Vertex_Queue.Put (From);
+      Put (Vertex_Queue, From);
 
-      while not Vertex_Queue.Is_Empty loop
+      while not Is_Empty (Vertex_Queue) loop
          declare
-            U_Index : constant Vertex_Index := Vertex_Queue.Get;
+            U_Index : constant Vertex_Index := Get (Vertex_Queue);
             U       : Aux_Node renames Aux (U_Index);
          begin
             Edges :
@@ -252,7 +254,7 @@ package body SAL.Gen_Graphs is
                         Result_List.Append (Build_Path (V_Index, Result_Edge));
                      end if;
 
-                     Vertex_Queue.Put (V_Index);
+                     Put (Vertex_Queue, V_Index);
                   end if;
                end;
             end loop Edges;
