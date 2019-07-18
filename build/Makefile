@@ -13,6 +13,12 @@ t_one : test_one_harness.run
 
 t_all : test_all_harness.run
 
+# --report=all to see all successfull proofs.
+# -d debug; save proof files in build/obj/gnatprove/* (_not_ build/gnatprove!)
+prove :
+	gnatprove -P sal_test.gpr -j 0 --level 4 --no-subprojects --mode all -u prove_integer_queues.ads
+
+
 trace :
 	addr2line -e test_all_harness.exe 0x4ec038 0x7c9037bd 0x7c903789 0x7c90eaf8 0x4cedff 0x41a94e 0x41e79a 0x407b5c 0x40aa8e 0x4af793 0x401b66 0x401235 0x401286 0x7c816fd5
 
