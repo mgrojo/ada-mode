@@ -2,7 +2,7 @@
 
 ZIP_VERSION := 3.2
 
-all : test_all_harness.diff
+all : prove_all test_all_harness.diff
 
 # export Standard_Common_Build := Debug
 

@@ -56,7 +56,7 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    function Peek
      (Stack : in Sguds.Stack;
       Index : in Peek_Type := 1)
-     return Element_Type;
+     return Element_Type with Inline;
    --  Return the Index'th item from the top of Stack; the Item is _not_ removed.
    --  Top item has index 1.
    --
@@ -115,16 +115,14 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    function Constant_Ref
      (Container : aliased in Stack'Class;
       Position  :         in Peek_Type)
-     return Constant_Ref_Type;
-   pragma Inline (Constant_Ref);
+     return Constant_Ref_Type with Inline;
 
    type Cursor is private;
 
    function Constant_Ref
      (Container : aliased in Stack'Class;
       Position  :         in Cursor)
-     return Constant_Ref_Type;
-   pragma Inline (Constant_Ref);
+     return Constant_Ref_Type with Inline;
 
    function Has_Element (Position : in Cursor) return Boolean;
 
