@@ -85,7 +85,7 @@ is
      Post'Class =>
        Depth (Stack) = Depth (Stack)'Old + 1 and then
        (Item = Peek (Stack) and
-        (for all I in 1 .. Depth (Stack)'Old => Peek (Stack'Old, I) = Peek (Stack, I + 1)));
+        (for all I in 1 .. Depth (Stack'Old) => Peek (Stack'Old, I) = Peek (Stack, I + 1)));
    --  Add Item to the top of Stack.
 
 private

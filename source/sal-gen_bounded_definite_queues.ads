@@ -30,7 +30,6 @@ is
 
    type Queue_Type (Size : Size_Type) is private;
    --  Size is maximum number of items in the queue.
-   --  Tagged to allow Object.Method syntax.
 
    procedure Clear (Queue : in out Queue_Type)
    with Post => Count (Queue) = 0;
@@ -79,7 +78,7 @@ is
 
    procedure Add_To_Head (Queue : in out Queue_Type; Item : in Item_Type) with
      Pre  => Count (Queue) in 0 .. Queue.Size - 1,
-     Post => Count (Queue) = Count (Queue)'Old + 1 and then
+     Post => Count (Queue) = Count (Queue)'Old + 1 and
              (Peek (Queue) = Item and
               (for all I in 2 .. Count (Queue) => Peek (Queue'Old, I - 1) = Peek (Queue, I)));
    --  Add Item to the head of Queue.
