@@ -27,7 +27,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
-      use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
 
       Last : constant SAL.Base_Peek_Type :=
@@ -161,7 +160,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Trace     : in out WisiToken.Trace'Class;
       Terminals : in     Base_Token_Arrays.Vector)
    is
-      use all type SAL.Base_Peek_Type;
       State : Parser_State renames Parser_State_Lists.Constant_Reference (Current.Ptr).Element.all;
    begin
       if Trace_Parse > Outline then
@@ -186,7 +184,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Trace     : in out WisiToken.Trace'Class;
       Terminals : in     Base_Token_Arrays.Vector)
    is
-      use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
 
       function Compare

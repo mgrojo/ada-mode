@@ -690,7 +690,7 @@ package body WisiToken.Parse.LR is
       use all type WisiToken.Syntax_Trees.Node_Index;
    begin
       for I in 1 .. Depth loop
-         if Stack (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then
+         if Stack.Peek (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then
             return False;
          end if;
       end loop;

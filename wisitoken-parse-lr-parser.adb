@@ -45,7 +45,6 @@ package body WisiToken.Parse.LR.Parser is
       --  error recovery to take better advantage of them. One recovery
       --  strategy is to fix things so the semantic check passes.
 
-      use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Check_Status_Label;
       use all type Semantic_Checks.Semantic_Check;
 
@@ -139,8 +138,6 @@ package body WisiToken.Parse.LR.Parser is
 
       when Reduce =>
          declare
-            use all type SAL.Base_Peek_Type;
-
             New_State : constant Unknown_State_Index := Goto_For
               (Table => Shared_Parser.Table.all,
                State => Parser_State.Stack (SAL.Base_Peek_Type (Action.Token_Count) + 1).State,
@@ -226,9 +223,7 @@ package body WisiToken.Parse.LR.Parser is
    procedure Do_Deletes
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
+   is begin
       if Trace_Parse > Extra then
          Shared_Parser.Trace.Put_Line
            (Integer'Image (Parser_State.Label) & ": shared_token:" &
@@ -285,8 +280,6 @@ package body WisiToken.Parse.LR.Parser is
       Verb          :    out All_Parse_Action_Verbs;
       Zombie_Count  :    out SAL.Base_Peek_Type)
    is
-      use all type SAL.Base_Peek_Type;
-
       Shift_Count   : SAL.Base_Peek_Type := 0;
       Accept_Count  : SAL.Base_Peek_Type := 0;
       Error_Count   : SAL.Base_Peek_Type := 0;
@@ -403,7 +396,6 @@ package body WisiToken.Parse.LR.Parser is
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
-      use all type SAL.Base_Peek_Type;
 
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
@@ -1015,9 +1007,7 @@ package body WisiToken.Parse.LR.Parser is
    end Parse;
 
    overriding function Tree (Shared_Parser : in Parser) return Syntax_Trees.Tree
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
+   is begin
       if Shared_Parser.Parsers.Count > 1 then
          raise WisiToken.Parse_Error with "ambigous parse";
       else
@@ -1028,7 +1018,6 @@ package body WisiToken.Parse.LR.Parser is
    overriding
    procedure Execute_Actions (Parser : in out LR.Parser.Parser)
    is
-      use all type SAL.Base_Peek_Type;
       use all type Syntax_Trees.User_Data_Access;
       use all type WisiToken.Syntax_Trees.Semantic_Action;
 
@@ -1102,7 +1091,6 @@ package body WisiToken.Parse.LR.Parser is
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean
    is
-      use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
    begin
@@ -1112,7 +1100,6 @@ package body WisiToken.Parse.LR.Parser is
 
    overriding procedure Put_Errors (Parser : in LR.Parser.Parser)
    is
-      use all type SAL.Base_Peek_Type;
       use Ada.Text_IO;
 
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;

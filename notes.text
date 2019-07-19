@@ -30,12 +30,7 @@ speed up mckenzie
         lalr results slightly better, but still not helpful
         try valgrind on linux; much better.
             dominated by malloc; fibonacci heap remove, add; insert_from_action_list - nothing to improve there.
-
-            wisitoken__parse__lr__mckenzie_recover__parse__reduce_stack
-                need compute_nonterm?
-
-            wisitoken__parse__lr__recover_stacks__adjust
-                spark bounded stack, size in .wy
+            spark bounded stack; 30% faster
 
     do spark on SAL.Gen_Bounded_Definite_Vectors (and _Sorted), check for config.ops full rather than handle exception
 

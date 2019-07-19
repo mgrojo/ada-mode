@@ -91,25 +91,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    --  problem, and would mean a task that terminates due to an exception
    --  is never restarted.
 
-   function To_Recover
-     (Parser_Stack : in Parser_Lists.Parser_Stacks.Stack;
-      Tree         : in Syntax_Trees.Tree)
-     return Recover_Stacks.Stack
+   procedure To_Recover
+     (Parser_Stack : in     Parser_Lists.Parser_Stacks.Stack;
+      Tree         : in     Syntax_Trees.Tree;
+      Stack        : in out Recover_Stacks.Stack)
    is
-      use all type SAL.Base_Peek_Type;
-      Result : Recover_Stacks.Stack;
-      Depth  : constant SAL.Peek_Type := Parser_Stack.Depth;
+      Depth : constant SAL.Peek_Type := Parser_Stack.Depth;
    begin
-      Result.Set_Depth (Depth);
-      for I in 1 .. Depth loop
+      pragma Assert (Stack.Depth = 0);
+      for I in reverse 1 .. Depth loop
          declare
             Item  : Parser_Lists.Parser_Stack_Item renames Parser_Stack (I);
             Token : constant Recover_Token := (if I = Depth then (others => <>) else Tree.Recover_Token (Item.Token));
          begin
-            Result.Set (I, Depth, (Item.State, Item.Token, Token));
+            Stack.Push ((Item.State, Item.Token, Token));
          end;
       end loop;
-      return Result;
    end To_Recover;
 
    procedure Recover_Init
@@ -148,7 +145,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Additional initialization of Parser_State.Recover is done in
       --  Supervisor.Initialize.
 
-      Config.Stack := To_Recover (Parser_State.Stack, Parser_State.Tree);
+      To_Recover (Parser_State.Stack, Parser_State.Tree, Config.Stack);
 
       --  Parser_State.Recover_Insert_Delete must be empty (else we would not get
       --  here). Therefore Parser_State current token is in
@@ -179,7 +176,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  solution; see McKenzie_Recover.Explore Process_One.
 
             Config.Check_Status      := Error.Check_Status;
-            Config.Error_Token       := Config.Stack (1).Token;
+            Config.Error_Token       := Config.Stack.Peek.Token;
             Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
 
             Config.Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
@@ -203,7 +200,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status
    is
       use all type Parser.Post_Recover_Access;
-      use all type SAL.Base_Peek_Type;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
@@ -711,8 +707,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Prev_Deleted              : in     Recover_Token_Index_Arrays.Vector)
      return Base_Token
    is
-      use all type SAL.Base_Peek_Type;
-
       procedure Inc_I_D
       is begin
          Current_Insert_Delete := Current_Insert_Delete + 1;
@@ -768,7 +762,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Current_Insert_Delete : in     SAL.Base_Peek_Type)
      return Token_ID
    is
-      use all type SAL.Base_Peek_Type;
       Result : Token_ID;
    begin
       if Terminals_Current = Base_Token_Index'First then
@@ -808,7 +801,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Prev_Deleted          : in     Recover_Token_Index_Arrays.Vector;
       Tokens                :    out Token_ID_Array_1_3)
    is
-      use all type SAL.Base_Peek_Type;
       Terminals_Next : WisiToken.Token_Index := Terminals_Current + 1;
    begin
       if Terminals_Current = Base_Token_Index'First then
@@ -905,13 +897,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Config         : in     Configuration;
       ID             : in     Token_ID;
       Matching_Index : in out SAL.Peek_Type)
-   is
-      use all type SAL.Peek_Type;
-   begin
+   is begin
       loop
          exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Stack_ID : Token_ID renames Config.Stack (Matching_Index).Token.ID;
+            Stack_ID : Token_ID renames Config.Stack.Peek (Matching_Index).Token.ID;
          begin
             exit when Stack_ID = ID;
          end;
@@ -923,13 +913,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Config         : in     Configuration;
       IDs            : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type)
-   is
-      use all type SAL.Peek_Type;
-   begin
+   is begin
       loop
-         exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Matching_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            ID : Token_ID renames Config.Stack (Matching_Index).Token.ID;
+            ID : Token_ID renames Config.Stack.Peek (Matching_Index).Token.ID;
          begin
             exit when ID in IDs'First .. IDs'Last and then IDs (ID);
          end;
@@ -945,14 +933,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Matching_Index : in out SAL.Peek_Type)
    is
       use Syntax_Trees;
-      use all type SAL.Peek_Type;
    begin
       loop
-         exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
-         exit when Config.Stack (Matching_Index).Token.ID in ID_Set'Range and then
-           (ID_Set (Config.Stack (Matching_Index).Token.ID) and
-              (Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
-                 Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index));
+         exit when Matching_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Config.Stack.Peek (Matching_Index).Token.ID in ID_Set'Range and then
+           (ID_Set (Config.Stack.Peek (Matching_Index).Token.ID) and
+              (Config.Stack.Peek (Matching_Index).Tree_Index /= Invalid_Node_Index and then
+                 Tree.Find_Descendant (Config.Stack.Peek (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index));
 
          Matching_Index := Matching_Index + 1;
       end loop;
@@ -966,13 +953,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Case_Insensitive    : in     Boolean)
    is
       use Ada.Characters.Handling;
-      use all type SAL.Peek_Type;
       Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
    begin
       loop
-         exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Token       : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
                then Token.Byte_Region
@@ -999,15 +985,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Case_Insensitive    : in     Boolean)
    is
       use Ada.Characters.Handling;
-      use all type SAL.Peek_Type;
       Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
    begin
       Other_Count := 0;
 
       loop
-         exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Token       : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
                then Token.Byte_Region
@@ -1056,8 +1041,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Prev_Deleted              : in     Recover_Token_Index_Arrays.Vector)
      return Base_Token
    is
-      use all type SAL.Base_Peek_Type;
-
       function Next_Terminal return Base_Token
       is begin
          Terminals_Current    := Terminals_Current + 1;
@@ -1133,7 +1116,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID)
    is begin
-      Check (Config.Stack (1).Token.ID, Expected_ID);
+      pragma Assert (Config.Stack.Depth > 1);
+      Check (Config.Stack.Peek (1).Token.ID, Expected_ID);
       Push_Back (Config);
    end Push_Back_Check;
 
@@ -1158,7 +1142,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
       use all type Ada.Strings.Unbounded.Unbounded_String;
-      use all type SAL.Base_Peek_Type;
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
       Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
@@ -1215,7 +1198,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
    is
-      Nonterm_Item : constant Recover_Stack_Item := Stack.Pop;
+      Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
    begin
       if Nonterm_Item.Token.Byte_Region = Null_Buffer_Region then
          return 0;
@@ -1235,7 +1218,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree     : in     Syntax_Trees.Tree;
       Expected : in     Token_ID)
    is begin
-      Check (Config.Stack (1).Token.ID, Expected);
+      pragma Assert (Config.Stack.Depth > 1);
+      Check (Config.Stack.Peek (1).Token.ID, Expected);
       Config.Ops.Append ((Undo_Reduce, Expected, Undo_Reduce (Config.Stack, Tree)));
    exception
    when SAL.Container_Full =>

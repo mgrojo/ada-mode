@@ -37,16 +37,17 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
+with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
-with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type SAL.Base_Peek_Type;
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
@@ -512,7 +513,7 @@ package WisiToken.Parse.LR is
       --  during recover.
    end record;
 
-   package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
+   package Recover_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Recover_Stack_Item);
 
    function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor) return String
      is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
@@ -528,7 +529,8 @@ package WisiToken.Parse.LR is
      return String
      renames Recover_Stack_Image;
 
-   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean;
+   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean with
+     Pre => Stack.Depth >= Depth;
    --  Return True if Stack top Depth items have valid Tree_Indices,
    --  which is true if they were copied from the parser stack, and not
    --  pushed by recover.
@@ -541,9 +543,13 @@ package WisiToken.Parse.LR is
    type Minimal_Complete_State is (None, Active, Done);
 
    type Configuration is record
-      Stack : Recover_Stacks.Stack;
+      Stack : Recover_Stacks.Stack (50);
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
+      --
+      --  Required size is determined by source code structure nesting;
+      --  larger size slows down recover due to memory cache thrashing and
+      --  allocation.
 
       Resume_Token_Goal : WisiToken.Token_Index := WisiToken.Token_Index'Last;
       --  A successful solution shifts this token. Per-config because it

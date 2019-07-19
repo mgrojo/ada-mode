@@ -28,7 +28,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Enqueue_Limit           : in              Natural)
      return Boolean
    is
-      use all type SAL.Base_Peek_Type;
       Done_Count : SAL.Base_Peek_Type := 0;
    begin
       --  Return True if all parsers are done, or if any parser has a config
@@ -90,7 +89,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
         (Parsers   : not null access Parser_Lists.List;
          Terminals : not null access constant Base_Token_Arrays.Vector)
       is
-         use all type SAL.Base_Peek_Type;
          Index : SAL.Peek_Type := 1;
       begin
          Supervisor.Parsers      := Parsers;
@@ -136,7 +134,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
         when (Fatal_Called or All_Parsers_Done) or else
           Get_Barrier (Parsers, Parser_Status, Min_Success_Check_Count, Check_Delta_Limit, Enqueue_Limit)
       is
-         use all type SAL.Base_Peek_Type;
          Done_Count     : SAL.Base_Peek_Type := 0;
          Min_Cost       : Integer            := Integer'Last;
          Min_Cost_Index : SAL.Base_Peek_Type;
@@ -274,7 +271,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Config       : in     Configuration;
          Configs      : in out Config_Heaps.Heap_Type)
       is
-         use all type SAL.Base_Peek_Type;
          Data : McKenzie_Data renames Parser_Status (Parser_Index).Parser_State.Recover;
       begin
          Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
@@ -331,7 +327,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
       is
-         use all type SAL.Base_Peek_Type;
          Configs_Count : constant SAL.Base_Peek_Type := Configs.Count; -- Before it is emptied, for Trace.
 
          P_Status : Base.Parser_Status renames Parser_Status (Parser_Index);

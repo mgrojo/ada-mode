@@ -75,15 +75,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Case_Insensitive    : in     Boolean)
    is
       use Ada.Characters.Handling;
-      use all type SAL.Peek_Type;
       Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
    begin
       Other_Counts := (others => 0);
 
       loop
-         exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Token : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
          begin
             exit when Token.Name /= Null_Buffer_Region and then
               Match_Name =
@@ -112,8 +111,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label /= Ok
    is
-      use all type SAL.Base_Peek_Type;
-
       procedure Put (Message : in String; Config : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
@@ -206,7 +203,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                        then +identifier_opt_ID
                        else +name_opt_ID)));
 
-                  if New_Config.Stack (1).Token.Min_Terminal_Index = Invalid_Token_Index then
+                  if New_Config.Stack.Peek (1).Token.Min_Terminal_Index = Invalid_Token_Index then
                      --  'end' is on top of stack. We want to set Current_Shared_Token to
                      --  'end'; we can't if it has an invalid index (which it has if it was
                      --  pushed after a previous fix).
@@ -283,7 +280,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             return;
          end if;
 
-         if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
+         if Config.Stack.Depth >= 4 and then
+           Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID)
+         then
             --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
                New_Config     : Configuration               := Config;
@@ -313,9 +312,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    +sequence_of_statements_ID));
 
 #if ADA_LITE = "Ada_Lite" then
-               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_list_ID);
+               Check (New_Config.Stack.Peek (1).Token.ID, +sequence_of_statements_list_ID);
 #elsif ADA_LITE = "Ada_Lite_Bnf" or ADA_LITE = "Ada_Lite_Bnf" then
-               Check (New_Config.Stack (1).Token.ID, +nonterminal_029_list_ID);
+               Check (New_Config.Stack.Peek (1).Token.ID, +nonterminal_029_list_ID);
 #end if;
 
                Check (+END_ID, Terminals (End_Item.Token.Min_Terminal_Index).ID);
@@ -517,8 +516,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  this similar to a semantic check Extra_Name_Error, and the
          --  solutions are similar.
 
-         if Config.Stack (1).Token.ID = +IDENTIFIER_ID and
-           Config.Stack (2).Token.ID = +END_ID
+         if Config.Stack.Depth >= 3 and then
+           (Config.Stack.Peek (1).Token.ID = +IDENTIFIER_ID and
+              Config.Stack.Peek (2).Token.ID = +END_ID)
          then
             --  The input looks like one of:
             --
@@ -557,7 +557,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
 
-               case Actions.Token_Enum_ID'(-New_Config_1.Stack (3).Token.ID) is
+               case To_Token_Enum (New_Config_1.Stack.Peek (3).Token.ID) is
                when block_label_opt_ID =>
                   --  no 'declare'; either case 1 or 2
 
@@ -585,7 +585,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                when others =>
                   if Trace_McKenzie > Outline then
                      Put ("Language_Fixes " & Label & "missing case " & Image
-                            (New_Config_1.Stack (3).Token.ID, Descriptor), Config);
+                            (New_Config_1.Stack.Peek (3).Token.ID, Descriptor), Config);
                      Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
                   end if;
                   return;
@@ -624,7 +624,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  ignores the name.
          declare
             use all type Ada.Containers.Count_Type;
-            use all type SAL.Base_Peek_Type;
             End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
               (Config.Stack.Peek.State).Minimal_Complete_Actions;
             End_Name       : constant String := Lexer.Buffer_Text (Config.Error_Token.Byte_Region);
@@ -697,7 +696,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean)
    is
-      use all type SAL.Base_Peek_Type;
       use Token_ID_Arrays;
 
       function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector

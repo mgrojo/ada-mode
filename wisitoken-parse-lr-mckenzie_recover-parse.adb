@@ -26,8 +26,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Nonterm         :    out Recover_Token;
       Default_Virtual : in     Boolean)
    is
-      use all type SAL.Base_Peek_Type;
-
       Min_Terminal_Index_Set : Boolean := False;
    begin
       Nonterm :=
@@ -36,7 +34,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          others  => <>);
 
       for I in Tokens'Range loop
-         Tokens (I) := Stack (Tokens'Last - I + 1).Token;
+         Tokens (I) := Stack.Peek (Tokens'Last - I + 1).Token;
       end loop;
 
       for T of Tokens loop
@@ -67,13 +65,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Default_Virtual : in              Boolean)
      return Semantic_Checks.Check_Status
    is
-      use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Semantic_Check;
       use all type Semantic_Checks.Check_Status_Label;
 
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Recover_Token_Array (1 .. Last);
    begin
+      pragma Assert (Stack.Depth > Last);
       Compute_Nonterm (Action.Production.LHS, Stack, Tokens, Nonterm, Default_Virtual);
 
       if Action.Check = null then
@@ -112,7 +110,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  Parse_Items.
 
       use all type Ada.Containers.Count_Type;
-      use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
@@ -156,7 +153,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Item.Parsed := True;
 
       if Action = null then
-         Action := Action_For (Table, Config.Stack (1).State, Current_Token.ID);
+         Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
       end if;
 
       loop
@@ -193,7 +190,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                  ":" & Image (Current_Token, Descriptor) &
                  " : " & Image (Action.Item, Descriptor) &
                  (if Action.Item.Verb = Reduce
-                  then " via" & Config.Stack (SAL.Peek_Type (Action.Item.Token_Count + 1)).State'Image
+                  then " via" & Config.Stack.Peek (SAL.Peek_Type (Action.Item.Token_Count + 1)).State'Image
                   else ""));
          end if;
 
@@ -272,7 +269,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             then Config.Insert_Delete.Length = 0
             else Config.Current_Shared_Token > Shared_Token_Goal);
 
-         Action := Action_For (Table, Config.Stack (1).State, Current_Token.ID);
+         Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
       end loop;
 
       Config.Current_Shared_Token := Restore_Terminals_Current;
