@@ -25,7 +25,10 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Bounded_Definite_Stacks is
+package body SAL.Gen_Bounded_Definite_Stacks
+  with Spark_Mode
+is
+   pragma Suppress (All_Checks);
 
    procedure Clear (Stack : in out Sgbds.Stack)
    is begin

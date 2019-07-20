@@ -20,4 +20,4 @@ pragma License (GPL);
 
 pragma Spark_Mode;
 with SAL.Gen_Bounded_Definite_Stacks;
-package Prove_Integer_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Integer);
+package Prove_Bounded_definite_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Integer);

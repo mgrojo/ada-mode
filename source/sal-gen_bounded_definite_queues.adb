@@ -20,6 +20,8 @@ pragma License (Modified_GPL);
 package body SAL.Gen_Bounded_Definite_Queues
   with Spark_Mode
 is
+   pragma Suppress (All_Checks);
+
    ----------
    --  Public subprograms
 
