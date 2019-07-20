@@ -25,6 +25,8 @@ package Ada_Mode.Generic_Instantiation is
       Result_Type => Boolean,
       Default     => False,
       Threshold   => 2);
+   --EMACSCMD:(progn (forward-line -2)(ada-goto-declarative-region-start)(looking-back "package Ada_Mode.Generic_Instantiation is"))
+   --EMACSRESULT:t
 
    --EMACSCMD:(test-face "Instance" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Procedure" 'font-lock-function-name-face)

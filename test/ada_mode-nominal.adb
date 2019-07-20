@@ -236,6 +236,8 @@ is -- target 0
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
       --EMACSRESULT:t
 
+      --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-at " -- target 2"))
+      --EMACSRESULT:t
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       is
          Local : Object_Access_Type_0a := new Float'(9.0);

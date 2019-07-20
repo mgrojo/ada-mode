@@ -49,12 +49,15 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("   4 - add lexer debug");
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
-                   else "; default" & WisiToken.Token_Index'Image (Parser.Table.McKenzie_Param.Check_Limit)));
+                   else "; default" & Parser.Table.McKenzie_Param.Check_Limit'Image));
+      Put_Line ("--check_delta n  : set error recover delta check limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.McKenzie_Param.Check_Delta_Limit'Image));
       Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
                   (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Enqueue_Limit)));
+                   else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
-                  Integer'Image (WisiToken.Parse.LR.Parser.Default_Max_Parallel) & ")");
+                  WisiToken.Parse.LR.Parser.Default_Max_Parallel'Image & ")");
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
@@ -116,6 +119,10 @@ package body Run_Wisi_Common_Parse is
 
             elsif Argument (Arg) = "--check_limit" then
                Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
+               Arg := Arg + 2;
+
+            elsif Argument (Arg) = "--check_delta" then
+               Parser.Table.McKenzie_Param.Check_Delta_Limit := Integer'Value (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--debug_mode" then

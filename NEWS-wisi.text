@@ -6,6 +6,11 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi
+
+** Error correction is faster by approximately 30%; enqueue_limit can
+   be raised accordingly.
+
 * wisi 2.1.1
 11 Jul 2019
 

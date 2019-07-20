@@ -99,7 +99,7 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile-ada-test : force
 	rm -f ../test/debug.ad?
-	gprbuild -p ../test/ada_mode_compile.gpr
+	gprbuild -p -j8 ../test/ada_mode_compile.gpr
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for

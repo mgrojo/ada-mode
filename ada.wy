@@ -266,9 +266,8 @@
 ;; Minimal_Complete.
 %mckenzie_cost_delete RIGHT_PAREN 1
 
-;; test/ada_mode-recover_29.adb requires 30_000
-;; test/ada_mode-recover_partial_02_lr1.adb requires 45_000
-%mckenzie_enqueue_limit 45_000
+;; test/ada_mode-recover_partial_02_lr1.adb requires 45_000; wisitoken got 30% faster
+%mckenzie_enqueue_limit 58_000
 
 ;; 4 required for test/ada_mode-recover_match_names.adb.
 %mckenzie_check_limit 4
@@ -1086,7 +1085,7 @@ expression_function_declaration
  ;; "overriding_indicator_opt" correctly.
     %((progn
       (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken nil nil])))%
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken nil])))%
   ;
 
 extended_return_object_declaration
@@ -1321,6 +1320,7 @@ generic_instantiation
     %((progn
         (wisi-statement-action [1 statement-start 7 statement-end])
         (wisi-name-action 2)
+        (wisi-containing-action 1 5)
         (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                    5 font-lock-function-name-face font-lock-function-name-face])
         (wisi-indent-action [nil ada-indent-broken nil ada-indent-broken ada-indent-broken ada-indent-broken nil])))%
@@ -1328,6 +1328,8 @@ generic_instantiation
     %((progn
         (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
         (wisi-name-action 3)
+        (wisi-containing-action 1 2)
+        (wisi-containing-action 2 6)
         (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                    6 font-lock-function-name-face font-lock-function-name-face])
         (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken nil])))%
@@ -1335,6 +1337,8 @@ generic_instantiation
     %((progn
         (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
         (wisi-name-action 3)
+        (wisi-containing-action 1 2)
+        (wisi-containing-action 2 6)
         (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                    6 font-lock-function-name-face font-lock-function-name-face])
         (wisi-indent-action [nil nil ada-indent-broken nil ada-indent-broken ada-indent-broken ada-indent-broken

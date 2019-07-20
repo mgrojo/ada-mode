@@ -61,6 +61,10 @@
        (directory-files dir t)))
     result))
 
+(when (not (fboundp 'project--read-file-cpd-relative)) ;; emacs < 27
+  (cl-defmethod project-file-completion-table ((prj ada-project) &optional dirs)
+    (apply-partially #'uniq-file-completion-table (uniq-file-uniquify (project-files prj dirs)))))
+
 (cl-defmethod project-select :after ((prj ada-project))
   ;; :after ensures env-project project-select is run first, setting env vars.
   (ada-select-prj-file (ada-project-ada-prj prj)))

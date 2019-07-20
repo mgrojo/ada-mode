@@ -4,9 +4,9 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (from o.e.a. with o.w.s-1): work
+o.e.a.stephe-2 (from o.e.a with o.w.s-1, o.s_l.s-1): work
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser (very old)
-o.e.a.stephe-4 (from o.e.a.s-2): available
+o.e.a.stephe-4 (from o.e.a with o.w.s-2, o.s_l.s-2): available
 o.e.a.stephe-5 (from o.e.a.s-2): libadalang backend
 o.e.a.stephe-6 (from o.e.a.s-2): available
 
@@ -37,9 +37,9 @@ run test from emacs -Q using source:
   (xmtn . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
+ '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-2")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -50,11 +50,15 @@ run test from emacs -Q using source:
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode")))
 
  current work
-adding 'if' in wisi.adb Name_Action got indent wrong with w-p-p-t = 0
+key to convert from object.method [(...)] to method (object[, ...])
+    useful in spark when have to add type_invariant to tagged type; must remove tagged.
+    parse expression, edit syntax tree, output expression
+    o.e.a.stephe-4
+    mechanism could be useful for other refactoring patterns
 
 major cleanup
     preparing for more emacs project work (project-menu?)
@@ -83,7 +87,7 @@ clean up elpa packages for ada-project, build/ada_mode_wisi_parse.el
 
 speed up recover in o.w.s-2, o.e.a.s-4
     tolerate larger enqueue_limit.
-    benchmark: ada_mode-recover_29.adb
+    see benchmarks mckenzie_recover below
 
 put --recover-log in info
 
@@ -128,21 +132,19 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
             change Use_Minimal_Complete_Actions to take Terminals, current_index
             o.e.a.s-2
 
-    35143
-        partial parse vs RET; fixed in devel, posted new code
+    35143 partial parse vs RET
+        fixed in devel, posted new code
 
-    35144
-        partial parse vs which-func
+    35144 which-func raises CONSTRAINT_ERROR
         don't get the error in master, but also don't get mode-line element
             something is resetting which-func-mode to nil
                 apparently happens when which-func throws error or returns nil
 
-    35924
-        wavefront compiler warns about 'new String' in descriptor; need named string access type
+    35924 wavefront compiler warns about 'new String' in descriptor
+        need named string access type
         posted fix
 
-    36102
-        ada-wisi-which-function slow
+    36102 ada-wisi-which-function slow
         trying min partial-parse size, before/after point; works
 
     36278 auto-casing no longer honors casing of the declaration
@@ -613,220 +615,56 @@ wisi-generate
         LR1 re2c generate time: 31.820868201
 
 mckenzie recover
-    ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0
-    ./run_ada_parse.exe test/slow_recover_1.adb Indent --repeat_count 5
-        or, if that's really slow, 'time ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0'
+    ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0
 
-    use binary min heap: ~2.7
-    use fibonacci min heap: ~2.57
-    sal.bounded_vector in Configuration: 1.700269668, 1.675688670
-    faster sal stack: 1.599979082, 1.555800480, 1.569708386 -> slightly faster, keep it.
-    default_init stack => 50 : 1.602228258, 1.629959644 -> slower!
-    7 parallel tasks, one protected object, one solution: 0.556900752, 0.564946255, 0.580240866
-    7 tasks, many protected objects, several equal cost solutions, keep last one: 0.588807432, 0.555614030, 0.591806258
-    "", keep several: 0.611813538, 0.724677583, 0.659352765
-    change to Base_Token, prep for block name matching: 0.829402871, 0.822722491, 0.834653581
+    12 Jul 2019 ada-mode 6.1.1
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time 0.003358967
 
-    27 Dec 2017
-        add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
+        1: fail; enqueue limit ( 120000 cost 11)
+        1: fail, enqueue 120063, check  11824, max shared_token  64
+        0: succeed 2, enqueue 73734, check  7599, cost:  8
+        time 0.680450032
 
-    04 Mar 2018
-        misc improvements 1.502121666, 1.833030047 seconds
-         5: fail, enqueue 68402, check  4683, cost_limit:  12
-         1: succeed 1, enqueue 13, check  5, cost:  0
+    o.e.a-m just_pushed_back_or_inlined expanded
+        0.671804168, 0.673667911, 0.671176628
 
-    07 Mar 2018
-        convert to syntax trees 1m12.017s
-         6: fail, enqueue 7266, check  508, cost_limit:  12
-         5: succeed 1, enqueue 1427, check  98, cost:  10
-         1: succeed 2, enqueue 2901, check  255, cost:  10
+    "", drop token_index compare
+        0.678247599, 0.670705783, 0.678376354
 
-         5: fail, enqueue 68402, check  4683, cost_limit:  12
-         1: succeed 1, enqueue 64947, check  5682, cost:  12
+    o.e.a-m.s-4 config_heap.pre_add
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time 0.003585515
 
-    11 Mar 2018
-        no syntax trees in recover 0.450195152
-         6: succeed 1, enqueue 187, check  13, cost:  7
-         5: succeed 1, enqueue 1426, check  97, cost:  10
-         1: succeed 2, enqueue 1011, check  87, cost:  9
+        0: fail; enqueue limit ( 120000 cost 10)
+        1: succeed 2, enqueue 73734, check  7599, cost:  8
+        time 0.665732656, 0.661565665, 0.660932083, 0.668397249 - not worth it
 
-    14 Mar 2018 final no syntax trees in recover
-        2.981941108
-         6: succeed 1, enqueue 403, check  18, cost:  5
-         5: succeed 1, enqueue 5113, check  267, cost:  8
-         1: succeed 2, enqueue 33455, check  1653, cost:  10
-        recover: succeed, parser count 4
+    o.e.a-m.s-4, o.w.s-2 binary search action_for
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time: 0.003279674
 
-         6: succeed 1, enqueue 11364, check  678, cost:  9
-         5: succeed 1, enqueue 32049, check  1742, cost:  10
-         1: succeed 1, enqueue 252, check  28, cost:  6
-        recover: succeed, parser count 3
+        0: fail; enqueue limit ( 120000 cost 11)
+        1: succeed 2, enqueue 73734, check  7599, cost:  8
+        time: 0.665491758
 
-         5: succeed 1, enqueue 18052, check  1038, cost:  8
-        recover: succeed
+        after propagate:
+        0.695314665, 0.691568300, 0.714005333
 
-    29 Mar 2018
-        Language_Fixes replace patterns
-        0.668252932
-         6: succeed 1, enqueue 3774, check  275, cost:  9
-         5: succeed 1, enqueue 2200, check  153, cost:  8
-         1: succeed 2, enqueue 7863, check  753, cost:  10
-        recover: succeed, parser count 4
+    binary search goto_for
+        0.696081911, 0.727982272, 0.692549635 -- no slower, no faster; keep for clean
 
-         6: succeed 1, enqueue 16773, check  1826, cost:  10
-         5: fail, enqueue 75967, check  5189, cost_limit:  12
-         1: succeed 1, enqueue 30892, check  4840, cost:  12
-        recover: succeed, parser count 3
+    sal.list in sal.unbounded_queue
+        0.679426409, 0.703120410, 0.711440799
 
-    6 Apr
-        ? 0.762936988
-         6: succeed 1, enqueue 16773, check  1826, cost:  10
-         6:  10, Error (END, (405 . 407)) (1227 : (SEMICOLON))| 33:(END 18:0)|((INSERT, RIGHT_PAREN, 33), (INSERT, THEN, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33))
-         5: fail, enqueue 75967, check  5189, cost_limit:  12
-         1: succeed 1, enqueue 95, check  18, cost:  6
-         1:  6, Error (IDENTIFIER, (409 . 422)) (642 : (END))| 34:(IDENTIFIER 18:4)|((INSERT, IF, 34), (INSERT, SEMICOLON, 34), (INSERT, END, 34))
-        ... ambiguous with error
+    use spark bounded_queue; no controlled
+        0.703130227, 0.677916459, 0.674938851
 
-    8 Apr
-        constrain_terminals to complete current production
-        0.879914712
-        parser 6: State 357 Current_Token 28:(RIGHT_PAREN, (369 . 369)) Action, expecting: WITH, found 28:(RIGHT_PAREN, (369 . 369))
-        parser 5: State 357 Current_Token 27:(RIGHT_PAREN, (368 . 368)) Action, expecting: WITH, found 27:(RIGHT_PAREN, (368 . 368))
-        parser 1: State 670 Current_Token 29:(OR, (379 . 380)) Action, expecting: THEN, found 29:(OR, (379 . 380))
-         6: succeed 1, enqueue 3774, check  275, cost:  9
-         6:  9, Error (RIGHT_PAREN, (369 . 369)) (155 : (LEFT_PAREN))| 14:(IDENTIFIER 10:6)|((PUSH_BACK, expression_opt, 14), (INSERT, IF, 14), (INSERT, LEFT_PAREN, 14))
-         5: succeed 1, enqueue 2193, check  151, cost:  8
-         5:  8, Error (RIGHT_PAREN, (368 . 368)) (155 : (LEFT_PAREN))| 20:(IDENTIFIER 11:9)|((PUSH_BACK, expression_opt, 20), (INSERT, LEFT_PAREN, 20), (INSERT, LEFT_PAREN, 20))
-         1: succeed 2, enqueue 7863, check  753, cost:  10
-        spawn parser 7 from 1 (4 active)
-         7:  10, Error (OR, (379 . 380)) (47 : (IDENTIFIER))| 29:(OR 13:8)|((INSERT, THEN, 29), (INSERT, ELSIF, 29), (INSERT, IDENTIFIER, 29))
-         1:  10, Error (OR, (379 . 380)) (47 : (IDENTIFIER))| 29:(OR 13:8)|((INSERT, THEN, 29), (INSERT, IF, 29), (INSERT, IDENTIFIER, 29))
+    in bounded_queue, add suppress (all_checks), explicit check for full
+        0.768971400, 0.677694819, 0.699692724, 0.680185725
 
-        parser 6: State 390 Current_Token 33:(END, (405 . 407)) Action, expecting: ABS, ELSE, ELSIF, NEW, NOT, NULL, RAISE, LEFT_PAREN, RIGHT_PAREN, MINUS, PLUS, NUMERIC_LITERAL, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 33:(END, (405 . 407))
-        parser 5: State 356 Current_Token 32:(THEN, (398 . 401)) Action, expecting: WITH, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, found 32:(THEN, (398 . 401))
-        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (409 . 422)) Action, expecting: IF, found 34:(IDENTIFIER, (409 . 422))
-         6: fail, enqueue 9, check  9, cost_limit:  12
-         5: fail, enqueue 75967, check  5189, cost_limit:  12
-         1: succeed 1, enqueue 30892, check  4840, cost:  12
-         1:  12, Error (IDENTIFIER, (409 . 422)) (642 : (END))| 34:(IDENTIFIER 18:4)|((INSERT, IF, 34), (INSERT, SEMICOLON, 34), (INSERT, END, 34), (INSERT, IF, 34), (INSERT, SEMICOLON, 34), (INSERT, END, 34))
-
-    12 Apr 2018
-        improved constrain_terminals, bug fixes
-        slow_recover_1.adb: 0.043599139
-        parser 6: State 357 Current_Token 28:(RIGHT_PAREN, (369 . 369)) Action, expecting: WITH, found 28:(RIGHT_PAREN, (369 . 369))
-        parser 5: State 357 Current_Token 27:(RIGHT_PAREN, (368 . 368)) Action, expecting: WITH, found 27:(RIGHT_PAREN, (368 . 368))
-        parser 1: State 670 Current_Token 29:(OR, (379 . 380)) Action, expecting: THEN, found 29:(OR, (379 . 380))
-        6: succeed 1, enqueue 1051, check  86, cost:  7
-        6:  7, Error (THEN, (398 . 401)) (395 : (RIGHT_PAREN))| 32:(THEN, (398 . 401))|((PUSH_BACK, expression_opt, 14), (INSERT, LEFT_PAREN, 14), (FAST_FORWARD,  32), (INSERT, RIGHT_PAREN, 32))
-        5: succeed 1, enqueue 2637, check  203, cost:  8
-        5:  8, (155 : (LEFT_PAREN))| 20:(IDENTIFIER, (305 . 310))|((PUSH_BACK, expression_opt, 20), (INSERT, LEFT_PAREN, 20), (INSERT, LEFT_PAREN, 20))
-        1: succeed 1, enqueue 878, check  87, cost:  7
-        1:  7, Error (OR, (379 . 380)) (395 : (RIGHT_PAREN))| 29:(OR, (379 . 380))|((PUSH_BACK, expression_opt, 6), (INSERT, LEFT_PAREN, 6), (FAST_FORWARD,  29), (INSERT, RIGHT_PAREN, 29))
-        parser 5: State 356 Current_Token 32:(THEN, (398 . 401)) Action, expecting: WITH, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, found 32:(THEN, (398 . 401))
-        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (409 . 422)) Action, expecting: IF, found 34:(IDENTIFIER, (409 . 422))
-        5: succeed 1, enqueue 440, check  28, cost:  3
-        5:  3, (1227 : (SEMICOLON))| 33:(END, (405 . 407))|((INSERT, RIGHT_PAREN, 32), (INSERT, RIGHT_PAREN, 32), (FAST_FORWARD,  34), (PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
-        1: succeed 1, enqueue 2, check  2, cost:  0
-        1:  0, (1227 : (SEMICOLON))| 33:(END, (405 . 407))|((PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
-
-        slow_recover_2.adb: 0.265317189
-        parser 2: State 431 Current_Token 13:(BEGIN, (553 . 557)) Action, expecting: ACCESS, ALIASED, ARRAY, CONSTANT, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (553 . 557))
-        parser 1: State 435 Current_Token 13:(BEGIN, (553 . 557)) Action, expecting: ACCESS, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (553 . 557))
-         2: succeed 1, enqueue 39, check  13, cost:  5
-         2:  5, (716 : (SEMICOLON))| 13:(BEGIN, (553 . 557))|((INSERT, EXCEPTION, 13), (INSERT, SEMICOLON, 13))
-         1: succeed 3, enqueue 97, check  27, cost:  7
-         3:  7, (382 : (BEGIN))| 11:(IDENTIFIER, (539 . 549))|((PUSH_BACK, COLON, 12), (PUSH_BACK, IDENTIFIER, 11), (INSERT, BEGIN, 11))
-         4:  7, Error (BEGIN, (553 . 557)) (111 : (LEFT_PAREN))| 14:(IF, (562 . 563))|((INSERT, IDENTIFIER, 13), (INSERT, LEFT_PAREN, 13), (DELETE, BEGIN, 13))
-         1:  7, Error (COLON, (551 . 551)) (274 : (declarations, (509 . 533)))| 13:(BEGIN, (553 . 557))|((PUSH_BACK, COLON, 12), (PUSH_BACK, IDENTIFIER, 11), (DELETE, IDENTIFIER, 11), (DELETE, COLON, 12))
-        parser 4: State 47 Current_Token 22:(END, (607 . 609)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (607 . 609))
-        parser 3: State 47 Current_Token 22:(END, (607 . 609)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (607 . 609))
-        parser 2: State 47 Current_Token 22:(END, (607 . 609)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (607 . 609))
-         4: fail, enqueue 28179, check  4088, cost_limit:  12
-         3: succeed 1, enqueue 517, check  53, cost:  6
-         3:  6, (1138 : (SEMICOLON))| 22:(END, (607 . 609))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22), (FAST_FORWARD,  25), (PUSH_BACK, SEMICOLON, 24), (PUSH_BACK, identifier_opt, 23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
-         2: succeed 1, enqueue 208, check  26, cost:  5
-         2:  5, (1227 : (SEMICOLON))| 22:(END, (607 . 609))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
-
-        slow_recover_3.adb 0.004004858
-        parser 1: State 1112 Current_Token 28:(IDENTIFIER, (404 . 417)) Action, expecting: IF, found 28:(IDENTIFIER, (404 . 417))
-         1: succeed 1, enqueue 197, check  24, cost:  2
-         1:  2, (1230 : (SEMICOLON))| 27:(END, (400 . 402))|((PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, IF, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, LOOP, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, RETURN, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27))
-
-    20 Apr 2018
-        kill slow parser, fix bugs
-
-        slow_recover_1.adb, debug: 0.044365563, release 0.041309647, 0.041447012
-        parser 6: State 357 Current_Token 28:(RIGHT_PAREN, (159 . 159)) Action, expecting: WITH, found 28:(RIGHT_PAREN, (159 . 159))
-        parser 5: State 357 Current_Token 27:(RIGHT_PAREN, (158 . 158)) Action, expecting: WITH, found 27:(RIGHT_PAREN, (158 . 158))
-        parser 1: State 670 Current_Token 29:(OR, (161 . 162)) Action, expecting: THEN, found 29:(OR, (161 . 162))
-         6: succeed 1, enqueue 1051, check  86, cost:  7
-         6:  7, (395 : (RIGHT_PAREN))| 32:(THEN, (168 . 171))|((PUSH_BACK, expression_opt, 14), (INSERT, LEFT_PAREN, 14), (FAST_FORWARD,  32), (INSERT, RIGHT_PAREN, 32))
-         5: fail, enqueue 2684, check  206, cost_limit:  12
-         1: succeed 1, enqueue 961, check  92, cost:  7
-         1:  7, (395 : (RIGHT_PAREN))| 29:(OR, (161 . 162))|((PUSH_BACK, expression_opt, 6), (INSERT, LEFT_PAREN, 6), (FAST_FORWARD,  29), (INSERT, RIGHT_PAREN, 29))
-        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (177 . 190)) Action, expecting: IF, found 34:(IDENTIFIER, (177 . 190))
-         1: succeed 1, enqueue 2, check  2, cost:  0
-         1:  0, (1227 : (SEMICOLON))| 33:(END, (173 . 175))|((PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
-
-        slow_recover_2.adb, debug: 0.018879361 release 0.017998993, 0.018000352
-        parser 2: State 431 Current_Token 13:(BEGIN, (597 . 601)) Action, expecting: ACCESS, ALIASED, ARRAY, CONSTANT, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (597 . 601))
-        parser 1: State 435 Current_Token 13:(BEGIN, (597 . 601)) Action, expecting: ACCESS, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (597 . 601))
-         2: succeed 1, enqueue 33, check  10, cost:  3
-         2:  3, (716 : (SEMICOLON))| 13:(BEGIN, (597 . 601))|((INSERT, EXCEPTION, 13), (INSERT, SEMICOLON, 13))
-         1: succeed 1, enqueue 114, check  31, cost:  5
-         1:  5, (111 : (LEFT_PAREN))| 14:(IF, (605 . 606))|((INSERT, IDENTIFIER, 13), (INSERT, LEFT_PAREN, 13), (DELETE, BEGIN, 13))
-        parser 2: State 47 Current_Token 22:(END, (650 . 652)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (650 . 652))
-        parser 1: State 47 Current_Token 22:(END, (650 . 652)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (650 . 652))
-         2: succeed 1, enqueue 165, check  28, cost:  3
-         2:  3, (1227 : (SEMICOLON))| 22:(END, (650 . 652))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
-         1: fail, enqueue 1435, check  228, cost_limit:  12
-
-        slow_recover_3.adb, debug: 0.003649699, release 0.003497308
-        parser 1: State 1112 Current_Token 28:(IDENTIFIER, (404 . 417)) Action, expecting: IF, found 28:(IDENTIFIER, (404 . 417))
-         1: succeed 1, enqueue 230, check  25, cost:  2
-         1:  2, (1230 : (SEMICOLON))| 27:(END, (400 . 402))|((PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, IF, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, LOOP, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, RETURN, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27))
-
-        slow_recover_4.adb, release: 0.136253722
-        parser 2: State 111 Current_Token 122:(WHEN, (994 . 997)) Action, expecting: ABS, CASE, FOR, IF, NEW, NOT, NULL, OTHERS, RAISE, LEFT_PAREN, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, MINUS, PLUS, NUMERIC_LITERAL, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 122:(WHEN, (994 . 997))
-         2: succeed 2, enqueue 232, check  36, cost:  4
-         5:  4, (111 : (LEFT_PAREN, (968 . 968)))| 123:(IDENTIFIER, (974 . 993))|((DELETE, WHEN, 122))
-         2:  4, (387 : (IS))| 122:(WHEN, (969 . 972))|((INSERT, CASE, 122), (INSERT, IS, 122))
-        parser 6: State 402 Current_Token 131:(WITH, (1100 . 1103)) Action, expecting: IS, RIGHT_PAREN, COMMA, SEMICOLON, found 131:(WITH, (1100 . 1103))
-        parser 5: State 187 Current_Token 133:(SEMICOLON, (1120 . 1120)) Action, expecting: RIGHT_PAREN, COMMA, found 133:(SEMICOLON, (1120 . 1120))
-        conflicts in Constrain_Terminals; state 891
-        conflicts in Constrain_Terminals; state 887
-        conflicts in Constrain_Terminals; state 888
-         6: fail, enqueue 6900, check  1061, cost_limit:  12
-         5: succeed 1, enqueue 6110, check  463, cost:  8
-         5:  8, (1241 : (SEMICOLON))| 134:(WHEN, (1109 . 1112))|((INSERT, RIGHT_PAREN, 133), (INSERT, RIGHT_PAREN, 133), (INSERT, SEMICOLON, 133), (INSERT, END, 133), (INSERT, IF, 133), (FAST_FORWARD,  134), (INSERT, END, 134), (INSERT, SEMICOLON, 134))
-        parser 5: State 1112 Current_Token 146:(IDENTIFIER, (1222 . 1235)) Action, expecting: IF, found 146:(IDENTIFIER, (1222 . 1235))
-         5: succeed 1, enqueue 2, check  2, cost:  0
-         5:  0, (1227 : (SEMICOLON))| 145:(END, (1187 . 1189))|((PUSH_BACK, END, 145), (INSERT, END, 145), (INSERT, IF, 145), (INSERT, SEMICOLON, 145), (FAST_FORWARD,  145))
-
-    23 May 2018
-        add more cases
-
-        slow_recover_1.adb, release 0.041959739
-        parser 5: State 356 Current_Token 32:(THEN, (451 . 454)) expecting: WITH, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, found 32:(THEN, (451 . 454))
-        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (489 . 502)) expecting: IF, found 34:(IDENTIFIER, (489 . 502))
-         5: succeed 1, enqueue 375, check  32, cost:  3
-         5:  3, (1227 : (SEMICOLON))| 33:(END, (485 . 487))|((INSERT, RIGHT_PAREN, 32), (INSERT, RIGHT_PAREN, 32), (FAST_FORWARD,  34), (PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
-         1: succeed 1, enqueue 2, check  2, cost:  0
-         1:  0, (1227 : (SEMICOLON))| 33:(END, (485 . 487))|((PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
-        ambiguous with error
-
-        slow_recover_2.adb, release 0.018035865
-        parser 2: State 431 Current_Token 13:(BEGIN, (599 . 603)) expecting: ACCESS, ALIASED, ARRAY, CONSTANT, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (599 . 603))
-        parser 1: State 435 Current_Token 13:(BEGIN, (599 . 603)) expecting: ACCESS, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (599 . 603))
-         2: succeed 1, enqueue 10, check  5, cost:  3
-         2:  3, (716 : (SEMICOLON))| 13:(BEGIN, (599 . 603))|((INSERT, EXCEPTION, 13), (INSERT, SEMICOLON, 13))
-         1: succeed 1, enqueue 108, check  32, cost:  5
-         1:  5, (111 : (LEFT_PAREN))| 14:(IF, (608 . 609))|((INSERT, IDENTIFIER, 13), (INSERT, LEFT_PAREN, 13), (DELETE, BEGIN, 13))
-        parser 2: State 47 Current_Token 22:(END, (653 . 655)) expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (653 . 655))
-        parser 1: State 47 Current_Token 22:(END, (653 . 655)) expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (653 . 655))
-         2: succeed 1, enqueue 157, check  22, cost:  3
-         2:  3, (1227 : (SEMICOLON))| 22:(END, (653 . 655))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
-         1: fail, enqueue 1351, check  222, cost_limit:  12, max shared_token  25
+    spark bounded_stack, suppress (all_checks)
+        0.475089053, 0.471345331, 0.470334167 yes!
 
 navigate, face, indent
     make -r benchmark
@@ -856,206 +694,10 @@ navigate, face, indent
         face     1.085459 seconds 4 gcs 2145 responses 0.219220 wait
         indent   1.020811 seconds 1 gcs 7251 responses 0.237752 wait
 
-
-    wisi-motion-action
-        in [] token-numbers, skip statements with wisi-goto-end
-
-    wisi-process-parse--Cache
-        faster to check for & modify existing?
-
-parse face
-    wisitoken-parser-lr-lalr_generator.adb
-    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
-
-    15 Sep 2017
-        o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
-
-        process parser, elisp lexer 1.021952 seconds, 2 gcs
-
-    28 Nov 2017 compute actions in Ada
-        gnatcoll-xref.adb
-            per iteration 1.405831 seconds 2 gcs 2145 responses 0.493506 wait
-
-        wisitoken-parser-lr-lalr_generator.adb
-            per iteration 0.175466 seconds 0 gcs 276 responses 0.082255 wait
-
-    marking _every_ identifer as possible face prefix
-        count face actions before/after delete that
-        to avoid marking contents of allocator aggregate
-        handle that case individually; find others
-
-parse indent
-    (wisi-time-indent-middle-line-cold-cache 1 t); t for process stats
-    /Projects/smm.main/source/smm-server.adb
-
-    gnatcoll-xref.adb: 29461 tokens 149921 actions 1257 parsers
-
-    28 Nov 2017 compute actions in Ada
-        gnatcoll-xref.adb
-            per iteration 1.497652 seconds 1 gcs 7251 responses 0.507303 wait
-
-        wisitoken-parser-lr-lalr_generator.adb
-            per iteration 0.179418 seconds 0 gcs 775 responses 0.083123 wait
-
-    15 Sept 2017:
-        elisp parser, full buffer:
-            gnatcoll-xref.adb: 2.875186 seconds, 11 gcs => action time (- 2.875186 1.515792) = 1.359394
-            smm-server.adb:    0.134355 seconds, 0 gcs
-
-        elisp parser, middle line
-            gnatcoll-xref.adb: 2.671991 seconds 11 gcs
-            smm-server.adb:    0.140611 seconds 0 gcs
-
-        process parser, whole buffer:
-            gnatcoll-xref.adb:
-
-            smm-server.adb:     0.303155 seconds, 1 gcs
-
-        process parser, middle line
-            gnatcoll-xref.adb: 16.166306 seconds 19 gcs 29461 tokens 149921 actions 0.015640 wait
-            => scan parse action time = total - wisi-lex-send-tokens - action-time - wait-time
-               = (+ 16.166306 -1.559691 -1.359394 -0.015640) = 13.231581
-               action                count
-                1 Lexer_To_Lookahead 29463
-                2 Error              (- 30598 29463) 1135 ; from conflict resolution
-                3 Spawn              (- 31803 30598) 1205 ; some terminated with identical stacks
-                4 Terminate_Parser   (- 33008 31803) 1205
-                5 Virtual_To_Lookahead 0 - no actual errors
-                6 Push_Current       (- 62469 33008) 29461 = token count
-                7 Reduce_Stack       (- 149928 62469) 87459
-
-            smm-server.adb:     0.303128 seconds 1 gcs
-
-            don't send right-hand-side tokens for reduce
-                gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
-
-    16 Dec 2017:
-        process parser: name in base_token, block_label_opt in block, loop
-        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
-            0.346936964, 0.341999256
-
-        (wisi-time-indent-middle-line-cold-cache 1 t)
-        gnatcoll-xref.adb: 1.482145 seconds 0 gcs 7251 responses 0.387635 wait
-
-    20 Feb 2018:
-        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
-            0.311213888, 0.317810000
-
-    08 Mar 2018:
-        o.e.a.s-2: misc changes 0.331148598
-        o.e.a.s-4: syntax_tree: 36.680009379, 36.850242615
-
-    10 Mar 2018:
-        o.e.a.s-4: branched syntax_tree in main parse: 0.523269951, 0.508891395
-
-    more recent; see above
-
-    future improvments:
-        send more than one indent per output line, to reduce communication overhead
-
-        use module instead of process
-            can pass actions from module to elisp in binary?, to avoid scan-sexps
-            try mingw64 gnat on Windows
-                use 32 bit gprbuild to run 64 bit tools
-
-        take more of multicore:
-            Put parallel parse in separate tasks.
-
-            at least one thread in module
-
-        wisi-anchored-2, wisi--indent-token-1
-            don't apply anchor if all lines already anchored
-            don't loop thru lines more than once?
-
-        indent compute only lines needed
-            skip nonterms that don't overlap indent region
-            significantly complicates cache valid, wisi-cache-try algorithm
-
-        delete 'end' processing, use next-statement-keyword to look for 'end'?
-
-
-plain parse, no actions:
-    14 Sept 2017:
-        elisp parser
-            (setq ada-parser 'elisp)
-            (let ((wisi-action-disable t))(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 5))
-            1.515792 seconds 8 gcs
-
-        command line run_ada_parser with re2c lexer, memory mapped file
-            run_ada_parser.exe gnatcoll-xref.adb --repeat_count 10
-                per iteration: 0.261657065 seconds - fast enough!
-
-            run_ada_parser.exe gnatcoll-xref.adb --lexer-only --repeat_count 10
-                per iteration: 0.004567678
-
-        process parser with elisp lexer, warm process
-            (setq ada-parser 'parser)
-            gnatcoll-xref.adb
-            (let ((wisi-action-disable t))(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 1 t))
-            6.734948 seconds 12 gcs 0.031288 wait
-            6.708216 seconds 11 gcs 0.015633 wait
-
-        just elisp lexer
-            (wisi-time (lambda () (wisi-lex-buffer 'indent)) 5) ;; compute line info
-            0.331260 seconds 2 gcs
-
-            (wisi-time (lambda () (wisi-lex-buffer 'face)) 5) ;; no line info
-            0.281287 seconds 2 gcs
-
-        elisp lexer + send tokens
-            (wisi-time #'wisi-process-send-tokens-noop 1)
-            1.559691 seconds 2 gcs
-
-    16 Dec 2017:
-        process parser: re2c lexer, name in base_token, block_label_opt in block, loop
-        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
-            0.346936964, 0.341999256
-
-        add byte_region in base_token: 0.339586284, 0.341083772, 0.340257321
-
-history
-    ada-mode 5.2
-        indent whole buffer:
-            (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
-
-        gps: per iteration 4.463700
-        wisi: per iteration 8.331166
-
-        indent one line
-
-    ada-mode 6.x
-        indent whole buffer:
-            (time-it 'wisi-parse-buffer 1)
-
-        indent first line: (time-it (lambda() (goto-line 1) (indent-for-tab-command)) 1)
-        indent middle line: (time-it (lambda() (goto-line 3500) (indent-for-tab-command)) 1)
-        indent last line: (time-it (lambda() (goto-line 7251) (indent-for-tab-command)) 1)
-
-        march 8 2017; sort of working
-            wisi whole buffer: per iteration 2.484650
-
-        april 16 2017; all Ada tests pass
-            wisi whole buffer: per iteration 3.516
-            wisi first line: per iteration 2.594025, 2.562731, 2.578430
-            wisi middle line: per iteration 2.562810, 2.791537, 2.750257
-            wisi last line: per iteration 2.750262, 2.750256
-
-        apr 17 add byte-compile in wisi-semantic-action
-            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
-
-        apr 23 add indent cache
-            indent second line cold cache: (wisi-time-indent-line-cold-cache 2)
-            indent second line warm cache: (wisi-time-indent-line-warm-cache 2 100)
-            middle line: 3500
-            last line:   7251
-
-            second line cold cache: 2.735604 seconds 12 gcs
-            second line warm cache: 0.006563 seconds
-
-        june 8 Ada fasttoken process parser, wisi lexer
-            (setq wisi-indent-region-fallback nil)
-            second line cold cache: 5.351977 seconds 15 gcs
-            second line warm cache: 0.006563 seconds
+    12 Jul 2019 ada-mode 6.1.1
+        navigate 1.383730 seconds 6 gcs 7431 responses 0.241632 wait
+        face     1.490733 seconds 8 gcs 2151 responses 0.215659 wait
+        indent   1.382439 seconds 3 gcs 7252 responses 0.241366 wait
 
  indent issues
 http://langserver.org/
@@ -1683,14 +1325,14 @@ delete changes in elpa:
     $ cd /Projects/elpa/
     $ git checkout .
 
-update elpa, commit elpa ada-ref-man:
+update elpa, commit elpa
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 
     build/Makefile pub-ada-ref-man
 
     (dvc-state-one "/Projects/elpa")
-        add, stage, commit ada-ref-man
+        add, stage, commit
 
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
@@ -1699,9 +1341,10 @@ update elpa, commit elpa ada-ref-man:
 
 after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
+    see 'build/Makefile install-elpa' above for details
 
 (dvc-state-one ".")
-mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-<version>
+build/Makefile tag
 
 ~/bin/mtn_sync_ada_france.sh
 
@@ -1716,7 +1359,7 @@ in cygwin console for gpg prompts:
     scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
 ~/Web/Makefile
-    # no 'sync' here; all on savannah
+    # no 'sync' here; all on savannah via cvs, scp
     ada-mode
 
 commit savannah
@@ -1735,24 +1378,28 @@ commit savannah
 
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
-Gnu Emacs Ada mode 6.1.0 released.
-
-Gnu Emacs Ada mode 6.1.0 is now available in GNU ELPA. This is a
-medium feature release; partial file parsing is now supported when
-using the process parser, and error correction is improved. This means
-the time spent parsing is independent of the file size, so it is fast
-enough even on the largest files.
+-------------------
+Gnu Emacs Ada mode 6.1.1 released.
+-------------------
+Gnu Emacs Ada mode 6.1.1 is now available in GNU ELPA. This is a minor
+feature and bug fix release; partial file parsing is now supported for
+`which-function-mode', and error correction is improved. See the NEWS
+files in ~/.emacs.d/elpa/ada-mode-6.1.1 and wisi-2.1.1, or at
+http://www.nongnu.org/ada-mode/, for more details.
 
 The process parser requires a manual compile step, after the normal
 list-packages installation:
 
-cd ~/.emacs.d/elpa/ada-mode-6.1.0
+cd ~/.emacs.d/elpa/ada-mode-6.1.1
 ./build.sh
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
+--------------------
 
 mark fixed bugs
+    add to NEWS-ada-mode.text or NEWS-wisi.text when closed.
+    confirm with submitter.
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn@debugs.gnu.org giving ada-mode version containing fix

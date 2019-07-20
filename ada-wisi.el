@@ -336,11 +336,7 @@ Also return cache at start."
 	      (wisi-forward-token)
 	      (setq done t))
 	  (cl-case (wisi-cache-class cache)
-	    (motion
-	     (goto-char (wisi-cache-prev cache))
-	     (setq cache (wisi-get-cache (point))))
-
-	    (statement-end
+	    ((motion statement-end)
 	     (goto-char (wisi-cache-containing cache));; statement-start
 	     (goto-char (wisi-cache-containing (wisi-get-cache (point))));; containing scope
 	     (setq cache (wisi-get-cache (point))))
@@ -546,68 +542,70 @@ Also return cache at start."
   ;; which-function-mode.
   (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
 	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
-    (wisi-validate-cache parse-begin parse-end nil 'navigate)
-    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
-      (save-excursion
-	(condition-case-unless-debug nil
-	    (let ((result nil)
-		  (cache (ada-wisi-goto-declaration-start-1 include-type)))
-	      (if (null cache)
-		  ;; bob or failed parse
-		  (setq result "")
+    (save-excursion
+      (condition-case nil
+	  ;; Throwing an error here disables which-function-mode, so don't do it.
+	  (progn
+	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
+	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
+	      (let ((result nil)
+		    (cache (ada-wisi-goto-declaration-start-1 include-type)))
+		(if (null cache)
+		    ;; bob or failed parse
+		    (setq result "")
 
-		(when (memq (wisi-cache-nonterm cache)
-			    '(generic_package_declaration generic_subprogram_declaration))
-		  ;; name is after next statement keyword
-		  (wisi-next-statement-cache cache)
-		  (setq cache (wisi-get-cache (point))))
+		  (when (memq (wisi-cache-nonterm cache)
+			      '(generic_package_declaration generic_subprogram_declaration))
+		    ;; name is after next statement keyword
+		    (wisi-next-statement-cache cache)
+		    (setq cache (wisi-get-cache (point))))
 
-		;; add or delete 'body' as needed
-		(cl-ecase (wisi-cache-nonterm cache)
-		  ((entry_body entry_declaration)
-		   (setq result (ada-wisi-which-function-1 "entry" nil)))
+		  ;; add or delete 'body' as needed
+		  (cl-ecase (wisi-cache-nonterm cache)
+		    ((entry_body entry_declaration)
+		     (setq result (ada-wisi-which-function-1 "entry" nil)))
 
-		  (full_type_declaration
-		   (setq result (ada-wisi-which-function-1 "type" nil)))
+		    (full_type_declaration
+		     (setq result (ada-wisi-which-function-1 "type" nil)))
 
-		  (package_body
-		   (setq result (ada-wisi-which-function-1 "package" nil)))
+		    (package_body
+		     (setq result (ada-wisi-which-function-1 "package" nil)))
 
-		  ((package_declaration
-		    generic_package_declaration) ;; after 'generic'
-		   (setq result (ada-wisi-which-function-1 "package" t)))
+		    ((package_declaration
+		      generic_package_declaration) ;; after 'generic'
+		     (setq result (ada-wisi-which-function-1 "package" t)))
 
-		  (protected_body
-		   (setq result (ada-wisi-which-function-1 "protected" nil)))
+		    (protected_body
+		     (setq result (ada-wisi-which-function-1 "protected" nil)))
 
-		  ((protected_type_declaration single_protected_declaration)
-		   (setq result (ada-wisi-which-function-1 "protected" t)))
+		    ((protected_type_declaration single_protected_declaration)
+		     (setq result (ada-wisi-which-function-1 "protected" t)))
 
-		  ((abstract_subprogram_declaration
-		    expression_function_declaration
-		    subprogram_declaration
-		    subprogram_renaming_declaration
-		    generic_subprogram_declaration ;; after 'generic'
-		    null_procedure_declaration)
-		   (setq result (ada-wisi-which-function-1
-				 (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
-				 nil))) ;; no 'body' keyword in subprogram bodies
+		    ((abstract_subprogram_declaration
+		      expression_function_declaration
+		      subprogram_declaration
+		      subprogram_renaming_declaration
+		      generic_subprogram_declaration ;; after 'generic'
+		      null_procedure_declaration)
+		     (setq result (ada-wisi-which-function-1
+				   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+				   nil))) ;; no 'body' keyword in subprogram bodies
 
-		  (subprogram_body
-		   (setq result (ada-wisi-which-function-1
-				 (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
-				 nil)))
+		    (subprogram_body
+		     (setq result (ada-wisi-which-function-1
+				   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+				   nil)))
 
-		  ((single_task_declaration task_type_declaration)
-		   (setq result (ada-wisi-which-function-1 "task" t)))
+		    ((single_task_declaration task_type_declaration)
+		     (setq result (ada-wisi-which-function-1 "task" t)))
 
 
-		  (task_body
-		   (setq result (ada-wisi-which-function-1 "task" nil)))
-		  ))
-	      result)
-	  (error "")))
-      )))
+		    (task_body
+		     (setq result (ada-wisi-which-function-1 "task" nil)))
+		    ))
+		result)))
+	(error "")))
+    ))
 
 (defun ada-wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the

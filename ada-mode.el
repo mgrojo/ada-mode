@@ -2890,6 +2890,7 @@ The paragraph is indented on the first line."
    ))
 
 (defvar which-func-functions nil) ;; which-func.el
+(defvar which-func-non-auto-modes nil) ;; ""
 
 ;;;; ada-mode
 
@@ -2966,6 +2967,7 @@ The paragraph is indented on the first line."
   ;; loaded later, it will use the add-log which-function, which
   ;; forces a navigate parse.
   (add-hook 'which-func-functions #'ada-which-function nil t)
+  (add-to-list 'which-func-non-auto-modes 'ada-mode)
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)
