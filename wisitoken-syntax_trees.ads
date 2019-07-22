@@ -370,6 +370,14 @@ package WisiToken.Syntax_Trees is
    --  Return the descendant of Node (may be Node) whose ID is ID, or
    --  Invalid_Node_Index if none match.
 
+   function Find_Descendant
+     (Tree      : in     Syntax_Trees.Tree;
+      Node      : in     Valid_Node_Index;
+      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean)
+     return Node_Index;
+   --  Return the descendant of Node (may be Node) for which Predicate
+   --  returns True, or Invalid_Node_Index if none do.
+
    function Find_Min_Terminal_Index
      (Tree  : in Syntax_Trees.Tree;
       Index : in Token_Index)

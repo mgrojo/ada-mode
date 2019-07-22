@@ -229,7 +229,10 @@ package body WisiToken.Syntax_Trees is
    is
       function Compute (N : in Syntax_Trees.Node) return Node_Index
       is begin
-         if Child_Index in N.Children.First_Index .. N.Children.Last_Index then
+         if N.Label /= Nonterm then
+            return Invalid_Node_Index;
+
+         elsif Child_Index in N.Children.First_Index .. N.Children.Last_Index then
             return N.Children (Child_Index);
          else
             return Invalid_Node_Index;
@@ -591,7 +594,31 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Process;
 
-      Junk : constant Boolean := Process_Tree (Tree, Node, After, Process'Access);
+      Junk : constant Boolean := Process_Tree (Tree, Node, Before, Process'Access);
+      pragma Unreferenced (Junk);
+   begin
+      return Found;
+   end Find_Descendant;
+
+   function Find_Descendant
+     (Tree      : in     Syntax_Trees.Tree;
+      Node      : in     Valid_Node_Index;
+      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean)
+     return Node_Index
+   is
+      Found : Node_Index := Invalid_Node_Index;
+
+      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+      is begin
+         if Predicate (Tree, Node) then
+            Found := Node;
+            return False;
+         else
+            return True;
+         end if;
+      end Process;
+
+      Junk : constant Boolean := Process_Tree (Tree, Node, Before, Process'Access);
       pragma Unreferenced (Junk);
    begin
       return Found;
