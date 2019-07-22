@@ -8,8 +8,24 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi
 
+** parser process protocol version 3
+
 ** Error correction is faster by approximately 30%; enqueue_limit can
    be raised accordingly.
+
+** In the process parser, `wisi-statement-start' now sets 'containing'
+   in all contained caches to the start token, if not set already;
+   previously it only did this if the token was mentioned in the
+   `wisi-statement-start' action. This eliminates the need for
+   `wisi-containing-action'; it is now a null operation in the process
+   parser and will be deleted when the elisp parser is.
+
+** The elisp parser is deprecated; it still has the old
+   `wisi-statement-start' and `wisi-containing-action' semantics.
+
+** The process parser supports a new parse command `wisi-refactor',
+   which returns a new message "Edit". It is intended for performing
+   syntax-guided refactoring of code statements.
 
 * wisi 2.1.1
 11 Jul 2019

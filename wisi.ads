@@ -45,6 +45,7 @@ package Wisi is
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
@@ -325,6 +326,15 @@ package Wisi is
    --  Language specific child packages override this to implement
    --  wisi-elisp-parse-indent-hanging-function.
 
+   ----------
+   --  Other
+
+   procedure Refactor
+     (Data       : in out Parse_Data_Type;
+      Tree       : in     WisiToken.Syntax_Trees.Tree;
+      Action     : in     Positive;
+      Edit_Begin : in     WisiToken.Buffer_Pos) is null;
+
    type Arg_Index_Array is array (Positive range <>) of WisiToken.Positive_Index_Type;
 
    procedure Put_Language_Action
@@ -579,6 +589,7 @@ private
 
       --  Data for post-parse actions
 
+      Lexer             : WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
       Post_Parse_Action : Post_Parse_Action_Type;
@@ -684,6 +695,17 @@ private
       Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
      return Aug_Token_Ref;
 
+   function Get_Text
+     (Data       : in Parse_Data_Type;
+      Tree       : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     return String;
+   --  Return text contained by Tree_Index token in source file
+   --  (lexer.buffer).
+
+   function Elisp_Escape_Quotes (Item : in String) return String;
+   --  Prefix any '"' in Item with '\' for elisp.
+
    function Indent_Anchored_2
      (Data        : in out Parse_Data_Type;
       Anchor_Line : in     WisiToken.Line_Number_Type;
@@ -709,5 +731,19 @@ private
       Indenting_Comment : in     Boolean);
    --  [2] wisi-elisp-parse--indent-token-1. Sets Data.Indents, so caller
    --  may not be in a renames for a Data.Indents element.
+
+   --  Visible for language-specific children. Must match list in
+   --  wisi-process-parse.el wisi-process-parse--execute.
+   Navigate_Cache_Code  : constant String := "1";
+   Face_Property_Code   : constant String := "2";
+   Indent_Code          : constant String := "3";
+   Lexer_Error_Code     : constant String := "4";
+   Parser_Error_Code    : constant String := "5";
+   Check_Error_Code     : constant String := "6";
+   Recover_Code         : constant String := "7 ";
+   End_Code             : constant String := "8";
+   Name_Property_Code   : constant String := "9";
+   Edit_Action_Code     : constant String := "10";
+   Language_Action_Code : constant String := "11 ";
 
 end Wisi;

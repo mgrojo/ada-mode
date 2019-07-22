@@ -6,6 +6,13 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada Mode
+
+** parser Ada language protocol version 2
+
+** New Ada menu entry "Refactor" supports converting between
+   Object.Method (...) and Method (Object, ...) syntax.
+
 * Ada Mode 6.1.1
 11 Jul 2019
 

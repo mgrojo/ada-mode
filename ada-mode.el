@@ -470,6 +470,10 @@ Values defined by cross reference packages.")
      ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
+    ("Refactor"
+     ["Method (Object) to Object.Method"   ada-wisi-refactor-1 t]
+     ["Object.Method   to Method (Object)" ada-wisi-refactor-2 t]
+     )
     ("Casing"
      ["Create full exception"       ada-case-create-exception t]
      ["Create partial exception"    ada-case-create-partial-exception t]

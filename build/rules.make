@@ -42,15 +42,19 @@ gpr-skel.gpr.tmp :
 %.wisi-test : %-lalr-elisp.el
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
+# for ../test/wisi/*.wy
 %_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
 run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
-# for ../test/wisi/*.wy
 %-lalr-elisp.el : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) --generate LALR Elisp Elisp $(<F)
+
+# for building only this
+../run_ada_%_parse.exe : ../run_ada_%_parse.ads ../ada_re2c.c force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el

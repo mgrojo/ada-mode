@@ -116,22 +116,51 @@ FACE may be a list."
     (beginning-of-line)
     (forward-comment (point-max))
     (let (containing-pos contained-cache)
-      (condition-case err
-	  (search-forward containing (line-end-position 5))
-	(error
-	 (error "can't find '%s'" containing)))
+      (search-forward containing (line-end-position 5))
       (setq containing-pos (match-beginning 0))
 
-      (condition-case err
-	  (search-forward contained (line-end-position 5))
-	(error
-	 (error "can't find '%s'" contained)))
+      (search-forward contained (line-end-position 5))
       (setq contained-cache (get-text-property (match-beginning 0) 'wisi-cache))
 
       (unless contained-cache (error "no cache on %s" contained))
       (unless (= containing-pos (wisi-cache-containing contained-cache))
 	(error "expecting %d, got %d" containing-pos (wisi-cache-containing contained-cache)))
     )))
+
+(defvar test-moom-markers nil
+  "Stores positions altered by `test-moom' for `test-ommo'.
+Each item is a list (PARSE-BEGIN PARSE-END EDIT-BEGIN)")
+
+(defun test-moom (search-string refactor-string)
+  "Refactor method (object ...) to object.method (...)"
+  (beginning-of-line)
+  (forward-comment (point-max)) ;; forward-comment does not work from inside comment
+  (search-forward search-string (line-end-position 7))
+  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
+  (search-forward refactor-string (line-end-position 7))
+  (let* ((edit-begin (match-beginning 0))
+	 (cache (wisi-goto-statement-start))
+	 (parse-begin (point))
+	 (parse-end (wisi-cache-end cache)))
+    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+    (push (list
+	   (copy-marker parse-begin nil)
+	   (copy-marker parse-end nil)
+	   (copy-marker edit-begin nil))
+	  test-moom-markers)
+    (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
+    ))
+
+(defun test-ommo ()
+  "Reverse refactors done by recent set of `test-moom'."
+  (save-excursion
+    (condition-case-unless-debug nil
+	(dolist (moom test-moom-markers)
+	  (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object
+			 (marker-position (nth 0 moom)) (marker-position (nth 1 moom)) (marker-position (nth 2 moom)))
+	  )
+      (error nil))
+    (setq test-moom-markers nil)))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."

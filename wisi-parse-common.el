@@ -102,6 +102,11 @@ Return nil if no match found before eob."
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
 If using an external parser, send it BEGIN thru SEND-END.")
 
+(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action parse-begin parse-end edit-begin)
+  "Send parser command to perform REFACTOR-ACTION on region PARSE-BEGIN PARSE-END at point EDIT_BEGIN.
+The parse region is not expanded first; it must be the statement
+or declaration containing EDIT_BEGIN.")
+
 (cl-defgeneric wisi-parse-kill ((parser wisi-parser))
   "Kill any external process associated with parser.")
 

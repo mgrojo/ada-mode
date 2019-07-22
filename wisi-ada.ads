@@ -22,7 +22,7 @@ pragma License (Modified_GPL);
 
 package Wisi.Ada is
 
-   Language_Protocol_Version : constant String := "1";
+   Language_Protocol_Version : constant String := "2";
    --  Defines the data passed to Initialize in Params.
    --
    --  This value must match ada-wisi.el
@@ -53,6 +53,7 @@ package Wisi.Ada is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
@@ -81,6 +82,13 @@ package Wisi.Ada is
       Accumulate        : in     Boolean)
      return Delta_Type;
    --  [1] ada-wisi-elisp-parse--indent-hanging
+
+   overriding
+   procedure Refactor
+     (Data       : in out Parse_Data_Type;
+      Tree       : in     WisiToken.Syntax_Trees.Tree;
+      Action     : in     Positive;
+      Edit_Begin : in     WisiToken.Buffer_Pos);
 
    ----------
    --  The following are declared in ada.wy %elisp_indent, and must match

@@ -31,9 +31,13 @@
 (require 'wisi-elisp-lexer)
 (require 'wisi-process-parse)
 
-(defconst ada-wisi-language-protocol-version "1"
+(defconst ada-wisi-language-protocol-version "2"
   "Defines language-specific parser parameters.
 Must match wisi-ada.ads Language_Protocol_Version.")
+
+;; Refactor actions; must match wisi-ada.adb Refactor
+(defconst ada-refactor-method-object-to-object-method 1)
+(defconst ada-refactor-object-method-to-method-object 2)
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
@@ -385,6 +389,30 @@ Also return cache at start."
 	 ;; cache is nil if the parse failed
 	 (setq cache (wisi-get-cache (nth 1 parse-result)))
 	 (eq 'formal_part (wisi-cache-nonterm cache)))
+    ))
+
+(defun ada-wisi-refactor-1 ()
+  "Refactor Method (Object) to Object.Method"
+  (interactive)
+  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
+  (let* ((edit-begin (point))
+	 (cache (wisi-goto-statement-start))
+	 (parse-begin (point))
+	 (parse-end (wisi-cache-end cache)))
+    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+    (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
+    ))
+
+(defun ada-wisi-refactor-2 ()
+  "Refactor Object.Method to Method (Object)"
+  (interactive)
+  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
+  (let* ((edit-begin (point))
+	 (cache (wisi-goto-statement-start))
+	 (parse-begin (point))
+	 (parse-end (wisi-cache-end cache)))
+    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+    (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object parse-begin parse-end edit-begin)
     ))
 
 (defun ada-wisi-make-subprogram-body ()

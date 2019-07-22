@@ -25,17 +25,6 @@ with WisiToken.Semantic_Checks;
 package body Wisi is
    use WisiToken;
 
-   Navigate_Cache_Code  : constant String := "1";
-   Face_Property_Code   : constant String := "2";
-   Indent_Code          : constant String := "3";
-   Lexer_Error_Code     : constant String := "4";
-   Parser_Error_Code    : constant String := "5";
-   Check_Error_Code     : constant String := "6";
-   Recover_Code         : constant String := "7 ";
-   End_Code             : constant String := "8";
-   Name_Property_Code   : constant String := "9";
-   Language_Action_Code : constant String := "10 ";
-
    Chars_Per_Int : constant Integer := Integer'Width;
 
    ----------
@@ -587,6 +576,7 @@ package body Wisi is
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
@@ -606,6 +596,7 @@ package body Wisi is
         (First   => Begin_Line,
          Last    => End_Line + 1);
 
+      Data.Lexer             := Lexer;
       Data.Descriptor        := Descriptor;
       Data.Source_File_Name  := +Source_File_Name;
       Data.Post_Parse_Action := Post_Parse_Action;
@@ -942,31 +933,28 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array)
    is
-      First_Item         : Boolean        := True;
-      Start_Set          : Boolean        := False;
-      Override_Start_Set : Boolean        := False;
-      Containing_Pos     : Nil_Buffer_Pos := Nil; --  wisi first-keyword-pos
+      Nonterm_Tok        : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Nonterm);
+      First_Item         : Boolean                := True;
+      Start_Set          : Boolean                := False;
+      Override_Start_Set : Boolean                := False;
+      Containing_Pos     : Nil_Buffer_Pos         := Nil;
    begin
       for Pair of Params loop
          if not (Pair.Index in Tokens'Range) then
-            declare
-               Nonterm_Tok : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Nonterm);
-            begin
-               raise Fatal_Error with Error_Message
-                 (File_Name => -Data.Source_File_Name,
-                  Line      => Nonterm_Tok.Line,
-                  Column    => Nonterm_Tok.Column,
-                  Message   => "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
-                    " token index" & SAL.Peek_Type'Image (Pair.Index) &
-                    " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
-                    SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
-            end;
+            raise Fatal_Error with Error_Message
+              (File_Name => -Data.Source_File_Name,
+               Line      => Nonterm_Tok.Line,
+               Column    => Nonterm_Tok.Column,
+               Message   => "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
+                 " token index" & SAL.Peek_Type'Image (Pair.Index) &
+                 " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
+                 SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
 
          elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
             declare
                use all type WisiToken.Syntax_Trees.Node_Label;
                Token  : constant Aug_Token_Ref :=
-                  (if Pair.Class = Statement_End and then
+                 (if Pair.Class = Statement_End and then
                     Tree.Label (Tokens (Pair.Index)) = WisiToken.Syntax_Trees.Nonterm
                   then Data.Terminals.Variable_Ref (Tree.Max_Terminal_Index (Tokens (Pair.Index)))
                   else Get_Aug_Token (Data, Tree, Tokens (Pair.Index)));
@@ -1014,6 +1002,28 @@ package body Wisi is
                   if Override_Start_Set or Pair.Class = Statement_Start then
                      Override_Start_Set := False;
                      Containing_Pos     := (True, Token.Char_Region.First);
+
+                     --  Set containing on all contained caches
+                     declare
+                        use Navigate_Cache_Trees;
+                        Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+                        Cursor   : Navigate_Cache_Trees.Cursor            := Find_In_Range
+                          (Iterator, Ascending, Nonterm_Tok.Char_Region.First,
+                           Nonterm_Tok.Char_Region.Last);
+                     begin
+                        loop
+                           exit when not Has_Element (Cursor);
+                           declare
+                              Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cursor);
+                           begin
+                              if not Cache.Containing_Pos.Set then
+                                 Cache.Containing_Pos := Containing_Pos;
+                              end if;
+                              exit when Nonterm_Tok.Char_Region.Last < Cache.Pos + 1;
+                           end;
+                           Cursor := Iterator.Next (Cursor);
+                        end loop;
+                     end;
                   end if;
                end if;
 
@@ -1087,80 +1097,9 @@ package body Wisi is
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type)
    is
-      use all type Syntax_Trees.Node_Label;
-      pragma Unreferenced (Nonterm);
-
-      --  [2] wisi-containing-action.
-      --
-      --  Compute as much as possible with virtual tokens; see
-      --  test/format_paramlist.adb
+      pragma Unreferenced (Data, Tree, Nonterm, Tokens, Containing, Contained);
    begin
-      if Tree.Label (Tokens (Containing)) = Syntax_Trees.Virtual_Terminal or
-        Tree.Label (Tokens (Contained)) = Syntax_Trees.Virtual_Terminal
-      then
-         return;
-      end if;
-
-      declare
-         use Navigate_Cache_Trees;
-         Containing_Tok    : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Containing));
-         Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
-         Contained_Tok     : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Contained));
-         Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
-         Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
-         Cursor            : Navigate_Cache_Trees.Cursor;
-         Mark              : constant Buffer_Pos                    := Containing_Region.First;
-      begin
-         if Containing_Region = Null_Buffer_Region then
-            if Tree.Is_Virtual (Tokens (Containing)) then
-               return;
-            else
-               raise Fatal_Error with Error_Message
-                 (File_Name => -Data.Source_File_Name,
-                  Line      => Containing_Tok.Line,
-                  Column    => Containing_Tok.Column,
-                  Message   => "wisi-containing-action: containing-region " &
-                    Image (Containing_Tok.ID, Data.Descriptor.all) &
-                    " is empty. grammar error; bad action.");
-            end if;
-         end if;
-
-         if not Data.Navigate_Caches.Present (Containing_Region.First) then
-            raise Fatal_Error with Error_Message
-              (File_Name => -Data.Source_File_Name,
-               Line      => Containing_Tok.Line,
-               Column    => Containing_Tok.Column,
-               Message   => "wisi-containing-action: containing token " &
-                 Image (Containing_Tok.ID, Data.Descriptor.all) &
-                 " has no cache. grammar error; missing action.");
-         end if;
-
-         if Contained_Tok.Char_Region /= Null_Buffer_Region then
-            --  Contained region is nil in an empty production.
-            Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
-
-            while Has_Element (Cursor) loop
-               declare
-                  Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
-               begin
-
-                  exit when Cache.Pos < Contained_Region.First or
-                    (Containing_Region.First = Contained_Region.First and
-                       Cache.Pos <= Contained_Region.First);
-
-                  --  Skip blocks that are already marked.
-
-                  if Cache.Containing_Pos.Set then
-                     Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
-                  else
-                     Cache.Containing_Pos := (True, Mark);
-                     Cursor := Previous (Iterator, Cursor);
-                  end if;
-
-               end;
-            end loop;
-         end if;
-      end;
+      null;
    end Containing_Action;
 
    function "+" (Item : in Token_ID) return Token_ID_Lists.List
@@ -1939,6 +1878,40 @@ package body Wisi is
          when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;
+
+   function Get_Text
+     (Data       : in Parse_Data_Type;
+      Tree       : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     return String
+   is
+      use all type Syntax_Trees.Node_Label;
+   begin
+      case Tree.Label (Tree_Index) is
+      when Shared_Terminal | Nonterm =>
+         return Data.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
+
+      when Virtual_Terminal | Virtual_Identifier =>
+         raise SAL.Programmer_Error;
+
+      end case;
+   end Get_Text;
+
+   function Elisp_Escape_Quotes (Item : in String) return String
+   is
+      Result : String (Item'First .. Item'First + Item'Length * 2);
+      Last   : Integer := Item'First - 1;
+   begin
+      for I in Item'Range loop
+         if Item (I) = '"' then
+            Last := Last + 1;
+            Result (Last) := '\';
+         end if;
+         Last := Last + 1;
+         Result (Last) := Item (I);
+      end loop;
+      return Result (1 .. Last);
+   end Elisp_Escape_Quotes;
 
    overriding
    function Image

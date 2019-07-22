@@ -24,7 +24,7 @@ with Wisi;
 with WisiToken.Parse.LR.Parser;
 package Emacs_Wisi_Common_Parse is
 
-   Protocol_Version : constant String := "3";
+   Protocol_Version : constant String := "4";
    --  Protocol_Version defines the data sent between elisp and the
    --  background process, except for the language-specific parameters,
    --  which are defined by the Language_Protocol_Version parameter to
@@ -69,6 +69,18 @@ package Emacs_Wisi_Common_Parse is
    --  Get from Ada.Command_Line. Handles --help by outputing help,
    --  raising Finish.
 
+   procedure Process_Stream
+     (Name                      : in     String;
+      Language_Protocol_Version : in     String;
+      Partial_Parse_Active      : in out Boolean;
+      Params                    : in     Process_Start_Params;
+      Parser                    : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data                : in out Wisi.Parse_Data_Type'Class;
+      Descriptor                : in     WisiToken.Descriptor);
+
+   ----------
+   --  Parse command
+
    type Parse_Params is record
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
@@ -109,13 +121,34 @@ package Emacs_Wisi_Common_Parse is
 
    function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params;
 
-   procedure Parse_Stream
-     (Name                      : in     String;
-      Language_Protocol_Version : in     String;
-      Partial_Parse_Active      : in out Boolean;
-      Params                    : in     Process_Start_Params;
-      Parser                    : in out WisiToken.Parse.LR.Parser.Parser;
-      Parse_Data                : in out Wisi.Parse_Data_Type'Class;
-      Descriptor                : in     WisiToken.Descriptor);
+   ----------
+   --  Refactor command
+
+   type Refactor_Params is record
+      Refactor_Action  : Positive; -- Language-specific
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+
+      Parse_Region : WisiToken.Buffer_Region;
+      --  Source file byte region to parse.
+
+      Edit_Begin : WisiToken.Buffer_Pos;
+      --  Source file byte position at start of expression to refactor.
+
+      Parse_Begin_Char_Pos : WisiToken.Buffer_Pos;
+      --  Char position of first char sent.
+
+      Parse_Begin_Line : WisiToken.Line_Number_Type;
+      Parse_End_Line   : WisiToken.Line_Number_Type;
+      --  Line numbers of lines containing Parse_Begin_Byte_Pos, Parse_End_Byte_Pos
+
+      Debug_Mode       : Boolean;
+      Parse_Verbosity  : Integer;
+      Action_Verbosity : Integer;
+      Max_Parallel     : Integer;
+      Byte_Count       : Integer;
+      --  Count of bytes of source file sent.
+   end record;
+
+   function Get_Refactor_Params (Command_Line : in String; Last : in out Integer) return Refactor_Params;
 
 end Emacs_Wisi_Common_Parse;

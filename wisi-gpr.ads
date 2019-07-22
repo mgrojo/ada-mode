@@ -41,6 +41,7 @@ package Wisi.Gpr is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;

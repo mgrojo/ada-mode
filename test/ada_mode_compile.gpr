@@ -117,6 +117,8 @@ project Ada_Mode_Compile is
       "ada_mode-recover_virtual.adb",
       "ada_mode-recover_virtual_renames.adb",
 
+      "ada_mode-refactor_object_method_to_method_object.ads",
+
       -- WORKAROUND: this gives bogus warnings about too-long lines
       -- with CE 2018 on Debian, but is required with GNAT GPL 2017
       -- "ada_mode-separate_protected_body.adb",
