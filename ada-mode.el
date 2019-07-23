@@ -2728,7 +2728,7 @@ subprogram body, for user to add code.")
   "If point is in or after a subprogram specification, convert it
 into a subprogram body stub, by calling `ada-make-subprogram-body'."
   (interactive)
-  (ada-goto-declaration-start)
+  (wisi-goto-statement-start)
   (if ada-make-subprogram-body
       (funcall ada-make-subprogram-body)
     (error "`ada-make-subprogram-body' not set")))

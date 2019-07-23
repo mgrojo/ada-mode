@@ -868,7 +868,7 @@ Point must have been set by `ada-wisi-find-begin'."
       (if (search-forward-regexp end-regexp nil t)
 	  (progn
 	    (while (and (ada-in-string-or-comment-p)
-			(search-forward-regexp end-regexp)))
+			(search-forward-regexp end-regexp nil t)))
 	    (point))
 
 	;; matching end not found
