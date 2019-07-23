@@ -14,6 +14,7 @@ vpath %.good_out ../test
 
 SPARK_FILES += prove_bounded_definite_queues.ads
 SPARK_FILES += prove_bounded_definite_stacks.ads
+SPARK_FILES += prove_bounded_definite_vectors.ads
 
 clean :: test-clean
 clean :: profile-clean
