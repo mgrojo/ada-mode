@@ -80,10 +80,10 @@ package WisiToken.Parse.LR.Parser is
    type Post_Recover_Access is access procedure;
 
    type Parser is new WisiToken.Parse.Base_Parser with record
-      Table                                 : Parse_Table_Ptr;
-      Language_Fixes                        : Language_Fixes_Access;
+      Table                          : Parse_Table_Ptr;
+      Language_Fixes                 : Language_Fixes_Access;
       Language_Matching_Begin_Tokens : Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set                : Language_String_ID_Set_Access;
+      Language_String_ID_Set         : Language_String_ID_Set_Access;
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.

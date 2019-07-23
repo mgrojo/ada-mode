@@ -376,12 +376,7 @@ package body WisiToken.Parse.LR.Parser is
       Parser.Language_String_ID_Set         := Language_String_ID_Set;
       Parser.User_Data                      := User_Data;
 
-      --  We can't use Table.McKenzie_Param /= Default_McKenzie_Param here,
-      --  because the discriminants are different.
-      Parser.Enable_McKenzie_Recover :=
-        Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
-          Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
-          Table.McKenzie_Param.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit;
+      Parser.Enable_McKenzie_Recover := not McKenzie_Defaulted (Table.all);
 
       Parser.Max_Parallel         := Max_Parallel;
       Parser.Terminate_Same_State := Terminate_Same_State;
@@ -732,7 +727,7 @@ package body WisiToken.Parse.LR.Parser is
                      end;
                   end if;
                else
-                  if Trace_Parse > Outline then
+                  if Trace_Parse > Outline or Trace_McKenzie > Outline then
                      Trace.Put_Line ("recover disabled");
                   end if;
                end if;
@@ -786,7 +781,10 @@ package body WisiToken.Parse.LR.Parser is
                          First_Terminal => Trace.Descriptor.First_Terminal,
                          Last_Terminal  => Trace.Descriptor.Last_Terminal,
                          Recover        => <>,
-                         Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
+                         Msg            =>
+                           (if Shared_Parser.Enable_McKenzie_Recover
+                            then +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)
+                            else +"recover disabled")));
                   end loop;
                   raise WisiToken.Syntax_Error;
                end if;

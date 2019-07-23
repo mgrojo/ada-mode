@@ -317,6 +317,13 @@ package WisiToken.Parse.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
+   function McKenzie_Defaulted (Table : in Parse_Table) return Boolean is
+     --  We can't use Table.McKenzie_Param = Default_McKenzie_Param here,
+     --  because the discriminants are different.
+     (Table.McKenzie_Param.Check_Limit = Default_McKenzie_Param.Check_Limit and
+        Table.McKenzie_Param.Check_Delta_Limit = Default_McKenzie_Param.Check_Delta_Limit and
+        Table.McKenzie_Param.Enqueue_Limit = Default_McKenzie_Param.Enqueue_Limit);
+
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
