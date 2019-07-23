@@ -77,7 +77,7 @@ package body Ada_Process_LR1_Main is
          Task_Count  => 0,
          Check_Limit => 4,
          Check_Delta_Limit => 100,
-         Enqueue_Limit => 45000);
+         Enqueue_Limit => 58000);
 
       function Actions return WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector
       is begin

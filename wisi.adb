@@ -1008,7 +1008,7 @@ package body Wisi is
                         use Navigate_Cache_Trees;
                         Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
                         Cursor   : Navigate_Cache_Trees.Cursor            := Find_In_Range
-                          (Iterator, Ascending, Nonterm_Tok.Char_Region.First,
+                          (Iterator, Ascending, Nonterm_Tok.Char_Region.First + 1, -- don't set containing on start
                            Nonterm_Tok.Char_Region.Last);
                      begin
                         loop

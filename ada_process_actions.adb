@@ -56,8 +56,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (6, 26 & 72) & (9,
          Empty_IDs)));
       when Face =>
@@ -94,7 +92,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 1)));
       when Indent =>
@@ -366,7 +363,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          null;
       when Indent =>
@@ -466,8 +462,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (8, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -550,10 +544,8 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (4, Motion), (8,
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (4, Motion), (8,
          Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Empty_IDs) & (4, Empty_IDs) & (5, 26 & 72) & (8,
          Empty_IDs)));
       when Face =>
@@ -588,8 +580,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (6, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 3);
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (6, Statement_End)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Empty_IDs) & (3, 26 & 72) & (6, Empty_IDs)));
       when Face =>
          null;
@@ -681,7 +672,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, +72) & (7, Empty_IDs)));
       when Face =>
          null;
@@ -813,7 +803,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          null;
       when Indent =>
@@ -835,7 +824,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          null;
       when Indent =>
@@ -874,8 +862,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
       when Face =>
          null;
       when Indent =>
@@ -897,7 +883,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -1054,9 +1039,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (6, Motion), (8,
          Motion), (12, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 9);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (6, Empty_IDs) & (8,
          Empty_IDs) & (12, Empty_IDs)));
       when Face =>
@@ -1116,7 +1098,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (8, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 7);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (3, 3, 1)));
       when Indent =>
@@ -1139,7 +1120,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (6, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 4);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (3, 3, 1)));
       when Indent =>
@@ -1302,7 +1282,7 @@ package body Ada_Process_Actions is
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Label => None))), (False, (Simple,
          (Label => None))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))),
-         (False, (Simple, (Label => None))), (False, (Simple, (Label => None)))));
+         (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Label => None)))));
       end case;
    end expression_function_declaration_0;
 
@@ -1358,7 +1338,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (7, Empty_IDs)));
       when Face =>
          null;
@@ -1582,7 +1561,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 2)));
       when Indent =>
@@ -1704,7 +1682,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 2)));
       when Indent =>
@@ -1727,7 +1704,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, Statement_Start)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 1)));
       when Indent =>
@@ -2055,7 +2031,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Motion)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68) & (6,
          Empty_IDs)));
       when Face =>
@@ -2079,7 +2054,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (5, Motion)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, Empty_IDs)));
       when Face =>
          null;
@@ -2101,7 +2075,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68)));
       when Face =>
          null;
@@ -2123,7 +2096,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs)));
       when Face =>
          null;
@@ -2146,10 +2118,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Motion), (10,
          Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68) & (6,
          Empty_IDs) & (10, Empty_IDs)));
       when Face =>
@@ -2176,9 +2144,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (5, Motion), (9,
          Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, Empty_IDs) & (9,
          Empty_IDs)));
       when Face =>
@@ -2203,9 +2168,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (8, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68) & (8,
          Empty_IDs)));
       when Face =>
@@ -2230,8 +2192,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (7, Empty_IDs)));
       when Face =>
          null;
@@ -2423,9 +2383,8 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (3, Motion), (8,
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (3, Motion), (8,
          Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 4);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Empty_IDs) & (3, Empty_IDs) & (8, Empty_IDs)));
       when Face =>
          null;
@@ -2459,8 +2418,9 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 3);
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (4, Motion), (7,
+         Statement_End)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Empty_IDs) & (4, Empty_IDs) & (7, Empty_IDs)));
       when Face =>
          null;
       when Indent =>
@@ -2513,8 +2473,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, Misc)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
+         null;
       when Face =>
          null;
       when Indent =>
@@ -2694,7 +2653,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
       when Face =>
          null;
       when Indent =>
@@ -2717,7 +2675,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -2740,7 +2697,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -2784,7 +2740,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -2806,7 +2761,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
       when Face =>
          null;
       when Indent =>
@@ -2851,7 +2805,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 1);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          null;
       when Indent =>
@@ -2933,8 +2886,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (7, Motion), (11,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 8);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (7, Empty_IDs) & (8, 26 &
          72) & (11, Empty_IDs)));
       when Face =>
@@ -2972,7 +2923,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (9, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((3, 1, 1), (8, 1, 1)));
@@ -3071,9 +3021,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (6, Motion)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 4, 5);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (6, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 1), (9, 1, 1)));
@@ -3110,8 +3057,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 4, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 1), (7, 1, 1)));
@@ -3504,7 +3449,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, Statement_Start)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 3);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 1)));
       when Indent =>
@@ -3537,7 +3481,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (9, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((3, 3, 2), (8, 3, 2)));
@@ -3659,7 +3602,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (9, Motion), (11,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 10);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (10, +49) & (11,
          Empty_IDs)));
       when Face =>
@@ -3697,7 +3639,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (8, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (7, +49) & (8,
          Empty_IDs)));
       when Face =>
@@ -3793,7 +3734,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (5, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
       when Face =>
          null;
       when Indent =>
@@ -4086,8 +4026,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (2, 43 & 72) & (3, Empty_IDs) & (7,
          Empty_IDs)));
       when Face =>
@@ -4247,7 +4185,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
       when Face =>
          null;
       when Indent =>
@@ -4323,7 +4260,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (7, Motion), (9,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 8);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (7, Empty_IDs) & (8, +49)
          & (9, Empty_IDs)));
       when Face =>
@@ -4360,7 +4296,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (6, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (5, +49) & (6,
          Empty_IDs)));
       when Face =>
@@ -4397,7 +4332,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (7, Motion), (11,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 8);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (8, +49) & (11,
          Empty_IDs)));
       when Face =>
@@ -4435,7 +4369,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (8, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 5);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (4, Empty_IDs) & (5, +49) & (8,
          Empty_IDs)));
       when Face =>
@@ -4492,9 +4425,6 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (4,
          Motion), (6, Motion), (10, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 4);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 4, 5);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (2, 29 & 50) & (4, Empty_IDs) & (6,
          Empty_IDs) & (10, Empty_IDs)));
       when Face =>
@@ -4749,8 +4679,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (7, Motion), (11,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 6);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 8);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (5, Empty_IDs) & (7, Empty_IDs) & (11,
          Empty_IDs)));
       when Face =>
@@ -4809,7 +4737,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, Motion)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 2, 3);
       when Face =>
          null;
       when Indent =>
@@ -4851,7 +4778,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (9, Motion), (13,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 10);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (9, Empty_IDs) & (10,
          +49) & (13, Empty_IDs)));
       when Face =>
@@ -4891,7 +4817,6 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (6, Motion), (10,
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 7);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (6, Empty_IDs) & (7, +49) & (10,
          Empty_IDs)));
       when Face =>
@@ -4949,8 +4874,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
       when Face =>
          null;
       when Indent =>
@@ -4972,7 +4895,6 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, Tree, Nonterm, Tokens, 1, 4);
       when Face =>
          null;
       when Indent =>

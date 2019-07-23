@@ -1543,7 +1543,7 @@ loop_statement
     %((wisi-match-names 1 7))%
   | block_label_opt LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
     %((progn
-      (wisi-statement-action [1 statement-start 2 motion 7 statement-end])
+      (wisi-statement-action [1 statement-start 2 motion 4 motion 7 statement-end])
       (wisi-motion-action [2 4 7])
       (wisi-indent-action [nil nil [ada-indent ada-indent] nil nil nil nil])))%
     %((wisi-match-names 1 6))%

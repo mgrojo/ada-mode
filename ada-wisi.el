@@ -263,7 +263,8 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declaration-start-1 (include-type)
   "Subroutine of `ada-wisi-goto-declaration-start'."
-  (let ((cache (wisi-get-cache (point)))
+  (let ((start (point))
+	(cache (wisi-get-cache (point)))
 	(done nil))
     (unless cache
       (setq cache (wisi-backward-cache)))
@@ -301,6 +302,9 @@ Also return cache at start."
 		     (eq (wisi-cache-token cache) 'TASK))
 
 		    ))
+	    (unless (< start (wisi-cache-end cache))
+	      ;; found declaration does not include start; find containing one.
+	      (setq done nil))
 	    (unless done
 	      (setq cache (wisi-goto-containing cache nil))))
 	(setq done t))
@@ -392,28 +396,34 @@ Also return cache at start."
     ))
 
 (defun ada-wisi-refactor-1 ()
-  "Refactor Method (Object) to Object.Method"
+  "Refactor Method (Object) to Object.Method.
+Point must be in Method."
   (interactive)
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
-  (let* ((edit-begin (point))
-	 (cache (wisi-goto-statement-start))
-	 (parse-begin (point))
-	 (parse-end (wisi-cache-end cache)))
-    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
-    (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
-    ))
+  (save-excursion
+    (skip-syntax-backward "w_.\"")
+    (let* ((edit-begin (point))
+	   (cache (wisi-goto-statement-start))
+	   (parse-begin (point))
+	   (parse-end (wisi-cache-end cache)))
+      (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+      (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
+      )))
 
 (defun ada-wisi-refactor-2 ()
-  "Refactor Object.Method to Method (Object)"
+  "Refactor Object.Method to Method (Object).
+Point must be in Object.Method."
   (interactive)
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
-  (let* ((edit-begin (point))
-	 (cache (wisi-goto-statement-start))
-	 (parse-begin (point))
-	 (parse-end (wisi-cache-end cache)))
-    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
-    (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object parse-begin parse-end edit-begin)
-    ))
+  (save-excursion
+    (skip-syntax-backward "w_.\"")
+    (let* ((edit-begin (point))
+	   (cache (wisi-goto-statement-start))
+	   (parse-begin (point))
+	   (parse-end (wisi-cache-end cache)))
+      (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+      (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object parse-begin parse-end edit-begin)
+      )))
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
