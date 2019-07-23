@@ -30,7 +30,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
       Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
       Forbid_Matching_Complete :    out Boolean)
    is
-      use all type SAL.Base_Peek_Type;
       use Java_Expressions_Antlr_Actions;
       use Token_ID_Arrays;
    begin

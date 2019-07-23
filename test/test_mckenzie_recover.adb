@@ -1711,7 +1711,7 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
-         Multiple_Tasks   => True,
+         Multiple_Tasks   => False,
          Expect_Exception => True);
 
       --  One error message from the syntax error, one from recover fail

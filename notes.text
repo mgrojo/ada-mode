@@ -24,17 +24,15 @@ update-wisitoken_grammar
 speed up mckenzie
     timing benchmarks in ada-mode notes.text
 
-    get performance trace
-        o.e.a/build/recover_partial_02.profile - never returns (sigh). doesn't hang with task_count 1
-        lr1 get_text_rep confusing things
-        lalr results slightly better, but still not helpful
-        try valgrind on linux; much better.
-            dominated by malloc; fibonacci heap remove, add; insert_from_action_list - nothing to improve there.
-            spark bounded stack; 30% faster
+    get performance trace; valgrind on linux
+        dominated by malloc; fibonacci heap remove, add; insert_from_action_list - nothing to improve there.
+        spark bounded stack; 30% faster
 
     do spark on SAL.Gen_Bounded_Definite_Vectors (and _Sorted), check for config.ops full rather than handle exception
 
 alternate table rep for duplicate reduce actions?
+
+use duplicate_reduce in text_rep
 
 allow undo_reduce after insert/fast_forward
     in Recover, processing ops
