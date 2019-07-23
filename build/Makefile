@@ -96,10 +96,10 @@ test-wisi :: range_conflict.wisi-test
 summarize :
 	cat test.log
 
-ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
-#ONE_TEST_FILES ?= ada_mode-recover_29.adb
-#one :: build_executables
+ONE_TEST_FILES ?= ada_mode-refactor_object_method_to_method_object.ads
+one :: build_executables
 #one :: byte-compile
 one :: one-clean
 one-clean :: force
@@ -127,8 +127,8 @@ two_mem : build_executables
 
 two_pro : export Standard_Common_Profile := On
 two_pro : build_executables
-	../exec_pro/run_ada_lr1_parse.exe c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
-	gprof ../exec_pro/run_ada_lr1_parse.exe > query_display-flight_operations.profile
+	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
+	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -231,6 +231,9 @@ elpa-zip : docs pub-ada pub-wisi ada-mode-elpa-$(DATE).tar.gz
 
 ada-mode-elpa-$(DATE).tar.gz :
 	tar zcf ada-mode-elpa-$(DATE).tar.gz -C $(ELPA_ROOT)/packages ada-ref-man ada-mode wisi
+
+tag :
+	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
 
 MANUALS := ada-mode gpr-mode
 
