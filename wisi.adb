@@ -1910,7 +1910,7 @@ package body Wisi is
          Last := Last + 1;
          Result (Last) := Item (I);
       end loop;
-      return Result (1 .. Last);
+      return Result (Result'First .. Last);
    end Elisp_Escape_Quotes;
 
    overriding

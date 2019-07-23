@@ -11,7 +11,7 @@ package Ada_Mode.Refactor_Object_Method_To_Method_Object is
    --EMACSCMD:(test-moom "Post" "Length (Container)")
    function Is_Full (Container : in Vector) return Boolean with
      Post => Is_Full'Result = (Length (Container) = Capacity);
-   --EMACSCMD:(test-ommo)
+   --EMACSCMD:(test-refactor-inverse)
 
    --EMACSCMD:(test-moom "Post" "Length (\"&\"'Result)")
    --EMACSCMD:(test-moom "for all I" "Element (\"&\"'Result")
@@ -20,7 +20,7 @@ package Ada_Mode.Refactor_Object_Method_To_Method_Object is
      Post => Length ("&"'Result) = Length (Left) + 1 and
              (for all I in Index_Type'First .. Last_Index (Left) => Element (Left, I) = Element ("&"'Result, "&"'Result, I, J)) and
              Element ("&"'Result, Last_Index ("&"'Result)) = Right;
-   --EMACSCMD:(test-ommo)
+   --EMACSCMD:(test-refactor-inverse)
 
    --EMACSCMD:(test-moom "Pre" "Length (Container)")
    --EMACSCMD:(test-moom "Post" "Length (Container)'Old")
@@ -32,6 +32,6 @@ package Ada_Mode.Refactor_Object_Method_To_Method_Object is
              Element (Container, Last_Index (Container)) = New_Item and
              (for all I in Index_Type'First .. Last_Index (Container) - 1 =>
                 Element (Container'Old, I) = Element (Container, I));
-   --EMACSCMD:(test-ommo)
+   --EMACSCMD:(test-refactor-inverse)
 
 end Ada_Mode.Refactor_Object_Method_To_Method_Object;

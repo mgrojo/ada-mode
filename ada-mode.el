@@ -471,8 +471,10 @@ Values defined by cross reference packages.")
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ("Refactor"
-     ["Method (Object) to Object.Method"   ada-wisi-refactor-1 t]
-     ["Object.Method   to Method (Object)" ada-wisi-refactor-2 t]
+     ["Method (Object) => Object.Method"   ada-wisi-refactor-1 t]
+     ["Object.Method   => Method (Object)" ada-wisi-refactor-2 t]
+     ["Element (Object, Index) => Object (Index)" ada-wisi-refactor-3 t]
+     ["Object (Index) => Element (Object, Index)" ada-wisi-refactor-4 t]
      )
     ("Casing"
      ["Create full exception"       ada-case-create-exception t]

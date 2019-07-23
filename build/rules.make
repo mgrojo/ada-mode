@@ -4,6 +4,7 @@ ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
 ADA_ELISP_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
+ADA_ELISP_TEST_FILES := $(filter-out ada_mode-refactor%, $(ADA_ELISP_TEST_FILES))
 
 GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
@@ -25,7 +26,8 @@ vpath %.wy    ../ ../test/wisi
 #
 # This can be overridden on the 'make' command line or by an external
 # environment variable.
-EMACS_EXE ?= emacs
+# specify uniscribe to workaround weird harfbuzz bug
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
