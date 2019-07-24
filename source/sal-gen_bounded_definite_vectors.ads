@@ -1,7 +1,6 @@
 --  Abstract :
 --
---  A simple bounded vector of definite items, intended to be faster
---  than Ada.Containers.Bounded_Definite_Vectors.
+--  A simple bounded vector of definite items, in Spark.
 --
 --  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
@@ -18,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Iterator_Interfaces;
 generic
    type Index_Type is range <>;
    type Element_Type is private;
@@ -39,11 +37,14 @@ is
    type Vector is private with
      Default_Initial_Condition => Length (Vector) = 0;
 
-   function Length (Container : in Vector) return Ada.Containers.Count_Type
-   with Post => Length'Result in 0 .. Capacity;
+   function Length (Container : in Vector) return Ada.Containers.Count_Type with
+     Post => Length'Result in 0 .. Capacity;
 
    function Is_Full (Container : in Vector) return Boolean with
      Post => Is_Full'Result = (Length (Container) = Capacity);
+
+   function Has_Space (Container : in Vector; Item_Count : in Ada.Containers.Count_Type) return Boolean
+     is (Length (Container) + Item_Count <= Capacity);
 
    procedure Clear (Container : in out Vector) with
      Post => Length (Container) = 0;
@@ -54,8 +55,17 @@ is
    function Last_Index (Container : in Vector) return Extended_Index;
    --  No_Index when Container is empty.
 
-   function Element (Container : Vector; Index : Index_Type) return Element_Type
+   function Element (Container : in Vector; Index : in Index_Type) return Element_Type
    with Pre => Index <= Last_Index (Container);
+   --  Index of first element in Vector is Index_Type'First.
+
+   procedure Replace_Element
+     (Container : in out Vector;
+      Index     : in     Index_Type;
+      New_Item  : in     Element_Type)
+   with
+     Pre  => Index <= Last_Index (Container),
+     Post => Element (Container, Index) = New_Item;
    --  Index of first element in Vector is Index_Type'First.
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type) with

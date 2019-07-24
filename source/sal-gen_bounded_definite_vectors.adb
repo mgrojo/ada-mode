@@ -38,6 +38,14 @@ is
    function Element (Container : Vector; Index : Index_Type) return Element_Type
    is (Container.Elements (Peek_Type (Index - Index_Type'First + 1)));
 
+   procedure Replace_Element
+     (Container : in out Vector;
+      Index     : in     Index_Type;
+      New_Item  : in     Element_Type)
+   is begin
+      Container.Elements (To_Peek_Index (Index)) := New_Item;
+   end Replace_Element;
+
    function Last_Index (Container : Vector) return Extended_Index
    is (Container.Last);
 
@@ -80,7 +88,12 @@ is
 
    function "&" (Left : in Vector; Right : in Element_Type) return Vector
    is begin
-      return Result : Vector := Left do
+      --  WORKAROUND: If init Result with ":= Left", GNAT Community 2019
+      --  checks Default_Initial_Condition (which fails when Left is not
+      --  empty)! That is only supposed to be checked when initialized by
+      --  default.
+      return Result : Vector do
+         Result := Left;
          Append (Result, Right);
       end return;
    end "&";

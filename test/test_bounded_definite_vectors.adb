@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -16,7 +16,6 @@
 --  write to the Free Software Foundation, 59 Temple Place - Suite
 --  330, Boston, MA 02111-1307, USA.
 
-with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with SAL.Gen_Bounded_Definite_Vectors;
 package body Test_Bounded_Definite_Vectors
@@ -37,9 +36,9 @@ is
       use AUnit.Checks;
       use AUnit.Checks.Containers;
    begin
-      Check (Label & ".length", Computed.Length, Expected'Length);
+      Check (Label & ".length", Length (Computed), Expected'Length);
       for I in Expected'Range loop
-         Check (Label & "." & Integer'Image (I), Computed.Element (I), Expected (I));
+         Check (Label & "." & Integer'Image (I), Element (Computed, I), Expected (I));
       end loop;
    end Check;
 
@@ -56,29 +55,9 @@ is
       Append (Item, 4);
       Check ("1234", Item, (1, 2, 3, 4));
 
-      Item.Clear;
+      Clear (Item);
       Check ("clear", Item, (1 .. 0 => 0));
    end Nominal;
-
-   procedure Errors (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use AUnit.Assertions;
-   begin
-      Clear (Item);
-      Append (Item, 1);
-      Append (Item, 2);
-      Append (Item, 3);
-      Append (Item, 4);
-      Append (Item, 5);
-      begin
-         Append (Item, 6);
-         Assert (False, "didn't get exception for append on full");
-      exception
-      when SAL.Container_Full =>
-         Assert (True, "");
-      end;
-   end Errors;
 
    ----------
    --  Public subprograms
@@ -95,7 +74,6 @@ is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
-      Register_Routine (T, Errors'Access, "Errors");
    end Register_Tests;
 
 end Test_Bounded_Definite_Vectors;
