@@ -1,4 +1,4 @@
-;; wisitoken-grammar-mode --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
+;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;; Version: 1.0.0
-;; package-requires: ((wisi "2.0.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; package-requires: ((wisi "2.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
 
 ;; (Gnu ELPA requires single digits between dots in versions)
 ;; no ’url’; just ELPA
@@ -367,4 +367,4 @@ Otherwise insert a plain new line."
 (put 'wisitoken-grammar-mode 'custom-mode-group 'wisitoken-grammar)
 
 (provide 'wisitoken-grammar-mode)
-;;; end of file
+;;; wisitoken-grammar-mode.el ends here

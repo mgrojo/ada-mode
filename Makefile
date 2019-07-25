@@ -6,14 +6,14 @@
 
 #export Standard_Common_Build := Debug
 
-export WISITOKEN_GRAMMAR_VERSION := 0.1
+export WISITOKEN_GRAMMAR_MODE_VERSION := 1.0.0
+export WISI_VERSION              := 2.1.1
 
-ELPA_ROOT ?= $(shell cd ../elpa; pwd)
-EMACS_EXE ?= emacs
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
 elisp : update-elisp test
 
-pub : pub-wisi-grammar build-elpa uninstall-elpa
+pub : pub-wisitoken-grammar build-elpa uninstall-elpa
 
 update-elisp :: build_executables
 update-elisp :: autoloads
@@ -130,9 +130,9 @@ recursive-clean : force
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.wisitoken.grammar)
-  TAR_FILE := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_VERSION).tar.gz
+  TAR_FILE := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_MODE_VERSION).tar.gz
   TAR_DIR := .
-  TAR_PAT := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_VERSION)
+  TAR_PAT := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_MODE_VERSION)
 else
   TAR_FILE := $(BRANCH).tar.gz
   TAR_DIR := .
@@ -143,24 +143,31 @@ zip :
 	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" -C $(TAR_DIR) $(TAR_PAT)
 
 ### ELPA stuff
-ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
+ELPA_ROOT ?= $(shell cd ../elpa; pwd)
+ELPA_EXTERNALS ?= $(shell cd ../elpa-externals; pwd)
+ELPA_WGM := $(ELPA_EXTERNALS)/wisitoken-grammar-mode
 
-pub-wisi-grammar : force
-	mkdir -p $(ELPA_ROOT)/packages/wisitoken-grammar-mode
-	rm -rf $(ELPA_ROOT)/packages/wisitoken-grammar-mode/*
-	cp wisitoken-grammar*.el $(ELPA_ROOT)/packages/wisitoken-grammar-mode
-	cp *wisitoken_grammar*.ad? $(ELPA_ROOT)/packages/wisitoken-grammar-mode
-	cp wisitoken_grammar.gpr wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_ROOT)/packages/wisitoken-grammar-mode
-	cp build.sh $(ELPA_ROOT)/packages/wisitoken-grammar-mode/
+pub-wisitoken-grammar : force
+	mkdir -p $(ELPA_WGM)
+	cp wisitoken-grammar*.el $(ELPA_WGM)
+	cp *wisitoken_grammar*.ad? $(ELPA_WGM)
+	cp wisitoken_grammar.gpr wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
+	cp build.sh $(ELPA_WGM)
 
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/wisi                   $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/wisitoken-grammar-mode $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_ROOT)/packages/wisi $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_WGM)                $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive
 
+uninstall-elpa :
+	$(EMACS_EXE) -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
+
+# We don't kill emacs here, so we can check for compilation errors/warnings
+install-elpa :
+	$(EMACS_EXE) -Q --eval '(load-file "install-elpa.el")'
 
 .PHONY : all force one one-clean
 .PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_re2c.c

@@ -31,11 +31,11 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-don't indent %code or action
-    or set Ada?
+mmm-mode for %code
 
 create ELPA package, release
-    ask on emacs-devel about :external vs :subtree
+    use :external
+    gen_emacs_wisi_lr_parse.ads etc should be in wisi package, not ada-mode; need a release
 
 indent test failing with elisp action
     posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
@@ -50,3 +50,15 @@ test indent ada
 
     change Ada parser to allow 'statement' as compilation_unit
         don't widen in wisi-indent-region
+
+ release process
+bump version
+    wisitoken-grammar-mode.el
+        Version:
+
+    Makefile
+        WISITOKEN_GRAMMAR_MODE_VERSION
+        WISI_VERSION
+
+    build.sh
+        wisi
