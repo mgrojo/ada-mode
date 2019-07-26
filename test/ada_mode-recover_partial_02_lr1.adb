@@ -1,9 +1,15 @@
 -- -*- wisi-mckenzie-task-count: 1 -*-
 -- From a real editing session. LR1 parser encountered enqueue limit.
--- Now it succeeds nicely.
+--
+-- Still requires a high enqueue limit, because there are two parsers
+-- in recovery.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(switch-to-lr1)
+
+-- this must be after switch-to-lr1
+--EMACSCMD:(setq wisi-mckenzie-enqueue-limit (* 2 58000))
+
 begin
    for Error of Errors loop
       for Op of Error.Recover.Ops loop

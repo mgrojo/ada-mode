@@ -49,15 +49,11 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal.stephe-2" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode")))
+ '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-apply enqueue_limit to sum of processes; more reliable user timing
-
-propagate to main
-
 deprecate elisp parser; statement-action not the same algorithm
    mark functions/variables obsolete?
 

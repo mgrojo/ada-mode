@@ -1,9 +1,10 @@
 -- LALR and LR1 parsers failed error recovery with default enqueue_limit. With
 -- higher limit, raised Constraint_Error.
 --
--- Constraint_Error now fixed, still requires a high enqueue_limit.
+-- Constraint_Error now fixed. Requires a high enqueue_limit, because
+-- there are four processes in error recovery.
 
---EMACSCMD:(setq wisi-mckenzie-enqueue-limit 80000)
+--EMACSCMD:(setq wisi-mckenzie-enqueue-limit (* 4 70000))
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)

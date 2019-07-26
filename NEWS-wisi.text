@@ -10,8 +10,15 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser process protocol version 3
 
-** Error correction is faster by approximately 30%; enqueue_limit can
-   be raised accordingly.
+** Error correction is faster by approximately 30%;
+   %mckenzie_enqueue_limit can be raised accordingly.
+
+** %mckenzie_enqueue_limit is now applied to the total of all parsers
+    in recovery; previously, it was applied to each parser separately.
+    Applying to the total gives a more consistent maximum user wait
+    time for recovery, at the cost of not finding solutions when there
+    are many parsers involved. You may want to increase
+    %mckenzie_enqueue_limit for this as well.
 
 ** In the process parser, `wisi-statement-start' now sets 'containing'
    in all contained caches to the start token, if not set already;
