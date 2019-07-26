@@ -55,6 +55,9 @@ is
       Append (Item, 4);
       Check ("1234", Item, (1, 2, 3, 4));
 
+      Delete_First (Item, 3);
+      Check ("delete 123", Item, (1 => 4));
+
       Clear (Item);
       Check ("clear", Item, (1 .. 0 => 0));
    end Nominal;

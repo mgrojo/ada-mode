@@ -67,8 +67,8 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    procedure Insert (Heap : in out Heap_Type; Item : in Element_Type) renames Add;
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Peek (Heap : in Heap_Type) return Constant_Reference_Type;
    --  Return a constant reference to the min element.
@@ -100,6 +100,11 @@ private
    type Heap_Type is new Ada.Finalization.Controlled with record
       Min   : Node_Access;
       Count : Base_Peek_Type;
+   end record;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
    Empty_Heap : constant Heap_Type := (Ada.Finalization.Controlled with Min => null, Count => 0);

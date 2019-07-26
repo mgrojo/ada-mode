@@ -317,7 +317,7 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    function Peek (Heap : in Heap_Type) return Constant_Reference_Type
    is begin
-      return (Element => Heap.Min.all.Element'Access);
+      return (Element => Heap.Min.all.Element'Access, Dummy => 1);
    end Peek;
 
    procedure Process (Heap : in Heap_Type; Process_Element : access procedure (Element : in Element_Type))

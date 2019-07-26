@@ -19,10 +19,9 @@
 pragma License (GPL);
 
 pragma Spark_Mode;
-with Ada.Containers;
-with SAL.Gen_Bounded_Definite_Vectors;
+with SAL.Gen_Bounded_Definite_Vectors_Sorted;
 with Prove_Aux;
-package Prove_Bounded_Definite_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-  (Index_Type   => Prove_Aux.Index_Type,
-   Element_Type => Positive,
-   Capacity     => Ada.Containers.Count_Type (Prove_Aux.Index_Type'Last - Prove_Aux.Index_Type'First + 1));
+package Prove_Bounded_Definite_Vectors_Sorted is new SAL.Gen_Bounded_Definite_Vectors_Sorted
+  (Element_Type    => Integer,
+   Element_Compare => Prove_Aux.Compare_Integer,
+   Capacity        => 10);

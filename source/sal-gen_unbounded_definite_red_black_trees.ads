@@ -37,8 +37,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    type Tree is new Ada.Finalization.Limited_Controlled with private
    with
-     Constant_Indexing => Constant_Ref,
-     Variable_Indexing => Variable_Ref,
+     Constant_Indexing => Constant_Reference,
+     Variable_Indexing => Variable_Reference,
      Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
@@ -58,34 +58,35 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
 
-   type Constant_Ref_Type (Element : not null access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
-   function Constant_Ref
+   function Constant_Reference
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Constant_Ref_Type;
+     return Constant_Reference_Type with
+     Inline;
 
-   function Constant_Ref
+   function Constant_Reference
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Constant_Ref_Type;
-   pragma Inline (Constant_Ref);
+     return Constant_Reference_Type with
+     Inline;
 
-   type Variable_Ref_Type (Element : not null access Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Variable_Reference_Type (Element : not null access Element_Type) is private with
+     Implicit_Dereference => Element;
 
-   function Variable_Ref
+   function Variable_Reference
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Variable_Ref_Type;
-   pragma Inline (Variable_Ref);
+     return Variable_Reference_Type with
+     Inline;
 
-   function Variable_Ref
+   function Variable_Reference
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Variable_Ref_Type;
-   pragma Inline (Variable_Ref);
+     return Variable_Reference_Type with
+     Inline;
    --  Raises Not_Found if Key not found in Container.
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
@@ -167,6 +168,16 @@ private
 
       Left_Done  : Boolean := True;
       Right_Done : Boolean := True;
+   end record;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
    No_Element : constant Cursor :=

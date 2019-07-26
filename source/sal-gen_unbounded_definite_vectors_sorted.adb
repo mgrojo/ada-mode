@@ -280,13 +280,13 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
       I     : Base_Peek_Type;
    begin
       if Container.Last = No_Index then
-         return (Element => null);
+         return (Element => null, Dummy => 1);
       end if;
       Find (Container, Key, Found, I);
       if Found then
-         return (Element => Container.Elements (I)'Access);
+         return (Element => Container.Elements (I)'Access, Dummy => 1);
       else
-         return (Element => null);
+         return (Element => null, Dummy => 1);
       end if;
    end Find;
 
@@ -299,13 +299,13 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
       I     : Base_Peek_Type;
    begin
       if Container.Last = No_Index then
-         return (Element => null);
+         return (Element => null, Dummy => 1);
       end if;
       Find (Container, Key, Found, I);
       if Found then
-         return (Element => Container.Elements (I)'Access);
+         return (Element => Container.Elements (I)'Access, Dummy => 1);
       else
-         return (Element => null);
+         return (Element => null, Dummy => 1);
       end if;
    end Find_Constant;
 
@@ -352,7 +352,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
 
    function Constant_Ref (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is begin
-      return (Element => Container.Elements (Position.Index)'Access);
+      return (Element => Container.Elements (Position.Index)'Access, Dummy => 1);
    end Constant_Ref;
 
    function Last_Index (Container : aliased Vector) return Base_Peek_Type
@@ -362,7 +362,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
 
    function Constant_Ref (Container : aliased Vector; Index : in Peek_Type) return Constant_Reference_Type
    is begin
-      return (Element => Container.Elements (Index)'Access);
+      return (Element => Container.Elements (Index)'Access, Dummy => 1);
    end Constant_Ref;
 
 end SAL.Gen_Unbounded_Definite_Vectors_Sorted;

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Auxilliary types
+--  Auxilliary types for Spark proofs
 --
 --  Copyright (C) 2019 Stephen Leake All Rights Reserved.
 --
@@ -16,6 +16,14 @@
 --  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
-package Prove_Bounded_Definite_Vectors_Aux is
+with SAL;
+package Prove_Aux is
+
    type Index_Type is range -10 .. 10;
-end Prove_Bounded_Definite_Vectors_Aux;
+
+   function Compare_Integer (Left, Right : in Integer) return SAL.Compare_Result
+     is (if Left < Right then SAL.Less
+         elsif Left = Right then SAL.Equal
+         else SAL.Greater);
+
+end Prove_Aux;

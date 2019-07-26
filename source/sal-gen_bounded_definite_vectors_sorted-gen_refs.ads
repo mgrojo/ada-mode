@@ -1,6 +1,9 @@
 --  Abstract :
 --
---  See spec.
+--  Constant_Reference for parent.
+--
+--  In a child package because it's not Spark, and Spark does not
+--  allow 'Spark_Mode => Off' on type declarations.
 --
 --  Copyright (C) 2019 Free Software Foundation, Inc.
 --
@@ -17,19 +20,20 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Bounded_Definite_Vectors.Gen_Refs is
+generic
+package SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs is
 
-   function Variable_Ref
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
-     return Variable_Reference_Type
-   is begin
-      return (Element => Container.Elements (To_Peek_Index (Index))'Access, Dummy => 1);
-   end Variable_Ref;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
-   function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
-   is begin
-      return (Element => Container.Elements (To_Peek_Index (Index))'Access, Dummy => 1);
-   end Constant_Ref;
+   function Constant_Ref (Container : aliased Vector; Index : in Peek_Type) return Constant_Reference_Type with
+     Inline;
 
-end SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
+private
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+end SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs;

@@ -25,18 +25,30 @@ package SAL.Gen_Bounded_Definite_Vectors.Gen_Refs
   with Spark_Mode => Off
 is
 
-   type Variable_Reference_Type (Element : not null access Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Variable_Reference_Type (Element : not null access Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Variable_Ref (Container : aliased in out Vector; Index : in Index_Type) return Variable_Reference_Type
    with Inline,
      Pre => Index in Index_Type'First .. Last_Index (Container);
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
    with Inline,
      Pre => Index in Index_Type'First .. Last_Index (Container);
+
+private
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
 end SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;

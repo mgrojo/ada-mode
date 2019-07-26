@@ -33,7 +33,7 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    type Stack is new Ada.Finalization.Controlled with private
    with
-     Constant_Indexing => Constant_Ref,
+     Constant_Indexing => Constant_Reference,
      Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
@@ -106,23 +106,20 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  Useful when creating a stack from pre-existing data.
 
-   type Constant_Ref_Type (Element : not null access constant Element_Type) is
-   record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
-   function Constant_Ref
+   function Constant_Reference
      (Container : aliased in Stack'Class;
       Position  :         in Peek_Type)
-     return Constant_Ref_Type with Inline;
+     return Constant_Reference_Type with Inline;
 
    type Cursor is private;
 
-   function Constant_Ref
+   function Constant_Reference
      (Container : aliased in Stack'Class;
       Position  :         in Cursor)
-     return Constant_Ref_Type with Inline;
+     return Constant_Reference_Type with Inline;
 
    function Has_Element (Position : in Cursor) return Boolean;
 
@@ -145,6 +142,11 @@ private
    end record;
 
    type Stack_Access is access all Stack;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
    Empty_Stack : constant Stack := (Ada.Finalization.Controlled with Invalid_Peek_Index, null);
 

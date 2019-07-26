@@ -62,8 +62,8 @@ package SAL.Gen_Unbounded_Definite_Vectors_Sorted is
    --
    --  Raises Duplicate_Key if To_Key (New_Item) is already in Container.
 
-   type Find_Reference_Type (Element : access Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Find_Reference_Type (Element : access Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Find
      (Container : aliased in Vector;
@@ -71,8 +71,8 @@ package SAL.Gen_Unbounded_Definite_Vectors_Sorted is
      return Find_Reference_Type;
    --  Result.Element is null if Key not in Container. User must not modify Key.
 
-   type Find_Reference_Constant_Type (Element : access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Find_Reference_Constant_Type (Element : access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Find_Constant
      (Container : aliased in Vector;
@@ -90,8 +90,8 @@ package SAL.Gen_Unbounded_Definite_Vectors_Sorted is
 
    function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class;
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Constant_Ref (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    with Inline;
@@ -142,6 +142,21 @@ private
    overriding function Previous
      (Object   : Iterator;
       Position : Cursor) return Cursor;
+
+   type Find_Reference_Type (Element : access Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Find_Reference_Constant_Type (Element : access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
    Empty_Vector : constant Vector := (Ada.Finalization.Controlled with others => <>);
 

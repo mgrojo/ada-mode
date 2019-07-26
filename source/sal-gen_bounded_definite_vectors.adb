@@ -91,7 +91,7 @@ is
       --  WORKAROUND: If init Result with ":= Left", GNAT Community 2019
       --  checks Default_Initial_Condition (which fails when Left is not
       --  empty)! That is only supposed to be checked when initialized by
-      --  default.
+      --  default. Reported to AdaCore as ticket S724-042.
       return Result : Vector do
          Result := Left;
          Append (Result, Right);
@@ -99,18 +99,20 @@ is
    end "&";
 
    procedure Delete_First (Container : in out Vector; Count : in Ada.Containers.Count_Type := 1)
-   is begin
+   is
+      use Ada.Containers;
+   begin
       if Count = 0 then
          return;
       end if;
 
       declare
-         New_Last : constant Extended_Index := Container.Last - Index_Type (Count);
-         I        : constant Peek_Type      := To_Peek_Index (Index_Type (Count + 1));
-         J        : constant Base_Peek_Type := To_Peek_Index (New_Last);
+         New_Last : constant Extended_Index := Extended_Index (Integer (Container.Last) - Integer (Count));
+         J        : constant Base_Peek_Type := Base_Peek_Type (Count);
          K        : constant Peek_Type      := To_Peek_Index (Container.Last);
       begin
-         Container.Elements (1 .. J) := Container.Elements (I .. K);
+         --  Delete items 1 .. J, shift remaining down.
+         Container.Elements (1 .. K - J) := Container.Elements (J + 1 .. K);
          Container.Last := New_Last;
       end;
    end Delete_First;

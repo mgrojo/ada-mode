@@ -44,7 +44,8 @@ is
      Post => Is_Full'Result = (Length (Container) = Capacity);
 
    function Has_Space (Container : in Vector; Item_Count : in Ada.Containers.Count_Type) return Boolean
-     is (Length (Container) + Item_Count <= Capacity);
+     is (Length (Container) + Item_Count <= Capacity)
+     with Pre => Item_Count <= Ada.Containers.Count_Type'Last - Length (Container);
 
    procedure Clear (Container : in out Vector) with
      Post => Length (Container) = 0;
@@ -119,7 +120,7 @@ is
      Pre  => Length (Container) >= Count,
      Post => Length (Container) = Length (Container)'Old - Count and then
              (for all I in Index_Type'First .. Last_Index (Container) =>
-                Element (Container'Old, I + Extended_Index (Count)) = Element (Container, I));
+                Element (Container'Old, Index_Type (Integer (I) + Integer (Count))) = Element (Container, I));
    --  Remaining elements slide down.
 
 private

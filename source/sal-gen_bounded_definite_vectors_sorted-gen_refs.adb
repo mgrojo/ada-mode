@@ -17,19 +17,13 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Bounded_Definite_Vectors.Gen_Refs is
+package body SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs is
 
-   function Variable_Ref
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
-     return Variable_Reference_Type
+   function Constant_Ref (Container : aliased Vector; Index : in Peek_Type) return Constant_Reference_Type
    is begin
-      return (Element => Container.Elements (To_Peek_Index (Index))'Access, Dummy => 1);
-   end Variable_Ref;
-
-   function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
-   is begin
-      return (Element => Container.Elements (To_Peek_Index (Index))'Access, Dummy => 1);
+      return
+        (Element => Container.Elements (Index)'Access,
+         Dummy   => 1);
    end Constant_Ref;
 
-end SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
+end SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs;

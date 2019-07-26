@@ -133,19 +133,17 @@ package SAL.Gen_Unbounded_Indefinite_Vectors is
    function Contains (Container : in Vector; Element : in Element_Type) return Boolean;
    --  Return True if Element is in Container, False if not.
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
-   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
-   pragma Inline (Constant_Ref);
+   with Inline, Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
 
-   type Variable_Reference_Type (Element : not null access Element_Type) is null record
-   with Implicit_Dereference => Element;
+   type Variable_Reference_Type (Element : not null access Element_Type) is private with
+     Implicit_Dereference => Element;
 
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
-   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
-   pragma Inline (Variable_Ref);
+   with Inline, Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
 
    type Cursor is private;
 
@@ -217,6 +215,16 @@ private
    overriding function Previous
      (Object   : Iterator;
       Position : Cursor) return Cursor;
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
    Empty_Vector : constant Vector := (Ada.Finalization.Controlled with others => <>);
 
