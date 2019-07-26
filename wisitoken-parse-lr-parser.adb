@@ -732,7 +732,7 @@ package body WisiToken.Parse.LR.Parser is
                      end;
                   end if;
                else
-                  if Trace_Parse > Outline then
+                  if Trace_Parse > Outline or Trace_McKenzie > Outline then
                      Trace.Put_Line ("recover disabled");
                   end if;
                end if;
@@ -786,7 +786,10 @@ package body WisiToken.Parse.LR.Parser is
                          First_Terminal => Trace.Descriptor.First_Terminal,
                          Last_Terminal  => Trace.Descriptor.Last_Terminal,
                          Recover        => <>,
-                         Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
+                         Msg            =>
+                           (if Shared_Parser.Enable_McKenzie_Recover
+                            then +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)
+                            else +"recover disabled")));
                   end loop;
                   raise WisiToken.Syntax_Error;
                end if;
@@ -1062,6 +1065,7 @@ package body WisiToken.Parse.LR.Parser is
          end if;
 
          declare
+            use Config_Op_Arrays;
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref.Element.all;
          begin
             if Trace_Action > Outline then
@@ -1072,13 +1076,17 @@ package body WisiToken.Parse.LR.Parser is
 
             if (for some Err of Parser_State.Errors => Any (Err.Recover.Ops, Delete)) then
                for Err of Parser_State.Errors loop
-                  for Op of Err.Recover.Ops loop
-                     case Op.Op is
-                     when Delete =>
-                        Parser.User_Data.Delete_Token (Op.Del_Token_Index);
-                     when others =>
-                        null;
-                     end case;
+                  for I in First_Index (Err.Recover.Ops) .. Last_Index (Err.Recover.Ops) loop
+                     declare
+                        Op : constant Config_Op := Element (Err.Recover.Ops, I);
+                     begin
+                        case Op.Op is
+                        when Delete =>
+                           Parser.User_Data.Delete_Token (Op.Del_Token_Index);
+                        when others =>
+                           null;
+                        end case;
+                     end;
                   end loop;
                end loop;
             end if;

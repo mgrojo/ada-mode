@@ -111,6 +111,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label /= Ok
    is
+      use Config_Op_Arrays;
+
       procedure Put (Message : in String; Config : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
@@ -318,10 +320,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #end if;
 
                Check (+END_ID, Terminals (End_Item.Token.Min_Terminal_Index).ID);
-               Ops.Append ((Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
+               Append (Ops, (Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
 
                Check (+SEMICOLON_ID, Terminals (Semicolon_Item.Token.Min_Terminal_Index).ID);
-               Ops.Append ((Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
+               Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
@@ -441,7 +443,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      declare
                         Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
                      begin
-                        Ops.Append ((Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
+                        Append (Ops, (Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
                      end;
                   end loop;
                   New_Config.Current_Shared_Token := New_Config.Error_Token.Min_Terminal_Index;

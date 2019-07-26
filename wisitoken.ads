@@ -310,6 +310,7 @@ package WisiToken is
    end record;
 
    type Base_Token_Class_Access is access all Base_Token'Class;
+   type Base_Token_Class_Access_Constant is access constant Base_Token'Class;
 
    function Image
      (Item       : in Base_Token;
