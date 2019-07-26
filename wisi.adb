@@ -1189,8 +1189,21 @@ package body Wisi is
 
                if Param.IDs.Length = 0 then
                   if Prev_Keyword_Mark.Set then
-                     Data.Navigate_Caches (Cache_Cur).Prev_Pos      := Prev_Keyword_Mark;
-                     Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos := (True, Region.First);
+                     declare
+                        Cache : Navigate_Cache_Type renames Data.Navigate_Caches ( Cache_Cur);
+                     begin
+                        if not Cache.Prev_Pos.Set then
+                           Cache.Prev_Pos := Prev_Keyword_Mark;
+                        end if;
+                     end;
+
+                     declare
+                        Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
+                     begin
+                        if not Prev_Cache.Next_Pos.Set then
+                           Prev_Cache.Next_Pos := (True, Region.First);
+                        end if;
+                     end;
                   end if;
 
                   Prev_Keyword_Mark := (True, Region.First);
@@ -1910,7 +1923,7 @@ package body Wisi is
          Last := Last + 1;
          Result (Last) := Item (I);
       end loop;
-      return Result (1 .. Last);
+      return Result (Result'First .. Last);
    end Elisp_Escape_Quotes;
 
    overriding

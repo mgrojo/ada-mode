@@ -127,12 +127,11 @@ FACE may be a list."
 	(error "expecting %d, got %d" containing-pos (wisi-cache-containing contained-cache)))
     )))
 
-(defvar test-moom-markers nil
-  "Stores positions altered by `test-moom' for `test-ommo'.
-Each item is a list (PARSE-BEGIN PARSE-END EDIT-BEGIN)")
+(defvar test-refactor-markers nil
+  "Stores positions altered by `test-refactor-1' for `test-refactor-2'.
+Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
-(defun test-moom (search-string refactor-string)
-  "Refactor method (object ...) to object.method (...)"
+(defun test-refactor-1 (action inverse-action search-string refactor-string)
   (beginning-of-line)
   (forward-comment (point-max)) ;; forward-comment does not work from inside comment
   (search-forward search-string (line-end-position 7))
@@ -144,23 +143,37 @@ Each item is a list (PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	 (parse-end (wisi-cache-end cache)))
     (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
     (push (list
+	   inverse-action
 	   (copy-marker parse-begin nil)
 	   (copy-marker parse-end nil)
 	   (copy-marker edit-begin nil))
-	  test-moom-markers)
-    (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
+	  test-refactor-markers)
+    (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
     ))
 
-(defun test-ommo ()
-  "Reverse refactors done by recent set of `test-moom'."
+(defun test-refactor-inverse ()
+  "Reverse refactors done by recent set of `test-refactor-1'."
   (save-excursion
     (condition-case-unless-debug nil
-	(dolist (moom test-moom-markers)
-	  (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object
-			 (marker-position (nth 0 moom)) (marker-position (nth 1 moom)) (marker-position (nth 2 moom)))
-	  )
+	(dolist (item test-refactor-markers)
+	  (wisi-refactor wisi--parser
+			 (nth 0 item)
+			 (marker-position (nth 1 item))
+			 (marker-position (nth 2 item))
+			 (marker-position (nth 3 item))))
       (error nil))
-    (setq test-moom-markers nil)))
+    (setq test-refactor-markers nil)))
+
+(defun test-moom (search-string refactor-string)
+  "Refactor method (object ...) to object.method (...)"
+  (test-refactor-1 ada-refactor-method-object-to-object-method
+		   ada-refactor-object-method-to-method-object
+		   search-string refactor-string))
+
+(defun test-oieo (search-string refactor-string)
+  (test-refactor-1 ada-refactor-object-index-to-element-object
+		   ada-refactor-element-object-to-object-index
+		   search-string refactor-string))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."

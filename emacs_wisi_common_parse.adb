@@ -311,12 +311,15 @@ package body Emacs_Wisi_Common_Parse is
 
                   Partial_Parse_Active := Params.Partial_Parse_Active;
 
-                  --  Default Enable_McKenzie_Recover is False if there is no McKenzie
-                  --  information; don't override that.
-                  Parser.Enable_McKenzie_Recover :=
-                    (if Params.McKenzie_Disable = 0
-                     then Parser.Enable_McKenzie_Recover
-                     else False);
+                  if WisiToken.Parse.LR.McKenzie_Defaulted (Parser.Table.all) then
+                     --  There is no McKenzie information; don't override that.
+                     null;
+                  elsif Params.McKenzie_Disable = -1 then
+                     --  Use default
+                     Parser.Enable_McKenzie_Recover := True;
+                  else
+                     Parser.Enable_McKenzie_Recover := Params.McKenzie_Disable = 0;
+                  end if;
 
                   Parse_Data.Initialize
                     (Post_Parse_Action => Params.Post_Parse_Action,

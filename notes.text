@@ -90,9 +90,11 @@ clean up elpa packages for ada-project, build/ada_mode_wisi_parse.el
         also declares project-refresh, -select, -deselect
             used by project-menu, which is used by ada_mode_wisi_parse.el
 
-speed up recover in o.w.s-2, o.e.a.s-4
-    tolerate larger enqueue_limit.
-    see benchmarks mckenzie_recover below
+Compilation-env includes PATH - reset in ada-refresh-prj-file
+
+Adjust-indent loop on each token, handle 'end <keyword>'
+
+Parse-begin on continuation line gives bad indent. Always start on start keyword at start of line.
 
 put --recover-log in info
 
@@ -1242,6 +1244,8 @@ prep for elpa tests:
     build/Makefile byte-compile-clean pub
     # pushes to elpa workspace, builds archive
 
+    also wisitoken-grammar-mode
+
 Check copyright on files in published in elpa
     c:/Projects/elpa/GNUMakefile check_copyrights
     change to FSF
@@ -1250,11 +1254,13 @@ Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
     build/Makefile install-elpa
+    ../wisitoken-grammar-mode/Makefile install-elpa
     # check for errors in *Messages*
     (gpr-query-kill-all-sessions)
     (list-processes)
     # 'd' = kill gpr_mode_wisi_parse.exe, ada_mode_lr1_wisi_parse.exe
     cd ~/.emacs.d/elpa/ada-mode-6.1.1; ./build.sh
+    cd ~/.emacs.d/elpa/wisitoken-grammar-mode.1.0.0; ./build.sh
     cd ~/.emacs.d/elpa/wisi-2.1.1; ./build-wisitoken-bnf-generate.sh
 
     restart Emacs to set load-path
@@ -1347,6 +1353,7 @@ update elpa, commit elpa
 after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
     see 'build/Makefile install-elpa' above for details
+    also wisitoken-grammar-mode
 
 (dvc-state-one ".")
 build/Makefile tag

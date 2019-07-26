@@ -39,6 +39,9 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 (defconst ada-refactor-method-object-to-object-method 1)
 (defconst ada-refactor-object-method-to-method-object 2)
 
+(defconst ada-refactor-element-object-to-object-index 3)
+(defconst ada-refactor-object-index-to-element-object 4)
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation
@@ -341,22 +344,22 @@ Also return cache at start."
 		     (< (point) start-pos))
 		 (ada-wisi-declarative-region-start-p cache))
 	    (progn
-	      (wisi-forward-token)
+	      (wisi-forward-token);; past 'is'
 	      (setq done t))
 	  (cl-case (wisi-cache-class cache)
 	    ((motion statement-end)
-	     (goto-char (wisi-cache-containing cache));; statement-start
-	     (goto-char (wisi-cache-containing (wisi-get-cache (point))));; containing scope
-	     (setq cache (wisi-get-cache (point))))
+	     (setq cache (wisi-goto-containing cache)));; statement-start
 
 	    (statement-start
 	     (cl-case (wisi-cache-nonterm cache)
+	       (generic_package_declaration
+		(setq in-package-spec t)
+		(setq cache (wisi-next-statement-cache cache)) ;; 'package'
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+
 	       (package_declaration
 		(setq in-package-spec t)
-		(wisi-goto-end-1 cache)
-		(setq cache (wisi-get-cache (point)))
-		(while (not (memq (wisi-cache-token cache) '(IS PRIVATE)))
-		  (setq cache (wisi-prev-statement-cache cache))))
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
 
 	       ((entry_body package_body package_declaration protected_body subprogram_body task_body)
 		(while (not (eq 'IS (wisi-cache-token cache)))
@@ -395,10 +398,7 @@ Also return cache at start."
 	 (eq 'formal_part (wisi-cache-nonterm cache)))
     ))
 
-(defun ada-wisi-refactor-1 ()
-  "Refactor Method (Object) to Object.Method.
-Point must be in Method."
-  (interactive)
+(defun ada-wisi-refactor (action)
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (save-excursion
     (skip-syntax-backward "w_.\"")
@@ -407,23 +407,32 @@ Point must be in Method."
 	   (parse-begin (point))
 	   (parse-end (wisi-cache-end cache)))
       (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
-      (wisi-refactor wisi--parser ada-refactor-method-object-to-object-method parse-begin parse-end edit-begin)
+      (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
       )))
 
+(defun ada-wisi-refactor-1 ()
+  "Refactor Method (Object) => Object.Method.
+Point must be in Method."
+  (interactive)
+  (ada-wisi-refactor ada-refactor-method-object-to-object-method))
+
 (defun ada-wisi-refactor-2 ()
-  "Refactor Object.Method to Method (Object).
+  "Refactor Object.Method => Method (Object).
 Point must be in Object.Method."
   (interactive)
-  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
-  (save-excursion
-    (skip-syntax-backward "w_.\"")
-    (let* ((edit-begin (point))
-	   (cache (wisi-goto-statement-start))
-	   (parse-begin (point))
-	   (parse-end (wisi-cache-end cache)))
-      (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
-      (wisi-refactor wisi--parser ada-refactor-object-method-to-method-object parse-begin parse-end edit-begin)
-      )))
+  (ada-wisi-refactor ada-refactor-object-method-to-method-object))
+
+(defun ada-wisi-refactor-3 ()
+  "Refactor Element (Object, Index) => Object (Index).
+Point must be in Element"
+  (interactive)
+  (ada-wisi-refactor ada-refactor-element-object-to-object-index))
+
+(defun ada-wisi-refactor-4 ()
+  "Refactor Object (Index) => Element (Object, Index).
+Point must be in Object"
+  (interactive)
+  (ada-wisi-refactor ada-refactor-object-index-to-element-object))
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
@@ -868,7 +877,7 @@ Point must have been set by `ada-wisi-find-begin'."
       (if (search-forward-regexp end-regexp nil t)
 	  (progn
 	    (while (and (ada-in-string-or-comment-p)
-			(search-forward-regexp end-regexp)))
+			(search-forward-regexp end-regexp nil t)))
 	    (point))
 
 	;; matching end not found
