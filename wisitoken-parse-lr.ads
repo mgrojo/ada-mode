@@ -491,18 +491,18 @@ package WisiToken.Parse.LR is
    function Image (Item : in Config_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
      renames Config_Op_Array_Image;
 
-   function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   function None (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains no Op.
 
-   function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   function None_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Only_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains only Op (at least one) after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains at least one Op.
 
    package Sorted_Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors_Sorted

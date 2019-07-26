@@ -657,25 +657,25 @@ package body WisiToken.Parse.LR is
         Left.Ins_Token_Index = Right.Ins_Token_Index;
    end Equal;
 
-   function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   function None (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
    begin
       for I in First_Index (Ops) .. Last_Index (Ops) loop
-         if Element (Ops, I).Op /= Op then
+         if Constant_Ref (Ops, I).Op /= Op then
             return False;
          end if;
       end loop;
       return True;
    end None;
 
-   function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   function None_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
    begin
       for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
          declare
-            O : Config_Op renames Element (Ops, I);
+            O : Config_Op renames Constant_Ref (Ops, I);
          begin
             exit when O.Op = Fast_Forward;
             if O.Op = Op then
@@ -686,17 +686,17 @@ package body WisiToken.Parse.LR is
       return True;
    end None_Since_FF;
 
-   function Only_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
       use all type Ada.Containers.Count_Type;
    begin
-      if Length (Ops) = 0 or else Element (Ops, Last_Index (Ops)).Op /= Op then
+      if Length (Ops) = 0 or else Constant_Ref (Ops, Last_Index (Ops)).Op /= Op then
          return False;
       else
          for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
             declare
-               O : Config_Op renames Element (Ops, I);
+               O : Config_Op renames Constant_Ref (Ops, I);
             begin
                exit when O.Op = Fast_Forward;
                if O.Op /= Op then
@@ -708,20 +708,20 @@ package body WisiToken.Parse.LR is
       end if;
    end Only_Since_FF;
 
-   function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
    begin
       for I in First_Index (Ops) .. Last_Index (Ops) loop
          declare
-            O : Config_Op renames Element (Ops, I);
+            O : Config_Op renames Constant_Ref (Ops, I);
          begin
-            if O.Op /= Op then
-               return False;
+            if O.Op = Op then
+               return True;
             end if;
          end;
       end loop;
-      return True;
+      return False;
    end Any;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean

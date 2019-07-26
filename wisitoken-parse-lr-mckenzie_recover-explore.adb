@@ -322,7 +322,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
      return Check_Status
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
       use Parse.Parse_Item_Arrays;
       use all type Semantic_Checks.Check_Status_Label;
 
@@ -331,7 +331,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
       Result      : Check_Status := Continue;
 
-      function Max_Push_Back_Token_Index (Ops : in Config_Op_Arrays.Vector) return WisiToken.Base_Token_Index
+      function Max_Push_Back_Token_Index (Ops : aliased in Config_Op_Arrays.Vector) return WisiToken.Base_Token_Index
       is
          Result : WisiToken.Base_Token_Index := WisiToken.Base_Token_Index'First;
       begin
@@ -340,7 +340,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  less than the current token index.
          for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
             declare
-               Op : constant Config_Op := Element (Ops, I);
+               Op : Config_Op renames Constant_Ref (Ops, I);
             begin
                exit when Op.Op = Fast_Forward;
                if Op.Op = Push_Back and then Op.PB_Token_Index > Result then
@@ -411,16 +411,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                begin
                   Item.Config.Minimal_Complete_State := None;
                   Item.Config.Matching_Begin_Done    := False;
-                  if Element (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward then
-                     declare
-                        Op : Config_Op := Element (Item.Config.Ops, Last_Index (Item.Config.Ops));
-                     begin
-                        Item.Config.Cost := Item.Config.Cost + McKenzie_Param.Fast_Forward;
-
-                        Op.FF_Token_Index := Item.Config.Current_Shared_Token;
-
-                        Replace_Element (Item.Config.Ops, Last_Index (Item.Config.Ops), Op);
-                     end;
+                  if Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward then
+                     Item.Config.Cost := Item.Config.Cost + McKenzie_Param.Fast_Forward;
+                     Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Token_Index :=
+                       Item.Config.Current_Shared_Token;
                   else
                      Item.Config.Cost := Item.Config.Cost + McKenzie_Param.Fast_Forward;
 
@@ -562,14 +556,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    function Just_Pushed_Back_Or_Deleted (Config : in Configuration; ID : in Token_ID) return Boolean
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
       use all type Ada.Containers.Count_Type;
    begin
       if Length (Config.Ops) = 0 then
          return False;
       else
          declare
-            Last_Op : constant Config_Op := Element (Config.Ops, Last_Index (Config.Ops));
+            Last_Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
          begin
             return
               (Last_Op.Op = Push_Back and then Last_Op.PB_ID = ID) or
@@ -778,7 +772,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       procedure Minimal_Do_Shift (Action : in Minimal_Action; Config : in out Configuration)
       is
-         use Config_Op_Arrays;
+         use Config_Op_Arrays, Config_Op_Array_Refs;
       begin
          --  Check for a cycle. We compare stack depth as well as state, so
          --  nested compound statements don't look like a cycle; see
@@ -788,7 +782,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  not necessarily increase here.
          for I in reverse First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
             declare
-               Op : constant Config_Op := Element (Config.Ops, I);
+               Op : Config_Op renames Constant_Ref (Config.Ops, I);
             begin
                if Op.Op = Insert and then
                  (Op.Ins_ID = Action.ID and Op.State = Action.State and Op.Stack_Depth = Config.Stack.Depth)
@@ -1483,7 +1477,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       --  Try deleting (= skipping) the current shared input token.
 
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
       use all type Ada.Containers.Count_Type;
       Trace       : WisiToken.Trace'Class renames Super.Trace.all;
       EOF_ID      : Token_ID renames Trace.Descriptor.EOI_ID;
@@ -1497,7 +1491,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  can't delete EOF
          (Length (Config.Ops) = 0 or else
            --  Don't delete an ID we just inserted; waste of time
-           (not Equal (Element (Config.Ops, Last_Index (Config.Ops)), (Insert, ID, Config.Current_Shared_Token, 1, 0))))
+           (not Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)),
+                       (Insert, ID, Config.Current_Shared_Token, 1, 0))))
       then
          declare
             New_Config : Configuration := Config;

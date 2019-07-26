@@ -384,7 +384,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                --  Can't have active 'renames State_Ref' when terminate a parser
                declare
                   use Parser_Lists;
-                  use Config_Op_Arrays;
+                  use Config_Op_Arrays, Config_Op_Array_Refs;
                   use Sorted_Insert_Delete_Arrays;
 
                   Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
@@ -474,7 +474,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   for I in First_Index (Result.Ops) .. Last_Index (Result.Ops) loop
                      declare
-                        Op : constant Config_Op := Element (Result.Ops, I);
+                        Op : Config_Op renames Constant_Ref (Result.Ops, I);
                      begin
                         case Op.Op is
                         when Fast_Forward =>
@@ -521,7 +521,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   for I in First_Index (Result.Ops) .. Last_Index (Result.Ops) loop
                      declare
-                        Op : constant Config_Op := Element (Result.Ops, I);
+                        Op : Config_Op renames Constant_Ref (Result.Ops, I);
                      begin
                         case Op.Op is
                         when Fast_Forward =>
@@ -1130,7 +1130,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back (Config : in out Configuration)
    is
-      use Config_Op_Arrays;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
       use Sorted_Insert_Delete_Arrays;
 
       Item        : constant Recover_Stack_Item := Config.Stack.Pop;
@@ -1149,11 +1149,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if Token_Index /= Invalid_Token_Index then
          Config.Current_Shared_Token := Token_Index;
          for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
-            if Compare (Token_Index, Element (Config.Ops, I)) then
+            if Compare (Token_Index, Constant_Ref (Config.Ops, I)) then
                if Is_Full (Config.Insert_Delete) then
                   raise Bad_Config;
                end if;
-               Insert (Config.Insert_Delete, Element (Config.Ops, I), Ignore_If_Equal => True);
+               Insert (Config.Insert_Delete, Constant_Ref (Config.Ops, I), Ignore_If_Equal => True);
             end if;
          end loop;
       end if;

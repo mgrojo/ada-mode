@@ -1060,31 +1060,29 @@ package body WisiToken.Parse.LR.Parser is
          end if;
 
          declare
-            use Config_Op_Arrays;
-            Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref.Element.all;
+            use Config_Op_Arrays, Config_Op_Array_Refs;
+            Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
          begin
             if Trace_Action > Outline then
                Parser.Trace.Put_Line
                  (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
-                 (Parser_State.Tree.Root, Descriptor));
+                    (Parser_State.Tree.Root, Descriptor));
             end if;
 
-            if (for some Err of Parser_State.Errors => Any (Err.Recover.Ops, Delete)) then
-               for Err of Parser_State.Errors loop
-                  for I in First_Index (Err.Recover.Ops) .. Last_Index (Err.Recover.Ops) loop
-                     declare
-                        Op : constant Config_Op := Element (Err.Recover.Ops, I);
-                     begin
-                        case Op.Op is
-                        when Delete =>
-                           Parser.User_Data.Delete_Token (Op.Del_Token_Index);
-                        when others =>
-                           null;
-                        end case;
-                     end;
-                  end loop;
+            for Err of Parser_State.Errors loop
+               for I in First_Index (Err.Recover.Ops) .. Last_Index (Err.Recover.Ops) loop
+                  declare
+                     Op : Config_Op renames Constant_Ref (Err.Recover.Ops, I);
+                  begin
+                     case Op.Op is
+                     when Delete =>
+                        Parser.User_Data.Delete_Token (Op.Del_Token_Index);
+                     when others =>
+                        null;
+                     end case;
+                  end;
                end loop;
-            end if;
+            end loop;
 
             Parser.User_Data.Initialize_Actions (Parser_State.Tree);
             Parser_State.Tree.Process_Tree (Process_Node'Access);
