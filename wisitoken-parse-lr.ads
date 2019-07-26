@@ -39,7 +39,9 @@ with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Image_Aux;
+with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
@@ -364,8 +366,8 @@ package WisiToken.Parse.LR is
       Tokens     : in Fast_Token_ID_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor)
      return String
-     is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Tokens.Last_Index) & ":" &
-           Image (Tokens (Index), Descriptor));
+     is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Fast_Token_ID_Arrays.Last_Index (Tokens)) & ":" &
+           Image (Fast_Token_ID_Arrays.Element (Tokens, Index), Descriptor));
 
    type Config_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
    subtype Insert_Delete_Op_Label is Config_Op_Label range Insert .. Delete;
@@ -462,6 +464,8 @@ package WisiToken.Parse.LR is
    --  config does hit that limit, it is abandoned; some other config is
    --  likely to be cheaper.
 
+   package Config_Op_Array_Refs is new Config_Op_Arrays.Gen_Refs;
+
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
            (case Item.Op is
@@ -487,8 +491,7 @@ package WisiToken.Parse.LR is
    function Image (Item : in Config_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
      renames Config_Op_Array_Image;
 
-   function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-     is (for all O of Ops => O.Op /= Op);
+   function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains no Op.
 
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
@@ -499,12 +502,13 @@ package WisiToken.Parse.LR is
    --  True if Ops contains only Op (at least one) after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-     is (for some O of Ops => O.Op = Op);
+   function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains at least one Op.
 
    package Sorted_Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors_Sorted
      (Insert_Delete_Op, Compare, Capacity => 80);
+
+   package Insert_Delete_Array_Refs is new Sorted_Insert_Delete_Arrays.Gen_Refs;
 
    function Image is new Sorted_Insert_Delete_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
@@ -570,7 +574,7 @@ package WisiToken.Parse.LR is
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Insert_Delete : Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete : aliased Sorted_Insert_Delete_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only
       --  Insert and Delete ops, in token_index order.
 
@@ -594,7 +598,7 @@ package WisiToken.Parse.LR is
       --  in explore when adding an op, or in language_fixes when adding a
       --  fix).
 
-      Ops : Config_Op_Arrays.Vector;
+      Ops : aliased Config_Op_Arrays.Vector;
       --  Record of operations applied to this Config, in application order.
       --  Insert and Delete ops that are not yet parsed are reflected in
       --  Insert_Delete, in token_index order.

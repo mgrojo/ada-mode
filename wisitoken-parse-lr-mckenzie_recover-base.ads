@@ -123,7 +123,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       --
       --  Decrements active worker count.
 
-      procedure Config_Full (Parser_Index : in SAL.Peek_Type);
+      procedure Config_Full (Prefix : in String; Parser_Index : in SAL.Peek_Type);
       --  Report that a config.ops was full when trying to add another op.
       --  This is counted towards the enqueue limit.
 

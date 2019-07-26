@@ -94,13 +94,16 @@ package body Test_McKenzie_Recover is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
 
+   Empty_Vector : constant WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
+     WisiToken.Parse.LR.Config_Op_Arrays."+" ((others => <>));
+
    procedure Check_Recover
      (Label                   : in String                                       := "";
       Errors_Length           : in Ada.Containers.Count_Type;
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops         : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   := WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
+      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   := Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer                                      := 0;
       Enqueue_High            : in Integer                                      := Integer'Last;
@@ -862,7 +865,7 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;");
-         --        |10       |20       |30         |40    |45                 |50     |52
+      --            |10       |20       |30         |40    |45                 |50     |52
 
       --  In process of splitting a string across two lines; missing open
       --  quote at 48.

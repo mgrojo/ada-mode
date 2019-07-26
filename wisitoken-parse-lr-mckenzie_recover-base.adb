@@ -358,14 +358,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end if;
       end Put;
 
-      procedure Config_Full (Parser_Index : in SAL.Peek_Type)
+      procedure Config_Full (Prefix : in String; Parser_Index : in SAL.Peek_Type)
       is
          P_Status : Base.Parser_Status renames Parser_Status (Parser_Index);
          Data : McKenzie_Data renames P_Status.Parser_State.Recover;
       begin
          Data.Config_Full_Count := Data.Config_Full_Count + 1;
          if Trace_McKenzie > Outline then
-            Put_Line (Trace.all, Label (Parser_Index), "config.ops is full; " & Data.Config_Full_Count'Image);
+            Put_Line (Trace.all, Label (Parser_Index), Prefix & ": config.ops is full; " &
+                        Data.Config_Full_Count'Image);
          end if;
       end Config_Full;
 

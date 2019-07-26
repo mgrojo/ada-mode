@@ -90,13 +90,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Reduce_Stack;
 
    function Parse_One_Item
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
-      Parser_Index      : in              SAL.Peek_Type;
-      Parse_Items       : in out          Parse_Item_Arrays.Vector;
-      Parse_Item_Index  : in              Positive;
-      Shared_Token_Goal : in              Base_Token_Index;
-      Trace_Prefix      : in              String)
+     (Super             :         not null access Base.Supervisor;
+      Shared            :         not null access Base.Shared;
+      Parser_Index      :         in              SAL.Peek_Type;
+      Parse_Items       : aliased in out          Parse_Item_Arrays.Vector;
+      Parse_Item_Index  :         in              Positive;
+      Shared_Token_Goal :         in              Base_Token_Index;
+      Trace_Prefix      :         in              String)
      return Boolean
    is
       --  Perform parse actions on Parse_Items (Parse_Item_Index), until one
@@ -109,6 +109,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  If any actions have conflicts, append the conflict configs and actions to
       --  Parse_Items.
 
+      use Parse_Item_Arrays;
+      use Sorted_Insert_Delete_Arrays;
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
@@ -116,7 +118,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
-      Item   : Parse_Item renames Parse_Items (Parse_Item_Index);
+      Item   : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref (Parse_Items, Parse_Item_Index).Element.all;
       Config : Configuration renames Item.Config;
       Action : Parse_Action_Node_Ptr renames Item.Action;
 
@@ -160,7 +162,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Conflict := Action.Next;
          loop
             exit when Conflict = null;
-            if Parse_Items.Is_Full then
+            if Is_Full (Parse_Items) then
                if Trace_McKenzie > Outline then
                   Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
                end if;
@@ -177,7 +179,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                           Image (Conflict.Item, Descriptor));
                   end if;
 
-                  Parse_Items.Append ((New_Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+                  Append (Parse_Items, (New_Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
                end;
             end if;
             Conflict := Conflict.Next;
@@ -266,7 +268,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          exit when not Success or
            Action.Item.Verb = Accept_It or
            (if Shared_Token_Goal = Invalid_Token_Index
-            then Config.Insert_Delete.Length = 0
+            then Length (Config.Insert_Delete) = 0
             else Config.Current_Shared_Token > Shared_Token_Goal);
 
          Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
@@ -278,35 +280,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Parse_One_Item;
 
    function Parse
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
-      Parser_Index      : in              SAL.Peek_Type;
-      Parse_Items       :    out          Parse_Item_Arrays.Vector;
-      Config            : in              Configuration;
-      Shared_Token_Goal : in              Base_Token_Index;
-      All_Conflicts     : in              Boolean;
-      Trace_Prefix      : in              String)
+     (Super             :         not null access Base.Supervisor;
+      Shared            :         not null access Base.Shared;
+      Parser_Index      :         in              SAL.Peek_Type;
+      Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
+      Config            :         in              Configuration;
+      Shared_Token_Goal :         in              Base_Token_Index;
+      All_Conflicts     :         in              Boolean;
+      Trace_Prefix      :         in              String)
      return Boolean
    is
+      use Parse_Item_Arrays;
       Trace : WisiToken.Trace'Class renames Super.Trace.all;
 
       Last_Parsed : Natural;
       Success     : Boolean;
    begin
-      Parse_Items.Clear;
-      Parse_Items.Append ((Config, Action => null, Parsed => False, Shift_Count => 0));
+      Clear (Parse_Items);
+      Append (Parse_Items, (Config, Action => null, Parsed => False, Shift_Count => 0));
 
       --  Clear any errors; so they reflect the parse result.
-      Parse_Items (Parse_Items.First_Index).Config.Error_Token.ID := Invalid_Token_ID;
-      Parse_Items (Parse_Items.First_Index).Config.Check_Status   := (Label => Semantic_Checks.Ok);
+      declare
+         Config : Configuration renames Parse_Item_Array_Refs.Variable_Ref
+           (Parse_Items, First_Index (Parse_Items)).Config;
+      begin
+         Config.Error_Token.ID := Invalid_Token_ID;
+         Config.Check_Status   := (Label => Semantic_Checks.Ok);
+      end;
 
-      Last_Parsed := Parse_Items.First_Index;
+      Last_Parsed := First_Index (Parse_Items);
       loop
          --  Loop over initial config and any conflicts.
          Success := Parse_One_Item
            (Super, Shared, Parser_Index, Parse_Items, Last_Parsed, Shared_Token_Goal, Trace_Prefix);
 
-         exit when Parse_Items.Last_Index = Last_Parsed;
+         exit when Last_Index (Parse_Items) = Last_Parsed;
 
          exit when Success and not All_Conflicts;
 

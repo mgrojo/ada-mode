@@ -21,15 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-speed up mckenzie
-    timing benchmarks in ada-mode notes.text
-
-    get performance trace; valgrind on linux
-        dominated by malloc; fibonacci heap remove, add; insert_from_action_list - nothing to improve there.
-        spark bounded stack; 30% faster
-
-    do spark on SAL.Gen_Bounded_Definite_Vectors (and _Sorted), check for config.ops full rather than handle exception
-
 alternate table rep for duplicate reduce actions?
 
 use duplicate_reduce in text_rep
