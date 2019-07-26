@@ -494,6 +494,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          --  loop only exits via returns above
       end loop;
+   exception
+   when Bad_Config =>
+      --  From Do_Reduce_1
+      return False;
    end Check_Reduce_To_Start;
 
    procedure Try_Push_Back
@@ -1736,8 +1740,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Super.Put (Parser_Index, Local_Config_Heap);
    exception
-   when E : others =>
+   when Bad_Config =>
       --  Just abandon this config; tell Super we are done.
+      Super.Put (Parser_Index, Local_Config_Heap);
+
+   when E : others =>
       Super.Put (Parser_Index, Local_Config_Heap);
       if Debug_Mode then
          raise;

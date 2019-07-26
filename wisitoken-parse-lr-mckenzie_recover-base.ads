@@ -149,6 +149,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
       Min_Success_Check_Count : Natural;
+      Total_Enqueue_Count     : Natural;
       Fatal_Called            : Boolean;
       Result                  : Recover_Status;
       Error_ID                : Ada.Exceptions.Exception_Id;
