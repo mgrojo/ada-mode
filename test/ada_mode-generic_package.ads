@@ -142,6 +142,11 @@ generic
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
+
+   --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-back "Ada_Mode.Generic_Package is"))
+   --EMACSRESULT:t
+   type Int is new Integer;
+
    --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;

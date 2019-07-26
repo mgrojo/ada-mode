@@ -559,10 +559,24 @@ Menu displays currently parsed Ada mode projects."
 When a function from the menu is called, point is where the mouse
 button was clicked."
   (interactive)
-
   (mouse-set-point last-input-event)
   (popup-menu ada-context-menu)
   )
+
+(easy-menu-define ada-refactor-menu nil
+  "Context menu keymap for Ada mode refactor commands."
+  '("Ada refactor"
+    ["Method (Object) => Object.Method"   ada-wisi-refactor-1 t]
+    ["Object.Method   => Method (Object)" ada-wisi-refactor-2 t]
+    ["Element (Object, Index) => Object (Index)" ada-wisi-refactor-3 t]
+    ["Object (Index) => Element (Object, Index)" ada-wisi-refactor-4 t]
+    ))
+
+(defun ada-refactor-menu-popup ()
+  "Pops up `ada-refactor-menu'."
+  (interactive)
+  (mouse-set-point last-input-event)
+  (popup-menu ada-refactor-menu))
 
 (defun ada-indent-newline-indent ()
   "insert a newline, indent the old and new lines."

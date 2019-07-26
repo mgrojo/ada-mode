@@ -307,7 +307,7 @@ package body Wisi.Ada is
       if Call = Invalid_Node_Index then
          --  Most likely the edit point is wrong.
          raise SAL.Parameter_Error with "no 'name' found at byte_pos" & Edit_Begin'Image;
-      elsif not (Tree.RHS_Index (Call) in 1 | 3) then
+      elsif not (Tree.RHS_Index (Call) in 1 | 2 | 3) then
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image &
            " (found node" & Call'Image & ")";
       end if;
@@ -316,7 +316,12 @@ package body Wisi.Ada is
          Put_Line (";; refactoring node" & Call'Image & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
-      if Tree.RHS_Index (Call) = 3 then
+      if Tree.RHS_Index (Call) = 2 then
+         --  Code looks like: Element (Container, I).Op. We only want to edit
+         --  the subprogram call, keeping the trailing .Op.
+         Call := Tree.Child (Tree.Child (Call, 1), 1);
+
+      elsif Tree.RHS_Index (Call) = 3 then
          --  Code looks like: Element (Container, I)'Old. We only want to edit
          --  the subprogram call, keeping the trailing 'Old.
          Call := Tree.Child (Tree.Child (Call, 1), 1);
@@ -372,7 +377,7 @@ package body Wisi.Ada is
       if Call = Invalid_Node_Index then
          --  Most likely the edit point is wrong.
          raise SAL.Parameter_Error with "no 'name' found at byte_pos" & Edit_Begin'Image;
-      elsif not (Tree.RHS_Index (Call) in 1 | 3) then
+      elsif not (Tree.RHS_Index (Call) in 1 | 2 | 3) then
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image &
            " (found node" & Call'Image & ")";
       end if;
@@ -381,8 +386,13 @@ package body Wisi.Ada is
          Put_Line (";; refactoring node" & Call'Image & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
-      if Tree.RHS_Index (Call) = 3 then
-         --  Code looks like: Element (Container, I)'Old. We only want to edit
+      if Tree.RHS_Index (Call) = 2 then
+         --  Code looks like: Object (I).Component. We only want to edit
+         --  the subprogram call, keeping the trailing .Component.
+         Call := Tree.Child (Tree.Child (Call, 1), 1);
+
+      elsif Tree.RHS_Index (Call) = 3 then
+         --  Code looks like: Container (I)'Old. We only want to edit
          --  the subprogram call, keeping the trailing 'Old.
          Call := Tree.Child (Tree.Child (Call, 1), 1);
       end if;

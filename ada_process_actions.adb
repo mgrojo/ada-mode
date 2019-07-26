@@ -2030,7 +2030,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Motion)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Motion), (3, Motion), (6, Motion)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68) & (6,
          Empty_IDs)));
       when Face =>
@@ -2053,7 +2053,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (5, Motion)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Motion), (3, Motion), (5, Motion)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, Empty_IDs)));
       when Face =>
          null;
@@ -2074,7 +2074,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Motion), (3, Motion)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs) & (5, 23 & 68)));
       when Face =>
          null;
@@ -2095,7 +2095,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Motion), (3, Motion)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Empty_IDs) & (3, Empty_IDs)));
       when Face =>
          null;

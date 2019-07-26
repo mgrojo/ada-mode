@@ -1188,8 +1188,21 @@ package body Wisi is
 
                if Param.IDs.Length = 0 then
                   if Prev_Keyword_Mark.Set then
-                     Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
-                     Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
+                     declare
+                        Cache : Navigate_Cache_Type renames Data.Navigate_Caches ( Cache_Cur);
+                     begin
+                        if not Cache.Prev_Pos.Set then
+                           Cache.Prev_Pos := Prev_Keyword_Mark;
+                        end if;
+                     end;
+
+                     declare
+                        Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
+                     begin
+                        if not Prev_Cache.Next_Pos.Set then
+                           Prev_Cache.Next_Pos := (True, Region.First);
+                        end if;
+                     end;
                   end if;
 
                   Prev_Keyword_Mark := (True, Region.First);

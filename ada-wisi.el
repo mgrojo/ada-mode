@@ -344,22 +344,22 @@ Also return cache at start."
 		     (< (point) start-pos))
 		 (ada-wisi-declarative-region-start-p cache))
 	    (progn
-	      (wisi-forward-token)
+	      (wisi-forward-token);; past 'is'
 	      (setq done t))
 	  (cl-case (wisi-cache-class cache)
 	    ((motion statement-end)
-	     (goto-char (wisi-cache-containing cache));; statement-start
-	     (goto-char (wisi-cache-containing (wisi-get-cache (point))));; containing scope
-	     (setq cache (wisi-get-cache (point))))
+	     (setq cache (wisi-goto-containing cache)));; statement-start
 
 	    (statement-start
 	     (cl-case (wisi-cache-nonterm cache)
+	       (generic_package_declaration
+		(setq in-package-spec t)
+		(setq cache (wisi-next-statement-cache cache)) ;; 'package'
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+
 	       (package_declaration
 		(setq in-package-spec t)
-		(wisi-goto-end-1 cache)
-		(setq cache (wisi-get-cache (point)))
-		(while (not (memq (wisi-cache-token cache) '(IS PRIVATE)))
-		  (setq cache (wisi-prev-statement-cache cache))))
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
 
 	       ((entry_body package_body package_declaration protected_body subprogram_body task_body)
 		(while (not (eq 'IS (wisi-cache-token cache)))

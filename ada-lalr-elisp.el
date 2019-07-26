@@ -852,22 +852,22 @@
       (if_expression
        ((IF expression_opt THEN expression_opt elsif_expression_list ELSE expression_opt )
         (progn
-      (wisi-statement-action [1 statement-start 3 motion 6 motion])
+      (wisi-statement-action [1 motion 3 motion 6 motion])
       (wisi-motion-action [1 3 [5 ELSIF THEN] 6])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil ada-indent nil nil ada-indent])))
        ((IF expression_opt THEN expression_opt ELSE expression_opt )
         (progn
-      (wisi-statement-action [1 statement-start 3 motion 5 motion])
+      (wisi-statement-action [1 motion 3 motion 5 motion])
       (wisi-motion-action [1 3 5])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil ada-indent nil ada-indent])))
        ((IF expression_opt THEN expression_opt elsif_expression_list )
         (progn
-      (wisi-statement-action [1 statement-start 3 motion])
+      (wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3 [5 ELSIF THEN]])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil ada-indent nil])))
        ((IF expression_opt THEN expression_opt )
         (progn
-      (wisi-statement-action [1 statement-start 3 motion])
+      (wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil ada-indent]))))
       (if_statement
