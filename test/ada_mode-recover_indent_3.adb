@@ -9,10 +9,7 @@ is
       procedure To_Month
       is begin
 
-         -- end To_Month;
-         --
-         -- have not typed this yet. Error recovery pushes back the following
-         -- block, inserts the missing 'end;' in the right place.
+      -- missing 'end To_Month;'
       begin
    end Process_CSV_File;
 begin

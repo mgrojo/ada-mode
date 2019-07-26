@@ -37,9 +37,9 @@ run test from emacs -Q using source:
   (xmtn . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-2")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-4")))
+ '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -54,8 +54,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode")))
 
  current work
-running all tests
-    need propagate from main for goto-declarative-region-start fix
+apply enqueue_limit to sum of processes; more reliable user timing
+
+propagate to main
 
 deprecate elisp parser; statement-action not the same algorithm
    mark functions/variables obsolete?

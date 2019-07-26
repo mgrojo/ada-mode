@@ -641,8 +641,10 @@ is -- target 0
    -- all good parsers to come to the aid of programmers.           --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
-   --EMACSCMD:(ada-which-function)
+   --EMACSCMD:(progn (forward-line -1)(forward-word)(ada-which-function))
    --EMACSRESULT:"Procedure_1a"
+   --EMACSCMD:(ada-which-function)
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    not overriding
    procedure Procedure_1b

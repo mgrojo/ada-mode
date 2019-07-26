@@ -16,6 +16,6 @@ is
      "<form action=""/search"" method=get>" &
      "<label>Title</label>" &
      "<input type=search autofocus name=""search"">" &
-     <Div><Input type=Submit Value=""Search""></Div>";
+<Div><Input type=Submit Value=""Search""></Div>";
 begin
 end Ada_Mode.Recover_String_Quote_3;

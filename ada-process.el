@@ -1,5 +1,5 @@
 ;;; ada-process.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ada.wy
 
 ;;  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
 

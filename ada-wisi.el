@@ -347,8 +347,22 @@ Also return cache at start."
 	      (wisi-forward-token);; past 'is'
 	      (setq done t))
 	  (cl-case (wisi-cache-class cache)
-	    ((motion statement-end)
+	    (motion
 	     (setq cache (wisi-goto-containing cache)));; statement-start
+
+	    (statement-end
+	     (setq cache (wisi-goto-containing cache)) ;; statement-start
+	     (cl-case (wisi-cache-nonterm cache)
+	       ((generic_package_declaration
+		 package_declaration
+		 entry_body package_body package_declaration protected_body subprogram_body task_body
+		 protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
+		;; This is a block scope before the starting point; we want the containing scope  
+		(setq cache (wisi-goto-containing cache)))
+
+	       (t
+		nil)
+	       ))
 
 	    (statement-start
 	     (cl-case (wisi-cache-nonterm cache)

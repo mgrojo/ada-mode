@@ -25,7 +25,7 @@ procedure Journal_To_TSV
 is
    procedure Process_Text_File
    is begin
-      exception
+   exception
       if then end if;
    end Process_Text_File;
 begin

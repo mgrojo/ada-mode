@@ -42,4 +42,4 @@ procedure Field_parent is
                        Root_Field => 3, Root_Field2 => 1.42);
 begin
    Put_Line ("Hi:" & Child.Child_Field'Image);
-   end;
+end;
