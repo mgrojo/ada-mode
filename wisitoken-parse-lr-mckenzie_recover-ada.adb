@@ -342,6 +342,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID) then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
+               use Config_Op_Arrays;
                New_Config     : Configuration := Config;
                Ops            : Config_Op_Arrays.Vector renames New_Config.Ops;
                Stack          : Recover_Stacks.Stack renames New_Config.Stack;
@@ -406,12 +407,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   raise Bad_Config;
                end case;
 
-               Ops.Append ((Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
-               if Keyword_Item.Token.ID /= Invalid_Token_ID then
-                  Ops.Append ((Delete, Keyword_Item.Token.ID, Keyword_Item.Token.Min_Terminal_Index));
+               if not Has_Space (Ops, 3) then
+                  raise Bad_Config;
                end if;
-               --  We don't need to delete the identifier|name ; it is missing and therefore empty.
-               Ops.Append ((Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
+               Append (Ops, (Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
+               if Keyword_Item.Token.ID /= Invalid_Token_ID then
+                  Append (Ops, (Delete, Keyword_Item.Token.ID, Keyword_Item.Token.Min_Terminal_Index));
+               end if;
+               --  We don't need to delete the identifier|name ; it is missing and therefor empty.
+               Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
@@ -682,6 +686,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label = Ok
    is
+      use Config_Op_Arrays;
+      use Sorted_Insert_Delete_Arrays, Insert_Delete_Array_Refs;
       use all type Standard.Ada.Containers.Count_Type;
 
       procedure Put (Message : in String; Config : in Configuration)
@@ -706,8 +712,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  Note that if the user was converting to an assignment, the error
          --  would be on 'constant', not ':'.
 
-         if Config.Insert_Delete.Length > 0 and then
-           Token_Index (Config.Insert_Delete (Config.Insert_Delete.Last_Index)) >= Config.Current_Shared_Token
+         if Length (Config.Insert_Delete) > 0 and then
+           Token_Index (Constant_Ref (Config.Insert_Delete, Last_Index (Config.Insert_Delete))) >=
+           Config.Current_Shared_Token
          then
             --  Can't delete tokens from here
             return;
@@ -832,7 +839,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label, New_Config_1);
 
-                  if New_Config_2.Ops.Length > 0 then
+                  if Length (New_Config_2.Ops) > 0 then
                      Put ("Language_Fixes " & Label, New_Config_2);
                   end if;
                end if;

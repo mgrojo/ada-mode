@@ -54,6 +54,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode")))
 
  current work
+running all tests
+    need propagate from main for goto-declarative-region-start fix
+
 deprecate elisp parser; statement-action not the same algorithm
    mark functions/variables obsolete?
 

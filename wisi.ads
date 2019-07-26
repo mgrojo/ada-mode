@@ -28,7 +28,6 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
-with Ada.Unchecked_Deallocation;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Parse.LR;
@@ -421,6 +420,13 @@ private
       --  nonterminals, empty.
 
    end record;
+   type Augmented_Token_Access is access all Augmented_Token;
+   type Augmented_Token_Access_Constant is access constant Augmented_Token;
+   type Aug_Token_Ref (Element : access constant Augmented_Token) is null record with
+     Implicit_Dereference => Element;
+
+   function To_Aug_Token_Ref (Item : in WisiToken.Base_Token_Class_Access) return Aug_Token_Ref
+     is (Element => Augmented_Token_Access_Constant (Item));
 
    overriding
    function Image
@@ -439,20 +445,12 @@ private
      return WisiToken.Line_Number_Type;
    --  Return first and last line in Token's region.
 
-   type Augmented_Token_Access is access all Augmented_Token;
-   procedure Free is new Ada.Unchecked_Deallocation (Augmented_Token, Augmented_Token_Access);
-
-   type Augmented_Token_Access_Array is array (WisiToken.Positive_Index_Type range <>) of Augmented_Token_Access;
-   --  1 indexed to match token numbers in grammar actions.
-
-   function Image
-     (Item       : in Augmented_Token_Access_Array;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
-
    package Augmented_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Token_Index, Augmented_Token, Default_Element => (others => <>));
    --  Index matches Base_Token_Arrays.
+
+   function To_Aug_Token_Ref (Item : in Augmented_Token_Arrays.Constant_Reference_Type) return Aug_Token_Ref
+     is (Element => Augmented_Token_Access_Constant'(Item.Element.all'Unchecked_Access));
 
    package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
@@ -669,8 +667,6 @@ private
 
    ----------
    --  Utilities for language-specific child packages
-
-   subtype Aug_Token_Ref is Augmented_Token_Arrays.Variable_Reference_Type;
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type;

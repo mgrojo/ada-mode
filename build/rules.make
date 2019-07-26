@@ -25,7 +25,7 @@ vpath %.wy    ../ ../test/wisi
 #
 # This can be overridden on the 'make' command line or by an external
 # environment variable.
-EMACS_EXE ?= emacs
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el

@@ -372,6 +372,7 @@ package body Wisi is
       use Ada.Containers;
       use Ada.Strings.Unbounded;
       use Parse.LR;
+      use Parse.LR.Config_Op_Arrays, Parse.LR.Config_Op_Array_Refs;
 
       Line    : Unbounded_String := To_Unbounded_String ("[");
       Last_Op : Config_Op        := (Fast_Forward, WisiToken.Token_Index'Last);
@@ -382,13 +383,13 @@ package body Wisi is
       end if;
 
       Append (Line, Recover_Code);
-      if Item.Ops.Length = 0 then
+      if Length (Item.Ops) = 0 then
          Append (Line, "]");
 
       else
-         for I in Item.Ops.First_Index .. Item.Ops.Last_Index loop
+         for I in First_Index (Item.Ops) .. Last_Index (Item.Ops) loop
             declare
-               Op : Config_Op renames Item.Ops (I);
+               Op : Config_Op renames Constant_Ref (Item.Ops, I);
             begin
                case Op.Op is
                when Fast_Forward =>
@@ -956,7 +957,7 @@ package body Wisi is
                Token  : constant Aug_Token_Ref :=
                  (if Pair.Class = Statement_End and then
                     Tree.Label (Tokens (Pair.Index)) = WisiToken.Syntax_Trees.Nonterm
-                  then Data.Terminals.Variable_Ref (Tree.Max_Terminal_Index (Tokens (Pair.Index)))
+                  then To_Aug_Token_Ref (Data.Terminals (Tree.Max_Terminal_Index (Tokens (Pair.Index))))
                   else Get_Aug_Token (Data, Tree, Tokens (Pair.Index)));
 
                Cache_Pos : constant Buffer_Pos         := Token.Char_Region.First;
@@ -1144,7 +1145,7 @@ package body Wisi is
 
       function Match (IDs : in Token_ID_Lists.List) return Boolean
       is
-         Cache : Navigate_Cache_Type renames Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.all;
+         Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
       begin
          --  [2] wisi-elisp-parse--match-token
          if (Start.Set and then Point = Start.Item) or else
@@ -1188,8 +1189,8 @@ package body Wisi is
 
                if Param.IDs.Length = 0 then
                   if Prev_Keyword_Mark.Set then
-                     Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
-                     Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
+                     Data.Navigate_Caches (Cache_Cur).Prev_Pos      := Prev_Keyword_Mark;
+                     Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos := (True, Region.First);
                   end if;
 
                   Prev_Keyword_Mark := (True, Region.First);
@@ -1201,11 +1202,11 @@ package body Wisi is
                      exit when Point >= Region.Last;
                      if Match (Param.IDs) then
                         if Prev_Keyword_Mark.Set then
-                           if not Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos.Set and
-                             not Constant_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos.Set
+                           if not Data.Navigate_Caches (Cache_Cur).Prev_Pos.Set and
+                             not Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos.Set
                            then
-                              Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
-                              Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Point);
+                              Data.Navigate_Caches (Cache_Cur).Prev_Pos      := Prev_Keyword_Mark;
+                              Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos := (True, Point);
                               Prev_Keyword_Mark := (True, Point);
                               Prev_Cache_Cur    := Cache_Cur;
                            end if;
@@ -1218,7 +1219,7 @@ package body Wisi is
                      Cache_Cur := Next (Iter, Cache_Cur);
                      exit when Cache_Cur = No_Element;
 
-                     Point := Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Pos;
+                     Point := Data.Navigate_Caches (Cache_Cur).Pos;
                   end loop;
                end if;
             end;
@@ -1250,7 +1251,7 @@ package body Wisi is
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
                   declare
-                     Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
+                     Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                   begin
                      case Cache.Class is
                      when Prefix =>
@@ -1260,8 +1261,7 @@ package body Wisi is
                         Suffix_Cur := Next (Iter, Cache_Cur);
                         if Has_Element (Suffix_Cur) then
                            declare
-                              Suf_Cache : Face_Cache_Type renames Variable_Ref
-                                (Data.Face_Caches, Suffix_Cur).Element.all;
+                              Suf_Cache : Face_Cache_Type renames Data.Face_Caches (Suffix_Cur);
                            begin
                               if Suffix = Suf_Cache.Class and
                                 Inside (Suf_Cache.Region.First, Token.Char_Region)
@@ -1306,9 +1306,9 @@ package body Wisi is
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
-                    Constant_Ref (Data.Face_Caches, Cache_Cur).Element.Region.First > Token.Char_Region.Last;
+                    Data.Face_Caches (Cache_Cur).Region.First > Token.Char_Region.Last;
                   declare
-                     Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
+                     Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                   begin
                      case Cache.Class is
                      when Prefix =>
@@ -1348,14 +1348,14 @@ package body Wisi is
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
                   declare
-                     Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
+                     Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                      Other_Cur : Cursor := Find_In_Range
                        (Iter, Ascending, Cache.Region.Last + 1, Token.Char_Region.Last);
                      Temp : Cursor;
                   begin
                      loop
                         exit when not Has_Element (Other_Cur) or else
-                          Constant_Ref (Data.Face_Caches, Other_Cur).Element.Region.First > Token.Char_Region.Last;
+                          Data.Face_Caches (Other_Cur).Region.First > Token.Char_Region.Last;
                         Temp := Other_Cur;
                         Other_Cur := Next (Iter, Other_Cur);
                         Delete (Data.Face_Caches, Temp);
@@ -1396,7 +1396,7 @@ package body Wisi is
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
-                    Constant_Ref (Data.Face_Caches, Cache_Cur).Element.Region.First > Token.Char_Region.Last;
+                    Data.Face_Caches (Cache_Cur).Region.First > Token.Char_Region.Last;
                   Temp := Cache_Cur;
                   Cache_Cur := Next (Iter, Cache_Cur);
                   Delete (Data.Face_Caches, Temp);
@@ -1873,10 +1873,10 @@ package body Wisi is
    begin
       return
         (case Tree.Label (Tree_Index) is
-         when Shared_Terminal => Data.Terminals.Variable_Ref (Tree.Terminal (Tree_Index)),
+         when Shared_Terminal => To_Aug_Token_Ref (Data.Terminals (Tree.Terminal (Tree_Index))),
          when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
          when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
-         when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
+         when Nonterm => To_Aug_Token_Ref (Tree.Augmented (Tree_Index)));
    end Get_Aug_Token;
 
    function Get_Text
@@ -1931,25 +1931,6 @@ package body Wisi is
       else
          return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
       end if;
-   end Image;
-
-   function Image
-     (Item       : in Augmented_Token_Access_Array;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := +"(";
-   begin
-      for I in Item'Range loop
-         Result := Result & Image (Item (I).all, Descriptor);
-         if I /= Item'Last then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      Result := Result & ")";
-      return -Result;
    end Image;
 
    function Indent_Anchored_2
