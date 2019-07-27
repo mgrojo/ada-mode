@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -70,7 +70,7 @@ package body Test_Red_Black_Trees is
       use AUnit.Checks;
    begin
       Check_Non_Null (Label & ".null", Cursor);
-      Check (Label & ".pos", Tree.Constant_Ref (Cursor).Pos, Expected_Pos);
+      Check (Label & ".pos", Tree (Cursor).Pos, Expected_Pos);
       Check_Color (Label & ".color", Cursor, Expect_Red);
    end Check;
 
