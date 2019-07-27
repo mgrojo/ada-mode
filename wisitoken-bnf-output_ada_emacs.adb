@@ -297,8 +297,8 @@ is
 
       function Motion_Params (Params : in String) return String
       is
-         --  Input looks like: [1 [2 EXCEPTION WHEN] 3 ...]
-         --  Result: (..., Motion_Param_Array'((1, Empty_IDs) & (2, (3 & 8)) & (3, Empty_IDs))
+         --  Input looks like: [1 [2 EXCEPTION] 3 ...]
+         --  Result: (..., Motion_Param_Array'((1, Invalid_Token_ID) & (2, 3) & (3, Invalid_Token_ID))
          use Generate_Utils;
          use Ada.Strings.Maps;
 
@@ -311,10 +311,8 @@ is
 
          Index_First  : Integer;
          Index_Last   : Integer;
-         IDs          : Unbounded_String;
-         IDs_Count    : Integer;
+         ID           : Unbounded_String;
          Need_Comma_1 : Boolean := False;
-         Need_Comma_2 : Boolean := False;
       begin
          loop
             Last := Index_Non_Blank (Params, Integer'Min (Params'Last, Last + 1));
@@ -323,29 +321,20 @@ is
 
             Vector := Params (Last) = '[';
             if Vector then
-               Index_First  := Last + 1;
-               Last         := Index (Params, Delim, Index_First);
-               Index_Last   := Last - 1;
-               IDs_Count    := 0;
-               IDs          := Null_Unbounded_String;
-               Need_Comma_2 := False;
-               loop
-                  exit when Params (Last) = ']';
-                  First     := Last + 1;
-                  Last      := Index (Params, Delim, First);
-                  IDs_Count := IDs_Count + 1;
-                  begin
-                     IDs := IDs & (if Need_Comma_2 then " & " else "") &
-                       Trimmed_Image (Find_Token_ID (Generate_Data, Params (First .. Last - 1)));
-                     Need_Comma_2 := True;
-                  exception
-                  when E : Not_Found =>
-                     Put_Error
-                       (Error_Message
-                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
-                           Ada.Exceptions.Exception_Message (E)));
-                  end;
-               end loop;
+               Index_First := Last + 1;
+               Last        := Index (Params, Delim, Index_First);
+               Index_Last  := Last - 1;
+               First       := Last + 1;
+               Last        := Index (Params, Delim, First);
+               begin
+                  ID := +Trimmed_Image (Find_Token_ID (Generate_Data, Params (First .. Last - 1)));
+               exception
+               when E : Not_Found =>
+                  Put_Error
+                    (Error_Message
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                        Ada.Exceptions.Exception_Message (E)));
+               end;
 
                declare
                   Label : constant String := Params (Index_First .. Index_Last);
@@ -353,10 +342,17 @@ is
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Nonterm_Needed := True;
                      Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
-                       Label & ", " &
-                       (if IDs_Count = 1 then "+" else "") & IDs & ")";
+                       Label & ", " & ID & ")";
                   end if;
                end;
+               if Params (Last) /= ']' then
+                  Put_Error
+                    (Error_Message
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                        "too many token IDs in motion action"));
+                  return -Result & "))";
+               end if;
+
             else
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
@@ -365,7 +361,7 @@ is
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Nonterm_Needed := True;
-                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Label & ", Empty_IDs)";
+                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
                   end if;
                end;
             end if;

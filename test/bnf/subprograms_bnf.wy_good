@@ -143,11 +143,11 @@ subprogram
   : fun=FUNCTION nam=name par=parameter_list blo=block sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -157,11 +157,11 @@ subprogram
   | fun=FUNCTION nam=name par=parameter_list sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -171,11 +171,11 @@ subprogram
   | fun=FUNCTION nam=name blo=block sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -185,11 +185,11 @@ subprogram
   | fun=FUNCTION nam=name sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -199,11 +199,11 @@ subprogram
   | fun=FUNCTION par=parameter_list blo=block sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -213,11 +213,11 @@ subprogram
   | fun=FUNCTION par=parameter_list sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -227,11 +227,11 @@ subprogram
   | fun=FUNCTION blo=block sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -241,11 +241,11 @@ subprogram
   | fun=FUNCTION sem=SEMICOLON
     %((progn
         ;; An example of each supported action, with somewhat complex
-        ;; parameter syntax, and an optional token.
+        ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
-        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
                              (nam . [subp-indent-broken subp-indent-broken])
@@ -274,4 +274,3 @@ use_clause
   ;
 
 ;; end of file
-
