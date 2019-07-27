@@ -27,11 +27,9 @@ with WisiToken;
 procedure Test_BNF_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action
-   --  1         2         3            4              5           6              7
+   --  <verbose> root_name trace_generate trace_parse
+   --  1         2         3              4
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
-   --
-   --  routine_name can be '' to set trace or cost for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -53,28 +51,17 @@ begin
    when 0 | 1 =>
       null;
 
-   when 2 =>
-      Filter.Set_Name (Argument (2)); -- test name only
-
    when others =>
       declare
-         Test_Name    : String renames Argument (2);
-         Routine_Name : String renames Argument (3);
+         Test_Name : constant String := "bnf_wy_test.adb ";
+         Root_Name : String renames Argument (2);
       begin
-         if Test_Name = "" then
-            Filter.Set_Name (Routine_Name);
-         elsif Routine_Name = "" then
-            Filter.Set_Name (Test_Name);
-         else
-            Filter.Set_Name (Test_Name & " : " & Routine_Name);
-         end if;
+         Filter.Set_Name (Test_Name & Root_Name);
       end;
    end case;
 
-   WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-   WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
-   WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
+   WisiToken.Trace_Generate := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
+   WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
 
    Run (Suite, Options, Result, Status);
 
