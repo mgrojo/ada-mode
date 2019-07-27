@@ -715,7 +715,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       return Super.Recover_Result;
 
    exception
-   when others =>
+   when E : others =>
+      if Debug_Mode then
+         Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+      end if;
       return Fail_Programmer_Error;
    end Recover;
 
