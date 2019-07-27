@@ -117,11 +117,13 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Direction   : in Known_Direction_Type;
       First, Last : in Key_Type)
      return Cursor;
-   --  Find first element with Key greater than or equal to First, and
-   --  less than or equal to Last. If Direction is Ascending, start
-   --  search at First; if Descending, at Last.
+   --  Find first element with key in range First .. Last. If Direction
+   --  is Ascending, start at First, otherwise start at Last.
    --
-   --  Has_Element is False if there is no such Key.
+   --  Has_Element (result) is False if there is no such element.
+   --
+   --  The Iterator does not remember First, Last; the user must check
+   --  those for any element that Next or Previous returns.
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
 
@@ -132,7 +134,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  Result points to newly inserted element.
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
-   --  Delete element at Position; set Position to point to no element.
+   --  Delete element at Position, set Position to No_Element.
 private
 
    type Node;
