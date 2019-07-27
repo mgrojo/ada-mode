@@ -70,6 +70,9 @@ major cleanup
 
     bump major version?
 
+    change ada-mode to derive-major-mode
+        always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
+
 if partial parse finds dangling 'end', expand parse region towards bob
     -> send extra text, list of start parse points; initially use last start point
     don't always start at beginning of extra; too far from edit point, too many corrections required
@@ -191,30 +194,7 @@ align region too large:
                     ((Label      => +"",
                       Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
 
-test/ada_mode-recover_partial_16.adb : error during resume
-test/ada_mode-recover_partial_19.adb : error during resume
-
 separate partial-parse threshold for face
-
-using o.e.a-m
-        (progn
-         (setq wisi-debug 1)
-         (setq debug-on-error t)
-         ;; (setq ada-process-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-2/ada_mode_wisi_lr1_parse.exe")
-         )
-
-    working on o.w.s-2
-        c:/Projects/org.wisitoken.stephe-2/notes.text
-
-    deadly slow with missing string quote wisitoken_grammar_runtime.adb -- RAW_CODE, actions
-        hard to reproduce
-        List_Nonterm : constant Token_Index "=
-
-
-indent %code in .wy loses face in rest of file
-
-change ada-mode to derive-major-mode
-    always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
 
 Insert context clause inhibit invalidate navigate
 
@@ -222,15 +202,10 @@ loop_statement motion_action include "exit"?
 
 sort error messages in line order
 
-don't repeat language_fixes
-    error_during_resume_2
-
 c:/eurocontrol/query_display-flight_operations.adb
     errors cause huge slowdown in parse speed
         due to parallel parse, delete_dup?
-
-    lalr reports error in resume
-    lr1 does not
+        run under valgrind
 
     only errors are missing end labels
         lr1 parse face time:

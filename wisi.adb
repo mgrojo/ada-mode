@@ -1103,28 +1103,6 @@ package body Wisi is
       null;
    end Containing_Action;
 
-   function "+" (Item : in Token_ID) return Token_ID_Lists.List
-   is begin
-      return Result : Token_ID_Lists.List do
-         Result.Append (Item);
-      end return;
-   end "+";
-
-   function "&" (List : in Token_ID_Lists.List; Item : in Token_ID) return Token_ID_Lists.List
-   is begin
-      return Result : Token_ID_Lists.List := List do
-         Result.Append (Item);
-      end return;
-   end "&";
-
-   function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List
-   is begin
-      return Result : Token_ID_Lists.List do
-         Result.Append (Left);
-         Result.Append (Right);
-      end return;
-   end "&";
-
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     Syntax_Trees.Tree;
@@ -1134,36 +1112,16 @@ package body Wisi is
    is
       --  [2] wisi-motion-action
       use Navigate_Cache_Trees;
-      use all type Ada.Containers.Count_Type;
 
-      Start             : Nil_Buffer_Pos := (Set => False);
-      Prev_Keyword_Mark : Nil_Buffer_Pos := (Set => False);
-      Iter              : constant Iterator := Data.Navigate_Caches.Iterate;
-      Prev_Cache_Cur    : Cursor;
-      Cache_Cur         : Cursor;
-      Point             : Buffer_Pos;
-
-      function Match (IDs : in Token_ID_Lists.List) return Boolean
-      is
-         Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
-      begin
-         --  [2] wisi-elisp-parse--match-token
-         if (Start.Set and then Point = Start.Item) or else
-           Cache.Containing_Pos = Start
-         then
-            for ID of IDs loop
-               if ID = Cache.ID then
-                  return True;
-               end if;
-            end loop;
-         end if;
-         return False;
-      end Match;
-
+      Start          : Nil_Buffer_Pos    := (Set => False);
+      Iter           : constant Iterator := Data.Navigate_Caches.Iterate;
+      Prev_Cache_Cur : Cursor;
+      Cache_Cur      : Cursor;
    begin
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
+               use all type WisiToken.Syntax_Trees.Node_Label;
                Token  : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Param.Index));
                Region : constant Buffer_Region := Token.Char_Region;
             begin
@@ -1171,70 +1129,70 @@ package body Wisi is
                   Start := (True, Region.First);
                end if;
 
-               Cache_Cur := Find (Iter, Region.First, Direction => Ascending);
-               if not Has_Element (Cache_Cur) then
+               case Tree.Label (Tokens (Param.Index)) is
+               when Shared_Terminal =>
+                  Cache_Cur := Find (Iter, Region.First);
+               when Virtual_Terminal | Virtual_Identifier =>
+                  return;
+
+               when Syntax_Trees.Nonterm =>
                   if Tree.Is_Virtual (Tokens (Param.Index)) then
                      return;
+
+                  elsif Param.ID = Invalid_Token_ID then
+                     Cache_Cur := Find (Iter, Region.First);
+
                   else
-                     raise Fatal_Error with Error_Message
-                       (File_Name => -Data.Source_File_Name,
-                        Line      => Token.Line,
-                        Column    => Token.Column,
-                        Message   => "wisi-motion-action: token " &
-                          WisiToken.Image (Token.ID, Data.Descriptor.all) &
-                          " has no cache; add to statement-action for " &
-                          Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
+                     Cache_Cur := Find_In_Range (Iter, Ascending, Region.First, Region.Last);
+                     loop
+                        exit when not Has_Element (Cache_Cur);
+                        exit when Data.Navigate_Caches (Cache_Cur).Pos > Region.Last;
+
+                        if Data.Navigate_Caches (Cache_Cur).ID = Param.ID then
+                           Cache_Cur := No_Element;
+                           exit;
+                        end if;
+                        Cache_Cur := Next (Iter, Cache_Cur);
+                     end loop;
                   end if;
+               end case;
+
+               if not Has_Element (Cache_Cur) then
+                  raise Fatal_Error with Error_Message
+                    (File_Name => -Data.Source_File_Name,
+                     Line      => Token.Line,
+                     Column    => Token.Column,
+                     Message   => "wisi-motion-action: token " &
+                       WisiToken.Image (Token.ID, Data.Descriptor.all) &
+                       " has no cache; add to statement-action for " &
+                       Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
                end if;
 
-               if Param.IDs.Length = 0 then
-                  if Prev_Keyword_Mark.Set then
-                     declare
-                        Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
-                     begin
-                        if not Cache.Prev_Pos.Set then
-                           Cache.Prev_Pos := Prev_Keyword_Mark;
-                        end if;
-                     end;
-
-                     declare
-                        Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
-                     begin
-                        if not Prev_Cache.Next_Pos.Set then
-                           Prev_Cache.Next_Pos := (True, Region.First);
-                        end if;
-                     end;
-                  end if;
-
-                  Prev_Keyword_Mark := (True, Region.First);
-                  Prev_Cache_Cur    := Cache_Cur;
-
-               else
-                  Point := Region.First;
-                  loop
-                     exit when Point >= Region.Last;
-                     if Match (Param.IDs) then
-                        if Prev_Keyword_Mark.Set then
-                           if not Data.Navigate_Caches (Cache_Cur).Prev_Pos.Set and
-                             not Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos.Set
-                           then
-                              Data.Navigate_Caches (Cache_Cur).Prev_Pos      := Prev_Keyword_Mark;
-                              Data.Navigate_Caches (Prev_Cache_Cur).Next_Pos := (True, Point);
-                              Prev_Keyword_Mark := (True, Point);
-                              Prev_Cache_Cur    := Cache_Cur;
-                           end if;
-                        else
-                           Prev_Keyword_Mark := (True, Point);
-                           Prev_Cache_Cur    := Cache_Cur;
-                        end if;
+               if Has_Element (Prev_Cache_Cur) then
+                  declare
+                     Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
+                  begin
+                     if not Cache.Prev_Pos.Set then
+                        Cache.Prev_Pos := (True, Data.Navigate_Caches (Prev_Cache_Cur).Pos);
                      end if;
+                  end;
 
-                     Cache_Cur := Next (Iter, Cache_Cur);
-                     exit when Cache_Cur = No_Element;
-
-                     Point := Data.Navigate_Caches (Cache_Cur).Pos;
-                  end loop;
+                  declare
+                     Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
+                  begin
+                     if not Prev_Cache.Next_Pos.Set then
+                        Prev_Cache.Next_Pos := (True, Region.First);
+                     end if;
+                  end;
                end if;
+
+               loop
+                  --  Set Prev_Cache_Cur to last motion cache in nonterm chain
+                  exit when not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set;
+                  Cache_Cur := Find (Iter, Data.Navigate_Caches (Cache_Cur).Next_Pos.Item);
+                  pragma Assert (Has_Element (Cache_Cur)); --  otherwise there's a bug in this subprogram.
+               end loop;
+               Prev_Cache_Cur := Cache_Cur;
             end;
          end if;
       end loop;

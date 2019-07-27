@@ -111,22 +111,25 @@ package Wisi is
       Containing : in     WisiToken.Positive_Index_Type;
       Contained  : in     WisiToken.Positive_Index_Type);
 
-   package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (WisiToken.Token_ID, WisiToken."=");
-
-   Empty_IDs : constant Token_ID_Lists.List := Token_ID_Lists.Empty_List;
-
-   function "+" (Item : in WisiToken.Token_ID) return Token_ID_Lists.List;
-   function "&" (List : in Token_ID_Lists.List; Item : in WisiToken.Token_ID) return Token_ID_Lists.List;
-   function "&" (Left, Right : in WisiToken.Token_ID) return Token_ID_Lists.List;
-
-   type Index_IDs is record
+   type Index_ID is record
       Index : WisiToken.Positive_Index_Type; -- into Tokens
-      IDs   : Token_ID_Lists.List;
+      ID    : WisiToken.Token_ID;
+      --  If ID is not Invalid_Token_ID, it is the first token in the
+      --  nonterm that Index points to that should have a navigate cache for
+      --  Motion_Action to link to; an error is reported by Motion_Action if
+      --  it does not.
+      --
+      --  If ID is Invalid_Token_ID, and the token at Index is a
+      --  nonterminal, the first token in that nonterminal must have a
+      --  navigate cache; an error is reported by Motion_Action if not.
    end record;
 
-   package Index_IDs_Vectors is new Ada.Containers.Vectors (Ada.Containers.Count_Type, Index_IDs);
+   package Index_ID_Vectors is new Ada.Containers.Vectors (Ada.Containers.Count_Type, Index_ID);
 
-   subtype Motion_Param_Array is Index_IDs_Vectors.Vector;
+   subtype Motion_Param_Array is Index_ID_Vectors.Vector;
+
+   Invalid_Token_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
+   --  So Create_Parser can just use "Invalid_Token_ID".
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
