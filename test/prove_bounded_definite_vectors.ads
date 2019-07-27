@@ -21,8 +21,8 @@ pragma License (GPL);
 pragma Spark_Mode;
 with Ada.Containers;
 with SAL.Gen_Bounded_Definite_Vectors;
-with Prove_Aux;
+with Prove_Aux; use Prove_Aux;
 package Prove_Bounded_Definite_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-  (Index_Type   => Prove_Aux.Index_Type,
+  (Index_Type   => Index_Type,
    Element_Type => Positive,
-   Capacity     => Ada.Containers.Count_Type (Prove_Aux.Index_Type'Last - Prove_Aux.Index_Type'First + 1));
+   Capacity     => Ada.Containers.Count_Type (Index_Type'Last - Index_Type'First + 1));

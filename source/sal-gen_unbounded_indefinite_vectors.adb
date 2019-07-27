@@ -545,7 +545,7 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
    is
       J : constant Peek_Type := To_Peek_Type (Index);
    begin
-      return (Element => Container.Elements (J));
+      return (Element => Container.Elements (J), Dummy => 1);
    end Constant_Ref;
 
    function Variable_Ref
@@ -555,7 +555,7 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
    is
       J : constant Peek_Type := To_Peek_Type (Index);
    begin
-      return (Element => Container.Elements (J));
+      return (Element => Container.Elements (J), Dummy => 1);
    end Variable_Ref;
 
    overriding function First (Object : Iterator) return Cursor
@@ -601,7 +601,7 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
 
    function Constant_Ref (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is begin
-      return (Element => Container.Elements (Position.Index));
+      return (Element => Container.Elements (Position.Index), Dummy => 1);
    end Constant_Ref;
 
    function Variable_Ref
@@ -609,7 +609,7 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
       Position  :         in Cursor)
      return Variable_Reference_Type
    is begin
-      return (Element => Container.Elements (Position.Index));
+      return (Element => Container.Elements (Position.Index), Dummy => 1);
    end Variable_Ref;
 
 end SAL.Gen_Unbounded_Indefinite_Vectors;

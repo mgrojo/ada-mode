@@ -38,12 +38,14 @@ is
    is
       use AUnit.Checks;
       use AUnit.Checks.Containers;
-      I : Positive := Positive'First;
    begin
-      Check (Label & ".length", Computed.Length, Expected'Length);
-      for Element of Computed loop
-         Check (Label & "." & I'Image, Element, Expected (I));
-         I := I + 1;
+      Check (Label & ".length", Length (Computed), Expected'Length);
+      for I in First_Index (Computed) .. Last_Index (Computed) loop
+         declare
+            El : constant Integer := Element (Computed, I);
+         begin
+            Check (Label & "." & I'Image, El, Expected (Integer (I)));
+         end;
       end loop;
    end Check;
 
