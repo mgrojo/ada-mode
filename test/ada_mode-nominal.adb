@@ -425,7 +425,7 @@ is -- target 0
      Storage_Size => 512 + 256,
      Priority => 5;
    --EMACSCMD:(progn (ada-which-function))
-   --EMACSRESULT:"Executive"
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    task body Executive is -- target 5
    begin

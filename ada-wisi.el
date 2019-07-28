@@ -618,8 +618,7 @@ Point must be in Object"
 		  (when (memq (wisi-cache-nonterm cache)
 			      '(generic_package_declaration generic_subprogram_declaration))
 		    ;; name is after next statement keyword
-		    (wisi-next-statement-cache cache)
-		    (setq cache (wisi-get-cache (point))))
+		    (setq cache (wisi-next-statement-cache cache)))
 
 		  ;; add or delete 'body' as needed
 		  (cl-ecase (wisi-cache-nonterm cache)
@@ -633,7 +632,7 @@ Point must be in Object"
 		     (setq result (ada-wisi-which-function-1 "package" nil)))
 
 		    ((package_declaration
-		      generic_package_declaration) ;; after 'generic'
+		      package_specification) ;; after 'generic'
 		     (setq result (ada-wisi-which-function-1 "package" t)))
 
 		    (protected_body
