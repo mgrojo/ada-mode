@@ -315,6 +315,13 @@ is
          Need_Comma_1 : Boolean := False;
       begin
          loop
+            if not (Last in Params'First .. Params'Last) then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                     "Missing ']' or ')'"));
+               exit;
+            end if;
             Last := Index_Non_Blank (Params, Integer'Min (Params'Last, Last + 1));
 
             exit when Params (Last) = ']' or Params (Last) = ')';
