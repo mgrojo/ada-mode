@@ -554,13 +554,15 @@ package WisiToken.Parse.LR is
    type Minimal_Complete_State is (None, Active, Done);
 
    type Configuration is record
-      Stack : Recover_Stacks.Stack (50);
+      Stack : Recover_Stacks.Stack (70);
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
       --
       --  Required size is determined by source code structure nesting;
       --  larger size slows down recover due to memory cache thrashing and
       --  allocation.
+      --
+      --  Emacs Ada mode wisi.adb needs > 50
 
       Resume_Token_Goal : WisiToken.Token_Index := WisiToken.Token_Index'Last;
       --  A successful solution shifts this token. Per-config because it
