@@ -21,6 +21,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+improve mismatched paren checks in actions
+    maybe just in wisitoken_grammar_mode?
+        only active if mmm-mode recognizes action; improve that?
+    partial parse in ada.wy?
+
 alternate table rep for duplicate reduce actions?
 
 use duplicate_reduce in text_rep

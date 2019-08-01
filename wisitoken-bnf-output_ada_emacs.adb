@@ -307,12 +307,13 @@ is
          Last   : Integer          := Index_Non_Blank (Params); -- skip [
          First  : Integer;
          Vector : Boolean;
-         Result : Unbounded_String := +" (Parse_Data, Tree, Nonterm, Tokens, (";
+         Result : Unbounded_String;
 
          Index_First  : Integer;
          Index_Last   : Integer;
          ID           : Unbounded_String;
-         Need_Comma_1 : Boolean := False;
+         Need_Comma : Boolean := False;
+         Count      : Integer          := 0;
       begin
          loop
             if not (Last in Params'First .. Params'Last) then
@@ -347,9 +348,10 @@ is
                   Label : constant String := Params (Index_First .. Index_Last);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
-                     Nonterm_Needed := True;
-                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
+                     Result := Result & (if Need_Comma then " & " else "") & "(" &
                        Label & ", " & ID & ")";
+                     Need_Comma := True;
+                     Count  := Count + 1;
                   end if;
                end;
                if Params (Last) /= ']' then
@@ -367,14 +369,20 @@ is
                   Label : constant String := Params (First .. Last - 1);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
-                     Nonterm_Needed := True;
-                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
+                     Result := Result & (if Need_Comma then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
+                     Need_Comma := True;
+                     Count  := Count + 1;
                   end if;
                end;
             end if;
-            Need_Comma_1 := True;
          end loop;
-         return -(Result & "))");
+         if Count <= 1 then
+            --  No point in calling Motion_Action with only one param.
+            return "";
+         else
+            Nonterm_Needed := True;
+            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
+         end if;
       end Motion_Params;
 
       function Face_Apply_Params (Params : in String) return String
