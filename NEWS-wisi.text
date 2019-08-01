@@ -10,6 +10,11 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser process protocol version 3
 
+** New user variable `wisi-indent-context-lines' specifies the minimum
+   number of lines before point to include in a parse for indenting a
+   single line. This gives better results when indenting in a nested
+   'if then else', for example.
+
 ** Error correction is faster by approximately 30%;
    %mckenzie_enqueue_limit can be raised accordingly.
 

@@ -18,7 +18,7 @@ with Ada.Strings.Unbounded;
 
 --EMACSCMD:(progn (end-of-line)(forward-sexp)(looking-at "generic$"))
 --EMACSRESULT: t
---EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "package Ada_Mode.Generic_Package"))
+--EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "package Ada_Mode.Generic_Package is$"))
 --EMACSRESULT: t
 generic
    --EMACSCMD:(ada-which-function)
@@ -140,7 +140,16 @@ generic
 
    --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
+   --EMACSCMD:(progn (forward-line 4) (forward-sexp)(looking-at "is$"))
+   --EMACSRESULT: t
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 1) (forward-sexp)(looking-back "^end Ada_Mode.Generic_Package"))
+   --EMACSRESULT: t
 package Ada_Mode.Generic_Package is
+--EMACSCMD:(progn (end-of-line 0)(backward-word 1)(backward-sexp)(looking-at "^package Ada_Mode.Generic_Package is$"))
+--EMACSRESULT:t
+--EMACSCMD:(progn (forward-line -3)(backward-sexp)(looking-at "^generic$"))
+--EMACSRESULT:t
+
    -- See ada_mode-generic_parent.ads for generic subprograms
 
    --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-back "Ada_Mode.Generic_Package is"))
@@ -150,3 +159,5 @@ package Ada_Mode.Generic_Package is
    --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;
+--EMACSCMD:(progn (end-of-line 0)(backward-char 1)(backward-sexp)(looking-back "^package Ada_Mode.Generic_Package is$"))
+--EMACSRESULT:t

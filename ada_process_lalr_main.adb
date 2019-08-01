@@ -8318,7 +8318,7 @@ package body Ada_Process_LALR_Main is
             Table.States (608).Kernel := To_Vector ((0 => (139, 24, 2, False)));
             Table.States (608).Minimal_Complete_Actions := To_Vector ((0 => (Shift, 15, 772)));
             Table.States (609).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (609), (24, 72), (141, 0), 2, null, null);
+            Add_Action (Table.States (609), (24, 72), (141, 0), 2, case_statement_alternative_list_0'Access, null);
             Table.States (609).Kernel := To_Vector ((0 => (141, 140, 0, True)));
             Table.States (609).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 141, 2)));
             Table.States (609).Minimal_Complete_Actions_Recursive := True;
@@ -10281,7 +10281,7 @@ package body Ada_Process_LALR_Main is
             (254, 118, 2, False)));
             Table.States (787).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 236, 0)));
             Table.States (788).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (788), (77, 96), (255, 0), 3, parameter_specification_list_0'Access, null);
+            Add_Action (Table.States (788), (77, 96), (255, 0), 3, null, null);
             Table.States (788).Kernel := To_Vector ((0 => (255, 254, 0, True)));
             Table.States (788).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 255, 3)));
             Table.States (788).Minimal_Complete_Actions_Recursive := True;
@@ -10539,7 +10539,7 @@ package body Ada_Process_LALR_Main is
             Table.States (819).Kernel := To_Vector ((0 => (222, 24, 2, False)));
             Table.States (819).Minimal_Complete_Actions := To_Vector ((0 => (Shift, 32, 995)));
             Table.States (820).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (820), (22, 23, 24), (175, 0), 2, null, null);
+            Add_Action (Table.States (820), (22, 23, 24), (175, 0), 2, elsif_statement_list_0'Access, null);
             Table.States (820).Kernel := To_Vector ((0 => (175, 174, 0, True)));
             Table.States (820).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 175, 2)));
             Table.States (820).Minimal_Complete_Actions_Recursive := True;
@@ -11557,7 +11557,7 @@ package body Ada_Process_LALR_Main is
             (293, 239, 2, True)));
             Table.States (920).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 184, 1)));
             Table.States (921).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (921), (24, 72), (188, 0), 2, null, null);
+            Add_Action (Table.States (921), (24, 72), (188, 0), 2, exception_handler_list_0'Access, null);
             Table.States (921).Kernel := To_Vector ((0 => (188, 187, 0, True)));
             Table.States (921).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 188, 2)));
             Table.States (921).Minimal_Complete_Actions_Recursive := True;
@@ -13549,7 +13549,7 @@ package body Ada_Process_LALR_Main is
             Table.States (1088).Kernel := To_Vector ((0 => (221, 22, 0, False)));
             Table.States (1088).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 192, 0)));
             Table.States (1089).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (1089), (22, 23, 77), (173, 0), 2, null, null);
+            Add_Action (Table.States (1089), (22, 23, 77), (173, 0), 2, elsif_expression_list_0'Access, null);
             Table.States (1089).Kernel := To_Vector ((0 => (173, 172, 0, True)));
             Table.States (1089).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 173, 2)));
             Table.States (1089).Minimal_Complete_Actions_Recursive := True;
@@ -14991,7 +14991,7 @@ package body Ada_Process_LALR_Main is
             Table.States (1246).Kernel := To_Vector ((0 => (327, 24, 2, False)));
             Table.States (1246).Minimal_Complete_Actions := To_Vector ((0 => (Shift, 15, 1265)));
             Table.States (1247).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (1247), (24, 72), (328, 0), 2, null, null);
+            Add_Action (Table.States (1247), (24, 72), (328, 0), 2, variant_list_0'Access, null);
             Table.States (1247).Kernel := To_Vector ((0 => (328, 329, 0, True)));
             Table.States (1247).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, 328, 2)));
             Table.States (1247).Minimal_Complete_Actions_Recursive := True;

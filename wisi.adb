@@ -1199,9 +1199,6 @@ package body Wisi is
                      --  Set Prev_Cache_Cur to last motion cache in nonterm chain
                      exit when not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set;
 
-                     --  FIXME: debugging
-                     exit when Data.Navigate_Caches (Cache_Cur).Next_Pos.Item = Data.Navigate_Caches (Cache_Cur).Pos;
-
                      Cache_Cur := Find (Iter, Data.Navigate_Caches (Cache_Cur).Next_Pos.Item);
                      pragma Assert (Has_Element (Cache_Cur)); --  otherwise there's a bug in this subprogram.
 

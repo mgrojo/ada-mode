@@ -176,8 +176,9 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
 ;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
-;; placeholders as comments. x04 is EOF.
-%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}]*"}") ]%
+;; placeholders as comments. Also terminate placeholder on newline,
+;; EOF, to handle missing }. x04 is EOF.
+%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*[}\n\x04]) ]%
 
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER

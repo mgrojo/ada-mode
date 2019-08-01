@@ -37,6 +37,7 @@ project Ada_Mode_Compile is
       -- These have syntax errors on purpose
       "ada_mode-partial_parse.ads",
       "ada_mode-partial_parse.adb",
+      "ada_mode-placeholders.adb",
       "ada_mode-recover_01.adb",
       "ada_mode-recover_02.adb",
       "ada_mode-recover_03.adb",
@@ -66,6 +67,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_27.adb",
       "ada_mode-recover_28.adb",
       "ada_mode-recover_29.adb",
+      "ada_mode-recover_30.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

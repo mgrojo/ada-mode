@@ -98,7 +98,7 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-refactor_object_method_to_method_object.ads
+ONE_TEST_FILES ?= ada_mode-refactor_object_method_to_method_object.adb
 one :: build_executables
 #one :: byte-compile
 one :: one-clean
@@ -108,9 +108,9 @@ one-clean :: force
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-elisp-gpr_query.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
@@ -356,9 +356,6 @@ uninstall-elpa :
 
 # We don't kill emacs here, so we can check for compilation errors/warnings
 install-elpa :
-	emacs -Q --eval '(progn (load-file "install-elpa.el"))'
-
-install-elpa-review :
 	emacs -Q --eval '(load-file "install-elpa.el")'
 
 ## build gpr_query
@@ -425,7 +422,6 @@ build_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c force
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
-# Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
 # end:

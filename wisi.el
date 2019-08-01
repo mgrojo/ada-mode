@@ -146,6 +146,14 @@ and parse the whole buffer."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-partial-parse-threshold)
 
+(defcustom wisi-indent-context-lines 10
+  "Minimum number of lines before point to include in a parse for indent.
+Increasing this will give better results when in the middle of a
+deeply nested statement, but worse in some situations."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+
 (defvar wisi-inhibit-parse nil
   "When non-nil, don't run the parser.
 Language code can set this non-nil when syntax is known to be
@@ -1202,16 +1210,17 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
       (wisi-set-parse-try nil)
 
-      (wisi--run-parse begin end)
+      (let ((parse-begin (save-excursion (goto-char begin)(line-beginning-position (- wisi-indent-context-lines)))))
+	(wisi--run-parse parse-begin end)
 
       ;; If there were errors corrected, the indentation is
       ;; potentially ambiguous; see
       ;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
       ;; where errors producing bad indent are pretty much expected.
-      (unless (wisi-partial-parse-p begin end)
+      (unless (wisi-partial-parse-p parse-begin end)
 	(setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
 					 (length (wisi-parser-parse-errors wisi--parser))))))
-      )
+      ))
 
     (if wisi-parse-failed
 	(progn
