@@ -20,7 +20,7 @@
 --  conversion in a call to one of the functions below, or instantiate
 --  one of the child packages provided (to avoid the type conversion).
 --
---  Copyright (C) 2004, 2005, 2009, 2011 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2005, 2009, 2011, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -133,6 +133,16 @@ package SAL.Network_Order is
 
    procedure From_Network
      (Item   :    out Interfaces.Unsigned_32;
+      Buffer : in     Ada.Streams.Stream_Element_Array;
+      Last   : in out Ada.Streams.Stream_Element_Offset);
+
+   procedure To_Network
+     (Item   : in     String;
+      Buffer : in out Ada.Streams.Stream_Element_Array;
+      Last   : in out Ada.Streams.Stream_Element_Offset);
+
+   procedure From_Network
+     (Item   :    out String;
       Buffer : in     Ada.Streams.Stream_Element_Array;
       Last   : in out Ada.Streams.Stream_Element_Offset);
 

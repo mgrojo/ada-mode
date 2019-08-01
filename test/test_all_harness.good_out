@@ -82,7 +82,6 @@ OK test_graphs.adb : Test_Strong_Components_Ada_Lite
 OK test_graphs.adb : Test_Ada_Lite
 OK test_bounded_definite_queues.adb : Nominal
 OK test_bounded_definite_vectors.adb : Nominal
-OK test_bounded_definite_vectors.adb : Errors
 OK test_bounded_definite_vectors_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Test_Insert
@@ -111,7 +110,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   111
-Successful Tests:  111
+Total Tests Run:   110
+Successful Tests:  110
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004, 2005, 2009, 2011 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2005, 2009, 2011, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -329,6 +329,28 @@ package body SAL.Network_Order is
          end;
       end case;
       Last := Last + 4;
+   end From_Network;
+
+   procedure To_Network
+     (Item   : in     String;
+      Buffer : in out Ada.Streams.Stream_Element_Array;
+      Last   : in out Ada.Streams.Stream_Element_Offset)
+   is begin
+      for Char of Item loop
+         Last          := Last + 1;
+         Buffer (Last) := Ada.Streams.Stream_Element (Character'Pos (Char));
+      end loop;
+   end To_Network;
+
+   procedure From_Network
+     (Item   :    out String;
+      Buffer : in     Ada.Streams.Stream_Element_Array;
+      Last   : in out Ada.Streams.Stream_Element_Offset)
+   is begin
+      for I in Item'Range loop
+         Last          := Last + 1;
+         Item (I) := Character'Val (Buffer (Last));
+      end loop;
    end From_Network;
 
 end SAL.Network_Order;
