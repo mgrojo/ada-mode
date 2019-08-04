@@ -283,10 +283,11 @@ package body Run_Wisi_Common_Parse is
                when WisiToken.Partial_Parse =>
                   null;
                end;
+
+               Parser.Execute_Actions;
+
                case Cl_Params.Command is
                when Parse =>
-                  Parser.Execute_Actions;
-
                   if Cl_Params.Repeat_Count = 1 then
                      Parse_Data.Put (Parser);
                      Parse_Data.Put

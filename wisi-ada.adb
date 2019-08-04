@@ -11,11 +11,7 @@
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
---  As a special exception under Section 7 of GPL version 3, you are granted
---  additional permissions described in the GCC Runtime Library Exception,
---  version 3.1, as published by the Free Software Foundation.
-
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
@@ -91,23 +87,23 @@ package body Wisi.Ada is
    ----------
    --  Refactor body subprograms
 
-   function Find_Name
+   function Find_ID_At
      (Tree       : in WisiToken.Syntax_Trees.Tree;
       Terminals  : in Augmented_Token_Arrays.Vector;
+      ID         : in Token_ID;
       Edit_Begin : in WisiToken.Buffer_Pos)
      return WisiToken.Syntax_Trees.Node_Index
    is
-      use Ada_Process_Actions;
       use WisiToken.Syntax_Trees;
 
       function Match (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
       is begin
-         return Tree.ID (Node) = +name_ID and then
+         return Tree.ID (Node) = ID and then
            Terminals (Tree.Min_Terminal_Index (Node)).Byte_Region.First = Edit_Begin;
       end Match;
    begin
       return Tree.Find_Descendant (Tree.Root, Predicate => Match'Access);
-   end Find_Name;
+   end Find_ID_At;
 
    procedure Unrecognized
      (Expecting  : in String;
@@ -133,7 +129,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_Name (Tree, Data.Terminals, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Method           : Valid_Node_Index;
       Temp             : Node_Index;
@@ -233,7 +229,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call          : Node_Index := Find_Name (Tree, Data.Terminals, Edit_Begin);
+      Call          : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
       Edit_End      : WisiToken.Buffer_Pos;
       Object_Method : Valid_Node_Index;
       Method        : Unbounded_String;
@@ -297,7 +293,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_Name (Tree, Data.Terminals, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Index;
       Association_List : Node_Index;
@@ -367,7 +363,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_Name (Tree, Data.Terminals, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Index;
       Association_List : Node_Index;
@@ -418,6 +414,16 @@ package body Wisi.Ada is
              ("Element (" & Get_Text (Data, Tree, Object) & ", " & Get_Text (Data, Tree, Index) & ")") &
            """]");
    end Object_Index_To_Element_Object;
+
+   procedure Format_Parameter_List
+     (Tree       : in     WisiToken.Syntax_Trees.Tree;
+      Data       : in out Parse_Data_Type;
+      Edit_Begin : in     WisiToken.Buffer_Pos)
+   is separate;
+   --  Data.Tree contains a subprogram declaration or body; Edit_Begin is
+   --  at the start of a parameter list. Format the parameter list.
+   --
+   --  Handle virtual tokens as much as possible; at least closing paren.
 
    ----------
    --  Public subprograms, declaration order
@@ -512,10 +518,12 @@ package body Wisi.Ada is
       Action     : in     Positive;
       Edit_Begin : in     WisiToken.Buffer_Pos)
    is
+      --  Must match "ada-refactor-*" in ada-wisi.el
       Method_Object_To_Object_Method : constant Positive := 1;
       Object_Method_To_Method_Object : constant Positive := 2;
       Element_Object_To_Object_Index : constant Positive := 3;
       Object_Index_To_Element_Object : constant Positive := 4;
+      Format_Parameter_List          : constant Positive := 5;
 
    begin
       if WisiToken.Trace_Action > Detail then
@@ -530,6 +538,8 @@ package body Wisi.Ada is
          Wisi.Ada.Element_Object_To_Object_Index (Tree, Data, Edit_Begin);
       when Object_Index_To_Element_Object =>
          Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
+      when Format_Parameter_List =>
+         Wisi.Ada.Format_Parameter_List (Tree, Data, Edit_Begin);
 
       when others =>
          Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
