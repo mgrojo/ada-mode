@@ -406,9 +406,6 @@ package body Emacs_Wisi_Common_Parse is
 
                   Partial_Parse_Active := True;
 
-                  Parser.Enable_McKenzie_Recover := False;
-                  --  So refactor code doesn't have to deal with virtual tokens.
-
                   Parse_Data.Initialize
                     (Post_Parse_Action => Wisi.Navigate, -- mostly ignored
                      Lexer             => Parser.Lexer,
@@ -435,6 +432,7 @@ package body Emacs_Wisi_Common_Parse is
                   when WisiToken.Partial_Parse =>
                      null;
                   end;
+                  Parser.Execute_Actions;
                   Parse_Data.Refactor (Parser.Parsers.First_State_Ref.Tree, Params.Refactor_Action, Params.Edit_Begin);
                   Clean_Up;
 

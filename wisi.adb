@@ -1146,15 +1146,20 @@ package body Wisi is
                      Cache_Cur := Find (Iter, Region.First);
 
                   else
+                     Skip      := True;
                      Cache_Cur := Find_In_Range (Iter, Ascending, Region.First, Region.Last);
                      loop
                         exit when not Has_Element (Cache_Cur);
                         if Data.Navigate_Caches (Cache_Cur).Pos > Region.Last then
                            Cache_Cur := No_Element;
-                           Skip := True;
+                           exit;
+
+                        elsif Data.Navigate_Caches (Cache_Cur).ID = Param.ID and
+                          not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set
+                        then
+                           Skip := False;
                            exit;
                         end if;
-                        exit when Data.Navigate_Caches (Cache_Cur).ID = Param.ID;
 
                         Cache_Cur := Next (Iter, Cache_Cur);
                      end loop;

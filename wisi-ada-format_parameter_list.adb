@@ -48,7 +48,7 @@ is
    Formal_Part : constant Node_Index := Find_ID_At (Tree, Data.Terminals, +formal_part_ID, Edit_Begin);
    Param_Iter  : Iterator;
    Edit_End    : Buffer_Pos;
-   Param_Count : Count_Type;
+   Param_Count : Count_Type := 0;
 
    function Get_Text (Region : in WisiToken.Buffer_Region) return String
    is begin
@@ -69,21 +69,24 @@ begin
    Param_Iter := Iterator
      (Iterate (Tree, Data.Descriptor, Tree.Child (Formal_Part, 2), +parameter_specification_ID, +SEMICOLON_ID));
 
-   Param_Count := LR_Utils.Count (Param_Iter);
+   --  The last parameter might be empty, due to syntax errors.
+   for Param_Cur in Param_Iter loop
+      if not Tree.Is_Empty (Node (Param_Cur)) then
+         Param_Count := Param_Count + 1;
+      end if;
+   end loop;
 
    declare
       Params           : array (1 .. Param_Count) of Parameter;
-      Param_I          : Count_Type          := Params'First - 1;
+      Param_Cur        : Cursor              := First (Param_Iter);
       First_Param_Node : constant Node_Index := Node (First (Param_Iter));
       Last_Param_Node  : Node_Index;
    begin
-      for Param_Cur in Param_Iter loop
+      for Param of Params loop
          Last_Param_Node := Node (Param_Cur);
-         Param_I         := Param_I + 1;
 
          declare
             Children : constant Valid_Node_Index_Array := Tree.Children (Node (Param_Cur));
-            Param    : Parameter renames Params (Param_I);
          begin
             for Ident_Cur in Iterate (Tree, Data.Descriptor, Children (1), +IDENTIFIER_ID, +COMMA_ID) loop
                Param.Identifiers.Append (Tree.Byte_Region (Node (Ident_Cur)));
@@ -94,11 +97,11 @@ begin
             for I in 4 .. Children'Last loop
                case To_Token_Enum (Tree.ID (Children (I))) is
                when mode_opt_ID =>
-                  if Tree.Is_Empty (Tree.Child (Children (I), 1)) then
+                  if Tree.Is_Empty (Children (I)) then
                      Param.In_P  := False;
                      Param.Out_P := False;
                   else
-                     Param.In_P := Tree.ID (Tree.Child (Children (I), 1)) = +IN_ID;
+                     Param.In_P  := Tree.ID (Tree.Child (Children (I), 1)) = +IN_ID;
                      Param.Out_P := Tree.ID (Tree.Child (Children (I), 1)) = +OUT_ID or
                        Tree.Children (Children (I))'Length > 1; -- 'in out'
                   end if;
@@ -106,8 +109,28 @@ begin
                when null_exclusion_opt_ID =>
                   Param.Not_Null_P := not Tree.Is_Empty (Children (I));
 
-               when name_ID | access_definition_ID =>
+               when name_ID =>
                   Param.Type_Region := Tree.Byte_Region (Children (I));
+
+               when access_definition_ID =>
+                  --  First two children are always:
+                  --  null_exclusion_opt ACCESS
+                  declare
+                     Access_Children : constant Valid_Node_Index_Array := Tree.Children (Children (I));
+                  begin
+                     Param.Not_Null_P := not Tree.Is_Empty (Access_Children (1));
+                     Param.Access_P := True;
+
+                     if Tree.ID (Access_Children (3)) = +general_access_modifier_opt_ID then
+                        Param.Constant_P := not Tree.Is_Empty (Access_Children (3));
+                        Param.Type_Region := Tree.Byte_Region (Access_Children (4));
+                     else
+                        Param.Protected_P := not Tree.Is_Empty (Access_Children (3));
+                        Param.Type_Region :=
+                          (Tree.Byte_Region (Access_Children (4)).First,
+                           Tree.Byte_Region (Children (I)).Last);
+                     end if;
+                  end;
 
                when COLON_EQUAL_ID =>
                   null;
@@ -122,6 +145,7 @@ begin
                end case;
             end loop;
          end;
+         Param_Cur := Next (Param_Iter, Param_Cur);
       end loop;
 
       declare
@@ -138,7 +162,9 @@ begin
          Not_Null_P : Boolean          := False;
          Access_P   : Boolean          := False;
 
-         Len : Integer; -- temporary
+         Len           : Integer; -- temporary
+         Need_Comma    : Boolean;
+         Need_New_Line : Boolean := False;
       begin
          if Multi_Line then
             --  Find columns
@@ -168,11 +194,12 @@ begin
             end loop;
             declare
                subtype Count is Standard.Ada.Text_IO.Count;
-               Ident_Col   : constant Count := 1; -- relative to opening paren
-               Colon_Col   : constant Count := Ident_Col + Count (Ident_Len) + 1;
-               In_Col      : constant Count := Colon_Col + (if Aliased_P then 10 else 2);
-               Out_Col     : constant Count := In_Col + (if In_P then 3 else 0);
-               Type_Col    : constant Count := In_Col +
+               Open_Paren_Col : constant Count := Tree.Augmented (Formal_Part).Column;
+               Ident_Col      : constant Count := Open_Paren_Col + 1;
+               Colon_Col      : constant Count := Ident_Col + Count (Ident_Len) + 1;
+               In_Col         : constant Count := Colon_Col + (if Aliased_P then 10 else 2);
+               Out_Col        : constant Count := In_Col + (if In_P then 3 else 0);
+               Type_Col       : constant Count := In_Col +
                  --  'not null' without access is part of the type
                  (if Not_Null_P and Access_P then 16
                   elsif Access_P then 7
@@ -182,24 +209,22 @@ begin
                   else 0);
                Default_Col : constant Count := Type_Col + Count (Type_Len) + 1;
 
-               Need_Comma    : Boolean;
-               Need_New_Line : Boolean := False;
-
                function Indent_To (Col : in Count) return String
                is
                   use Standard.Ada.Strings.Fixed;
                begin
-                  return (Integer (Col) - (Length (Result) - Line_End)) * ' ';
+                  return
+                    (Integer (Col - (if Need_New_Line then 0 else Open_Paren_Col)) -
+                       (Length (Result) - Line_End)) * ' ';
                end Indent_To;
             begin
                for Param of Params loop
                   if Need_New_Line then
                      Result   := Result & ";" & ASCII.LF;
                      Line_End := Length (Result);
-                  else
-                     Need_New_Line := True;
                   end if;
 
+                  Result := Result & Indent_To (Ident_Col);
                   Need_Comma := False;
                   for Ident of Param.Identifiers loop
                      if Need_Comma then
@@ -238,13 +263,48 @@ begin
                   if Param.Default_Exp /= Null_Buffer_Region then
                      Result := Result & Indent_To (Default_Col) & ":= " & Get_Text (Param.Default_Exp);
                   end if;
+
+                  Need_New_Line := True;
                end loop;
                Result := Result & ")";
             end;
          else -- not Multi_Line
-            Result := +"single_line not implemented";
+            for Param of Params loop
+               if Need_New_Line then
+                  Result := Result & "; ";
+               end if;
+
+               Need_Comma := False;
+               for Ident of Param.Identifiers loop
+                  if Need_Comma then
+                     Result := Result & ", ";
+                  else
+                     Need_Comma := True;
+                  end if;
+                  Result := Result & Get_Text (Ident);
+               end loop;
+
+               Result := Result & " : ";
+
+               if Param.Aliased_P then Result := Result & "aliased "; end if;
+               if Param.In_P then Result := Result & "in "; end if;
+               if Param.Out_P then Result := Result & "out "; end if;
+               if Param.Not_Null_P then Result := Result & "not null "; end if;
+               if Param.Access_P then Result := Result & "access "; end if;
+               if Param.Constant_P then Result := Result & "constant "; end if;
+               if Param.Protected_P then Result := Result & "protected "; end if;
+
+               Result := Result & Get_Text (Param.Type_Region);
+               if Param.Default_Exp /= Null_Buffer_Region then
+                  Result := Result & " := " & Get_Text (Param.Default_Exp);
+               end if;
+
+               Need_New_Line := True;
+            end loop;
+               Result := Result & ")";
          end if;
-         Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ & Elisp_Escape_Quotes (-Result));
+         Put_Line
+           ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ & Elisp_Escape_Quotes (-Result) & """]");
       end;
    end;
 end Format_Parameter_List;

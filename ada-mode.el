@@ -743,265 +743,10 @@ Function is called with one optional argument; syntax-ppss result.")
     (error
      (user-error "Not in parameter list")))
   (funcall indent-line-function); so new list is indented properly
-
-  ;; indent-line-function may have found errors to correct. Repairing
-  ;; all errors from here to end of buffer is annoying to the
-  ;; user. But we have to handle a missing param list closing
-  ;; paren. See test/format_paramlist.adb Check_One.
-  ;;
-  ;; FIXME: either make this indirect, or make all other wisi- indirects direct.
-  (save-excursion
-    (let ((beg (point))
-	  end)
-      (condition-case-unless-debug nil
-	  (setq end (progn (forward-sexp) (point)))
-	(error
-	 ;; Right paren missing. ada-wisi-goto-open paren ensures parse
-	 ;; succeeded.
-	 (let* ((cache (wisi-get-cache (point)))
-		(subr-cache (wisi-goto-containing cache)))
-	   (setq end (wisi-cache-next subr-cache)))))
-
-      (wisi-repair-errors beg end)))
-
-  ;; Recompute ’end’ after repair errors; closing paren is now there.
-
-  (let* ((begin (point))
-	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren
-	 (end (copy-marker
-	       (progn (backward-char) (forward-comment (- (point))) (point)))); end of last parameter-declaration
-	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
-	 (paramlist (ada-scan-paramlist (1+ begin) end)))
-
-    (when paramlist
-      ;; delete the original parameter-list
-      (delete-region begin delend)
-
-      ;; insert the new parameter-list
-      (goto-char begin)
-      (if multi-line
-	  (ada-insert-paramlist-multi-line paramlist)
-	(ada-insert-paramlist-single-line paramlist)))
-    ))
-
-(defvar ada-scan-paramlist nil
-  ;; Supplied by indentation engine parser
-  "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
-Function is called with two args BEGIN END (the region).
-Each parameter declaration is represented by a list
-((identifier ...) aliased-p in-p out-p not-null-p access-p constant-p protected-p type default)."
-  ;; Summary of Ada syntax for a parameter specification:
-  ;; ... : [aliased] {[in] | out | in out | [null_exclusion] access [constant | protected]} ...
-  )
-
-(defun ada-scan-paramlist (begin end)
-  (when ada-scan-paramlist
-    (funcall ada-scan-paramlist begin end)))
-
-(defun ada-insert-paramlist-multi-line (paramlist)
-  "Insert a multi-line formatted PARAMLIST in the buffer."
-  (let ((i (length paramlist))
-	param
-	j
-	len
-	(ident-len 0)
-	(type-len 0)
-	(aliased-p nil)
-	(in-p nil)
-	(out-p nil)
-	(not-null-p nil)
-	(access-p nil)
-	ident-col
-	colon-col
-	in-col
-	out-col
-	type-col
-	default-col)
-
-    ;; accumulate info across all params
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; identifier list
-      (setq len 0
-	    j   0)
-      (mapc (lambda (ident)
-	      (setq j (1+ j))
-	      (setq len (+ len (length ident))))
-	    (nth 0 param))
-      (setq len (+ len (* 2 (1- j)))); space for commas
-      (setq ident-len (max ident-len len))
-
-      ;; we align the defaults after the types that have defaults, not after all types.
-      ;; "constant", "protected" are treated as part of 'type'
-      (when (nth 9 param)
-	(setq type-len
-	      (max type-len
-		   (+ (length (nth 8 param))
-		      (if (nth 6 param) 10 0); "constant "
-		      (if (nth 7 param) 10 0); protected
-		      ))))
-
-      (setq aliased-p (or aliased-p (nth 1 param)))
-      (setq in-p (or in-p (nth 2 param)))
-      (setq out-p (or out-p (nth 3 param)))
-      (setq not-null-p (or not-null-p (nth 4 param)))
-      (setq access-p (or access-p (nth 5 param)))
-      )
-
-    (let ((space-before-p (save-excursion (skip-chars-backward " \t") (not (bolp))))
-	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (or (= (char-after) ?\;) (eolp))))))
-      (when space-before-p
-	;; paramlist starts on same line as subprogram identifier; clean
-	;; up whitespace. Allow for code on same line as closing paren
-	;; ('return' or ';').
-	(skip-syntax-forward " ")
-	(delete-char (- (skip-syntax-backward " ")))
-	(if space-after-p
-	    (progn
-	      (insert "  ")
-	      (forward-char -1))
-	  (insert " "))
-	))
-
-    (insert "(")
-
-    ;; compute columns.
-    (setq ident-col (current-column))
-    (setq colon-col (+ ident-col ident-len 1))
-    (setq in-col
-	  (+ colon-col (if aliased-p 10 2))); ": aliased ..."
-    (setq out-col (+ in-col (if in-p 3 0))); ": [aliased] in "
-    (setq type-col
-	  (+ in-col
-	     (cond
-	      ;; 'not null' without access is part of the type
-	      ((and not-null-p access-p) 16); ": [aliased] not null access "
-	      (access-p 7);         ": [aliased] access "
-	      ((and in-p out-p) 7); ": [aliased] in out "
-	      (in-p 3);             ": [aliased] in "
-	      (out-p 4);            ": [aliased] out "
-	      (t 0))));             ": [aliased] "
-
-    (setq default-col (+ 1 type-col type-len))
-
-    (setq i (length paramlist))
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; insert identifiers, space and colon
-      (mapc (lambda (ident)
-	      (insert ident)
-	      (insert ", "))
-	    (nth 0 param))
-      (delete-char -2); last ", "
-      (indent-to colon-col)
-      (insert ": ")
-
-      (when (nth 1 param)
-	(insert "aliased "))
-
-      (indent-to in-col)
-      (when (nth 2 param)
-	(insert "in "))
-
-      (when (nth 3 param)
-	(indent-to out-col)
-	(insert "out "))
-
-      (when (and (nth 4 param) ;; not null
-		 (nth 5 param)) ;; access
-	(insert "not null access"))
-
-      (when (and (not (nth 4 param)) ;; not null
-		 (nth 5 param)) ;; access
-	(insert "access"))
-
-      (indent-to type-col)
-
-      (when (and (nth 4 param) ;; not null
-		 (not (nth 5 param))) ;; access
-	(insert "not null "))
-
-      (when (nth 6 param)
-	(insert "constant "))
-
-      (when (nth 7 param)
-	(insert "protected "))
-
-      (insert (nth 8 param)); type
-
-      (when (nth 9 param); default
-	(indent-to default-col)
-	(insert ":= ")
-	(insert (nth 9 param)))
-
-      (if (zerop i)
-	  (insert ")")
-	(insert ";")
-	(newline)
-	(indent-to ident-col))
-      )
-    ))
-
-(defun ada-insert-paramlist-single-line (paramlist)
-  "Insert a single-line formatted PARAMLIST in the buffer."
-  ;; point is properly indented
-  (let ((i (length paramlist))
-	param)
-
-    ;; clean up whitespace
-    (delete-char (- (skip-syntax-forward " ")))
-    (insert "(")
-
-    (setq i (length paramlist))
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; insert identifiers, space and colon
-      (mapc (lambda (ident)
-	      (insert ident)
-	      (insert ", "))
-	    (nth 0 param))
-      (delete-char -2); last ", "
-
-      (insert " : ")
-
-      (when (nth 1 param)
-	(insert "aliased "))
-
-      (when (nth 2 param)
-	(insert "in "))
-
-      (when (nth 3 param)
-	(insert "out "))
-
-      (when (nth 4 param)
-	(insert "not null "))
-
-      (when (nth 5 param)
-	(insert "access "))
-
-      (when (nth 6 param)
-	(insert "constant "))
-      (when (nth 7 param)
-	(insert "protected "))
-      (insert (nth 8 param)); type
-
-      (when (nth 9 param); default
-	(insert " := ")
-	(insert (nth 9 param)))
-
-      (if (zerop i)
-	  (if (= (char-after) ?\;)
-	      (insert ")")
-	    (insert ") "))
-	(insert "; "))
-      )
-    ))
+  (when (not (looking-back "^[ \t]*" (line-beginning-position)))
+    (delete-horizontal-space)
+    (insert " "))
+  (ada-wisi-refactor ada-refactor-format-paramlist))
 
 (defvar ada-reset-parser nil
   ;; Supplied by indentation engine parser
@@ -3073,14 +2818,15 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
-(defvar ada-parser nil
+(defvar ada-parser 'process
   "Indicate parser and lexer to use for Ada buffers:
 
-elisp : wisi parser and lexer implemented in elisp.
-
-process : wisi elisp lexer, external process parser specified
+process : external process lexer and parser specified
   by ‘ada-process-parse-exec ’.
-")
+"
+  ;; As of ada-mode version 6.2, we no longer support the elisp
+  ;; parser. We may add a module implementation at some point.
+  )
 
 (defvar ada-fallback 'simple
   "Indicate fallback indentation engine for Ada buffers.
@@ -3098,15 +2844,6 @@ simple: indent to previous line.")
 (cl-case ada-fallback
   (simple
    (require 'ada-wisi))
-  )
-
-(cl-case ada-parser
-  (elisp nil)
-  (process nil)
-  (t
-   (if (locate-file ada-process-parse-exec exec-path '("" ".exe"))
-       (setq ada-parser 'process)
-     (setq ada-parser 'elisp)))
   )
 
 (cl-case ada-xref-tool

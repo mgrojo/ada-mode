@@ -76,10 +76,8 @@ test : test-wisi
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
-test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
 test : gpr-skel.gpr.diff
-test : test-gpr-elisp.stamp
 test : test-gpr-lalr-process.stamp
 test : test-elisp
 test : summarize
@@ -98,8 +96,8 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-refactor_object_method_to_method_object.adb
-one :: build_executables
+ONE_TEST_FILES ?= debug.adb
+#one :: build_executables
 #one :: byte-compile
 one :: one-clean
 one-clean :: force
@@ -108,17 +106,16 @@ one-clean :: force
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-elisp-gpr_query.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-two : RUN_ARGS ?= ../test/ada_mode-recover_29.adb Indent --verbosity 1 1 0 --enqueue_limit 120_000
+two : RUN_ARGS ?= refactor 5 ../test/debug.adb 23 --verbosity 0 2
 two : build_executables
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
-	../run_ada_lr1_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables

@@ -6,10 +6,9 @@
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_Format_Paramlist is
 
-   -- Error correction leaves empty parameter declaration. The error
-   -- correction leaves 'is begin' on the same line as the closing paren.
+   -- Error recover leaves an empty parameter declaration.
    --
-   --EMACSCMD:(progn (end-of-line 5)(delete-char -1)(insert ";")(ada-align)(newline-and-indent))
+   --EMACSCMD:(progn (end-of-line 5)(delete-char -1)(insert ";")(ada-align))
    procedure Check_One
      (Label    : in String;
       Param    : in Integer;

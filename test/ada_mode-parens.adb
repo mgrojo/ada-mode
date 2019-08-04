@@ -1,9 +1,6 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
--- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
---EMACSCMD:(setq wisi-debug 0)
-
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 with Ada.Strings.Maps;
@@ -61,10 +58,6 @@ package body Ada_Mode.Parens is
                            "123" &
                              "456" &
                              "789 [");
-      -- don't confuse this with gnat non-ascii syntax
-      --EMACSCMD:(progn (end-of-line -1)(back-to-indentation)(wisi-token-text (wisi-forward-token)))
-      --EMACSRESULT:"\"789 [\""
-
       --EMACSCMD:(progn (end-of-line 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "comMENT")))
       -- A comment for testing no auto-case in comMENT
       --EMACSRESULT:t

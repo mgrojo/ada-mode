@@ -56,7 +56,6 @@ run test from emacs -Q using source:
  current work
 delete elisp parser; statement-action not the same algorithm
     also delete elisp lexer, so wisitoken doesn't have to change to produce lexer without parser
-    replace ada-format-paramlist with refactor case
     fix ada-wisi-which-function to not use wisi-forward-find-token
 
     move wisi-elisp-parse doc strings to wisi.ads, wisi-ada.ads

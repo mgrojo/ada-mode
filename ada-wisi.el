@@ -42,6 +42,8 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 (defconst ada-refactor-element-object-to-object-index 3)
 (defconst ada-refactor-object-index-to-element-object 4)
 
+(defconst ada-refactor-format-paramlist 5)
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation
@@ -237,7 +239,7 @@ For `wisi-indent-calculate-functions'.
     ;; Used by ada-align; we know we are in a paren.
     (ada-goto-open-paren 1)
     (while (forward-comment 1))
-    (eq (wisi-tok-token (wisi-forward-token)) 'CASE)))
+    (looking-at "case")))
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
@@ -344,7 +346,7 @@ Also return cache at start."
 		     (< (point) start-pos))
 		 (ada-wisi-declarative-region-start-p cache))
 	    (progn
-	      (wisi-forward-token);; past 'is'
+	      (forward-word);; past 'is'
 	      (setq done t))
 	  (cl-case (wisi-cache-class cache)
 	    (motion
@@ -357,7 +359,7 @@ Also return cache at start."
 		 package_declaration
 		 entry_body package_body package_declaration protected_body subprogram_body task_body
 		 protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
-		;; This is a block scope before the starting point; we want the containing scope  
+		;; This is a block scope before the starting point; we want the containing scope
 		(setq cache (wisi-goto-containing cache)))
 
 	       (t
@@ -382,7 +384,7 @@ Also return cache at start."
 	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache)))
-		(when (save-excursion (eq 'NEW (wisi-tok-token (wisi-forward-token))))
+		(when (looking-at "\<new\>")
 		  (while (not (eq 'WITH (wisi-cache-token cache)))
 		    (setq cache (wisi-next-statement-cache cache)))))
 
@@ -420,7 +422,10 @@ Also return cache at start."
 	   (cache (wisi-goto-statement-start))
 	   (parse-begin (point))
 	   (parse-end (wisi-cache-end cache)))
-      (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+      (if parse-end
+	  (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+	;; else there is a syntax error; missing end of statement
+	(setq parse-end (point-max)))
       (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
       )))
 
@@ -469,117 +474,6 @@ Point must be in Object"
     (forward-line -2)
     (back-to-indentation)
     ))
-
-(defun ada-wisi-scan-paramlist (begin end)
-  "For `ada-scan-paramlist'."
-  ;; IMPROVEME: define mini grammar that does this
-  ;;
-  ;; BEGIN is at (, end at ). We need to parse the entire
-  ;; subprogram_specification, so start back two tokens.
-  (goto-char begin)
-  (wisi-backward-token)
-  (wisi-backward-token)
-  (wisi-validate-cache (point) end t 'navigate)
-
-  (goto-char begin)
-
-  (let (tok
-	token
-	text
-	identifiers
-	(aliased-p nil)
-	(in-p nil)
-	(out-p nil)
-	(not-null-p nil)
-	(access-p nil)
-	(constant-p nil)
-	(protected-p nil)
-	(type nil)
-	type-begin
-	type-end
-	(default nil)
-	(default-begin nil)
-	param
-	paramlist
-	(done nil))
-    (while (not done)
-      (forward-comment 1)
-      (setq tok (wisi-forward-token))
-      (setq token (wisi-tok-token tok))
-      (setq text  (wisi-token-text tok))
-      (cond
-       ((equal token 'COMMA) nil);; multiple identifiers
-
-       ((equal token 'COLON)
-	;; identifiers done. find type-begin; there may be no mode
-	(setq type-begin (point))
-	(save-excursion
-	  (while (member (wisi-tok-token (wisi-forward-token)) '(ALIASED IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
-	    (setq type-begin (point)))))
-
-       ((equal token 'ALIASED) (setq aliased-p t))
-       ((equal token 'IN) (setq in-p t))
-       ((equal token 'OUT) (setq out-p t))
-       ((and (not type-end)
-	     (member token '(NOT NULL)))
-	;; "not", "null" could be part of the default expression
-	(setq not-null-p t))
-       ((equal token 'ACCESS) (setq access-p t))
-       ((equal token 'CONSTANT) (setq constant-p t))
-       ((equal token 'PROTECTED) (setq protected-p t))
-
-       ((equal token 'COLON_EQUAL)
-	(setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point)))
-	(setq default-begin (point))
-	(if (wisi-forward-find-token 'SEMICOLON end t)
-	    (wisi-backward-token)
-	;; else at end of param-list; point is before closing paren.
-	  ))
-
-       ((equal token 'LEFT_PAREN)
-	;; anonymous access procedure type, aggregate initial value
-	(goto-char (scan-sexps (1- (point)) 1)))
-
-       ((member token '(SEMICOLON RIGHT_PAREN))
-	(if (not type-begin)
-	    ;; Right paren immediately following semicolon; allowed by
-	    ;; our Ada grammar.
-	    (setq done t)
-
-	  (when (not type-end)
-	    (setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point))))
-
-	  (setq type (buffer-substring-no-properties type-begin type-end))
-
-	  (when default-begin
-	    (setq default (buffer-substring-no-properties default-begin (car (wisi-tok-region tok)))))
-
-	  (when (equal token 'RIGHT_PAREN)
-	    (setq done t))
-
-	  (setq param (list (reverse identifiers)
-			    aliased-p in-p out-p not-null-p access-p constant-p protected-p
-			    type default))
-          (cl-pushnew param paramlist :test #'equal)
-	  (setq identifiers nil
-		aliased-p nil
-		in-p nil
-		out-p nil
-		not-null-p nil
-		access-p nil
-		constant-p nil
-		protected-p nil
-		type nil
-		type-begin nil
-		type-end nil
-		default nil
-		default-begin nil)))
-
-       (t
-	(when (not type-begin)
-          (push text identifiers)))
-       ))
-    paramlist))
 
 (defun ada-wisi-which-function-1 (keyword add-body)
   "Used in `ada-wisi-which-function'."

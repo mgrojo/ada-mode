@@ -92,7 +92,7 @@ autoloads : force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(run-test "$<")'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) $<
 
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el
