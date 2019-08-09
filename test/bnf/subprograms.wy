@@ -45,7 +45,7 @@
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
 
-%token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]%
+%token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]% "bogus_symbol"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
@@ -127,8 +127,6 @@ subprogram
         ;; An example of each supported action, with somewhat complex
         ;; parameter syntax, and optional tokens.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
-        (wisi-containing-action fun nam)
-        (wisi-containing-action fun blo)
         (wisi-motion-action [fun [blo EXCEPTION] sem])
         (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [(fun . 0)
@@ -140,7 +138,6 @@ subprogram
   ;; No token labels (and thus parameter_list is not optional), to test that flavor
     %((progn
         (wisi-statement-action [1 statement-start 2 name 6 statement-end])
-        (wisi-containing-action 1 2)
         (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
         (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0])))%
   ;

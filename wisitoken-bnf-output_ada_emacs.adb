@@ -40,7 +40,6 @@ with WisiToken.Generate.Packrat;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada_Emacs
   (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
-   Elisp_Tokens          :         in WisiToken.BNF.Tokens;
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
@@ -276,24 +275,6 @@ is
             when 1 => "(1 => " & (-Result) & "))",
             when others =>  "(" & (-Result) & "))");
       end Statement_Params;
-
-      function Containing_Params (Params : in String) return String
-      is
-         --  Input looks like: 1 2)
-         First        : constant Integer := Index_Non_Blank (Params);
-         Second       : constant Integer := Index (Params, Blank_Set, First);
-         First_Label  : constant String  := Params (First .. Second - 1);
-         Second_Label : constant String  := Params (Second + 1 .. Params'Last - 1);
-      begin
-         if (0 = Index (First_Label, Numeric, Outside) or else Label_Used (First_Label)) and
-           (0 = Index (Second_Label, Numeric, Outside) or else Label_Used (Second_Label))
-         then
-            Nonterm_Needed := True;
-            return " (Parse_Data, Tree, Nonterm, Tokens, " & First_Label & ", " & Second_Label & ")";
-         else
-            return "";
-         end if;
-      end Containing_Params;
 
       function Motion_Params (Params : in String) return String
       is
@@ -1084,15 +1065,6 @@ is
                end if;
             end;
 
-         elsif Elisp_Name = "wisi-containing-action" then
-            declare
-               Params : constant String := Containing_Params (Line (Last + 1 .. Line'Last));
-            begin
-               if Params'Length > 0 then
-                  Navigate_Lines.Append (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";");
-               end if;
-            end;
-
          elsif Elisp_Name = "wisi-motion-action" then
             declare
                Params : constant String := Motion_Params (Line (Last + 1 .. Line'Last));
@@ -1655,17 +1627,9 @@ is
       Output_Elisp_Common.Indent_Name_Table
         (Output_File_Name_Root, "process-face-table", Input_Data.Tokens.Faces);
 
-      --  We need the elisp lexer for some operations
-      if Elisp_Tokens.Keywords.Length > 0 then
-         New_Line;
-         Output_Elisp_Common.Indent_Keyword_Table
-           (Output_File_Name_Root, "elisp", Elisp_Tokens.Keywords, Ada.Strings.Unbounded.To_String'Access);
-      end if;
-      if Elisp_Tokens.Tokens.Length > 0 then
-         New_Line;
-         Output_Elisp_Common.Indent_Token_Table
-           (Output_File_Name_Root, "elisp", Elisp_Tokens.Tokens, Ada.Strings.Unbounded.To_String'Access);
-      end if;
+      --  We need -repair-image for wisi-repair-error
+      New_Line;
+      Output_Elisp_Common.Indent_Repair_Image (Output_File_Name_Root, "process", Input_Data.Tokens);
 
       New_Line;
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");

@@ -3,7 +3,7 @@
 ;; re2c lookahead.
 
 %code copyright_license %{
---  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -25,7 +25,6 @@
 %generate LR1 Ada re2c
 %generate Packrat_Gen Ada re2c
 %generate Packrat_Proc Ada re2c
-%generate LR1 elisp elisp
 
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive

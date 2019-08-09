@@ -131,6 +131,12 @@ package WisiToken.BNF.Generate_Utils is
    --  Tokens  : Tokens (i).Tokens (j).Value
    --  Rules   : empty string (they have no Value)
 
+   function Repair_Image (Cursor : in Token_Cursor) return String;
+   --  Return the token repair image from the .wy file:
+   --  Keywords: empty string
+   --  Tokens  : Tokens (i).Tokens (j).Repair_Image
+   --  Rules   : empty string
+
    function To_Conflicts
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     WisiToken.BNF.Conflict_Lists.List;
@@ -162,7 +168,7 @@ private
       Kind        : Token_Cursor_Kind;
       ID          : Token_ID;
       Token_Kind  : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
-      Token_Item  : String_Pair_Lists.Cursor;
+      Token_Item  : String_Triple_Lists.Cursor;
       Keyword     : String_Pair_Lists.Cursor;
       Nonterminal : Rule_Lists.Cursor;
    end record;

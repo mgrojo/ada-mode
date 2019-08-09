@@ -495,17 +495,21 @@ package body WisiToken_Grammar_Runtime is
       when Syntax_Trees.Nonterm =>
          --  must be token_keyword_non_grammar
          declare
-            Children   : Syntax_Trees.Valid_Node_Index_Array renames Tree.Children (Tokens (2));
-            Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children (1)));
+            Children_2 : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Tokens (2));
+            Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
          begin
             case Child_1_ID is
             when Wisitoken_Grammar_Actions.TOKEN_ID =>
-
-               WisiToken.BNF.Add_Token
-                 (Data.Tokens.Tokens,
-                  Kind  => Get_Text (Data, Tree, Children (3)),
-                  Name  => Get_Text (Data, Tree, Tokens (3)),
-                  Value => Get_Text (Data, Tree, Tokens (4)));
+               declare
+                  Children_4 : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Tokens (4));
+               begin
+                  WisiToken.BNF.Add_Token
+                    (Data.Tokens.Tokens,
+                     Kind         => Get_Text (Data, Tree, Children_2 (3)),
+                     Name         => Get_Text (Data, Tree, Tokens (3)),
+                     Value        => Get_Text (Data, Tree, Children_4 (1)),
+                     Repair_Image => (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
+               end;
 
             when KEYWORD_ID =>
 
@@ -517,7 +521,7 @@ package body WisiToken_Grammar_Runtime is
 
                WisiToken.BNF.Add_Token
                  (Data.Tokens.Non_Grammar,
-                  Kind  => Get_Text (Data, Tree, Children (3)),
+                  Kind  => Get_Text (Data, Tree, Children_2 (3)),
                   Name  => Get_Text (Data, Tree, Tokens (3)),
                   Value => Get_Text (Data, Tree, Tokens (4)));
 

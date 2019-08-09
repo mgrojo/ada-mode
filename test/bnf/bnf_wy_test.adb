@@ -214,8 +214,6 @@ package body BNF_WY_Test is
             Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
             Diff_One (Root_Name & "-process.el");
 
-         when Elisp_Lang =>
-            Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
          end case;
 
          if Tuple.Text_Rep then
@@ -326,7 +324,7 @@ package body BNF_WY_Test is
                   (if Test.Input_Name = null then "" else Test.Input_Name.all),
                   Tuple.Gen_Alg, McKenzie_Recover);
 
-            when WisiToken.BNF.Ada_Emacs_Lang | WisiToken.BNF.Elisp_Lang =>
+            when WisiToken.BNF.Ada_Emacs_Lang =>
                null;
             end case;
 

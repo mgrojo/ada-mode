@@ -9,7 +9,6 @@
 %generate LALR Ada re2c
 %generate Packrat_Gen Ada re2c
 %generate Packrat_Proc Ada re2c
-%generate LALR Elisp elisp
 
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"

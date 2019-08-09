@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017, 2018, 2019 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -58,7 +58,7 @@ package body Test_Generate_Errors is
                   Args         =>
                     (1         => new String'("--generate"),
                      2         => new String'(Generate_Algorithm'Image (Alg)),
-                     3         => new String'("Elisp"), -- actually ignored due to errors
+                     3         => new String'("Ada"), -- actually ignored due to errors
                      4         => WY_File),
                   Output_File  => Computed,
                   Return_Code  => Return_Code,

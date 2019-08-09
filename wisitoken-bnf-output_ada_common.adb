@@ -1213,14 +1213,9 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Line ("    continue; }");
 
             elsif Kind (I) = "delimited-text" then
-               --  Val contains the start and end strings, separated by space
-               declare
-                  Start_Last : constant Integer := Index (Val, " ");
-               begin
-                  Indent_Line
-                    (Val (1 .. Start_Last - 1) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
-                       "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "); continue;}");
-               end;
+               Indent_Line
+                    (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
+                       "; skip_to(lexer, " & Repair_Image (I) & "); continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");

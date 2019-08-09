@@ -62,18 +62,24 @@
    nil
    ])
 
-(defconst subprograms-elisp-keyword-table-raw
+(defconst subprograms-process-repair-image
   '(
-   ("begin" . BEGIN)
-   ("end" . END)
-   ("exception" . EXCEPTION)
-   ("for" . FOR)
-   ("function" . FUNCTION)
-   ("in" . IN)
-   ("loop" . LOOP)
-   ("procedure" . PROCEDURE)
-   ("when" . WHEN)
-   ("use" . USE)
+   (BEGIN . "begin")
+   (END . "end")
+   (EXCEPTION . "exception")
+   (FOR . "for")
+   (FUNCTION . "function")
+   (IN . "in")
+   (LOOP . "loop")
+   (PROCEDURE . "procedure")
+   (WHEN . "when")
+   (USE . "use")
+   (LEFT_PAREN . "(")
+   (RIGHT_PAREN . ")")
+   (COMMA . ",")
+   (DOT . ".")
+   (SEMICOLON . ";")
+   (SYMBOL . "bogus_symbol")
    ))
 
 (provide 'subprograms-process)

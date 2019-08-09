@@ -143,9 +143,9 @@ package WisiToken.Parse.LR.Parser is
    --  raise Parse_Error for an ambiguous parse.
 
    overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
-   --  Call User_Data.Reduce on all nonterms in the syntax tree, then
-   --  User_Data.Delete_Token on any tokens deleted by error recovery,
-   --  then the grammar semantic actions.
+   --  Call User_Data.Delete_Token on any tokens deleted by error
+   --  recovery, then User_Data.Reduce and the grammar semantic actions
+   --  on all nonterms in the syntax tree.
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
    --  Return True if any errors where encountered, recovered or not.

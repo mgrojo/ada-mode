@@ -50,34 +50,13 @@ package body WisiToken.BNF.Generate_Utils is
       --   This function is used to compute Descriptor.Image
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         declare
-            Kind_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Cursor.Data.Tokens.Non_Grammar, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Kind_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return -Item_Ref.Element.Name;
-         end;
+         return -Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Name;
 
       when Terminals_Keywords =>
-         declare
-            Keyword_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Cursor.Data.Tokens.Keywords, Cursor.Keyword);
-         begin
-            return -Keyword_Ref.Element.Name;
-         end;
+         return -Cursor.Data.Tokens.Keywords (Cursor.Keyword).Name;
 
       when Terminals_Others =>
-         declare
-            Kind_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Cursor.Data.Tokens.Tokens, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Kind_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return -Item_Ref.Element.Name;
-         end;
+         return -Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Name;
 
       when EOI =>
          return EOI_Name;
@@ -86,12 +65,7 @@ package body WisiToken.BNF.Generate_Utils is
          return WisiToken_Accept_Name;
 
       when Nonterminal =>
-         declare
-            Rule_Ref : constant Rule_Lists.Constant_Reference_Type := Rule_Lists.Constant_Reference
-              (Cursor.Data.Tokens.Rules, Cursor.Nonterminal);
-         begin
-            return -Rule_Ref.Element.Left_Hand_Side;
-         end;
+         return -Cursor.Data.Tokens.Rules (Cursor.Nonterminal).Left_Hand_Side;
 
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
@@ -290,34 +264,14 @@ package body WisiToken.BNF.Generate_Utils is
    is begin
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         declare
-            Token_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Container.Data.Tokens.Non_Grammar, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Token_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return (Element => Item_Ref.Element.all.Name'Access);
-         end;
+         return
+           (Element => Container.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Name'Access);
 
       when Terminals_Keywords =>
-         declare
-            Keyword_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Container.Data.Tokens.Keywords, Cursor.Keyword);
-         begin
-            return (Element => Keyword_Ref.Element.all.Name'Access);
-         end;
+         return (Element => Container.Data.Tokens.Keywords (Cursor.Keyword).Name'Access);
 
       when Terminals_Others =>
-         declare
-            Token_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Container.Data.Tokens.Tokens, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Token_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return (Element => Item_Ref.Element.all.Name'Access);
-         end;
+         return (Element => Container.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Name'Access);
 
       when EOI =>
          return (Element => Aliased_EOI_Name'Access);
@@ -326,12 +280,7 @@ package body WisiToken.BNF.Generate_Utils is
          return (Element => Aliased_WisiToken_Accept_Name'Access);
 
       when Nonterminal =>
-         declare
-            Rule_Ref : constant Rule_Lists.Constant_Reference_Type := Rule_Lists.Constant_Reference
-              (Container.Data.Tokens.Rules, Cursor.Nonterminal);
-         begin
-            return (Element => Rule_Ref.Element.all.Left_Hand_Side'Access);
-         end;
+         return (Element => Container.Data.Tokens.Rules (Cursor.Nonterminal).Left_Hand_Side'Access);
 
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
@@ -385,7 +334,7 @@ package body WisiToken.BNF.Generate_Utils is
             Kind        => Terminals_Keywords,
             ID          => Cursor.Data.Descriptor.First_Terminal,
             Token_Kind  => WisiToken.BNF.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
+            Token_Item  => String_Triple_Lists.No_Element,
             Keyword     => Cursor.Data.Tokens.Keywords.First,
             Nonterminal => Rule_Lists.No_Element);
 
@@ -398,13 +347,13 @@ package body WisiToken.BNF.Generate_Utils is
             Kind        => Terminals_Others,
             ID          => Cursor.ID,
             Token_Kind  => Cursor.Data.Tokens.Tokens.First,
-            Token_Item  => String_Pair_Lists.No_Element,
+            Token_Item  => String_Triple_Lists.No_Element,
             Keyword     => String_Pair_Lists.No_Element,
             Nonterminal => Rule_Lists.No_Element);
 
          if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
             Cursor.Token_Item := Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens.First;
-            return WisiToken.BNF.String_Pair_Lists.Has_Element (Cursor.Token_Item);
+            return WisiToken.BNF.String_Triple_Lists.Has_Element (Cursor.Token_Item);
          else
             return False;
          end if;
@@ -416,7 +365,7 @@ package body WisiToken.BNF.Generate_Utils is
             Kind        => EOI,
             ID          => Cursor.ID,
             Token_Kind  => WisiToken.BNF.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
+            Token_Item  => String_Triple_Lists.No_Element,
             Keyword     => String_Pair_Lists.No_Element,
             Nonterminal => Rule_Lists.No_Element);
 
@@ -430,7 +379,7 @@ package body WisiToken.BNF.Generate_Utils is
                   Kind        => WisiToken_Accept,
                   ID          => Cursor.ID,
                   Token_Kind  => WisiToken.BNF.Token_Lists.No_Element,
-                  Token_Item  => String_Pair_Lists.No_Element,
+                  Token_Item  => String_Triple_Lists.No_Element,
                   Keyword     => String_Pair_Lists.No_Element,
                   Nonterminal => Rule_Lists.No_Element);
             else
@@ -449,7 +398,7 @@ package body WisiToken.BNF.Generate_Utils is
             Kind        => Nonterminal,
             ID          => Cursor.ID,
             Token_Kind  => WisiToken.BNF.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
+            Token_Item  => String_Triple_Lists.No_Element,
             Keyword     => String_Pair_Lists.No_Element,
             Nonterminal => Cursor.Data.Tokens.Rules.First);
 
@@ -476,14 +425,14 @@ package body WisiToken.BNF.Generate_Utils is
          Kind        => Non_Grammar_Kind,
          ID          => Token_ID'First,
          Token_Kind  => Data.Tokens.Non_Grammar.First,
-         Token_Item  => String_Pair_Lists.No_Element,
+         Token_Item  => String_Triple_Lists.No_Element,
          Keyword     => String_Pair_Lists.No_Element,
          Nonterminal => Rule_Lists.No_Element);
    begin
       if Non_Grammar then
          if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
             Cursor.Token_Item := Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens.First;
-            if WisiToken.BNF.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+            if WisiToken.BNF.String_Triple_Lists.Has_Element (Cursor.Token_Item) then
                return Cursor;
             end if;
          end if;
@@ -502,15 +451,15 @@ package body WisiToken.BNF.Generate_Utils is
 
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         String_Pair_Lists.Next (Cursor.Token_Item);
-         if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+         String_Triple_Lists.Next (Cursor.Token_Item);
+         if String_Triple_Lists.Has_Element (Cursor.Token_Item) then
             return;
          else
             WisiToken.BNF.Token_Lists.Next (Cursor.Token_Kind);
 
             if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
                Cursor.Token_Item := Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens.First;
-               if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+               if String_Triple_Lists.Has_Element (Cursor.Token_Item) then
                   return;
                end if;
             end if;
@@ -535,14 +484,14 @@ package body WisiToken.BNF.Generate_Utils is
          return;
 
       when Terminals_Others =>
-         WisiToken.BNF.String_Pair_Lists.Next (Cursor.Token_Item);
-         if WisiToken.BNF.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+         WisiToken.BNF.String_Triple_Lists.Next (Cursor.Token_Item);
+         if WisiToken.BNF.String_Triple_Lists.Has_Element (Cursor.Token_Item) then
             return;
          else
             WisiToken.BNF.Token_Lists.Next (Cursor.Token_Kind);
             if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
                Cursor.Token_Item := Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens.First;
-               if WisiToken.BNF.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+               if WisiToken.BNF.String_Triple_Lists.Has_Element (Cursor.Token_Item) then
                   return;
                end if;
             end if;
@@ -602,13 +551,13 @@ package body WisiToken.BNF.Generate_Utils is
    is begin
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         return -Token_Lists.Constant_Reference (Cursor.Data.Tokens.Non_Grammar, Cursor.Token_Kind).Kind;
+         return -Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Kind;
 
       when Terminals_Keywords =>
          return "keyword";
 
       when Terminals_Others =>
-         return -Token_Lists.Constant_Reference (Cursor.Data.Tokens.Tokens, Cursor.Token_Kind).Kind;
+         return -Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Kind;
 
       when EOI =>
          return "EOI";
@@ -617,7 +566,7 @@ package body WisiToken.BNF.Generate_Utils is
          return "accept";
 
       when Nonterminal =>
-            return "nonterminal";
+         return "nonterminal";
 
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
@@ -628,34 +577,13 @@ package body WisiToken.BNF.Generate_Utils is
    is begin
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         declare
-            Token_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Cursor.Data.Tokens.Non_Grammar, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Token_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return -Item_Ref.Element.Value;
-         end;
+         return -Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
 
       when Terminals_Keywords =>
-         declare
-            Keyword_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Cursor.Data.Tokens.Keywords, Cursor.Keyword);
-         begin
-            return -Keyword_Ref.Element.Value;
-         end;
+         return -Cursor.Data.Tokens.Keywords (Cursor.Keyword).Value;
 
       when Terminals_Others =>
-         declare
-            Token_Ref : constant WisiToken.BNF.Token_Lists.Constant_Reference_Type :=
-              WisiToken.BNF.Token_Lists.Constant_Reference (Cursor.Data.Tokens.Tokens, Cursor.Token_Kind);
-
-            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
-              String_Pair_Lists.Constant_Reference (Token_Ref.Element.Tokens, Cursor.Token_Item);
-         begin
-            return -Item_Ref.Element.Value;
-         end;
+         return -Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
 
       when EOI | WisiToken_Accept | Nonterminal =>
             return "";
@@ -664,6 +592,26 @@ package body WisiToken.BNF.Generate_Utils is
          raise SAL.Programmer_Error with "token cursor is done";
       end case;
    end Value;
+
+   function Repair_Image (Cursor : in Token_Cursor) return String
+   is begin
+      case Cursor.Kind is
+      when Non_Grammar_Kind =>
+         return -Cursor.Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Repair_Image;
+
+      when Terminals_Keywords =>
+         return "";
+
+      when Terminals_Others =>
+         return -Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Repair_Image;
+
+      when EOI | WisiToken_Accept | Nonterminal =>
+            return "";
+
+      when Done =>
+         raise SAL.Programmer_Error with "token cursor is done";
+      end case;
+   end Repair_Image;
 
    function To_Conflicts
      (Data             : aliased in out Generate_Data;
