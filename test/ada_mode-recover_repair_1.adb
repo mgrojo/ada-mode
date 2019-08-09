@@ -24,7 +24,7 @@ begin
       Expecting;
    end if;
 
-   --EMACSCMD:(progn(wisi-repair-errors)(and (looking-at "Expect")(backward-word 1) (looking-at "if")))
-   --EMACSRESULT:t
+   --EMACSCMD:(wisi-repair-errors)
+   -- test is just diff.
 
 end Ada_Mode.Recover_Repair_1;

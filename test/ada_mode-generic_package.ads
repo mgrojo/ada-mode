@@ -159,5 +159,5 @@ package Ada_Mode.Generic_Package is
    --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
    --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;
---EMACSCMD:(progn (end-of-line 0)(backward-char 1)(backward-sexp)(looking-back "^package Ada_Mode.Generic_Package is$"))
+--EMACSCMD:(progn (end-of-line 0)(backward-char 1)(backward-sexp)(looking-back "^package Ada_Mode.Generic_Package "))
 --EMACSRESULT:t

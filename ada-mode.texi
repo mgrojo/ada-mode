@@ -19,7 +19,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs editing modes
+@dircategory Emacs
 @direntry
 * Ada mode: (ada-mode).         Emacs mode for editing and navigating Ada code.
 @end direntry
@@ -37,10 +37,6 @@ developing GNU and promoting software freedom.''
 @node Top, Overview, (dir), (dir)
 
 Ada Mode Version 6.1.1
-
-@ifnottex
-@insertcopying
-@end ifnottex
 
 @menu
 * Overview::
@@ -2188,40 +2184,7 @@ functions for C++.
 @node Wisi,  , GNAT core, Package organization
 @subsection Wisi
 
-The ``wisi'' parser. ``wisi'' used to be an acronym, but now it's just
-a name.
-
-@table @file
-@item wisi.el
-Implements the lexer, the main parser driver,
-parser actions that cache parser information in text properties,
-utilities for indenting and navigating using the cached information,
-and general setup.
-
-@item wisi-compile.el
-Implements the parse table
-compiler. @file{wisi-generate.exe} processes the grammar source
-@file{*.wy} into an elisp source representation of a parse table
-@file{*-wy.el}. That is compiled into an internal structure containing
-the state transitions and executable actions. The actions can be any
-elisp form; the intent is that they be calls to the action functions
-provided by @file{wisi.el}.
-
-@item wisi-parse.el
-Implements the generalized LALR parser.
-@end table
-
-@node OpenToken, ELPA, Package organization, Developer overview
-@section OpenToken
-Ada mode uses the OpenToken tool @file{wisi-generate.exe} to process
-the grammar sources into elisp parse tables. See
-@uref{http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html} for
-current information about which version of OpenToken is required, and
-how to get it.
-
-The Makefile variable @code{WISI_OPENTOKEN} gives the path to the
-build directory for OpenToken; you probably need to override it with
-an external environment variable or on the @code{make} command line.
+The ``wisi'' parser. @xref(Overview, Overview, Overview, wisi).
 
 @node ELPA,  , OpenToken, Developer overview
 @section ELPA

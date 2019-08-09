@@ -4,9 +4,9 @@
 --
 --  References
 --
---  [1] wisi.el - defines parse action functions.
+--  [1] wisi-parse-common.el - defines common stuff.
 --
---  [2] wisi-elisp-parse.el - defines parse action functions.
+--  [2] wisi.texi - defines parse action functions.
 --
 --  [3] wisi-process-parse.el - defines elisp/process API
 --
@@ -95,6 +95,7 @@ package Wisi is
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array);
+   --  Implements [2] wisi-statement-action.
 
    procedure Name_Action
      (Data    : in out Parse_Data_Type;
@@ -102,14 +103,7 @@ package Wisi is
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
       Name    : in     WisiToken.Positive_Index_Type);
-
-   procedure Containing_Action
-     (Data       : in out Parse_Data_Type;
-      Tree       : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm    : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens     : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Containing : in     WisiToken.Positive_Index_Type;
-      Contained  : in     WisiToken.Positive_Index_Type);
+   --  Implements [2] wisi-name-action.
 
    type Index_ID is record
       Index : WisiToken.Positive_Index_Type; -- into Tokens
@@ -164,7 +158,6 @@ package Wisi is
    --  Implements [2] wisi-face-apply-list-action.
 
    type Face_Class_Type is (Prefix, Suffix);
-   --  Matches wisi-cache-class values set in [1] wisi-face-apply-action.
 
    type Index_Face_Class is record
       Index : WisiToken.Positive_Index_Type; -- into Tokens
@@ -323,10 +316,10 @@ package Wisi is
       Option            : in     Boolean;
       Accumulate        : in     Boolean)
      return Delta_Type;
-   --  [2] wisi-elisp-parse--hanging-1
+   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging%-.
    --
-   --  Language specific child packages override this to implement
-   --  wisi-elisp-parse-indent-hanging-function.
+   --  Language specific child packages may override this to implement
+   --  language-specific cases.
 
    ----------
    --  Other
@@ -509,7 +502,7 @@ private
 
    type Face_Cache_Type is record
       Region : WisiToken.Buffer_Region;
-      Class  : Face_Class_Type; -- wisi-cache-class; one of {'prefix | 'suffix}
+      Class  : Face_Class_Type;
       Face   : Nil_Integer;     -- not set, or index into *-process-faces-names
    end record;
 

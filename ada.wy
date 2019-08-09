@@ -38,7 +38,6 @@
 ;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
 
-%generate LALR elisp elisp
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
 
@@ -154,20 +153,17 @@
 ;; this (sigh).
 %token <punctuation> TICK_1 "'"
 
-%if lexer = re2c
-%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
-%end if
+%token <regexp> TICK_2
+    %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+  "'"
 
-%if lexer = elisp
-%token <number> NUMERIC_LITERAL ada-wisi-number-p
-%end if
-%if lexer = re2c
 ;; This regexp allows a lot of things that are not Ada numeric
 ;; literals, but it's faster than a strictly conforming regexp. For
 ;; non-based literals, force a trailing integer so (1..Length) is
 ;; parsed correctly.
-%token <number> NUMERIC_LITERAL %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
-%end if
+%token <regexp> NUMERIC_LITERAL
+    %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+  "1234567890"
 
 ;; non_grammar are not seen by the elisp lexer, but are needed by the re2c lexer
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
@@ -183,10 +179,15 @@
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER
     %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
+  "A_Bogus_Identifier"
 
-%token <string-double> STRING_LITERAL %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
+%token <string-double> STRING_LITERAL
+    %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
+  '""'
 
-%token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+%token <string-single> CHARACTER_LITERAL
+    %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+  "' '"
 
 %start compilation_unit_list
 
@@ -2563,9 +2564,7 @@ term_list
 
 tick
   : TICK_1
-%if lexer = re2c
   | TICK_2
-%end if
   ;
 
 timed_entry_call

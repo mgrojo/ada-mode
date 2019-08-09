@@ -735,6 +735,9 @@ Function is called with one optional argument; syntax-ppss result.")
   (when ada-in-paramlist-p
     (funcall ada-in-paramlist-p parse-result)))
 
+(defvar ada-refactor-format-paramlist nil) ;; ada-wisi.el
+(declare-function ada-wisi-refactor "ada-wisi.el" (action))
+
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
   (interactive)
@@ -1681,7 +1684,7 @@ Deselects the current project first."
     (modify-syntax-entry ?\" "\"" table)
 
     ;; punctuation; operators etc
-    (modify-syntax-entry ?#  "." table); based number - ada-wisi-number-literal-p requires this syntax
+    (modify-syntax-entry ?#  "." table); based number
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
@@ -2839,12 +2842,7 @@ simple: indent to previous line.")
 
 (add-hook 'menu-bar-update-hook #'ada-project-menu-install)
 
-(require 'ada-build)
-
-(cl-case ada-fallback
-  (simple
-   (require 'ada-wisi))
-  )
+(require 'ada-wisi)
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))

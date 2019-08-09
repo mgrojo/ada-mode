@@ -23,12 +23,11 @@
 ;;
 ;;;;
 
-(require 'ada-lalr-elisp)
 (require 'ada-fix-error)
 (require 'ada-indent-user-options)
+(require 'ada-process)
 (require 'cl-lib)
 (require 'wisi)
-(require 'wisi-elisp-lexer)
 (require 'wisi-process-parse)
 
 (defconst ada-wisi-language-protocol-version "2"
@@ -542,12 +541,12 @@ Point must be in Object"
 		      generic_subprogram_declaration ;; after 'generic'
 		      null_procedure_declaration)
 		     (setq result (ada-wisi-which-function-1
-				   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
 				   nil))) ;; no 'body' keyword in subprogram bodies
 
 		    (subprogram_body
 		     (setq result (ada-wisi-which-function-1
-				   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
 				   nil)))
 
 		    ((single_task_declaration task_type_declaration)
@@ -559,91 +558,6 @@ Point must be in Object"
 		    ))
 		result)))
 	(error "")))
-    ))
-
-(defun ada-wisi-number-p (token-text)
-  "Return t if TOKEN-TEXT plus text after point matches the
-syntax for a numeric literal; otherwise nil. point is after
-TOKEN-TEXT; move point to just past token."
-  ;; test in test/wisi/ada-number-literal.input
-  ;;
-  ;; starts with a simple integer
-  (let ((end (point)))
-    ;; this first test must be very fast; it is executed for every token
-    (when (and (memq (aref token-text 0) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-	       (string-match "^[0-9_]+$" token-text))
-      (cond
-       ((= (char-after) ?#)
-	;; based number
-	(forward-char 1)
-	(if (not (looking-at "[0-9a-fA-F_]+"))
-	    (progn (goto-char end) nil)
-
-	  (goto-char (match-end 0))
-	  (cond
-	   ((= (char-after) ?#)
-	    ;; based integer
-	    (forward-char 1)
-	    t)
-
-	   ((= (char-after) ?.)
-	    ;; based real?
-	    (forward-char 1)
-	    (if (not (looking-at "[0-9a-fA-F]+"))
-		(progn (goto-char end) nil)
-
-	      (goto-char (match-end 0))
-
-	      (if (not (= (char-after) ?#))
-		  (progn (goto-char end) nil)
-
-		(forward-char 1)
-		(setq end (point))
-
-		(if (not (memq (char-after) '(?e ?E)))
-		    ;; based real, no exponent
-		    t
-
-		  ;; exponent?
-		  (forward-char 1)
-		  (if (not (looking-at "[+-]?[0-9]+"))
-		      (progn (goto-char end) t)
-
-		    (goto-char (match-end 0))
-		    t
-		)))))
-
-	   (t
-	    ;; missing trailing #
-	    (goto-char end) nil)
-	   )))
-
-       ((= (char-after) ?.)
-	;; decimal real number?
-	(forward-char 1)
-	(if (not (looking-at "[0-9_]+"))
-	    ;; decimal integer
-	    (progn (goto-char end) t)
-
-	  (setq end (goto-char (match-end 0)))
-
-	  (if (not (memq (char-after) '(?e ?E)))
-	      ;; decimal real, no exponent
-	      t
-
-	    ;; exponent?
-	    (forward-char 1)
-	    (if (not (looking-at "[+-]?[0-9]+"))
-		(progn (goto-char end) t)
-
-	      (goto-char (match-end 0))
-	      t
-	      ))))
-
-       (t
-	;; just an integer
-	t)
-       ))
     ))
 
 (cl-defstruct (ada-wisi-parser (:include wisi-process--parser))
@@ -706,9 +620,7 @@ TOKEN-TEXT; move point to just past token."
   (cond
    ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
-     (lambda ()
-       (or (ada-in-string-or-comment-p)
-	   (eq 'ACCESS (wisi-tok-token (save-excursion (wisi-backward-token)))))))
+     #'ada-in-string-or-comment-p)
 
     (let ((found (match-string 0))
 	  cache)
@@ -829,61 +741,24 @@ Point must have been set by `ada-wisi-find-begin'."
    ))
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
-(defvar ada-process-token-table nil) ;; ada-process.el
-(defvar ada-process-face-table nil) ;; ada-process.el
-
-(defvar wisi-elisp-parse-indent-hanging-function nil); wisi-elisp-parse.el
-
-(declare-function wisi-make-elisp-parser "wisi-elisp-parse") ;; autoloaded
-(declare-function ada-wisi-elisp-parse--indent-hanging "ada-wisi-elisp-parse")
 
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (let ((parser
-	 (cond
-	  ((or (null ada-parser)
-	       (eq 'elisp ada-parser))
+  (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
-	   (require 'ada-wisi-elisp-parse)
-
-	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
-
-	   (wisi-make-elisp-parser
-	    ada-lalr-elisp-parse-table
-	    #'wisi-forward-token)
-	   )
-
-	  ((eq 'process ada-parser)
-	   (require 'ada-process)
-	   (wisi-process-parse-get
-	    (make-ada-wisi-parser
-	     :label "Ada"
-	     :language-protocol-version ada-wisi-language-protocol-version
-	     :exec-file ada-process-parse-exec
-	     :exec-opts ada-process-parse-exec-opts
-	     :face-table ada-process-face-table
-	     :token-table ada-process-token-table)))
-	  ))
-
-	(lexer
-	 ;; The process parser has its own lexer, but we still need
-	 ;; the elisp lexer for ada-wisi-scan-paramlist,
-	 ;; ada-wisi-which-function, etc.
-	 (wisi-make-elisp-lexer
-	  :token-table-raw ada-lalr-elisp-token-table-raw
-	  :keyword-table-raw ada-lalr-elisp-keyword-table-raw
-	  :string-quote-escape-doubled t
-	  :string-quote-escape nil))
-	)
-
-    (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
-
-    (wisi-setup
-     :indent-calculate '(ada-wisi-comment)
-     :post-indent-fail 'ada-wisi-post-parse-fail
-     :parser parser
-     :lexer lexer)
-    )
+  (wisi-setup
+   :indent-calculate '(ada-wisi-comment)
+   :post-indent-fail 'ada-wisi-post-parse-fail
+   :parser
+   (wisi-process-parse-get
+    (make-ada-wisi-parser
+     :label "Ada"
+     :language-protocol-version ada-wisi-language-protocol-version
+     :exec-file ada-process-parse-exec
+     :exec-opts ada-process-parse-exec-opts
+     :face-table ada-process-face-table
+     :token-table ada-process-token-table
+     :repair-image ada-process-repair-image)))
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
@@ -911,7 +786,6 @@ Point must have been set by `ada-wisi-find-begin'."
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-on-context-clause 'ada-wisi-on-context-clause)
 (setq ada-reset-parser 'wisi-reset-parser)
-(setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
 (setq ada-show-parse-error 'wisi-show-parse-error)
 (setq ada-which-function 'ada-wisi-which-function)
 

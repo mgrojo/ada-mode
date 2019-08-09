@@ -164,17 +164,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (error nil))
     (setq test-refactor-markers nil)))
 
-(defun test-moom (search-string refactor-string)
-  "Refactor method (object ...) to object.method (...)"
-  (test-refactor-1 ada-refactor-method-object-to-object-method
-		   ada-refactor-object-method-to-method-object
-		   search-string refactor-string))
-
-(defun test-oieo (search-string refactor-string)
-  (test-refactor-1 ada-refactor-object-index-to-element-object
-		   ada-refactor-element-object-to-object-index
-		   search-string refactor-string))
-
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)

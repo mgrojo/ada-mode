@@ -387,7 +387,7 @@ complete."
     ))
 
 (defun wisi-process-parse--Recover (parser sexp)
-  ;; sexp is [Recover [pos [inserted] [deleted]]...]
+  ;; sexp is [Recover [pos [inserted] [deleted] deleted-region]...]
   ;; see ‘wisi-process-parse--execute’
   ;; convert to list of wisi--parse-error-repair, add to last error
   (let* ((token-table (wisi-process--parser-token-table parser))
@@ -398,7 +398,8 @@ complete."
 	 (make-wisi--parse-error-repair
 	  :pos (aref (aref sexp i) 0)
 	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
-	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2)))
+	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
+	  :deleted-region (aref (aref sexp i) 3))
 	 (wisi--parse-error-repair last-error)))
       )))
 
@@ -459,7 +460,7 @@ complete."
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Recover [pos [inserted] [deleted]]...]
+  ;; [Recover [pos [inserted] [deleted] deleted-region]...]
   ;;    The parser finished a successful error recovery.
   ;;
   ;;    pos: Buffer position
@@ -468,6 +469,8 @@ complete."
   ;;    before pos.
   ;;
   ;;    deleted: Tokens deleted after pos.
+  ;;
+  ;;    deleted-region: source buffer region containing deleted tokens
   ;;
   ;;    Args are token ids; index into parser-token-table. Save the
   ;;    information for later use by ’wisi-repair-error’.

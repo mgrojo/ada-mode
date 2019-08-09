@@ -20,7 +20,7 @@
 with Gpr_Process_Actions; use Gpr_Process_Actions;
 with WisiToken.Lexer.re2c;
 with gpr_re2c_c;
-package body Gpr_Process_LR1_Main is
+package body Gpr_Process_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
      (gpr_re2c_c.New_Lexer,
@@ -2349,4 +2349,4 @@ package body Gpr_Process_LR1_Main is
          Max_Parallel         => 15,
          Terminate_Same_State => True);
    end Create_Parser;
-end Gpr_Process_LR1_Main;
+end Gpr_Process_Main;

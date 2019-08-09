@@ -369,115 +369,133 @@ package body Wisi is
       Descriptor                    : in WisiToken.Descriptor;
       Embedded_Quote_Escape_Doubled : in Boolean)
    is
-      use Ada.Containers;
       use Ada.Strings.Unbounded;
       use Parse.LR;
       use Parse.LR.Config_Op_Arrays, Parse.LR.Config_Op_Array_Refs;
 
-      Line    : Unbounded_String := To_Unbounded_String ("[");
-      Last_Op : Config_Op        := (Fast_Forward, WisiToken.Token_Index'Last);
+      --  Output is a sequence of edit regions; each is:
+      --  [edit-pos [inserted token-ids] [deleted token-ids] deleted-region]
 
+      type State_Label is
+        (None,     -- not started yet
+         Inserted, -- edit-pos, some insert ids appended
+         Deleted); -- some delete ids appended
+
+      State : State_Label := None;
+      --  State of the current edit region.
+
+      Line           : Unbounded_String := To_Unbounded_String ("[");
+      Deleted_Region : Buffer_Region    := Null_Buffer_Region;
+      Last_Deleted : Config_Op (Delete) := (Delete, Invalid_Token_ID, Invalid_Token_Index);
+
+      procedure Start_Edit_Region (Op : in Insert_Delete_Op)
+      is begin
+         Append (Line, "[");
+         Append (Line, Buffer_Pos'Image (Terminals (WisiToken.Parse.LR.Token_Index (Op)).Char_Region.First));
+         Append (Line, "[");
+      end Start_Edit_Region;
+
+      function Deleted_Region_Image return String
+      is begin
+         return "(" & Deleted_Region.First'Image & " . " & Buffer_Pos'Image (Deleted_Region.Last + 1) & ")";
+      end Deleted_Region_Image;
+
+      procedure Terminate_Edit_Region
+      is begin
+         case State is
+         when None =>
+            null;
+         when Inserted =>
+            Append (Line, "][]" & Deleted_Region_Image & "]");
+         when Deleted =>
+            Append (Line, "]" & Deleted_Region_Image & "]");
+         end case;
+         Deleted_Region := Null_Buffer_Region;
+      end Terminate_Edit_Region;
    begin
       if Trace_Action > Detail then
          Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item.Ops, Descriptor));
       end if;
 
       Append (Line, Recover_Code);
-      if Length (Item.Ops) = 0 then
-         Append (Line, "]");
+      for I in First_Index (Item.Ops) .. Last_Index (Item.Ops) loop
+         declare
+            Op : Config_Op renames Constant_Ref (Item.Ops, I);
+         begin
+            case Op.Op is
+            when Fast_Forward =>
+               Terminate_Edit_Region;
+               State := None;
 
-      else
-         for I in First_Index (Item.Ops) .. Last_Index (Item.Ops) loop
-            declare
-               Op : Config_Op renames Constant_Ref (Item.Ops, I);
-            begin
-               case Op.Op is
-               when Fast_Forward =>
-                  if Last_Op.Op in Insert then
-                     Append (Line, "][]]");
-                  elsif Last_Op.Op in Delete then
-                     Append (Line, "]]");
-                  end if;
+            when Undo_Reduce | Push_Back =>
+               null;
 
-                  Last_Op := Op;
+            when Insert =>
+               case State is
+               when None =>
+                  Start_Edit_Region (Op);
 
-               when Undo_Reduce | Push_Back =>
+               when Inserted =>
                   null;
 
-               when Insert =>
-                  if Last_Op.Op = Fast_Forward then
-                     Append (Line, "[");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
-                     Append (Line, "[");
+               when Deleted =>
+                  Terminate_Edit_Region;
+                  Start_Edit_Region (Op);
 
-                  elsif Last_Op.Op = Delete then
-                     Append (Line, "]][");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
-                     Append (Line, "[");
-
-                  else
-                     --  Last_Op.Op = Insert
-                     null;
-                  end if;
-                  Append (Line, Token_ID'Image (Op.Ins_ID));
-
-                  Last_Op := Op;
-
-               when Delete =>
-                  declare
-                     Skip : Boolean := False;
-                  begin
-                     if Last_Op.Op = Fast_Forward then
-                        Append (Line, "[");
-                        Append (Line, Buffer_Pos'Image (Terminals (Op.Del_Token_Index).Char_Region.First));
-                        Append (Line, "[][");
-
-                     elsif Last_Op.Op = Insert then
-                        Append (Line, "][");
-
-                     elsif Last_Op.Op = Delete then
-                        if Embedded_Quote_Escape_Doubled and then
-                          ((Last_Op.Del_ID = Descriptor.String_1_ID and Op.Del_ID = Descriptor.String_1_ID) or
-                             (Last_Op.Del_ID = Descriptor.String_2_ID and Op.Del_ID = Descriptor.String_2_ID))
-                        then
-                           declare
-                              Tok_1 : Augmented_Token renames Terminals (Last_Op.Del_Token_Index);
-                              Tok_2 : Augmented_Token renames Terminals (Op.Del_Token_Index);
-                           begin
-                              if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
-                                 --  Buffer text was '"""', lexer repair changed it to '""""'. The
-                                 --  repaired text looks like a single string with an embedded quote.
-                                 --  But here, it is two STRING_LITERAL tokens. Don't send the second
-                                 --  delete to elisp. See test/ada_mode-recover_string_quote_1.adb
-                                 Skip := True;
-                              end if;
-                           end;
-                        end if;
-
-                     end if;
-
-                     if not Skip then
-                        Append (Line, Token_ID'Image (Op.Del_ID));
-                     end if;
-                  end;
-                  Last_Op := Op;
                end case;
-            end;
-         end loop;
+               Append (Line, Token_ID'Image (Op.Ins_ID));
+               State := Inserted;
 
-         case Last_Op.Op is
-         when Fast_Forward =>
-            Append (Line, "]");
+            when Delete =>
+               Deleted_Region := Deleted_Region and Terminals (Op.Del_Token_Index).Char_Region;
+               declare
+                  Skip : Boolean := False;
+               begin
+                  case State is
+                  when None =>
+                     Start_Edit_Region (Op);
+                     Append (Line, "][");
 
-         when Undo_Reduce | Push_Back =>
-            null;
+                  when Inserted =>
+                     Append (Line, "][");
 
-         when Insert =>
-            Append (Line, "][]]]");
-         when Delete =>
-            Append (Line, "]]]");
-         end case;
-      end if;
+                  when Deleted =>
+                     if Embedded_Quote_Escape_Doubled and then
+                       ((Last_Deleted.Del_ID = Descriptor.String_1_ID and Op.Del_ID = Descriptor.String_1_ID) or
+                          (Last_Deleted.Del_ID = Descriptor.String_2_ID and Op.Del_ID = Descriptor.String_2_ID))
+                     then
+                        declare
+                           Tok_1 : Augmented_Token renames Terminals (Last_Deleted.Del_Token_Index);
+                           Tok_2 : Augmented_Token renames Terminals (Op.Del_Token_Index);
+                        begin
+                           if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
+                              --  Buffer text was '"""', lexer repair changed it to '""""'. The
+                              --  repaired text looks like a single string with an embedded quote.
+                              --  But here, it is two STRING_LITERAL tokens. Don't send the second
+                              --  delete to elisp. See test/ada_mode-recover_string_quote_1.adb
+                              Skip := True;
+                           end if;
+                        end;
+                     end if;
+                  end case;
+                  State := Deleted;
+
+                  if not Skip then
+                     Append (Line, Token_ID'Image (Op.Del_ID));
+                  end if;
+               end;
+               Last_Deleted := Op;
+            end case;
+         end;
+      end loop;
+
+      case State is
+      when None =>
+         null;
+      when Inserted | Deleted =>
+         Terminate_Edit_Region;
+      end case;
+      Append (Line, "]");
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
 
@@ -1090,19 +1108,6 @@ package body Wisi is
       end;
    end Name_Action;
 
-   procedure Containing_Action
-     (Data       : in out Parse_Data_Type;
-      Tree       : in     Syntax_Trees.Tree;
-      Nonterm    : in     Syntax_Trees.Valid_Node_Index;
-      Tokens     : in     Syntax_Trees.Valid_Node_Index_Array;
-      Containing : in     Positive_Index_Type;
-      Contained  : in     Positive_Index_Type)
-   is
-      pragma Unreferenced (Data, Tree, Nonterm, Tokens, Containing, Contained);
-   begin
-      null;
-   end Containing_Action;
-
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     Syntax_Trees.Tree;
@@ -1224,7 +1229,6 @@ package body Wisi is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [2] wisi-face-apply-action
       use Face_Cache_Trees;
 
       Iter       : constant Iterator := Data.Face_Caches.Iterate;
@@ -1322,7 +1326,6 @@ package body Wisi is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [2] wisi-face-apply-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -1541,7 +1544,6 @@ package body Wisi is
    is
       Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
    begin
-      --  [2] wisi-elisp-parse--hanging-1
       if Indenting_Comment then
          return Indent_Compute_Delta
            (Data, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment);
@@ -1749,7 +1751,6 @@ package body Wisi is
       Put (Lexer_Errors);
 
       for Item of Parse_Errors loop
-         --  We don't include parser id here; not very useful.
          case Item.Label is
          when Parse.LR.Action =>
             Put_Line

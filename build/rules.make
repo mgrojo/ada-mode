@@ -3,9 +3,6 @@
 ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
-ADA_ELISP_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ADA_ELISP_TEST_FILES := $(filter-out ada_mode-refactor%, $(ADA_ELISP_TEST_FILES))
-
 GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
@@ -14,13 +11,11 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 .PHONY : all force one test test-clean
 
-vpath %.adb   ../test ../test/subdir ../test/wisi
-vpath %.ads   ../test ../test/subdir ../test/wisi
-vpath %.re2c  ../test/wisi
-vpath %.el    ../ ../test/wisi
+vpath %.adb   ../test ../test/subdir
+vpath %.ads   ../test ../test/subdir
 vpath %.gpr   ../test/gpr
 vpath %.input ../test/wisi
-vpath %.wy    ../ ../test/wisi
+vpath %.wy    ../
 
 # emacs to test with
 #
@@ -41,26 +36,13 @@ gpr-skel.gpr.tmp :
 %.diff-run : % %.tmp
 	-diff -u $< $*.tmp
 
-%.wisi-test : %-lalr-elisp.el
-	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
-
-# for ../test/wisi/*.wy
-%_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
-	gprbuild -p wisi_parse.gpr $<
-
-run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
-	gprbuild -p wisi_parse.gpr $<
-
-%-lalr-elisp.el : %.wy $(WISITOKEN_GENERATE)
-	cd ./$(<D); $(WISITOKEN_GENERATE) --generate LALR Elisp Elisp $(<F)
-
 # for building only this
 ../run_ada_%_parse.exe : ../run_ada_%_parse.ads ../ada_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
-	rm -f ../*-wy.el ../*.elc
+	rm -f ../*.elc
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.

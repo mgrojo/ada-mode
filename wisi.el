@@ -98,22 +98,10 @@
 ;;   than we need. Finally, the semantic parser does not support error
 ;;   correction, and thus fails in most editing situations.
 ;;
-;; We use wisitoken wisi-generate to compile BNF to Elisp source, and
-;; wisi-compile-grammar to compile that to the parser table. See
-;; ada-mode info for more information on the developer tools used for
-;; ada-mode and wisi.
+;; We use the WisiToken tool wisi-bnf-generate to compile BNF or EBNF
+;; to Ada source, See ada-mode.info and wisi.info for more information
+;; on the developer tools used for ada-mode and wisi.
 ;;
-;; Alternately, to gain speed and error handling, we use wisi-generate
-;; to generate Ada source, and run that in an external process. That
-;; supports error correction while parsing.
-;;
-;;;; syntax-propertize
-;;
-;; `wisi-forward-token' relies on syntax properties, so
-;; `syntax-propertize' must be called on the text to be lexed before
-;; wisi-forward-token is called. Emacs >= 25 calls syntax-propertize
-;; transparently in the low-level lexer functions.
-
 ;;; Code:
 
 (require 'cl-lib)
@@ -121,7 +109,6 @@
 (require 'seq)
 (require 'semantic/lex)
 (require 'wisi-parse-common)
-(require 'wisi-elisp-lexer)
 (require 'wisi-fringe)
 (require 'xref)
 
@@ -146,7 +133,7 @@ and parse the whole buffer."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-partial-parse-threshold)
 
-(defcustom wisi-indent-context-lines 10
+(defcustom wisi-indent-context-lines 0
   "Minimum number of lines before point to include in a parse for indent.
 Increasing this will give better results when in the middle of a
 deeply nested statement, but worse in some situations."
@@ -859,29 +846,6 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with class %s not found" class)))
     cache))
 
-(defun wisi-forward-find-token (token limit &optional noerror)
-  "Search forward for TOKEN.
-If point is at a matching token, return that token.  TOKEN may be
-a list; stop on any member of the list.  Return `wisi-tok'
-struct, or if LIMIT (a buffer position) is reached, then if
-NOERROR is nil, throw an error, if non-nil, return nil."
-  (let ((token-list (cond
-		     ((listp token) token)
-		     (t (list token))))
-	(tok (wisi-forward-token))
-	(done nil))
-    (while (not (or done
-		    (memq (wisi-tok-token tok) token-list)))
-      (setq tok (wisi-forward-token))
-      (when (or (>= (point) limit)
-		(eobp))
-	(goto-char limit)
-	(setq tok nil)
-	(if noerror
-	    (setq done t)
-	  (error "token %s not found" token))))
-    tok))
-
 (defun wisi-forward-find-cache-token (ids limit)
   "Search forward for a cache with token in IDS (a list of token ids).
 Return cache, or nil if at LIMIT or end of buffer."
@@ -1287,24 +1251,18 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
 (defun wisi-repair-error-1 (data)
   "Repair error reported in DATA (a ’wisi--parse-error’ or ’wisi--lexer-error’)"
-  (let ((wisi--parse-action 'navigate) ;; tell wisi-forward-token not to compute indent stuff.
-	tok-2)
+  (let ((wisi--parse-action 'navigate))
     (cond
      ((wisi--lexer-error-p data)
       (goto-char (1+ (wisi--lexer-error-pos data)))
       (insert (wisi--lexer-error-inserted data)))
      ((wisi--parse-error-p data)
       (dolist (repair (wisi--parse-error-repair data))
-	(goto-char (wisi--parse-error-repair-pos repair))
-	(dolist (tok-1 (wisi--parse-error-repair-deleted repair))
-	  (setq tok-2 (wisi-forward-token))
-	  (if (eq tok-1 (wisi-tok-token tok-2))
-	      (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
-	    (error "mismatched tokens: %d: parser %s, buffer %s %s"
-		   (point) tok-1 (wisi-tok-token tok-2) (wisi-tok-region tok-2))))
-
+	(when (< 0 (length (wisi--parse-error-repair-deleted repair)))
+	  (delete-region (car (wisi--parse-error-repair-deleted-region repair))
+			 (cdr (wisi--parse-error-repair-deleted-region repair))))
 	(dolist (id (wisi--parse-error-repair-inserted repair))
-	  (insert (cdr (assoc id (wisi-elisp-lexer-id-alist wisi--lexer))))
+	  (insert (cdr (assoc id (wisi-parser-repair-image wisi--parser))))
 	  (insert " "))
 	))
      )))
@@ -1596,13 +1554,12 @@ If non-nil, only repair errors in BEG END region."
 
 ;;;;; setup
 
-(cl-defun wisi-setup (&key indent-calculate post-indent-fail parser lexer)
+(cl-defun wisi-setup (&key indent-calculate post-indent-fail parser)
   "Set up a buffer for parsing files with wisi."
   (when wisi--parser
     (wisi-kill-parser))
 
   (setq wisi--parser parser)
-  (setq wisi--lexer lexer)
   (setq wisi--cached-regions
 	(list
 	 (cons 'face nil)

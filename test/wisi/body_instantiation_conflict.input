@@ -1,5 +1,0 @@
--- Just parse successfully
-procedure Proc_1 (arg_1)
-is begin null end;
-
-procedure Inst_1 is new Gen_Proc_1 (arg_1);

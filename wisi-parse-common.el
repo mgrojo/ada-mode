@@ -31,6 +31,7 @@
   pos ;; position (integer) in buffer where insert/delete is done.
   inserted ;; list of token IDs that were inserted before pos
   deleted  ;; list of token IDs that were deleted after pos
+  deleted-region ;; buffer (cons FIRST LAST) region deleted
   )
 
 (cl-defstruct (wisi--parse-error)
@@ -51,6 +52,9 @@
   parse-errors
   ;; List of wisi--parse-errors from last parse. Can be more than one if
   ;; parser supports error recovery.
+
+  repair-image
+  ;; alist of (TOKEN-ID . STRING); used by repair error
 )
 
 (cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))

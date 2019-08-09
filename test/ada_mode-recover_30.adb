@@ -2,6 +2,8 @@
 -- complained that the LR1 parser has a stack more than 50 deep. So we
 -- increased the recover stack size.
 
+--EMACSCMD:(setq skip-recase-test t)
+
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
@@ -53,26 +55,26 @@ package body Wisi is
    function Image (Indent : in Indent_Type) return String
    is begin
       case Indent.Label is
-      when Not_Set =>
-         return "(" & Indent_Label'Image (Indent.Label) & ")";
+         when Not_Set =>
+            return "(" & Indent_Label'Image (Indent.Label) & ")";
 
-      when Int =>
-         return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Int_Indent) & ")";
+         when Int =>
+            return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Int_Indent) & ")";
 
-      when Anchor_Nil =>
-         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Nil_IDs) & ", nil)";
+         when Anchor_Nil =>
+            return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Nil_IDs) & ", nil)";
 
-      when Anchor_Int =>
-         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Int_IDs) & ", " & Integer'Image
-           (Indent.Anchor_Int_Indent) & ")";
+         when Anchor_Int =>
+            return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Int_IDs) & ", " & Integer'Image
+              (Indent.Anchor_Int_Indent) & ")";
 
-      when Anchored =>
-         return "(" & Indent_Label'Image (Indent.Label) & ", " & Integer'Image (Indent.Anchored_ID) & ", " &
-           Integer'Image (Indent.Anchored_Delta) & ")";
+         when Anchored =>
+            return "(" & Indent_Label'Image (Indent.Label) & ", " & Integer'Image (Indent.Anchored_ID) & ", " &
+              Integer'Image (Indent.Anchored_Delta) & ")";
 
-      when Anchor_Anchored =>
-         return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Anchored_IDs) & Integer'Image
-           (Indent.Anchor_Anchored_ID) & ", " & Integer'Image (Indent.Anchor_Anchored_Delta) & ")";
+         when Anchor_Anchored =>
+            return "(" & Indent_Label'Image (Indent.Label) & ", " & Image (Indent.Anchor_Anchored_IDs) & Integer'Image
+              (Indent.Anchor_Anchored_ID) & ", " & Integer'Image (Indent.Anchor_Anchored_Delta) & ")";
       end case;
    end Image;
 
@@ -84,33 +86,33 @@ package body Wisi is
       --  [2] wisi-elisp-parse--apply-anchored; add Delta_Indent to Indent
 
       case Indent.Label is
-      when Not_Set =>
-         Indent := (Anchored, Delta_Indent.Anchored_ID, Delta_Indent.Anchored_Delta);
+         when Not_Set =>
+            Indent := (Anchored, Delta_Indent.Anchored_ID, Delta_Indent.Anchored_Delta);
 
-      when Int =>
-         if Delta_Indent.Anchored_Accumulate then
-            Indent := (Anchored, Delta_Indent.Anchored_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
-         end if;
+         when Int =>
+            if Delta_Indent.Anchored_Accumulate then
+               Indent := (Anchored, Delta_Indent.Anchored_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
+            end if;
 
-      when Anchor_Nil =>
-         Indent :=
-           (Anchor_Anchored,
-            Indent.Anchor_Nil_IDs,
-            Delta_Indent.Anchored_ID,
-            Delta_Indent.Anchored_Delta);
-
-      when Anchor_Int =>
-         if Delta_Indent.Anchored_Accumulate then
+         when Anchor_Nil =>
             Indent :=
               (Anchor_Anchored,
-               Indent.Anchor_Int_IDs,
+               Indent.Anchor_Nil_IDs,
                Delta_Indent.Anchored_ID,
-               Delta_Indent.Anchored_Delta + Indent.Anchor_Int_Indent);
-         end if;
+               Delta_Indent.Anchored_Delta);
 
-      when Anchored | Anchor_Anchored =>
-         --  already anchored
-         null;
+         when Anchor_Int =>
+            if Delta_Indent.Anchored_Accumulate then
+               Indent :=
+                 (Anchor_Anchored,
+                  Indent.Anchor_Int_IDs,
+                  Delta_Indent.Anchored_ID,
+                  Delta_Indent.Anchored_Delta + Indent.Anchor_Int_Indent);
+            end if;
+
+         when Anchored | Anchor_Anchored =>
+            --  already anchored
+            null;
       end case;
    end Indent_Apply_Anchored;
 
@@ -118,23 +120,23 @@ package body Wisi is
    is begin
       --  [2] wisi-elisp-parse--apply-int; add an Int indent to Indent
       case Indent.Label is
-      when Not_Set =>
-         Indent := (Int, Offset);
+         when Not_Set =>
+            Indent := (Int, Offset);
 
-      when Int =>
-         Indent.Int_Indent := Indent.Int_Indent + Offset;
+         when Int =>
+            Indent.Int_Indent := Indent.Int_Indent + Offset;
 
-      when Anchor_Nil         =>
-         Indent :=
-           (Label             => Anchor_Int,
-            Anchor_Int_IDs    => Indent.Anchor_Nil_IDs,
-            Anchor_Int_Indent => Offset);
+         when Anchor_Nil         =>
+            Indent :=
+              (Label             => Anchor_Int,
+               Anchor_Int_IDs    => Indent.Anchor_Nil_IDs,
+               Anchor_Int_Indent => Offset);
 
-      when Anchor_Int =>
-         Indent.Anchor_Int_Indent := Indent.Anchor_Int_Indent + Offset;
+         when Anchor_Int =>
+            Indent.Anchor_Int_Indent := Indent.Anchor_Int_Indent + Offset;
 
-      when Anchored | Anchor_Anchored =>
-         null;
+         when Anchored | Anchor_Anchored =>
+            null;
       end case;
    end Indent_Apply_Int;
 
@@ -147,43 +149,43 @@ package body Wisi is
       Indent : Indent_Type := Data.Indents (Line);
    begin
       case Delta_Indent.Label is
-      when Simple =>
-         case Delta_Indent.Simple_Delta.Label is
-         when None =>
-            null;
-
-         when Int =>
-            Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
-
-         when Anchored =>
-            Indent_Apply_Anchored (Delta_Indent.Simple_Delta, Indent);
-         end case;
-
-      when Hanging =>
-         if Delta_Indent.Hanging_Accumulate or Indent_Nil_P (Data.Indents (Line)) then
-            if Line = Delta_Indent.Hanging_First_Line then
-               --  Apply delta_1
-               case Delta_Indent.Hanging_Delta_1.Label is
+         when Simple =>
+            case Delta_Indent.Simple_Delta.Label is
                when None =>
                   null;
+
                when Int =>
-                  Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta);
+                  Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
+
                when Anchored =>
-                  Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
-               end case;
-            else
-               if Delta_Indent.Hanging_Paren_State = Data.Line_Paren_State (Line) then
-                  case Delta_Indent.Hanging_Delta_2.Label is
-                  when None =>
-                     null;
-                  when Int =>
-                     Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
-                  when Anchored =>
-                     Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
+                  Indent_Apply_Anchored (Delta_Indent.Simple_Delta, Indent);
+            end case;
+
+         when Hanging =>
+            if Delta_Indent.Hanging_Accumulate or Indent_Nil_P (Data.Indents (Line)) then
+               if Line = Delta_Indent.Hanging_First_Line then
+                  --  Apply delta_1
+                  case Delta_Indent.Hanging_Delta_1.Label is
+                     when None =>
+                        null;
+                     when Int =>
+                        Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta);
+                     when Anchored =>
+                        Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
                   end case;
+               else
+                  if Delta_Indent.Hanging_Paren_State = Data.Line_Paren_State (Line) then
+                     case Delta_Indent.Hanging_Delta_2.Label is
+                        when None =>
+                           null;
+                        when Int =>
+                           Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
+                        when Anchored =>
+                           Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
+                     end case;
+                  end if;
                end if;
             end if;
-         end if;
       end case;
 
       if Trace_Action > Extra then
@@ -211,16 +213,16 @@ package body Wisi is
             Indent : Indent_Type renames Data.Indents (Line);
          begin
             case Indent.Label is
-            when Not_Set | Int =>
-               null;
-            when Anchor_Nil =>
-               Result := Integer'Max (Result, Indent.Anchor_Nil_IDs (Indent.Anchor_Nil_IDs.First_Index));
-            when Anchor_Int =>
-               Result := Integer'Max (Result, Indent.Anchor_Int_IDs (Indent.Anchor_Int_IDs.First_Index));
-            when Anchored =>
-               Result := Integer'Max (Result, Indent.Anchored_ID);
-            when Anchor_Anchored =>
-               Result := Integer'Max (Result, Indent.Anchor_Anchored_ID);
+               when Not_Set | Int =>
+                  null;
+               when Anchor_Nil =>
+                  Result := Integer'Max (Result, Indent.Anchor_Nil_IDs (Indent.Anchor_Nil_IDs.First_Index));
+               when Anchor_Int =>
+                  Result := Integer'Max (Result, Indent.Anchor_Int_IDs (Indent.Anchor_Int_IDs.First_Index));
+               when Anchored =>
+                  Result := Integer'Max (Result, Indent.Anchored_ID);
+               when Anchor_Anchored =>
+                  Result := Integer'Max (Result, Indent.Anchor_Anchored_ID);
             end case;
          end;
       end loop;
@@ -332,21 +334,21 @@ package body Wisi is
       --  an indent computed. A negative indent is an error in either the
       --  grammar indent rules or the algorithms in this package.
       case Item.Label is
-      when Not_Set =>
-         --  Especially with partial parse, we have no idea what this indent should be.
-         null;
+         when Not_Set =>
+            --  Especially with partial parse, we have no idea what this indent should be.
+            null;
 
-      when Int =>
-         declare
-            --  We can easily get negative indents when there are syntax errors.
-            Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
-         begin
-            Ada.Text_IO.Put_Line
-              ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
-         end;
+         when Int =>
+            declare
+               --  We can easily get negative indents when there are syntax errors.
+               Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
+            begin
+               Ada.Text_IO.Put_Line
+                 ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
+            end;
 
-      when Anchor_Nil | Anchor_Int | Anchored | Anchor_Anchored =>
-         raise SAL.Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
+         when Anchor_Nil | Anchor_Int | Anchored | Anchor_Anchored =>
+            raise SAL.Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
       end case;
    end Put;
 
@@ -379,90 +381,90 @@ package body Wisi is
                Op : Config_Op renames Constant_Ref (Item.Ops, I);
             begin
                case Op.Op is
-               when Fast_Forward =>
-                  if Last_Op.Op in Insert then
-                     Append (Line, "][]]");
-                  elsif Last_Op.Op in Delete then
-                     Append (Line, "]]");
-                  end if;
+                  when Fast_Forward =>
+                     if Last_Op.Op in Insert then
+                        Append (Line, "][]]");
+                     elsif Last_Op.Op in Delete then
+                        Append (Line, "]]");
+                     end if;
 
-                  Last_Op := Op;
+                     Last_Op := Op;
 
-               when Undo_Reduce | Push_Back =>
-                  null;
-
-               when Insert =>
-                  if Last_Op.Op = Fast_Forward then
-                     Append (Line, "[");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
-                     Append (Line, "[");
-
-                  elsif Last_Op.Op = Delete then
-                     Append (Line, "]][");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
-                     Append (Line, "[");
-
-                  else
-                     --  Last_Op.Op = Insert
+                  when Undo_Reduce | Push_Back =>
                      null;
-                  end if;
-                  Append (Line, Token_ID'Image (Op.Ins_ID));
 
-                  Last_Op := Op;
-
-               when Delete =>
-                  declare
-                     Skip : Boolean := False;
-                  begin
+                  when Insert =>
                      if Last_Op.Op = Fast_Forward then
                         Append (Line, "[");
-                        Append (Line, Buffer_Pos'Image (Terminals (Op.Del_Token_Index).Char_Region.First));
-                        Append (Line, "[][");
-
-                     elsif Last_Op.Op = Insert then
-                        Append (Line, "][");
+                        Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
+                        Append (Line, "[");
 
                      elsif Last_Op.Op = Delete then
-                        if Embedded_Quote_Escape_Doubled and then
-                          ((Last_Op.Del_ID = Descriptor.String_1_ID and Op.Del_ID = Descriptor.String_1_ID) or
-                             (Last_Op.Del_ID = Descriptor.String_2_ID and Op.Del_ID = Descriptor.String_2_ID))
-                        then
-                           declare
-                              Tok_1 : Augmented_Token renames Terminals (Last_Op.Del_Token_Index);
-                              Tok_2 : Augmented_Token renames Terminals (Op.Del_Token_Index);
-                           begin
-                              if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
-                                 --  Buffer text was '"""', lexer repair changed it to '""""'. The
-                                 --  repaired text looks like a single string with an embedded quote.
-                                 --  But here, it is two STRING_LITERAL tokens. Don't send the second
-                                 --  delete to elisp. See test/ada_mode-recover_string_quote_1.adb
-                                 Skip := True;
-                              end if;
-                           end;
+                        Append (Line, "]][");
+                        Append (Line, Buffer_Pos'Image (Terminals (Op.Ins_Token_Index).Char_Region.First));
+                        Append (Line, "[");
+
+                     else
+                        --  Last_Op.Op = Insert
+                        null;
+                     end if;
+                     Append (Line, Token_ID'Image (Op.Ins_ID));
+
+                     Last_Op := Op;
+
+                  when Delete =>
+                     declare
+                        Skip : Boolean := False;
+                     begin
+                        if Last_Op.Op = Fast_Forward then
+                           Append (Line, "[");
+                           Append (Line, Buffer_Pos'Image (Terminals (Op.Del_Token_Index).Char_Region.First));
+                           Append (Line, "[][");
+
+                        elsif Last_Op.Op = Insert then
+                           Append (Line, "][");
+
+                        elsif Last_Op.Op = Delete then
+                           if Embedded_Quote_Escape_Doubled and then
+                             ((Last_Op.Del_ID = Descriptor.String_1_ID and Op.Del_ID = Descriptor.String_1_ID) or
+                                (Last_Op.Del_ID = Descriptor.String_2_ID and Op.Del_ID = Descriptor.String_2_ID))
+                           then
+                              declare
+                                 Tok_1 : Augmented_Token renames Terminals (Last_Op.Del_Token_Index);
+                                 Tok_2 : Augmented_Token renames Terminals (Op.Del_Token_Index);
+                              begin
+                                 if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
+                                    --  Buffer text was '"""', lexer repair changed it to '""""'. The
+                                    --  repaired text looks like a single string with an embedded quote.
+                                    --  But here, it is two STRING_LITERAL tokens. Don't send the second
+                                    --  delete to elisp. See test/ada_mode-recover_string_quote_1.adb
+                                    Skip := True;
+                                 end if;
+                              end;
+                           end if;
+
                         end if;
 
-                     end if;
-
-                     if not Skip then
-                        Append (Line, Token_ID'Image (Op.Del_ID));
-                     end if;
-                  end;
-                  Last_Op := Op;
+                        if not Skip then
+                           Append (Line, Token_ID'Image (Op.Del_ID));
+                        end if;
+                     end;
+                     Last_Op := Op;
                end case;
             end;
          end loop;
 
          case Last_Op.Op is
-         when Fast_Forward =>
-            Append (Line, "]");
+            when Fast_Forward =>
+               Append (Line, "]");
 
-         when Undo_Reduce | Push_Back =>
-            null;
+            when Undo_Reduce | Push_Back =>
+               null;
 
-         when Insert =>
-            Append (Line, "][]]]");
-         when Delete =>
-            Append (Line, "]]]");
+            when Insert =>
+               Append (Line, "][]]]");
+            when Delete =>
+               Append (Line, "]]]");
          end case;
       end if;
       Ada.Text_IO.Put_Line (To_String (Line));
@@ -487,39 +489,39 @@ package body Wisi is
             Indent : constant Indent_Type := Data.Indents (I);
          begin
             case Indent.Label is
-            when Not_Set =>
-               --  Indent not computed, therefore not output.
-               null;
+               when Not_Set =>
+                  --  Indent not computed, therefore not output.
+                  null;
 
-            when Int =>
-               Data.Indents.Replace_Element (I, (Int, Indent.Int_Indent + Begin_Indent));
+               when Int =>
+                  Data.Indents.Replace_Element (I, (Int, Indent.Int_Indent + Begin_Indent));
 
-            when Anchor_Nil =>
-               for I of Indent.Anchor_Nil_IDs loop
-                  Anchor_Indent (I) := Begin_Indent;
-               end loop;
-               Data.Indents.Replace_Element (I, (Int, Begin_Indent));
-
-            when Anchor_Int =>
-               for I of Indent.Anchor_Int_IDs loop
-                  Anchor_Indent (I) := Indent.Anchor_Int_Indent + Begin_Indent;
-               end loop;
-               Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Int_Indent + Begin_Indent));
-
-            when Anchored =>
-               Data.Indents.Replace_Element
-                 (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
-
-            when Anchor_Anchored =>
-               declare
-                  Temp : constant Integer :=
-                    Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
-               begin
-                  for I of Indent.Anchor_Anchored_IDs loop
-                     Anchor_Indent (I) := Temp;
+               when Anchor_Nil =>
+                  for I of Indent.Anchor_Nil_IDs loop
+                     Anchor_Indent (I) := Begin_Indent;
                   end loop;
-                  Data.Indents.Replace_Element (I, (Int, Temp));
-               end;
+                  Data.Indents.Replace_Element (I, (Int, Begin_Indent));
+
+               when Anchor_Int =>
+                  for I of Indent.Anchor_Int_IDs loop
+                     Anchor_Indent (I) := Indent.Anchor_Int_Indent + Begin_Indent;
+                  end loop;
+                  Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Int_Indent + Begin_Indent));
+
+               when Anchored =>
+                  Data.Indents.Replace_Element
+                    (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
+
+               when Anchor_Anchored =>
+                  declare
+                     Temp : constant Integer :=
+                       Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
+                  begin
+                     for I of Indent.Anchor_Anchored_IDs loop
+                        Anchor_Indent (I) := Temp;
+                     end loop;
+                     Data.Indents.Replace_Element (I, (Int, Temp));
+                  end;
             end case;
          end;
       end loop;
@@ -590,21 +592,21 @@ package body Wisi is
       Data.Post_Parse_Action := Post_Parse_Action;
 
       case Post_Parse_Action is
-      when Navigate | Face =>
-         null;
-      when Indent =>
-         Data.Indents.Set_First_Last
-           (First   => Begin_Line,
-            Last    => End_Line);
+         when Navigate | Face =>
+            null;
+         when Indent =>
+            Data.Indents.Set_First_Last
+              (First   => Begin_Line,
+               Last    => End_Line);
 
-         Data.Begin_Indent := Begin_Indent;
+            Data.Begin_Indent := Begin_Indent;
       end case;
 
       Data.Reset;
    exception
-   when E : others =>
-      raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
-        Ada.Exceptions.Exception_Message (E);
+      when E : others =>
+         raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
+           Ada.Exceptions.Exception_Message (E);
    end Initialize;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
@@ -1048,7 +1050,7 @@ package body Wisi is
                Column    => Token.Column,
                Message   => "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
                  Trimmed_Image (Name) & ") not in Tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
-                    SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
+                 SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
          end;
       end if;
 
@@ -1140,32 +1142,32 @@ package body Wisi is
                end if;
 
                case Tree.Label (Tokens (Param.Index)) is
-               when Shared_Terminal =>
-                  Cache_Cur := Find (Iter, Region.First);
-               when Virtual_Terminal | Virtual_Identifier =>
-                  return;
-
-               when Syntax_Trees.Nonterm =>
-                  Is_Nonterm := True;
-                  if Tree.Is_Virtual (Tokens (Param.Index)) then
+                  when Shared_Terminal =>
+                     Cache_Cur := Find (Iter, Region.First);
+                  when Virtual_Terminal | Virtual_Identifier =>
                      return;
 
-                  elsif Param.ID = Invalid_Token_ID then
-                     Cache_Cur := Find (Iter, Region.First);
+                  when Syntax_Trees.Nonterm =>
+                     Is_Nonterm := True;
+                     if Tree.Is_Virtual (Tokens (Param.Index)) then
+                        return;
 
-                  else
-                     Cache_Cur := Find (Iter, Ascending, Region.First, Region.Last, Predicate'access);
-                     loop
-                        exit when not Has_Element (Cache_Cur);
-                        exit when Data.Navigate_Caches (Cache_Cur).Pos > Region.Last
+                     elsif Param.ID = Invalid_Token_ID then
+                        Cache_Cur := Find (Iter, Region.First);
 
-                        if Data.Navigate_Caches (Cache_Cur).ID = Param.ID then
-                           Cache_Cur := No_Element;
-                           exit;
-                        end if;
-                        Cache_Cur := Next (Iter, Cache_Cur);
-                     end loop;
-                  end if;
+                     else
+                        Cache_Cur := Find (Iter, Ascending, Region.First, Region.Last, Predicate'access);
+                        loop
+                           exit when not Has_Element (Cache_Cur);
+                           exit when Data.Navigate_Caches (Cache_Cur).Pos > Region.Last
+
+                           if Data.Navigate_Caches (Cache_Cur).ID = Param.ID then
+                              Cache_Cur := No_Element;
+                              exit;
+                           end if;
+                           Cache_Cur := Next (Iter, Cache_Cur);
+                        end loop;
+                     end if;
                end case;
 
                if not Has_Element (Cache_Cur) then
@@ -1236,25 +1238,25 @@ package body Wisi is
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                   begin
                      case Cache.Class is
-                     when Prefix =>
-                        Cache.Face := (True, Param.Prefix_Face);
+                        when Prefix =>
+                           Cache.Face := (True, Param.Prefix_Face);
 
-                        --  Check for suffix
-                        Suffix_Cur := Next (Iter, Cache_Cur);
-                        if Has_Element (Suffix_Cur) then
-                           declare
-                              Suf_Cache : Face_Cache_Type renames Data.Face_Caches (Suffix_Cur);
-                           begin
-                              if Suffix = Suf_Cache.Class and
-                                Inside (Suf_Cache.Region.First, Token.Char_Region)
-                              then
-                                 Suf_Cache.Face := (True, Param.Suffix_Face);
-                              end if;
-                           end;
-                        end if;
+                           --  Check for suffix
+                           Suffix_Cur := Next (Iter, Cache_Cur);
+                           if Has_Element (Suffix_Cur) then
+                              declare
+                                 Suf_Cache : Face_Cache_Type renames Data.Face_Caches (Suffix_Cur);
+                              begin
+                                 if Suffix = Suf_Cache.Class and
+                                   Inside (Suf_Cache.Region.First, Token.Char_Region)
+                                 then
+                                    Suf_Cache.Face := (True, Param.Suffix_Face);
+                                 end if;
+                              end;
+                           end if;
 
-                     when Suffix =>
-                        Cache.Face := (True, Param.Suffix_Face);
+                        when Suffix =>
+                           Cache.Face := (True, Param.Suffix_Face);
                      end case;
                   end;
                else
@@ -1293,11 +1295,11 @@ package body Wisi is
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                   begin
                      case Cache.Class is
-                     when Prefix =>
-                        Cache.Face := (True, Param.Prefix_Face);
+                        when Prefix =>
+                           Cache.Face := (True, Param.Prefix_Face);
 
-                     when Suffix =>
-                        Cache.Face := (True, Param.Suffix_Face);
+                        when Suffix =>
+                           Cache.Face := (True, Param.Suffix_Face);
                      end case;
                   end;
                   Cache_Cur := Next (Iter, Cache_Cur);
@@ -1414,20 +1416,20 @@ package body Wisi is
    is begin
       return "(" & Simple_Indent_Param_Label'Image (Item.Label) &
         (case Item.Label is
-         when None => "",
-         when Int => Integer'Image (Item.Int_Delta),
-         when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
-              Integer'Image (Item.Anchored_Delta),
-         when Language => "<language_function>") & ")";
+            when None => "",
+            when Int => Integer'Image (Item.Int_Delta),
+            when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
+                 Integer'Image (Item.Anchored_Delta),
+            when Language => "<language_function>") & ")";
    end Image;
 
    function Image (Item : in Indent_Param) return String
    is begin
       return "(" & Indent_Param_Label'Image (Item.Label) & ", " &
         (case Item.Label is
-         when Simple => Image (Item.Param),
-         when Hanging_Label =>
-            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2) & ")");
+            when Simple => Image (Item.Param),
+            when Hanging_Label =>
+               Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2) & ")");
    end Image;
 
    function Image (Item : in Indent_Pair) return String
@@ -1630,39 +1632,39 @@ package body Wisi is
       Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos + 1) & ']');
 
       case Data.Post_Parse_Action is
-      when Navigate =>
-         for Cache of Data.Navigate_Caches loop
-            Put (Cache);
-         end loop;
-         for Cache of Data.Name_Caches loop
-            Put (Cache);
-         end loop;
+         when Navigate =>
+            for Cache of Data.Navigate_Caches loop
+               Put (Cache);
+            end loop;
+            for Cache of Data.Name_Caches loop
+               Put (Cache);
+            end loop;
 
-      when Face =>
-         for Cache of Data.Face_Caches loop
-            Put (Cache);
-         end loop;
+         when Face =>
+            for Cache of Data.Face_Caches loop
+               Put (Cache);
+            end loop;
 
-      when Indent =>
+         when Indent =>
 
-         Resolve_Anchors (Data);
+            Resolve_Anchors (Data);
 
-         if Trace_Action > Outline then
-            Ada.Text_IO.Put_Line (";; indent leading non_grammar");
-         end if;
-         for Token of Data.Leading_Non_Grammar loop
-            if Token.First then
-               Put (Token.Line, (Int, Data.Begin_Indent));
+            if Trace_Action > Outline then
+               Ada.Text_IO.Put_Line (";; indent leading non_grammar");
             end if;
-         end loop;
+            for Token of Data.Leading_Non_Grammar loop
+               if Token.First then
+                  Put (Token.Line, (Int, Data.Begin_Indent));
+               end if;
+            end loop;
 
-         --  It may be that not all lines in Data.Indents were parsed.
-         if Trace_Action > Outline then
-            Ada.Text_IO.Put_Line (";; indent grammar");
-         end if;
-         for I in Data.Indents.First_Index .. Get_Last_Line loop
-            Put (I, Data.Indents (I));
-         end loop;
+            --  It may be that not all lines in Data.Indents were parsed.
+            if Trace_Action > Outline then
+               Ada.Text_IO.Put_Line (";; indent grammar");
+            end if;
+            for I in Data.Indents.First_Index .. Get_Last_Line loop
+               Put (I, Data.Indents (I));
+            end loop;
       end case;
    end Put;
 
@@ -1745,27 +1747,27 @@ package body Wisi is
       for Item of Parse_Errors loop
          --  We don't include parser id here; not very useful.
          case Item.Label is
-         when Parse.LR.Action =>
-            Put_Line
-              ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token)) &
-                 " ""syntax error: expecting " & Image (Item.Expecting, Data.Descriptor.all) &
-                 ", found '" & Image (Tree.ID (Item.Error_Token), Data.Descriptor.all) & "'""]");
+            when Parse.LR.Action =>
+               Put_Line
+                 ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token)) &
+                    " ""syntax error: expecting " & Image (Item.Expecting, Data.Descriptor.all) &
+                    ", found '" & Image (Tree.ID (Item.Error_Token), Data.Descriptor.all) & "'""]");
 
-         when Parse.LR.Check =>
-            Put_Line
-              ('[' & Check_Error_Code & Integer'Image
-                 (Semantic_Checks.Check_Status_Label'Pos (Item.Check_Status.Label)) &
-                 (case Item.Check_Status.Label is
-                  when Ok => "",
-                  when Error =>
-                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name)) &
-                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
-                       " ""block name error""]"));
+            when Parse.LR.Check =>
+               Put_Line
+                 ('[' & Check_Error_Code & Integer'Image
+                    (Semantic_Checks.Check_Status_Label'Pos (Item.Check_Status.Label)) &
+                    (case Item.Check_Status.Label is
+                        when Ok => "",
+                        when Error =>
+                           Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name)) &
+                             Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
+                             " ""block name error""]"));
 
-         when Parse.LR.Message =>
-            Put_Line
-              ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
-                 " """ & (-Item.Msg) & """]");
+            when Parse.LR.Message =>
+               Put_Line
+                 ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
+                    " """ & (-Item.Msg) & """]");
          end case;
 
          if Item.Recover.Stack.Depth > 0 then
@@ -1788,10 +1790,10 @@ package body Wisi is
    is begin
       return "(" & Simple_Delta_Labels'Image (Item.Label) &
         (case Item.Label is
-         when None => "",
-         when Int => Integer'Image (Item.Int_Delta),
-         when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
-              Boolean'Image (Item.Anchored_Accumulate))
+            when None => "",
+            when Int => Integer'Image (Item.Int_Delta),
+            when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
+                 Boolean'Image (Item.Anchored_Accumulate))
         & ")";
    end Image;
 
@@ -1799,10 +1801,10 @@ package body Wisi is
    is begin
       return "(" & Delta_Labels'Image (Item.Label) &
         (case Item.Label is
-         when Simple => " " & Image (Item.Simple_Delta),
-         when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image (Item.Hanging_Paren_State) &
-              " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2) & " " &
-              Boolean'Image (Item.Hanging_Accumulate)) & ")";
+            when Simple => " " & Image (Item.Simple_Delta),
+            when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image (Item.Hanging_Paren_State) &
+                 " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2) & " " &
+                 Boolean'Image (Item.Hanging_Accumulate)) & ")";
    end Image;
 
    function Current_Indent_Offset
@@ -1855,10 +1857,10 @@ package body Wisi is
    begin
       return
         (case Tree.Label (Tree_Index) is
-         when Shared_Terminal => To_Aug_Token_Ref (Data.Terminals (Tree.Terminal (Tree_Index))),
-         when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
-         when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
-         when Nonterm => To_Aug_Token_Ref (Tree.Augmented (Tree_Index)));
+            when Shared_Terminal => To_Aug_Token_Ref (Data.Terminals (Tree.Terminal (Tree_Index))),
+            when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
+            when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
+            when Nonterm => To_Aug_Token_Ref (Tree.Augmented (Tree_Index)));
    end Get_Aug_Token;
 
    function Get_Text
@@ -1870,11 +1872,11 @@ package body Wisi is
       use all type Syntax_Trees.Node_Label;
    begin
       case Tree.Label (Tree_Index) is
-      when Shared_Terminal | Nonterm =>
-         return Data.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
+         when Shared_Terminal | Nonterm =>
+            return Data.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
 
-      when Virtual_Terminal | Virtual_Identifier =>
-         raise SAL.Programmer_Error;
+         when Virtual_Terminal | Virtual_Identifier =>
+            raise SAL.Programmer_Error;
 
       end case;
    end Get_Text;
@@ -1934,33 +1936,33 @@ package body Wisi is
       Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
 
       case Indent.Label is
-      when Not_Set =>
-         Indent := (Anchor_Nil, To_Vector (Anchor_ID, 1));
+         when Not_Set =>
+            Indent := (Anchor_Nil, To_Vector (Anchor_ID, 1));
 
-         if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
-         end if;
+            if Trace_Action > Extra then
+               Ada.Text_IO.Put_Line
+                 (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            end if;
 
-      when Int =>
-         Indent := (Anchor_Int, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
+         when Int =>
+            Indent := (Anchor_Int, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
 
-         if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
-         end if;
+            if Trace_Action > Extra then
+               Ada.Text_IO.Put_Line
+                 (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            end if;
 
-      when Anchor_Nil =>
-         Indent.Anchor_Nil_IDs := Anchor_ID & Indent.Anchor_Nil_IDs;
+         when Anchor_Nil =>
+            Indent.Anchor_Nil_IDs := Anchor_ID & Indent.Anchor_Nil_IDs;
 
-      when Anchor_Int =>
-         Indent.Anchor_Int_IDs := Anchor_ID & Indent.Anchor_Int_IDs;
+         when Anchor_Int =>
+            Indent.Anchor_Int_IDs := Anchor_ID & Indent.Anchor_Int_IDs;
 
-      when Anchored =>
-         Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
+         when Anchored =>
+            Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
 
-      when Anchor_Anchored =>
-         Indent.Anchor_Anchored_IDs := Anchor_ID & Indent.Anchor_Anchored_IDs;
+         when Anchor_Anchored =>
+            Indent.Anchor_Anchored_IDs := Anchor_ID & Indent.Anchor_Anchored_IDs;
       end case;
 
       Data.Indents.Replace_Element (Anchor_Line, Indent);
@@ -1981,108 +1983,108 @@ package body Wisi is
    begin
       --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
       case Param.Label is
-      when Simple =>
-         case Param.Param.Label is
-         when None =>
-            return (Simple, (Label => None));
+         when Simple =>
+            case Param.Param.Label is
+               when None =>
+                  return (Simple, (Label => None));
 
-         when Int =>
-            return (Simple, (Int, Param.Param.Int_Delta));
+               when Int =>
+                  return (Simple, (Int, Param.Param.Int_Delta));
 
-         when Anchored_Label =>
-            if Indenting_Token.Byte_Region = Null_Buffer_Region or
-              Tree.Byte_Region (Tokens (Param.Param.Anchored_Index)) = Null_Buffer_Region
-            then
-               --  One of these is an entirely virtual token
-               return Null_Delta;
-            else
-               declare
-                  Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token
-                    (Data, Tree, Tokens (Param.Param.Anchored_Index));
-               begin
-                  case Anchored_Label'(Param.Param.Label) is
-                  when Anchored_0 =>
-                     --  [2] wisi-anchored, wisi-anchored-1
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => True);
+               when Anchored_Label =>
+                  if Indenting_Token.Byte_Region = Null_Buffer_Region or
+                    Tree.Byte_Region (Tokens (Param.Param.Anchored_Index)) = Null_Buffer_Region
+                  then
+                     --  One of these is an entirely virtual token
+                     return Null_Delta;
+                  else
+                     declare
+                        Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token
+                          (Data, Tree, Tokens (Param.Param.Anchored_Index));
+                     begin
+                        case Anchored_Label'(Param.Param.Label) is
+                           when Anchored_0 =>
+                              --  [2] wisi-anchored, wisi-anchored-1
+                              return Indent_Anchored_2
+                                (Data,
+                                 Anchor_Line => Anchor_Token.Line,
+                                 Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
+                                 Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                                 Accumulate  => True);
 
-                  when Anchored_1 =>
-                     --  [2] wisi-anchored%
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => True);
+                           when Anchored_1 =>
+                              --  [2] wisi-anchored%
+                              return Indent_Anchored_2
+                                (Data,
+                                 Anchor_Line => Anchor_Token.Line,
+                                 Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
+                                 Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                                 Accumulate  => True);
 
-                  when Anchored_2 =>
-                     --  [2] wisi-anchored%-
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => False);
+                           when Anchored_2 =>
+                              --  [2] wisi-anchored%-
+                              return Indent_Anchored_2
+                                (Data,
+                                 Anchor_Line => Anchor_Token.Line,
+                                 Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
+                                 Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                                 Accumulate  => False);
 
-                  when Anchored_3 =>
-                     --  [2] wisi-anchored*
-                     if Indenting_Token.First then
-                        return Indent_Anchored_2
-                          (Data,
-                           Anchor_Line => Anchor_Token.Line,
-                           Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                           Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                           Accumulate  => True);
+                           when Anchored_3 =>
+                              --  [2] wisi-anchored*
+                              if Indenting_Token.First then
+                                 return Indent_Anchored_2
+                                   (Data,
+                                    Anchor_Line => Anchor_Token.Line,
+                                    Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
+                                    Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                                    Accumulate  => True);
 
-                     else
-                        return Null_Delta;
-                     end if;
+                              else
+                                 return Null_Delta;
+                              end if;
 
-                  when Anchored_4 =>
-                     --  [2] wisi-anchored*-
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => False);
+                           when Anchored_4 =>
+                              --  [2] wisi-anchored*-
+                              return Indent_Anchored_2
+                                (Data,
+                                 Anchor_Line => Anchor_Token.Line,
+                                 Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
+                                 Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                                 Accumulate  => False);
 
-                  end case;
-               end;
-            end if;
+                        end case;
+                     end;
+                  end if;
 
-         when Language =>
-            return Param.Param.Function_Ptr
-              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Param.Args);
-         end case;
+               when Language =>
+                  return Param.Param.Function_Ptr
+                    (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Param.Args);
+            end case;
 
-      when Hanging_Label =>
-         case Hanging_Label'(Param.Label) is
-         when Hanging_0 => -- wisi-hanging
-            return Indent_Hanging_1
-              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
-               Param.Hanging_Delta_2,
-               Option => False, Accumulate => True);
-         when Hanging_1 => -- wisi-hanging-
-            return Indent_Hanging_1
-              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
-               Param.Hanging_Delta_2,
-               Option => False, Accumulate => False);
-         when Hanging_2 => -- wisi-hanging%
-            return Indent_Hanging_1
-              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
-               Param.Hanging_Delta_2,
-               Option => True, Accumulate => True);
-         when Hanging_3 => -- wisi-hanging%-
-            return Indent_Hanging_1
-              (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
-               Param.Hanging_Delta_2,
-               Option => True, Accumulate => False);
-         end case;
+         when Hanging_Label =>
+            case Hanging_Label'(Param.Label) is
+               when Hanging_0 => -- wisi-hanging
+                  return Indent_Hanging_1
+                    (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+                     Param.Hanging_Delta_2,
+                     Option => False, Accumulate => True);
+               when Hanging_1 => -- wisi-hanging-
+                  return Indent_Hanging_1
+                    (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+                     Param.Hanging_Delta_2,
+                     Option => False, Accumulate => False);
+               when Hanging_2 => -- wisi-hanging%
+                  return Indent_Hanging_1
+                    (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+                     Param.Hanging_Delta_2,
+                     Option => True, Accumulate => True);
+               when Hanging_3 => -- wisi-hanging%-
+                  return Indent_Hanging_1
+                    (Data, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+                     Param.Hanging_Delta_2,
+                     Option => True, Accumulate => False);
+            end case;
       end case;
    end Indent_Compute_Delta;
 

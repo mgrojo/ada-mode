@@ -72,7 +72,6 @@ byte-compile-clean :
 	cd ..; rm -f *.elc
 
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
-test : test-wisi
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
@@ -82,21 +81,12 @@ test : test-gpr-lalr-process.stamp
 test : test-elisp
 test : summarize
 
-test-wisi :: ada-number-literal.wisi-test
-test-wisi :: body_instantiation_conflict.wisi-test
-test-wisi :: case_expression.wisi-test
-test-wisi :: empty_production_6.wisi-test
-test-wisi :: empty_production_8.wisi-test
-test-wisi :: identifier_list_name_conflict.wisi-test
-test-wisi :: number-literal.wisi-test
-test-wisi :: range_conflict.wisi-test
-
 summarize :
 	cat test.log
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
-ONE_TEST_FILES ?= debug.adb
+ONE_TEST_FILES ?= ada_mode-ada2005.ads
 #one :: build_executables
 #one :: byte-compile
 one :: one-clean
@@ -232,7 +222,7 @@ ada-mode-elpa-$(DATE).tar.gz :
 tag :
 	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
 
-MANUALS := ada-mode gpr-mode
+MANUALS := ada-mode gpr-mode wisi
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
 info : ../dir-ada-mode

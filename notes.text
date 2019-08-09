@@ -54,13 +54,27 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-delete elisp parser; statement-action not the same algorithm
-    also delete elisp lexer, so wisitoken doesn't have to change to produce lexer without parser
-    fix ada-wisi-which-function to not use wisi-forward-find-token
-
-    move wisi-elisp-parse doc strings to wisi.ads, wisi-ada.ads
-
 release
+
+speed up lalr compile
+    decrease subprog size?
+
+delete "(progn" in actions
+
+change wisi-cache text property to wisi-navigate
+
+wisi-face-mark-action does not specify a face, so it does not need to be removed
+    just ignore that item in face-cache tree later
+    delete wisi-face-remove-action.
+
+rename "semantic checks" to "in-parse actions", others to "post-parse actions".
+
+why is wisi-hanging specified in each use of expression instead of on expression itself?
+    change it and see what breaks
+    ada-indent-hanging-rel-exp not used consistently?
+    either way, improve example in wisi.texi
+
+in wisi-tests.el, delete call of syntax-propertize for emacs >= 25
 
 major cleanup
     preparing for more emacs project work (project-menu?)
@@ -72,6 +86,11 @@ major cleanup
     set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
         including xref
         or make them local somehow
+    sort out recursive requires
+        split out common stuff from ada-mode.el to ada-common.el or ada-base.el or wisi.el
+        no file should require ada-mode
+        same for gpr-mode
+
 
     bump major version?
 
@@ -1186,6 +1205,10 @@ bump versions
 
     wisi.el
         Version:
+
+    wisi.texi
+        @title
+        @node top
 
     README-wisi
         first line
