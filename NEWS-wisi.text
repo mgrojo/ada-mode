@@ -10,6 +10,9 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser process protocol version 3
 
+** Support for the elisp parser and lexer is deleted; only the Ada
+   process parser is supported.
+
 ** New user variable `wisi-indent-context-lines' specifies the minimum
    number of lines before point to include in a parse for indenting a
    single line. This gives better results when indenting in a nested

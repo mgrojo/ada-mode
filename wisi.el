@@ -170,20 +170,33 @@ Useful when debugging parser or parser actions."
 ;;;; token info cache
 
 (defvar-local wisi-parse-failed nil
-  "Non-nil when a recent parse has failed - cleared when parse succeeds.")
+  "Non-nil when last parse failed - cleared when parse succeeds.")
 
 (defvar-local wisi--parse-try
   (list
    (cons 'face t)
    (cons 'navigate t)
    (cons 'indent t))
-  "Non-nil when parse is needed - cleared when parse succeeds.")
+  "Non-nil when parse is needed because text has changed - cleared when parse succeeds.")
 
 (defun wisi-parse-try (&optional parse-action)
   (cdr (assoc (or parse-action wisi--parse-action) wisi--parse-try)))
 
 (defun wisi-set-parse-try (value &optional parse-action)
   (setcdr (assoc (or parse-action wisi--parse-action) wisi--parse-try) value))
+
+(defvar-local wisi--last-parse-region
+  (list
+   (cons 'face nil)
+   (cons 'navigate nil)
+   (cons 'indent nil))
+  "Last region on which parse was requested.")
+
+(defun wisi-last-parse-region (&optional parse-action)
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--last-parse-region)))
+
+(defun wisi-set-last-parse-region (begin end parse-action)
+  (setcdr (assoc parse-action wisi--last-parse-region) (cons begin end)))
 
 (defvar-local wisi--cached-regions
   (list
@@ -361,6 +374,9 @@ Truncate any region that overlaps POS."
   (wisi-set-parse-try t 'indent)
   (wisi-set-parse-try t 'face)
   (wisi-set-parse-try t 'navigate)
+  (wisi-set-last-parse-region (point-min) (point-min) 'indent)
+  (wisi-set-last-parse-region (point-min) (point-min) 'face)
+  (wisi-set-last-parse-region (point-min) (point-min) 'navigate)
   (wisi-fringe-clean))
 
 ;; wisi--change-* keep track of buffer modifications.
@@ -389,7 +405,7 @@ Used to ignore whitespace changes in before/after change hooks.")
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
 (defvar-local wisi--last-parse-action nil
-  "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
+  "Value of `wisi--parse-action' when `wisi-validate-cache' was last run.")
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -702,6 +718,7 @@ Usefull if the parser appears to be hung."
 	(message msg))
 
       (setq wisi--last-parse-action wisi--parse-action)
+      (wisi-set-last-parse-region begin parse-end wisi--parse-action)
 
       (unless (eq wisi--parse-action 'face)
 	(when (buffer-live-p wisi-error-buffer)
@@ -787,23 +804,30 @@ Usefull if the parser appears to be hung."
       (let ((wisi--parse-action parse-action))
 	(wisi--check-change)
 
-	;; Now we can rely on wisi-cache-covers-region
-
-	(if (and (or (not wisi-parse-failed)
-		     (wisi-parse-try))
-		(not (wisi-cache-covers-region begin end)))
-	    (progn
-	      ;; Don't keep retrying failed parse until text changes again.
-	      (wisi-set-parse-try nil)
-	      (wisi--run-parse begin end))
-
+	;; Now we can rely on wisi-cache-covers-region.
+	;;
+	;; If the last parse failed but was partial, and we are trying
+	;; a different region, it may succeed. Otherwise, don't keep
+	;; retrying a failed parse until the text changes again.
+	(cond
+	 ((and (not wisi-parse-failed)
+	       (wisi-cache-covers-region begin end))
 	  (when (> wisi-debug 0)
-	    (message "parse %s skipped: parse-failed %s parse-try %s cache-covers-region %s %s.%s"
+	    (message "parse %s skipped: cache-covers-region %s %s.%s"
 		     parse-action
-		     wisi-parse-failed
-		     (wisi-parse-try)
 		     (wisi-cache-covers-region begin end)
 		     begin end)))
+
+	 ((and wisi-parse-failed
+	       (equal (cons begin end) (wisi-last-parse-region parse-action))
+	       (not (wisi-parse-try parse-action)))
+	  (when (> wisi-debug 0)
+	    (message "parse %s skipped: parse-failed" parse-action)))
+
+	 (t
+	  (progn
+	    (wisi-set-parse-try nil)
+	    (wisi--run-parse begin end))))
 
 	;; We want this error even if we did not try to parse; it means
 	;; the parse results are not valid.
@@ -1173,18 +1197,16 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 		   (wisi-parse-try 'indent)))
 
       (wisi-set-parse-try nil)
-
-      (let ((parse-begin (save-excursion (goto-char begin)(line-beginning-position (- wisi-indent-context-lines)))))
-	(wisi--run-parse parse-begin end)
+      (wisi--run-parse begin end)
 
       ;; If there were errors corrected, the indentation is
       ;; potentially ambiguous; see
       ;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
       ;; where errors producing bad indent are pretty much expected.
-      (unless (wisi-partial-parse-p parse-begin end)
+      (unless (wisi-partial-parse-p begin end)
 	(setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
 					 (length (wisi-parser-parse-errors wisi--parser))))))
-      ))
+      )
 
     (if wisi-parse-failed
 	(progn
@@ -1243,7 +1265,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
     (when (>= (point) savep)
       (setq to-indent t))
 
-    (wisi-indent-region (line-beginning-position) (line-end-position) t)
+    (wisi-indent-region (line-beginning-position (- wisi-indent-context-lines)) (1+ (line-end-position)) t)
 
     (goto-char savep)
     (when to-indent (back-to-indentation))
@@ -1571,6 +1593,12 @@ If non-nil, only repair errors in BEG END region."
 	 (cons 'face t)
 	 (cons 'navigate t)
 	 (cons 'indent t)))
+
+  (setq wisi--last-parse-region
+	(list
+	 (cons 'face nil)
+	 (cons 'navigate nil)
+	 (cons 'indent nil)))
 
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))

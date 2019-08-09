@@ -56,7 +56,7 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (5, Invalid_Token_ID) & (6, 26) &
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (5, Invalid_Token_ID) & (6, 72) &
          (9, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 3, 1), (8, 3, 1)));
@@ -548,7 +548,7 @@ package body Ada_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (4, Motion), (8,
          Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Invalid_Token_ID) & (4, Invalid_Token_ID) & (5, 26) &
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Invalid_Token_ID) & (4, Invalid_Token_ID) & (5, 72) &
          (8, Invalid_Token_ID)));
       when Face =>
          null;
@@ -583,7 +583,7 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (6, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Invalid_Token_ID) & (3, 26) & (6, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Invalid_Token_ID) & (3, 72) & (6, Invalid_Token_ID)));
       when Face =>
          null;
       when Indent =>
@@ -1102,7 +1102,7 @@ package body Ada_Process_Actions is
          Motion), (12, Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (4, Invalid_Token_ID) & (6,
-         Invalid_Token_ID) & (8, Invalid_Token_ID) & (12, Invalid_Token_ID)));
+         Invalid_Token_ID) & (8, Invalid_Token_ID) & (9, 72) & (12, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 3, 1), (11, 3, 1)));
       when Indent =>
@@ -1420,8 +1420,8 @@ package body Ada_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (3, Invalid_Token_ID) & (7,
-         Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (3, Invalid_Token_ID) & (4, 72) &
+         (7, Invalid_Token_ID)));
       when Face =>
          null;
       when Indent =>
@@ -2049,8 +2049,7 @@ package body Ada_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, Motion)));
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, Invalid_Token_ID) & (3, Invalid_Token_ID)));
+         null;
       when Face =>
          null;
       when Indent =>
@@ -2981,7 +2980,7 @@ package body Ada_Process_Actions is
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (5, Invalid_Token_ID) & (7,
-         Invalid_Token_ID) & (8, 26) & (11, Invalid_Token_ID)));
+         Invalid_Token_ID) & (8, 72) & (11, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((3, 1, 1), (10, 1, 1)));
       when Indent =>
@@ -4506,7 +4505,7 @@ package body Ada_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (4,
          Motion), (6, Motion), (10, Statement_End)));
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (2, Invalid_Token_ID) & (4,
-         Invalid_Token_ID) & (6, Invalid_Token_ID) & (7, 26) & (10, Invalid_Token_ID)));
+         Invalid_Token_ID) & (6, Invalid_Token_ID) & (7, 72) & (10, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (9, 1, 1)));
       when Indent =>
@@ -4760,7 +4759,7 @@ package body Ada_Process_Actions is
          Statement_End)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 3);
          Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Invalid_Token_ID) & (5, Invalid_Token_ID) & (7,
-         Invalid_Token_ID) & (8, 26) & (11, Invalid_Token_ID)));
+         Invalid_Token_ID) & (8, 72) & (11, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((3, 3, 2), (10, 3, 2)));
       when Indent =>

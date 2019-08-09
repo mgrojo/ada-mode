@@ -97,6 +97,9 @@ major cleanup
     change ada-mode to derive-major-mode
         always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
 
+java-ch19.wy TryStatement has optional statement-end
+    need override on previous tokens
+
 align bug
           Put_Line
         ("Width" & IHDR.Width'Image &

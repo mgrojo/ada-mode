@@ -10,6 +10,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser Ada language protocol version 2
 
+** The elisp parser is deleted; only the Ada process parser is
+   supported.
+
 ** New Ada menu entry "Refactor" supports converting between
    Object.Method (...) and Method (Object, ...), and between Object
    (Index) and Element (Object, Index). The same commands are on a
