@@ -1,5 +1,5 @@
-;; uninstall wisitoken-grammar-mode, wisi from ~/.emacs.d/elpa, for
-;; reinstall with different emacs version
+;; uninstall wisitoken-grammar-mode, wisi from ~/.emacs.d/elpa -*- no-byte-compile: t -*-
+;; for reinstall with different emacs version
 
 (require 'package)
 

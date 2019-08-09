@@ -1,4 +1,4 @@
-;; install wisitoken-grammar-mode, wisi from local elpa archive, for testing
+;; install wisitoken-grammar-mode, wisi from local elpa archive, for testing -*- no-byte-compile: t -*-
 
 (require 'package)
 (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))

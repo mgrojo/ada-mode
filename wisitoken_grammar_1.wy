@@ -4,13 +4,20 @@
 ;;  different actions.
 ;;  (ediff "wisitoken_grammar_1.wy" "../org.wisitoken/wisitoken_grammar.wy")
 ;;
-;;  The supported syntax is close to Extended Backus-Naur form, as defined by
+;;  The supported syntax is similar to several flavors of Extended
+;;  Backus-Naur form, as defined by
 ;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
 ;;
-;;  In addition, we support the Python grammar file given at
-;;  https://docs.python.org/3.8/reference/grammar.html
-;;  and the Java grammar file given at
-;;  https://github.com/antlr/grammars-v4/tree/master/java
+;;  In particular, we support grammars for popular languages:
+;;
+;;  - the Python grammar file given at
+;;    https://docs.python.org/3.8/reference/grammar.html
+;;
+;;  - the Java grammar file given at
+;;    https://github.com/antlr/grammars-v4/tree/master/java
+;;
+;;  - the Ada grammar given in the Ada Language Reference Manual Annex
+;;    P; see http://ada-auth.org/arm.html
 ;;
 ;;  This file uses only plain BNF syntax, to simplify working on the
 ;;  EBNF syntax.
@@ -81,9 +88,8 @@
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
-%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]%
-
-%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 
 ;; In re2c regexps, '...' indicates a case-insensitive match.
 ;;
@@ -93,8 +99,8 @@
 ;;
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
-%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
+%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
+%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
