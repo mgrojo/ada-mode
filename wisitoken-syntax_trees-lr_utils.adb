@@ -21,11 +21,17 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    procedure Raise_Programmer_Error
      (Label      : in String;
       Descriptor : in WisiToken.Descriptor;
+      Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
+      Terminals  : in WisiToken.Base_Token_Arrays.Vector;
       Node       : in WisiToken.Syntax_Trees.Node_Index)
-   is begin
-      raise SAL.Programmer_Error with Label & WisiToken.Syntax_Trees.Node_Index'Image (Node) &
-        ":" & Tree.Image (Node, Descriptor, Include_Children => True);
+   is
+      Terminal_Index : constant Base_Token_Index := Tree.Min_Terminal_Index (Node);
+   begin
+      raise SAL.Programmer_Error with Error_Message
+        (Lexer.File_Name,
+         (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line), 0,
+         Label & Node'Image & ":" & Tree.Image (Node, Descriptor, Include_Children => True));
    end Raise_Programmer_Error;
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean is (Cursor.Node /= Invalid_Node_Index);
@@ -46,7 +52,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                   Result.Node := Children (1);
                   exit;
                else
-                  Raise_Programmer_Error ("first_list_element", Iter.Descriptor.all, Iter.Tree, Result.Node);
+                  Raise_Programmer_Error
+                    ("first_list_element", Iter.Descriptor.all, Iter.Lexer, Iter.Tree, Iter.Terminals.all, Result.Node);
                end if;
             end;
          end loop;
@@ -183,6 +190,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Iterate
      (Tree         : in WisiToken.Syntax_Trees.Tree;
+      Terminals    : in WisiToken.Base_Token_Array_Access;
+      Lexer        : in WisiToken.Lexer.Handle;
       Descriptor   : in WisiToken.Descriptor_Access_Constant;
       Root         : in Valid_Node_Index;
       Element_ID   : in WisiToken.Token_ID;
@@ -191,7 +200,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    is begin
       return Iterator'
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree, Descriptor, Root,
+         Tree, Terminals, Lexer, Descriptor, Root,
          List_ID      => Tree.ID (Root),
          Element_ID   => Element_ID,
          Separator_ID => Separator_ID);

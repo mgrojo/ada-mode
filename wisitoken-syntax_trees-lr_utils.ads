@@ -23,7 +23,9 @@ package WisiToken.Syntax_Trees.LR_Utils is
    procedure Raise_Programmer_Error
      (Label      : in String;
       Descriptor : in WisiToken.Descriptor;
+      Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
+      Terminals  : in WisiToken.Base_Token_Arrays.Vector;
       Node       : in WisiToken.Syntax_Trees.Node_Index);
    pragma No_Return (Raise_Programmer_Error);
 
@@ -56,6 +58,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Iterate
      (Tree         : in WisiToken.Syntax_Trees.Tree;
+      Terminals    : in WisiToken.Base_Token_Array_Access;
+      Lexer        : in WisiToken.Lexer.Handle;
       Descriptor   : in WisiToken.Descriptor_Access_Constant;
       Root         : in Valid_Node_Index;
       Element_ID   : in WisiToken.Token_ID;
@@ -72,9 +76,11 @@ private
 
    type Iterator is new Iterator_Interfaces.Reversible_Iterator with record
       Tree         : WisiToken.Syntax_Trees.Tree;
+      Terminals    : WisiToken.Base_Token_Array_Access;
+      Lexer        : WisiToken.Lexer.Handle;
       Descriptor   : WisiToken.Descriptor_Access_Constant;
       Root         : Valid_Node_Index;
-      List_ID   : WisiToken.Token_ID;
+      List_ID      : WisiToken.Token_ID;
       Element_ID   : WisiToken.Token_ID;
       Separator_ID : WisiToken.Token_ID;
    end record;

@@ -21,6 +21,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+python generate bug
+    debug_1.wy
+        single rhs_item_list, but optional => new nonterm to contain new rhs_list
+
+    python_ebnf.wy
+
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
         only active if mmm-mode recognizes action; improve that?

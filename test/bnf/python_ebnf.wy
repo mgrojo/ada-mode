@@ -28,4 +28,12 @@ dictorsetmaker: ( ((test ':' test | '**' expr)
                    (comp_for | (',' (test | star_expr))* [','])) )
 
 comp_for: 'for' expr 'in' test
+
+expr_stmt: testlist_star_expr
+      (annassign | augassign (yield_expr|testlist) | ('=' (yield_expr|testlist_star_expr))*)
+  ;
+
+;; Simplified has a similar problem
+expr_stmt: testlist_star_expr (yield_expr*)
+
 ;; end of file

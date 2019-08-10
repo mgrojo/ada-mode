@@ -52,6 +52,7 @@ package body Wisitoken_Grammar_Main is
             Table.States (0).Action_List.Set_Capacity (2);
             Add_Action (Table.States (0), 23, 1);
             Add_Action (Table.States (0), 33, 2);
+            Table.States (0).Goto_List.Set_Capacity (4);
             Add_Goto (Table.States (0), 38, 3);
             Add_Goto (Table.States (0), 43, 4);
             Add_Goto (Table.States (0), 55, 5);
@@ -64,6 +65,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (1), 7, 11);
             Add_Action (Table.States (1), 8, 12);
             Add_Action (Table.States (1), 33, 13);
+            Table.States (1).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (1), 39, 14);
             Table.States (2).Action_List.Set_Capacity (2);
             Add_Action (Table.States (2), 13, 15);
@@ -78,11 +80,13 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (6), 23, 1);
             Add_Action (Table.States (6), 33, 2);
             Add_Action (Table.States (6), 36, Accept_It, (37, 0), 1, null, null);
+            Table.States (6).Goto_List.Set_Capacity (3);
             Add_Goto (Table.States (6), 38, 3);
             Add_Goto (Table.States (6), 43, 4);
             Add_Goto (Table.States (6), 55, 17);
             Table.States (7).Action_List.Set_Capacity (1);
             Add_Action (Table.States (7), 33, 18);
+            Table.States (7).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (7), 40, 19);
             Table.States (8).Action_List.Set_Capacity (1);
             Add_Action (Table.States (8), 5, 20);
@@ -109,6 +113,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (13), 34, 33);
             Add_Action (Table.States (13), 35, 34);
             Add_Action (Table.States (13), 36, Reduce, (38, 3), 2, declaration_3'Access, null);
+            Table.States (13).Goto_List.Set_Capacity (2);
             Add_Goto (Table.States (13), 41, 35);
             Add_Goto (Table.States (13), 42, 36);
             Table.States (14).Action_List.Set_Capacity (1);
@@ -125,6 +130,7 @@ package body Wisitoken_Grammar_Main is
             Add_Conflict (Table.States (15), 33, (46, 0), 0, null, null);
             Add_Action (Table.States (15), 35, 43);
             Add_Action (Table.States (15), 36, Reduce, (46, 0), 0, null, null);
+            Table.States (15).Goto_List.Set_Capacity (9);
             Add_Goto (Table.States (15), 45, 44);
             Add_Goto (Table.States (15), 46, 45);
             Add_Goto (Table.States (15), 47, 46);
@@ -146,6 +152,7 @@ package body Wisitoken_Grammar_Main is
             Add_Conflict (Table.States (16), 33, (46, 0), 0, null, null);
             Add_Action (Table.States (16), 35, 43);
             Add_Action (Table.States (16), 36, Reduce, (46, 0), 0, null, null);
+            Table.States (16).Goto_List.Set_Capacity (9);
             Add_Goto (Table.States (16), 45, 53);
             Add_Goto (Table.States (16), 46, 45);
             Add_Goto (Table.States (16), 47, 46);
@@ -218,6 +225,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (35), 34, 33);
             Add_Action (Table.States (35), 35, 34);
             Add_Action (Table.States (35), 36, Reduce, (38, 2), 3, declaration_2'Access, null);
+            Table.States (35).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (35), 42, 59);
             Table.States (36).Action_List.Set_Capacity (13);
             Add_Action (Table.States (36), (8, 10, 15, 16, 20, 23, 28, 30, 32, 33, 34, 35, 36), (41, 0), 1, null,
@@ -234,6 +242,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (37), 33, 32);
             Add_Action (Table.States (37), 34, 33);
             Add_Action (Table.States (37), 35, 34);
+            Table.States (37).Goto_List.Set_Capacity (2);
             Add_Goto (Table.States (37), 41, 60);
             Add_Goto (Table.States (37), 42, 36);
             Table.States (38).Action_List.Set_Capacity (6);
@@ -243,6 +252,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (38), 21, 41);
             Add_Action (Table.States (38), 33, 42);
             Add_Action (Table.States (38), 35, 43);
+            Table.States (38).Goto_List.Set_Capacity (8);
             Add_Goto (Table.States (38), 47, 46);
             Add_Goto (Table.States (38), 48, 47);
             Add_Goto (Table.States (38), 49, 61);
@@ -258,6 +268,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (39), 21, 41);
             Add_Action (Table.States (39), 33, 42);
             Add_Action (Table.States (39), 35, 43);
+            Table.States (39).Goto_List.Set_Capacity (8);
             Add_Goto (Table.States (39), 47, 46);
             Add_Goto (Table.States (39), 48, 47);
             Add_Goto (Table.States (39), 49, 61);
@@ -273,6 +284,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (40), 21, 41);
             Add_Action (Table.States (40), 33, 42);
             Add_Action (Table.States (40), 35, 43);
+            Table.States (40).Goto_List.Set_Capacity (8);
             Add_Goto (Table.States (40), 47, 46);
             Add_Goto (Table.States (40), 48, 47);
             Add_Goto (Table.States (40), 49, 61);
@@ -325,6 +337,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (44), 29, 73);
             Add_Action (Table.States (44), 33, Reduce, (44, 1), 0, null, null);
             Add_Action (Table.States (44), 36, Reduce, (44, 1), 0, null, null);
+            Table.States (44).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (44), 44, 74);
             Table.States (45).Action_List.Set_Capacity (5);
             Add_Action (Table.States (45), (12, 23, 29, 33, 36), (45, 0), 1, null, null);
@@ -347,6 +360,7 @@ package body Wisitoken_Grammar_Main is
             Add_Conflict (Table.States (48), 33, (46, 1), 1, null, null);
             Add_Action (Table.States (48), 35, 43);
             Add_Action (Table.States (48), 36, Reduce, (46, 1), 1, null, null);
+            Table.States (48).Goto_List.Set_Capacity (6);
             Add_Goto (Table.States (48), 47, 46);
             Add_Goto (Table.States (48), 48, 76);
             Add_Goto (Table.States (48), 50, 49);
@@ -372,6 +386,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (53), 29, 73);
             Add_Action (Table.States (53), 33, Reduce, (44, 1), 0, null, null);
             Add_Action (Table.States (53), 36, Reduce, (44, 1), 0, null, null);
+            Table.States (53).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (53), 44, 77);
             Table.States (54).Action_List.Set_Capacity (3);
             Add_Action (Table.States (54), (23, 33, 36), (38, 1), 4, declaration_1'Access, null);
@@ -401,6 +416,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (60), 34, 33);
             Add_Action (Table.States (60), 35, 34);
             Add_Action (Table.States (60), 36, Reduce, (38, 0), 4, declaration_0'Access, null);
+            Table.States (60).Goto_List.Set_Capacity (1);
             Add_Goto (Table.States (60), 42, 59);
             Table.States (61).Action_List.Set_Capacity (10);
             Add_Action (Table.States (61), 12, Reduce, (54, 0), 1, null, null);
@@ -413,6 +429,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (61), 28, Reduce, (54, 0), 1, null, null);
             Add_Action (Table.States (61), 33, 42);
             Add_Action (Table.States (61), 35, 43);
+            Table.States (61).Goto_List.Set_Capacity (6);
             Add_Goto (Table.States (61), 47, 46);
             Add_Goto (Table.States (61), 48, 76);
             Add_Goto (Table.States (61), 50, 49);
@@ -437,6 +454,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (66), 21, 41);
             Add_Action (Table.States (66), 33, 86);
             Add_Action (Table.States (66), 35, 43);
+            Table.States (66).Goto_List.Set_Capacity (5);
             Add_Goto (Table.States (66), 47, 46);
             Add_Goto (Table.States (66), 50, 87);
             Add_Goto (Table.States (66), 51, 50);
@@ -466,6 +484,7 @@ package body Wisitoken_Grammar_Main is
             Add_Conflict (Table.States (71), 33, (46, 0), 0, null, null);
             Add_Action (Table.States (71), 35, 43);
             Add_Action (Table.States (71), 36, Reduce, (46, 0), 0, null, null);
+            Table.States (71).Goto_List.Set_Capacity (8);
             Add_Goto (Table.States (71), 46, 88);
             Add_Goto (Table.States (71), 47, 46);
             Add_Goto (Table.States (71), 48, 47);
@@ -506,6 +525,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (81), 21, 41);
             Add_Action (Table.States (81), 33, 42);
             Add_Action (Table.States (81), 35, 43);
+            Table.States (81).Goto_List.Set_Capacity (7);
             Add_Goto (Table.States (81), 47, 46);
             Add_Goto (Table.States (81), 48, 47);
             Add_Goto (Table.States (81), 49, 92);
@@ -592,6 +612,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (92), 28, Reduce, (54, 1), 3, null, null);
             Add_Action (Table.States (92), 33, 42);
             Add_Action (Table.States (92), 35, 43);
+            Table.States (92).Goto_List.Set_Capacity (6);
             Add_Goto (Table.States (92), 47, 46);
             Add_Goto (Table.States (92), 48, 76);
             Add_Goto (Table.States (92), 50, 49);

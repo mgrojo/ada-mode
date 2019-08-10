@@ -26,6 +26,7 @@ with SAL.Generic_Decimal_Image;
 with System.Assertions;
 with WisiToken.Generate;   use WisiToken.Generate;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
+with WisiToken.Syntax_Trees.LR_Utils;
 package body WisiToken_Grammar_Runtime is
 
    use WisiToken;
@@ -35,17 +36,19 @@ package body WisiToken_Grammar_Runtime is
 
    procedure Raise_Programmer_Error
      (Label : in String;
+      Data  : in User_Data_Type;
       Tree  : in WisiToken.Syntax_Trees.Tree;
       Node  : in WisiToken.Syntax_Trees.Node_Index);
    pragma No_Return (Raise_Programmer_Error);
 
    procedure Raise_Programmer_Error
      (Label : in String;
+      Data  : in User_Data_Type;
       Tree  : in WisiToken.Syntax_Trees.Tree;
       Node  : in WisiToken.Syntax_Trees.Node_Index)
    is begin
-      raise SAL.Programmer_Error with Label & WisiToken.Syntax_Trees.Node_Index'Image (Node) &
-        ":" & Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Include_Children => True);
+      WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Data.Terminals.all, Node);
    end Raise_Programmer_Error;
 
    function Get_Line
@@ -213,7 +216,7 @@ package body WisiToken_Grammar_Runtime is
                   end;
 
                when others =>
-                  Raise_Programmer_Error ("Get_RHS; unimplimented token", Tree, I);
+                  Raise_Programmer_Error ("Get_RHS; unimplimented token", Data, Tree, I);
                end case;
             end loop;
 
@@ -241,7 +244,7 @@ package body WisiToken_Grammar_Runtime is
       declare
          use Ada.Exceptions;
       begin
-         Raise_Programmer_Error ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
+         Raise_Programmer_Error ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Token);
       end;
    end Get_RHS;
 
@@ -282,7 +285,7 @@ package body WisiToken_Grammar_Runtime is
          Data.Ignore_Lines := False;
 
       when others =>
-         Raise_Programmer_Error ("Get_Right_Hand_Sides", Tree, Token);
+         Raise_Programmer_Error ("Get_Right_Hand_Sides", Data, Tree, Token);
       end case;
    end Get_Right_Hand_Sides;
 
@@ -829,7 +832,7 @@ package body WisiToken_Grammar_Runtime is
               (Data.Grammar_Lexer.File_Name, 1, 1, "duplicate virtual nonterm '" & LHS_String & "'");
 
          when others =>
-            Raise_Programmer_Error ("Add_Nonterminal", Tree, LHS_Node);
+            Raise_Programmer_Error ("Add_Nonterminal", Data, Tree, LHS_Node);
          end case;
       else
          Data.Label_Count := Data.Label_Count + Labels.Length;
@@ -866,7 +869,7 @@ package body WisiToken_Grammar_Runtime is
             end;
          end if;
       when Other =>
-         Raise_Programmer_Error ("untranslated EBNF node", Tree, Tree.Parent (Tokens (Token)));
+         Raise_Programmer_Error ("untranslated EBNF node", Data, Tree, Tree.Parent (Tokens (Token)));
       end case;
    end Check_EBNF;
 
@@ -971,7 +974,7 @@ package body WisiToken_Grammar_Runtime is
                   Node := Children (1);
                   exit;
                else
-                  Raise_Programmer_Error ("first_list_element", Tree, Node);
+                  Raise_Programmer_Error ("first_list_element", Data, Tree, Node);
                end if;
             end;
          end loop;
@@ -1209,7 +1212,7 @@ package body WisiToken_Grammar_Runtime is
 
             when others =>
                Raise_Programmer_Error
-                 ("translate_ebnf_to_bnf insert_optional_rhs unimplemented RHS", Tree, Container);
+                 ("translate_ebnf_to_bnf insert_optional_rhs unimplemented RHS", Data, Tree, Container);
             end case;
          end Add_Actions;
       begin
@@ -1563,7 +1566,7 @@ package body WisiToken_Grammar_Runtime is
             begin
                if Tree.RHS_Index (RHS_Item_List) /= 0 then
                   --  Not first
-                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_attribute_id unimplemented", Tree, Node);
+                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_attribute_id unimplemented", Data, Tree, Node);
                end if;
 
                Tree.Set_Children
@@ -1615,7 +1618,7 @@ package body WisiToken_Grammar_Runtime is
                            when Virtual_Identifier =>
                               New_Ident := Tree.Identifier (Name_Node);
                            when others =>
-                              Raise_Programmer_Error ("process_node rhs_group_item", Tree, Name_Node);
+                              Raise_Programmer_Error ("process_node rhs_group_item", Data, Tree, Name_Node);
                            end case;
 
                            exit;
@@ -1647,7 +1650,8 @@ package body WisiToken_Grammar_Runtime is
             --  | a b+ c
             --  | a b* c
             --
-            --  Replace it with a new canonical list nonterminal:
+            --  where a and/or c can be empty. Replace it with a new canonical
+            --  list nonterminal:
             --
             --  nonterminal_nnn
             --  : b
@@ -1897,7 +1901,7 @@ package body WisiToken_Grammar_Runtime is
                            when others =>
                               Raise_Programmer_Error
                                 ("unimplemented Find_List_Nonterminal_2 case '" & Element_Content & "'",
-                                 Tree, Name_Node);
+                                 Data, Tree, Name_Node);
                            end case;
 
                            --  list nonterm is the next nonterminal
@@ -1973,7 +1977,7 @@ package body WisiToken_Grammar_Runtime is
                                     when others =>
                                        Raise_Programmer_Error
                                          ("unimplemented Find_List_Nonterminal_1 case '" & Element_Content & "'",
-                                          Tree, Name_Node);
+                                          Data, Tree, Name_Node);
                                     end case;
 
                                     exit;
@@ -2035,7 +2039,7 @@ package body WisiToken_Grammar_Runtime is
                   end if;
 
                when others =>
-                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_multiple_item unimplmented", Tree, Node);
+                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_multiple_item unimplmented", Data, Tree, Node);
                end case;
 
                if Allow_Empty then
@@ -2064,7 +2068,8 @@ package body WisiToken_Grammar_Runtime is
             exception
             when E : System.Assertions.Assert_Failure =>
                Raise_Programmer_Error
-                 ("translate_ebnf_to_bnf multiple_item assert: " & Ada.Exceptions.Exception_Message (E), Tree, Node);
+                 ("translate_ebnf_to_bnf multiple_item assert: " & Ada.Exceptions.Exception_Message (E),
+                  Data, Tree, Node);
             end;
 
          when rhs_optional_item_ID =>
@@ -2141,7 +2146,7 @@ package body WisiToken_Grammar_Runtime is
                            when Shared_Terminal =>
                               Name_Terminal := Tree.Min_Terminal_Index (Name_Identifier_Node);
                            when others =>
-                              Raise_Programmer_Error ("unhandled rhs_optional case ", Tree, Name_Identifier_Node);
+                              Raise_Programmer_Error ("unhandled rhs_optional case ", Data, Tree, Name_Identifier_Node);
                            end case;
                         end;
                      end if;
@@ -2165,7 +2170,8 @@ package body WisiToken_Grammar_Runtime is
                                     Name_Ident := Tree.Identifier (Name_Identifier_Node);
                                  when others =>
                                     Raise_Programmer_Error
-                                      ("unhandled rhs_optional case '" & New_Text & "'", Tree, Name_Identifier_Node);
+                                      ("unhandled rhs_optional case '" & New_Text & "'",
+                                       Data, Tree, Name_Identifier_Node);
                                  end case;
                                  exit;
                               end if;
@@ -2299,7 +2305,7 @@ package body WisiToken_Grammar_Runtime is
                   Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 1), (1 => Tree.Child (Node, 1)));
 
                when others =>
-                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplmented", Tree, Node);
+                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplmented", Data, Tree, Node);
                end case;
 
                Clear_EBNF_Node (Node);
@@ -2378,7 +2384,7 @@ package body WisiToken_Grammar_Runtime is
                         (1 => Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident, Tree.Byte_Region (Node))));
 
                   when others =>
-                     Raise_Programmer_Error ("translate_ebnf_to_bnf string_literal_2 unimplemented", Tree, Node);
+                     Raise_Programmer_Error ("translate_ebnf_to_bnf string_literal_2 unimplemented", Data, Tree, Node);
                   end case;
                end;
 
@@ -2413,7 +2419,7 @@ package body WisiToken_Grammar_Runtime is
             end;
 
          when others =>
-            Raise_Programmer_Error ("unimplemented EBNF node", Tree, Node);
+            Raise_Programmer_Error ("unimplemented EBNF node", Data, Tree, Node);
          end case;
       exception
       when SAL.Programmer_Error =>
@@ -2422,7 +2428,7 @@ package body WisiToken_Grammar_Runtime is
          Raise_Programmer_Error
            ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
               Ada.Exceptions.Exception_Message (E),
-            Tree, Node);
+            Data, Tree, Node);
       end Process_Node;
 
    begin
@@ -2566,7 +2572,7 @@ package body WisiToken_Grammar_Runtime is
             use Ada.Exceptions;
          begin
             Raise_Programmer_Error
-              ("Put_RHS_Element: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
+              ("Put_RHS_Element: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
          end;
       end Put_RHS_Element;
 
@@ -2591,7 +2597,7 @@ package body WisiToken_Grammar_Runtime is
             use Ada.Exceptions;
          begin
             Raise_Programmer_Error
-              ("Put_RHS_Item_List: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
+              ("Put_RHS_Item_List: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
          end;
       end Put_RHS_Item_List;
 
@@ -2638,7 +2644,7 @@ package body WisiToken_Grammar_Runtime is
             end if;
 
          when others =>
-            Raise_Programmer_Error ("Put_RHS", Tree, Node);
+            Raise_Programmer_Error ("Put_RHS", Data, Tree, Node);
          end case;
       exception
       when SAL.Programmer_Error =>
@@ -2648,7 +2654,7 @@ package body WisiToken_Grammar_Runtime is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error ("Put_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
+            Raise_Programmer_Error ("Put_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
          end;
       end Put_RHS;
 
@@ -2677,7 +2683,7 @@ package body WisiToken_Grammar_Runtime is
             Put_Comments (Node);
 
          when others =>
-            Raise_Programmer_Error ("Put_RHS_List", Tree, Node);
+            Raise_Programmer_Error ("Put_RHS_List", Data, Tree, Node);
          end case;
       exception
       when SAL.Programmer_Error =>
@@ -2687,7 +2693,8 @@ package body WisiToken_Grammar_Runtime is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error ("Put_RHS_List: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
+            Raise_Programmer_Error
+              ("Put_RHS_List: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
          end;
       end Put_RHS_List;
 
