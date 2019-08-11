@@ -205,7 +205,7 @@ package WisiToken.Syntax_Trees is
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Node     : in     Valid_Node_Index;
-      New_ID : in WisiToken.Production_ID;
+      New_ID   : in     WisiToken.Production_ID;
       Children : in     Valid_Node_Index_Array)
    with
      Pre => Tree.Flushed and

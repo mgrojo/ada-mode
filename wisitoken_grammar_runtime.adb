@@ -1158,11 +1158,16 @@ package body WisiToken_Grammar_Runtime is
       end Append_Element;
 
       procedure Insert_Optional_RHS (B : in Valid_Node_Index)
+      with Pre => Tree.ID (B) in +rhs_multiple_item_ID | +rhs_optional_item_ID | +IDENTIFIER_ID
       is
          --  B is an optional item in an rhs_item_list :
          --  | a b? c
+         --  | a b* c
          --
-         --  Insert a second rhs_item_list without B
+         --  or B is a virtual identifier naming the new nonterm replacing the
+         --  original.
+         --
+         --  where a, c can be empty. Insert a second rhs_item_list without B.
          --
          --  The containing elment may be rhs or rhs_alternative_list
 
@@ -1248,7 +1253,12 @@ package body WisiToken_Grammar_Runtime is
                New_RHS_AC :=
                  (if Tree.ID (Container) = +rhs_ID
                   then Tree.Add_Nonterm ((+rhs_ID, 0), (1 .. 0 => Invalid_Node_Index))
-                  else Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 .. 0 => Invalid_Node_Index)));
+                  else
+                     --  rhs_alternative_list_ID
+                     --  The grammar does not allow an empty alternative in an
+                     --  rhs_alterntive_list; this will be fixed when it is converted to an
+                     --  rhs_list.
+                     Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 .. 0 => Invalid_Node_Index)));
             else
                --  c is empty
                New_RHS_AC :=
@@ -1315,6 +1325,7 @@ package body WisiToken_Grammar_Runtime is
       Compilation_Unit_List_Tail : constant Valid_Node_Index := Tree.Child (Tree.Root, 1);
 
       procedure Add_Compilation_Unit (Unit : in Valid_Node_Index; Prepend : in Boolean := False)
+      with Pre => Tree.ID (Unit) in +declaration_ID | +nonterminal_ID
       is
          Comp_Unit : constant Valid_Node_Index := Tree.Add_Nonterm
            ((+compilation_unit_ID, (if Tree.ID (Unit) = +declaration_ID then 0 else 1)),
@@ -1344,6 +1355,7 @@ package body WisiToken_Grammar_Runtime is
       end To_RHS_List;
 
       function Convert_RHS_Alternative (Content : in Valid_Node_Index) return Valid_Node_Index
+      with Pre => Tree.ID (Content) = +rhs_alternative_list_ID
       is
          --  Convert rhs_alternative_list rooted at Content to an rhs_list
          Node : Valid_Node_Index := Content;
@@ -1366,14 +1378,29 @@ package body WisiToken_Grammar_Runtime is
             --  | rhs: new
             --  | | rhs_item_list: keep Node,Child (3)
 
-            Tree.Set_Children
-              (Node,
-               (+rhs_list_ID, 1),
-               (1 => Tree.Child (Node, 1),
-                2 => Tree.Child (Node, 2),
-                3 => Tree.Add_Nonterm
-                  ((+rhs_ID, 1),
-                   (1 => Tree.Child (Node, 3)))));
+            if Tree.Is_Empty (Tree.Child (Node, 3)) then
+               --  Convert empty rhs_item_list to empty rhs
+               Tree.Set_Children
+                 (Tree.Child (Node, 3),
+                  (+rhs_ID, 0),
+                  (1 .. 0 => Invalid_Node_Index));
+
+               Tree.Set_Children
+                 (Node,
+                  (+rhs_list_ID, 1),
+                  (1 => Tree.Child (Node, 1),
+                   2 => Tree.Child (Node, 2),
+                   3 => Tree.Child (Node, 3)));
+            else
+               Tree.Set_Children
+                 (Node,
+                  (+rhs_list_ID, 1),
+                  (1 => Tree.Child (Node, 1),
+                   2 => Tree.Child (Node, 2),
+                   3 => Tree.Add_Nonterm
+                     ((+rhs_ID, 1),
+                      (1 => Tree.Child (Node, 3)))));
+            end if;
 
             Clear_EBNF_Node (Node);
             Node := Tree.Child (Node, 1);
@@ -1400,7 +1427,7 @@ package body WisiToken_Grammar_Runtime is
       procedure New_Nonterminal
         (New_Identifier : in Identifier_Index;
          Content        : in Valid_Node_Index)
-         with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | rhs_element_ID
+      with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | rhs_element_ID
       is
          --  Convert subtree rooted at Content to an rhs_list contained by a new nonterminal
          --  named New_Identifier.
@@ -1411,8 +1438,7 @@ package body WisiToken_Grammar_Runtime is
               (case To_Token_Enum (Tree.ID (Content)) is
                when rhs_element_ID          => To_RHS_List (Content),
                when rhs_alternative_list_ID => Convert_RHS_Alternative (Content),
-               when others => raise SAL.Programmer_Error with "new_nonterminal unimplemented content" &
-                 Tree.Image (Content, Wisitoken_Grammar_Actions.Descriptor)),
+               when others => raise SAL.Programmer_Error),
             Child_4   => Tree.Add_Nonterm
               ((+semicolon_opt_ID, 0),
                (1     => Tree.Add_Terminal (+SEMICOLON_ID))));
@@ -1425,6 +1451,8 @@ package body WisiToken_Grammar_Runtime is
          RHS_Element_1 : in Valid_Node_Index;
          RHS_Element_3 : in Valid_Node_Index;
          Byte_Region   : in Buffer_Region)
+      with Pre => Tree.ID (RHS_Element_1) = +rhs_element_ID and
+                  Tree.ID (RHS_Element_3) = +rhs_element_ID
       is
          --  nonterminal: foo_list
          --  | IDENTIFIER: "foo_list" List_Nonterm
@@ -1535,7 +1563,7 @@ package body WisiToken_Grammar_Runtime is
 
          when rhs_alternative_list_ID =>
             --  All handled by New_Nonterminal*
-            raise SAL.Not_Implemented with Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor);
+            raise SAL.Programmer_Error;
 
          when rhs_attribute_ID =>
             --  Just delete it
@@ -2462,10 +2490,6 @@ package body WisiToken_Grammar_Runtime is
             Ada.Text_IO.Put_Line (Base_Identifier_Index'Image (I) & " " & (-Data.Tokens.Virtual_Identifiers (I)));
          end loop;
       end if;
-   exception
-   when E : SAL.Not_Implemented =>
-      Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error, "Translate_EBNF_To_BNF not implemented: " & Ada.Exceptions.Exception_Message (E));
    end Translate_EBNF_To_BNF;
 
    procedure Print_Source

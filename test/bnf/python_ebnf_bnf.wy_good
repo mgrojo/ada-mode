@@ -16,6 +16,7 @@
 
 %token <punctuation> COLON ":"
 %token <punctuation> COMMA ","
+%token <punctuation> EQUAL "="
 %token <punctuation> STAR "*"
 %token <punctuation> STAR_STAR "**"
 
@@ -36,6 +37,15 @@ dictorsetmaker
 
 comp_for
   : FOR expr IN test
+
+expr_stmt
+  : testlist_star_expr nonterminal_035
+  ;
+
+;; Simplified has a similar problem
+expr_stmt_2
+  : testlist_star_expr nonterminal_037
+
 ;; end of file
 nonterminal_005
   : test
@@ -79,4 +89,33 @@ nonterminal_021
 nonterminal_025
   : nonterminal_021
   | testlist_comp
+  ;
+nonterminal_030
+  : yield_expr
+  | testlist
+  ;
+nonterminal_032
+  : yield_expr
+  | testlist_star_expr
+  ;
+nonterminal_034
+  : EQUAL nonterminal_032
+  ;
+nonterminal_033_list
+  : nonterminal_034
+  | nonterminal_033_list nonterminal_034
+  ;
+nonterminal_035
+  : annassign
+  | augassign nonterminal_030
+  | nonterminal_033_list
+  | ;; empty
+  ;
+nonterminal_036_list
+  : yield_expr
+  | nonterminal_036_list yield_expr
+  ;
+nonterminal_037
+  : nonterminal_036_list
+  | ;; empty
   ;

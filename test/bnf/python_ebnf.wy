@@ -12,6 +12,7 @@
 
 %token <punctuation> COLON ":"
 %token <punctuation> COMMA ","
+%token <punctuation> EQUAL "="
 %token <punctuation> STAR "*"
 %token <punctuation> STAR_STAR "**"
 
@@ -34,6 +35,6 @@ expr_stmt: testlist_star_expr
   ;
 
 ;; Simplified has a similar problem
-expr_stmt: testlist_star_expr (yield_expr*)
+expr_stmt_2: testlist_star_expr (yield_expr*)
 
 ;; end of file

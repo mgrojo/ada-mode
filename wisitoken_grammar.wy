@@ -1,5 +1,9 @@
 ;;; WisiToken grammar for WisiToken grammar, for wisitoken-bnf-generate.
 ;;
+;;  wisitoken_grammar-mode uses the same grammar for parsing .wy
+;;  files, but with different actions.
+;;  (ediff "wisitoken_grammar_1.wy" "../org.wisitoken/wisitoken_grammar.wy")
+;;
 ;;  The supported syntax is similar to several flavors of Extended
 ;;  Backus-Naur form, as defined by
 ;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
@@ -39,12 +43,12 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%generate LALR Ada re2c
-%start compilation_unit_list
-
 %code actions body context %{
 with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 }%
+
+%generate LALR Ada re2c
+%start compilation_unit_list
 
 %keyword CODE "code"
 %keyword END "end"
@@ -78,8 +82,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
-%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]%
-%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 
 ;; In re2c regexps, '...' indicates a case-insensitive match.
 ;;
@@ -89,8 +93,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;;
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
-%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
+%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
+%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%

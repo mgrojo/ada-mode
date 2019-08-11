@@ -120,6 +120,8 @@ package body BNF_WY_Test is
    begin
       WisiToken.Trace_Parse := 0; --  user does not want to see a trace of the grammar parser.
 
+      WisiToken.Generate.Error := False;
+
       Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
