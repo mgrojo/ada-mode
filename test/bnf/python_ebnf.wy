@@ -35,6 +35,9 @@ expr_stmt: testlist_star_expr
   ;
 
 ;; Simplified has a similar problem
-expr_stmt_2: testlist_star_expr (yield_expr*)
+expr_stmt_2: testlist_star_expr (yield_expr*) ;
+
+;; This was recognized as a canonical list, and 'nonlocal' left out.
+nonlocal_stmt: 'nonlocal' NAME (',' NAME)* ;
 
 ;; end of file

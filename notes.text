@@ -18,15 +18,9 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - speed up recover
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-python generate bug
-    debug_1.wy
-        single rhs_item_list, but optional => new nonterm to contain new rhs_list
-
-    python_ebnf.wy
-
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
         only active if mmm-mode recognizes action; improve that?
@@ -45,8 +39,6 @@ allow undo_reduce after insert/fast_forward
 
 check should check all conflicts, enqueue conflicts on success
     otherwise we are ignoring possible solutions.
-
-run all tests
 
 test_mckenzie use lr-parser-gen_aunit
 
@@ -74,6 +66,10 @@ Python
     need INDENT, DEDENT in lexer
     no other new syntax
     only one state with more than two actions
+    reduce conflicts by recognizing canonical list in local_stmt (correctly)
+    improve process_main compile time
+        reduce number of statements in each subprogram
+        or use text_rep
 
 lalr generator bug
     long term fix; reimplement lalr using deremer, penello 1982

@@ -1681,7 +1681,7 @@ package body WisiToken_Grammar_Runtime is
             --  where a and/or c can be empty. Replace it with a new canonical
             --  list nonterminal:
             --
-            --  nonterminal_nnn
+            --  nonterminal_nnn_list
             --  : b
             --  | nonterminal_nnn_list b
             --
@@ -1729,7 +1729,7 @@ package body WisiToken_Grammar_Runtime is
                   --
                   --  The tokens may have labels.
                   --
-                  --  Handling these cases specially this eliminates a conflict between
+                  --  Handling these cases specially eliminates a conflict between
                   --  reducing to enumConstants and reducing to the introduced nonterm
                   --  list.
                   --
@@ -1756,6 +1756,7 @@ package body WisiToken_Grammar_Runtime is
                   then
                      return;
                   end if;
+                  if Invalid_Node_Index /= Prev_List_Element (Element_1, +rhs_item_list_ID) then return; end if;
                   if Invalid_Node_Index /= Next_List_Element (RHS_Element, +rhs_item_list_ID) then return; end if;
                   if Invalid_Node_Index /= Next_List_Element (RHS_2, +rhs_list_ID) or
                     Invalid_Node_Index /= Prev_List_Element (RHS_2, +rhs_list_ID)

@@ -261,6 +261,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                            "WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
             Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
+            Indent_Line ("   --  no error recovery");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");

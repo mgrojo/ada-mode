@@ -4,6 +4,7 @@
 
 %meta_syntax BNF
 
+%keyword NONLOCAL "nonlocal"
 %keyword IN "in"
 %keyword FOR "for"
 %generate None
@@ -44,7 +45,12 @@ expr_stmt
 
 ;; Simplified has a similar problem
 expr_stmt_2
-  : testlist_star_expr nonterminal_037
+  : testlist_star_expr nonterminal_037  ;
+
+;; This was recognized as a canonical list, and 'nonlocal' left out.
+nonlocal_stmt
+  : NONLOCAL NAME nonterminal_041_list  | NONLOCAL NAME
+  ;
 
 ;; end of file
 nonterminal_005
@@ -118,4 +124,11 @@ nonterminal_036_list
 nonterminal_037
   : nonterminal_036_list
   | ;; empty
+  ;
+nonterminal_042
+  : COMMA NAME
+  ;
+nonterminal_041_list
+  : nonterminal_042
+  | nonterminal_041_list nonterminal_042
   ;
