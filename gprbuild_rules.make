@@ -21,7 +21,7 @@ exec_mem/%.exe : %.adb force
 # Spark proof. gnatprove caches results, so running a second time on
 # unchanged sources is fast.
 prove_all:
-	gnatprove -P $(GNAT_PROJECT) -j 0 --level 4 --no-subprojects --mode all $(SPARK_FILES)
+	gnatprove -P $(GNAT_PROJECT) -j 0 --level 4 --no-subprojects --mode all --warnings=error $(SPARK_FILES)
 
 # We don't use gnatclean because it only removes compiler-generated
 # files that the project file knows about; that usually does not
