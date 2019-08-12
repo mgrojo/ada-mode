@@ -18,9 +18,10 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 6.1.1
-export ADA_REF_MAN_VERSION := 2012.5
-export WISI_VERSION        := 2.1.1
+export ADA_MODE_VERSION       := 6.1.1
+export ADA_REF_MAN_VERSION    := 2012.5
+export WISI_VERSION           := 2.1.1
+export UNIQUIFY_FILES_VERSION := 1.0
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -41,7 +42,7 @@ endif
 
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
 
-pub : docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
+pub : docs pub-ada pub-wisi pub-ada-ref-man clean-elpa build-elpa uninstall-elpa
 
 docs : info html
 
@@ -252,7 +253,7 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../*parse.ad? $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../ada_mode*parse.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
@@ -283,23 +284,26 @@ pub-wisi : force
 	rm -f $(ELPA_ROOT)/packages/wisi/*
 	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
+	cp ../gen_*parse.ad? ../*_wisi_common_parse.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../wisi.gpr  $(ELPA_ROOT)/packages/wisi
 	cp ../wisitoken-parse_table-mode.el $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/Docs/dir $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/Docs/*.info $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
-	cp $(WISITOKEN)/build/wisitoken-elpa.gpr  $(ELPA_ROOT)/packages/wisi/wisitoken.gpr
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-ada_containers* $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_array_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_sorted.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_stacks*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_refs.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors_sorted*.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_graphs.ad? $(ELPA_ROOT)/packages/wisi
@@ -313,6 +317,7 @@ pub-wisi : force
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-generic_decimal_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi
 # for wisitoken-bnf-generate:
@@ -325,13 +330,15 @@ pub-wisi : force
 # Other packages are often broken, so just build ours, by only copying
 # ours into archive-tmp. Packages at version 0 are deleted by
 # process-archive.
-build-elpa : force
+clean-elpa :
 	rm -rf $(ELPA_ROOT)/archive
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
+
+build-elpa : force
 	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
-#	cp -a $(ELPA_ROOT)/packages/uniqufy-files $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_ROOT)/packages/uniquify-files $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive
 

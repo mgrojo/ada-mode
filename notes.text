@@ -34,6 +34,7 @@ run test from emacs -Q using source:
   (xmtn . "/Projects/org.stephe_leake.sal")
   (xmtn . "/Projects/org.stephe_leake.aunit_ext")
   (xmtn . "/Projects/org.wisitoken")
+  (xgit . "/Projects/elpa") ;; for uniquify-files
   (xmtn . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
@@ -55,6 +56,8 @@ run test from emacs -Q using source:
 
  current work
 release
+    doc how to use ada-project
+    delete emacs/lisp/prog-modes/ada*
 
 speed up lalr compile
     decrease subprog size?
@@ -1197,6 +1200,8 @@ compare:
             add release date, new features
 
 bump versions
+    Gnu ELPA requires single digits between dots in versions
+
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features
         bump second digit for major features

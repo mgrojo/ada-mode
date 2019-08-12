@@ -2,7 +2,7 @@
 --
 --  Run the gpr parser standalone. Useful for debugging grammar issues.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Gen_Run_Wisi_LR_Parse;
 with Gpr_Process_Actions;
-with Gpr_Process_LR1_Main;
+with Gpr_Process_Main;
 with Wisi.Gpr;
 procedure Run_Gpr_Parse is new Gen_Run_Wisi_LR_Parse
   (Wisi.Gpr.Parse_Data_Type,
@@ -28,4 +28,4 @@ procedure Run_Gpr_Parse is new Gen_Run_Wisi_LR_Parse
    null,
    null,
    null,
-   Gpr_Process_LR1_Main.Create_Parser);
+   Gpr_Process_Main.Create_Parser);

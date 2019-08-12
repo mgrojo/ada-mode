@@ -119,20 +119,6 @@
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-size-threshold)
 
-(defcustom wisi-partial-parse-threshold 100001
-  "Minimum size that will be parsed by each call to the parser.
-A parse is always requested at a point (or on a region); the
-point is first expanded to a start point before the region and an
-end point after the region, that the parser can gracefully
-handle. If the final region covers the entire buffer, a complete
-parse is done. Indent assumes the start point of the parse region
-is properly indented. Most navigate parses ignore this setting
-and parse the whole buffer."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-(make-variable-buffer-local 'wisi-partial-parse-threshold)
-
 (defcustom wisi-indent-context-lines 0
   "Minimum number of lines before point to include in a parse for indent.
 Increasing this will give better results when in the middle of a
@@ -400,9 +386,6 @@ Set by `wisi-before-change', used and reset by `wisi--post-change'.")
 (defvar-local wisi-indenting-p nil
   "Non-nil when `wisi-indent-region' is actively indenting.
 Used to ignore whitespace changes in before/after change hooks.")
-
-(defvar-local wisi--parser nil
-  "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
 (defvar-local wisi--last-parse-action nil
   "Value of `wisi--parse-action' when `wisi-validate-cache' was last run.")
@@ -1455,10 +1438,6 @@ If non-nil, only repair errors in BEG END region."
   (define-key global-map "\M-i" 'wisi-show-indent)
   (define-key global-map "\M-j" 'wisi-show-cache)
   )
-
-(defun wisi-read-parse-action ()
-  "Read a parse action symbol from the minibuffer."
-  (intern-soft (completing-read "parse action (indent): " '(face navigate indent) nil t nil nil 'indent)))
 
 (defun wisi-parse-buffer (&optional parse-action begin end)
   (interactive)
