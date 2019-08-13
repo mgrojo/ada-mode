@@ -1303,9 +1303,7 @@ sync for Debian check bogus execute permissions:
     $ mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
-Debian
-    emacs-stable.sh ;; for dvc and testing
-
+Debian stable has elpa checkout
     ~/bin/mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
@@ -1317,10 +1315,10 @@ Debian
     (dvc-sync-review "/Projects/elpa")
 
     /Projects/org.emacs.ada-mode/build/Makefile
-        # no ada-ref-man on Debian
-        docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
+        # no ARM_INFO on Debian
+        docs pub-ada pub-wisi clean-elpa build-elpa uninstall-elpa
         install-elpa
-            # byte-compile errors show in *compile-log*
+            # byte-compile errors, warnings show in *compile-log*
 
     check for bogus execute permissions in elpa
         $ cd /Projects/elpa/
