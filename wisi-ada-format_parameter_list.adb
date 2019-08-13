@@ -67,7 +67,8 @@ begin
 
    Edit_End   := Tree.Byte_Region (Formal_Part).Last;
    Param_Iter := Iterator
-     (Iterate (Tree, Data.Descriptor, Tree.Child (Formal_Part, 2), +parameter_specification_ID, +SEMICOLON_ID));
+     (Iterate (Tree, Data.Base_Terminals, Data.Lexer, Data.Descriptor,
+               Tree.Child (Formal_Part, 2), +parameter_specification_ID, +SEMICOLON_ID));
 
    --  The last parameter might be empty, due to syntax errors.
    for Param_Cur in Param_Iter loop
@@ -88,7 +89,9 @@ begin
          declare
             Children : constant Valid_Node_Index_Array := Tree.Children (Node (Param_Cur));
          begin
-            for Ident_Cur in Iterate (Tree, Data.Descriptor, Children (1), +IDENTIFIER_ID, +COMMA_ID) loop
+            for Ident_Cur in Iterate
+              (Tree, Data.Base_Terminals, Data.Lexer, Data.Descriptor, Children (1), +IDENTIFIER_ID, +COMMA_ID)
+            loop
                Param.Identifiers.Append (Tree.Byte_Region (Node (Ident_Cur)));
             end loop;
 
@@ -141,7 +144,9 @@ begin
                   end if;
 
                when others =>
-                  Raise_Programmer_Error ("format_parameter_list param id", Data.Descriptor.all, Tree, Children (I));
+                  Raise_Programmer_Error
+                    ("format_parameter_list param id", Data.Descriptor.all, Data.Lexer, Tree, Data.Base_Terminals.all,
+                     Children (I));
                end case;
             end loop;
          end;

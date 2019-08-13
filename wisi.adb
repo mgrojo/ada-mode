@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Strings.Bounded;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL;
 with WisiToken.Semantic_Checks;
@@ -597,7 +598,7 @@ package body Wisi is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Source_File_Name  : in     String;
+      Base_Terminals    : in     Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     Line_Number_Type;
       End_Line          : in     Line_Number_Type;
@@ -617,7 +618,7 @@ package body Wisi is
 
       Data.Lexer             := Lexer;
       Data.Descriptor        := Descriptor;
-      Data.Source_File_Name  := +Source_File_Name;
+      Data.Base_Terminals    := Base_Terminals;
       Data.Post_Parse_Action := Post_Parse_Action;
 
       case Post_Parse_Action is
@@ -668,7 +669,7 @@ package body Wisi is
 
    function Source_File_Name (Data : in Parse_Data_Type) return String
    is begin
-      return -Data.Source_File_Name;
+      return Data.Lexer.File_Name;
    end Source_File_Name;
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type
@@ -961,7 +962,7 @@ package body Wisi is
       for Pair of Params loop
          if not (Pair.Index in Tokens'Range) then
             raise Fatal_Error with Error_Message
-              (File_Name => -Data.Source_File_Name,
+              (File_Name => Data.Lexer.File_Name,
                Line      => Nonterm_Tok.Line,
                Column    => Nonterm_Tok.Column,
                Message   => "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
@@ -1074,7 +1075,7 @@ package body Wisi is
             Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Tokens'First));
          begin
             raise Fatal_Error with Error_Message
-              (File_Name => -Data.Source_File_Name,
+              (File_Name => Data.Lexer.File_Name,
                Line      => Token.Line,
                Column    => Token.Column,
                Message   => "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
@@ -1098,7 +1099,7 @@ package body Wisi is
             return;
          elsif Has_Element (Cursor) then
             raise Fatal_Error with Error_Message
-              (File_Name => -Data.Source_File_Name,
+              (File_Name => Data.Lexer.File_Name,
                Line      => Name_Token.Line,
                Column    => Name_Token.Column,
                Message   => "wisi-name-action: name set twice.");
@@ -1160,7 +1161,7 @@ package body Wisi is
                            exit;
 
                         elsif Data.Navigate_Caches (Cache_Cur).ID = Param.ID and
-                          not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set
+                          not Data.Navigate_Caches (Cache_Cur).Prev_Pos.Set
                         then
                            Skip := False;
                            exit;
@@ -1174,7 +1175,7 @@ package body Wisi is
                if not Skip then
                   if not Has_Element (Cache_Cur) then
                      raise Fatal_Error with Error_Message
-                       (File_Name => -Data.Source_File_Name,
+                       (File_Name => Data.Lexer.File_Name,
                         Line      => Token.Line,
                         Column    => Token.Column,
                         Message   => "wisi-motion-action: token " &
@@ -1785,7 +1786,7 @@ package body Wisi is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("(error """ & Error_Message (-Data.Source_File_Name, Line_Number, 0, Message) & """)");
+      Put_Line ("(error """ & Error_Message (Data.Lexer.File_Name, Line_Number, 0, Message) & """)");
    end Put_Error;
 
    ----------

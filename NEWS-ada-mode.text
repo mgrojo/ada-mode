@@ -19,6 +19,16 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    menu shown by `ada-refactor-menu-popup', which may be bound to a
    keystroke or mouseclick.
 
+** Ada mode now provides a project.el backend, in ada-project.el.
+   `project-find-file' does file name completion on files in the
+   current project, using the `uniquify-files' completion style. To
+   use this backend with an existing Ada mode project file:
+
+   (setq ada-project-current (make-ada-project :ada-prj-file <exising-file.prj>))
+   (add-to-list 'project-find-functions #'ada-project-current)
+
+   You may want to define other functions for project-find-functions.
+
 * Ada Mode 6.1.1
 11 Jul 2019
 

@@ -55,9 +55,7 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-release
-    doc how to use ada-project
-    delete emacs/lisp/prog-modes/ada*
+delete emacs/lisp/prog-modes/ada*
 
 speed up lalr compile
     decrease subprog size?
@@ -1135,6 +1133,14 @@ libadalang etc with gnat pro 18.2
     git clone https://github.com/AdaCore/libadalang-tools.git
         git checkout 18.2
 
+ mini-release to Ludovic
+run all tests
+
+bump version (elpa releases don't have to be consecutive)
+
+Makefile build-elpa install-elpa elpa-zip
+    # install-elpa verifies all required files are included and byte-compile successfully.
+
  release process
 do wisitoken release ../org.wisitoken/build/release_process.text
 
@@ -1444,13 +1450,5 @@ mark fixed bugs
 
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake
-
- mini-release to Ludovic
-run all tests
-
-bump version (elpa releases don't have to be consecutive)
-
-Makefile build-elpa install-elpa elpa-zip
-    # install-elpa verifies all required files are included and byte-compile successfully.
 
 -- end of file

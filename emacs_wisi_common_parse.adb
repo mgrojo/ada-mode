@@ -325,7 +325,7 @@ package body Emacs_Wisi_Common_Parse is
                     (Post_Parse_Action => Params.Post_Parse_Action,
                      Lexer             => Parser.Lexer,
                      Descriptor        => Descriptor'Unrestricted_Access,
-                     Source_File_Name  => -Params.Source_File_Name,
+                     Base_Terminals    => Parser.Terminals'Unrestricted_Access,
                      Begin_Line        => Params.Begin_Line,
                      End_Line          => Params.End_Line,
                      Begin_Indent      => Params.Begin_Indent,
@@ -410,7 +410,7 @@ package body Emacs_Wisi_Common_Parse is
                     (Post_Parse_Action => Wisi.Navigate, -- mostly ignored
                      Lexer             => Parser.Lexer,
                      Descriptor        => Descriptor'Unrestricted_Access,
-                     Source_File_Name  => -Params.Source_File_Name,
+                     Base_Terminals    => Parser.Terminals'Unrestricted_Access,
                      Begin_Line        => Params.Parse_Begin_Line,
                      End_Line          => Params.Parse_End_Line,
                      Begin_Indent      => 0,

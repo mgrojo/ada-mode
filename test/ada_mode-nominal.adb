@@ -138,6 +138,7 @@ is -- target 0
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                --EMACSRESULT:t
                begin -- 2
+                     --EMASCMD:(progn (forward-line -1)(back-to-indentation)(forward-sexp)(looking-at "when E :"))
                      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                      --EMACSRESULT:t
 
@@ -147,15 +148,12 @@ is -- target 0
                   return Integer (Function_1a);
                   --EMACSCMD:(ada-which-function)
                   --EMACSRESULT:"Local_Function"
-                  --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(backward-sexp)(looking-at "begin"))
-                  --EMACSRESULT:t
                exception
-                  --EMASCMD:(progn (forward-line -1)(back-to-indentation)(backward-sexp)(looking-at "begin -- 2"))
-                  --EMASCMD:(progn (forward-line -2)(back-to-indentation)(forward-sexp)(looking-at "when E :"))
 
                   --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                   when E : Constraint_Error =>
-                     --EMASCMD:(progn (forward-line -1)(back-to-indentation)(forward-sexp)(looking-at "when -- 2"))
+                     --EMASCMD:(progn (forward-line -1)(back-to-indentation)(backward-sexp)(looking-at "begin -- 2"))
+                     --EMASCMD:(progn (forward-line -2)(back-to-indentation)(forward-sexp)(looking-at "when -- 2"))
                      --EMACSCMD:(test-face "raise" font-lock-keyword-face)
                      --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                      --EMACSCMD:(test-face "with" font-lock-keyword-face)

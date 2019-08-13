@@ -20,24 +20,59 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'ada-mode)
-(require 'env-project)
+(require 'cl-lib)
+(require 'cl-generic)
+(require 'project)
 (require 'uniquify-files)
 
+(cl-defgeneric project-refresh (prj full)
+  "Refresh all cached data in PRJ.
+If FULL is non-nil, very slow refresh operations may be skipped.")
+
+(defun refresh-project (full)
+  "Refresh all cached data in the current project.
+With prefix arg, very slow refresh operations may be skipped."
+  (interactive "P")
+  (project-refresh (project-current) full))
+
+(cl-defgeneric project-select (prj)
+  "User has selected PRJ as the active project; take actions to make that so."
+  (setq compilation-search-path
+	(append (project-roots prj)
+		(project-external-roots prj)))
+  )
+
+(cl-defgeneric project-deselect (_prj)
+  "PRJ is the current project; user has selected another project.
+Undo actions done in `project-select'."
+  (setq compilation-search-path nil)
+  )
+
 (cl-defstruct (ada-project
-	       (:include env-project)
 	       (:constructor nil) ;; no default
 	       (:constructor make-ada-project
 			     (&key
 			      env-vars
 			      ada-prj-file
+			      file-pred
 			      &aux
 			      (ada-prj (expand-file-name ada-prj-file))))
 	       )
+  env-vars ;; a list of (NAME . VALUE)
   ada-prj ;; The ada-mode project file name (absolute).
 
   file-pred ;; Function taking an absolute file name, returns non-nil
 	    ;; if the file should be included in `project-files'.
   )
+
+(defvar ada-project-current nil
+  "The current Ada project; an `ada-project' object.")
+
+;;;###autoload
+(defun ada-project-current (_dir)
+  "Return the project the user has set in `ada-project-current'.
+For `project-find-functions'."
+   ada-project-current)
 
 (cl-defmethod project-id ((prj ada-project))
   ;; project-id is experimental
@@ -65,13 +100,15 @@
   (cl-defmethod project-file-completion-table ((prj ada-project) &optional dirs)
     (apply-partially #'uniq-file-completion-table (uniq-file-uniquify (project-files prj dirs)))))
 
-(cl-defmethod project-select :after ((prj ada-project))
-  ;; :after ensures env-project project-select is run first, setting env vars.
+(cl-defmethod project-select ((prj ada-project))
+  (dolist (pair (ada-project-env-vars prj))
+    (setenv (car pair) (cdr pair)))
   (ada-select-prj-file (ada-project-ada-prj prj)))
 
 (cl-defmethod project-deselect :before ((prj ada-project))
-  ;; :before ensures env vars are not erased before we are done with them.
-  (ada-deselect-prj (ada-project-ada-prj prj)))
+  (ada-deselect-prj (ada-project-ada-prj prj))
+  (dolist (pair (ada-project-env-vars prj))
+    (setenv (car pair) nil)))
 
 (cl-defmethod project-refresh ((_prj ada-project) full)
   ;; assume prj is current

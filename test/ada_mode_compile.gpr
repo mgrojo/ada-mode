@@ -31,9 +31,6 @@ project Ada_Mode_Compile is
       -- This has incomplete code; tests a former bug in syntax-ppss
       "ada_mode-long_paren.adb",
 
-      -- This has incomplete code; used for testing OpenToken special rule
-      "ada_mode-opentoken.ads",
-
       -- These have syntax errors on purpose
       "ada_mode-partial_parse.ads",
       "ada_mode-partial_parse.adb",

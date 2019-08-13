@@ -242,7 +242,7 @@ package body Run_Wisi_Common_Parse is
                when Refactor => Wisi.Navigate),
             Lexer            => Parser.Lexer,
             Descriptor       => Descriptor'Unrestricted_Access,
-            Source_File_Name => -Cl_Params.Source_File_Name,
+            Base_Terminals   => Parser.Terminals'Unrestricted_Access,
             Begin_Line       =>
               (case Cl_Params.Command is
                when Parse => Cl_Params.Begin_Line,

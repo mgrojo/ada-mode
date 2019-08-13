@@ -145,10 +145,10 @@ generic
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1) (forward-sexp)(looking-back "^end Ada_Mode.Generic_Package"))
    --EMACSRESULT: t
 package Ada_Mode.Generic_Package is
---EMACSCMD:(progn (end-of-line 0)(backward-word 1)(backward-sexp)(looking-at "^package Ada_Mode.Generic_Package is$"))
---EMACSRESULT:t
---EMACSCMD:(progn (forward-line -3)(backward-sexp)(looking-at "^generic$"))
---EMACSRESULT:t
+   --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(backward-sexp)(looking-at "^package Ada_Mode.Generic_Package is$"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line -3)(backward-sexp)(looking-at "^generic$"))
+   --EMACSRESULT:t
 
    -- See ada_mode-generic_parent.ads for generic subprograms
 

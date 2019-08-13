@@ -27,7 +27,6 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
-with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Parse.LR;
@@ -46,7 +45,7 @@ package Wisi is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Source_File_Name  : in     String;
+      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -585,7 +584,7 @@ private
 
       Lexer             : WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Base_Terminals    : WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : Post_Parse_Action_Type;
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
       Name_Caches       : Name_Cache_Trees.Tree;      -- Set by Navigate.

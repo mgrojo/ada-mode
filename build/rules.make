@@ -14,7 +14,6 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 vpath %.adb   ../test ../test/subdir
 vpath %.ads   ../test ../test/subdir
 vpath %.gpr   ../test/gpr
-vpath %.input ../test/wisi
 vpath %.wy    ../
 
 # emacs to test with
@@ -152,7 +151,6 @@ test-clean ::
 # ada-make-package-body.
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
-	cd ../test/wisi/; rm -f *-elisp.el *.*parse_table
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

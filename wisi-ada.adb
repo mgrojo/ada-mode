@@ -14,6 +14,7 @@
 pragma License (GPL);
 
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada_Process_Actions; --  token_enum_id
 package body Wisi.Ada is
@@ -433,7 +434,7 @@ package body Wisi.Ada is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Source_File_Name  : in     String;
+      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -446,7 +447,7 @@ package body Wisi.Ada is
       Last  : Integer := Index (Params, " ");
    begin
       Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Source_File_Name, Post_Parse_Action, Begin_Line, End_Line,
+        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Base_Terminals, Post_Parse_Action, Begin_Line, End_Line,
          Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;

@@ -620,7 +620,9 @@ Point must be in Object"
   (cond
    ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
-     #'ada-in-string-or-comment-p)
+     (lambda () (or (ada-in-string-or-comment-p)
+		    (looking-back "access "))))
+     ;; "access" rejects subprobram access parameters; test/ada_mode-recover_partial_20.adb
 
     (let ((found (match-string 0))
 	  cache)
