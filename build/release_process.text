@@ -47,42 +47,19 @@ bump version
             independent of ada-mode parser version
             bump if changes affect ada-mode or other clients
 
-    d:/Web/savannah/ada-mode/index.html
+    d:/Web/savannah/ada-mode/index.html ;
         WisiToken <version>
 
-loop until no changes:
-    Windows:
-        (sal-standard)
+Makefile
+    (gpr-query-kill-all-sessions)
+    clean
+        # check for missing clean actions
+    all
 
-        Makefile
-            (gpr-query-kill-all-sessions)
-            clean
-            all
-
-        (dvc-state-one ".")
-
-        $ mtn_sync_ada_france.sh
-
-    Debian stable:
-
-        $ mtn_sync_ada_france.sh
-        (dvc-sync-review)
-
-        # debian gnat does not support wisitoken, so the libre or pro package must be used
-        (sal-standard)
-        Makefile
-            (gpr-query-kill-all-sessions)
-            make -r clean
-            make -r all
-
-        (dvc-state-one ".")
-
-        $ mtn_sync_ada_france.sh
-
-end loop
+../notes.text dvc-state-multiple
 
 Makefile
-    doc zip tag
+    zip tag
 
 upload to savannah for Emacs Ada mode:
     in Cygwin Console (for gpg2 prompts):

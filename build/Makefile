@@ -2,7 +2,7 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 1.2.0
+ZIP_VERSION := 1.3.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests doc
@@ -29,13 +29,12 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
 one-clean :
-	rm -rf ada_lite* *_recover-ada_lite.ad*
+	rm -rf debug*
 
 one :: one-clean
 one :: wisitoken-bnf-generate.exe
-one :: java_expressions_ch19_re2c.c
-one :: java_expressions_ch19_lr1_run.exe
-	./java_expressions_ch19_lr1_run.exe -v 2 -t 1 -m 1 ../Test/bnf/java_expressions_ch19.input > debug.log
+one :: GENERATE_ARGS := -v 3 --output_bnf debug_bnf.wy
+one :: debug.re2c
 
 two :: show_minimal_actions.exe
 	./show_minimal_actions.exe $(RUN_ARGS)
