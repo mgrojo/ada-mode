@@ -7,8 +7,8 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 2.1.1
-;; package-requires: ((cl-lib "1.0") (emacs "25.0") (seq "2.20"))
+;; Version: 2.2.0
+;; package-requires: ((emacs "25.0") (seq "2.20"))
 ;; URL: http://stephe-leake.org/ada/wisitoken.html
 ;;
 ;; This file is part of GNU Emacs.

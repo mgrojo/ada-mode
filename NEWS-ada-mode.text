@@ -6,7 +6,7 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* Ada Mode
+* Ada Mode 6.2.1
 
 ** parser Ada language protocol version 2
 

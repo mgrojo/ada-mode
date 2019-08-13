@@ -283,12 +283,12 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state aggregate, aggregate on token RIGHT_PAREN ( 580)
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state derived_type_definition, derived_type_definition  on token WITH
 %conflict REDUCE/REDUCE in state full_type_declaration, full_type_declaration  on token NEW
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
-%conflict REDUCE/REDUCE in state paren_expression, paren_expression  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %if parser = LALR
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
@@ -1069,9 +1069,6 @@ expression_function_declaration
   : overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON
  ;; IS does not start a block, so it is not "motion".
  ;;
- ;; We override the cache on "function_specification", so
- ;; wisi-statement-action will handle an empty
- ;; "overriding_indicator_opt" correctly.
     %((progn
       (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
       (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken nil])))%
@@ -1887,21 +1884,17 @@ parameter_specification_list
 
 paren_expression
   : LEFT_PAREN expression_opt RIGHT_PAREN
- ;;test/ada_mode-parens.ads
- ;; function Expression_Function_1 (V : Integer) return Boolean
- ;;   is ((V = V and then True)
- ;;         or else True);
+    ;;test/ada_mode-parens.ads
+    ;; function Expression_Function_1 (V : Integer) return Boolean
+    ;;   is ((V = V and then True)
+    ;;         or else True);
     %((wisi-indent-action [nil
-                         (wisi-hanging (wisi-anchored 1 1)
-                                       (wisi-anchored 1 (+ 1 ada-indent-broken)))
-                         (wisi-anchored 1 0)]))%
+                           (wisi-hanging (wisi-anchored 1 1)
+                                         (wisi-anchored 1 (+ 1 ada-indent-broken)))
+                           (wisi-anchored 1 0)]))%
 
-  | LEFT_PAREN association_list RIGHT_PAREN
-    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
-
- ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
-  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
+  ;; AI12-0157[1] aggregate instead of (aggregate)
+  | aggregate
   ;
 
 pragma_g

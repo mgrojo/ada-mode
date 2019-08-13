@@ -340,6 +340,9 @@ is -- target 0
    type Null_Record_Type_4
      is null record;
 
+   function A_Null_Record_Type_1 return Null_Record_Type_1 is (null record);
+   --  expression function returning 'null record'
+
    type Record_Type_1 is record
       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
       Component_1   : Integer := 1;
@@ -705,6 +708,10 @@ is -- target 0
    --  comment after 'is abstract', aligned with 'function'
 
    function Function_2h (Param : in Parent_Type_1) return Float is (1.0); -- expression function
+   function Function_2i (Param : in Parent_Type_1) return Parent_Type_1 is
+     (Parent_Element_1 => Param.Parent_Element_1 * 2,
+      Parent_Element_2 => 3.0,
+      Parent_Element_3 => False); -- expression function returning aggregate
 
    Default_Parent : constant Parent_Type_1 :=
      (Parent_Element_1 => 1,

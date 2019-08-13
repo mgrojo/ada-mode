@@ -79,6 +79,15 @@ package Ada_Mode.Nominal.Child is
    overriding
    function Function_2h (Param : in Child_Type_1) return Float is (1.0); -- overriding with expression function
 
+   overriding
+   function Function_2i (Param : in Child_Type_1) return Child_Type_1 is
+     (Parent_Element_1 => Param.Parent_Element_1 * 2,
+      Parent_Element_2 => 3.0,
+      Parent_Element_3 => False,
+      Child_Element_1  => 1,
+      Child_Element_2  => 1.0,
+      Child_Element_3  => True); -- expression function returning aggregate
+
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 
    Child_Obj_1 : constant Child_Type_1 :=

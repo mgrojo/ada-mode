@@ -330,6 +330,7 @@ simple_project_declaration
   : PROJECT identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON
     %((progn
         (wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-name-action 2)
         (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
         (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0])))%
     %((wisi-match-names 2 6))%

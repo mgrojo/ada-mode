@@ -386,6 +386,7 @@ package body Gpr_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
+         Name_Action (Parse_Data, Tree, Nonterm, Tokens, 2);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 0), (6, 1, 0)));
       when Indent =>

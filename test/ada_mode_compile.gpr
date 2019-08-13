@@ -90,7 +90,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_partial_02_lr1.adb",
       "ada_mode-recover_partial_03.adb",
       "ada_mode-recover_partial_04_lr1.adb",
-      "ada_mode-recover_partial_05_lr1.adb",
       "ada_mode-recover_partial_06.adb",
       "ada_mode-recover_partial_07.adb",
       "ada_mode-recover_partial_08.adb",

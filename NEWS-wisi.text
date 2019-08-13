@@ -7,6 +7,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 
 * wisi
+13 Aug 2019
 
 ** parser process protocol version 3
 
@@ -16,7 +17,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 ** New user variable `wisi-indent-context-lines' specifies the minimum
    number of lines before point to include in a parse for indenting a
    single line. This gives better results when indenting in a nested
-   'if then else', for example.
+   'if then else', for example. The default value is 0; you must
+   change it to see an effect.
 
 ** Error correction is faster by approximately 30%;
    %mckenzie_enqueue_limit can be raised accordingly.
@@ -31,12 +33,18 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 ** In the process parser, `wisi-statement-start' now sets 'containing'
    in all contained caches to the start token, if not set already;
    previously it only did this if the token was mentioned in the
-   `wisi-statement-start' action. This eliminates the need for
-   `wisi-containing-action'; it is now a null operation in the process
-   parser and will be deleted when the elisp parser is.
+   `wisi-statement-start' action. This makes `wisi-containing-action'
+   unnecessary.
 
-** The elisp parser is deprecated; it still has the old
-   `wisi-statement-start' and `wisi-containing-action' semantics.
+** `wisi-containing-action' is deleted.
+
+** An argument of `wisi-motion-action' that is a vector may now
+   provide only one token ID. That token ID is searched for in the
+   containing token region, and the motion token chain starting at the
+   first one found is included in the current right hand side motion
+   token chain.
+
+** The elisp parser and lexer are deleted.
 
 ** The process parser supports a new parse command `wisi-refactor',
    which returns a new message "Edit". It is intended for performing
