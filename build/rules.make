@@ -19,6 +19,7 @@ SPARK_FILES += prove_bounded_definite_vectors_sorted.ads
 
 clean :: test-clean
 clean :: profile-clean
+clean :: prove-clean
 
 test-clean ::
 	rm -f *.config
@@ -29,4 +30,9 @@ profile-clean ::
 	rm -rf obj_pro
 	rm -rf exec_mem
 	rm -rf obj_mem
+
+prove-clean :
+	rm -rf gnatprove
+	rm -rf obj/gnatprove
+
 # end of file

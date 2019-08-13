@@ -21,7 +21,7 @@ https://www.adacore.com/books/implementation-guidance-spark
 
  Release process:
 
-(no separate aunit_ext release)
+(no separate aunit_ext or makerules release)
 
 (dvc-state-multiple
   '((xmtn . ".")
@@ -33,20 +33,20 @@ build/Makefile clean
 
 build/Makefile all
 
-build/Makefile
-    # bump version
-    # includes aunit_ext, makerules
+bump version
+    build/Makefile
+        ZIP_VERSION
 
-~/Web/Makefile
-    SAL_ZIP_VERSION bump
+    ~/Web/Makefile
+        SAL_ZIP_VERSION
+
+    source/sal.adb
+        Version
 
 source/sal.html
     doc version
     # review mtn log since last release date
     $ mtn log --to d:yyyy-mm-dd > release.log
-
-source/sal.adb
-    edit Version to match html
 
 # dvc-state-multiple above
 
