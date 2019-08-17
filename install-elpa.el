@@ -4,6 +4,8 @@
 (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
 
 (package-initialize)
+(setq package-check-signature nil)
+(setq byte-compile-error-on-warn t)
 
 (setq wisitoken-grammar-mode-version (getenv "WISITOKEN_GRAMMAR_MODE_VERSION"))
 (setq wisi-version (getenv "WISI_VERSION"))
@@ -21,8 +23,6 @@
 	  :archive (or archive "test"))))
     (package-install-from-archive pkg-desc)))
 
-;; download in dependency order
-(pkg-download "wisi" wisi-version)
 (pkg-download "wisitoken-grammar-mode" wisitoken-grammar-mode-version)
 
 ;; end of file

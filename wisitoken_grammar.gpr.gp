@@ -16,8 +16,10 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-with "wisi_runtime";
+with "wisi";
+#if ELPA="no"
 with "wisitoken";
+#end if;
 with "standard_common";
 project WisiToken_Grammar is
 

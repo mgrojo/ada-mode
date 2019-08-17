@@ -7,7 +7,7 @@
 #export Standard_Common_Build := Debug
 
 export WISITOKEN_GRAMMAR_MODE_VERSION := 1.0.0
-export WISI_VERSION              := 2.1.1
+export WISI_VERSION                   := 2.1.1
 
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
@@ -99,11 +99,14 @@ test-wisitoken_grammar.stamp : test-clean
 test-clean : force
 	rm -f *.diff *.tmp *.log
 
-build_executables : wisitoken_grammar_1_re2c.c force
+build_executables : wisitoken_grammar_1_re2c.c wisitoken_grammar.gpr force
 	gprbuild -p wisitoken_grammar.gpr
 
 install_executables : build_executables
-	gprinstall -f -p -P wisitoken_grammar.gpr --install-name=wisitoken_grammar_wisi_parse
+	gprinstall -f -p -P wisitoken_grammar_1.gpr --install-name=wisitoken_grammar_wisi_parse
+
+wisitoken_grammar.gpr : wisitoken_grammar.gpr.gp
+	gnatprep -DELPA="no" $< $@
 
 clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
 	rm -f autoloads.el
@@ -149,18 +152,23 @@ ELPA_WGM := $(ELPA_EXTERNALS)/wisitoken-grammar-mode
 
 pub-wisitoken-grammar : force
 	mkdir -p $(ELPA_WGM)
-	cp wisitoken-grammar*.el $(ELPA_WGM)
+	rm -f $(ELPA_WGM)/*
+	cp wisitoken?grammar*.el $(ELPA_WGM)
 	cp *wisitoken_grammar*.ad? $(ELPA_WGM)
 	cp wisitoken_grammar.gpr wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
 	cp build.sh $(ELPA_WGM)
 
+# assume wisi built, installed (from ada-mode Makefile)
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/wisi $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_WGM)                $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_WGM) $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive
+
+# For testing ELPA build with ada-mode Makefile
+copy-archive : force
+	cp -a $(ELPA_WGM) $(ELPA_ROOT)/archive-tmp/packages
 
 uninstall-elpa :
 	$(EMACS_EXE) -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'

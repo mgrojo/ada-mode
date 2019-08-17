@@ -8,48 +8,25 @@ Makefile
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal")
   (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2") ;; aka wisi
-  (xmtn . "c:/Projects/org.wisitoken.grammar_mode")))
-
-(dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4") ;; aka wisi
-  (xmtn . "c:/Projects/org.wisitoken.grammar_mode.stephe-1")))
+  (xmtn . "c:/Projects/org.emacs.ada-mode") ;; aka wisi
+  (xmtn . "c:/Projects/org.wisitoken.grammar_mode")
+  (xgit . "c:/Projects/elpa-externals/wisitoken-grammar-mode")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")
+   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-2")
    ("../org.wisitoken.grammar_mode"  . "../org.wisitoken.grammar_mode.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"       . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"              . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-4"         . "../org.emacs.ada-mode.stephe-2")
+   ("../org.emacs.ada-mode.stephe-2"         . "../org.emacs.ada-mode")
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-mmm-mode for %code
-
-create ELPA package, release
-    use :external
-    gen_emacs_wisi_lr_parse.ads etc should be in wisi package, not ada-mode; need a release
-
-indent test failing with elisp action
-    posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
-
-    wisitoken uses indent-region, mmm-mode overrides indent-line
+wisitoken uses indent-region, mmm-mode overrides indent-line
     write mmm-indent-region
-        should only call wisi-process-parse once, then use indent caches
-
-test indent ada
-    should fail with syntax error
-    or not; don't have any multi-line Ada actions (sigh).
-
-    change Ada parser to allow 'statement' as compilation_unit
-        don't widen in wisi-indent-region
 
  release process
 bump version
