@@ -115,6 +115,8 @@ align bug
             when Color_Type_RGB_Alpha => "rgb_alpha"));
     => ada-align in case expression => unbalanced parens error
 
+replace ada.wy with ada_annex_p.wy
+
 if partial parse finds dangling 'end', expand parse region towards bob
     -> send extra text, list of start parse points; initially use last start point
     don't always start at beginning of extra; too far from edit point, too many corrections required
@@ -251,6 +253,7 @@ sort error messages in line order
 c:/eurocontrol/query_display-flight_operations.adb
     errors cause huge slowdown in parse speed
         due to parallel parse, delete_dup?
+        try bounded stack for main parse
         run under valgrind
 
     only errors are missing end labels
@@ -1251,7 +1254,7 @@ bump versions
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
-        WISITOKEN_GENERATE in ~/.emacs.d/elpa/wisi-i.j.k/
+        WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-i.j.k/
 
     d:/Web/savannah/ada-mode/index.html
         find-replace ada-mode i.j.k
@@ -1327,15 +1330,6 @@ Debian stable has elpa checkout
         $ chmod -x *.el *.adb
         # keep execute on *.sh
 
-    cd ~/.emacs.d/elpa/ada-mode-6.1.0
-    ./build.sh
-    cd ../wisi-2.1.0/
-    ./build-wisitoken-bnf-generate.sh
-
-    build/Makefile
-        compile-ada-test
-        test-clean test TEST_DIR=elpa
-
     commit elpa:
     (dvc-state-one "/Projects/elpa")
         add, stage, commit ada-mode, wisi
@@ -1355,7 +1349,7 @@ delete changes in elpa:
     $ cd /Projects/elpa/
     $ git checkout .
 
-update elpa, commit elpa
+update elpa, commit elpa/ada-ref-man (not done on Debian)
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 

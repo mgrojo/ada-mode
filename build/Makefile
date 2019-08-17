@@ -18,10 +18,10 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 6.2.0
+export ADA_MODE_VERSION       := 6.2.1
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 2.2.0
-export UNIQUIFY_FILES_VERSION := 1.0
+export WISI_VERSION           := 2.2.1
+export UNIQUIFY_FILES_VERSION := 1.0.1
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -34,7 +34,7 @@ WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 else
 # test with installed elpa package
 ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.0/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.1/wisitoken-bnf-generate.exe
 endif
 
 # compile with debug to get assertions for testing new code
@@ -243,8 +243,6 @@ pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
-#	cp ../env-project.el $(ELPA_ROOT)/packages/ada-mode
-	rm $(ELPA_ROOT)/packages/ada-mode/ada-project.el
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
 	cp ../build.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
@@ -253,7 +251,7 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../ada_mode*parse.ad? $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
@@ -399,7 +397,7 @@ include Makefile.conf
 	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
 
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
-	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) $< $@
+	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
 
 gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
 	gprbuild -p ../gpr_query.gpr
