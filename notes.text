@@ -55,7 +55,25 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-delete emacs/lisp/prog-modes/ada*
+major cleanup
+    sort out recursive requires
+        split out common stuff from ada-mode.el to ada-common.el or ada-base.el or wisi.el
+        no file should require ada-mode
+        same for gpr-mode
+
+    use cl-defgeneric, not function vars
+    assume wisi
+    don't assume gnat
+    minimize use, scope of env vars
+    set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
+        including xref
+        or make them local somehow
+
+    change ada-mode to derive-major-mode
+        always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
+
+java-ch19.wy TryStatement has optional statement-end
+    need override on previous tokens
 
 speed up lalr compile
     decrease subprog size?
@@ -77,29 +95,12 @@ why is wisi-hanging specified in each use of expression instead of on expression
 
 in wisi-tests.el, delete call of syntax-propertize for emacs >= 25
 
-major cleanup
-    preparing for more emacs project work (project-menu?)
-    use cl-defgeneric, not function vars
-    assume wisi
-    don't assume gnat
-    minimize use, scope of env vars
-        merge other stuff from project-env.el into project-menu.el
-    set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
-        including xref
-        or make them local somehow
-    sort out recursive requires
-        split out common stuff from ada-mode.el to ada-common.el or ada-base.el or wisi.el
-        no file should require ada-mode
-        same for gpr-mode
-
-
-    bump major version?
-
-    change ada-mode to derive-major-mode
-        always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
-
-java-ch19.wy TryStatement has optional statement-end
-    need override on previous tokens
+indent bug:
+                 (if GNAT.Regexp.Match (Value, Symbol_Regexp)
+                  then Tree.Add_Nonterm
+                    ((+token_keyword_non_grammar_ID, 0),
+                    (1 => Tree.Add_Identifier (+KEYWORD_ID, New_Identifier ("keyword"), Tree.Byte_Region (Node))))
+                  else Tree.Add_Nonterm
 
 align bug
           Put_Line
@@ -164,89 +165,12 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
               end if;
             end Operator_Indentation;
 
-    34029 multi-line trailing comments
-        https://debbugs.gnu.org/cgi/bugreport.cgi?bug=34029
-        fixed
-
-    34043: 'Misc | Reset parser' throws an error
-        (point-min) /= 0! fixed
-
-    34045: contraint_error on open non-existent file
-        gen_emacs_wisi_lr_text_rep_parse.adb:149
-        fixed in wisi.el; don't parse empty buffer
-
-    35124
-        test/ada_mode-debbugs_35124.ads
-        can't fix original bug (no '.' in name)
-        error recovery tries 'insert begin', but that fails on '.'
-            set matching_token to 'package' if name has a dot.
-            change Use_Minimal_Complete_Actions to take Terminals, current_index
-            o.e.a.s-2
-
-    35143 partial parse vs RET
-        fixed in devel, posted new code
-
-    35144 which-func raises CONSTRAINT_ERROR
-        don't get the error in master, but also don't get mode-line element
-            something is resetting which-func-mode to nil
-                apparently happens when which-func throws error or returns nil
-
-    35924 wavefront compiler warns about 'new String' in descriptor
-        need named string access type
-        posted fix
-
-    36102 ada-wisi-which-function slow
-        trying min partial-parse size, before/after point; works
-
-    36278 auto-casing no longer honors casing of the declaration
-        it never did; you must create an exception. could automate that, make it file-local
-        option to not auto-correct all uppercase; set ada-auto-case to 'not-upper-case
-
-    36548 programmer_error in get_aug_token; virtual_terminal
-        fixed in devel.
-
-    36788 support function expressions returning aggregates directly
-        ok for other aggregates, not for 'null record'
-        fixed
-
-need wisi user guide
-    explain actions
-
-    explain how to patch grammar
-
-    wisi-anchored% - alias wisi-paren-anchored
-
-elpa package include simple makefile to build ada, gpr parser from patched .wy
-
-gpr_query needs to close some xref object to allow 'rm ./obj'?
-    clean => rm: cannot remove 'obj/gpr_query.db': Device or resource busy
-    would have to restart process after clean anyway, but that could be automated
-
-    gpr_query.adb does:
-        gnatcoll.xref.setup_db (Xref, ..., GNATCOLL.SQL.Sqlite.Setup (db_name.all), ...)
-        could call free on Xref
-        to avoid clean knowing anything about gpr_query requires gpr_query to close, reopen in every command
-            way too slow.
-
-indent bug:
-                 (if GNAT.Regexp.Match (Value, Symbol_Regexp)
-                  then Tree.Add_Nonterm
-                    ((+token_keyword_non_grammar_ID, 0),
-                    (1 => Tree.Add_Identifier (+KEYWORD_ID, New_Identifier ("keyword"), Tree.Byte_Region (Node))))
-                  else Tree.Add_Nonterm
-
 align region too large:
                 case 0 =>
                   --  plain identifier
                   RHS.Tokens.Append
                     ((Label      => +"",
                       Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
-
-separate partial-parse threshold for face
-
-Insert context clause inhibit invalidate navigate
-
-loop_statement motion_action include "exit"?
 
 sort error messages in line order
 
@@ -1369,11 +1293,9 @@ after Gnu ELPA updated, test install from GNU ELPA
     also wisitoken-grammar-mode
 
 (dvc-state-one ".")
-build/Makefile tag
+build/Makefile tag zip
 
 ~/bin/mtn_sync_ada_france.sh
-
-build/Makefile zip
 
 in cygwin console for gpg prompts:
     cd /Projects/org.emacs.ada-mode/build/
@@ -1404,18 +1326,34 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
-Gnu Emacs Ada mode 6.1.1 released.
+Gnu Emacs Ada mode 6.2.1 released.
 -------------------
-Gnu Emacs Ada mode 6.1.1 is now available in GNU ELPA. This is a minor
-feature and bug fix release; partial file parsing is now supported for
-`which-function-mode', and error correction is improved. See the NEWS
-files in ~/.emacs.d/elpa/ada-mode-6.1.1 and wisi-2.1.1, or at
-http://www.nongnu.org/ada-mode/, for more details.
+
+Gnu Emacs Ada mode 6.2.1 is now available in GNU ELPA. This is a minor
+feature and bug fix release.
+
+The elisp parser is deleted.
+
+ada-mode now supports some simple refactor operations; convert between
+Object.Method and Prefix.Method (Object) syntax.
+
+ada-mode now provides a project.el backend. `project-find-file' does
+file name completion on files in the current project, using the
+`uniquify-files' completion style. To use this backend with an
+existing Ada mode project file:
+
+   (setq ada-project-current (make-ada-project :ada-prj-file <exising-file.prj>))
+   (add-to-list 'project-find-functions #'ada-project-current)
+
+Error correction is faster.
+
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-6.2.1 and wisi-2.2.1,
+or at http://www.nongnu.org/ada-mode/, for more details.
 
 The process parser requires a manual compile step, after the normal
 list-packages installation:
 
-cd ~/.emacs.d/elpa/ada-mode-6.1.1
+cd ~/.emacs.d/elpa/ada-mode-6.2.1
 ./build.sh
 
 This requires AdaCore gnatcoll packages which you may not have
@@ -1427,7 +1365,7 @@ mark fixed bugs
     confirm with submitter.
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
-    email to nnn@debugs.gnu.org giving ada-mode version containing fix
+    email to nnn@debbugs.gnu.org giving ada-mode version containing fix
     email to nnn-close@debbugs.gnu.org
     subject: 'closed by ada-mode version i.j.k'
     don't include Version: header; that's an Emacs version

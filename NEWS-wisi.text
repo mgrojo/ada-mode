@@ -49,8 +49,6 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
    first one found is included in the current right hand side motion
    token chain.
 
-** The elisp parser and lexer are deleted.
-
 ** The process parser supports a new parse command `wisi-refactor',
    which returns a new message "Edit". It is intended for performing
    syntax-guided refactoring of code statements.

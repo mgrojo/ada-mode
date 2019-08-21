@@ -20,10 +20,10 @@ gnatprep -DHAVE_LIBADALANG="no" -DELPA="yes" ada_mode_wisi_parse.gpr.gp ada_mode
 
 export GPR_PROJECT_PATH="../wisi-2.2.1"
 
-gprbuild -p -P gpr_query.gpr
+gprbuild -p -j8 -P gpr_query.gpr
 gprinstall -f -p -P gpr_query.gpr --install-name=gpr_query
 
-gprbuild -p -P ada_mode_wisi_parse.gpr
+gprbuild -p -j8 -P ada_mode_wisi_parse.gpr
 gzip -d -q ada_lr1_parse_table.txt.gz
 gprinstall -f -p -P ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
