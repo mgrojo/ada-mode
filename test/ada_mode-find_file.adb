@@ -1,6 +1,5 @@
 --  other file for testing ada-find-other-file; requires search path
 -- test .gpr as only project file
---EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "ada_mode.gpr")

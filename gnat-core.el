@@ -24,7 +24,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
-(require 'ada-mode) ;; for ada-prj-* etc; will be refactored sometime
+(require 'ada-core)
 
 (defvar gpr-query--sessions nil) ;; gpr-query.el
 (declare-function gpr-query-kill-session "gpr-query.el" (session) )
@@ -42,8 +42,8 @@ command.  This applies e.g. to *gnatfind* buffers."
 ;;;; project file handling
 
 (defun gnat-prj-add-prj-dir (dir project)
-  "Add DIR to 'prj_dir and to GPR_PROJECT_PATH in 'proc_env. Return new project."
-  (let ((prj-dir (plist-get project 'prj_dir)))
+  "Add DIR to 'prj_dir and to GPR_PROJECT_PATH in PROJECT plist 'proc_env."
+  (let ((prj-dir (plist-get (ada-prj-plist project) 'prj_dir)))
 
     (cond
      ((listp prj-dir)
@@ -54,27 +54,25 @@ command.  This applies e.g. to *gnatfind* buffers."
 
      (t nil))
 
-    (setq project (plist-put project 'prj_dir prj-dir))
+    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'prj_dir prj-dir))
 
-    (let ((process-environment (cl-copy-list (plist-get project 'proc_env))))
+    (let ((process-environment (cl-copy-list (plist-get (ada-prj-plist project) 'proc_env))))
       (setenv "GPR_PROJECT_PATH"
 	      (mapconcat 'identity
-			 (plist-get project 'prj_dir)
-			 (plist-get project 'path_sep)))
+			 (plist-get (ada-prj-plist project) 'prj_dir)
+			 (plist-get (ada-prj-plist project) 'path_sep)))
 
-      (setq project (plist-put project 'proc_env (cl-copy-list process-environment)))
-      )
-
-    project))
+      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'proc_env (cl-copy-list process-environment)))
+      )))
 
 (defun gnat-prj-show-prj-path ()
   "For `ada-prj-show-prj-path'."
     (interactive)
-  (if (ada-prj-get 'prj_dir)
+  (if (plist-get 'prj_dir (ada-prj-plist ada-prj-current-project))
       (progn
 	(pop-to-buffer (get-buffer-create "*GNAT project file search path*"))
 	(erase-buffer)
-	(dolist (file (ada-prj-get 'prj_dir))
+	(dolist (file (plist-get (ada-prj-plist ada-prj-current-project) 'prj_dir))
 	  (insert (format "%s\n" file))))
     (message "no project file search path set")
     ))
@@ -85,9 +83,9 @@ command.  This applies e.g. to *gnatfind* buffers."
 
 (defun gnat-prj-parse-emacs-one (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
-Return new PROJECT if NAME recognized, nil otherwise.
-See also `gnat-parse-emacs-final'."
-  (let ((process-environment (cl-copy-list (plist-get project 'proc_env)))); for substitute-in-file-name
+If NAME recognized, update PROJECT, return t. Else return nil.
+See also `gnat-prj-parse-emacs-final'."
+  (let ((process-environment (cl-copy-list (plist-get (ada-prj-plist project) 'proc_env)))); for substitute-in-file-name
     (cond
      ((or
        ;; we allow either name here for backward compatibility
@@ -96,27 +94,29 @@ See also `gnat-parse-emacs-final'."
       ;; We maintain two project values for this;
       ;; 'prj_dir - a list of directories, for gpr-ff-special-with
       ;; GPR_PROJECT_PATH in 'proc_env, for gnat-run
-      (gnat-prj-add-prj-dir (expand-file-name (substitute-in-file-name value)) project))
+      (gnat-prj-add-prj-dir (expand-file-name (substitute-in-file-name value)) project)
+      t)
 
      ((string= (match-string 1) "gpr_file")
       ;; The file is parsed in `gnat-parse-emacs-prj-file-final', so
       ;; it can add to user-specified src_dir.
-      (setq project
-	    (plist-put project
+      (setf (ada-prj-plist project)
+	    (plist-put (ada-prj-plist project)
 		       'gpr_file
 		       (or
-			(locate-file (substitute-in-file-name value) (ada-prj-get 'prj_dir))
+			(locate-file (substitute-in-file-name value)
+				     (plist-get (ada-prj-plist ada-prj-current-project) 'prj_dir))
 			(expand-file-name (substitute-in-file-name value)))))
-      project)
+      t)
      )))
 
 (defun gnat-prj-parse-emacs-final (project)
   "Final processing of gnat-specific Emacs Ada project file settings."
   ;; things may have changed, force re-create gnat or gpr-query sessions.
-  (cl-ecase (ada-prj-get 'xref_tool project)
+  (cl-ecase (plist-get (ada-prj-plist project) 'xref_tool)
     (gnat
-     (when (buffer-live-p (get-buffer (gnat-run-buffer-name)))
-       (kill-buffer (gnat-run-buffer-name))))
+     (when (buffer-live-p (get-buffer (gnat-run-buffer-name project)))
+       (kill-buffer (gnat-run-buffer-name project))))
 
     (gpr_query
      (let ((session (cdr (assoc ada-prj-current-file gpr-query--sessions))))
@@ -124,26 +124,24 @@ See also `gnat-parse-emacs-final'."
 	 (gpr-query-kill-session session))))
      )
 
-  (if (ada-prj-get 'gpr_file project)
-      (setq project (gnat-parse-gpr (ada-prj-get 'gpr_file project) project))
+  (if (plist-get (ada-prj-plist project) 'gpr_file)
+      (gnat-parse-gpr (plist-get (ada-prj-plist project) 'gpr_file) project)
 
     ;; add the compiler libraries to src_dir
-    (setq project (gnat-get-paths project))
-    )
+    (gnat-get-paths project)
+    ))
 
-  project)
-
-(defun gnat-get-paths-1 (src-dirs obj-dirs prj-dirs)
+(defun gnat-get-paths-1 (project src-dirs obj-dirs prj-dirs)
   "Append list of source, project and object dirs in current gpr project to SRC-DIRS,
 OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIRS)."
-  (with-current-buffer (gnat-run-buffer)
+  (with-current-buffer (gnat-run-buffer project)
     ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
     ;;
     ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
     ;; does not return src_dirs from C++ projects (see AdaCore ticket
     ;; M724-045). The workaround is to include the src_dirs in an
     ;; Emacs Ada mode project.
-    (gnat-run-gnat "list" (list "-v") '(0 4))
+    (gnat-run-gnat project "list" (list "-v") '(0 4))
 
     (goto-char (point-min))
 
@@ -203,38 +201,38 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
        ))
     (list (cl-remove-duplicates src-dirs) (cl-remove-duplicates obj-dirs) (cl-remove-duplicates prj-dirs))))
 
-;; IMPROVEME: use a dispatching function instead, with autoload, to
-;; avoid "require" here, and this declare
+;; FIXME: use a dispatching function instead, with autoload, to
+;; avoid "require" here, and this declare. or drop 'gnat', assume gpr-query.
 ;; Using 'require' at top level gives the wrong default ada-xref-tool
+;; FIXME: test with gnatxref, or delete 'gnat'
 (declare-function gpr-query-get-src-dirs "gpr-query.el" (src-dirs))
 (declare-function gpr-query-get-prj-dirs "gpr-query.el" (prj-dirs))
 (defun gnat-get-paths (project)
   "Add project and/or compiler source, object, project paths to PROJECT src_dir, obj_dir and/or prj_dir."
-  (let ((src-dirs (ada-prj-get 'src_dir project))
-        (obj-dirs (ada-prj-get 'obj_dir project))
-	(prj-dirs (ada-prj-get 'prj_dir project)))
+  (let ((src-dirs (plist-get (ada-prj-plist project) 'src_dir))
+        (obj-dirs (plist-get (ada-prj-plist project) 'obj_dir))
+	(prj-dirs (plist-get (ada-prj-plist project) 'prj_dir)))
 
-    (cl-ecase (ada-prj-get 'xref_tool project)
+    (cl-ecase (plist-get (ada-prj-plist project) 'xref_tool)
       (gnat
-       (let ((res (gnat-get-paths-1 src-dirs obj-dirs prj-dirs)))
+       (let ((res (gnat-get-paths-1 project src-dirs obj-dirs prj-dirs)))
 	 (setq src-dirs (pop res))
          (setq obj-dirs (pop res))
 	 (setq prj-dirs (pop res))))
 
       (gpr_query
-       (when (ada-prj-get 'gpr_file)
+       (when (plist-get (ada-prj-plist project) 'gpr_file)
 	 (require 'gpr-query)
 	 (setq src-dirs (gpr-query-get-src-dirs src-dirs))
 	 (setq obj-dirs nil) ;; gpr-query does not provide obj-dirs
 	 (setq prj-dirs (gpr-query-get-prj-dirs prj-dirs))))
       )
 
-    (setq project (plist-put project 'src_dir (reverse src-dirs)))
-    (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
+    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'src_dir (reverse src-dirs)))
+    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj-dirs)))
     (mapc (lambda (dir) (gnat-prj-add-prj-dir dir project))
 	  (reverse prj-dirs))
-    )
-  project)
+    ))
 
 (defun gnat-parse-gpr (gpr-file project)
   "Append to src_dir and prj_dir in PROJECT by parsing GPR-FILE.
@@ -244,21 +242,21 @@ src_dir will include compiler runtime."
   ;; this can take a long time; let the user know what's up
   (message "Parsing %s ..." gpr-file)
 
-  (if (ada-prj-get 'gpr_file project)
+  (if (plist-get (ada-prj-plist project) 'gpr_file)
       ;; gpr-file defined in Emacs Ada mode project file
-      (when (not (equal gpr-file (ada-prj-get 'gpr_file project)))
+      (when (not (equal gpr-file (plist-get (ada-prj-plist project) 'gpr_file)))
 	(error "Ada project file %s defines a different GNAT project file than %s"
 	       ada-prj-current-file
 	       gpr-file))
 
     ;; gpr-file is top level Ada mode project file
-    (setq project (plist-put project 'gpr_file gpr-file))
+    (plist-put (ada-prj-plist project) 'gpr_file gpr-file)
     )
 
   (condition-case-unless-debug nil
       ;; Can fail due to gpr_query not installed, or bad gpr file
       ;; syntax; allow .prj file settings to still work.
-      (setq project (gnat-get-paths project))
+      (gnat-get-paths project)
     (message "Parsing %s ... done" gpr-file)
     (error
        (message "Parsing %s ... error" gpr-file))
@@ -268,16 +266,16 @@ src_dir will include compiler runtime."
 
 ;;;; command line tool interface
 
-(defun gnat-run-buffer-name (&optional prefix)
+(defun gnat-run-buffer-name (project &optional prefix)
   (concat (or prefix " *gnat-run-")
-	  (or (ada-prj-get 'gpr_file)
+	  (or (plist-get (ada-prj-plist project) 'gpr_file)
 	      ada-prj-current-file)
 	  "*"))
 
-(defun gnat-run-buffer (&optional buffer-name-prefix)
+(defun gnat-run-buffer (project &optional buffer-name-prefix)
   "Return a buffer suitable for running gnat command line tools for the current project."
   (ada-require-project-file)
-  (let* ((name (gnat-run-buffer-name buffer-name-prefix))
+  (let* ((name (gnat-run-buffer-name project buffer-name-prefix))
 	 (buffer (get-buffer name)))
     (if buffer
 	buffer
@@ -285,16 +283,16 @@ src_dir will include compiler runtime."
       (with-current-buffer buffer
 	(setq default-directory
 	      (file-name-directory
-	       (or (ada-prj-get 'gpr_file)
+	       (or (plist-get (ada-prj-plist project) 'gpr_file)
 		   ada-prj-current-file)))
 	)
       buffer)))
 
 (defun ada-gnat-show-run-buffer ()
   (interactive)
-  (pop-to-buffer (gnat-run-buffer)))
+  (pop-to-buffer (gnat-run-buffer ada-prj-current-project)))
 
-(defun gnat-run (exec command &optional err-msg expected-status)
+(defun gnat-run (project exec command &optional err-msg expected-status)
   "Run a gnat command line tool, as \"EXEC COMMAND\".
 EXEC must be an executable found on `exec-path'.
 COMMAND must be a list of strings.
@@ -309,7 +307,7 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
+  (let ((process-environment (cl-copy-list (plist-get (ada-prj-plist project) 'proc_env))) ;; for GPR_PROJECT_PATH
 	status)
 
     (when ada-gnat-debug-run
@@ -330,25 +328,25 @@ Assumes current buffer is (gnat-run-buffer)"
 	))
      )))
 
-(defun gnat-run-gnat (command &optional switches-args expected-status)
+(defun gnat-run-gnat (project command &optional switches-args expected-status)
   "Run the \"gnat\" command line tool, as \"gnat COMMAND -P<prj> SWITCHES-ARGS\".
 COMMAND must be a string, SWITCHES-ARGS a list of strings.
 EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
 Assumes current buffer is (gnat-run-buffer)"
   (let* ((project-file-switch
-	  (when (ada-prj-get 'gpr_file)
-	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-         (target-gnat (concat (ada-prj-get 'target) "gnat"))
+	  (when (plist-get (ada-prj-plist project) 'gpr_file)
+	    (concat "-P" (file-name-nondirectory (plist-get (ada-prj-plist project) 'gpr_file)))))
+         (target-gnat (concat (plist-get (ada-prj-plist project) 'target) "gnat"))
          ;; gnat list understands --RTS without a fully qualified
          ;; path, gnat find (in particular) doesn't (but it doesn't
          ;; need to, it uses the ALI files found via the GPR)
          (runtime
-          (when (and (ada-prj-get 'runtime) (string= command "list"))
-            (list (concat "--RTS=" (ada-prj-get 'runtime)))))
+          (when (and (plist-get (ada-prj-plist project) 'runtime) (string= command "list"))
+            (list (concat "--RTS=" (plist-get (ada-prj-plist project) 'runtime)))))
 	 (cmd (append (list command) (list project-file-switch) runtime switches-args)))
 
-    (gnat-run target-gnat cmd nil expected-status)
+    (gnat-run project target-gnat cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
@@ -421,7 +419,7 @@ list."
 
     (setq ada-name (downcase ada-name))
 
-    (with-current-buffer (gnat-run-buffer)
+    (with-current-buffer (gnat-run-buffer ada-prj-current-project)
       (gnat-run-no-prj
        (list
 	"krunch"
@@ -474,7 +472,7 @@ list."
 	(setq ada-name (replace-match "." t t ada-name)))
       ada-name)))
 
-(defun ada-gnat-make-package-body (body-file-name)
+(defun ada-gnat-make-package-body (project body-file-name)
   "For `ada-make-package-body'."
   ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
   ;; and doesn't use the gnatstub package if it is in a 'with'd
@@ -482,22 +480,23 @@ list."
   ;; need a project file to specify the source dirs so the tree file
   ;; can be generated. So we use gnat-run-no-prj, and the user
   ;; must specify the proper project file in gnat_stub_opts.
+  ;; FIXME: update to gnat 2019
   ;;
   ;; gnatstub always creates the body in the current directory (in the
   ;; process where gnatstub is running); the -o parameter may not
   ;; contain path info. So we pass a directory to gnat-run-no-prj.
   (let ((start-buffer (current-buffer))
 	(start-file (buffer-file-name))
-	(opts (when (ada-prj-get 'gnat_stub_opts)
-		(split-string (ada-prj-get 'gnat_stub_opts))))
-	(switches (when (ada-prj-get 'gnat_stub_switches)
-		    (split-string (ada-prj-get 'gnat_stub_switches))))
-	(process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
+	(opts (when (plist-get (ada-prj-plist project) 'gnat_stub_opts)
+		(split-string (plist-get (ada-prj-plist project) 'gnat_stub_opts))))
+	(switches (when (plist-get (ada-prj-plist project) 'gnat_stub_switches)
+		    (split-string (plist-get (ada-prj-plist project) 'gnat_stub_switches))))
+	(process-environment (cl-copy-list (plist-get (ada-prj-plist project) 'proc_env))) ;; for GPR_PROJECT_PATH
 	)
 
     ;; Make sure all relevant files are saved to disk.
     (save-some-buffers t)
-    (with-current-buffer (gnat-run-buffer)
+    (with-current-buffer (gnat-run-buffer project)
       (gnat-run-no-prj
        (append (list "stub") opts (list start-file "-cargs") switches)
        (file-name-directory body-file-name))

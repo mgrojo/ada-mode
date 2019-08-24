@@ -19,7 +19,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-(require 'ada-mode)
+(require 'ada-core)
 (require 'cl-lib)
 (require 'cl-generic)
 (require 'project)
@@ -84,7 +84,9 @@ For `project-find-functions'."
 
 (cl-defmethod project-files ((prj ada-project) &optional dirs)
   (let (result)
-    (dolist (dir (or dirs (ada-prj-get 'src_dir)))
+    (dolist (dir (or dirs
+		     (plist-get (ada-prj-plist (cdr (assoc ada-prj-alist (ada-project-ada-prj prj))))
+				'src_dir)))
       (mapc
        (lambda (absfile)
 	 (when (and (not (string-equal "." (substring absfile -1)))

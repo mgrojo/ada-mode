@@ -23,7 +23,8 @@
 ;;
 ;;;;
 
-(require 'ada-fix-error)
+;; DO NOT add ada-core here; eventually merge this into that.
+(require 'ada-base)
 (require 'ada-indent-user-options)
 (require 'ada-process)
 (require 'cl-lib)
@@ -487,7 +488,7 @@ Point must be in Object"
 	     (when add-body "\\s-+body")
 	     "\\s-+"
 	     result
-	     ada-symbol-end)))
+	     "\\_>")))
     result))
 
 (defun ada-wisi-which-function (include-type)

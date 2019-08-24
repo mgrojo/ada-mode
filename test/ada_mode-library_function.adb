@@ -1,6 +1,5 @@
 function Ada_Mode.Library_Function return Integer is
    -- no comment before "function"
-   --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
    --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
    --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file)(looking-at "Ada_Mode is"))
 

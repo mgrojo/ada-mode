@@ -34,18 +34,14 @@
 ;;
 ;;;;; Code:
 
-;; we reuse several ada-mode functions
-(require 'ada-mode)
+(require 'ada-core);; FIXME: move common to wisi*.el
 (require 'cl-lib)
+(require 'gpr-wisi)
+(require 'gpr-skel)
 
 (defgroup gpr nil
   "Major mode for editing gpr (Gnat Project File) source code in Emacs."
   :group 'languages)
-
-(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse.exe"
-  "Name of executable to use for external process gpr parser,"
-  :type 'string
-  :group 'gpr)
 
 (defvar gpr-mode-map
   (let ((map (make-sparse-keymap)))
@@ -56,9 +52,9 @@
     (define-key map "\C-c`"    'ada-show-secondary-error)
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-c" 'ada-build-make)
-    (define-key map "\C-c\C-e" 'gpr-expand)
+    (define-key map "\C-c\C-e" 'skeleton-expand)
     (define-key map "\C-c\C-f" 'gpr-show-parse-error)
-    (define-key map "\C-c\C-i" 'gpr-indent-statement)
+    (define-key map "\C-c\C-i" 'wisi-indent-statement)
     (define-key map "\C-c\C-o" 	 'ff-find-other-file)
     (define-key map "\C-c\C-P" 'gpr-set-as-project)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
@@ -94,9 +90,9 @@
     ["Other file"                  ff-find-other-file               t]
     ("Edit"
      ["Indent Line or selection"      indent-for-tab-command         t]
-     ["Indent current statement"      gpr-indent-statement           t]
+     ["Indent current statement"      wisi-indent-statement           t]
      ["Indent Lines in File"          (indent-region (point-min) (point-max))  t]
-     ["Expand skeleton"               gpr-expand                     t]
+     ["Expand skeleton"               skeleton-expand                t]
      ["Next skeleton placeholder"     skeleton-next-placeholder      t]
      ["Previous skeleton placeholder" skeleton-prev-placeholder      t]
      ["Comment/uncomment selection"   comment-dwim                   t]
@@ -116,27 +112,6 @@
   (interactive)
   (when gpr-show-parse-error
     (funcall gpr-show-parse-error)))
-
-(defvar gpr-expand nil
-  ;; skeleton function
-  "Function to call to expand tokens (ie insert skeletons).")
-
-(defun gpr-expand ()
-  "Expand previous word into a statement skeleton."
-  (interactive)
-  (when gpr-expand
-    (funcall gpr-expand)))
-
-(defvar gpr-indent-statement nil
-  ;; indentation function
-  "Function to indent the statement/declaration point is in or after.
-Function is called with no arguments.")
-
-(defun gpr-indent-statement ()
-  "Indent current statement."
-  (interactive)
-  (when gpr-indent-statement
-    (funcall gpr-indent-statement)))
 
 (defconst gpr-keywords
   '(
@@ -337,29 +312,12 @@ of the package or project point is in or just after, or nil.")
 
 (put 'gpr-mode 'custom-mode-group 'gpr)
 
-(defvar gpr-parser nil
+(defvar gpr-parser 'process
   "Indicate parser and lexer to use for gpr buffers:
-
-elisp : wisi parser and lexer implemented in elisp.
 
 process : wisi elisp lexer, external process parser specified
   by ‘gpr-process-parse-exec ’.
 ")
 
 (provide 'gpr-mode)
-
-(require 'gpr-wisi)
-
-(cl-case gpr-parser
-  (elisp nil)
-  (process nil)
-  (t
-   (if (locate-file gpr-process-parse-exec exec-path '("" ".exe"))
-       (setq gpr-parser 'process)
-     (setq gpr-parser 'elisp)))
-  )
-
-(unless (featurep 'gpr-skeletons)
-  (require 'gpr-skel))
-
-;;; end of file
+;;; gpr-mode.el ends here

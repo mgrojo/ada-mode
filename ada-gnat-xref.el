@@ -5,7 +5,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -73,11 +73,11 @@
     (+ 1 col))
    ))
 
-(defun ada-gnat-xref-common-cmd ()
+(defun ada-gnat-xref-common-cmd (project)
   "Returns the gnatfind command to run to find cross-references."
-  (format "%sgnatfind" (or (ada-prj-get 'target) "")))
+  (format "%sgnatfind" (or (plist-get (ada-prj-plist project) 'target) "")))
 
-(defun ada-gnat-xref-common-args (identifier file line col)
+(defun ada-gnat-xref-common-args (project identifier file line col)
   "Returns a list of arguments to pass to gnatfind.  The caller
 may add more args to the result before calling gnatfind.  Some
 elements of the result may be nil."
@@ -85,21 +85,25 @@ elements of the result may be nil."
         (when ada-xref-full-path "-f")
 	;; src_dir contains Source_Dirs from gpr_file, Similarly for
 	;; obj_dir. So we don't need to pass the gpr file.
-        (when (ada-prj-get 'src_dir)
-          (concat "-aI" (mapconcat 'identity (ada-prj-get 'src_dir) (if (eq system-type 'windows-nt) ";" ":"))))
-        (when (ada-prj-get 'obj_dir)
-          (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) (if (eq system-type 'windows-nt) ";" ":"))))
+        (when (plist-get (ada-prj-plist project) 'src_dir)
+          (concat "-aI" (mapconcat 'identity (plist-get (ada-prj-plist project) 'src_dir)
+				   (if (eq system-type 'windows-nt) ";" ":"))))
+        (when (plist-get (ada-prj-plist project) 'obj_dir)
+          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir)
+				   (if (eq system-type 'windows-nt) ";" ":"))))
         (format "%s:%s:%d:%d"
                 identifier
                 (file-name-nondirectory file)
                 line
                 (ada-gnat-xref-adj-col identifier col))))
 
-(defun ada-gnat-xref-other (identifier file line col)
+(defun ada-gnat-xref-other (project identifier file line col)
   "For `ada-xref-other-function', using `gnatfind', which is Ada-specific."
   (let* ((result nil))
-    (with-current-buffer (gnat-run-buffer)
-      (gnat-run (ada-gnat-xref-common-cmd) (ada-gnat-xref-common-args identifier file line col))
+    (with-current-buffer (gnat-run-buffer project)
+      (gnat-run project
+		(ada-gnat-xref-common-cmd project)
+		(ada-gnat-xref-common-args project identifier file line col))
 
       (goto-char (point-min))
       (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
@@ -134,13 +138,13 @@ elements of the result may be nil."
 	))
     result))
 
-(defun ada-gnat-xref-parents (identifier file line col)
+(defun ada-gnat-xref-parents (project identifier file line col)
   "For `ada-xref-parents-function', using `gnatfind', which is Ada-specific."
 
-  (let* ((arg (ada-gnat-xref-common-args identifier file line col))
+  (let* ((arg (ada-gnat-xref-common-args project identifier file line col))
 	 (result nil))
-    (with-current-buffer (gnat-run-buffer)
-      (gnat-run (ada-gnat-xref-common-cmd) (cons "-d" arg))
+    (with-current-buffer (gnat-run-buffer project)
+      (gnat-run project (ada-gnat-xref-common-cmd project) (cons "-d" arg))
 
       (goto-char (point-min))
       (when ada-gnat-debug-run (forward-line 2)); skip GPR_PROJECT_PATH, 'gnat find'
@@ -174,28 +178,28 @@ elements of the result may be nil."
 		     (nth 2 result))
     ))
 
-(defun ada-gnat-xref-all (identifier file line col local-only append)
+(defun ada-gnat-xref-all (project identifier file line col local-only append)
   "For `ada-xref-all-function'."
   ;; we use `compilation-start' to run gnat, not `gnat-run', so it
   ;; is asynchronous, and automatically runs the compilation error
   ;; filter.
 
-  (let* ((arg (ada-gnat-xref-common-args identifier file line col)))
+  (let* ((arg (ada-gnat-xref-common-args project identifier file line col)))
     (setq arg (cons "-r" arg))
     (when local-only (setq arg (append arg (list file))))
 
-    (with-current-buffer (gnat-run-buffer); for default-directory
+    (with-current-buffer (gnat-run-buffer project); for default-directory
       (let ((compilation-buffer-name "*gnatfind*")
             (compilation-error "reference")
             (command-and-args (mapconcat (lambda (a) (or a ""))
-                                         (cons (ada-gnat-xref-common-cmd) arg)
+                                         (cons (ada-gnat-xref-common-cmd project) arg)
                                          " "))
 	    ;; gnat find uses standard gnu format for output, so don't
 	    ;; need to set compilation-error-regexp-alist
 	    prev-pos
 	    prev-content)
 	;; compilation-environment is buffer-local; don't set in 'let'
-	(setq compilation-environment (ada-prj-get 'proc_env))
+	(setq compilation-environment (plist-get (ada-prj-plist project) 'proc_env))
 
 	;; WORKAROUND: the 'compilation' API doesn't let us specify "append", so we use this.
 	(with-current-buffer (get-buffer-create compilation-buffer-name)

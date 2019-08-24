@@ -125,7 +125,6 @@
        (cons "CaMeL" t)
        (cons "ANother" t)))
 
-(ada-parse-prj-file "../test/subdir/ada_mode.adp")
 (ada-select-prj-file "../test/subdir/ada_mode.adp")
 
 (test "case 3 full words"

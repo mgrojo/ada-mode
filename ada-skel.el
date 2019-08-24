@@ -373,6 +373,7 @@ trailing `...' if there are more keys."
       (concat (mapconcat 'car alist-1 " | ") " | ... : "))
   ))
 
+;;FIXME: move to wisi.el or skeleton.el
 (defun ada-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton, as defined by `ada-skel-token-alist'.
 A token is a symbol in the current syntax.
@@ -476,13 +477,7 @@ it is a name, and use the word before that as the token."
     (insert ada-skel-initial-string))
   )
 
-(provide 'ada-skeletons)
-(provide 'ada-skel)
-
-(setq ada-expand #'ada-skel-expand)
-(setq ada-next-placeholder #'ada-skel-next-placeholder)
-(setq ada-prev-placeholder #'ada-skel-prev-placeholder)
-
 (add-hook 'ada-mode-hook #'ada-skel-setup)
 
+(provide 'ada-skel)
 ;;; ada-skel.el ends here

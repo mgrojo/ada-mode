@@ -1,5 +1,4 @@
 --  Test ada-find-other-file and a few other things
---EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 package body Ada_Mode.Nominal.Child is
 

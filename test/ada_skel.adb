@@ -13,49 +13,49 @@ package body Ada_Skel is
    --  into declarations and statements
 
    --  ada-skel-record
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 2)(insert "record record_type_1\n")(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 2)(insert "record record_type_1\n")(ada-skel-expand))
    type Record_Type_1 is record
    end record;
 
    --  ada-skel-package-body
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 3)(insert "package package_1\n")(let ((ada-skel-test-input "body"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 3)(insert "package package_1\n")(let ((ada-skel-test-input "body"))(ada-skel-expand)))
    package body Package_1 is
    begin
    end Package_1;
 
    --  ada-skel-package-spec
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 3)(insert "package package_1 ")(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 3)(insert "package package_1 ")(let ((ada-skel-test-input "spec"))(ada-skel-expand)))
    package Package_1 is
    private
    end Package_1;
 
    --  ada-skel-protected-body
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 4)(insert " Protected_1")(forward-line 1)(kill-line 1)(forward-char -1)(let ((ada-skel-test-input "body"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 4)(insert " Protected_1")(forward-line 1)(kill-line 1)(forward-char -1)(let ((ada-skel-test-input "body"))(ada-skel-expand)))
    protected body Protected_1 is
    end Protected_1;
 
    --  ada-skel-protected-spec
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-word 2)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-word 2)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(let ((ada-skel-test-input "spec"))(ada-skel-expand)))
    protected type Protected_1 is
    private
    end Protected_1;
 
    --  ada-skel-task-body
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(let ((ada-skel-test-input "body"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(let ((ada-skel-test-input "body"))(ada-skel-expand)))
    task body Task_1
    is
    begin
    end Task_1;
 
    --  ada-skel-task-spec
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 2)(forward-char -1)(insert "\ntask Task_1")(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 2)(forward-char -1)(insert "\ntask Task_1")(let ((ada-skel-test-input "spec"))(ada-skel-expand)))
    task type Task_1 is
    end Task_1;
 
    --  ada-skel-return
    function Function_1 return Integer
    is begin
-      --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-char 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+      --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-char 1)(kill-line 2)(forward-char -1)(ada-skel-expand))
       return  do
       end return;
 
@@ -64,7 +64,7 @@ package body Ada_Skel is
    --  ada-skel-entry
    protected body Protected_1 is
 
-      --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 3)(kill-word 1)(forward-char 1)(kill-line 3)(forward-char -1)(funcall ada-expand))
+      --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 3)(kill-word 1)(forward-char 1)(kill-line 3)(forward-char -1)(ada-skel-expand))
       entry Entry_1 when
       is
       begin
@@ -75,18 +75,18 @@ package body Ada_Skel is
 begin
 
    --  ada-skel-accept
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 3)(kill-word 1)(forward-char 1)(kill-line 1)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 3)(kill-word 1)(forward-char 1)(kill-line 1)(forward-char -1)(ada-skel-expand))
    accept Accept_1 do
    end Accept_1;
 
    --  ada-skel-case
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 2)(kill-word 1)(forward-char 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 2)(kill-word 1)(forward-char 1)(kill-line 2)(forward-char -1)(ada-skel-expand))
    case A is
       when =>
    end case;
 
    --  ada-skel-declare with block name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(insert " Block_1")(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(insert " Block_1")(ada-skel-expand))
 Block_1:
    declare
    begin
@@ -94,51 +94,51 @@ Block_1:
    end Block_1;
 
    --  ada-skel-declare without block name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(ada-skel-expand))
    declare
    begin
    exception
    end;
 
    --  ada-skel-for with name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Loop_1")(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Loop_1")(ada-skel-expand))
 Loop_1 :
    for  loop
    end loop Loop_1;
 
    --  ada-skel-for without name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(ada-skel-expand))
    for  loop
    end loop;
 
    --  ada-skel-if
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 2)(forward-line 1)(kill-line 3)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 2)(forward-line 1)(kill-line 3)(forward-char -1)(ada-skel-expand))
    if  then
    elsif  then
    else
    end if;
 
    --  ada-skel-loop with name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(insert " Loop_1")(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(insert " Loop_1")(ada-skel-expand))
 Loop_1 :
    loop
       exit Loop_1 when ;
    end loop Loop_1;
 
    --  ada-skel-select
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(ada-skel-expand))
    select
    else
    end select;
 
    --  ada-skel-while with name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Loop_1")(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Loop_1")(ada-skel-expand))
 Loop_1:
    while  loop
    end loop Loop_1;
 
    --  ada-skel-while without name
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(ada-skel-expand))
    while  loop
    end loop;
 

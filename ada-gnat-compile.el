@@ -34,10 +34,11 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
+(require 'ada-fix-error)
 (require 'cl-lib)
 (require 'compile)
 (require 'gnat-core)
-(require 'ada-fix-error)
+(require 'wisi)
 
 ;;;;; code
 
@@ -253,7 +254,7 @@ Prompt user if more than one."
 		 (when (not done)
 		   (let* ((item (get-text-property pos 'ada-secondary-error))
 			  (unit-file (nth 0 item))
-			  (choice (ada-ada-name-from-file-name unit-file)))
+			  (choice (ada-gnat-ada-name-from-file-name unit-file)))
 		     (unless (member choice choices) (push choice choices))
 		     (goto-char (1+ pos))
 		     (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
@@ -560,7 +561,7 @@ Prompt user if more than one."
 	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)
-	     (ada-goto-end) ;; leaves point before semicolon
+	     (wisi-goto-statement-end) ;; leaves point before semicolon
 	     (forward-char 1)
 	     (newline-and-indent)
 	     (insert "pragma Unreferenced (" param ");"))
@@ -660,22 +661,23 @@ Prompt user if more than one."
 
 ;;;;; setup
 
-(defun ada-gnat-compile-select-prj ()
+(defun ada-gnat-compile-select-prj (project)
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (setq ada-prj-show-prj-path 'gnat-prj-show-prj-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
-  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
-  (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
+  (add-hook 'ada-syntax-propertize-hook #'gnatprep-syntax-propertize)
   (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; There is no common convention for a file extension for gnatprep files.
   ;;
   ;; find error locations in .gpr files
-  (setq compilation-search-path (append compilation-search-path (ada-prj-get 'prj_dir)))
+  (setq compilation-search-path (append compilation-search-path
+					(plist-get (ada-prj-plist project) 'prj_dir)))
 
   ;; ‘compilation-environment’ is buffer-local, but the user might
   ;; delete that buffer. So set both global and local.
-  (let* ((process-environment (ada-prj-get 'proc_env))
+  (let* ((process-environment (plist-get (ada-prj-plist project) 'proc_env))
 	 (gpr-path (getenv "GPR_PROJECT_PATH"))
 	 (comp-env (list (concat "GPR_PROJECT_PATH=" gpr-path)))
 	 (comp-buf (get-buffer "*compilation*")))
@@ -693,8 +695,8 @@ Prompt user if more than one."
     ;; which is a mistake on their part.
     (setenv "GPR_PROJECT_PATH"
 	    (mapconcat 'identity
-		       (ada-prj-get 'prj_dir)
-		       (ada-prj-get 'path_sep))))
+		       (plist-get (ada-prj-plist project) 'prj_dir)
+		       (plist-get (ada-prj-plist project) 'path_sep))))
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.
@@ -707,11 +709,11 @@ Prompt user if more than one."
   (add-to-list 'compilation-error-regexp-alist 'gnat)
   )
 
-(defun ada-gnat-compile-deselect-prj ()
+(defun ada-gnat-compile-deselect-prj (_project)
   (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
-  (setq ada-syntax-propertize-hook (delq 'gnatprep-syntax-propertize ada-syntax-propertize-hook))
-  (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
+  (setq ada-syntax-propertize-hook (delq #'gnatprep-syntax-propertize ada-syntax-propertize-hook))
+  (setq ada-syntax-propertize-hook (delq #'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
   (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; Don't need to delete from compilation-search-path; completely

@@ -26,7 +26,7 @@
 
 ;;;; code
 
-(require 'ada-mode)
+(require 'ada-core)
 (require 'cl-lib)
 (require 'compile)
 

@@ -1,6 +1,6 @@
 ;; gpr-skel.el --- Extension to gpr-mode for inserting statement skeletons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2015, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2018, 2019 Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -37,7 +37,6 @@
 ;; Created Dec 2013
 
 (require 'skeleton)
-(require 'gpr-mode)
 
 ;;;;; user variables, example skeletons intended to be overwritten
 
@@ -256,7 +255,7 @@ it is a name, and use the word before that as the token."
 "For skeleton-token-alist")
 
 (defun gpr-skel-setup ()
-  "Setup a buffer gpr-skel."
+  "Setup a buffer for gpr-skel."
   (setq skeleton-token-alist 'gpr-skel-token-alist)
   (add-hook 'skeleton-end-hook 'gpr-indent-statement nil t)
   (when (and gpr-skel-initial-string
@@ -264,11 +263,7 @@ it is a name, and use the word before that as the token."
     (insert gpr-skel-initial-string))
   )
 
-(provide 'gpr-skeletons)
-(provide 'gpr-skel)
-
-(setq gpr-expand #'skeleton-expand)
-
 (add-hook 'gpr-mode-hook #'gpr-skel-setup)
 
+(provide 'gpr-skel)
 ;;; end of file

@@ -55,12 +55,9 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-major cleanup
-    sort out recursive requires
-        split out common stuff from ada-mode.el to ada-common.el or ada-base.el or wisi.el
-        no file should require ada-mode
-        same for gpr-mode
+select calls parse if needed; don't do both
 
+major cleanup
     use cl-defgeneric, not function vars
     assume wisi
     don't assume gnat

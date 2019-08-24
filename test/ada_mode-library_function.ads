@@ -1,5 +1,4 @@
 --  Separate spec file to test that ada-goto-declaration goes to the correct file.
---EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 function Ada_Mode.Library_Function return Integer; -- spec
 

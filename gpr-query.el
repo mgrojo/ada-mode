@@ -30,7 +30,7 @@
 
 (require 'ada-mode-compat) ;; font-lock-ensure
 
-(require 'ada-mode) ;; for ada-prj-*, some other things
+(require 'ada-core)
 (require 'gnat-core)
 (require 'cl-lib)
 (require 'compile)
@@ -65,17 +65,17 @@
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
-    (setf (gpr-query--session-buffer session) (gnat-run-buffer gpr-query-buffer-name-prefix))
+    (setf (gpr-query--session-buffer session) (gnat-run-buffer ada-prj-current-project gpr-query-buffer-name-prefix))
     (with-current-buffer (gpr-query--session-buffer session)
       (compilation-mode)
       (setq buffer-read-only nil)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env)))
+    (let ((process-environment (cl-copy-list (plist-get (ada-prj-plist ada-prj-current-project) 'proc_env)))
 	  ;; for GPR_PROJECT_PATH, other env vars set in ada-mode
 	  ;; project files and used by gpr files.
 
-	  (project-file (file-name-nondirectory (ada-prj-get 'gpr_file))))
+	  (project-file (file-name-nondirectory (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_file))))
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
@@ -160,8 +160,8 @@
 
 (defun gpr-require-prj ()
   "Throw error if no project file defined."
-  (unless (or (ada-prj-get 'gpr_file)
-	      (ada-prj-get 'gpr_query_file))
+  (unless (or (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_file)
+	      (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_query_file))
     (error "no gpr project file defined.")))
 
 (defun gpr-query-session-send (cmd wait)
@@ -647,7 +647,7 @@ FILE must be non-nil; line, col can be nil."
   file
   )
 
-(defun ada-gpr-query-select-prj ()
+(defun ada-gpr-query-select-prj (_project)
   ;; We wait until the session is actually required to create it.
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
@@ -661,14 +661,12 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overriding-function 'gpr-query-overriding)
   (setq ada-xref-overridden-function 'gpr-query-overridden-1)
   (setq ada-show-xref-tool-buffer    'gpr-query-show-buffer)
-
-  (when (fboundp 'xref-ada-mode)
-    (xref-ada-mode 1))
+  (xref-ada-mode 1)
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )
 
-(defun ada-gpr-query-deselect-prj ()
+(defun ada-gpr-query-deselect-prj (_project)
   ;; We don’t kill the session here; user may switch back to this
   ;; project.
   (setq ada-file-name-from-ada-name nil)
@@ -681,9 +679,7 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overriding-function nil)
   (setq ada-xref-overridden-function nil)
   (setq ada-show-xref-tool-buffer    nil)
-
-  (when (fboundp 'xref-ada-mode)
-    (xref-ada-mode 0))
+  (xref-ada-mode 0)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )

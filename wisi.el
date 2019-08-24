@@ -127,11 +127,6 @@ deeply nested statement, but worse in some situations."
   :group 'wisi
   :safe 'integerp)
 
-(defvar wisi-inhibit-parse nil
-  "When non-nil, don't run the parser.
-Language code can set this non-nil when syntax is known to be
-invalid temporarily, or when making lots of changes.")
-
 (defcustom wisi-disable-face nil
   "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
 Useful when debugging parser or parser actions."
@@ -144,6 +139,11 @@ Useful when debugging parser or parser actions."
 
 (defvar wisi-error-buffer nil
   "Buffer for displaying syntax errors.")
+
+(defvar wisi-inhibit-parse nil
+  "When non-nil, don't run the parser.
+Language code can set this non-nil when syntax is known to be
+invalid temporarily, or when making lots of changes.")
 
 (defun wisi-safe-marker-pos (pos)
   "Return an integer buffer position from POS, an integer or marker"

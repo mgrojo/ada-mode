@@ -25,7 +25,6 @@
 
 (require 'cl-lib)
 (require 'gpr-indent-user-options)
-(require 'gpr-mode)
 (require 'gpr-process)
 (require 'wisi)
 (require 'wisi-process-parse)
@@ -33,6 +32,11 @@
 (defconst gpr-wisi-language-protocol-version "1"
   "Defines language-specific parser parameters.
 Must match wisi-gpr.ads Language_Protocol_Version.")
+
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse.exe"
+  "Name of executable to use for external process gpr parser,"
+  :type 'string
+  :group 'gpr)
 
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
@@ -118,7 +122,6 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
      :repair-image gpr-process-repair-image
      )))
 
-  (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
   )
 
