@@ -613,7 +613,7 @@ See `ff-other-file-alist'.")
 	     "\\_>")))
     result))
 
-(defun ada-which-function (include-type)
+(defun ada-which-function (&optional include-type)
   "Return name of subprogram/task/package containing point.
 Also sets ff-function-name for ff-pre-load-hook."
   ;; Fail gracefully and silently, since this could be called from

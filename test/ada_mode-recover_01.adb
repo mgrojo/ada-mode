@@ -9,7 +9,7 @@ procedure Ada_Mode.Recover_1
 is begin
 
    --EMACSCMD:(indent-region (point-min) (point-max))
-   --EMACSCMD:(progn (ada-show-parse-error)(looking-at "; -- error reported here"))
+   --EMACSCMD:(progn (wisi-show-parse-error)(looking-at "; -- error reported here"))
 
    loop
       begin

@@ -27,7 +27,7 @@ with
 
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 1"))
+--EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 1"))
 --EMACSRESULT:t
 with Ada.Strings.Unbounded; -- end 1
 
@@ -72,7 +72,7 @@ with Ada_Mode.Library_Procedure;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
 --EMACSRESULT:t
---EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
+--EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:t
@@ -372,7 +372,7 @@ is -- target 0
    end record;
    for Record_Type_2'Size use 32 * 3;
 
-   --EMACSCMD:(progn (ada-goto-end)(looking-back "end record"))
+   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end record"))
    --EMACSRESULT:t
    --EMACSCMD:(test-face-1 "access" "Standard" font-lock-function-name-face)
    --EMACSCMD:(test-face-1 "access" "Integer" font-lock-type-face)
@@ -386,7 +386,7 @@ is -- target 0
       --EMACSCMD:(test-face "Object_Access_Type_0a" font-lock-type-face)
       Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
       is tagged record
-         --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
+         --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 2"))
          --EMACSRESULT:t
          Component_1 : Integer; -- end 2
          Component_2 :
@@ -471,7 +471,7 @@ is -- target 0
 
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
-      --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 3"))
+      --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 3"))
       --EMACSRESULT:t
       function F1 return Integer; -- end 3
 
@@ -488,7 +488,7 @@ is -- target 0
         (A : Float;
          B : Float);
 
-      --EMACSCMD:(progn (ada-goto-end)(looking-back "end Protected_1"))
+      --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Protected_1"))
       --EMACSRESULT:t
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
@@ -692,7 +692,7 @@ is -- target 0
    not overriding function
      Function_2e (Param : in Parent_Type_1) return Float;
 
-   --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 5"))
+   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-at "; -- end 5"))
    --EMACSRESULT:t
    not overriding
    function Function_2f
@@ -758,7 +758,7 @@ is -- target 0
       procedure Separate_Procedure_2 (Item : in Integer);
    end Separate_Package_1;
 
-   --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "; -- Ada_Mode.Nominal"))
    --EMACSRESULT:t

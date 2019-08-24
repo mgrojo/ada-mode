@@ -17,7 +17,7 @@ package Ada_Mode.Parens is
          C : Integer;
       end record;
 
-   --EMACSCMD:(progn (end-of-line 3)(ada-in-paramlist-p))
+   --EMACSCMD:(progn (end-of-line 3)(ada-in-paramlist-p (syntax-ppss)))
    --EMACSRESULT:nil
    type T3 (A : Integer;
             B : Integer) is limited record
@@ -29,7 +29,7 @@ package Ada_Mode.Parens is
       end record;
 
    --  A pathological subprogram declaration. We don't expect ada-format-paramlist to preserve these newlines.
-   --EMACSCMD:(progn (end-of-line 4)(ada-in-paramlist-p))
+   --EMACSCMD:(progn (end-of-line 4)(ada-in-paramlist-p (syntax-ppss)))
    --EMACSRESULT:t
    function Function_1
      (Param_1,
@@ -51,7 +51,7 @@ package Ada_Mode.Parens is
    procedure Slice;
 
    --  Test ada-in-paramlist-p in expressions with parens that don't have wisi caches because of a failed parse.
-   --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(prog1 (ada-in-paramlist-p)(end-of-line 1)(insert ";")))
+   --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(prog1 (ada-in-paramlist-p (syntax-ppss))(end-of-line 1)(insert ";")))
    --EMACSRESULT:nil
    A : Integer := 1 + (5 * 3);
 
