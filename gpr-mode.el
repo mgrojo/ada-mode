@@ -36,8 +36,10 @@
 
 (require 'ada-core);; FIXME: move common to wisi*.el
 (require 'cl-lib)
-(require 'gpr-wisi)
+(require 'gpr-process)
 (require 'gpr-skel)
+(require 'gpr-wisi)
+(require 'wisi-process-parse)
 
 (defgroup gpr nil
   "Major mode for editing gpr (Gnat Project File) source code in Emacs."
@@ -266,6 +268,47 @@ of the package or project point is in or just after, or nil.")
 	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
   )))
 
+;;;; wisi integration
+
+(cl-defstruct (gpr-wisi-parser (:include wisi-process--parser))
+  ;; no new structs
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser gpr-wisi-parser))
+  (format "%d %d %d"
+	  gpr-indent
+	  gpr-indent-broken
+	  gpr-indent-when
+	  ))
+
+(defconst gpr-wisi-language-protocol-version "1"
+  "Defines language-specific parser parameters.
+Must match wisi-gpr.ads Language_Protocol_Version.")
+
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse.exe"
+  "Name of executable to use for external process gpr parser,"
+  :type 'string
+  :group 'gpr)
+
+(defun gpr-wisi-setup ()
+  "Set up a buffer for parsing gpr files with wisi."
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :parser
+   (wisi-process-parse-get
+    (make-gpr-wisi-parser
+     :label "gpr"
+     :language-protocol-version gpr-wisi-language-protocol-version
+     :exec-file gpr-process-parse-exec
+     :face-table gpr-process-face-table
+     :token-table gpr-process-token-table
+     :repair-image gpr-process-repair-image
+     )))
+
+  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+  )
+
 ;;;;
 ;;;###autoload
 (defun gpr-mode ()
@@ -302,6 +345,8 @@ of the package or project point is in or just after, or nil.")
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
+
+  (gpr-wisi-setup)
 
   (run-mode-hooks 'gpr-mode-hook)
 

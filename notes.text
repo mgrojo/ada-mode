@@ -59,16 +59,19 @@ select calls parse if needed; don't do both
 
 major cleanup
     use cl-defgeneric, not function vars
-    assume wisi
     don't assume gnat
     minimize use, scope of env vars
     set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
         including xref
         or make them local somehow
 
-    change ada-mode to derive-major-mode
+    change ada-mode to derive-major-mode?
         always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
 
+    add (restore?) gnatxref tests
+        explicit list of test files to save time
+
+    review FIXME
 java-ch19.wy TryStatement has optional statement-end
     need override on previous tokens
 

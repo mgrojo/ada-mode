@@ -4,8 +4,6 @@
 -- Constraint_Error now fixed. Requires a high enqueue_limit, because
 -- there are four processes in error recovery.
 
---EMACSCMD:(setq wisi-mckenzie-enqueue-limit (* 4 70000))
-
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
@@ -22,4 +20,5 @@ is begin
    end Update_Containing_Nonterms;
    -- Local Variables:
    -- wisi-mckenzie-task-count: 1
+   -- wisi-mckenzie-enqueue-limit: 280000
    -- End:

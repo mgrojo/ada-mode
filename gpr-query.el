@@ -28,16 +28,12 @@
 ;;
 ;; M-x gpr-query
 
-(require 'ada-mode-compat) ;; font-lock-ensure
-
 (require 'ada-core)
-(require 'gnat-core)
 (require 'cl-lib)
 (require 'compile)
-
-(eval-and-compile
-  (when (> emacs-major-version 24)
-    (require 'xref)))
+(require 'gnat-core)
+(require 'xref)
+(require 'xref-ada)
 
 ;;;;; sessions
 

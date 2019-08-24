@@ -51,6 +51,17 @@ slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada-indentation)
 
+(defconst ada-wisi-language-protocol-version "2"
+  "Defines language-specific parser parameters.
+Must match wisi-ada.ads Language_Protocol_Version.")
+
+(defconst ada-operator-re
+  "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
+  "Regexp matching Ada operator_symbol.")
+
+(defconst ada-name-regexp
+  "\\(\\(?:\\sw\\|[_.]\\)+\\)")
+
 ;; FIXME: dispatch on compiler slot of ada-prj
 (defvar ada-compiler nil
   "Default Ada compiler; can be overridden in project files.
@@ -65,10 +76,6 @@ before file local variables are processed.")
   "Hook run from `ada-syntax-propertize'.
 Called by `syntax-propertize', which is called by font-lock in
 `after-change-functions'.")
-
-(defconst ada-operator-re
-  "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
-  "Regexp matching Ada operator_symbol.")
 
 (defun ada-in-comment-p (&optional parse-result)
   "Return t if inside a comment.
@@ -144,6 +151,58 @@ to go back to these positions.")
     (let ((pos (pop ada-goto-pos-ring)))
       (find-file (cadr pos))
       (goto-char (car pos)))))
+
+;;;; refactor
+
+;; Refactor actions; must match wisi-ada.adb Refactor
+(defconst ada-refactor-method-object-to-object-method 1)
+(defconst ada-refactor-object-method-to-method-object 2)
+
+(defconst ada-refactor-element-object-to-object-index 3)
+(defconst ada-refactor-object-index-to-element-object 4)
+
+(defconst ada-refactor-format-paramlist 5)
+
+(defun ada-refactor (action)
+  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
+  (save-excursion
+    (skip-syntax-backward "w_.\"")
+    (let* ((edit-begin (point))
+	   (cache (wisi-goto-statement-start))
+	   (parse-begin (point))
+	   (parse-end (wisi-cache-end cache)))
+      (if parse-end
+	  (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+	;; else there is a syntax error; missing end of statement
+	(setq parse-end (point-max)))
+      (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
+      )))
+
+(defun ada-refactor-1 ()
+  "Refactor Method (Object) => Object.Method.
+Point must be in Method."
+  (interactive)
+  (ada-refactor ada-refactor-method-object-to-object-method))
+
+(defun ada-refactor-2 ()
+  "Refactor Object.Method => Method (Object).
+Point must be in Object.Method."
+  (interactive)
+  (ada-refactor ada-refactor-object-method-to-method-object))
+
+(defun ada-refactor-3 ()
+  "Refactor Element (Object, Index) => Object (Index).
+Point must be in Element"
+  (interactive)
+  (ada-refactor ada-refactor-element-object-to-object-index))
+
+(defun ada-refactor-4 ()
+  "Refactor Object (Index) => Element (Object, Index).
+Point must be in Object"
+  (interactive)
+  (ada-refactor ada-refactor-object-index-to-element-object))
+
+;; refactor-5 in ada-format-paramlist below
 
 ;;;; auto-case
 
@@ -574,9 +633,6 @@ Function is called with one optional argument; syntax-ppss result.")
   (when ada-in-paramlist-p
     (funcall ada-in-paramlist-p parse-result)))
 
-(defvar ada-refactor-format-paramlist nil) ;; ada-wisi.el
-(declare-function ada-wisi-refactor "ada-wisi.el" (action))
-
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
   (interactive)
@@ -588,7 +644,7 @@ Function is called with one optional argument; syntax-ppss result.")
   (when (not (looking-back "^[ \t]*" (line-beginning-position)))
     (delete-horizontal-space)
     (insert " "))
-  (ada-wisi-refactor ada-refactor-format-paramlist))
+  (ada-refactor ada-refactor-format-paramlist))
 
 ;;;; xref
 (defvar ada-xref-tool (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr-query 'gnat)

@@ -159,6 +159,7 @@
 ;;    and others for their valuable hints.
 
 (require 'ada-core)
+(require 'ada-process)
 (require 'ada-skel)
 (require 'align)
 (require 'cl-lib)
@@ -379,10 +380,10 @@ button was clicked."
 (easy-menu-define ada-refactor-menu nil
   "Context menu keymap for Ada mode refactor commands."
   '("Ada refactor"
-    ["Method (Object) => Object.Method"   ada-wisi-refactor-1 t]
-    ["Object.Method   => Method (Object)" ada-wisi-refactor-2 t]
-    ["Element (Object, Index) => Object (Index)" ada-wisi-refactor-3 t]
-    ["Object (Index) => Element (Object, Index)" ada-wisi-refactor-4 t]
+    ["Method (Object) => Object.Method"   ada-refactor-1 t]
+    ["Object.Method   => Method (Object)" ada-refactor-2 t]
+    ["Element (Object, Index) => Object (Index)" ada-refactor-3 t]
+    ["Object (Index) => Element (Object, Index)" ada-refactor-4 t]
     ))
 
 (defun ada-refactor-menu-popup ()
@@ -974,10 +975,359 @@ The ident for the paragraph is taken from the first line."
    (list (concat "\\_<" (regexp-opt ada-keywords t) "\\_>") '(0 font-lock-keyword-face))
    ))
 
-(defvar which-func-functions nil) ;; which-func.el
-(defvar which-func-non-auto-modes nil) ;; ""
+;;;; wisi integration
+
+(cl-defstruct (ada-wisi-parser (:include wisi-process--parser))
+  ;; no new slots
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
+  (format "%d %d %d %d %d %d %d %d %d %d %d %d %d"
+	  ada-indent
+	  ada-indent-broken
+	  (if ada-indent-comment-col-0 1 0)
+	  (if ada-indent-comment-gnat 1 0)
+	  ada-indent-label
+	  ada-indent-record-rel-type
+	  ada-indent-renames
+	  ada-indent-return
+	  ada-indent-use
+	  ada-indent-when
+	  ada-indent-with
+	  (if ada-indent-hanging-rel-exp 1 0)
+	  (if ada-end-name-optional 1 0)
+	  ))
+
+(defconst ada-wisi-named-begin-regexp
+  "\\bfunction\\b\\|\\bpackage\\b\\|\\bprocedure\\b\\|\\btask\\b"
+  )
+
+(defconst ada-wisi-partial-begin-regexp
+  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|"
+	  ada-wisi-named-begin-regexp
+	  "\\|\\bend;\\|\\bend " ada-name-regexp ";"))
+
+(defconst ada-wisi-partial-end-regexp
+  (concat ada-wisi-partial-begin-regexp
+	  "\\|;"))
+
+(defun ada-wisi-find-begin ()
+  "Starting at current point, search backward for a parse start point."
+
+  ;; There is a trade-off in deciding where to start parsing for indent. If we have:
+  ;;
+  ;; procedure ...
+  ;; is
+  ;;
+  ;; and are inserting a new line after 'is', we need to include
+  ;; 'is' in the parse to see the indent. On the other hand, if we
+  ;; have:
+  ;;
+  ;;    ...
+  ;;    end;
+  ;; begin
+  ;;    Foo;
+  ;;
+  ;; Inserting new line after 'Foo;'; if we include 'begin', there
+  ;; is no error (begin starts a statement), and the indent is
+  ;; computed incorrectly.
+  ;;
+  ;; This is handled by the set of keywords in
+  ;; ada-wisi-partial-begin-regexp.
+  (cond
+   ((wisi-search-backward-skip
+     ada-wisi-partial-begin-regexp
+     (lambda () (or (ada-in-string-or-comment-p)
+		    (looking-back "access " (line-beginning-position)))))
+     ;; "access" rejects subprobram access parameters; test/ada_mode-recover_partial_20.adb
+
+    (let ((found (match-string 0))
+	  cache)
+      (cond
+       ((and (>= (length found) 3)
+	     (string-equal "end" (substring found 0 3)))
+	(match-end 0))
+
+       (t
+	(setq cache (wisi-get-cache (point)))
+	(when cache
+	  ;; This distinguishes 'begin' as a statement start from
+	  ;; 'begin' following 'declare', 'procedure' etc.  We don't
+	  ;; force a parse to get this; the user may choose to do so.
+	  (wisi-goto-start cache))
+	(point))
+       )))
+
+   (t
+    (point-min))
+   ))
+
+(defun ada-wisi-find-end ()
+  "Starting at current point, search forward for a reasonable parse end point."
+  (forward-comment (point-max)) ;; get past any current comments
+  (forward-line 1) ;; contain at least some code (see ada_mode-partial_parse.adb 'blank line before "end"')
+
+  (let ((start (point))
+	match
+	(end-cand nil))
+
+    (while (not end-cand)
+      (if (search-forward-regexp ada-wisi-partial-end-regexp nil 1) ;; moves to eob if not found
+	  (unless (or (ada-in-string-or-comment-p)
+		      (ada-in-paren-p))
+	    (setq match t)
+	    (setq end-cand (point)))
+
+	;; No reasonable end point found (maybe a missing right
+	;; paren); return line after start for minimal parse, compute
+	;; indent for line containing start.
+	(setq match nil)
+	(goto-char start)
+	(setq end-cand (line-end-position 2)))
+      )
+
+    (when (and match
+	       (not (string-equal ";" (match-string 0))))
+      (setq end-cand (match-beginning 0)))
+
+    end-cand))
+
+(defun ada-wisi-find-matching-end ()
+  "Starting at current point, search forward for a matching end.
+Point must have been set by `ada-wisi-find-begin'."
+  (let (end-regexp)
+    ;; Point is at bol
+    (back-to-indentation)
+    (when (looking-at ada-wisi-named-begin-regexp)
+      (skip-syntax-forward "ws")
+      (skip-syntax-forward " ")
+      (when (looking-at "body\\|type")
+	(goto-char (match-end 0))
+	(skip-syntax-forward " "))
+      (setq end-regexp
+	    (concat "end +"
+		    (buffer-substring-no-properties
+		     (point)
+		     (progn
+		       (skip-syntax-forward "ws._")
+		       (point)))
+		    ";"))
+      (if (search-forward-regexp end-regexp nil t)
+	  (progn
+	    (while (and (ada-in-string-or-comment-p)
+			(search-forward-regexp end-regexp nil t)))
+	    (point))
+
+	;; matching end not found
+	nil)
+      )))
+
+(cl-defmethod wisi-parse-expand-region ((_parser ada-wisi-parser) begin end)
+  (let (begin-cand end-cand result)
+    (save-excursion
+      (goto-char begin)
+
+      (setq begin-cand (ada-wisi-find-begin))
+      (if (= begin-cand (point-min)) ;; No code between BEGIN and bob
+	  (progn
+	    (goto-char end)
+	    (setq result (cons begin-cand (ada-wisi-find-end))))
+
+	(setq end-cand (ada-wisi-find-matching-end))
+	(if (and end-cand
+		 (>= end-cand end))
+	    (setq result (cons begin-cand end-cand))
+	  (goto-char end)
+	  (setq result (cons begin-cand (ada-wisi-find-end))))
+
+	))
+    result))
+
+(cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
+  (cond
+   ((or (wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
+	(wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END)))
+    ;; Error token terminates the block containing the start token
+    (- indent ada-indent))
+
+   ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
+        (- indent (+ ada-indent ada-indent-when)))
+
+   ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
+        (+ indent (+ ada-indent ada-indent-when)))
+
+   (t indent)
+   ))
+
+(defun ada-wisi-fix-error (_msg source-buffer _source-window)
+  "For ’ada-fix-error-hook’. Calls ’wisi-repair-error’ if appropriate."
+  (when (equal compilation-last-buffer wisi-error-buffer)
+    (set-buffer source-buffer)
+    (wisi-repair-error)
+    t))
+
+(defun ada-wisi-comment-gnat (indent after)
+  "Modify INDENT to match gnat rules. Return new indent.
+INDENT must be indent computed by the normal indentation
+algorithm.  AFTER indicates what is on the previous line; one of:
+
+code:         blank line, or code with no trailing comment
+code-comment: code with trailing comment
+comment:      comment"
+  (let (prev-indent next-indent)
+    ;; the gnat comment indent style check; comments must
+    ;; be aligned to one of:
+    ;;
+    ;; - multiple of ada-indent
+    ;; - next non-blank line
+    ;; - previous non-blank line
+    ;;
+    ;; Note that we must indent the prev and next lines, in case
+    ;; they are not currently correct.
+    (cond
+     ((and (not (eq after 'comment))
+	   (= 0 (% indent ada-indent)))
+      ;; this will handle comments at bob and eob, so we don't
+      ;; need to worry about those positions in the next checks.
+      indent)
+
+     ((and (setq prev-indent
+		 (if (eq after 'comment)
+		     (progn (forward-comment -1) (current-column))
+		   (save-excursion (forward-line -1)(current-indentation))))
+	   (= indent prev-indent))
+      indent)
+
+     ((and (setq next-indent
+		 ;; we use forward-comment here, instead of
+		 ;; forward-line, because consecutive comment
+		 ;; lines are indented to the current one, which
+		 ;; we don't know yet.
+		 (save-excursion (forward-comment (point-max))(current-indentation)))
+	   (= indent next-indent))
+      indent)
+
+     (t
+      (cl-ecase after
+	(code-comment
+	 ;; After comment that follows code on the same line
+	 ;; test/ada_mode-conditional_expressions.adb
+	 ;;
+	 ;; then 44     -- comment matching GNAT
+	 ;;             -- second line
+	 ;;
+	 ;; else 45)); -- comment _not_ matching GNAT style check
+	 ;;             -- comment matching GNAT
+	 ;;
+	 (+ indent (- ada-indent (% indent ada-indent))))
+
+	((code comment)
+	 ;; After code with no trailing comment, or after comment
+	 ;; test/ada_mode-conditional_expressions.adb
+	 ;; (if J > 42
+	 ;; -- comment indent matching GNAT style check
+	 ;; -- second line of comment
+	 prev-indent)
+
+	))
+     )))
+
+(defun ada-wisi-comment ()
+  "Modify indentation of a comment:
+For `wisi-indent-calculate-functions'.
+- align to previous comment after code.
+- respect `ada-indent-comment-gnat'."
+  ;; We know we are at the first token on a line. We check for comment
+  ;; syntax, not comment-start, to accomodate gnatprep, skeleton
+  ;; placeholders, etc.
+  ;;
+  ;; The normal indentation algorithm has already indented the
+  ;; comment.
+  (when (and (not (eobp))
+	     (= 11 (syntax-class (syntax-after (point)))))
+
+    ;; We are looking at a comment; check for preceding comments, code
+    (let (after
+	  (indent (current-column)))
+      (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
+	  ;; after blank line
+	  (setq after 'code)
+
+	(save-excursion
+	  (forward-comment -1)
+	  (if (or (not ada-indent-after-trailing-comment) ;; ignore comment on previous line
+		  (looking-at "\\s *$"))                  ;; no comment on previous line
+	      (setq after 'code)
+
+	    (setq indent (current-column))
+	    (if (not (= indent (progn (back-to-indentation) (current-column))))
+		;; previous line has comment following code
+		(setq after 'code-comment)
+	      ;; previous line has plain comment
+	      (setq indent (current-column))
+	      (setq after 'comment)
+	      )))
+	)
+
+      (cl-ecase after
+	(code
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code)
+	   indent))
+
+	(comment
+	 indent)
+
+	(code-comment
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code-comment)
+
+	   ;; After comment that follows code on the same line
+	   ;; test/ada_mode-nominal.adb
+	   ;;
+	   ;; begin -- 2
+	   ;;       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "Bad_Thing"))
+	   (save-excursion (forward-comment -1)(current-column)))
+	 ))
+      )))
+
+(defun ada-wisi-post-parse-fail ()
+  "For `wisi-post-parse-fail-hook'."
+  ;; Parse indent succeeded, so we assume parse navigate will as well
+  (wisi-validate-cache (point-min) (line-end-position) nil 'navigate)
+  (save-excursion
+    (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
+      (when start-cache
+	;; nil when in a comment at point-min
+	(indent-region (point) (wisi-cache-end start-cache)))
+      ))
+  (back-to-indentation))
+
+(defun ada-wisi-setup ()
+  "Set up a buffer for parsing Ada files with wisi."
+  (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
+
+  (wisi-setup
+   :indent-calculate '(ada-wisi-comment)
+   :post-indent-fail 'ada-wisi-post-parse-fail
+   :parser
+   (wisi-process-parse-get
+    (make-ada-wisi-parser
+     :label "Ada"
+     :language-protocol-version ada-wisi-language-protocol-version
+     :exec-file ada-process-parse-exec
+     :exec-opts ada-process-parse-exec-opts
+     :face-table ada-process-face-table
+     :token-table ada-process-token-table
+     :repair-image ada-process-repair-image)))
+
+  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+  )
 
 ;;;; ada-mode
+
+(defvar which-func-functions nil) ;; which-func.el
+(defvar which-func-non-auto-modes nil) ;; ""
 
 ;; ada-mode does not derive from prog-mode, because we need to call
 ;; ada-mode-post-local-vars, and prog-mode does not provide a way to
@@ -987,7 +1337,6 @@ The ident for the paragraph is taken from the first line."
 ;;;###autoload
 (defun ada-mode ()
   "The major mode for editing Ada code."
-  ;; the other ada-*.el files add to ada-mode-hook for their setup
 
   (interactive)
   (kill-all-local-variables)
@@ -1075,6 +1424,8 @@ The ident for the paragraph is taken from the first line."
 
   (easy-menu-add ada-mode-menu ada-mode-map)
 
+  (ada-wisi-setup)
+
   (run-mode-hooks 'ada-mode-hook)
 
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
@@ -1133,6 +1484,8 @@ The ident for the paragraph is taken from the first line."
 
   (when ada-goto-declaration-end
     (set (make-local-variable 'end-of-defun-function) ada-goto-declaration-end))
+
+  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
 
   (unless ada-prj-current-project
     (setq ada-prj-current-project (ada-prj-default)))
