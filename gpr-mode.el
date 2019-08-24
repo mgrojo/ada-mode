@@ -34,11 +34,10 @@
 ;;
 ;;;;; Code:
 
-(require 'ada-core);; FIXME: move common to wisi*.el
 (require 'cl-lib)
+(require 'gpr-indent-user-options)
 (require 'gpr-process)
 (require 'gpr-skel)
-(require 'gpr-wisi)
 (require 'wisi-process-parse)
 
 (defgroup gpr nil
@@ -55,7 +54,7 @@
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-c" 'ada-build-make)
     (define-key map "\C-c\C-e" 'skeleton-expand)
-    (define-key map "\C-c\C-f" 'gpr-show-parse-error)
+    (define-key map "\C-c\C-f" 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 'wisi-indent-statement)
     (define-key map "\C-c\C-o" 	 'ff-find-other-file)
     (define-key map "\C-c\C-P" 'gpr-set-as-project)
@@ -88,7 +87,7 @@
     ["Show project search path"    ada-prj-show-prj-path            t]
     ["Next compilation error"      next-error                       t]
     ["Show secondary error"        ada-show-secondary-error         t]
-    ["Show last parse error"       gpr-show-parse-error             t]
+    ["Show last parse error"       wisi-show-parse-error            t]
     ["Other file"                  ff-find-other-file               t]
     ("Edit"
      ["Indent Line or selection"      indent-for-tab-command         t]
@@ -104,16 +103,6 @@
      ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
      )
     ))
-
-(defvar gpr-show-parse-error nil
-  ;; Supplied by indentation engine parser
-  "Function to show last error reported by indentation parser."
-  )
-
-(defun gpr-show-parse-error ()
-  (interactive)
-  (when gpr-show-parse-error
-    (funcall gpr-show-parse-error)))
 
 (defconst gpr-keywords
   '(
@@ -177,15 +166,57 @@
 	       'gpr-ff-special-with)
 	 )))
 
-(defvar gpr-which-function nil
-  ;; supplied by the indentation engine
-  "Function called with no parameters; it should return the name
-of the package or project point is in or just after, or nil.")
-
 (defun gpr-which-function ()
-  "See `gpr-which-function' variable."
-  (when gpr-which-function
-    (funcall gpr-which-function)))
+  "Return the name of the package or project point is in or just after, or nil."
+  (wisi-validate-cache (point-min) (point) nil 'navigate)
+  ;; No message on parse fail, since this could be called from which-function-mode
+  (when (wisi-cache-covers-pos 'navigate (point))
+    (let ((cache (wisi-backward-cache))
+	  done
+	  project-pos
+	  package-pos
+	  decl-pos)
+      (while (and cache (not done))
+	;; find attribute_declaration and package containing point (if any)
+	(cond
+	 ((not (eq (wisi-cache-class cache) 'statement-start))
+	  nil)
+
+	 ((eq (wisi-cache-nonterm cache) 'attribute_declaration)
+	  (setq decl-pos (point)))
+
+	 ((eq (wisi-cache-nonterm cache) 'package_spec)
+	  (setq package-pos (point))
+	  (setq done t))
+
+	 ((eq (wisi-cache-nonterm cache) 'simple_project_declaration)
+	  (setq project-pos (point))
+	  (setq done t))
+	 )
+
+	(setq cache (wisi-goto-containing cache)))
+
+      (cond
+       (package-pos
+	(goto-char package-pos)
+	(setq done t))
+
+       (decl-pos
+	(goto-char decl-pos)
+	(setq done t))
+
+       (project-pos
+	(goto-char project-pos)
+	(setq done t))
+
+       (t ;; before project
+	(setq done nil))
+       )
+
+      (when done
+	(wisi-next-name))
+
+      )))
 
 (defun gpr-add-log-current-function ()
   "For `add-log-current-defun-function'. Returns enclosing package or project name."

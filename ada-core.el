@@ -20,9 +20,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-(require 'ada-wisi)
 (require 'compile)
 (require 'find-file)
+(require 'wisi)
 (require 'wisi-prj)
 
 ;;;; misc
@@ -30,30 +30,6 @@
 (defgroup ada nil
   "Major mode for editing Ada source code in Emacs."
   :group 'languages)
-
-(defcustom ada-which-func-parse-size 30000
-  "Minimum size of the region surrounding point that is parsed for `which-function-mode'."
-  :group 'ada
-  :type 'integer
-  :safe #'integerp)
-
-(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe"
-  ;; We use .exe even on Linux to simplify the Makefile
-  "Name of executable to use for external process Ada parser.
-There are two standard choices; ada_mode_wisi_lalr_parse.exe and
-ada_mode_wisi_lr1_parse.exe. The LR1 version (the default) is
-slower to load on first use, but gives better error recovery."
-  :type 'string
-  :group 'ada-indentation)
-
-(defcustom ada-process-parse-exec-opts nil
-  "List of process start options for `ada-process-parse-exec'."
-  :type 'string
-  :group 'ada-indentation)
-
-(defconst ada-wisi-language-protocol-version "2"
-  "Defines language-specific parser parameters.
-Must match wisi-ada.ads Language_Protocol_Version.")
 
 (defconst ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
@@ -117,18 +93,92 @@ Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
 instead of calling `syntax-ppss'."
   (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
 
-;; FIXME: assume wisi
-(defvar ada-goto-declarative-region-start nil
-  ;; Supplied by indentation engine
-  "Function to move point to start of the declarative region of
-the subprogram, package, task, or declare block point
-is currently in.  Called with no parameters.")
+(defun ada-declarative-region-start-p (cache)
+  "Return t if cache is a keyword starting a declarative region."
+  (memq (wisi-cache-token cache) '(DECLARE IS PRIVATE))
+  ;; IS has a cache only if start of declarative region
+  )
 
 (defun ada-goto-declarative-region-start ()
-  "Call `ada-goto-declarative-region-start'."
+  "Goto start of declarative region containing point."
   (interactive)
-  (when ada-goto-declarative-region-start
-    (funcall ada-goto-declarative-region-start)))
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+  (let ((done nil)
+	start-pos
+	(in-package-spec nil)
+	(cache (or (wisi-get-cache (point))
+		   (wisi-backward-cache))))
+
+    ;; We use backward-cache, not forward-cache, to handle the case
+    ;; where point is in the whitespace or comment before a block; we
+    ;; want the containing block, not the next block.
+
+    (when cache ;; nil at bob
+      ;; If this is called with point in a comment after 'is', then the
+      ;; declarative region starts after the comment; don't hang in a
+      ;; package spec.
+      (setq start-pos (point))
+      (while (not done)
+	(if (and (or (not in-package-spec)
+		     (< (point) start-pos))
+		 (ada-declarative-region-start-p cache))
+	    (progn
+	      (forward-word);; past 'is'
+	      (setq done t))
+	  (cl-case (wisi-cache-class cache)
+	    (motion
+	     (setq cache (wisi-goto-containing cache)));; statement-start
+
+	    (statement-end
+	     (setq cache (wisi-goto-containing cache)) ;; statement-start
+	     (cl-case (wisi-cache-nonterm cache)
+	       ((generic_package_declaration
+		 package_declaration
+		 entry_body package_body package_declaration protected_body subprogram_body task_body
+		 protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
+		;; This is a block scope before the starting point; we want the containing scope
+		(setq cache (wisi-goto-containing cache)))
+
+	       (t
+		nil)
+	       ))
+
+	    (statement-start
+	     (cl-case (wisi-cache-nonterm cache)
+	       (generic_package_declaration
+		(setq in-package-spec t)
+		(setq cache (wisi-next-statement-cache cache)) ;; 'package'
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+
+	       (package_declaration
+		(setq in-package-spec t)
+		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+
+	       ((entry_body package_body package_declaration protected_body subprogram_body task_body)
+		(while (not (eq 'IS (wisi-cache-token cache)))
+		  (setq cache (wisi-next-statement-cache cache))))
+
+	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
+		(while (not (eq 'IS (wisi-cache-token cache)))
+		  (setq cache (wisi-next-statement-cache cache)))
+		(when (looking-at "\<new\>")
+		  (while (not (eq 'WITH (wisi-cache-token cache)))
+		    (setq cache (wisi-next-statement-cache cache)))))
+
+	       (t
+		(setq cache (wisi-goto-containing cache t)))
+	       ))
+
+	    (t
+	     (setq cache (wisi-goto-containing cache t)))
+	    )))
+
+      ;; point is at start of first code statement after
+      ;; declaration-start keyword and comment; move back to end of
+      ;; keyword.
+      (while (forward-comment -1))
+      )))
 
 ;; FIXME: use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
 (defvar ada-goto-pos-ring '()
@@ -596,6 +646,14 @@ ARG is the prefix the user entered with \\[universal-argument]."
      "\\)\\_>\\)"))
   "See the variable `align-region-separate' for more information.")
 
+(defun ada-in-case-expression ()
+  "Return non-nil if point is in a case expression."
+  (save-excursion
+    ;; Used by ada-align; we know we are in a paren.
+    (ada-goto-open-paren 1)
+    (while (forward-comment 1))
+    (looking-at "case")))
+
 (defun ada-align ()
   "If region is active, apply `align'. If not, attempt to align
 current construct."
@@ -613,7 +671,7 @@ current construct."
 
        ((and
 	 (ada-in-paren-p parse-result)
-	 (ada-wisi-in-case-expression))
+	 (ada-in-case-expression))
 	;; align '=>'
 	(let ((begin (nth 1 parse-result))
 	      (end   (scan-lists (point) 1 1)))
@@ -623,15 +681,17 @@ current construct."
 	(align-current))
        ))))
 
-(defvar ada-in-paramlist-p nil
-  ;; Supplied by indentation engine parser
-  "Function to return t if point is inside the parameter-list of a subprogram declaration.
-Function is called with one optional argument; syntax-ppss result.")
-
-(defun ada-in-paramlist-p (&optional parse-result)
-  "Return t if point is inside the parameter-list of a subprogram declaration."
-  (when ada-in-paramlist-p
-    (funcall ada-in-paramlist-p parse-result)))
+(defun ada-in-paramlist-p (parse-result)
+  "Return t if point is inside the parameter-list of a subprogram declaration.
+PARSE-RESULT must be the result of `syntax-ppss'."
+  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
+  ;; (info "(elisp)Parser State" "*syntax-ppss*")
+  (let (cache)
+    (and (> (nth 0 parse-result) 0)
+	 ;; cache is nil if the parse failed
+	 (setq cache (wisi-get-cache (nth 1 parse-result)))
+	 (eq 'formal_part (wisi-cache-nonterm cache)))
+    ))
 
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
@@ -861,21 +921,29 @@ FILE may be absolute, or on `compilation-search-path'.")
   (when ada-show-xref-tool-buffer
     (funcall ada-show-xref-tool-buffer)))
 
-;; FIXME: assume wisi
-(defvar ada-make-subprogram-body nil
-  ;; Supplied by indentation engine
-  "Function to convert subprogram specification after point into a subprogram body stub.
-Called with no args, point at declaration start. Leave point in
-subprogram body, for user to add code.")
-
 (defun ada-make-subprogram-body ()
-  "If point is in or after a subprogram specification, convert it
-into a subprogram body stub, by calling `ada-make-subprogram-body'."
+  "Convert subprogram specification after point into a subprogram body stub."
   (interactive)
   (wisi-goto-statement-start)
-  (if ada-make-subprogram-body
-      (funcall ada-make-subprogram-body)
-    (error "`ada-make-subprogram-body' not set")))
+  ;; point is at start of subprogram specification;
+  ;; ada-wisi-expand-region will find the terminal semicolon.
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+  (let* ((begin (point))
+	 (end (wisi-cache-end (wisi-get-cache (point))))
+	 (name (wisi-next-name)))
+    (goto-char end)
+    (newline)
+    (insert " is begin\n\nend ");; legal syntax; parse does not fail
+    (insert name)
+    (forward-char 1)
+
+    ;; newline after body to separate from next body
+    (newline-and-indent)
+    (indent-region begin (point))
+    (forward-line -2)
+    (back-to-indentation)
+    ))
 
 ;; FIXME: dispatch on xref, default ada-skel
 (defvar ada-make-package-body nil

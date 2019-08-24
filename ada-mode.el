@@ -159,13 +159,14 @@
 ;;    and others for their valuable hints.
 
 (require 'ada-core)
+(require 'ada-indent-user-options)
 (require 'ada-process)
 (require 'ada-skel)
 (require 'align)
 (require 'cl-lib)
 (require 'compile)
 (require 'find-file)
-(require 'wisi) ;; FIXME: rewrite to assume wisi
+(require 'wisi)
 
 (defun ada-mode-version ()
   "Return Ada mode version."
@@ -196,6 +197,26 @@ rather than to the same column."
   :type 'boolean
   :safe #'booleanp)
 
+(defcustom ada-which-func-parse-size 30000
+  "Minimum size of the region surrounding point that is parsed for `which-function-mode'."
+  :group 'ada
+  :type 'integer
+  :safe #'integerp)
+
+(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe"
+  ;; We use .exe even on Linux to simplify the Makefile
+  "Name of executable to use for external process Ada parser.
+There are two standard choices; ada_mode_wisi_lalr_parse.exe and
+ada_mode_wisi_lr1_parse.exe. The LR1 version (the default) is
+slower to load on first use, but gives better error recovery."
+  :type 'string
+  :group 'ada-indentation)
+
+(defcustom ada-process-parse-exec-opts nil
+  "List of process start options for `ada-process-parse-exec'."
+  :type 'string
+  :group 'ada-indentation)
+
 ;;;; keymap and menus
 
 (defvar ada-mode-map
@@ -215,7 +236,7 @@ rather than to the same column."
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
     (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 'ada-skel-expand)
-    (define-key map "\C-c\C-f" 	 'ada-show-parse-error)
+    (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-l" 	 'ada-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
@@ -263,7 +284,7 @@ rather than to the same column."
      ["Next compilation error"     next-error                t]
      ["Show secondary error"       ada-show-secondary-error  t]
      ["Fix compilation error"      ada-fix-compiler-error    t]
-     ["Show last parse error"      ada-show-parse-error      t]
+     ["Show last parse error"      wisi-show-parse-error     t]
      ["Check syntax"               ada-build-check       t]
      ["Show main"                  ada-build-show-main   t]
      ["Build"                      ada-build-make        t]
@@ -316,10 +337,10 @@ rather than to the same column."
      ["Show casing files list"      ada-case-show-files       t]
      )
     ("Misc"
-     ["Show last parse error"         ada-show-parse-error         t]
+     ["Show last parse error"         wisi-show-parse-error        t]
      ["Show xref tool buffer"         ada-show-xref-tool-buffer    t]
      ["Refresh cross reference cache" ada-xref-refresh             t]
-     ["Reset parser"                  ada-reset-parser             t]
+     ["Reset parser"                  wisi-reset-parser            t]
      )))
 
 (defun ada-project-menu-install ()
@@ -419,27 +440,6 @@ Function is called with no arguments.")
   (interactive)
   (when ada-indent-statement
     (funcall ada-indent-statement)))
-
-(defvar ada-reset-parser nil
-  ;; Supplied by indentation engine parser
-  "Function to reset parser, to clear confused state."
-  )
-
-(defun ada-reset-parser ()
-  "See variable ’ada-reset-parser’."
-  (interactive)
-  (when ada-reset-parser
-    (funcall ada-reset-parser)))
-
-(defvar ada-show-parse-error nil
-  ;; Supplied by indentation engine parser
-  "Function to show last error reported by indentation parser."
-  )
-
-(defun ada-show-parse-error ()
-  (interactive)
-  (when ada-show-parse-error
-    (funcall ada-show-parse-error)))
 
 ;;;; syntax properties
 
@@ -597,51 +597,92 @@ See `ff-other-file-alist'.")
 	       'ada-ff-special-with)
 	 )))
 
-(defvar ada-which-function nil
-  ;; supplied by indentation engine
-  ;;
-  ;; This is run from ff-pre-load-hook, so ff-function-name may have
-  ;; been set by ff-treat-special; don't reset it.
-  "Function called with one parameter (INCLUDE-TYPE); it should
-return the name of the package, protected type, subprogram,
-entry, or task type whose definition/declaration point is in, or
-for declarations that don't have declarative regions, just after;
-or nil.
+(defun ada-which-function-1 (keyword add-body)
+  "Used in `ada-which-function'."
+  (let* ((result (wisi-next-name)))
 
-If INCLUDE-TYPE is non-nil, include type names.
+    ;; See comment in ada-mode.el ada-which-function on why we don't
+    ;; overwrite ff-function-name.
+    (when (not ff-function-name)
+      (setq ff-function-name
+	    (concat
+	     keyword
+	     (when add-body "\\s-+body")
+	     "\\s-+"
+	     result
+	     "\\_>")))
+    result))
 
-In addition, if `ff-function-name' is non-nil, store in
-`ff-function-name' a regexp that will find the function in the
-other file.")
+(defun ada-which-function (include-type)
+  "Return name of subprogram/task/package containing point.
+Also sets ff-function-name for ff-pre-load-hook."
+  ;; Fail gracefully and silently, since this could be called from
+  ;; which-function-mode.
+  (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
+	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
+    (save-excursion
+      (condition-case nil
+	  ;; Throwing an error here disables which-function-mode, so don't do it.
+	  (progn
+	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
+	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
+	      (let ((result nil)
+		    (cache (ada-goto-declaration-start-1 include-type)))
+		(if (null cache)
+		    ;; bob or failed parse
+		    (setq result "")
 
-(defun ada-which-function (&optional include-type)
-  "See `ada-which-function' variable."
-  (when ada-which-function
-    (funcall ada-which-function include-type)))
+		  (when (memq (wisi-cache-nonterm cache)
+			      '(generic_package_declaration generic_subprogram_declaration))
+		    ;; name is after next statement keyword
+		    (setq cache (wisi-next-statement-cache cache)))
 
-(defvar ada-on-context-clause nil
-  ;; supplied by indentation engine
-  "Function called with no parameters; it should return non-nil
-  if point is on a context clause.")
+		  ;; add or delete 'body' as needed
+		  (cl-ecase (wisi-cache-nonterm cache)
+		    ((entry_body entry_declaration)
+		     (setq result (ada-which-function-1 "entry" nil)))
 
-(defun ada-on-context-clause ()
-  "See `ada-on-context-clause' variable."
-  (interactive)
-  (when ada-on-context-clause
-    (funcall ada-on-context-clause)))
+		    (full_type_declaration
+		     (setq result (ada-which-function-1 "type" nil)))
 
-(defvar ada-goto-subunit-name nil
-  ;; supplied by indentation engine
-  "Function called with no parameters; if the current buffer
-  contains a subunit, move point to the subunit name (for
-  `ada-goto-declaration'), return t; otherwise leave point alone,
-  return nil.")
+		    (package_body
+		     (setq result (ada-which-function-1 "package" nil)))
 
-(defun ada-goto-subunit-name ()
-  "See `ada-goto-subunit-name' variable."
-  (interactive)
-  (when ada-goto-subunit-name
-    (funcall ada-goto-subunit-name)))
+		    ((package_declaration
+		      package_specification) ;; after 'generic'
+		     (setq result (ada-which-function-1 "package" t)))
+
+		    (protected_body
+		     (setq result (ada-which-function-1 "protected" nil)))
+
+		    ((protected_type_declaration single_protected_declaration)
+		     (setq result (ada-which-function-1 "protected" t)))
+
+		    ((abstract_subprogram_declaration
+		      expression_function_declaration
+		      subprogram_declaration
+		      subprogram_renaming_declaration
+		      generic_subprogram_declaration ;; after 'generic'
+		      null_procedure_declaration)
+		     (setq result (ada-which-function-1
+				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+				   nil))) ;; no 'body' keyword in subprogram bodies
+
+		    (subprogram_body
+		     (setq result (ada-which-function-1
+				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+				   nil)))
+
+		    ((single_task_declaration task_type_declaration)
+		     (setq result (ada-which-function-1 "task" t)))
+
+
+		    (task_body
+		     (setq result (ada-which-function-1 "task" nil)))
+		    ))
+		result)))
+	(error "")))
+    ))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'."
@@ -652,6 +693,40 @@ other file.")
   (save-excursion
     (back-to-indentation)
     (ada-which-function t)))
+
+(defun ada-on-context-clause ()
+  "Return non-nil if point is on a context clause."
+  (interactive)
+  (let (cache)
+    (save-excursion
+      ;; Don't require parse of large file just for ada-find-other-file
+      (and (< (point-max) wisi-size-threshold)
+	   (setq cache (wisi-goto-statement-start))
+	   (memq (wisi-cache-nonterm cache) '(use_clause with_clause))
+	   ))))
+
+(defun ada-goto-subunit-name ()
+  "Return non-nil if the current buffer contains a subunit.
+Also move point to the subunit name (for
+`ada-goto-declaration'). If no subunit, leave point alone, return
+nil."
+  (interactive)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+  (let (cache
+	(name-pos nil))
+    (save-excursion
+      ;; move to top declaration
+      (goto-char (point-min))
+      (setq cache (or (wisi-get-cache (point))
+		      (wisi-forward-cache)))
+
+      (when (eq (wisi-cache-nonterm cache) 'subunit)
+	(setq name-pos (car (wisi-next-name-region))))
+      )
+    (when name-pos
+      (goto-char name-pos))
+    ))
 
 (defun ada-set-point-accordingly ()
   "Move to the string specified in `ff-function-name', which may be a regexp,
@@ -743,6 +818,8 @@ previously set by a file navigation command."
   )
 
 
+;;;; Misc
+
 ;; This is autoloaded because it may be used in ~/.emacs
 ;;;###autoload
 (defun ada-add-extensions (spec body)
@@ -814,40 +891,71 @@ compiler-specific compilation filters."
        ))
     ))
 
-(defvar ada-goto-declaration-start nil
-  ;; Supplied by indentation engine.
-  ;;
-  "For `beginning-of-defun-function'. Function to move point to
-start of the generic, package, protected, subprogram, or task
-declaration point is currently in or just after.  Called with no
-parameters.")
+(defun ada-goto-declaration-start-1 (include-type)
+  "Subroutine of `ada-goto-declaration-start'."
+  (let ((start (point))
+	(cache (wisi-get-cache (point)))
+	(done nil))
+    (unless cache
+      (setq cache (wisi-backward-cache)))
+    ;; cache is null at bob
+    (while (not done)
+      (if cache
+	  (progn
+	    (setq done
+		  (cl-case (wisi-cache-nonterm cache)
+		    ((entry_body entry_declaration)
+		     (eq (wisi-cache-token cache) 'ENTRY))
 
-(defun ada-goto-declaration-start ()
-  "Call `ada-goto-declaration-start'."
+		    (full_type_declaration
+		     (when include-type
+		       (eq (wisi-cache-token cache) 'TYPE)))
+
+		    ((generic_package_declaration generic_subprogram_declaration)
+		     (eq (wisi-cache-token cache) 'GENERIC))
+
+		    ((package_body package_declaration)
+		     (eq (wisi-cache-token cache) 'PACKAGE))
+
+		    ((protected_body protected_type_declaration single_protected_declaration)
+		     (eq (wisi-cache-token cache) 'PROTECTED))
+
+		    ((abstract_subprogram_declaration
+		      expression_function_declaration
+		      subprogram_body
+		      subprogram_declaration
+		      subprogram_renaming_declaration
+		      null_procedure_declaration)
+		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
+
+		    ((single_task_declaration task_body task_type_declaration)
+		     (eq (wisi-cache-token cache) 'TASK))
+
+		    ))
+	    (unless (< start (wisi-cache-end cache))
+	      ;; found declaration does not include start; find containing one.
+	      (setq done nil))
+	    (unless done
+	      (setq cache (wisi-goto-containing cache nil))))
+	(setq done t))
+	)
+    cache))
+
+(defun ada-goto-declaration-start (&optional include-type)
+  "Move point to start of the generic, package, protected,
+subprogram, or task declaration point is currently in or just
+after."
   (interactive)
-  (when ada-goto-declaration-start
-    (funcall ada-goto-declaration-start)))
-
-(defvar ada-goto-declaration-end nil
-  ;; supplied by indentation engine
-  "For `end-of-defun-function'. Function to move point to end of
-current declaration.")
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (ada-goto-declaration-start-1 include-type))
 
 (defun ada-goto-declaration-end ()
-  "See `ada-goto-declaration-end' variable."
+  "For `end-of-defun-function'. Function to move point to end of
+current declaration."
   (interactive)
-  (when ada-goto-declaration-end
-    (funcall ada-goto-declaration-end)))
-
-(defvar ada-goto-end nil
-  ;; Supplied by indentation engine
-  "Function to move point to end of the declaration or statement point is in or before.
-Called with no parameters.")
-
-(defun ada-goto-end ()
-  "Call `ada-goto-end'."
-  (when ada-goto-end
-    (funcall ada-goto-end)))
+  ;; First goto-declaration-start, so we get the right end, not just
+  ;; the current statement end.
+  (wisi-goto-end-1 (ada-goto-declaration-start)))
 
 ;;;; fill-comment
 
@@ -976,6 +1084,10 @@ The ident for the paragraph is taken from the first line."
    ))
 
 ;;;; wisi integration
+
+(defconst ada-wisi-language-protocol-version "2"
+  "Defines language-specific parser parameters.
+Must match wisi-ada.ads Language_Protocol_Version.")
 
 (cl-defstruct (ada-wisi-parser (:include wisi-process--parser))
   ;; no new slots
@@ -1479,11 +1591,9 @@ For `wisi-indent-calculate-functions'.
     ;; ada-keywords
     (font-lock-refresh-defaults))
 
-  (when ada-goto-declaration-start
-    (set (make-local-variable 'beginning-of-defun-function) ada-goto-declaration-start))
+  (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
 
-  (when ada-goto-declaration-end
-    (set (make-local-variable 'end-of-defun-function) ada-goto-declaration-end))
+  (set (make-local-variable 'end-of-defun-function) #'ada-goto-declaration-end)
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
 
@@ -1514,8 +1624,6 @@ simple: indent to previous line.")
 
 (add-hook 'menu-bar-update-hook #'ada-project-menu-install)
 
-(require 'ada-wisi)
-
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))
   (gpr_query (require 'gpr-query))
@@ -1530,9 +1638,6 @@ simple: indent to previous line.")
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))
-
-(unless (featurep 'ada-skeletons)
-  (require 'ada-skel))
 
 (when (featurep 'imenu)
   (require 'ada-imenu))

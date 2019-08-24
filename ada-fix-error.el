@@ -35,16 +35,33 @@
   :type 'boolean
   :group 'ada)
 
-(defvar ada-fix-context-clause nil
-  "Function to return the region containing the context clause for the current buffer,
-excluding leading pragmas.  Called with no arguments;
-return (BEGIN . END). BEGIN and END must be at beginning of line.
-If there is no context clause, BEGIN = END, at start of
-compilation unit.")
-
 (defun ada-fix-context-clause ()
-  (when ada-fix-context-clause
-    (funcall ada-fix-context-clause)))
+  "Return the region containing the context clause for the current buffer,
+excluding leading pragmas."
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((begin nil)
+	  (end nil)
+	  cache)
+
+      (while (not end)
+	(setq cache (wisi-forward-cache))
+	(cl-case (wisi-cache-nonterm cache)
+	  (pragma_g (wisi-goto-end-1 cache))
+	  (use_clause (wisi-goto-end-1 cache))
+	  (with_clause
+	   (when (not begin)
+	     (setq begin (line-beginning-position)))
+	   (wisi-goto-end-1 cache))
+	  (t
+	   ;; start of compilation unit
+	   (setq end (line-beginning-position))
+	   (unless begin
+	     (setq begin end)))
+	  ))
+      (cons begin end)
+    )))
 
 (defun ada-fix-insert-unit-name (unit-name)
   "Insert UNIT-NAME at point and capitalize it."
