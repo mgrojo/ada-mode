@@ -1,7 +1,6 @@
 -- tests slices; example of typical code.
 
---EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 
 --EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO; use Ada.Text_IO;

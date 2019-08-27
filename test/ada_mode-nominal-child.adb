@@ -1,5 +1,5 @@
 --  Test ada-find-other-file and a few other things
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 package body Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))

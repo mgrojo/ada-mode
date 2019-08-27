@@ -65,7 +65,7 @@
 ;; typically only concerned about files that belong to the current
 ;; project).
 ;;
-;; There are several styles of indirect calls:
+;; There are several styles of indirect calls: FIXME:
 ;;
 ;; - scalar global variable set during load
 ;;
@@ -338,7 +338,6 @@ slower to load on first use, but gives better error recovery."
      )
     ("Misc"
      ["Show last parse error"         wisi-show-parse-error        t]
-     ["Show xref tool buffer"         ada-show-xref-tool-buffer    t]
      ["Refresh cross reference cache" ada-xref-refresh             t]
      ["Reset parser"                  wisi-reset-parser            t]
      )))
@@ -1597,28 +1596,19 @@ For `wisi-indent-calculate-functions'.
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
 
-  (unless ada-prj-current-project
-    (setq ada-prj-current-project (ada-prj-default)))
+  (unless (ada-prj-p (project-current))
+    (ada-create-select-default-prj))
   )
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
 (defvar ada-parser 'process
-  "Indicate parser and lexer to use for Ada buffers:
+  "Indicate parser to use for Ada buffers:
 
-process : external process lexer and parser specified
-  by ‘ada-process-parse-exec ’.
-"
+process : external process specified by ‘ada-process-parse-exec ’."
   ;; As of ada-mode version 6.2, we no longer support the elisp
   ;; parser. We may add a module implementation at some point.
   )
-
-(defvar ada-fallback 'simple
-  "Indicate fallback indentation engine for Ada buffers.
-
-simple: indent to previous line.")
-
-(provide 'ada-mode)
 
 ;;;;; Global initializations
 
@@ -1637,9 +1627,10 @@ simple: indent to previous line.")
   )
 
 (unless (featurep 'ada-compiler)
-  (require 'ada-gnat-compile))
+  (require 'ada-compiler-gnat))
 
 (when (featurep 'imenu)
   (require 'ada-imenu))
 
+(provide 'ada-mode)
 ;;; ada-mode.el ends here

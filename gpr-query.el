@@ -57,28 +57,28 @@
 ;; *xref* buffer.
 (defconst gpr-query-buffer-name-prefix "*gpr_query-")
 
-(defun gpr-query--start-process (session)
+(defun gpr-query--start-process (compiler session)
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
-    (setf (gpr-query--session-buffer session) (gnat-run-buffer ada-prj-current-project gpr-query-buffer-name-prefix))
+    (setf (gpr-query--session-buffer session) (gnat-run-buffer compiler gpr-query-buffer-name-prefix))
     (with-current-buffer (gpr-query--session-buffer session)
       (compilation-mode)
       (setq buffer-read-only nil)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (cl-copy-list (plist-get (ada-prj-plist ada-prj-current-project) 'proc_env)))
+    (let ((process-environment (cl-copy-list (gnat-compiler-environment compiler)))
 	  ;; for GPR_PROJECT_PATH, other env vars set in ada-mode
 	  ;; project files and used by gpr files.
 
-	  (project-file (file-name-nondirectory (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_file))))
+	  (gpr-file (file-name-nondirectory (gnat-compiler-gpr-file compiler))))
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
 	    (start-process (concat "gpr_query " (buffer-name))
 			   (gpr-query--session-buffer session)
 			   "gpr_query"
-			   (concat "--project=" project-file)))
+			   (concat "--project=" gpr-file)))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 
@@ -97,31 +97,31 @@
 	(error "gpr-query process failed to start"))
       )))
 
-(defun gpr-query--make-session ()
+(defun gpr-query--make-session (compiler)
   "Create and return a session for the current project file."
   (let ((session
 	 (make-gpr-query--session
 	  :buffer nil
 	  :process nil)))
-    (gpr-query--start-process session)
+    (gpr-query--start-process compiler session)
     session))
 
 (defvar gpr-query--sessions '()
   "Assoc list of sessions, indexed by absolute GNAT project file name.")
 
-(defun gpr-query-cached-session ()
-  "Return a session for the current project file, creating it if necessary."
-  (let ((session (cdr (assoc ada-prj-current-file gpr-query--sessions))))
+(defun gpr-query-cached-session (compiler)
+  "Return a session for COMPILER, creating it if necessary."
+  (let* ((gpr-file (gnat-compiler-gpr-file compiler))
+	 (session (cdr (assoc gpr-file gpr-query--sessions))))
     (if session
 	(progn
 	  (unless (process-live-p (gpr-query--session-process session))
-	    (gpr-query--start-process session))
+	    (gpr-query--start-process compiler session))
 	  session)
       ;; else
       (prog1
-          (setq session (gpr-query--make-session))
-	(setq gpr-query--sessions
-	      (cl-acons ada-prj-current-file session gpr-query--sessions))))
+          (setq session (gpr-query--make-session compiler))
+	(push (cons gpr-file session) gpr-query--sessions)))
     ))
 
 (defconst gpr-query-prompt "^>>> $"
@@ -154,29 +154,21 @@
 	(error "gpr_query process died"))
       )))
 
-(defun gpr-require-prj ()
-  "Throw error if no project file defined."
-  (unless (or (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_file)
-	      (plist-get (ada-prj-plist ada-prj-current-project) 'gpr_query_file))
-    (error "no gpr project file defined.")))
-
-(defun gpr-query-session-send (cmd wait)
-  "Send CMD to gpr_query session for current project.
+(defun gpr-query-session-send (session cmd wait)
+  "Send CMD to gpr_query session for GPR-FILE.
 If WAIT is non-nil, wait for command to complete.
 Return buffer that holds output."
-  (gpr-require-prj)
-  (let ((session (gpr-query-cached-session)))
-    ;; always wait for previous command to complete; also checks for
-    ;; dead process.
-    (gpr-query-session-wait session)
-    (with-current-buffer (gpr-query--session-buffer session)
-      (erase-buffer)
-      (process-send-string (gpr-query--session-process session)
-			   (concat cmd "\n"))
-      (when wait
-	(gpr-query-session-wait session))
-      (current-buffer)
-      )))
+  ;; always wait for previous command to complete; also checks for
+  ;; dead process.
+  (gpr-query-session-wait session)
+  (with-current-buffer (gpr-query--session-buffer session)
+    (erase-buffer)
+    (process-send-string (gpr-query--session-process session)
+			 (concat cmd "\n"))
+    (when wait
+      (gpr-query-session-wait session))
+    (current-buffer)
+    ))
 
 (defun gpr-query-kill-session (session)
   (let ((process (gpr-query--session-process session)))
@@ -199,47 +191,46 @@ Return buffer that holds output."
     (message "Killed %d sessions" count)
     ))
 
-(defun gpr-query-show-buffer (&optional session)
-  "For `ada-show-xref-tool-buffer'; show gpr-query buffer for current project."
+(defun gpr-query-show-buffer (session)
   (interactive)
-  (pop-to-buffer (gpr-query--session-buffer (or session (gpr-query-cached-session)))))
+  (pop-to-buffer (gpr-query--session-buffer session)))
 
 ;;;;; utils
 
-(defun gpr-query-get-src-dirs (src-dirs)
-  "Append list of source dirs in current gpr project to SRC-DIRS.
+(defun gpr-query-get-src-dirs (compiler src-dirs)
+  "Append list of source dirs in gpr project COMPILER to SRC-DIRS.
 Uses `gpr_query'. Returns new list."
 
-  (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
-    (gpr-query-session-send "source_dirs" t)
-    (goto-char (point-min))
-    (while (not (looking-at gpr-query-prompt))
-      (cl-pushnew
-       (expand-file-name ; Canonicalize path part.
-	(directory-file-name
-	 (buffer-substring-no-properties (point) (point-at-eol))))
-	src-dirs :test #'equal)
-      (forward-line 1))
-    )
+  (let ((session (gpr-query-cached-session compiler)))
+    (with-current-buffer (gpr-query-session-send session "source_dirs" t)
+      (goto-char (point-min))
+      (while (not (looking-at gpr-query-prompt))
+	(cl-pushnew
+	 (expand-file-name ; Canonicalize path part.
+	  (directory-file-name
+	   (buffer-substring-no-properties (point) (point-at-eol))))
+	 src-dirs :test #'equal)
+	(forward-line 1))
+      ))
   src-dirs)
 
-(defun gpr-query-get-prj-dirs (prj-dirs)
-  "Append list of project dirs in current gpr project to PRJ-DIRS.
+(defun gpr-query-get-prj-dirs (compiler prj-dirs)
+  "Append list of project dirs in gpr project COMPILER to PRJ-DIRS.
 Uses `gpr_query'. Returns new list."
 
-  (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
-    (gpr-query-session-send "project_path" t)
-    (goto-char (point-min))
-    (while (not (looking-at gpr-query-prompt))
-      (cl-pushnew
-       (let ((dir (buffer-substring-no-properties (point) (point-at-eol))))
-	 (if (string= dir ".")
-	     (directory-file-name default-directory)
-	   (expand-file-name dir))) ; Canonicalize path part.
-       prj-dirs
-       :test #'equal)
-      (forward-line 1))
-    )
+  (let ((session (gpr-query-cached-session compiler)))
+    (with-current-buffer (gpr-query-session-send session "project_path" t)
+      (goto-char (point-min))
+      (while (not (looking-at gpr-query-prompt))
+	(cl-pushnew
+	 (let ((dir (buffer-substring-no-properties (point) (point-at-eol))))
+	   (if (string= dir ".")
+	       (directory-file-name default-directory)
+	     (expand-file-name dir))) ; Canonicalize path part.
+	 prj-dirs
+	 :test #'equal)
+	(forward-line 1))
+      ))
   prj-dirs)
 
 (defconst gpr-query-ident-file-regexp
@@ -257,11 +248,12 @@ Uses `gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-(defun gpr-query-compilation (identifier file line col cmd comp-err)
+(defun gpr-query-compilation (compiler identifier file line col cmd comp-err)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
+
   ;; FIXME: implement ada-xref-full-path.
   ;;
   ;; FIXME: implement append
@@ -269,11 +261,11 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
 	(result-count 0)
+	(session (gpr-query-cached-session compiler))
 	target-file target-line target-col)
-    (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
+    (with-current-buffer (gpr-query-session-send session cmd-1 t)
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
-      (gpr-query-session-send cmd-1 t)
 
       ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
@@ -341,7 +333,8 @@ with compilation-error-regexp-alist set to COMP-ERR."
 (defun gpr-query-show-references ()
   "Show all references of identifier at point."
   (interactive)
-  (gpr-query-all
+  (ada-xref-all
+   (gnat-compiler-require-prj)
    (thing-at-point 'symbol)
    (file-name-nondirectory (buffer-file-name))
    (line-number-at-pos)
@@ -355,7 +348,8 @@ buffer in another window."
   (interactive "P")
 
   (let ((target
-	 (gpr-query-overridden-1
+	 (ada-xref-overridden
+	  (gnat-compiler-require-prj)
 	  (thing-at-point 'symbol)
 	  (buffer-file-name)
 	  (line-number-at-pos)
@@ -372,14 +366,11 @@ buffer in another window."
 (defun gpr-query-goto-declaration ()
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa. If at a
-reference, goto the declaration.
-
-If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window."
-  (interactive "P")
-
+reference, goto the declaration."
+  (interactive)
   (let ((target
-	 (gpr-query-other
+	 (ada-xref-other
+	  (gnat-compiler-require-prj)
 	  (thing-at-point 'symbol)
 	  (buffer-file-name)
 	  (line-number-at-pos)
@@ -434,50 +425,48 @@ Enable mode if ARG is positive."
 
 ;;;;; support for Ada mode
 
-(defun gpr-query-refresh (delete-files)
-  "For `ada-xref-refresh-function', using gpr_query."
-  (interactive "P")
+(cl-defmethod ada-xref-refresh-cache ((xref gnat-compiler) no-delete-files)
   ;; Kill the current session and delete the database, to get changed
   ;; env vars etc when it restarts.
   ;;
   ;; We need to delete the database files if the compiler version
   ;; changed, or the database was built with an incorrect environment
   ;; variable, or something else screwed up. However, rebuilding after
-  ;; that is a lot slower, so we only do that on request.
-  (let* ((session (gpr-query-cached-session))
+  ;; that is a lot slower, so we only do that with permission.
+  (let* ((session (gpr-query-cached-session xref))
 	 (db-filename
-	  (with-current-buffer (gpr-query-session-send "db_name" t)
+	  (with-current-buffer (gpr-query-session-send session "db_name" t)
 	    (goto-char (point-min))
 	    (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
 
     (gpr-query-kill-session session)
-    (when delete-files
+    (unless no-delete-files
       (delete-file db-filename))
-    (gpr-query--start-process session)))
+    (gpr-query--start-process xref session)
+    ))
 
-(defun gpr-query-other (identifier file line col)
-  "For `ada-xref-other-function', using gpr_query.
-FILE must be non-nil; line, col can be nil."
+(cl-defmethod ada-xref-other ((xref gnat-compiler) &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
-    (setq col (+ 1 col))
+    (setq column (+ 1 column))
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (setq file (gpr-query--normalize-filename file))
+  (setq filename (gpr-query--normalize-filename filename))
 
   (let ((cmd (format "refs %s:%s:%s:%s"
 		     identifier
-		     (file-name-nondirectory file)
+		     (file-name-nondirectory filename)
 		     (or line "")
-		     (if col (1+ col) "")))
+		     (if column (1+ column) "")))
 	(decl-loc nil)
 	(body-loc nil)
 	(search-type nil)
 	(min-distance most-positive-fixnum)
-	(result nil))
+	(result nil)
+	(session (gpr-query-cached-session xref)))
 
-    (with-current-buffer (gpr-query-session-send cmd t)
+    (with-current-buffer (gpr-query-session-send session cmd t)
       ;; 'gpr_query refs' returns a list containing the declaration,
       ;; the body, and all the references, in no particular order.
       ;;
@@ -512,8 +501,8 @@ FILE must be non-nil; line, col can be nil."
 		 (found-line (string-to-number (match-string 2)))
 		 (found-col  (string-to-number (match-string 3)))
 		 (found-type (match-string 4))
-		 (dist       (if (and line col)
-				 (gpr-query-dist found-line line found-col col)
+		 (dist       (if (and line column)
+				 (gpr-query-dist found-line line found-col column)
 			       most-positive-fixnum))
 		 )
 
@@ -529,7 +518,7 @@ FILE must be non-nil; line, col can be nil."
 	      (setq body-loc (list found-file found-line (1- found-col))))
 	     )
 
-	    (when (and (equal found-file file)
+	    (when (and (equal found-file filename)
 		       (or
 			(string-equal found-type "body")
 			(string-equal found-type "declaration"))
@@ -571,7 +560,7 @@ FILE must be non-nil; line, col can be nil."
 	;; We started in the spec file; find the declaration
 	;;
 	;; If the file has both declaration and body, this will go to
-	;; declaration. Then a search with line, col can go to body.
+	;; declaration. Then a search with line, column can go to body.
 	(setq result decl-loc))
 
        ((and
@@ -590,30 +579,29 @@ FILE must be non-nil; line, col can be nil."
       (message "parsing result ... done")
       result)))
 
-(defun gpr-query-all (identifier file line col &optional _local-only _append)
-  "For `ada-xref-all-function', using gpr_query."
+(cl-defmethod ada-xref-all ((xref gnat-compiler) &key identifier filename line column _local-only _append)
   ;; FIXME: implement local-only, append
-  (gpr-query-compilation identifier file line col "refs" 'gpr-query-ident-file))
+  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "refs" 'gpr-query-ident-file))
 
-(defun gpr-query-parents (identifier file line col)
-  "For `ada-xref-parent-function', using gpr_query."
-  (gpr-query-compilation identifier file line col "parent_types" 'gpr-query-ident-file))
+(cl-defmethod ada-xref-parents ((xref gnat-compiler) &key identifier filename line column)
+  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "parent_types"
+			 'gpr-query-ident-file))
 
-(defun gpr-query-overriding (identifier file line col)
-  "For `ada-xref-overriding-function', using gpr_query."
-  (gpr-query-compilation identifier file line col "overriding" 'gpr-query-ident-file))
+(cl-defmethod ada-xref-overriding ((xref gnat-compiler) &key identifier filename line column)
+  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "overriding"
+			 'gpr-query-ident-file))
 
-(defun gpr-query-overridden-1 (identifier file line col)
-  "For `ada-xref-overridden-function', using gpr_query."
+(cl-defmethod ada-xref-overridden ((xref gnat-compiler) &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
-    (setq col (+ 1 col))
+    (setq column (+ 1 column))
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory file) line (1+ col)))
+  (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory filename) line (1+ column)))
+	(session (gpr-query-cached-session xref))
 	result)
-    (with-current-buffer (gpr-query-session-send cmd t)
+    (with-current-buffer (gpr-query-session-send session cmd t)
 
       (goto-char (point-min))
       (when (looking-at gpr-query-ident-file-regexp)
@@ -645,55 +633,22 @@ FILE must be non-nil; line, col can be nil."
 
 (defun ada-gpr-query-select-prj (_project)
   ;; We wait until the session is actually required to create it.
-  (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
-  (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
-  (setq ada-make-package-body       'ada-gnat-make-package-body)
-
-  (setq ada-xref-refresh-function    'gpr-query-refresh)
-  (setq ada-xref-all-function        'gpr-query-all)
-  (setq ada-xref-other-function      'gpr-query-other)
-  (setq ada-xref-parent-function     'gpr-query-parents)
-  (setq ada-xref-all-function        'gpr-query-all)
-  (setq ada-xref-overriding-function 'gpr-query-overriding)
-  (setq ada-xref-overridden-function 'gpr-query-overridden-1)
-  (setq ada-show-xref-tool-buffer    'gpr-query-show-buffer)
-  (xref-ada-mode 1)
-
+  (xref-ada-mode 1) ;; FIXME: this only sets xref-find-backend in one buffer; need to set it in all relevant buffers
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )
 
 (defun ada-gpr-query-deselect-prj (_project)
   ;; We don’t kill the session here; user may switch back to this
   ;; project.
-  (setq ada-file-name-from-ada-name nil)
-  (setq ada-ada-name-from-file-name nil)
-  (setq ada-make-package-body       nil)
-
-  (setq ada-xref-other-function      nil)
-  (setq ada-xref-parent-function     nil)
-  (setq ada-xref-all-function        nil)
-  (setq ada-xref-overriding-function nil)
-  (setq ada-xref-overridden-function nil)
-  (setq ada-show-xref-tool-buffer    nil)
-  (xref-ada-mode 0)
-
+  (xref-ada-mode 0) ;; FIXME: this only sets xref-find-backend in one buffer; need to set it in all relevant buffers
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
 
-(defun ada-gpr-query ()
-  "Set Ada mode global vars to use gpr_query."
-  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
-  (add-to-list 'ada-select-prj-xref-tool   '(gpr_query . ada-gpr-query-select-prj))
-  (add-to-list 'ada-deselect-prj-xref-tool '(gpr_query . ada-gpr-query-deselect-prj))
-
-  ;; no parse-*-xref
-  )
-
-(provide 'gpr-query)
+(add-to-list 'ada-select-prj-xref-tool   '(gpr_query . ada-gpr-query-select-prj))
+(add-to-list 'ada-deselect-prj-xref-tool '(gpr_query . ada-gpr-query-deselect-prj))
 
 (add-to-list 'compilation-error-regexp-alist-alist
 	     (cons 'gpr-query-ident-file gpr-query-ident-file-regexp-alist))
 
-(ada-gpr-query)
-
+(provide 'gpr-query)
 ;;; end of file

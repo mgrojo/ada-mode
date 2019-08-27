@@ -1,7 +1,6 @@
 --  Test non-ASCII source encoding, and ASCII equivalent of non-ASCII characters
 
---EMACSCMD:(ada-parse-prj-file "ada_mode-no-gpr.adp") ;; for case exceptions, not compiling
---EMACSCMD:(ada-select-prj-file "ada_mode-no-gpr.adp")
+--EMACSCMD:(wisi-prj-select-file "ada_mode-no-gpr.adp")
 with Ada.Numerics;
 package Non_ASCII is
 

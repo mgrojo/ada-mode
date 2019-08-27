@@ -1,8 +1,6 @@
 --  other file for testing ada-find-other-file; requires search path
 -- test .gpr as only project file
---EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
---EMACSCMD:ada-prj-current-file
---EMACSRESULT:(expand-file-name "ada_mode.gpr")
+--EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
 
 -- Select package name, goto its parent spec
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file)(pop-mark)(looking-at "package Ada_Mode is"))

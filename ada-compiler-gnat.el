@@ -1,8 +1,6 @@
-;; ada-gnat-compile.el --- Ada mode compiling functionality provided by 'gnat'  -*- lexical-binding:t -*-
+;;; ada-compiler-gnat.el --- Ada mode compiling functionality provided by GNAT  -*- lexical-binding:t -*-
+;;;
 ;; Includes related functions, such as gnatprep support.
-;;
-;; These tools are all Ada-specific; use Makefiles for multi-language
-;; GNAT compilation tools.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
@@ -32,15 +30,13 @@
 ;; file, based on the file extension.
 ;;
 ;; By default, ada-mode is configured to load this file, so nothing
-;; special needs to done to use it.
+;; special needs to be done to use it.
 
 (require 'ada-fix-error)
 (require 'cl-lib)
 (require 'compile)
 (require 'gnat-core)
 (require 'wisi)
-
-;;;;; code
 
 ;;;; compiler message handling
 
@@ -138,9 +134,6 @@ For `compilation-filter-hook'."
   "\"\\([,:;=()|]+\\)\""
   "regexp to extract quoted punctuation in error messages")
 
-(defvar ada-gnat-fix-error-hook nil
-  "For `ada-fix-error-alist'.")
-
 (defun ada-gnat-misspelling ()
   "Return correct spelling from current compiler error, if there are corrections offered.
 Prompt user if more than one."
@@ -186,7 +179,7 @@ Prompt user if more than one."
     ))
 
 (defun ada-gnat-fix-error (_msg source-buffer _source-window)
-  "For `ada-gnat-fix-error-hook'."
+  "For `ada-fix-error-hook'."
   (let ((start-pos (point))
 	message-column
 	result)
@@ -254,7 +247,7 @@ Prompt user if more than one."
 		 (when (not done)
 		   (let* ((item (get-text-property pos 'ada-secondary-error))
 			  (unit-file (nth 0 item))
-			  (choice (ada-gnat-ada-name-from-file-name unit-file)))
+			  (choice (ada-compiler-ada-name-from-file-name (make-gnat-compiler) unit-file)))
 		     (unless (member choice choices) (push choice choices))
 		     (goto-char (1+ pos))
 		     (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
@@ -464,7 +457,7 @@ Prompt user if more than one."
 	   (let ((type (match-string 2))
 		 (package-file (match-string 4)))
 	     (when package-file
-	       (setq type (concat (ada-gnat-ada-name-from-file-name package-file) "." type)))
+	       (setq type (concat (ada-compiler-ada-name-from-file-name (make-gnat-compiler) package-file) "." type)))
 	     (pop-to-buffer source-buffer)
 	     (ada-fix-add-use-type type)
 	   t))
@@ -659,9 +652,57 @@ Prompt user if more than one."
       nil)
     ))
 
-;;;;; setup
+;;;; generic methods
 
-(defun ada-gnat-compile-select-prj (project)
+(defconst ada-gnatprep-preprocessor-keywords
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
+
+(cl-defmethod ada-compiler-parse-one ((compiler gnat-compiler) name value)
+  "Handle gnat-specific Emacs Ada project file settings.
+If NAME recognized, update PROJECT, return t. Else return nil.
+See also `gnat-prj-parse-emacs-final'."
+  (cond
+   ((or
+     ;; we allow either name here for backward compatibility
+     (string= name "gpr_project_path")
+     (string= name "ada_project_path"))
+    ;; We maintain two project values for this;
+    ;; project-path - a list of directories, for elisp find file
+    ;; GPR_PROJECT_PATH in environment, for gnat-run
+    (let ((process-environment (gnat-compiler-environment compiler)));; reference, for substitute-in-file-name
+      (gnat-prj-add-prj-dir compiler (expand-file-name (substitute-in-file-name value))))
+    t)
+
+   ((string= name "gpr_file")
+    ;; The file is parsed in `ada-compiler-parse-final', so it can
+    ;; add to user-specified src_dir.
+    (let ((process-environment (gnat-compiler-environment compiler)));; reference, for substitute-in-file-name
+      (setf (gnat-compiler-gpr-file compiler)
+	    (or
+	     (expand-file-name (substitute-in-file-name value))
+	     (locate-file (substitute-in-file-name value)
+			  (gnat-compiler-project-path compiler)))))
+    t)
+
+   ((= ?$ (elt name 0))
+    ;; Process env var.
+    (let ((process-environment (cl-copy-list (gnat-compiler-environment compiler))))
+      (setenv (substring name 1)
+	      (substitute-in-file-name value))
+      (setf (gnat-compiler-environment compiler) (cl-copy-list process-environment)))
+    t)
+
+   ))
+
+(cl-defmethod ada-compiler-parse-final ((compiler gnat-compiler) project)
+  (if (gnat-compiler-gpr-file compiler)
+      (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project)
+
+    ;; add the compiler libraries to src_dir
+    (gnat-get-paths project)
+    ))
+
+(cl-defmethod ada-compiler-select-prj ((_compiler gnat-compiler) project)
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (setq ada-prj-show-prj-path 'gnat-prj-show-prj-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
@@ -698,18 +739,16 @@ Prompt user if more than one."
 		       (plist-get (ada-prj-plist project) 'prj_dir)
 		       (plist-get (ada-prj-plist project) 'path_sep))))
 
-  ;; must be after indentation engine setup, because that resets the
-  ;; indent function list.
-  (add-hook 'ada-mode-hook 'gnatprep-setup t)
+  (add-hook 'ada-mode-hook 'gnatprep-setup)
 
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
-  ;; ada-mode.el project file parser sets this to other compilers used
-  ;; in the project, so we only add here.
   (add-to-list 'compilation-error-regexp-alist 'gnat)
+
+  (font-lock-add-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   )
 
-(defun ada-gnat-compile-deselect-prj (_project)
+(cl-defmethod ada-compiler-deselect-prj ((_compiler gnat-compiler) _project)
   (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq #'gnatprep-syntax-propertize ada-syntax-propertize-hook))
@@ -724,26 +763,14 @@ Prompt user if more than one."
 
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
   (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
+
+  (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   )
 
-(defun ada-gnat-compile ()
-  "Set Ada mode global vars to use `gnat' for compiling."
-  (add-to-list 'ada-prj-file-ext-extra     "gpr")
-  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
-  (add-to-list 'ada-select-prj-compiler    '(gnat  . ada-gnat-compile-select-prj))
-  (add-to-list 'ada-deselect-prj-compiler  '(gnat  . ada-gnat-compile-deselect-prj))
+;;;; initialization
 
-  (add-to-list 'ada-prj-parse-one-compiler   (cons 'gnat 'gnat-prj-parse-emacs-one))
-  (add-to-list 'ada-prj-parse-final-compiler (cons 'gnat 'gnat-prj-parse-emacs-final))
-
-  (font-lock-add-keywords 'ada-mode
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t)))))
-
-(provide 'ada-gnat-compile)
-(provide 'ada-compiler)
-
-(ada-gnat-compile)
+(add-to-list 'wisi-prj-file-extensions  "gpr")
+(add-to-list 'wisi-prj-parser-alist '("gpr" . gnat-parse-gpr))
 
 (add-to-list
  'compilation-error-regexp-alist-alist
@@ -761,7 +788,6 @@ Prompt user if more than one."
    ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-(unless (default-value 'ada-compiler)
-    (set-default 'ada-compiler 'gnat))
-
-;; end of file
+(provide 'ada-compiler-gnat)
+(provide 'ada-compiler)
+;; ada-compiler-gnat.el ends here

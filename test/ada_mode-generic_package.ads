@@ -2,7 +2,7 @@
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 
 --EMACSCMD:(ada-which-function)
 --EMACSRESULT:""

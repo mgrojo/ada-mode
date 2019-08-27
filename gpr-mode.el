@@ -140,7 +140,6 @@
   "Expressions to highlight in gpr mode.")
 
 (defun gpr-ff-special-with ()
-  (ada-require-project-file)
   (let ((project-path (match-string 1)))
     ;; project-path may be any of "foo", "foo.gpr", "../foo.gpr"
     ;;
@@ -228,18 +227,11 @@
     (end-of-line 1)
     (gpr-which-function)))
 
-(declare-function gpr-query-kill-all-sessions "gpr-query.el" nil)
 (defun gpr-set-as-project (&optional file)
   "Set FILE (default current buffer file) as Emacs project file."
   (interactive)
   (save-some-buffers t)
-  ;; Kill sessions to catch changed env vars
-  (cl-ecase ada-xref-tool
-    (gnat nil)
-    (gpr_query (gpr-query-kill-all-sessions))
-    )
-  (ada-parse-prj-file (or file (buffer-file-name)))
-  (ada-select-prj-file (or file (buffer-file-name))))
+  (wisi-prj-select-file (or file (buffer-file-name))))
 
 (defvar gpr-mode-syntax-table
   (let ((table (make-syntax-table)))

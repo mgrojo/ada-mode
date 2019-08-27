@@ -65,9 +65,9 @@ install : install_executables
 # update. Doing byte-compile-clean first avoids errors caused by
 # loading new source on old .elc.
 #
-# 'package-initialize' is required for 'queue'.
+# 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(ELPA_ROOT)/packages/uniquify-files --eval '(progn (package-initialize)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc

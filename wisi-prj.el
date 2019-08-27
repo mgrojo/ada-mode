@@ -48,13 +48,110 @@
 
   )
 
-(defconst wisi-prj-default (make-wisi-prj))
+(defvar wisi-prj-file-extensions nil
+  "List of wisi project file extensions.
+Used when searching for project files.")
 
-(defvar wisi-prj-file-extensions '("adp" "prj")
-  "List of wisi project file extensions.")
+(defvar wisi-prj-alist nil
+  "Alist holding currently parsed project objects.
+Indexed by absolute project file name.")
+
+(cl-defgeneric wisi-prj-select (project)
+  "PROJECT is selected; perform any required actions.")
+
+(cl-defgeneric wisi-prj-deselect (project)
+  "PROJECT is deselected; undo any select actions.")
+
+(cl-defgeneric wisi-prj-refresh-cache (prj not-full)
+  "Reparse the project file for PRJ, refresh all cached data in PRJ.
+If NOT-FULL is non-nil, very slow refresh operations may be skipped.")
+
+(defun wisi-refresh-prj-cache (not-full)
+  "Refresh all cached data in the current project.
+With prefix arg, very slow refresh operations may be skipped."
+  (interactive "P")
+  (wisi-prj-refresh-cache (project-current) not-full))
+
+(defvar wisi-prj--current-file nil
+  ;; FIXME: find a way to eliminate this; use buffer, dir info (or something)
+  "Current wisi project file; an absolute file name.")
+
+(defun wisi-find-project (_dir)
+  "For `project-find-functions'; return the current wisi project."
+  (cdr (assoc wisi-prj--current-file wisi-prj-alist)))
+
+(defun wisi-prj-require-prj ()
+  (let ((prj (project-current)))
+    (unless (wisi-prj-p prj)
+      (error "no wisi project file selected"))
+    prj))
+
+(cl-defmethod wisi-prj-select ((project wisi-prj))
+  (wisi--case-read-all-exceptions project))
+
+(cl-defmethod wisi-prj-refresh-cash ((project wisi-prj))
+  (wisi-prj-deselect project)
+  (let ((prj-file (car (rassoc project wisi-prj-alist))))
+    (setq wisi-prj-alist (delq project wisi-prj-alist))
+    (wisi-prj-select-file prj-file)))
+
+(defun wisi-prj-select-file (prj-file)
+  "Select PRJ-FILE as current project, parsing if needed.
+Current project (if any) is deselected first."
+  (let ((prj (project-current)))
+    (when (wisi-prj-p prj)
+      (wisi-prj-deselect prj)))
+
+  (setq prj-file (expand-file-name prj-file))
+
+  (let ((prj (cdr (assoc prj-file wisi-prj-alist))))
+    (unless prj
+      (wisi-prj-parse-file prj-file)
+      (setq prj (cdr (assoc prj-file wisi-prj-alist)))
+      (unless prj
+	(error "parsing project file '%s' failed" prj-file)))
+
+    (setq wisi-prj--current-file prj-file)
+    (wisi-prj-select prj)
+    ))
 
 (defvar wisi-prj-parse-hook nil
-  "Hook run at start of `wis-parse-prj-file'.")
+  "Hook run at start of `wisi-prj-parse-file'.")
+
+(defvar wisi-prj-default-alist nil
+  "Alist of functions returning a default project, indexed by file extension.
+Function is called with no arguments.")
+
+(defvar wisi-prj-parser-alist nil
+  "Alist of parsers for project files, indexed by file extension.
+Parser is called with two arguments; the project file name and
+the new project, initialized via `wisi-prj-default-alist.")
+
+(defun wisi-prj-parse-file (prj-file)
+  "Read project file PRJ-FILE, add result to `wisi-prj-alist'"
+  (setq prj-file (expand-file-name prj-file))
+
+  (unless (file-readable-p prj-file)
+    (error "Project file '%s' is not readable" prj-file))
+
+  (run-hooks `wisi-prj-parse-hook)
+  ;; FIXME: pass prj-file!? use case?  I vaguely remember translating
+  ;; some compiler project format into .adb format; easier than
+  ;; writing a whole parser.
+
+  (let* ((default-directory (file-name-directory prj-file))
+	 (project (funcall (cdr (assoc (file-name-extension prj-file) wisi-prj-default-alist))))
+	 (parser (cdr (assoc (file-name-extension prj-file) wisi-prj-parser-alist))))
+
+    (if parser
+	(funcall parser prj-file project)
+      (error "no project file parser defined for '%s'" prj-file))
+
+    ;; Store the project properties
+    (if (assoc prj-file wisi-prj-alist)
+	(setcdr (assoc prj-file wisi-prj-alist) project)
+      (push (cons prj-file project) wisi-prj-alist))
+    ))
 
 ;;;; auto-casing
 
@@ -239,6 +336,10 @@ User is prompted to choose a file from the project
 case-exception-files if it is a list."
   (interactive)
   (wisi-case-create-exception t))
+
+;;;; Initializations
+
+(add-hook 'project-find-functions #'wisi-find-project -50)
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

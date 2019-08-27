@@ -283,6 +283,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
   (interactive "f")
+
+  (package-initialize) ;; for uniquify-files
+
   ;; we'd like to run emacs from a makefile as:
   ;;
   ;; emacs -Q --batch -l runtest.el -f run-test-here <filename>

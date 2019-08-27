@@ -1329,6 +1329,7 @@ The following variables are valid with the GNAT compiler:
 
 @table @asis
 @item @code{ada_project_path}   [default: @code{""}]
+@c FIXME: update these comments
 @c ada-prj-get 'prj_dir, 'proc_env
 A list of directories to search for GNAT project files.
 

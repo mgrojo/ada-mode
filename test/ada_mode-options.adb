@@ -1,5 +1,4 @@
---EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 with
     Ada.Text_IO;
 package body Ada_Mode.Options is

@@ -20,10 +20,7 @@ with
 -- 'eval' is not a safe local variable, so we can't use local
 -- variables for this in batch mode.
 --
---EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
---EMACSCMD:ada-prj-current-file
---EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)

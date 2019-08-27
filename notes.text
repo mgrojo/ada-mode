@@ -55,15 +55,15 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-select calls parse if needed; don't do both
-
 major cleanup
     use cl-defgeneric, not function vars
-    don't assume gnat
-    minimize use, scope of env vars
+
     set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
-        including xref
+        including xref-backend-functions
         or make them local somehow
+
+    change ada-fix-error-alist to generic?
+        dispatch on compiler
 
     change ada-mode to derive-major-mode?
         always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
@@ -72,6 +72,31 @@ major cleanup
         explicit list of test files to save time
 
     review FIXME
+    review obsolete
+        ensure not used anywhere
+
+    add project-menu to wisi-prj
+        or adapt it to wisi-prj
+
+    run/update ada-build tutorial
+
+mirror to github, ask people to try it, find backwards compat issues
+    add defalias etc
+
+try to eliminate wisi-prj--current-file
+  ;; requirements:
+  ;;   - there are many global variables set by wisi-prj-select
+  ;;   - when user is working on ada-mode, and editing sal-*, current project is ada-mode
+  ;;   - when user is working on sal, current project is sal
+  ;;     => check compilation-search-path? or some other emacs global set by wisi-prj-select?
+  ;;     - don't change project if consistent
+  ;;     - why bother; one global is as bad as another.
+
+update all build/*.el
+
+convert android-project to wisi-prj
+    others?
+
 java-ch19.wy TryStatement has optional statement-end
     need override on previous tokens
 
@@ -1144,6 +1169,7 @@ bump versions
         bump first digit for really major or user-incompatible changes
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
+            - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
 
     wisi.el
         Version:

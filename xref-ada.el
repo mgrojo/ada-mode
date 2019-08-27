@@ -19,6 +19,7 @@
 
 ;;; Code:
 
+(require 'ada-core)
 (require 'wisi)
 (require 'xref)
 
@@ -30,14 +31,10 @@
    identifier
    (lambda (ident file line column)
      (ada-check-current-project file)
-     (when (null ada-xref-other-function)
-       (error "no cross reference information available"))
      (let ((target
-	    (funcall
-	     ada-xref-other-function
-	     ident file line column)))
-       ;; IMPROVEME: when drop support for emacs 24, change
-       ;; ada-xref-other-function to return xref-file-location
+	    (ada-xref-other (ada-prj-compiler (ada-prj-require-prj))
+			    ident file line column)))
+       ;; FIXME: change ada-xref-other-function to return xref-file-location
        (list
 	(xref-make
 	 ident

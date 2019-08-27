@@ -226,15 +226,6 @@ elements of the result may be nil."
 ;;;;; setup
 
 (defun ada-gnat-xref-select-prj ()
-  (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
-  (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
-  (setq ada-make-package-body       'ada-gnat-make-package-body)
-
-  (setq ada-xref-other-function  'ada-gnat-xref-other)
-  (setq ada-xref-parent-function 'ada-gnat-xref-parents)
-  (setq ada-xref-all-function    'ada-gnat-xref-all)
-  (setq ada-show-xref-tool-buffer 'ada-gnat-show-run-buffer)
-
   ;; gnatmake -gnatD generates files with .dg extensions. But we don't
   ;; need to navigate between them.
 
@@ -243,31 +234,12 @@ elements of the result may be nil."
   )
 
 (defun ada-gnat-xref-deselect-prj ()
-  (setq ada-file-name-from-ada-name nil)
-  (setq ada-ada-name-from-file-name nil)
-  (setq ada-make-package-body       nil)
-
-  (setq ada-xref-other-function  nil)
-  (setq ada-xref-parent-function nil)
-  (setq ada-xref-all-function    nil)
-  (setq ada-show-xref-tool-buffer nil)
-
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
   )
 
-(defun ada-gnat-xref ()
-  "Set Ada mode global vars to use 'gnat xref'"
-  (add-to-list 'ada-prj-file-ext-extra     "gpr")
-  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
-  (add-to-list 'ada-select-prj-xref-tool   '(gnat  . ada-gnat-xref-select-prj))
-  (add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-xref-deselect-prj))
-
-  ;; no parse-*-xref yet
-
-  (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error))
-
-(ada-gnat-xref)
+(add-to-list 'ada-select-prj-xref-tool   '(gnat . ada-gnat-xref-select-prj))
+(add-to-list 'ada-deselect-prj-xref-tool '(gnat . ada-gnat-xref-deselect-prj))
 
 (provide 'ada-gnat-xref)
 

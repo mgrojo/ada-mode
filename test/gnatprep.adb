@@ -10,13 +10,7 @@
 -- opened, so gnatprep indentation is not enabled. So we run
 -- gnatprep-setup explicitly.
 
---EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
---EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
---EMACSCMD:(gnatprep-setup)
-
--- Even in Emacs 26, we need to force syntax propertize to give gnatprep
--- statements comment syntax.
---EMACSCMD:(syntax-propertize (point-max))
+--EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 

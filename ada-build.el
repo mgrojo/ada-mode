@@ -132,20 +132,6 @@ buffer file name including the directory and extension."
     'run_cmd         ada-build-run-cmd
     )))
 
-(defun ada-build-select-default-prj ()
-  "Create and select a new default project."
-  (let ((prj-file (expand-file-name "default.adp"))
-	project)
-
-    (when (null (assoc prj-file ada-prj-alist))
-      (setq project (ada-prj-default)) ;; ada-build-default-prj included via ada-prj-default-compiler-alist
-
-      (add-to-list 'ada-prj-alist (cons prj-file project))
-      )
-
-    (ada-select-prj-file prj-file)
-  ))
-
 (defun ada-build-find-select-prj-file ()
   "Search for a project file in the current directory, parse and select it.
 The file must have the same basename as the project variable
@@ -153,7 +139,7 @@ The file must have the same basename as the project variable
 `wisi-prj-file-extensions'.  Returns non-nil if a file is
 selected, nil otherwise."
   (let* ((base-file-name (file-name-base
-			  (or (plist-get (ada-prj-plist ada-prj-current-project) 'main)
+			  (or (plist-get (ada-prj-plist (ada-prj-require-prj)) 'main)
 			      (file-name-nondirectory (file-name-sans-extension (buffer-file-name))))))
 	 (filename
 	  (file-name-completion base-file-name
@@ -161,8 +147,7 @@ selected, nil otherwise."
 				(lambda (name) (member (file-name-extension name) wisi-prj-file-extensions))))
 	)
     (when filename
-      (ada-parse-prj-file filename)
-      (ada-select-prj-file filename))
+      (wisi-prj-select-file filename))
     ))
 
 (defun ada-build-prompt-select-prj-file ()
@@ -191,8 +176,7 @@ Returns non-nil if a file is selected, nil otherwise."
 
     (when (and filename
 	       (not (equal "" filename)))
-      (ada-parse-prj-file filename)
-      (ada-select-prj-file filename)
+      (wisi-prj-select-file filename)
       t)
     ))
 
@@ -211,15 +195,17 @@ directory with the same name as the main file. If not found,
 prompt for a project file; error result does not change current
 project.
 
-prompt - Prompt for a project file; error result does not
-change current project.
+prompt - Prompt for a project file; thow error if user aborts.
 
-error - Throw an error (no prompt, no default project)."
-  (unless ada-prj-current-file
+error - Throw an error (no prompt, no default project).
+
+'search' means look for a file with an extension in
+`wisi-prj-file-extensions'."
+  (unless (ada-prj-p (project-current))
     (cl-ecase ada-build-prompt-prj
       (default
 	(or (ada-build-find-select-prj-file)
-	    (ada-build-select-default-prj)))
+	    (ada-create-select-default-prj)))
 
       (default-prompt
 	(or (ada-build-find-select-prj-file)
@@ -239,8 +225,8 @@ error - Throw an error (no prompt, no default project)."
 If CONFIRM or `ada-build-confirm-command' are non-nil, ask for
 user confirmation of the command, using PROMPT."
   (ada-build-require-project-file)
-  (let ((cmd (plist-get (ada-prj-plist ada-prj-current-project) prj-field))
-	(process-environment (cl-copy-list (plist-get (ada-prj-plist ada-prj-current-project) 'proc_env))))
+  (let ((cmd (plist-get (ada-prj-plist (ada-prj-require-prj)) prj-field))
+	(process-environment (cl-copy-list (plist-get (ada-prj-plist (ada-prj-require-prj)) 'proc_env))))
 
     (unless cmd
       (setq cmd '("")
@@ -249,7 +235,7 @@ user confirmation of the command, using PROMPT."
     (when (or ada-build-confirm-command confirm)
       (setq cmd (read-from-minibuffer (concat prompt ": ") cmd)))
 
-    (compile (ada-build-replace-vars ada-prj-current-project cmd))))
+    (compile (ada-build-replace-vars (ada-prj-require-prj) cmd))))
 
 ;;;###autoload
 (defun ada-build-check (&optional confirm)
@@ -273,8 +259,8 @@ If CONFIRM is non-nil, prompt for user confirmation of the command."
 By default, this compiles and links the new main program.
 If CONFIRM is non-nil, prompt for user confirmation of the command."
   (interactive "P")
-  (setf (ada-prj-plist ada-prj-current-project)
-	(plist-put (ada-prj-plist ada-prj-current-project)
+  (setf (ada-prj-plist (ada-prj-require-prj))
+	(plist-put (ada-prj-plist (ada-prj-require-prj))
 		   'main (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))
   (ada-build-run-cmd 'make_cmd confirm "make command"))
 
@@ -289,7 +275,7 @@ If CONFIRM is non-nil, prompt for user confirmation of the command."
 (defun ada-build-show-main ()
   "Show current project main program filename."
   (interactive)
-  (message "Ada mode main: %s" (plist-get (ada-prj-plist ada-prj-current-project) 'main)))
+  (message "Ada mode main: %s" (plist-get (ada-prj-plist (ada-prj-require-prj)) 'main)))
 
 ;;; setup
 (add-to-list 'ada-prj-default-list 'ada-build-default-prj)

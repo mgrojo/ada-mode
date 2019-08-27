@@ -1,4 +1,4 @@
---EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 package Ada_Mode.Nominal.Child is
