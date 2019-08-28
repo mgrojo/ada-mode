@@ -32,6 +32,7 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to be done to use it.
 
+(require 'ada-core)
 (require 'ada-fix-error)
 (require 'cl-lib)
 (require 'compile)
@@ -694,7 +695,10 @@ See also `gnat-prj-parse-emacs-final'."
 
    ))
 
-(cl-defmethod ada-compiler-parse-final ((compiler gnat-compiler) project)
+(cl-defmethod ada-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
+
+  (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name prj-file-name))
+
   (if (gnat-compiler-gpr-file compiler)
       (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project)
 
@@ -728,17 +732,6 @@ See also `gnat-prj-parse-emacs-final'."
     (set-default 'compilation-environment comp-env)
     )
 
-  (when (getenv "GPR_PROJECT_PATH")
-    ;; We get here when this is called from
-    ;; ‘compilation-process-setup-function’; ‘process-environment’ is
-    ;; already bound to ‘compilation-environment’. Or when the user
-    ;; has set GPR_PROJECT_PATH in top level ‘process-environment’,
-    ;; which is a mistake on their part.
-    (setenv "GPR_PROJECT_PATH"
-	    (mapconcat 'identity
-		       (plist-get (ada-prj-plist project) 'prj_dir)
-		       (plist-get (ada-prj-plist project) 'path_sep))))
-
   (add-hook 'ada-mode-hook 'gnatprep-setup)
 
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
@@ -766,27 +759,6 @@ See also `gnat-prj-parse-emacs-final'."
 
   (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   )
-
-;;;; initialization
-
-(add-to-list 'wisi-prj-file-extensions  "gpr")
-(add-to-list 'wisi-prj-parser-alist '("gpr" . gnat-parse-gpr))
-
-(add-to-list
- 'compilation-error-regexp-alist-alist
- '(gnat
-   ;; typical:
-   ;;   cards_package.adb:45:32: expected private type "System.Address"
-   ;;
-   ;; with full path Source_Reference pragma :
-   ;;   d:/maphds/version_x/1773/sbs-abi-dll_lib.ads.gp:39:06: file "interfaces_c.ads" not found
-   ;;
-   ;; gnu cc1: (gnatmake can invoke the C compiler)
-   ;;   foo.c:2: `TRUE' undeclared here (not in a function)
-   ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
-   ;;
-   ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
-   "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (provide 'ada-compiler-gnat)
 (provide 'ada-compiler)

@@ -96,6 +96,8 @@ update all build/*.el
 
 convert android-project to wisi-prj
     others?
+    move ada-xref* to wisi-xref*?
+        implement for gnu global?
 
 java-ch19.wy TryStatement has optional statement-end
     need override on previous tokens

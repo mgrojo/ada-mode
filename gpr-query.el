@@ -61,7 +61,7 @@
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
-    (setf (gpr-query--session-buffer session) (gnat-run-buffer compiler gpr-query-buffer-name-prefix))
+    (setf (gpr-query--session-buffer session) (gnat-run-buffer compiler))
     (with-current-buffer (gpr-query--session-buffer session)
       (compilation-mode)
       (setq buffer-read-only nil)))
@@ -330,11 +330,20 @@ with compilation-error-regexp-alist set to COMP-ERR."
 
 ;;;;; user interface functions
 
+(defun gpr-query-require-prj ()
+  "Return current `gnat-compiler' object from current project xref.
+Throw an error if current project does not have a gnat-compiler."
+  (let* ((ada-prj (ada-prj-require-prj))
+	 (xref (ada-prj-xref ada-prj)))
+    (if (gnat-compiler-p xref)
+	xref
+      (error "no gnat-compiler in selected project xref."))))
+
 (defun gpr-query-show-references ()
   "Show all references of identifier at point."
   (interactive)
   (ada-xref-all
-   (gnat-compiler-require-prj)
+   (gpr-query-require-prj)
    (thing-at-point 'symbol)
    (file-name-nondirectory (buffer-file-name))
    (line-number-at-pos)
@@ -349,7 +358,7 @@ buffer in another window."
 
   (let ((target
 	 (ada-xref-overridden
-	  (gnat-compiler-require-prj)
+	  (gpr-query-require-prj)
 	  (thing-at-point 'symbol)
 	  (buffer-file-name)
 	  (line-number-at-pos)
@@ -370,7 +379,7 @@ reference, goto the declaration."
   (interactive)
   (let ((target
 	 (ada-xref-other
-	  (gnat-compiler-require-prj)
+	  (gpr-query-require-prj)
 	  (thing-at-point 'symbol)
 	  (buffer-file-name)
 	  (line-number-at-pos)
@@ -425,7 +434,21 @@ Enable mode if ARG is positive."
 
 ;;;;; support for Ada mode
 
-(cl-defmethod ada-xref-refresh-cache ((xref gnat-compiler) no-delete-files)
+(defalias 'make-gpr_query-xref 'make-gnat-compiler)
+
+(cl-defmethod ada-xref-parse-one ((xref gnat-compiler) name value)
+  (ada-compiler-parse-one xref name value))
+
+(cl-defmethod ada-xref-parse-final ((xref gnat-compiler) _project prj-file-name)
+  (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix)))
+
+(cl-defmethod ada-xref-select-prj ((_xref gnat-compiler) _project)
+  )
+
+(cl-defmethod ada-xref-deselect-prj ((_xref gnat-compiler) _project)
+  )
+
+(cl-defmethod ada-xref-refresh-cache ((xref gnat-compiler) no-full)
   ;; Kill the current session and delete the database, to get changed
   ;; env vars etc when it restarts.
   ;;
@@ -440,7 +463,7 @@ Enable mode if ARG is positive."
 	    (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
 
     (gpr-query-kill-session session)
-    (unless no-delete-files
+    (unless no-full
       (delete-file db-filename))
     (gpr-query--start-process xref session)
     ))
@@ -581,15 +604,13 @@ Enable mode if ARG is positive."
 
 (cl-defmethod ada-xref-all ((xref gnat-compiler) &key identifier filename line column _local-only _append)
   ;; FIXME: implement local-only, append
-  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "refs" 'gpr-query-ident-file))
+  (gpr-query-compilation xref identifier filename line column "refs" 'gpr-query-ident-file))
 
 (cl-defmethod ada-xref-parents ((xref gnat-compiler) &key identifier filename line column)
-  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "parent_types"
-			 'gpr-query-ident-file))
+  (gpr-query-compilation xref identifier filename line column "parent_types" 'gpr-query-ident-file))
 
 (cl-defmethod ada-xref-overriding ((xref gnat-compiler) &key identifier filename line column)
-  (gpr-query-compilation (gnat-compiler-gpr-file xref) identifier filename line column "overriding"
-			 'gpr-query-ident-file))
+  (gpr-query-compilation xref identifier filename line column "overriding" 'gpr-query-ident-file))
 
 (cl-defmethod ada-xref-overridden ((xref gnat-compiler) &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))

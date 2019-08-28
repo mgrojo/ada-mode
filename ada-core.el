@@ -207,9 +207,10 @@ to go back to these positions.")
 (cl-defgeneric ada-compiler-parse-one (compiler name value)
   "Set NAME, VALUE in COMPILER, if recognized by COMPILER.")
 
-(cl-defgeneric ada-compiler-parse-final (compiler project)
+(cl-defgeneric ada-compiler-parse-final (compiler project prj-file-name)
   ;; project holds src_dir, set from compiler project file.
-  "Do any compiler-specific processing on COMPILER and PROJECT after the project file is parsed.")
+  "Do any compiler-specific processing on COMPILER and PROJECT
+after the project file PRJ-FILE-NAME is parsed.")
 
 (cl-defgeneric ada-compiler-select-prj (compiler project)
   "PROJECT has been selected; do any compiler-specific actions required.")
@@ -753,7 +754,24 @@ nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
 
-(cl-defgeneric ada-xref-other (compiler &key identifier filename line column)
+(cl-defgeneric ada-xref-parse-one (xref name value)
+  "Set NAME, VALUE in XREF, if recognized by XREF.")
+
+(cl-defgeneric ada-xref-parse-final (xref project prj-file-name)
+  "Do any xref-specific processing on XREF and PROJECT
+after the project file PRJ-FILE-NAME is parsed.")
+
+(cl-defgeneric ada-xref-select-prj (xref project)
+  "PROJECT has been selected; do any xref-specific actions required.")
+
+(cl-defgeneric ada-xref-deselect-prj (xref project)
+  "PROJECT has been de-selected; undo any xref-specific select actions.")
+
+(cl-defgeneric ada-xref-refresh-cache (xref no-full)
+  "Refresh cached information in XREF. If no-full is non-nil,
+slow refresh operations may be skipped.")
+
+(cl-defgeneric ada-xref-other (xref &key identifier filename line column)
   "Function that returns cross reference information.
 IDENTIFIER - an Ada identifier or operator_symbol
 FILENAME - absolute filename containing the identifier
@@ -771,7 +789,7 @@ If at the declaration, go to the body, and vice versa."
   (ada-check-current-project (buffer-file-name))
 
   (let ((target (ada-xref-other
-		 (ada-prj-compiler (ada-prj-require-prj))
+		 (ada-prj-xref (ada-prj-require-prj))
 		 :identifier (ada-identifier-at-point)
 		 :filename (buffer-file-name)
 		 :line (line-number-at-pos)
@@ -797,7 +815,7 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
   (interactive)
   (ada-check-current-project (buffer-file-name))
   (ada-xref-parents
-   (ada-prj-compiler (ada-prj-require-prj))
+   (ada-prj-xref (ada-prj-require-prj))
    :identifier (ada-identifier-at-point)
    :filename (file-name-nondirectory (buffer-file-name))
    :line (line-number-at-pos)
@@ -821,7 +839,7 @@ With prefix, keep previous references in output buffer."
   (interactive "P")
   (ada-check-current-project (buffer-file-name))
   (ada-xref-all
-   (ada-prj-compiler (ada-prj-require-prj))
+   (ada-prj-xref (ada-prj-require-prj))
    :identifier (ada-identifier-at-point)
    :filename (file-name-nondirectory (buffer-file-name))
    :line (line-number-at-pos)
@@ -837,7 +855,7 @@ With prefix, keep previous references in output buffer."
   (ada-check-current-project (buffer-file-name))
 
   (ada-xref-all
-   (ada-prj-compiler (ada-prj-require-prj))
+   (ada-prj-xref (ada-prj-require-prj))
    :identifier (ada-identifier-at-point)
    :filename (file-name-nondirectory (buffer-file-name))
    :line (line-number-at-pos)
@@ -858,7 +876,7 @@ COLUMN - Emacs column of the start of the identifier ")
   (interactive)
   (ada-check-current-project (buffer-file-name))
   (ada-xref-overriding
-   (ada-prj-compiler (ada-prj-require-prj))
+   (ada-prj-xref (ada-prj-require-prj))
    :identifier (ada-identifier-at-point)
    :filename (file-name-nondirectory (buffer-file-name))
    :line (line-number-at-pos)
@@ -878,7 +896,7 @@ COLUMN - Emacs column of the start of the identifier")
   (ada-check-current-project (buffer-file-name))
   (let ((target
 	 (ada-xref-overridden
-	  (ada-prj-compiler (ada-prj-require-prj))
+	  (ada-prj-xref (ada-prj-require-prj))
 	  :identifier (ada-identifier-at-point)
 	  :filename (file-name-nondirectory (buffer-file-name))
 	  :line (line-number-at-pos)
@@ -967,24 +985,6 @@ LINE, COLUMN are Emacs origin."
   (forward-char column)
   )
 
-;; FIXME: dispatch on xref
-(defvar ada-xref-refresh-function nil
-  ;; determined by xref_tool, set by *-select-prj-xref
-  "Function that refreshes cross reference information cache.")
-
-(defun ada-xref-refresh (delete-files)
-  "Refresh cross reference information cache, if any.
-With non-nil prefix arg, delete cross reference files, which may
-be needed when a compiler is upgraded, or some configuration is
-changed."
-  (interactive "P")
-
-  (if (null ada-xref-refresh-function)
-      (when (called-interactively-p 'interactive)
-	(error "no cross reference information available"))
-    (funcall ada-xref-refresh-function delete-files))
-  )
-
 (defun ada-identifier-at-point ()
   "Return the identifier around point, move point to start of
 identifier.  May be an Ada identifier or operator."
@@ -1036,24 +1036,6 @@ identifier.  May be an Ada identifier or operator."
 
 ;;;; project files
 
-;; An Emacs Ada mode project file can specify several things:
-;;
-;; - a compiler-specific project file
-;;
-;; - compiler-specific environment variables
-;;
-;; - other compiler-specific things (see the compiler support elisp code)
-;;
-;; - a list of source directories (in addition to those specified in the compiler project file)
-;;
-;; - a casing exception file
-;;
-;; All of the data used by Emacs Ada mode functions specified in a
-;; project file is stored in a property list. The property list is
-;; stored in an alist indexed by the project file name, so multiple
-;; project files can be selected without re-parsing them (some
-;; compiler project files can take a long time to parse).
-
 ;; FIXME: delete after finish converting ada-build.el
 (defvar ada-prj-default-list nil
   ;; project file parse
@@ -1068,6 +1050,7 @@ If SRC-DIR is non-nil, use it as the default for src_dir."
   (let ((project
 	 (make-ada-prj
 	  :compiler-label  ada-compiler
+	  :xref-label      ada-xref-tool
 	  :plist (list
 		  ;; variable name alphabetical order
 		  'auto_case       ada-auto-case
@@ -1096,6 +1079,9 @@ If SRC-DIR is non-nil, use it as the default for src_dir."
 (defun ada-prj-make-compiler (label)
   (funcall (intern (format "make-%s-compiler" (symbol-name label)))))
 
+(defun ada-prj-make-xref (label)
+  (funcall (intern (format "make-%s-xref" (symbol-name label)))))
+
 (cl-defstruct
     (ada-prj
      (:include wisi-prj)
@@ -1104,12 +1090,15 @@ If SRC-DIR is non-nil, use it as the default for src_dir."
      (:constructor make-ada-prj
 		   (&key
 		    compiler-label
+		    xref-label
 		    plist
 		    file-pred
 		    &aux
 		    (compiler (ada-prj-make-compiler compiler-label))
+		    (xref (ada-prj-make-xref xref-label))
 		    )))
   compiler ;; compiler object
+  xref     ;; xref object
   plist    ;; old-style ada-mode project property list, while we are converting. FIXME: delete
 
   file-pred
@@ -1182,12 +1171,19 @@ PROJECT is an `ada-prj' object."
 			 (expand-file-name (match-string 2)))
 			obj_dir :test #'equal))
 
-	   ;; FIXME: ignoring this for now; need gnatxref tests
-	   ;; ((string= (match-string 1) "xref_tool")
-	   ;;  (let ((xref (intern (match-string 2))))
-	   ;;    (setf (ada-prj-xref project) (ada-prj-make-xref xref))))
+ 	   ((string= (match-string 1) "xref_tool")
+	    (let ((xref (intern (match-string 2))))
+	      (setf (ada-prj-xref project) (ada-prj-make-xref xref))))
 
-	   ((ada-compiler-parse-one (ada-prj-compiler project) (match-string 1) (match-string 2)))
+	   ((let ((name (match-string 1))
+		  (value (match-string 2))
+		  result)
+	      ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
+	      (when (ada-compiler-parse-one (ada-prj-compiler project) name value)
+		(setq result t))
+	      (when (ada-xref-parse-one (ada-prj-xref project) name value)
+		(setq result t))
+	      result))
 
 	   (t
 	    ;; Any other field in the file is set as a project file variable.
@@ -1204,7 +1200,9 @@ PROJECT is an `ada-prj' object."
     (if src_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'src_dir (reverse src_dir))))
     (if obj_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj_dir))))
 
-    (ada-compiler-parse-final (ada-prj-compiler project) project)
+    (wisi-prj-parse-final project)
+    (ada-compiler-parse-final (ada-prj-compiler project) project prj-file)
+    (ada-xref-parse-final     (ada-prj-xref     project) project prj-file)
     ))
 
 ;; FIXME: dispatch on ada-prj-xref
@@ -1234,12 +1232,14 @@ Deselects the current project first."
   (setq compilation-search-path (plist-get (ada-prj-plist project) 'src_dir))
 
   (ada-compiler-select-prj (ada-prj-compiler project) project)
+  (ada-xref-select-prj     (ada-prj-xref project)     project)
 
   (let ((func (cdr (assq (plist-get (ada-prj-plist project) 'xref_tool) ada-select-prj-xref-tool))))
     (when func (funcall func project)))
   )
 
 (cl-defmethod wisi-prj-deselect ((project ada-prj))
+  (ada-xref-deselect-prj (ada-prj-xref project) project)
   (ada-compiler-deselect-prj (ada-prj-compiler project) project)
 
   (let ((func (cdr (assq (plist-get (ada-prj-plist project) 'xref_tool)
@@ -1247,8 +1247,8 @@ Deselects the current project first."
     (when func (funcall func)))
   )
 
-(cl-defmethod wisi-prj-refresh-cache :after ((_project ada-prj) not-full)
-  (ada-xref-refresh not-full))
+(cl-defmethod wisi-prj-refresh-cache :after ((project ada-prj) not-full)
+  (ada-xref-refresh-cache (ada-prj-xref project) not-full))
 
 (cl-defmethod project-roots ((_project ada-prj))
   ;; Not meaningful
@@ -1280,11 +1280,13 @@ Deselects the current project first."
 	 (prj-file (expand-file-name "default_.adp" dir)) ;; we assume this does not exist
 	 (project (ada-prj-default dir)))
 
+    ;; Do this here so wisi-prj-select-file will not try to parse the
+    ;; project file.
     (if (assoc prj-file wisi-prj-alist)
 	(setcdr (assoc prj-file wisi-prj-alist) project)
       (add-to-list 'wisi-prj-alist (cons prj-file project)))
 
-    (wisi-prj-select project)
+    (wisi-prj-select-file prj-file)
     ))
 
 ;; FIXME: dispatch on ada-prj-compiler

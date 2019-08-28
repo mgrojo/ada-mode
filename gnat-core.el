@@ -49,6 +49,7 @@ command.  This applies e.g. to *gnatfind* buffers."
   "Used with ada-compiler-* generic functions."
 
   gpr-file 	  ;; absolute file name of GNAT project file.
+  run-buffer-name ;; string; some compiler objects have no gpr file
   project-path    ;; list of directories for GPR_PROJECT_PATH
   environment 	  ;; copy of process-environment, with project file env vars added.
   target 	  ;; gnat --target argument. FIXME: add to -parse
@@ -58,13 +59,13 @@ command.  This applies e.g. to *gnatfind* buffers."
   )
 
 (defun gnat-compiler-require-prj ()
-  "Return current `gnat-compiler' object.
+  "Return current `gnat-compiler' object from current project compiler.
 Throw an error if current project does not have a gnat-compiler."
   (let* ((ada-prj (ada-prj-require-prj))
 	 (compiler (ada-prj-compiler ada-prj)))
     (if (gnat-compiler-p compiler)
 	compiler
-      (error "no gnat-compiler in selected project."))))
+      (error "no gnat-compiler in selected project compiler."))))
 
 (defun gnat-prj-add-prj-dir (compiler dir)
   "Add DIR to compiler.project_path, and to GPR_PROJECT_PATH in compiler.environment."
@@ -214,30 +215,36 @@ src_dir will include compiler runtime."
        (message "Parsing %s ... error" gpr-file))
     ))
 
+(defun gnat-parse-gpr-1 (gpr-file project)
+  "For `wisi-prj-parser-alist'."
+  (setf (gnat-compiler-run-buffer-name (ada-prj-compiler project)) gpr-file)
+  (gnat-parse-gpr gpr-file project))
+
 ;;;; command line tool interface
 
-(defun gnat-run-buffer-name (compiler &optional prefix)
+(defun gnat-run-buffer-name (prj-file-name &optional prefix)
+  ;; We don't use (gnat-compiler-gpr-file compiler), because multiple
+  ;; ada-prj files can use one gpr-file.
   (concat (or prefix " *gnat-run-")
-	  (gnat-compiler-gpr-file compiler)
+	  prj-file-name
 	  "*"))
 
-(defun gnat-run-buffer (compiler &optional buffer-name-prefix)
-  "Return a buffer suitable for running gnat command line tools for the current project."
-  (let* ((name (gnat-run-buffer-name compiler buffer-name-prefix))
+(defun gnat-run-buffer (compiler)
+  "Return a buffer suitable for running gnat command line tools for COMPILER"
+  (let* ((name (gnat-compiler-run-buffer-name compiler))
 	 (buffer (get-buffer name)))
-    (if buffer
-	buffer
-      (setq buffer (get-buffer-create name))
-      (with-current-buffer buffer
-	(setq default-directory
-	      (file-name-directory
-	       (gnat-compiler-gpr-file compiler)))
-	)
-      buffer)))
 
-(defun ada-gnat-show-run-buffer ()
-  (interactive)
-  (pop-to-buffer (gnat-run-buffer (project-current))))
+    (unless (buffer-live-p buffer)
+      (setq buffer (get-buffer-create name))
+      (when (gnat-compiler-gpr-file compiler)
+	;; Otherwise assume `default-directory' is already correct (or
+	;; doesn't matter).
+	(with-current-buffer buffer
+	  (setq default-directory
+		(file-name-directory
+		 (gnat-compiler-gpr-file compiler))))
+	))
+    buffer))
 
 (defun gnat-run (compiler exec command &optional err-msg expected-status)
   "Run a gnat command line tool, as \"EXEC COMMAND\".
@@ -475,8 +482,27 @@ list."
       )))
 
 ;;;; Initialization
-(add-to-list 'wisi-prj-parser-alist  '("gpr" . gnat-parse-gpr))
+
+;; These are shared between ada-compiler-gnat and gpr-query.
+(add-to-list 'wisi-prj-file-extensions  "gpr")
+(add-to-list 'wisi-prj-default-alist '("gpr" . ada-prj-default))
+(add-to-list 'wisi-prj-parser-alist  '("gpr" . gnat-parse-gpr-1))
+
+(add-to-list
+ 'compilation-error-regexp-alist-alist
+ '(gnat
+   ;; typical:
+   ;;   cards_package.adb:45:32: expected private type "System.Address"
+   ;;
+   ;; with full path Source_Reference pragma :
+   ;;   d:/maphds/version_x/1773/sbs-abi-dll_lib.ads.gp:39:06: file "interfaces_c.ads" not found
+   ;;
+   ;; gnu cc1: (gnatmake can invoke the C compiler)
+   ;;   foo.c:2: `TRUE' undeclared here (not in a function)
+   ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
+   ;;
+   ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
+   "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (provide 'gnat-core)
-
 ;; end of file

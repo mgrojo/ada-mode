@@ -85,9 +85,11 @@ test : summarize
 summarize :
 	cat test.log
 
+include rules.make
+
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(ONE_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-ada2005.ads
+ONE_TEST_FILES := $(filter-out "%recover%", $(ADA_TEST_FILES))
+#ONE_TEST_FILES ?= ada_mode-ada2005.ads
 #one :: build_executables
 #one :: byte-compile
 one :: one-clean
@@ -139,8 +141,6 @@ export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
-
-include rules.make
 
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe

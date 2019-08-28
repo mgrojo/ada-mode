@@ -32,7 +32,7 @@
    (lambda (ident file line column)
      (ada-check-current-project file)
      (let ((target
-	    (ada-xref-other (ada-prj-compiler (ada-prj-require-prj))
+	    (ada-xref-other (ada-prj-xref (ada-prj-require-prj))
 			    ident file line column)))
        ;; FIXME: change ada-xref-other-function to return xref-file-location
        (list

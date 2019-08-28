@@ -70,6 +70,8 @@ If NOT-FULL is non-nil, very slow refresh operations may be skipped.")
   "Refresh all cached data in the current project.
 With prefix arg, very slow refresh operations may be skipped."
   (interactive "P")
+  (unless (wisi-prj-p (project-current))
+    (error "no wisi project currently selected"))
   (wisi-prj-refresh-cache (project-current) not-full))
 
 (defvar wisi-prj--current-file nil
@@ -86,13 +88,13 @@ With prefix arg, very slow refresh operations may be skipped."
       (error "no wisi project file selected"))
     prj))
 
-(cl-defmethod wisi-prj-select ((project wisi-prj))
+(defun wisi-prj-parse-final (project)
   (wisi--case-read-all-exceptions project))
 
-(cl-defmethod wisi-prj-refresh-cash ((project wisi-prj))
+(cl-defmethod wisi-prj-refresh-cache ((project wisi-prj) _not-full)
   (wisi-prj-deselect project)
   (let ((prj-file (car (rassoc project wisi-prj-alist))))
-    (setq wisi-prj-alist (delq project wisi-prj-alist))
+    (setq wisi-prj-alist (delete (cons prj-file project) wisi-prj-alist))
     (wisi-prj-select-file prj-file)))
 
 (defun wisi-prj-select-file (prj-file)

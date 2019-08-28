@@ -1331,20 +1331,18 @@ The following variables are valid with the GNAT compiler:
 @item @code{ada_project_path}   [default: @code{""}]
 @c FIXME: update these comments
 @c ada-prj-get 'prj_dir, 'proc_env
-A list of directories to search for GNAT project files.
+A directory (relative to the directory containing the project file) to
+search for GNAT project files. The directory is added to the
+@code{GPR_PROJECT_PATH} process environment variable in the process
+used to run the @code{gnat} and @code{gpr_query} tools.
 
-If set, the @code{GPR_PROJECT_PATH} process environment variable is
-set to this value in the child process that runs GNAT tools. If not
-set, @code{GPR_PROJECT_PATH} in the child process is inherited from
-the Emacs process.
-
-If you have the @code{GPR_PROJECT_PATH} or @code{ADA_PROJECT_PATH}
-environment variable set in the Emacs process correctly for all of
-your projects, you do not need to set this project variable.
+If not set, @code{GPR_PROJECT_PATH} in the child process is inherited
+from the Emacs process.
 
 The project search path can also be set in GNAT aggregate
 projects. However, the gnat tools do not make that path available to
 Emacs, so you must duplicate it in an Emacs Ada project file.
+@c FIXME: test with gnat 2019
 
 @item @code{gpr_file}   [default: @code{""}]
 The GNAT project file.
