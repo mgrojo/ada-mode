@@ -30,10 +30,10 @@ gpr-skel.gpr.tmp :
 	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
-	-diff -u $< $*.tmp > $*.diff
+	-diff -u $< $(*F).tmp > $(*F).diff
 
 %.diff-run : % %.tmp
-	-diff -u $< $*.tmp
+	-diff -u $< $(*F).tmp
 
 # for building only this
 ../run_ada_%_parse.exe : ../run_ada_%_parse.ads ../ada_re2c.c force

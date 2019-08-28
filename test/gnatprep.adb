@@ -4,12 +4,6 @@
 -- also test other usage of the '#' character, especially in based
 -- numbers and strings.
 
--- gnatprep indentation is enabled by `gnatprep-setup', which is added to
--- ada-mode-hook when a project file is selected. When this file is
--- run as a test, no project file has been selected before the file is
--- opened, so gnatprep indentation is not enabled. So we run
--- gnatprep-setup explicitly.
-
 --EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))

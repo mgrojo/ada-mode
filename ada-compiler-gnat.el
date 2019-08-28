@@ -732,13 +732,14 @@ See also `gnat-prj-parse-emacs-final'."
     (set-default 'compilation-environment comp-env)
     )
 
-  (add-hook 'ada-mode-hook 'gnatprep-setup)
+  (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
 
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
   (add-to-list 'compilation-error-regexp-alist 'gnat)
 
   (font-lock-add-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
+  (font-lock-refresh-defaults)
   )
 
 (cl-defmethod ada-compiler-deselect-prj ((_compiler gnat-compiler) _project)
@@ -752,12 +753,13 @@ See also `gnat-prj-parse-emacs-final'."
   ;; rewritten in ada-gnat-compile-select-prj.
   (setq compilation-environment nil)
 
-  (setq ada-mode-hook (delq 'gnatprep-setup ada-mode-hook))
+  (setq wisi-indent-calculate-functions (delq 'gnatprep-indent wisi-indent-calculate-functions))
 
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
   (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
 
   (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
+  (font-lock-refresh-defaults)
   )
 
 (provide 'ada-compiler-gnat)

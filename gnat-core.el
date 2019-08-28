@@ -359,11 +359,6 @@ list."
        )
       )))
 
-(defun gnatprep-setup ()
-  (when (boundp 'wisi-indent-calculate-functions)
-    (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent))
-  )
-
 (cl-defmethod ada-compiler-file-name-from-ada-name ((compiler gnat-compiler) ada-name)
   (let ((result nil))
 

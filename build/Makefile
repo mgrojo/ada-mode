@@ -88,7 +88,7 @@ summarize :
 include rules.make
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES := $(filter-out "%recover%", $(ADA_TEST_FILES))
+ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 #ONE_TEST_FILES ?= ada_mode-ada2005.ads
 #one :: build_executables
 #one :: byte-compile
