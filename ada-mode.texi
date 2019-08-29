@@ -1584,8 +1584,8 @@ Indentation for the lines in a @code{with} context clause.
 @end table
 
 The indentation variables are buffer local; the global value may be
-overridden in an elisp file invoked by an @code{el_file} Emacs Ada
-mode project file statement, or in a file local variable section.
+overridden in an elisp function on @code{ada-mode-hook}, or in a file
+local variable section.
 
 The following keys indent portions of the text:
 @table @kbd

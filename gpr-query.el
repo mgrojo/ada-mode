@@ -28,12 +28,12 @@
 ;;
 ;; M-x gpr-query
 
-(require 'ada-core)
 (require 'cl-lib)
 (require 'compile)
 (require 'gnat-core)
 (require 'xref)
 (require 'xref-ada)
+(require 'wisi-prj)
 
 ;;;;; sessions
 
@@ -57,21 +57,22 @@
 ;; *xref* buffer.
 (defconst gpr-query-buffer-name-prefix "*gpr_query-")
 
-(defun gpr-query--start-process (compiler session)
+(defun gpr-query--start-process (project session)
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
-    (setf (gpr-query--session-buffer session) (gnat-run-buffer compiler))
+    (setf (gpr-query--session-buffer session)
+	  (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project))))
     (with-current-buffer (gpr-query--session-buffer session)
       (compilation-mode)
       (setq buffer-read-only nil)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (cl-copy-list (gnat-compiler-environment compiler)))
-	  ;; for GPR_PROJECT_PATH, other env vars set in ada-mode
+    (let ((process-environment (cl-copy-list (wisi-prj-environment project)))
+	  ;; for GPR_PROJECT_PATH, other env vars set in wisi
 	  ;; project files and used by gpr files.
 
-	  (gpr-file (file-name-nondirectory (gnat-compiler-gpr-file compiler))))
+	  (gpr-file (file-name-nondirectory (gnat-compiler-gpr-file (wisi-prj-xref project)))))
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
@@ -97,30 +98,30 @@
 	(error "gpr-query process failed to start"))
       )))
 
-(defun gpr-query--make-session (compiler)
+(defun gpr-query--make-session (project)
   "Create and return a session for the current project file."
   (let ((session
 	 (make-gpr-query--session
 	  :buffer nil
 	  :process nil)))
-    (gpr-query--start-process compiler session)
+    (gpr-query--start-process project session)
     session))
 
 (defvar gpr-query--sessions '()
   "Assoc list of sessions, indexed by absolute GNAT project file name.")
 
-(defun gpr-query-cached-session (compiler)
-  "Return a session for COMPILER, creating it if necessary."
-  (let* ((gpr-file (gnat-compiler-gpr-file compiler))
+(defun gpr-query-cached-session (project)
+  "Return a session for PROJECT, creating it if necessary."
+  (let* ((gpr-file (gnat-compiler-gpr-file (wisi-prj-xref project)))
 	 (session (cdr (assoc gpr-file gpr-query--sessions))))
     (if session
 	(progn
 	  (unless (process-live-p (gpr-query--session-process session))
-	    (gpr-query--start-process compiler session))
+	    (gpr-query--start-process project session))
 	  session)
       ;; else
       (prog1
-          (setq session (gpr-query--make-session compiler))
+          (setq session (gpr-query--make-session project))
 	(push (cons gpr-file session) gpr-query--sessions)))
     ))
 
@@ -197,11 +198,11 @@ Return buffer that holds output."
 
 ;;;;; utils
 
-(defun gpr-query-get-src-dirs (compiler src-dirs)
-  "Append list of source dirs in gpr project COMPILER to SRC-DIRS.
+(defun gpr-query-get-src-dirs (project src-dirs)
+  "Append list of source dirs in gpr project PROJECT to SRC-DIRS.
 Uses `gpr_query'. Returns new list."
 
-  (let ((session (gpr-query-cached-session compiler)))
+  (let ((session (gpr-query-cached-session project)))
     (with-current-buffer (gpr-query-session-send session "source_dirs" t)
       (goto-char (point-min))
       (while (not (looking-at gpr-query-prompt))
@@ -214,11 +215,11 @@ Uses `gpr_query'. Returns new list."
       ))
   src-dirs)
 
-(defun gpr-query-get-prj-dirs (compiler prj-dirs)
-  "Append list of project dirs in gpr project COMPILER to PRJ-DIRS.
+(defun gpr-query-get-prj-dirs (project prj-dirs)
+  "Append list of project dirs in gpr project PROJECT to PRJ-DIRS.
 Uses `gpr_query'. Returns new list."
 
-  (let ((session (gpr-query-cached-session compiler)))
+  (let ((session (gpr-query-cached-session project)))
     (with-current-buffer (gpr-query-session-send session "project_path" t)
       (goto-char (point-min))
       (while (not (looking-at gpr-query-prompt))
@@ -248,7 +249,7 @@ Uses `gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-(defun gpr-query-compilation (compiler identifier file line col cmd comp-err)
+(defun gpr-query-compilation (project identifier file line col cmd comp-err)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
@@ -261,7 +262,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
 	(result-count 0)
-	(session (gpr-query-cached-session compiler))
+	(session (gpr-query-cached-session project))
 	target-file target-line target-col)
     (with-current-buffer (gpr-query-session-send session cmd-1 t)
       (setq buffer-read-only nil)
@@ -288,7 +289,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	(1
 	 ;; just go there, don't display session-buffer. We have to
 	 ;; fetch the compilation-message while in the
-	 ;; session-buffer. and call ada-goot-source outside the
+	 ;; session-buffer. and call wisi-goto-source outside the
 	 ;; with-current-buffer above.
 	 (let* ((msg (compilation-next-error 0))
                 ;; IMPROVEME: '--' indicates internal-only. But we can't
@@ -308,7 +309,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	));; case, with-currrent-buffer
 
     (if (= result-count 1)
-	(ada-goto-source target-file target-line target-col)
+	(wisi-goto-source target-file target-line target-col)
 
       ;; more than one result; display session buffer, goto first ref
       ;;
@@ -328,77 +329,11 @@ with compilation-error-regexp-alist set to COMP-ERR."
   (+ (abs (- found-col col))
      (* (abs (- found-line line)) 250)))
 
-;;;;; user interface functions
-
-(defun gpr-query-require-prj ()
-  "Return current `gnat-compiler' object from current project xref.
-Throw an error if current project does not have a gnat-compiler."
-  (let* ((ada-prj (ada-prj-require-prj))
-	 (xref (ada-prj-xref ada-prj)))
-    (if (gnat-compiler-p xref)
-	xref
-      (error "no gnat-compiler in selected project xref."))))
-
-(defun gpr-query-show-references ()
-  "Show all references of identifier at point."
-  (interactive)
-  (ada-xref-all
-   (gpr-query-require-prj)
-   (thing-at-point 'symbol)
-   (file-name-nondirectory (buffer-file-name))
-   (line-number-at-pos)
-   (current-column))
-  )
-
-(defun gpr-query-overridden ()
-  "Move to the overridden declaration of the identifier around point.
-If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window."
-  (interactive "P")
-
-  (let ((target
-	 (ada-xref-overridden
-	  (gpr-query-require-prj)
-	  (thing-at-point 'symbol)
-	  (buffer-file-name)
-	  (line-number-at-pos)
-	  (save-excursion
-	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
-	    (current-column))
-	  )))
-
-    (ada-goto-source (nth 0 target)
-		     (nth 1 target)
-		     (nth 2 target))
-    ))
-
-(defun gpr-query-goto-declaration ()
-  "Move to the declaration or body of the identifier around point.
-If at the declaration, go to the body, and vice versa. If at a
-reference, goto the declaration."
-  (interactive)
-  (let ((target
-	 (ada-xref-other
-	  (gpr-query-require-prj)
-	  (thing-at-point 'symbol)
-	  (buffer-file-name)
-	  (line-number-at-pos)
-	  (save-excursion
-	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
-	    (current-column))
-	  )))
-
-    (ada-goto-source (nth 0 target)
-		     (nth 1 target)
-		     (nth 2 target))
-    ))
-
 (defvar gpr-query-map
   (let ((map (make-sparse-keymap)))
     ;; C-c C-i prefix for gpr-query minor mode
 
     (define-key map "\C-c\C-i\C-d" 'gpr-query-goto-declaration)
-    (define-key map "\C-c\C-i\C-p" 'ada-build-prompt-select-prj-file)
     (define-key map "\C-c\C-i\C-q" 'gpr-query-refresh)
     (define-key map "\C-c\C-i\C-r" 'gpr-query-show-references)
     ;; IMPROVEME: (define-key map "\C-c\M-d" 'gpr-query-parents)
@@ -409,18 +344,14 @@ reference, goto the declaration."
 (defvar gpr-query-menu (make-sparse-keymap "gpr-query"))
 (easy-menu-define gpr-query-menu gpr-query-map "Menu keymap for gpr-query minor mode"
   '("gpr-query"
-    ["Find and select project ..."   ada-build-prompt-select-prj-file t]
-    ["Select project ..."            ada-prj-select                   t]
-    ["Show current project"          ada-prj-show                     t]
-    ["Show gpr-query buffer"         gpr-query-show-buffer            t]
-    ["Next compilation error"        next-error                       t]
-    ["Show secondary error"          ada-show-secondary-error         t]
-    ["Goto declaration/body"         gpr-query-goto-declaration       t]
-    ["Show parent declarations"      ada-show-declaration-parents     t]
-    ["Show references"               gpr-query-show-references        t]
-    ;; ["Show overriding"               gpr-query-show-overriding        t]
-    ;; ["Show overridden"               gpr-query-show-overridden        t]
-    ["Refresh cross reference cache" gpr-query-refresh        t]
+    ["Show gpr-query buffer"         gpr-query-show-buffer 	   t]
+    ["Next xref"                     next-error 		   t]
+    ["Goto declaration/body"         wisi-goto-declaration 	   t]
+    ["Show parent declarations"      wisi-show-declaration-parents t]
+    ["Show references"               wisi-show-references 	   t]
+    ["Show overriding"               wisi-show-overriding 	   t]
+    ["Show overridden"               wisi-show-overridden 	   t]
+    ["Refresh cross reference cache" wisi-refresh-prj-cache 	   t]
     ))
 
 (define-minor-mode gpr-query
@@ -432,23 +363,39 @@ Enable mode if ARG is positive."
   ;; just enable the menu and keymap
   )
 
-;;;;; support for Ada mode
+(defun gpr-query--normalize-filename (file)
+  "Takes account of filesystem differences."
+  (when (eq system-type 'windows-nt)
+    ;; 'expand-file-name' converts Windows directory
+    ;; separators to normal Emacs.  Since Windows file
+    ;; system is case insensitive, GNAT and Emacs can
+    ;; disagree on the case, so convert all to lowercase.
+    (setq file (downcase (expand-file-name file))))
+  (when (eq system-type 'darwin)
+    ;; case-insensitive case-preserving; so just downcase
+    (setq file (downcase file)))
+  file
+  )
+
+;;;;; wisi-prj-xref methods
 
 (defalias 'make-gpr_query-xref 'make-gnat-compiler)
 
-(cl-defmethod ada-xref-parse-one ((xref gnat-compiler) name value)
-  (ada-compiler-parse-one xref name value))
+(cl-defmethod wisi-xref-parse-one ((xref gnat-compiler) project name value)
+  (wisi-compiler-parse-one xref project name value))
 
-(cl-defmethod ada-xref-parse-final ((xref gnat-compiler) _project prj-file-name)
+(cl-defmethod wisi-xref-parse-final ((xref gnat-compiler) _project prj-file-name)
   (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix)))
 
-(cl-defmethod ada-xref-select-prj ((_xref gnat-compiler) _project)
+(cl-defmethod wisi-xref-select-prj ((_xref gnat-compiler) _project)
+  ;; FIXME: set xref-find-backend in all relevant buffers
   )
 
-(cl-defmethod ada-xref-deselect-prj ((_xref gnat-compiler) _project)
+(cl-defmethod wisi-xref-deselect-prj ((_xref gnat-compiler) _project)
+  ;; FIXME: unset xref-find-backend in all relevant buffers
   )
 
-(cl-defmethod ada-xref-refresh-cache ((xref gnat-compiler) no-full)
+(cl-defmethod wisi-xref-refresh-cache ((_xref gnat-compiler) project no-full)
   ;; Kill the current session and delete the database, to get changed
   ;; env vars etc when it restarts.
   ;;
@@ -456,7 +403,7 @@ Enable mode if ARG is positive."
   ;; changed, or the database was built with an incorrect environment
   ;; variable, or something else screwed up. However, rebuilding after
   ;; that is a lot slower, so we only do that with permission.
-  (let* ((session (gpr-query-cached-session xref))
+  (let* ((session (gpr-query-cached-session project))
 	 (db-filename
 	  (with-current-buffer (gpr-query-session-send session "db_name" t)
 	    (goto-char (point-min))
@@ -465,10 +412,14 @@ Enable mode if ARG is positive."
     (gpr-query-kill-session session)
     (unless no-full
       (delete-file db-filename))
-    (gpr-query--start-process xref session)
+
+    ;; We do this here because the user expects to see the "running
+    ;; gpr_query ..." message now, not later when a gpr-query command
+    ;; is run.
+    (gpr-query--start-process project session)
     ))
 
-(cl-defmethod ada-xref-other ((xref gnat-compiler) &key identifier filename line column)
+(cl-defmethod wisi-xref-other ((_xref gnat-compiler) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))
@@ -487,7 +438,7 @@ Enable mode if ARG is positive."
 	(search-type nil)
 	(min-distance most-positive-fixnum)
 	(result nil)
-	(session (gpr-query-cached-session xref)))
+	(session (gpr-query-cached-session project)))
 
     (with-current-buffer (gpr-query-session-send session cmd t)
       ;; 'gpr_query refs' returns a list containing the declaration,
@@ -602,17 +553,17 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(cl-defmethod ada-xref-all ((xref gnat-compiler) &key identifier filename line column _local-only _append)
+(cl-defmethod wisi-xref-all ((_xref gnat-compiler) project &key identifier filename line column _local-only _append)
   ;; FIXME: implement local-only, append
-  (gpr-query-compilation xref identifier filename line column "refs" 'gpr-query-ident-file))
+  (gpr-query-compilation project identifier filename line column "refs" 'gpr-query-ident-file))
 
-(cl-defmethod ada-xref-parents ((xref gnat-compiler) &key identifier filename line column)
-  (gpr-query-compilation xref identifier filename line column "parent_types" 'gpr-query-ident-file))
+(cl-defmethod wisi-xref-parents ((_xref gnat-compiler) project &key identifier filename line column)
+  (gpr-query-compilation project identifier filename line column "parent_types" 'gpr-query-ident-file))
 
-(cl-defmethod ada-xref-overriding ((xref gnat-compiler) &key identifier filename line column)
-  (gpr-query-compilation xref identifier filename line column "overriding" 'gpr-query-ident-file))
+(cl-defmethod wisi-xref-overriding ((_xref gnat-compiler) project &key identifier filename line column)
+  (gpr-query-compilation project identifier filename line column "overriding" 'gpr-query-ident-file))
 
-(cl-defmethod ada-xref-overridden ((xref gnat-compiler) &key identifier filename line column)
+(cl-defmethod wisi-xref-overridden ((_xref gnat-compiler) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))
@@ -620,7 +571,7 @@ Enable mode if ARG is positive."
     )
 
   (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory filename) line (1+ column)))
-	(session (gpr-query-cached-session xref))
+	(session (gpr-query-cached-session project))
 	result)
     (with-current-buffer (gpr-query-session-send session cmd t)
 
@@ -637,36 +588,6 @@ Enable mode if ARG is positive."
 
       (message "parsing result ... done")
       result)))
-
-(defun gpr-query--normalize-filename (file)
-  "Takes account of filesystem differences."
-  (when (eq system-type 'windows-nt)
-    ;; 'expand-file-name' converts Windows directory
-    ;; separators to normal Emacs.  Since Windows file
-    ;; system is case insensitive, GNAT and Emacs can
-    ;; disagree on the case, so convert all to lowercase.
-    (setq file (downcase (expand-file-name file))))
-  (when (eq system-type 'darwin)
-    ;; case-insensitive case-preserving; so just downcase
-    (setq file (downcase file)))
-  file
-  )
-
-(defun ada-gpr-query-select-prj (_project)
-  ;; We wait until the session is actually required to create it.
-  (xref-ada-mode 1) ;; FIXME: this only sets xref-find-backend in one buffer; need to set it in all relevant buffers
-  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
-  )
-
-(defun ada-gpr-query-deselect-prj (_project)
-  ;; We don’t kill the session here; user may switch back to this
-  ;; project.
-  (xref-ada-mode 0) ;; FIXME: this only sets xref-find-backend in one buffer; need to set it in all relevant buffers
-  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
-  )
-
-(add-to-list 'ada-select-prj-xref-tool   '(gpr_query . ada-gpr-query-select-prj))
-(add-to-list 'ada-deselect-prj-xref-tool '(gpr_query . ada-gpr-query-deselect-prj))
 
 (add-to-list 'compilation-error-regexp-alist-alist
 	     (cons 'gpr-query-ident-file gpr-query-ident-file-regexp-alist))

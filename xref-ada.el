@@ -30,11 +30,11 @@
   (wisi-xref-ident-make
    identifier
    (lambda (ident file line column)
-     (ada-check-current-project file)
+     (wisi-check-current-project file)
      (let ((target
-	    (ada-xref-other (ada-prj-xref (ada-prj-require-prj))
+	    (wisi-xref-other (ada-prj-xref (ada-prj-require-prj))
 			    ident file line column)))
-       ;; FIXME: change ada-xref-other-function to return xref-file-location
+       ;; FIXME: change wisi-xref-other to return xref-file-location?
        (list
 	(xref-make
 	 ident
@@ -47,7 +47,7 @@
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql xref-ada)))
   (save-excursion
     (condition-case nil
-	(let ((ident (ada-identifier-at-point))) ;; moves point to start of ident
+	(let ((ident (wisi-prj-identifier-at-point (project-current)))) ;; moves point to start of ident
 	  (put-text-property
 	   0 1
 	   'xref-identifier
@@ -57,7 +57,7 @@
 	   ident)
 	  ident)
 	(error
-	 ;; from ada-identifier-at-point; no identifier
+	 ;; from wisi-prj-identifier-at-point; no identifier
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))

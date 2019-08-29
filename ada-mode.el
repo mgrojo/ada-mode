@@ -233,12 +233,12 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
-    (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
-    (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
-    (define-key map "\C-c\C-e" 	 'ada-skel-expand)
+    (define-key map "\C-c\C-d" 	 'wisi-goto-declaration)
+    (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
+    (define-key map "\C-c\C-e" 	 'ada-skel-expand) ;; FIXME: move to wisi
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
-    (define-key map "\C-c\C-i" 	 'ada-indent-statement)
-    (define-key map "\C-c\C-l" 	 'ada-show-local-references)
+    (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
+    (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'forward-sexp)
     (define-key map "\C-c\M-n" 	 'ada-skel-next-placeholder)
@@ -246,14 +246,14 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'backward-sexp)
     (define-key map "\C-c\M-p" 	 'ada-skel-prev-placeholder)
-    (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
-    (define-key map "\C-c\C-r" 	 'ada-show-references)
+    (define-key map "\C-c\C-q" 	 'wisi-xref-refresh)
+    (define-key map "\C-c\C-r" 	 'wisi-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
-    (define-key map "\C-c\C-s"   'ada-goto-previous-pos)
+    (define-key map "\C-c\C-s"   'pop-global-mark)
     (define-key map "\C-c\C-v"   'ada-build-check)
-    (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
-    (define-key map "\C-c\C-x"   'ada-show-overriding)
-    (define-key map "\C-c\M-x"   'ada-show-overridden)
+    (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point);; FIXME: move to wisi
+    (define-key map "\C-c\C-x"   'wisi-show-overriding)
+    (define-key map "\C-c\M-x"   'wisi-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
@@ -295,7 +295,7 @@ slower to load on first use, but gives better error recovery."
      ["Other file"                    ada-find-other-file          t]
      ["Other file don't find decl"    ada-find-other-file-noset    t]
      ["Find file in project"          ada-find-file                t]
-     ["Goto declaration/body"         ada-goto-declaration         t]
+     ["Goto declaration/body"         wisi-goto-declaration         t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
      ["Goto declarative region start" ada-goto-declarative-region-start   t]
@@ -360,7 +360,7 @@ slower to load on first use, but gives better error recovery."
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
-    ["Goto declaration/body"         ada-goto-declaration         t]
+    ["Goto declaration/body"         wisi-goto-declaration         t]
     ["Show parent declarations"      ada-show-declaration-parents t]
     ["Goto declarative region start" ada-goto-declarative-region-start   t]
     ["Goto declaration start"        ada-goto-declaration-start   t]
@@ -707,7 +707,7 @@ Also sets ff-function-name for ff-pre-load-hook."
 (defun ada-goto-subunit-name ()
   "Return non-nil if the current buffer contains a subunit.
 Also move point to the subunit name (for
-`ada-goto-declaration'). If no subunit, leave point alone, return
+`wisi-goto-declaration'). If no subunit, leave point alone, return
 nil."
   (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
@@ -782,7 +782,7 @@ previously set by a file navigation command."
   ;;                       information
 
   (interactive)
-  (ada-check-current-project (buffer-file-name))
+  (wisi-check-current-project (buffer-file-name))
 
   ;; clear ff-function-name, so either ff-special-constructs or
   ;; ada-which-function will set it.
@@ -800,7 +800,7 @@ previously set by a file navigation command."
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (ada-goto-declaration))
+    (wisi-goto-declaration))
 
    (t
     (ff-find-other-file)))
@@ -883,7 +883,7 @@ compiler-specific compilation filters."
       (pop-to-buffer start-buffer nil t);; for windowing history
       )
     (when item
-      (ada-goto-source
+      (wisi-goto-source
        file
        (nth 1 item); line
        (nth 2 item); column
@@ -1496,7 +1496,7 @@ For `wisi-indent-calculate-functions'.
        'ada-other-file-alist)
   (setq ff-post-load-hook    #'ada-set-point-accordingly
 	ff-file-created-hook #'ada-ff-create-body)
-  (add-hook 'ff-pre-load-hook #'ada-goto-push-pos)
+  (add-hook 'ff-pre-load-hook #'push-mark)
   (add-hook 'ff-pre-load-hook #'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
   (when (null (car compilation-search-path))

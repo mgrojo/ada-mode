@@ -7,7 +7,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(wisi-goto-declaration)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
    --EMACSRESULT:t
    function "+" (Left : in Day; Right : in Integer) return Day;
 
@@ -21,24 +21,24 @@ procedure Ada_Mode.Slices is
       return 0;
    end "-";
 
-   --  monadic + for testing ada-goto-declaration
+   --  monadic + for testing wisi-goto-declaration
    function "+" (Item : in Day) return Day
    is begin
       return Item;
    end "+";
 
-   --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(ada-identifier-at-point))
+   --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(wisi-prj-identifier-at-point (project-current)))
    --EMACSRESULT: "\"+\""
-   --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(ada-identifier-at-point))
+   --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(wisi-prj-identifier-at-point (project-current)))
    --EMACSRESULT: "Sun"
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 3)(ada-identifier-at-point))
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 3)(wisi-prj-identifier-at-point (project-current)))
    --EMACSRESULT: "Sun"
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(ada-identifier-at-point))
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
    --EMACSRESULT: "Sun"
    D1, D2 : Day := +Sun;
-   --EMACSCMD:(progn (end-of-line 0)(backward-char 5)(ada-goto-declaration)(looking-at "+\" (Item"))
+   --EMACSCMD:(progn (end-of-line 0)(backward-char 5)(wisi-goto-declaration)(looking-at "+\" (Item"))
    --EMACSRESULT: t
-   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(ada-goto-declaration)(looking-at "Sun, Mon,"))
+   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(wisi-goto-declaration)(looking-at "Sun, Mon,"))
    --EMACSRESULT: t
 
    N      : Integer;

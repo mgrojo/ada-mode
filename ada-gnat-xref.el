@@ -83,14 +83,12 @@ may add more args to the result before calling gnatfind.  Some
 elements of the result may be nil."
   (list "-a"
         (when ada-xref-full-path "-f")
-	;; src_dir contains Source_Dirs from gpr_file, Similarly for
+	;; source-path contains Source_Dirs from gpr_file. Similarly for
 	;; obj_dir. So we don't need to pass the gpr file.
-        (when (plist-get (ada-prj-plist project) 'src_dir)
-          (concat "-aI" (mapconcat 'identity (plist-get (ada-prj-plist project) 'src_dir)
-				   (if (eq system-type 'windows-nt) ";" ":"))))
+        (when (wisi-prj-source-path project)
+          (concat "-aI" (mapconcat 'identity (wisi-prj-source-path project) path-separator)))
         (when (plist-get (ada-prj-plist project) 'obj_dir)
-          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir)
-				   (if (eq system-type 'windows-nt) ";" ":"))))
+          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir) path-separator)))
         (format "%s:%s:%d:%d"
                 identifier
                 (file-name-nondirectory file)
@@ -100,7 +98,7 @@ elements of the result may be nil."
 (defun ada-gnat-xref-other (project identifier file line col)
   "For `ada-xref-other-function', using `gnatfind', which is Ada-specific."
   (let* ((result nil))
-    (with-current-buffer (gnat-run-buffer project)
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
       (gnat-run project
 		(ada-gnat-xref-common-cmd project)
 		(ada-gnat-xref-common-args project identifier file line col))
@@ -143,7 +141,7 @@ elements of the result may be nil."
 
   (let* ((arg (ada-gnat-xref-common-args project identifier file line col))
 	 (result nil))
-    (with-current-buffer (gnat-run-buffer project)
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
       (gnat-run project (ada-gnat-xref-common-cmd project) (cons "-d" arg))
 
       (goto-char (point-min))
@@ -173,9 +171,9 @@ elements of the result may be nil."
 	  (error "gnat find did not return parent types"))
 	))
 
-    (ada-goto-source (nth 0 result)
-		     (nth 1 result)
-		     (nth 2 result))
+    (wisi-goto-source (nth 0 result)
+		      (nth 1 result)
+		      (nth 2 result))
     ))
 
 (defun ada-gnat-xref-all (project identifier file line col local-only append)
@@ -188,7 +186,7 @@ elements of the result may be nil."
     (setq arg (cons "-r" arg))
     (when local-only (setq arg (append arg (list file))))
 
-    (with-current-buffer (gnat-run-buffer project); for default-directory
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
       (let ((compilation-buffer-name "*gnatfind*")
             (compilation-error "reference")
             (command-and-args (mapconcat (lambda (a) (or a ""))
@@ -223,24 +221,5 @@ elements of the result may be nil."
 		(goto-char prev-pos))))
 	))))
 
-;;;;; setup
-
-(defun ada-gnat-xref-select-prj ()
-  ;; gnatmake -gnatD generates files with .dg extensions. But we don't
-  ;; need to navigate between them.
-
-  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
-  (add-to-list 'compilation-error-regexp-alist 'gnat)
-  )
-
-(defun ada-gnat-xref-deselect-prj ()
-  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
-  (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
-  )
-
-(add-to-list 'ada-select-prj-xref-tool   '(gnat . ada-gnat-xref-select-prj))
-(add-to-list 'ada-deselect-prj-xref-tool '(gnat . ada-gnat-xref-deselect-prj))
-
 (provide 'ada-gnat-xref)
-
 ;; end of file

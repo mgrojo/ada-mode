@@ -658,7 +658,7 @@ Prompt user if more than one."
 (defconst ada-gnatprep-preprocessor-keywords
    (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
 
-(cl-defmethod ada-compiler-parse-one ((compiler gnat-compiler) name value)
+(cl-defmethod wisi-compiler-parse-one ((compiler gnat-compiler) project name value)
   "Handle gnat-specific Emacs Ada project file settings.
 If NAME recognized, update PROJECT, return t. Else return nil.
 See also `gnat-prj-parse-emacs-final'."
@@ -670,43 +670,32 @@ See also `gnat-prj-parse-emacs-final'."
     ;; We maintain two project values for this;
     ;; project-path - a list of directories, for elisp find file
     ;; GPR_PROJECT_PATH in environment, for gnat-run
-    (let ((process-environment (gnat-compiler-environment compiler)));; reference, for substitute-in-file-name
-      (gnat-prj-add-prj-dir compiler (expand-file-name (substitute-in-file-name value))))
+    (let ((process-environment (wisi-prj-environment project)));; reference, for substitute-in-file-name
+      (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value))))
     t)
 
    ((string= name "gpr_file")
-    ;; The file is parsed in `ada-compiler-parse-final', so it can
-    ;; add to user-specified src_dir.
-    (let ((process-environment (gnat-compiler-environment compiler)));; reference, for substitute-in-file-name
+    ;; The file is parsed in `wisi-compiler-parse-final', so it sees all environment vars etc.
+    (let ((process-environment (wisi-prj-environment project)));; reference, for substitute-in-file-name
       (setf (gnat-compiler-gpr-file compiler)
 	    (or
 	     (expand-file-name (substitute-in-file-name value))
 	     (locate-file (substitute-in-file-name value)
 			  (gnat-compiler-project-path compiler)))))
     t)
-
-   ((= ?$ (elt name 0))
-    ;; Process env var.
-    (let ((process-environment (cl-copy-list (gnat-compiler-environment compiler))))
-      (setenv (substring name 1)
-	      (substitute-in-file-name value))
-      (setf (gnat-compiler-environment compiler) (cl-copy-list process-environment)))
-    t)
-
    ))
 
-(cl-defmethod ada-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
-
+(cl-defmethod wisi-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
   (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name prj-file-name))
 
   (if (gnat-compiler-gpr-file compiler)
       (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project)
 
-    ;; add the compiler libraries to src_dir
+    ;; add the compiler libraries to project.source-path
     (gnat-get-paths project)
     ))
 
-(cl-defmethod ada-compiler-select-prj ((_compiler gnat-compiler) project)
+(cl-defmethod wisi-compiler-select-prj ((_compiler gnat-compiler) project)
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (setq ada-prj-show-prj-path 'gnat-prj-show-prj-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
@@ -715,10 +704,6 @@ See also `gnat-prj-parse-emacs-final'."
   (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; There is no common convention for a file extension for gnatprep files.
-  ;;
-  ;; find error locations in .gpr files
-  (setq compilation-search-path (append compilation-search-path
-					(plist-get (ada-prj-plist project) 'prj_dir)))
 
   ;; ‘compilation-environment’ is buffer-local, but the user might
   ;; delete that buffer. So set both global and local.
@@ -742,7 +727,7 @@ See also `gnat-prj-parse-emacs-final'."
   (font-lock-refresh-defaults)
   )
 
-(cl-defmethod ada-compiler-deselect-prj ((_compiler gnat-compiler) _project)
+(cl-defmethod wisi-compiler-deselect-prj ((_compiler gnat-compiler) _project)
   (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq #'gnatprep-syntax-propertize ada-syntax-propertize-hook))
@@ -761,6 +746,73 @@ See also `gnat-prj-parse-emacs-final'."
   (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   (font-lock-refresh-defaults)
   )
+
+(cl-defmethod ada-compiler-file-name-from-ada-name ((_compiler gnat-compiler) project ada-name)
+  (let ((result nil))
+
+    (while (string-match "\\." ada-name)
+      (setq ada-name (replace-match "-" t t ada-name)))
+
+    (setq ada-name (downcase ada-name))
+
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+      (gnat-run-no-prj
+       (list
+	"krunch"
+	ada-name
+	;; "0" means only krunch GNAT library names
+	"0"))
+
+      (goto-char (point-min))
+      (when ada-gnat-debug-run (forward-line 1)); skip  cmd
+      (setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+      )
+    result))
+
+(cl-defmethod ada-compiler-ada-name-from-file-name ((_compiler gnat-compiler) _project file-name)
+  (let* ((ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
+	 (predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
+
+    (if predefined
+        predefined
+      (while (string-match "-" ada-name)
+	(setq ada-name (replace-match "." t t ada-name)))
+      ada-name)))
+
+(cl-defmethod ada-compiler-make-package-body ((compiler gnat-compiler) project body-file-name)
+  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
+  ;; and doesn't use the gnatstub package if it is in a 'with'd
+  ;; project file; see AdaCore ticket LC30-001. On the other hand we
+  ;; need a project file to specify the source dirs so the tree file
+  ;; can be generated. So we use gnat-run-no-prj, and the user
+  ;; must specify the proper project file in gnat_stub_opts.
+  ;; FIXME: update to gnat 2019
+  ;;
+  ;; gnatstub always creates the body in the current directory (in the
+  ;; process where gnatstub is running); the -o parameter may not
+  ;; contain path info. So we pass a directory to gnat-run-no-prj.
+  (let ((start-buffer (current-buffer))
+	(start-file (buffer-file-name))
+	(opts (when (gnat-compiler-gnat-stub-opts compiler)
+		(split-string (gnat-compiler-gnat-stub-opts compiler))))
+	(cargs (when (gnat-compiler-gnat-stub-cargs compiler)
+		(split-string (gnat-compiler-gnat-stub-cargs compiler))))
+	(process-environment (cl-copy-list (wisi-prj-environment project))) ;; for GPR_PROJECT_PATH
+	)
+
+    ;; Make sure all relevant files are saved to disk.
+    (save-some-buffers t)
+    (with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+      (gnat-run-no-prj
+       (append (list "stub") opts (list start-file "-cargs") cargs)
+       (file-name-directory body-file-name))
+
+      (find-file body-file-name)
+      (indent-region (point-min) (point-max))
+      (save-buffer)
+      (set-buffer start-buffer)
+      )
+    nil))
 
 (provide 'ada-compiler-gnat)
 (provide 'ada-compiler)

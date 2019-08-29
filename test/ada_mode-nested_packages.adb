@@ -25,17 +25,17 @@ use Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 --EMACSCMD:(test-face "Nested_Packages" font-lock-function-name-face)
 package body Ada_Mode.Nested_Packages is
 
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(wisi-prj-identifier-at-point (project-current)))
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
      --EMACSRESULT:"\"*\""
-     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(ada-identifier-at-point))
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
      renames Ada_Mode.Nominal."*";
    --EMACSRESULT:"\"*\""
 
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 4)(ada-identifier-at-point))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 4)(wisi-prj-identifier-at-point (project-current)))
    function "<=" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Boolean
      --EMACSRESULT:"\"<=\""
-     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(ada-identifier-at-point))
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
      renames Ada_Mode.Nominal."<=";
    --EMACSRESULT:"\"<=\""
 

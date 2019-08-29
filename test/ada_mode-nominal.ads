@@ -8,7 +8,7 @@ with
 -- No comment on the first line, to make sure we can handle that :)
 -- blank on first line, to test beginning-of-buffer logic for "with-context"
 
--- testing ada-goto-declaration, ada-find-other-file with an Emacs
+-- testing wisi-goto-declaration, ada-find-other-file with an Emacs
 -- Ada project file.
 --
 -- .adp and .gpr is tested here
@@ -58,7 +58,7 @@ private with Ada.Containers.Vectors,
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line -2)(forward-word 4)(ada-goto-declaration)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line -2)(forward-word 4)(wisi-goto-declaration)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
@@ -121,7 +121,7 @@ is -- target 0
    ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(wisi-prj-identifier-at-point (project-current)))
    type Object_Access_Type_2b is not null access constant
      Integer;
    --EMACSRESULT:"Object_Access_Type_2b"
@@ -296,7 +296,7 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(wisi-goto-declaration)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    -- result in same file
 
@@ -450,7 +450,7 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(wisi-goto-declaration)(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t

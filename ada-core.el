@@ -180,66 +180,34 @@ instead of calling `syntax-ppss'."
       (while (forward-comment -1))
       )))
 
-;; FIXME: use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
-(defvar ada-goto-pos-ring '()
-  "List of positions selected by navigation functions. Used
-to go back to these positions.")
+;;;; additional ada-compiler generic interfaces
 
-(defconst ada-goto-pos-ring-max 16
-  "Number of positions kept in the list `ada-goto-pos-ring'.")
-
-(defun ada-goto-push-pos ()
-  "Push current filename, position on `ada-goto-pos-ring'. See `ada-goto-previous-pos'."
-  (setq ada-goto-pos-ring (cons (list (point) (buffer-file-name)) ada-goto-pos-ring))
-  (if (> (length ada-goto-pos-ring) ada-goto-pos-ring-max)
-      (setcdr (nthcdr (1- ada-goto-pos-ring-max) ada-goto-pos-ring) nil)))
-
-(defun ada-goto-previous-pos ()
-  "Go to the first position in `ada-goto-pos-ring', pop `ada-goto-pos-ring'."
-  (interactive)
-  (when ada-goto-pos-ring
-    (let ((pos (pop ada-goto-pos-ring)))
-      (find-file (cadr pos))
-      (goto-char (car pos)))))
-
-;;;; ada-compiler generic interface
-
-(cl-defgeneric ada-compiler-parse-one (compiler name value)
-  "Set NAME, VALUE in COMPILER, if recognized by COMPILER.")
-
-(cl-defgeneric ada-compiler-parse-final (compiler project prj-file-name)
-  ;; project holds src_dir, set from compiler project file.
-  "Do any compiler-specific processing on COMPILER and PROJECT
-after the project file PRJ-FILE-NAME is parsed.")
-
-(cl-defgeneric ada-compiler-select-prj (compiler project)
-  "PROJECT has been selected; do any compiler-specific actions required.")
-
-(cl-defgeneric ada-compiler-deselect-prj (compiler project)
-  "PROJECT has been de-selected; undo any compiler-specific select actions.")
-
-(cl-defgeneric ada-compiler-file-name-from-ada-name (compiler ada-name)
+(cl-defgeneric ada-compiler-file-name-from-ada-name (compiler project ada-name)
   "Return the filename that would contain the library level ADA-NAME.")
 
 (defun ada-file-name-from-ada-name (ada-name)
   "Return the filename in which ADA-NAME is found."
-  (ada-compiler-file-name-from-ada-name (ada-prj-compiler (ada-prj-require-prj)) ada-name))
+  (let ((project (ada-prj-require-prj)))
+    (ada-compiler-file-name-from-ada-name (ada-prj-compiler project) project ada-name)))
 
-(cl-defgeneric ada-compiler-ada-name-from-file-name (file-name)
+(cl-defgeneric ada-compiler-ada-name-from-file-name (compiler project file-name)
   "Return the Ada library unit name that should be found in FILE-NAME.")
 
 (defun ada-ada-name-from-file-name (file-name)
   "Return the ada-name that should be found in FILE-NAME."
-  (ada-compiler-ada-name-from-file-name (ada-prj-compiler (ada-prj-require-prj)) file-name))
+  (let ((project (ada-prj-require-prj)))
+    (ada-compiler-ada-name-from-file-name (ada-prj-compiler project) file-name)))
 
-(cl-defgeneric ada-compiler-make-package-body (body-file-name)
+(cl-defgeneric ada-compiler-make-package-body (compiler project body-file-name)
   "Create a package body skeleton from a package spec.
 BODY-FILE-NAME is the file name of the body file. Current buffer
 is the package spec.")
 
 (defun ada-make-package-body (body-file-name)
-  (ada-compiler-make-package-body (ada-prj-compiler (ada-prj-require-prj))
-				  (expand-file-name body-file-name)))
+  (let ((prj (ada-prj-require-prj)))
+    (ada-compiler-make-package-body (ada-prj-compiler prj)
+				    prj
+				    (expand-file-name body-file-name))))
 
 ;;;; refactor
 
@@ -754,159 +722,6 @@ nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
 
-(cl-defgeneric ada-xref-parse-one (xref name value)
-  "Set NAME, VALUE in XREF, if recognized by XREF.")
-
-(cl-defgeneric ada-xref-parse-final (xref project prj-file-name)
-  "Do any xref-specific processing on XREF and PROJECT
-after the project file PRJ-FILE-NAME is parsed.")
-
-(cl-defgeneric ada-xref-select-prj (xref project)
-  "PROJECT has been selected; do any xref-specific actions required.")
-
-(cl-defgeneric ada-xref-deselect-prj (xref project)
-  "PROJECT has been de-selected; undo any xref-specific select actions.")
-
-(cl-defgeneric ada-xref-refresh-cache (xref no-full)
-  "Refresh cached information in XREF. If no-full is non-nil,
-slow refresh operations may be skipped.")
-
-(cl-defgeneric ada-xref-other (xref &key identifier filename line column)
-  "Function that returns cross reference information.
-IDENTIFIER - an Ada identifier or operator_symbol
-FILENAME - absolute filename containing the identifier
-LINE - line number containing the identifier (may be nil)
-COLUMN - Emacs column of the start of the identifier (may be nil)
-Point is on the start of the identifier.
-Returns a list (FILE LINE COLUMN) giving the corresponding location.
-If point is at the specification, the corresponding location is the
-body, and vice versa.")
-
-(defun ada-goto-declaration ()
-  "Move to the declaration or body of the identifier around point.
-If at the declaration, go to the body, and vice versa."
-  (interactive)
-  (ada-check-current-project (buffer-file-name))
-
-  (let ((target (ada-xref-other
-		 (ada-prj-xref (ada-prj-require-prj))
-		 :identifier (ada-identifier-at-point)
-		 :filename (buffer-file-name)
-		 :line (line-number-at-pos)
-		 :column (current-column)
-		 )))
-
-    (ada-goto-source (nth 0 target)
-		     (nth 1 target)
-		     (nth 2 target))
-    ))
-
-(cl-defgeneric ada-xref-parents (compiler &key identifier filename line column)
-  "Displays parent type declarations.
-IDENTIFIER - an Ada identifier or operator_symbol
-FILENAME - absolute filename containing the identifier
-LINE - line number containing the identifier
-COLUMN - Emacs column of the start of the identifier
-
-Displays a buffer in compilation-mode giving locations of the parent type declarations.")
-
-(defun ada-show-declaration-parents ()
-  "Display the locations of the parent type declarations of the type identifier around point."
-  (interactive)
-  (ada-check-current-project (buffer-file-name))
-  (ada-xref-parents
-   (ada-prj-xref (ada-prj-require-prj))
-   :identifier (ada-identifier-at-point)
-   :filename (file-name-nondirectory (buffer-file-name))
-   :line (line-number-at-pos)
-   :column (current-column))
-  )
-
-(cl-defgeneric ada-xref-all (compiler &key identifier filename line column local-only append)
-  "Displays cross reference information.
-IDENTIFIER - an Ada identifier or operator_symbol (a string).
-FILENAME - absolute filename containing the identifier
-LINE - line number containing the identifier
-COLUMN - Emacs column of the start of the identifier
-LOCAL-ONLY - if t, show references in FILE only
-APPEND - if t, keep previous output in result buffer
-Displays a buffer in compilation-mode giving locations where the
-identifier is declared or referenced.")
-
-(defun ada-show-references (&optional append)
-  "Show all references of identifier at point.
-With prefix, keep previous references in output buffer."
-  (interactive "P")
-  (ada-check-current-project (buffer-file-name))
-  (ada-xref-all
-   (ada-prj-xref (ada-prj-require-prj))
-   :identifier (ada-identifier-at-point)
-   :filename (file-name-nondirectory (buffer-file-name))
-   :line (line-number-at-pos)
-   :column (current-column)
-   :local-only nil
-   :append append)
-  )
-
-(defun ada-show-local-references (&optional append)
-  "Show all references of identifier at point.
-With prefix, keep previous references in output buffer."
-  (interactive "P")
-  (ada-check-current-project (buffer-file-name))
-
-  (ada-xref-all
-   (ada-prj-xref (ada-prj-require-prj))
-   :identifier (ada-identifier-at-point)
-   :filename (file-name-nondirectory (buffer-file-name))
-   :line (line-number-at-pos)
-   :column (current-column)
-   :local-only t
-   :append append)
-  )
-
-(cl-defgeneric ada-xref-overriding (compiler &key identifier filename line column)
-  "Displays a buffer in compilation-mode giving locations of the overriding declarations.
-IDENTIFIER - an Ada identifier or operator_symbol
-FILENAME - filename containing the identifier
-LINE - line number containing the identifier
-COLUMN - Emacs column of the start of the identifier ")
-
-(defun ada-show-overriding ()
-  "Show all overridings of identifier at point."
-  (interactive)
-  (ada-check-current-project (buffer-file-name))
-  (ada-xref-overriding
-   (ada-prj-xref (ada-prj-require-prj))
-   :identifier (ada-identifier-at-point)
-   :filename (file-name-nondirectory (buffer-file-name))
-   :line (line-number-at-pos)
-   :column (current-column))
-  )
-
-(cl-defgeneric ada-xref-overridden (compiler &key identifier filename line column)
-  "Returns a list (FILE LINE COLUMN) giving the location of the overridden declaration.
-IDENTIFIER - an Ada identifier or operator_symbol
-FILENAME - absolute filename containing the identifier
-LINE - line number containing the identifier
-COLUMN - Emacs column of the start of the identifier")
-
-(defun ada-show-overridden ()
-  "Show the overridden declaration of identifier at point."
-  (interactive)
-  (ada-check-current-project (buffer-file-name))
-  (let ((target
-	 (ada-xref-overridden
-	  (ada-prj-xref (ada-prj-require-prj))
-	  :identifier (ada-identifier-at-point)
-	  :filename (file-name-nondirectory (buffer-file-name))
-	  :line (line-number-at-pos)
-	  :column (current-column))))
-
-    (ada-goto-source (nth 0 target)
-		     (nth 1 target)
-		     (nth 2 target))
-  ))
-
 (defun ada-make-subprogram-body ()
   "Convert subprogram specification after point into a subprogram body stub."
   (interactive)
@@ -952,49 +767,180 @@ COLUMN - Emacs column of the start of the identifier")
     (revert-buffer t t))
   )
 
-(defun ada-goto-source (file line column)
-  "Find and select FILE, at LINE and COLUMN.
-FILE may be absolute, or on `compilation-search-path'.
-LINE, COLUMN are Emacs origin."
-  (let ((file-1
-	 (if (file-name-absolute-p file) file
-	   (ff-get-file-name compilation-search-path file))))
-    (if file-1
-	(setq file file-1)
-      (error "File %s not found; installed library, or set project?" file))
-    )
+;;;; project files
 
-  (ada-goto-push-pos)
+;; FIXME: delete after finish converting ada-build.el
+(defvar ada-prj-default-list nil
+  ;; project file parse
+  "List of functions to add default project variables. Called
+with one argument; the project. `default-directory' is set to the directory containing the
+project file. Function should update the project.")
 
-  (let ((buffer (get-file-buffer file)))
-    (cond
-     ((bufferp buffer)
-      ;; use pop-to-buffer, so package other-frame-window works.
-      (pop-to-buffer buffer (list #'display-buffer-same-window)))
+(defun ada-prj-default (&optional src-dir)
+  "Return the default `ada-prj' object.
+If SRC-DIR is non-nil, use it as the default for project.source-path."
+  (let ((project
+	 (make-ada-prj
+	  :compiler-label  ada-compiler
+	  :xref-label      ada-xref-tool
+	  :source-path	  (cond
+			   ((null src-dir) nil)
+			   ((listp src-dir) src-dir)
+			   (t (list src-dir)))
+	  :plist (list
+		  ;; variable name alphabetical order
+		  'auto_case       ada-auto-case
+		  'case_keyword    ada-case-keyword
+		  'case_identifier ada-case-identifier
+		  'case_strict     ada-case-strict
+		  ))))
 
-     ((file-exists-p file)
-      (find-file file))
+    (cl-dolist (func ada-prj-default-list) ;; FIXME delete
+      (funcall func project))
 
-     (t
-      (error "'%s' not found" file))))
+    project))
 
-  ;; move the cursor to the correct position
-  (push-mark nil t)
-  (goto-char (point-min))
-  (forward-line (1- line))
-  (forward-char column)
+;; This autoloaded because it is often used in Makefiles, and thus
+;; will be the first ada-mode function executed.
+;;;###autoload
+(defun ada-parse-prj-file (prj-file)
+    (wisi-prj-parse-file prj-file))
+(make-obsolete
+ 'ada-parse-prj-file
+ 'wisi-prj-parse-file
+ "ada-mode 7.0")
+
+(defun ada-prj-make-compiler (label)
+  (funcall (intern (format "make-%s-compiler" (symbol-name label)))))
+
+(defun ada-prj-make-xref (label)
+  (funcall (intern (format "make-%s-xref" (symbol-name label)))))
+
+(cl-defstruct
+    (ada-prj
+     (:include wisi-prj)
+     (:copier nil)
+     (:constructor nil)
+     (:constructor make-ada-prj
+		   (&key
+		    compiler-label
+		    xref-label
+		    source-path
+		    plist
+		    file-pred
+		    &aux
+		    (compiler (ada-prj-make-compiler compiler-label))
+		    (xref (ada-prj-make-xref xref-label))
+		    )))
+  plist    ;; old-style ada-mode project property list, while we are converting. FIXME: delete
   )
 
-(defun ada-identifier-at-point ()
+(defun ada-prj-require-prj ()
+  "Return current `ada-prj' object.
+Throw an error if current project is not an ada-prj."
+  (let ((prj (project-current)))
+    (if (ada-prj-p prj)
+	prj
+      (error "selected project is not an ada project."))))
+
+(defun ada-prj-parse-file (prj-file project)
+  "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
+PROJECT is an `ada-prj' object."
+  (let (obj_dir)
+
+    (with-current-buffer (find-file-noselect prj-file)
+      (goto-char (point-min))
+
+      ;; process each line
+      (while (not (eobp))
+
+	;; ignore lines that don't have the format "name=value", put
+	;; 'name', 'value' in match-string.
+	(when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
+	  (let ((name (match-string 1))
+		(value (match-string 2)))
+	    (cond
+	     ;; variable name alphabetical order
+
+	     ((wisi-prj-parse-one project name value))
+
+	     ((string= name "ada_compiler")
+	      (let ((comp (intern value)))
+		(setf (ada-prj-compiler project) (ada-prj-make-compiler comp))))
+
+	     ((string= name "auto_case")
+	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'auto_case (intern value))))
+
+	     ((string= name "case_keyword")
+	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_keyword (intern value))))
+
+	     ((string= name "case_identifier")
+	      (setf (ada-prj-plist project)
+		    (plist-put (ada-prj-plist project) 'case_identifier (intern value))))
+
+	     ((string= name "case_strict")
+	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_strict (intern value))))
+
+	     ((string= name "obj_dir")
+	      (cl-pushnew (file-name-as-directory
+			   (expand-file-name value))
+			  obj_dir :test #'equal))
+
+ 	     ((string= name "xref_tool")
+	      (let ((xref (intern value)))
+		(setf (ada-prj-xref project) (ada-prj-make-xref xref))))
+
+	     (t
+	      ;; Any other field in the file is set as a project file variable.
+	      ;; eg "comp_opt"
+	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
+						       (intern name) value)))
+	     )))
+
+	(forward-line 1))
+
+      );; done reading file
+
+    ;; process accumulated lists
+    (if obj_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj_dir))))
+    ))
+
+;; This is autoloaded because it is often used in Makefiles, and thus
+;; will be the first ada-mode function executed.
+;;;###autoload
+(defun ada-select-prj-file (prj-file)
+  ;; not ada-prj-select-file for backward compatibility
+  "Select PRJ-FILE as the current project file, parsing it if necessary.
+Deselects the current project first."
+  (wisi-prj-select-file prj-file))
+(make-obsolete 'ada-select-prj-file 'wisi-prj-select-file "ada-mode 7.0")
+
+(defun ada-create-select-default-prj (&optional directory)
+  "Create a default project with source-path set to DIRECTORY (default current directory), select it."
+  (let* ((dir (or directory default-directory))
+	 (prj-file (expand-file-name "default_.adp" dir)) ;; we assume this does not exist
+	 (project (ada-prj-default dir)))
+
+    ;; Do this here so wisi-prj-select-file will not try to parse the
+    ;; project file.
+    (if (assoc prj-file wisi-prj-alist)
+	(setcdr (assoc prj-file wisi-prj-alist) project)
+      (add-to-list 'wisi-prj-alist (cons prj-file project)))
+
+    (wisi-prj-select-file prj-file)
+    ))
+
+(cl-defmethod wisi-prj-identifier-at-point ((_project ada-prj))
   "Return the identifier around point, move point to start of
 identifier.  May be an Ada identifier or operator."
-
   (when (ada-in-comment-p)
     (error "Inside comment"))
 
   ;; Handle adjacent operator/identifer like:
   ;; test/ada_mode-slices.adb
   ;;   D1, D2 : Day := +Sun;
+
+  ;; FIXME: use skip-syntax, to handle non-ascii
 
   ;; Move to the beginning of the identifier or operator
   (if (looking-at "[a-zA-Z0-9_]")
@@ -1034,262 +980,7 @@ identifier.  May be an Ada identifier or operator."
     (error "No identifier around"))
    ))
 
-;;;; project files
-
-;; FIXME: delete after finish converting ada-build.el
-(defvar ada-prj-default-list nil
-  ;; project file parse
-  "List of functions to add default project variables. Called
-with one argument; the project. `default-directory' is set to the directory containing the
-project file. Function should update the project.")
-
-(defun ada-prj-default (&optional src-dir)
-  "Return the default `ada-prj' object.
-If SRC-DIR is non-nil, use it as the default for src_dir."
-
-  (let ((project
-	 (make-ada-prj
-	  :compiler-label  ada-compiler
-	  :xref-label      ada-xref-tool
-	  :plist (list
-		  ;; variable name alphabetical order
-		  'auto_case       ada-auto-case
-		  'case_keyword    ada-case-keyword
-		  'case_identifier ada-case-identifier
-		  'case_strict     ada-case-strict
-		  'casing          nil
-		  'src_dir         (if src-dir (list src-dir) nil)
-		  ))))
-
-    (cl-dolist (func ada-prj-default-list) ;; FIXME delete
-      (funcall func project))
-
-    project))
-
-;; This autoloaded because it is often used in Makefiles, and thus
-;; will be the first ada-mode function executed.
-;;;###autoload
-(defun ada-parse-prj-file (prj-file)
-    (wisi-prj-parse-file prj-file))
-(make-obsolete
- 'ada-parse-prj-file
- 'wisi-prj-parse-file
- "ada-mode 7.0")
-
-(defun ada-prj-make-compiler (label)
-  (funcall (intern (format "make-%s-compiler" (symbol-name label)))))
-
-(defun ada-prj-make-xref (label)
-  (funcall (intern (format "make-%s-xref" (symbol-name label)))))
-
-(cl-defstruct
-    (ada-prj
-     (:include wisi-prj)
-     (:copier nil)
-     (:constructor nil)
-     (:constructor make-ada-prj
-		   (&key
-		    compiler-label
-		    xref-label
-		    plist
-		    file-pred
-		    &aux
-		    (compiler (ada-prj-make-compiler compiler-label))
-		    (xref (ada-prj-make-xref xref-label))
-		    )))
-  compiler ;; compiler object
-  xref     ;; xref object
-  plist    ;; old-style ada-mode project property list, while we are converting. FIXME: delete
-
-  file-pred
-  ;; Function taking an absolute file name, returns non-nil
-  ;; if the file should be included in `project-files'.
-  )
-
-(defun ada-prj-require-prj ()
-  "Return current `ada-prj' object.
-Throw an error if current project is not an ada-prj."
-  (let ((prj (project-current)))
-    (if (ada-prj-p prj)
-	prj
-      (error "selected project is not an ada project."))))
-
-(defun ada-prj-parse-file (prj-file project)
-  "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
-PROJECT is an `ada-prj' object."
-  ;; FIXME: move parsing for wisi-prj slots to wisi-parse-prj-file-1 or something
-  (let (src_dir obj_dir)
-
-    (with-current-buffer (find-file-noselect prj-file)
-      (goto-char (point-min))
-
-      ;; process each line
-      (while (not (eobp))
-
-	;; ignore lines that don't have the format "name=value", put
-	;; 'name', 'value' in match-string.
-	(when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
-	  (cond
-	   ;; variable name alphabetical order
-
-	   ((string= (match-string 1) "ada_compiler")
-	    (let ((comp (intern (match-string 2))))
-	      (setf (ada-prj-compiler project) (ada-prj-make-compiler comp))))
-
-	   ((string= (match-string 1) "auto_case")
-	    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'auto_case (intern (match-string 2)))))
-
-	   ((string= (match-string 1) "case_keyword")
-	    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_keyword (intern (match-string 2)))))
-
-	   ((string= (match-string 1) "case_identifier")
-	    (setf (ada-prj-plist project)
-		  (plist-put (ada-prj-plist project) 'case_identifier (intern (match-string 2)))))
-
-	   ((string= (match-string 1) "case_strict")
-	    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_strict (intern (match-string 2)))))
-
-	   ((string= (match-string 1) "casing")
-            (cl-pushnew (expand-file-name
-                         (substitute-in-file-name (match-string 2)))
-                        (ada-prj-case-exception-files project)
-			:test #'equal))
-
-	   ((string= (match-string 1) "el_file")
-	    (let ((file (expand-file-name (substitute-in-file-name (match-string 2)))))
-	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'el_file file))
-	      ;; eval now as well as in select, since it might affect parsing
-	      (load-file file)))
-
-	   ((string= (match-string 1) "src_dir")
-            (cl-pushnew (file-name-as-directory
-                         (expand-file-name (match-string 2)))
-                        src_dir :test #'equal))
-
-	   ((string= (match-string 1) "obj_dir")
-	    (cl-pushnew (file-name-as-directory
-			 (expand-file-name (match-string 2)))
-			obj_dir :test #'equal))
-
- 	   ((string= (match-string 1) "xref_tool")
-	    (let ((xref (intern (match-string 2))))
-	      (setf (ada-prj-xref project) (ada-prj-make-xref xref))))
-
-	   ((let ((name (match-string 1))
-		  (value (match-string 2))
-		  result)
-	      ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
-	      (when (ada-compiler-parse-one (ada-prj-compiler project) name value)
-		(setq result t))
-	      (when (ada-xref-parse-one (ada-prj-xref project) name value)
-		(setq result t))
-	      result))
-
-	   (t
-	    ;; Any other field in the file is set as a project file variable.
-	    ;; eg "comp_opt"
-	    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
-						     (intern (match-string 1)) (match-string 2))))
-	   ))
-
-	(forward-line 1))
-
-      );; done reading file
-
-    ;; process accumulated lists
-    (if src_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'src_dir (reverse src_dir))))
-    (if obj_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj_dir))))
-
-    (wisi-prj-parse-final project)
-    (ada-compiler-parse-final (ada-prj-compiler project) project prj-file)
-    (ada-xref-parse-final     (ada-prj-xref     project) project prj-file)
-    ))
-
-;; FIXME: dispatch on ada-prj-xref
-(defvar ada-select-prj-xref-tool nil
-  "Alist of functions to call for xref-tool specific project file selection.
-Indexed by project variable xref_tool.")
-
-;; FIXME: dispatch on ada-prj-xref
-(defvar ada-deselect-prj-xref-tool nil
-  "Alist of functions to call for xref-tool specific project file deselection.
-Indexed by project variable xref_tool.")
-
-;; This is autoloaded because it is often used in Makefiles, and thus
-;; will be the first ada-mode function executed.
-;;;###autoload
-(defun ada-select-prj-file (prj-file)
-  ;; not ada-prj-select-file for backward compatibility
-  "Select PRJ-FILE as the current project file, parsing it if necessary.
-Deselects the current project first."
-  (wisi-prj-select-file prj-file))
-(make-obsolete 'ada-select-prj-file 'wisi-prj-select-file "ada-mode 7.0")
-
-(cl-defmethod wisi-prj-select ((project ada-prj))
-  (when (plist-get (ada-prj-plist project) 'el_file)
-    (load-file (plist-get (ada-prj-plist project) 'el_file)))
-
-  (setq compilation-search-path (plist-get (ada-prj-plist project) 'src_dir))
-
-  (ada-compiler-select-prj (ada-prj-compiler project) project)
-  (ada-xref-select-prj     (ada-prj-xref project)     project)
-
-  (let ((func (cdr (assq (plist-get (ada-prj-plist project) 'xref_tool) ada-select-prj-xref-tool))))
-    (when func (funcall func project)))
-  )
-
-(cl-defmethod wisi-prj-deselect ((project ada-prj))
-  (ada-xref-deselect-prj (ada-prj-xref project) project)
-  (ada-compiler-deselect-prj (ada-prj-compiler project) project)
-
-  (let ((func (cdr (assq (plist-get (ada-prj-plist project) 'xref_tool)
-			 ada-deselect-prj-xref-tool))))
-    (when func (funcall func)))
-  )
-
-(cl-defmethod wisi-prj-refresh-cache :after ((project ada-prj) not-full)
-  (ada-xref-refresh-cache (ada-prj-xref project) not-full))
-
-(cl-defmethod project-roots ((_project ada-prj))
-  ;; Not meaningful
-  nil)
-
-(cl-defmethod project-files ((project ada-prj) &optional dirs)
-  (let (result)
-    (dolist (dir (or dirs
-		     (plist-get (ada-prj-plist project) 'src_dir)))
-      (mapc
-       (lambda (absfile)
-	 (when (and (not (string-equal "." (substring absfile -1)))
-		    (not (string-equal ".." (substring absfile -2)))
-		    (not (file-directory-p absfile))
-                    (or (null (ada-prj-file-pred project))
-			(funcall (ada-prj-file-pred project) absfile)))
-	   (push absfile result)))
-       (directory-files dir t)))
-    result))
-
-(when (not (fboundp 'project--read-file-cpd-relative)) ;; emacs < 27
-  (cl-defmethod project-file-completion-table ((project ada-prj) &optional dirs)
-    (apply-partially #'uniq-file-completion-table (uniq-file-uniquify (project-files project dirs)))))
-
-(defun ada-create-select-default-prj (&optional directory)
-  "Create a default project with src_dir set to DIRECTORY (default current directory), select it."
-  ;; FIXME: if move src_dir to wisi-prj, move this there.
-  (let* ((dir (or directory default-directory))
-	 (prj-file (expand-file-name "default_.adp" dir)) ;; we assume this does not exist
-	 (project (ada-prj-default dir)))
-
-    ;; Do this here so wisi-prj-select-file will not try to parse the
-    ;; project file.
-    (if (assoc prj-file wisi-prj-alist)
-	(setcdr (assoc prj-file wisi-prj-alist) project)
-      (add-to-list 'wisi-prj-alist (cons prj-file project)))
-
-    (wisi-prj-select-file prj-file)
-    ))
-
-;; FIXME: dispatch on ada-prj-compiler
+;; FIXME: dispatch on wisi-prj-compiler, move to compiler
 (defvar ada-prj-show-prj-path nil
   ;; Supplied by compiler
   "Function to show project file search path used by compiler (and possibly xref tool)."
@@ -1311,30 +1002,6 @@ Deselects the current project first."
 	  (insert (format "%s\n" file))))
     (message "no project source file search path set")
     ))
-
-(defun ada-check-current-project (file-name)
-  "Throw error if FILE-NAME (must be absolute) is not found in
-the current project source directories, or if no project has been
-set."
-  (when (null (car compilation-search-path))
-    (error "no file search path defined; set project file?"))
-
-  ;; file-truename handles symbolic links
-  (let* ((visited-file (file-truename file-name))
-         (found-file (locate-file (file-name-nondirectory visited-file)
-				  compilation-search-path)))
-    (unless found-file
-      (error "current file not part of current project; wrong project?"))
-
-    (setq found-file (file-truename found-file))
-
-    ;; (nth 10 (file-attributes ...)) is the inode; required when hard
-    ;; links are present.
-    (let* ((visited-file-inode (nth 10 (file-attributes visited-file)))
-           (found-file-inode (nth 10 (file-attributes found-file))))
-      (unless (equal visited-file-inode found-file-inode)
-        (error "%s (opened) and %s (found in project) are two different files"
-               file-name found-file)))))
 
 ;; FIXME: move to project menu to wisi, provide delete
 (defun ada-project-menu-compute ()

@@ -56,11 +56,23 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    use cl-defgeneric, not function vars
+    move environment, compiler, xref, src_dir to wisi-prj
+        including parse
+
+    ada-build uses ${src_dir} in a command; interpret that properly
+
+    move obj_dir to gnat-compiler
+
+    use gprls, not gnatls
+
+    move case-adjust to wisi
+
+    can't delete plist; users may be defining other vars - fix comments
+
+    change wisi-xref-other to return xref-file-location?
 
     set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
         including xref-backend-functions
-        or make them local somehow
 
     change ada-fix-error-alist to generic?
         dispatch on compiler
@@ -70,13 +82,15 @@ major cleanup
 
     add (restore?) gnatxref tests
         explicit list of test files to save time
+        or at least filter ada_mode-recover
 
     review FIXME
-    review obsolete
-        ensure not used anywhere
+
+    test all menus
 
     add project-menu to wisi-prj
         or adapt it to wisi-prj
+        include global env vars for makefile; WISITOKEN
 
     run/update ada-build tutorial
 
@@ -84,13 +98,20 @@ mirror to github, ask people to try it, find backwards compat issues
     add defalias etc
 
 try to eliminate wisi-prj--current-file
-  ;; requirements:
-  ;;   - there are many global variables set by wisi-prj-select
-  ;;   - when user is working on ada-mode, and editing sal-*, current project is ada-mode
-  ;;   - when user is working on sal, current project is sal
-  ;;     => check compilation-search-path? or some other emacs global set by wisi-prj-select?
-  ;;     - don't change project if consistent
-  ;;     - why bother; one global is as bad as another.
+  requirements:
+     - there are many global variables set by wisi-prj-select
+       - compilation-search-path
+       -
+       - global environment variables used in makefile; WISITOKEN directory
+            alternative is to edit default value in makefile; need to edit prj file anyway
+              but also edit makefile for other things; better to edit in prj file,
+                  which is less likely to be edited for other things.
+
+     - when user is working on ada-mode, and editing sal-*, current project is ada-mode
+     - when user is working on sal, current project is sal
+       => check compilation-search-path? or some other emacs global set by wisi-prj-select?
+       - don't change project if consistent
+       - why bother; one global is as bad as another.
 
 update all build/*.el
 
