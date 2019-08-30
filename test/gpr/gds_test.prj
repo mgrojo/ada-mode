@@ -1,0 +1,5 @@
+-- test casing in gpr files
+
+casing=gds.casing
+
+-- end of file

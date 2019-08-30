@@ -86,7 +86,7 @@ begin
 
    -- interactive edit of structures that change indent
 
-   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
    --EMACSRESULT: 6
    begin
 
@@ -95,7 +95,7 @@ begin
 
    case Data.Post_Parse_Action is
       --  Parse region starts after 'end;'
-      --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+      --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
       --EMACSRESULT: 9
       when Navigate =>
 
@@ -108,11 +108,11 @@ begin
          --EMACSCMD:(progn (forward-line -1)(delete-char 2)(indent-for-tab-command)(back-to-indentation)(current-column))
          --EMACSRESULT: 9
 
-         --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+         --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
          --EMACSRESULT: 9
       when Face =>
 
-         --EMACSCMD:(progn (end-of-line 4)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+         --EMACSCMD:(progn (end-of-line 4)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
          --EMACSRESULT: 12
          Resolve_Anchors
            (Data       => User_Data,
@@ -121,7 +121,7 @@ begin
    end case;
 
    --  Parse region starts after 'end case;'
-   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
    --EMACSRESULT: 6
    if A then
 

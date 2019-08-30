@@ -153,6 +153,61 @@ invalid temporarily, or when making lots of changes.")
 
    (t pos)))
 
+;;;; misc
+
+(defun wisi-in-paren-p (&optional parse-result)
+  "Return t if point is inside a pair of parentheses.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (> (nth 0 (or parse-result (syntax-ppss))) 0))
+
+(defun wisi-pos-in-paren-p (pos)
+  "Return t if POS is inside a pair of parentheses."
+  (save-excursion
+    (> (nth 0 (syntax-ppss pos)) 0)))
+
+(defun wisi-same-paren-depth-p (pos1 pos2)
+  "Return t if POS1 is at same parentheses depth as POS2."
+  (= (nth 0 (syntax-ppss pos1)) (nth 0 (syntax-ppss pos2))))
+
+(defun wisi-goto-open-paren (&optional offset parse-result)
+  "Move point to innermost opening paren surrounding current point, plus OFFSET.
+Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
+instead of calling `syntax-ppss'."
+  (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
+
+(defun wisi-in-comment-p (&optional parse-result)
+  "Return t if inside a comment.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (nth 4 (or parse-result (syntax-ppss))))
+
+(defun wisi-in-string-p (&optional parse-result)
+  "Return t if point is inside a string.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (nth 3 (or parse-result (syntax-ppss))))
+
+(defun wisi-in-string-or-comment-p (&optional parse-result)
+  "Return t if inside a comment or string.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (setq parse-result (or parse-result (syntax-ppss)))
+  (or (wisi-in-string-p parse-result) (wisi-in-comment-p parse-result)))
+
+(defun wisi-indent-newline-indent ()
+  "insert a newline, indent the old and new lines."
+  (interactive "*")
+  ;; point may be in the middle of a word, so insert newline first,
+  ;; then go back and indent.
+  (insert "\n")
+  (unless (and (wisi-partial-parse-p (line-beginning-position) (line-end-position))
+	       (save-excursion (progn (forward-char -1)(looking-back "begin\\|else" (line-beginning-position)))))
+    ;; Partial parse may think 'begin' is just the start of a
+    ;; statement, when it's actually part of a larger declaration. So
+    ;; don't indent 'begin'. Similarly for 'else'; error recovery will
+    ;; probably insert 'if then' immediately before it
+    (forward-char -1)
+    (funcall indent-line-function)
+    (forward-char 1))
+  (funcall indent-line-function))
+
 ;;;; token info cache
 
 (defvar-local wisi-parse-failed nil
@@ -1614,6 +1669,8 @@ If non-nil, only repair errors in BEG END region."
   (add-hook 'before-change-functions #'wisi-before-change 'append t)
   (add-hook 'after-change-functions #'wisi-after-change nil t)
   (setq wisi--change-end (copy-marker (point-min) t))
+
+  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
   ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))

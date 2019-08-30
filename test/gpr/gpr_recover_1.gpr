@@ -1,6 +1,5 @@
 -- From a real editing session. Recover does a reasonable job.
---EMACS_SKIP_UNLESS:(eq gpr-parser 'process)
-project gpr_recover_1 is
+project Gpr_Recover_1 is
    package Linker is
       case Profile is
          when "On" =>
@@ -13,4 +12,4 @@ project gpr_recover_1 is
             end case;
       end Linker;
 
-   end gpr_recover_1;
+   end Gpr_Recover_1;

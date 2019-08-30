@@ -35,10 +35,13 @@
 ;;;;; Code:
 
 (require 'cl-lib)
+(require 'gnat-core)
 (require 'gpr-indent-user-options)
 (require 'gpr-process)
 (require 'gpr-skel)
+(require 'wisi-compiler-gnat)
 (require 'wisi-process-parse)
+(require 'wisi-prj)
 
 (defgroup gpr nil
   "Major mode for editing gpr (Gnat Project File) source code in Emacs."
@@ -49,21 +52,21 @@
     ;; C-c <letter> are reserved for users
 
     ;; global-map has C-x ` 'next-error
-    (define-key map [return]   'ada-indent-newline-indent)
-    (define-key map "\C-c`"    'ada-show-secondary-error)
+    (define-key map [return]   'wisi-indent-newline-indent)
     ;; comment-dwim is in global map on M-;
-    (define-key map "\C-c\C-c" 'ada-build-make)
     (define-key map "\C-c\C-e" 'skeleton-expand)
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 'wisi-indent-statement)
-    (define-key map "\C-c\C-o" 	 'ff-find-other-file)
+    (define-key map "\C-c\C-o" 'ff-find-other-file)
     (define-key map "\C-c\C-P" 'gpr-set-as-project)
-    (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
-    (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
-    (define-key map "\C-c\C-y" 'ada-case-create-exception)
-    (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
+    (define-key map "\C-c\C-w" 'wisi-case-adjust-at-point)
+    (define-key map "\C-c\C-y" 'wisi-case-create-exception)
+    (define-key map "\C-c\C-\M-y" 'wisi-case-create-partial-exception)
     (define-key map "\M-n" 'skeleton-next-placeholder)
     (define-key map "\M-p" 'skeleton-prev-placeholder)
+
+    (wisi-case-activate-keys map)
+
     map
   )  "Local keymap used for GPR mode.")
 
@@ -77,21 +80,17 @@
      ["Key bindings"          describe-bindings t]
      )
 
-    ["Customize"     (customize-group 'ada)];; we reuse the Ada indentation options
+    ["Customize"     (customize-group 'gpr)]
     ["------"        nil nil]
-    ["Build current project"       ada-build-make                   t]
-    ["Find and select project ..." ada-build-prompt-select-prj-file t]
-    ["Select project ..."          ada-prj-select                   t]
     ["Parse and select current file" gpr-set-as-project             t]
-    ["Show current project"        ada-prj-show                     t]
-    ["Show project search path"    ada-prj-show-prj-path            t]
+    ["Show current project"        wisi-prj-show                    t]
+    ["Show project search path"    wisi-prj-show-prj-path           t]
     ["Next compilation error"      next-error                       t]
-    ["Show secondary error"        ada-show-secondary-error         t]
     ["Show last parse error"       wisi-show-parse-error            t]
     ["Other file"                  ff-find-other-file               t]
     ("Edit"
      ["Indent Line or selection"      indent-for-tab-command         t]
-     ["Indent current statement"      wisi-indent-statement           t]
+     ["Indent current statement"      wisi-indent-statement          t]
      ["Indent Lines in File"          (indent-region (point-min) (point-max))  t]
      ["Expand skeleton"               skeleton-expand                t]
      ["Next skeleton placeholder"     skeleton-next-placeholder      t]
@@ -99,7 +98,7 @@
      ["Comment/uncomment selection"   comment-dwim                   t]
      ["Fill Comment Paragraph"        fill-paragraph                 t]
 
-     ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t]
+     ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t] ;; FIXME: move to wisi
      ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
      )
     ))
@@ -122,7 +121,7 @@
     "null"
     "others"
     "package"
-    "project"
+    ;; "project" may also be a non-keyword attribute prefix; see test/gpr/gds.gpr
     "renames"
     "standard"
     "type"
@@ -253,7 +252,7 @@
     (modify-syntax-entry ?=  "." table)
     (modify-syntax-entry ?>  "." table)
     (modify-syntax-entry ?\; "." table)
-    (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings
+    (modify-syntax-entry ?\\ "." table); default is escape; not correct for gpr strings
     (modify-syntax-entry ?\|  "." table)
 
     ;; and \f and \n end a comment
@@ -265,7 +264,7 @@
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
 
-    ;; skeleton placeholder delimiters; see ada-skel.el. We use generic
+    ;; skeleton placeholder delimiters; see gpr-skel.el. We use generic
     ;; comment delimiter class, not comment starter/comment ender, so
     ;; these can be distinguished from line end.
     (modify-syntax-entry ?{ "!" table)
@@ -293,9 +292,88 @@
 
 ;;;; wisi integration
 
+(defcustom gpr-auto-case t
+  "When non-nil, automatically change case of preceding word while
+typing.  Casing of gpr keywords is done according to `gpr-case-keyword',
+identifiers according to `gpr-case-identifier'."
+  :group 'gpr
+  :type  '(choice (const nil)
+		  (const t)
+		  (const not-upper-case))
+  :safe  (lambda (val) (memq val '(nil t not-upper-case))))
+(make-variable-buffer-local 'gpr-auto-case)
+
+(defcustom gpr-case-keyword 'lower-case
+  "Indicate how to adjust case for language keywords.
+Value is one of lower-case, upper-case."
+  :group 'gpr
+  :type '(choice (const lower-case)
+		 (const upper-case))
+  :safe #'symbolp)
+(make-variable-buffer-local 'gpr-case-keyword)
+
+(defcustom gpr-case-strict t
+  "If non-nil, force Mixed_Case for identifiers.
+Otherwise, allow UPPERCASE for identifiers."
+  :group 'gpr
+  :type 'boolean
+  :safe  #'booleanp)
+(make-variable-buffer-local 'gpr-case-strict)
+
+(defcustom gpr-case-identifier 'mixed-case
+  "Indicates how to adjust the case of gpr keywords."
+  :group 'gpr
+  :type '(choice (const mixed-case)
+		 (const lower-case)
+		 (const upper-case))
+  ;; see comment on :safe at gpr-case-keyword
+  :safe (lambda (val) (memq val '(mixed-case lower-case upper-case))))
+(make-variable-buffer-local 'gpr-case-identifier)
+
+(defun gpr-case-adjust-p (_typed-char)
+  "For `wisi-case-adjust-p-function'."
+  ;; casing of 'project' in "Project'Project_Dir" vs "project GDS is"
+  (save-excursion
+    (let ((end (1+ (point)))
+	  (start (progn (skip-syntax-backward "w")(point))))
+      (cond
+       ((string= "project" (downcase (buffer-substring-no-properties start end)))
+	(cond
+	 ((= (char-after end) ?') ;; attribute Project'
+	  t)
+	 ((= (char-after end) ? ) ;; keyword project GDS
+	  (wisi-case-keyword start end)
+	  nil)
+	 ))
+
+       (t t) ;; not "project"
+       ))))
+
 (cl-defstruct (gpr-wisi-parser (:include wisi-process--parser))
   ;; no new structs
   )
+
+(defun gpr-prj-default ()
+  ;; only used in unit testing
+  (make-wisi-prj
+   :compiler (make-gnat-compiler)))
+
+(defun gpr-create-select-default-prj ()
+  "Create a default project with source-path set to current directory, select it."
+  (let* ((prj-file (expand-file-name "default_.gpr" default-directory)) ;; we assume this does not exist
+	 (project (make-wisi-prj
+		   :compiler (make-gnat-compiler :gpr-file prj-file)
+		   :source-path	(list default-directory)))
+	 )
+
+    ;; Do this here so wisi-prj-select-file will not try to parse the
+    ;; project file.
+    (if (assoc prj-file wisi-prj-alist)
+	(setcdr (assoc prj-file wisi-prj-alist) project)
+      (add-to-list 'wisi-prj-alist (cons prj-file project)))
+
+    (wisi-prj-select-file prj-file)
+    ))
 
 (cl-defmethod wisi-parse-format-language-options ((_parser gpr-wisi-parser))
   (format "%d %d %d"
@@ -312,25 +390,6 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
   "Name of executable to use for external process gpr parser,"
   :type 'string
   :group 'gpr)
-
-(defun gpr-wisi-setup ()
-  "Set up a buffer for parsing gpr files with wisi."
-  (wisi-setup
-   :indent-calculate nil
-   :post-indent-fail nil
-   :parser
-   (wisi-process-parse-get
-    (make-gpr-wisi-parser
-     :label "gpr"
-     :language-protocol-version gpr-wisi-language-protocol-version
-     :exec-file gpr-process-parse-exec
-     :face-table gpr-process-face-table
-     :token-table gpr-process-token-table
-     :repair-image gpr-process-repair-image
-     )))
-
-  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-  )
 
 ;;;;
 ;;;###autoload
@@ -355,9 +414,6 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
 
   (set (make-local-variable 'require-final-newline) t)
 
-  (ada-case-activate-keys gpr-mode-map)
-  (set (make-local-variable 'ada-keywords) gpr-keywords)
-
   (set (make-local-variable 'font-lock-defaults)
        '(gpr-font-lock-keywords
 	 nil t
@@ -369,10 +425,31 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
 
-  (gpr-wisi-setup)
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :parser
+   (wisi-process-parse-get
+    (make-gpr-wisi-parser
+     :label "gpr"
+     :language-protocol-version gpr-wisi-language-protocol-version
+     :exec-file gpr-process-parse-exec
+     :face-table gpr-process-face-table
+     :token-table gpr-process-token-table
+     :repair-image gpr-process-repair-image
+     )))
 
   (run-mode-hooks 'gpr-mode-hook)
 
+  (setq wisi-auto-case gpr-auto-case)
+  (setq wisi-case-identifier gpr-case-identifier)
+  (setq wisi-case-strict gpr-case-strict)
+  (setq wisi-language-keywords gpr-keywords)
+  (setq wisi-case-keyword gpr-case-keyword)
+  (setq wisi-case-adjust-p-function #'gpr-case-adjust-p)
+
+  (unless (wisi-prj-p (project-current))
+    (gpr-create-select-default-prj))
   )
 
 ;;;###autoload

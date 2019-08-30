@@ -10,7 +10,7 @@
 PACKAGE Ada_Mode.Options IS
    PRAGMA Elaborate_Body (Options);
 
-   --EMACSCMD:(progn (forward-line 1)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "TYPE")))
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 1)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "TYPE")))
    TYPE Private_Type_1 IS TAGGED
    RECORD
       --EMACSRESULT:t

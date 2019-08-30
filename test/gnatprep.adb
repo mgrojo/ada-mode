@@ -41,7 +41,7 @@ begin
       for Control_Flags use at (BASE_ADDRESS + 16#3fd#);
 
       --  Don't change the hex literal to mixed case
-      --EMACSCMD:(progn (end-of-line 2)(forward-char -1)(ada-case-adjust)(buffer-substring (- (point) 6) (point)))
+      --EMACSCMD:(progn (end-of-line 2)(forward-char -1)(wisi-case-adjust)(buffer-substring (- (point) 6) (point)))
       Other_Flags : constant Interfaces.Unsigned_16 := 16#ffff#;
       --EMACSRESULT:"#ffff#"
    begin

@@ -2,7 +2,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
 
 -- test "Text_IO" case exception set in project file
---EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Text_IO")))
+--EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 2)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "Text_IO")))
 with Ada.Text_IO;
 --EMACSRESULT:t
 -- Other file from a subunit on a context clause.
@@ -21,12 +21,12 @@ package body Separate_Package_1 is
    First_Object : Integer;
 
    -- test "ANother" partial-word case exception set in project file
-   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "ANother_Object")))
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "ANother_Object")))
    ANother_Object : Integer;
    --EMACSRESULT:t
 
    -- again, as last partial-word
-   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Object_ANother")))
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "Object_ANother")))
    Object_ANother : Integer;
    --EMACSRESULT:t
    pragma Unreferenced (Object_ANother);

@@ -53,45 +53,9 @@ before file local variables are processed.")
 Called by `syntax-propertize', which is called by font-lock in
 `after-change-functions'.")
 
-(defun ada-in-comment-p (&optional parse-result)
-  "Return t if inside a comment.
-If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
-  (nth 4 (or parse-result (syntax-ppss))))
-
-(defun ada-in-string-p (&optional parse-result)
-  "Return t if point is inside a string.
-If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
-  (nth 3 (or parse-result (syntax-ppss))))
-
-(defun ada-in-string-or-comment-p (&optional parse-result)
-  "Return t if inside a comment or string.
-If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
-  (setq parse-result (or parse-result (syntax-ppss)))
-  (or (ada-in-string-p parse-result) (ada-in-comment-p parse-result)))
-
 (defun ada-in-based-numeric-literal-p ()
   "Return t if point is after a prefix of a based numeric literal."
   (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)" (line-beginning-position)))
-
-(defun ada-in-paren-p (&optional parse-result)
-  "Return t if point is inside a pair of parentheses.
-If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
-  (> (nth 0 (or parse-result (syntax-ppss))) 0))
-
-(defun ada-pos-in-paren-p (pos)
-  "Return t if POS is inside a pair of parentheses."
-  (save-excursion
-    (> (nth 0 (syntax-ppss pos)) 0)))
-
-(defun ada-same-paren-depth-p (pos1 pos2)
-  "Return t if POS1 is at same parentheses depth as POS2."
-  (= (nth 0 (syntax-ppss pos1)) (nth 0 (syntax-ppss pos2))))
-
-(defun ada-goto-open-paren (&optional offset parse-result)
-  "Move point to innermost opening paren surrounding current point, plus OFFSET.
-Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
-instead of calling `syntax-ppss'."
-  (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
 
 (defun ada-declarative-region-start-p (cache)
   "Return t if cache is a keyword starting a declarative region."
@@ -261,9 +225,8 @@ Point must be in Object"
 
 ;; refactor-5 in ada-format-paramlist below
 
-;;;; auto-case
-
 (defcustom ada-language-version 'ada2012
+  ;; ada-fix-error.el needs this.
   "Ada language version; one of `ada83', `ada95', `ada2005', `ada2012'.
 Only affects the keywords to highlight, not which version the
 parser accepts; the parser always accepts a superset of ada2012."
@@ -274,325 +237,9 @@ parser accepts; the parser always accepts a superset of ada2012."
   :safe  #'symbolp)
 (make-variable-buffer-local 'ada-language-version)
 
-(defun ada--set-auto-case (symbol value)
-  (setq wisi-auto-case value)
-  (set symbol value))
-
-(defcustom ada-auto-case t
-  "Buffer-local value that may override project variable `auto_case'.
-Global value is default for project variable `auto_case'.
-t means automatically change case of preceding word while typing.
-not-upper-case means only change case if typed word is not all upper-case.
-Casing of Ada keywords is done according to `ada-case-keyword',
-identifiers according to `ada-case-identifier'."
-  :type  '(choice (const nil)
-		  (const t)
-		  (const not-upper-case))
-  :safe  (lambda (val) (memq val '(nil t not-upper-case)))
-  :set #'ada--set-auto-case)
-(make-variable-buffer-local 'ada-auto-case)
-
-(defun ada--set-case-keyword (symbol value)
-  (setq wisi-case-keyword value)
-  (set symbol value))
-
-(defcustom ada-case-keyword 'lower-case
-  "Buffer-local value that may override project variable `case_keyword'.
-Global value is default for project variable `case_keyword'.
-"
-  :type '(choice (const lower-case)
-		 (const upper-case))
-  :safe #'symbolp
-  :set #'ada--set-case-keyword)
-(make-variable-buffer-local 'ada-case-keyword)
-
-(defcustom ada-case-strict t
-  "Buffer-local value that may override project variable `case_strict'.
-Global value is default for project variable `case_strict'.
-If non-nil, force Mixed_Case for identifiers.
-Otherwise, allow UPPERCASE for identifiers."
-  :type 'boolean
-  :safe  #'booleanp)
-(make-variable-buffer-local 'ada-case-strict)
-
-(defun ada--set-case-identifier (symbol value)
-  (setq wisi-case-identifier
-	(cl-ecase value
-	  (mixed-case (if ada-case-strict 'mixed-case-strict 'mixed-case-relaxed))
-	  (lower-case 'lower-case)
-	  (upper-case 'upper-case)))
-  (set symbol value))
-
-(defcustom ada-case-identifier 'mixed-case
-  "Buffer-local value that may override project variable `case_keyword'.
-Global value is default for project variable `case_keyword'.
-Indicates how to adjust the case of Ada keywords."
-  :type '(choice (const mixed-case)
-		 (const lower-case)
-		 (const upper-case))
-  ;; see comment on :safe at ada-case-keyword
-  :safe (lambda (val) (memq val '(mixed-case lower-case upper-case)))
-  :set #'ada--set-case-identifier
-  :set-after '(ada-case-strict))
-(make-variable-buffer-local 'ada-case-identifier)
-
-(defvar ada-keywords nil
-  "List of Ada keywords for current `ada-language-version'.")
-
-(defun ada-after-keyword-p ()
-  "Return non-nil if point is after an element of `ada-keywords'."
-  (let ((word (buffer-substring-no-properties
-	       (save-excursion (skip-syntax-backward "w_") (point))
-	       (point))))
-    (member (downcase word) ada-keywords)))
-
-;; FIXME: when move this to wisi, cannot be single global variable;
-;; multiple modes will use wisi. Move case-adjust to
-;; post-command-hook? post-self-insert-hook?
-(defvar ada-ret-binding 'ada-indent-newline-indent)
-(defvar ada-lfd-binding 'newline-and-indent)
-
-(defun ada-case-keyword (beg end)
-  (cl-ecase ada-case-keyword
-    (lower-case (downcase-region beg end))
-    (upper-case (upcase-region beg end))
-    ))
-
-(defun ada-case-identifier (start end force-case-strict)
-  (cl-ecase ada-case-identifier
-    (mixed-case (ada-mixed-case start end force-case-strict))
-    (lower-case (downcase-region start end))
-    (upper-case (upcase-region start end))
-    ))
-
-(defun ada-mixed-case (start end force-case-strict)
-  "Adjust case of region START END to Mixed_Case."
-  (let ((done nil)
-	next)
-    (if (or force-case-strict ada-case-strict)
-	(downcase-region start end))
-    (goto-char start)
-    (while (not done)
-      (setq next
-	    (or
-	     (save-excursion (when (search-forward "_" end t) (point-marker)))
-	     (copy-marker (1+ end))))
-
-      ;; upcase first char
-      (upcase-region (point) (1+ (point)))
-
-      (goto-char next)
-      (if (< (point) end)
-	  (setq start (point))
-	(setq done t))
-      )))
-
-(defun ada-case-adjust-identifier (&optional force-case)
-  "Adjust case of the previous word as an identifier.
-Uses `ada-case-identifier', with exceptions defined in
-`ada-case-full-exceptions', `ada-case-partial-exceptions'."
-  (interactive)
-  (save-excursion
-    (let ((prj (ada-prj-require-prj))
-	  (end   (point-marker))
-	  (start (progn (skip-syntax-backward "w_") (point)))
-	  match
-	  next
-	  (done nil))
-
-      (if (setq match
-		(assoc-string (buffer-substring-no-properties start end)
-			      (ada-prj-case-full-exceptions prj)
-			      t ;; case-fold
-			      ))
-	  ;; full word exception
-	  (progn
-	    ;; 'save-excursion' puts a marker at 'end'; if we do
-	    ;; 'delete-region' first, it moves that marker to 'start',
-	    ;; then 'insert' inserts replacement text after the
-	    ;; marker, defeating 'save-excursion'. So we do 'insert' first.
-	    (insert (car match))
-	    (delete-region (point) end))
-
-	;; else apply ada-case-identifier
-	(ada-case-identifier start end force-case)
-
-	;; apply partial-exceptions
-	(goto-char start)
-	(while (not done)
-	  (setq next
-		(or
-		 (save-excursion (when (search-forward "_" end t) (point-marker)))
-		 (copy-marker (1+ end))))
-
-	  (when (setq match (assoc-string (buffer-substring-no-properties start (1- next))
-					  (ada-prj-case-partial-exceptions prj)
-					  t))
-	    ;; see comment above at 'full word exception' for why
-	    ;; we do insert first.
-	    (insert (car match))
-	    (delete-region (point) (1- next)))
-
-	  (goto-char next)
-	  (if (< (point) end)
-	      (setq start (point))
-	    (setq done t))
-          ))
-      )))
-
-(defun ada-case-adjust-keyword ()
-  "Adjust the case of the previous word as a keyword.
-`word' here is allowed to be underscore-separated (GPR external_as_list)."
-  (save-excursion
-    (let ((end   (point-marker))
-	  (start (progn (skip-syntax-backward "w_") (point))))
-      (ada-case-keyword start end)
-    )))
-
-(defun ada-case-adjust (&optional typed-char in-comment)
-  "Adjust the case of the word before point.
-When invoked interactively, TYPED-CHAR must be
-`last-command-event', and it must not have been inserted yet.
-If IN-COMMENT is non-nil, adjust case of words in comments and strings as code,
-and treat `ada-case-strict' as t in code."
-  (when (not (bobp))
-    (when (save-excursion
-	    (forward-char -1); back to last character in word
-	    (and (not (bobp))
-		 (eq (char-syntax (char-after)) ?w); it can be capitalized
-
-		 (not (and (eq typed-char ?')
-			   (eq (char-before (point)) ?'))); character literal
-
-		 (or in-comment
-		     (not (ada-in-string-or-comment-p)))
-		 ;; we sometimes want to capitialize an Ada identifier
-		 ;; referenced in a comment, via
-		 ;; ada-case-adjust-at-point.
-
-		 (not (ada-in-based-numeric-literal-p))
-		 ;; don't adjust case on hex digits
-		 ))
-
-      ;; The indentation engine may trigger a reparse on
-      ;; non-whitespace changes, but we know we don't need to reparse
-      ;; for this change (assuming the user has not abused case
-      ;; exceptions!).
-      (let ((inhibit-modification-hooks t))
-	(cond
-	 ;; Some attributes are also keywords, but captialized as
-	 ;; attributes. So check for attribute first.
-	 ((and
-	   (not in-comment)
-	   (save-excursion
-	     (skip-syntax-backward "w_")
-	     (eq (char-before) ?')))
-	  (ada-case-adjust-identifier in-comment))
-
-	 ((and
-	   (not in-comment)
-	   (not (eq typed-char ?_))
-	   (ada-after-keyword-p))
-	  (ada-case-adjust-keyword))
-
-	 (t (ada-case-adjust-identifier in-comment))
-	 ))
-      )))
-
-(defun ada-case-adjust-at-point (&optional in-comment)
-  "If ’ada-auto-case’ is non-nil, adjust case of word at point, move to end of word.
-With prefix arg, adjust case as code even if in comment or string;
-otherwise, capitalize words in comments and strings.
-If ’ada-auto-case’ is nil, capitalize current word."
-  (interactive "P")
-  (cond
-   ((or (null ada-auto-case)
-	(and (not in-comment)
-	     (ada-in-string-or-comment-p)))
-    (skip-syntax-backward "w_")
-    (capitalize-word 1))
-
-   (t
-    (when
-	(and (not (eobp))
-	     ;; we use '(syntax-after (point))' here, not '(char-syntax
-	     ;; (char-after))', because the latter does not respect
-	     ;; ada-syntax-propertize.
-	     (memq (syntax-class (syntax-after (point))) '(2 3)))
-      (skip-syntax-forward "w_"))
-    (ada-case-adjust nil in-comment))
-   ))
-
-(defun ada-case-adjust-region (begin end)
-  "Adjust case of all words in region BEGIN END."
-  (interactive "r")
-  (narrow-to-region begin end)
-  (save-excursion
-    (goto-char begin)
-    (while (not (eobp))
-      (forward-comment (point-max))
-      (skip-syntax-forward "^w_")
-      (skip-syntax-forward "w_")
-      (ada-case-adjust)))
-  (widen))
-
-(defun ada-case-adjust-buffer ()
-  "Adjust case of current buffer."
-  (interactive)
-  (ada-case-adjust-region (point-min) (point-max)))
-
-(defun ada-case-adjust-interactive (arg)
-  "If `ada-auto-case' is non-nil, adjust the case of the previous word, and process the character just typed.
-To be bound to keys that should cause auto-casing.
-ARG is the prefix the user entered with \\[universal-argument]."
-  (interactive "P")
-
-  ;; character typed has not been inserted yet
-  (let ((lastk last-command-event)
-	(do-adjust nil))
-    (cond
-     ((null ada-auto-case))
-     ((eq ada-auto-case 'not-upper-case)
-      (save-excursion
-	(let* ((begin (progn (skip-syntax-backward "w_") (point)))
-	       (end  (progn (skip-syntax-forward "w_") (point)))
-	       (word (buffer-substring-no-properties begin end)))
-	  (setq do-adjust (not (string-equal word (upcase word)))))))
-     (t
-      (setq do-adjust t)))
-
-    (cond
-     ((eq lastk ?\n)
-        (when do-adjust
-	  (ada-case-adjust lastk))
-	(funcall ada-lfd-binding))
-
-     ((memq lastk '(?\r return))
-      (when do-adjust
-	(ada-case-adjust lastk))
-      (funcall ada-ret-binding))
-
-     (t
-      (when do-adjust
-	(ada-case-adjust lastk))
-      (self-insert-command (prefix-numeric-value arg)))
-     )))
-
-(defun ada-case-activate-keys (map)
-  "Modify the key bindings for all the keys that should adjust casing."
-  ;; we could just put these in the keymap below, but this is easier.
-  (mapc (function
-	 (lambda(key)
-	   (define-key
-	     map
-	     (char-to-string key)
-	     'ada-case-adjust-interactive)))
-	'( ?_ ?% ?& ?* ?\( ?\) ?- ?= ?+
-	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
-  )
-
 ;;;; abbrev, align
 
+;; FIXME: move to ada-mode.el
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
 
@@ -626,7 +273,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
     ;; we don't put "when (match-beginning n)" here; missing a match
     ;; is a bug in the regexp.
     (goto-char (or (match-beginning 2) (match-beginning 1)))
-    (not (ada-in-string-or-comment-p))))
+    (not (wisi-in-string-or-comment-p))))
 
 (defconst ada-align-region-separate
   (eval-when-compile
@@ -655,7 +302,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
   "Return non-nil if point is in a case expression."
   (save-excursion
     ;; Used by ada-align; we know we are in a paren.
-    (ada-goto-open-paren 1)
+    (wisi-goto-open-paren 1)
     (while (forward-comment 1))
     (looking-at "case")))
 
@@ -675,7 +322,7 @@ current construct."
         (ada-format-paramlist))
 
        ((and
-	 (ada-in-paren-p parse-result)
+	 (wisi-in-paren-p parse-result)
 	 (ada-in-case-expression))
 	;; align '=>'
 	(let ((begin (nth 1 parse-result))
@@ -702,7 +349,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
   "Reformat the parameter list point is in."
   (interactive)
   (condition-case nil
-      (ada-goto-open-paren)
+      (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))
   (funcall indent-line-function); so new list is indented properly
@@ -769,12 +416,13 @@ nil, only the file name."
 
 ;;;; project files
 
-;; FIXME: delete after finish converting ada-build.el
 (defvar ada-prj-default-list nil
-  ;; project file parse
+  ;; This is used by ada-build.el; we keep it to allow other similar
+  ;; uses.
   "List of functions to add default project variables. Called
-with one argument; the project. `default-directory' is set to the directory containing the
-project file. Function should update the project.")
+with one argument; the project. `default-directory' is set to the
+directory containing the project file. Function should update the
+project.")
 
 (defun ada-prj-default (&optional src-dir)
   "Return the default `ada-prj' object.
@@ -787,15 +435,9 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 			   ((null src-dir) nil)
 			   ((listp src-dir) src-dir)
 			   (t (list src-dir)))
-	  :plist (list
-		  ;; variable name alphabetical order
-		  'auto_case       ada-auto-case
-		  'case_keyword    ada-case-keyword
-		  'case_identifier ada-case-identifier
-		  'case_strict     ada-case-strict
-		  ))))
+	  )))
 
-    (cl-dolist (func ada-prj-default-list) ;; FIXME delete
+    (cl-dolist (func ada-prj-default-list)
       (funcall func project))
 
     project))
@@ -832,7 +474,7 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 		    (compiler (ada-prj-make-compiler compiler-label))
 		    (xref (ada-prj-make-xref xref-label))
 		    )))
-  plist    ;; old-style ada-mode project property list, while we are converting. FIXME: delete
+  plist    ;; user-declared project variables; also obj_dir, mostly as an example.
   )
 
 (defun ada-prj-require-prj ()
@@ -930,10 +572,23 @@ Deselects the current project first."
     (wisi-prj-select-file prj-file)
     ))
 
+(cl-defgeneric ada-prj-select-compiler (compiler project)
+  "PROJECT has been selected; set any project options that are both Ada and compiler specific.")
+
+(cl-defgeneric ada-prj-deselect-compiler (compiler project)
+  "PROJECT has been deselected; unset any project options that are both Ada and compiler specific.")
+
+(cl-defmethod wisi-prj-select :after ((project ada-prj))
+  (ada-prj-select-compiler (ada-prj-compiler project) project))
+
+(cl-defmethod wisi-prj-deselect :before ((project ada-prj))
+  (ada-prj-deselect-compiler (ada-prj-compiler project) project))
+
 (cl-defmethod wisi-prj-identifier-at-point ((_project ada-prj))
   "Return the identifier around point, move point to start of
 identifier.  May be an Ada identifier or operator."
-  (when (ada-in-comment-p)
+  (when (wisi-in-comment-p)
+    ;; We don't abort on string; operator function names are strings.
     (error "Inside comment"))
 
   ;; Handle adjacent operator/identifer like:
@@ -952,7 +607,7 @@ identifier.  May be an Ada identifier or operator."
   ;; Just in front of, or inside, a string => we could have an
   ;; operator function declaration.
   (cond
-   ((ada-in-string-p)
+   ((wisi-in-string-p)
     (cond
 
      ((and (= (char-before) ?\")
@@ -979,29 +634,6 @@ identifier.  May be an Ada identifier or operator."
    (t
     (error "No identifier around"))
    ))
-
-;; FIXME: dispatch on wisi-prj-compiler, move to compiler
-(defvar ada-prj-show-prj-path nil
-  ;; Supplied by compiler
-  "Function to show project file search path used by compiler (and possibly xref tool)."
-  )
-
-(defun ada-prj-show-prj-path ()
-  (interactive)
-  (when ada-prj-show-prj-path
-    (funcall ada-prj-show-prj-path)))
-
-(defun ada-prj-show-src-path ()
-  "Show the project source file search path."
-  (interactive)
-  (if compilation-search-path
-      (progn
-	(pop-to-buffer (get-buffer-create "*Ada project source file search path*"))
-	(erase-buffer)
-	(dolist (file compilation-search-path)
-	  (insert (format "%s\n" file))))
-    (message "no project source file search path set")
-    ))
 
 ;; FIXME: move to project menu to wisi, provide delete
 (defun ada-project-menu-compute ()

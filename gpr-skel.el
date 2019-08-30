@@ -257,7 +257,7 @@ it is a name, and use the word before that as the token."
 (defun gpr-skel-setup ()
   "Setup a buffer for gpr-skel."
   (setq skeleton-token-alist 'gpr-skel-token-alist)
-  (add-hook 'skeleton-end-hook 'gpr-indent-statement nil t)
+  (add-hook 'skeleton-end-hook 'wisi-indent-statement nil t)
   (when (and gpr-skel-initial-string
 	     (= (buffer-size) 0))
     (insert gpr-skel-initial-string))

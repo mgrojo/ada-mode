@@ -35,6 +35,7 @@
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
 (require 'ada-core)
+(require 'gnat-core)
 (require 'cl-lib)
 
 ;;;; User customization
@@ -95,8 +96,22 @@ buffer file name including the directory and extension."
 	  (name (match-string 2 cmd-string))
 	  value)
 
-      (when (string= name "full_current")
+      (cond
+       ((string= name "full_current")
 	(setq value (buffer-file-name)))
+
+       ;; Handle names that are likely to occur in commands.
+       ((string= name "src_dir")
+	(setq value (ada-prj-source-path project)))
+
+       ((or (string= name "gpr_project_path")
+	   (string= name "ada_project_path"))
+	(setq value (gnat-compiler-project-path (ada-prj-compiler project))))
+
+       ((string= name "gpr_file")
+	(setq value (gnat-compiler-gpr-file (ada-prj-compiler project))))
+
+       )
 
       (when (null value)
 	(setq value (plist-get (ada-prj-plist project) (intern name))))
@@ -120,17 +135,18 @@ buffer file name including the directory and extension."
   (substitute-in-file-name cmd-string))
 
 (defun ada-build-default-prj (project)
-  "Add to PROJECT the default properties list for Ada project variables used by ada-build."
-  (append
-   project
-   (list
-    'check_cmd       ada-build-check-cmd
-    'main            (when (buffer-file-name)
-		       (file-name-nondirectory
-			(file-name-sans-extension (buffer-file-name))))
-    'make_cmd        ada-build-make-cmd
-    'run_cmd         ada-build-run-cmd
-    )))
+  "Add to PROJECT the default project variables used by ada-build."
+  (setf (ada-prj-plist project)
+	(append
+	 (ada-prj-plist project)
+	 (list
+	  'check_cmd       ada-build-check-cmd
+	  'main            (when (buffer-file-name)
+			     (file-name-nondirectory
+			      (file-name-sans-extension (buffer-file-name))))
+	  'make_cmd        ada-build-make-cmd
+	  'run_cmd         ada-build-run-cmd
+	  ))))
 
 (defun ada-build-find-select-prj-file ()
   "Search for a project file in the current directory, parse and select it.
@@ -225,8 +241,9 @@ error - Throw an error (no prompt, no default project).
 If CONFIRM or `ada-build-confirm-command' are non-nil, ask for
 user confirmation of the command, using PROMPT."
   (ada-build-require-project-file)
-  (let ((cmd (plist-get (ada-prj-plist (ada-prj-require-prj)) prj-field))
-	(process-environment (cl-copy-list (plist-get (ada-prj-plist (ada-prj-require-prj)) 'proc_env))))
+  (let* ((project (ada-prj-require-prj))
+	 (cmd (plist-get (ada-prj-plist project) prj-field))
+	 (process-environment (cl-copy-list (ada-prj-environment project))))
 
     (unless cmd
       (setq cmd '("")
@@ -235,7 +252,7 @@ user confirmation of the command, using PROMPT."
     (when (or ada-build-confirm-command confirm)
       (setq cmd (read-from-minibuffer (concat prompt ": ") cmd)))
 
-    (compile (ada-build-replace-vars (ada-prj-require-prj) cmd))))
+    (compile (ada-build-replace-vars project cmd))))
 
 ;;;###autoload
 (defun ada-build-check (&optional confirm)

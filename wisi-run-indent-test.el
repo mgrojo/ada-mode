@@ -261,7 +261,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
        (buffer-file-name) (line-number-at-pos (point)) error-count))
     )
 
-  (when (not skip-reindent-test)
+  (unless skip-reindent-test
     ;; Reindent the buffer
     (message "indenting")
 
@@ -278,6 +278,10 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     ;; files must be saved without any.
     (delete-trailing-whitespace)
     )
+
+  (unless skip-recase-test
+    (message "casing")
+    (wisi-case-adjust-buffer))
   )
 
 (defun run-test (file-name)

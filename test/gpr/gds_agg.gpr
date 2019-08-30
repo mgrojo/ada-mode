@@ -1,6 +1,6 @@
 -- Test 'aggregate' indentation
 aggregate
-project GDS_Agg is
+project Gds_Agg is
    for Project_Path use
      ("../../../makerules",
       "../../../sal/build",
@@ -9,4 +9,4 @@ project GDS_Agg is
 
    for Project_Files use ("gds.gpr");
 
-end GDS_Agg;
+end Gds_Agg;

@@ -224,7 +224,7 @@ slower to load on first use, but gives better error recovery."
     ;; C-c <letter> are reserved for users
 
     ;; global-map has C-x ` 'next-error
-    (define-key map [return] 	 'ada-case-adjust-interactive)
+    (define-key map [return] 	 'wisi-case-adjust-interactive)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
     (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
     (define-key map "\C-c<" 	 'ada-goto-declaration-start)
@@ -251,14 +251,14 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\M-r" 	 'ada-build-run)
     (define-key map "\C-c\C-s"   'pop-global-mark)
     (define-key map "\C-c\C-v"   'ada-build-check)
-    (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point);; FIXME: move to wisi
+    (define-key map "\C-c\C-w" 	 'wisi-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'wisi-show-overriding)
     (define-key map "\C-c\M-x"   'wisi-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
 
-    (ada-case-activate-keys map)
+    (wisi-case-activate-keys map)
 
     map
   )  "Local keymap used for Ada mode.")
@@ -276,7 +276,7 @@ slower to load on first use, but gives better error recovery."
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
      ["Select project ..."            ada-prj-select                   t]
      ["Show project"                  ada-prj-show                     t]
-     ["Show project file search path" ada-prj-show-prj-path            t]
+     ["Show project file search path" wisi-prj-show-prj-path           t]
      ["Show source file search path"  ada-prj-show-src-path            t]
      ["Delete project ..."            ada-prj-delete                   t]
     )
@@ -313,7 +313,7 @@ slower to load on first use, but gives better error recovery."
     ("Edit"
      ["Expand skeleton"             ada-skel-expand              t]
      ["Indent line or selection"    indent-for-tab-command  t]
-     ["Indent current statement"    ada-indent-statement    t]
+     ["Indent current statement"    wisi-indent-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
      ["Comment/uncomment selection" comment-dwim            t]
@@ -331,9 +331,9 @@ slower to load on first use, but gives better error recovery."
     ("Casing"
      ["Create full exception"       ada-case-create-exception t]
      ["Create partial exception"    ada-case-create-partial-exception t]
-     ["Adjust case at point"        ada-case-adjust-at-point  t]
-     ["Adjust case region"          ada-case-adjust-region    t]
-     ["Adjust case buffer"          ada-case-adjust-buffer    t]
+     ["Adjust case at point"        wisi-case-adjust-at-point  t]
+     ["Adjust case region"          wisi-case-adjust-region    t]
+     ["Adjust case buffer"          wisi-case-adjust-buffer    t]
      ["Show casing files list"      ada-case-show-files       t]
      )
     ("Misc"
@@ -376,14 +376,14 @@ slower to load on first use, but gives better error recovery."
 
     ["Align"			      ada-align                  t]
     ["Comment/uncomment selection"    comment-dwim               t]
-    ["Fill comment paragraph"	      ada-fill-comment-paragraph           (ada-in-comment-p)]
-    ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   (ada-in-comment-p)]
-    ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) (ada-in-comment-p)]
-    ["Adjust case at point"	      ada-case-adjust-at-point             (not (use-region-p))]
-    ["Adjust case region"	      ada-case-adjust-region               (use-region-p)]
+    ["Fill comment paragraph"	      ada-fill-comment-paragraph           (wisi-in-comment-p)]
+    ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   (wisi-in-comment-p)]
+    ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) (wisi-in-comment-p)]
+    ["Adjust case at point"	      wisi-case-adjust-at-point             (not (use-region-p))]
+    ["Adjust case region"	      wisi-case-adjust-region               (use-region-p)]
     ["Create full case exception"     ada-case-create-exception         t]
     ["Create partial case exception"  ada-case-create-partial-exception t]
-    ["Indent current statement"	      ada-indent-statement              t]
+    ["Indent current statement"	      wisi-indent-statement             t]
     ["Expand skeleton"		      ada-skel-expand                   t]
     ["Make body for subprogram"	      ada-make-subprogram-body          t]
     ))
@@ -411,34 +411,6 @@ button was clicked."
   (interactive)
   (mouse-set-point last-input-event)
   (popup-menu ada-refactor-menu))
-
-(defun ada-indent-newline-indent ()
-  "insert a newline, indent the old and new lines."
-  (interactive "*")
-  ;; point may be in the middle of a word, so insert newline first,
-  ;; then go back and indent.
-  (insert "\n")
-  (unless (and (wisi-partial-parse-p (line-beginning-position) (line-end-position))
-	       (save-excursion (progn (forward-char -1)(looking-back "begin\\|else" (line-beginning-position)))))
-    ;; Partial parse may think 'begin' is just the start of a
-    ;; statement, when it's actually part of a larger declaration. So
-    ;; don't indent 'begin'. Similarly for 'else'; error recovery will
-    ;; probably insert 'if then' immediately before it
-    (forward-char -1)
-    (funcall indent-line-function)
-    (forward-char 1))
-  (funcall indent-line-function))
-
-(defvar ada-indent-statement nil
-  ;; indentation function
-  "Function to indent the statement/declaration point is in or after.
-Function is called with no arguments.")
-
-(defun ada-indent-statement ()
-  "Indent current statement."
-  (interactive)
-  (when ada-indent-statement
-    (funcall ada-indent-statement)))
 
 ;;;; syntax properties
 
@@ -600,7 +572,7 @@ See `ff-other-file-alist'.")
   "Used in `ada-which-function'."
   (let* ((result (wisi-next-name)))
 
-    ;; See comment in ada-mode.el ada-which-function on why we don't
+    ;; See comment in ada-which-function on why we don't
     ;; overwrite ff-function-name.
     (when (not ff-function-name)
       (setq ff-function-name
@@ -743,7 +715,7 @@ previously set by a file navigation command."
 	    (setq found (match-beginning 0))
 	  ;; not in remainder of buffer
 	  (setq done t))
-	(if (ada-in-string-or-comment-p)
+	(if (wisi-in-string-or-comment-p)
 	    (setq found nil)
 	  (setq done t)))
       (when found
@@ -807,6 +779,7 @@ previously set by a file navigation command."
   )
 
 (defun ada-find-file (filename)
+  ;; FIXME: use project-find-file
   ;; we assume compliation-search-path is set, either by an
   ;; ada-mode project, or by some other means.
   (interactive (list (completing-read "File: "
@@ -967,7 +940,7 @@ If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
 to each line filled and justified.
 The ident for the paragraph is taken from the first line."
   (interactive "P")
-  (if (not (or (ada-in-comment-p)
+  (if (not (or (wisi-in-comment-p)
                (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
@@ -1074,6 +1047,9 @@ The ident for the paragraph is taken from the first line."
   '("some")
   "List of keywords new in Ada 2012.")
 
+(defvar ada-keywords nil
+  "List of Ada keywords for current `ada-language-version'.")
+
 (defun ada-font-lock-keywords ()
   "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."
    ;; Grammar actions set `font-lock-face' property for all
@@ -1081,6 +1057,56 @@ The ident for the paragraph is taken from the first line."
   (list
    (list (concat "\\_<" (regexp-opt ada-keywords t) "\\_>") '(0 font-lock-keyword-face))
    ))
+
+;;;; auto-case
+
+(defcustom ada-auto-case t
+  "When non-nil, automatically change case of preceding word while
+typing.  Casing of Ada keywords is done according to `ada-case-keyword',
+identifiers according to `ada-case-identifier'."
+  :group 'ada
+  :type  '(choice (const nil)
+		  (const t)
+		  (const not-upper-case))
+  :safe  (lambda (val) (memq val '(nil t not-upper-case))))
+(make-variable-buffer-local 'ada-auto-case)
+
+(defcustom ada-case-keyword 'lower-case
+  "Indicate how to adjust case for language keywords.
+Value is one of lower-case, upper-case."
+  :group 'ada
+  :type '(choice (const lower-case)
+		 (const upper-case))
+  :safe #'symbolp)
+(make-variable-buffer-local 'ada-case-keyword)
+
+(defcustom ada-case-strict t
+  "If non-nil, force Mixed_Case for identifiers.
+Otherwise, allow UPPERCASE for identifiers."
+  :group 'ada
+  :type 'boolean
+  :safe  #'booleanp)
+(make-variable-buffer-local 'ada-case-strict)
+
+(defcustom ada-case-identifier 'mixed-case
+  "Indicates how to adjust the case of Ada keywords."
+  :group 'ada
+  :type '(choice (const mixed-case)
+		 (const lower-case)
+		 (const upper-case))
+  :safe (lambda (val) (memq val '(mixed-case lower-case upper-case))))
+(make-variable-buffer-local 'ada-case-identifier)
+
+(defun ada-case-adjust-p (typed-char)
+  "For `wisi-case-adjust-p-function'."
+  (and
+   ;; hex digits
+   (not (ada-in-based-numeric-literal-p))
+
+   ;; character literal
+   (not (and (eq typed-char ?')
+	     (eq (char-before (point)) ?')))
+  ))
 
 ;;;; wisi integration
 
@@ -1148,7 +1174,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
   (cond
    ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
-     (lambda () (or (ada-in-string-or-comment-p)
+     (lambda () (or (wisi-in-string-or-comment-p)
 		    (looking-back "access " (line-beginning-position)))))
      ;; "access" rejects subprobram access parameters; test/ada_mode-recover_partial_20.adb
 
@@ -1184,8 +1210,8 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 
     (while (not end-cand)
       (if (search-forward-regexp ada-wisi-partial-end-regexp nil 1) ;; moves to eob if not found
-	  (unless (or (ada-in-string-or-comment-p)
-		      (ada-in-paren-p))
+	  (unless (or (wisi-in-string-or-comment-p)
+		      (wisi-in-paren-p))
 	    (setq match t)
 	    (setq end-cand (point)))
 
@@ -1225,7 +1251,7 @@ Point must have been set by `ada-wisi-find-begin'."
 		    ";"))
       (if (search-forward-regexp end-regexp nil t)
 	  (progn
-	    (while (and (ada-in-string-or-comment-p)
+	    (while (and (wisi-in-string-or-comment-p)
 			(search-forward-regexp end-regexp nil t)))
 	    (point))
 
@@ -1414,27 +1440,6 @@ For `wisi-indent-calculate-functions'.
       ))
   (back-to-indentation))
 
-(defun ada-wisi-setup ()
-  "Set up a buffer for parsing Ada files with wisi."
-  (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
-
-  (wisi-setup
-   :indent-calculate '(ada-wisi-comment)
-   :post-indent-fail 'ada-wisi-post-parse-fail
-   :parser
-   (wisi-process-parse-get
-    (make-ada-wisi-parser
-     :label "Ada"
-     :language-protocol-version ada-wisi-language-protocol-version
-     :exec-file ada-process-parse-exec
-     :exec-opts ada-process-parse-exec-opts
-     :face-table ada-process-face-table
-     :token-table ada-process-token-table
-     :repair-image ada-process-repair-image)))
-
-  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-  )
-
 ;;;; ada-mode
 
 (defvar which-func-functions nil) ;; which-func.el
@@ -1521,6 +1526,9 @@ For `wisi-indent-calculate-functions'.
   (set (make-local-variable 'align-region-separate) ada-align-region-separate)
   (set (make-local-variable 'align-indent-before-aligning) t)
 
+  (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
+  (set (make-local-variable 'end-of-defun-function) #'ada-goto-declaration-end)
+
   ;; Exclude comments alone on line from alignment.
   (add-to-list 'align-exclude-rules-list
 	       '(ada-solo-comment
@@ -1535,7 +1543,21 @@ For `wisi-indent-calculate-functions'.
 
   (easy-menu-add ada-mode-menu ada-mode-map)
 
-  (ada-wisi-setup)
+  (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
+
+  (wisi-setup
+   :indent-calculate '(ada-wisi-comment)
+   :post-indent-fail 'ada-wisi-post-parse-fail
+   :parser
+   (wisi-process-parse-get
+    (make-ada-wisi-parser
+     :label "Ada"
+     :language-protocol-version ada-wisi-language-protocol-version
+     :exec-file ada-process-parse-exec
+     :exec-opts ada-process-parse-exec-opts
+     :face-table ada-process-face-table
+     :token-table ada-process-token-table
+     :repair-image ada-process-repair-image)))
 
   (run-mode-hooks 'ada-mode-hook)
 
@@ -1590,11 +1612,14 @@ For `wisi-indent-calculate-functions'.
     ;; ada-keywords
     (font-lock-refresh-defaults))
 
-  (set (make-local-variable 'beginning-of-defun-function) #'ada-goto-declaration-start)
-
-  (set (make-local-variable 'end-of-defun-function) #'ada-goto-declaration-end)
-
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
+
+  (setq wisi-auto-case ada-auto-case)
+  (setq wisi-case-identifier ada-case-identifier)
+  (setq wisi-case-strict ada-case-strict)
+  (setq wisi-language-keywords ada-keywords)
+  (setq wisi-case-keyword ada-case-keyword)
+  (setq wisi-case-adjust-p-function #'ada-case-adjust-p)
 
   (unless (ada-prj-p (project-current))
     (ada-create-select-default-prj))

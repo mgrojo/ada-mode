@@ -70,14 +70,14 @@ excluding leading pragmas."
         search-bound)
     (insert unit-name)
     (setq search-bound (point))
-    (insert " ") ; separate from following words, if any, for ada-case-adjust-identifier
+    (insert " ") ; separate from following words, if any, for wisi-case-adjust-identifier
     (goto-char start-point)
     (while (search-forward "." search-bound t)
       (forward-char -1)
-      (ada-case-adjust-identifier)
+      (wisi-case-adjust-identifier)
       (forward-char 1))
     (goto-char search-bound)
-    (ada-case-adjust-identifier)
+    (wisi-case-adjust-identifier)
     (delete-char 1)))
 
 (defun ada-fix-sort-context-pred (a b)
@@ -186,7 +186,7 @@ extend a with_clause to include CHILD-NAME  .	"
     (setq end (point))
     (goto-char begin)
     (while (< (point) end)
-      (ada-case-adjust-at-point)
+      (wisi-case-adjust-at-point)
       (forward-char 1))
     ))
 

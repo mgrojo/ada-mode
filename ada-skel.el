@@ -426,7 +426,7 @@ it is a name, and use the word before that as the token."
 	;;
 	;; We didn't do it above, because we don't want to adjust case
 	;; on tokens and placeholders.
-	(save-excursion (ada-case-adjust-region (point) end))
+	(save-excursion (wisi-case-adjust-region (point) end))
 	(setq token (buffer-substring-no-properties (point) end))
 
 	(ada-skel-expand token)
@@ -471,7 +471,7 @@ it is a name, and use the word before that as the token."
 
 (defun ada-skel-setup ()
   "Setup a buffer for ada-skel."
-  (add-hook 'skeleton-end-hook 'ada-indent-statement nil t)
+  (add-hook 'skeleton-end-hook 'wisi-indent-statement nil t)
   (when (and ada-skel-initial-string
 	     (= (buffer-size) 0))
     (insert ada-skel-initial-string))

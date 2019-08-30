@@ -38,8 +38,37 @@
 (require 'compile)
 (require 'gnat-core)
 (require 'wisi)
+(require 'wisi-compiler-gnat)
 
 ;;;; compiler message handling
+
+(defconst ada-gnat-predefined-package-alist
+  '(
+    ("a-chahan" . "Ada.Characters.Handling")
+    ("a-comlin" . "Ada.Command_Line")
+    ("a-contai" . "Ada.Containers")
+    ("a-direct" . "Ada.Directories")
+    ("a-except" . "Ada.Exceptions")
+    ("a-ioexce" . "Ada.IO_Exceptions")
+    ("a-finali" . "Ada.Finalization")
+    ("a-numeri" . "Ada.Numerics")
+    ("a-nuflra" . "Ada.Numerics.Float_Random")
+    ("a-stream" . "Ada.Streams")
+    ("a-ststio" . "Ada.Streams.Stream_IO")
+    ("a-string" . "Ada.Strings")
+    ("a-strmap" . "Ada.Strings.Maps")
+    ("a-strunb" . "Ada.Strings.Unbounded")
+    ("a-stwiun" . "Ada.Strings.Wide_Unbounded")
+    ("a-textio" . "Ada.Text_IO")
+    ("g-comlin" . "GNAT.Command_Line")
+    ("g-dirope" . "GNAT.Directory_Operations")
+    ("g-socket" . "GNAT.Sockets")
+    ("i-c"      . "Interfaces.C")
+    ("i-cstrin" . "Interfaces.C.Strings")
+    ("interfac" . "Interfaces")
+    ("s-stoele" . "System.Storage_Elements")
+    )
+  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
 
 (defun ada-gnat-compilation-filter ()
   "Filter to add text properties to secondary file references.
@@ -585,7 +614,7 @@ Prompt user if more than one."
 	  ((looking-at "(style) bad capitalization, mixed case required")
 	   (set-buffer source-buffer)
 	   (forward-word)
-	   (ada-case-adjust-identifier)
+	   (wisi-case-adjust-identifier)
 	   t)
 
 	  ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
@@ -658,96 +687,31 @@ Prompt user if more than one."
 (defconst ada-gnatprep-preprocessor-keywords
    (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
 
-(cl-defmethod wisi-compiler-parse-one ((compiler gnat-compiler) project name value)
-  "Handle gnat-specific Emacs Ada project file settings.
-If NAME recognized, update PROJECT, return t. Else return nil.
-See also `gnat-prj-parse-emacs-final'."
-  (cond
-   ((or
-     ;; we allow either name here for backward compatibility
-     (string= name "gpr_project_path")
-     (string= name "ada_project_path"))
-    ;; We maintain two project values for this;
-    ;; project-path - a list of directories, for elisp find file
-    ;; GPR_PROJECT_PATH in environment, for gnat-run
-    (let ((process-environment (wisi-prj-environment project)));; reference, for substitute-in-file-name
-      (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value))))
-    t)
-
-   ((string= name "gpr_file")
-    ;; The file is parsed in `wisi-compiler-parse-final', so it sees all environment vars etc.
-    (let ((process-environment (wisi-prj-environment project)));; reference, for substitute-in-file-name
-      (setf (gnat-compiler-gpr-file compiler)
-	    (or
-	     (expand-file-name (substitute-in-file-name value))
-	     (locate-file (substitute-in-file-name value)
-			  (gnat-compiler-project-path compiler)))))
-    t)
-   ))
-
-(cl-defmethod wisi-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
-  (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name prj-file-name))
-
-  (if (gnat-compiler-gpr-file compiler)
-      (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project)
-
-    ;; add the compiler libraries to project.source-path
-    (gnat-get-paths project)
-    ))
-
-(cl-defmethod wisi-compiler-select-prj ((_compiler gnat-compiler) project)
+(cl-defmethod ada-prj-select-compiler ((_compiler gnat-compiler) _project)
+  ;; These can't be in wisi-compiler-select-prj (gnat-compiler),
+  ;; because that is shared with gpr-mode (and maybe others).
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
-  (setq ada-prj-show-prj-path 'gnat-prj-show-prj-path)
-  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
   (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
   (add-hook 'ada-syntax-propertize-hook #'gnatprep-syntax-propertize)
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
-
-  ;; There is no common convention for a file extension for gnatprep files.
-
-  ;; ‘compilation-environment’ is buffer-local, but the user might
-  ;; delete that buffer. So set both global and local.
-  (let* ((process-environment (plist-get (ada-prj-plist project) 'proc_env))
-	 (gpr-path (getenv "GPR_PROJECT_PATH"))
-	 (comp-env (list (concat "GPR_PROJECT_PATH=" gpr-path)))
-	 (comp-buf (get-buffer "*compilation*")))
-    (when (buffer-live-p comp-buf)
-      (with-current-buffer comp-buf
-	(setq compilation-environment comp-env)))
-    (set-default 'compilation-environment comp-env)
-    )
-
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook. FIXME: do this in all ada-mode buffers.
   (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
-
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
-
-  (add-to-list 'compilation-error-regexp-alist 'gnat)
-
   (font-lock-add-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   (font-lock-refresh-defaults)
   )
 
-(cl-defmethod wisi-compiler-deselect-prj ((_compiler gnat-compiler) _project)
+(cl-defmethod ada-prj-deselect-compiler ((_compiler gnat-compiler) _project)
   (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
-  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq #'gnatprep-syntax-propertize ada-syntax-propertize-hook))
   (setq ada-syntax-propertize-hook (delq #'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
-
-  ;; Don't need to delete from compilation-search-path; completely
-  ;; rewritten in ada-gnat-compile-select-prj.
-  (setq compilation-environment nil)
-
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate without hook. FIXME: do this in all ada-mode buffers.
   (setq wisi-indent-calculate-functions (delq 'gnatprep-indent wisi-indent-calculate-functions))
-
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
-  (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
-
   (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   (font-lock-refresh-defaults)
   )
 
-(cl-defmethod ada-compiler-file-name-from-ada-name ((_compiler gnat-compiler) project ada-name)
+(cl-defmethod ada-compiler-file-name-from-ada-name ((compiler gnat-compiler) project ada-name)
   (let ((result nil))
 
     (while (string-match "\\." ada-name)
@@ -755,7 +719,7 @@ See also `gnat-prj-parse-emacs-final'."
 
     (setq ada-name (downcase ada-name))
 
-    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name compiler))
       (gnat-run-no-prj
        (list
 	"krunch"
@@ -802,7 +766,7 @@ See also `gnat-prj-parse-emacs-final'."
 
     ;; Make sure all relevant files are saved to disk.
     (save-some-buffers t)
-    (with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+    (with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name compiler))
       (gnat-run-no-prj
        (append (list "stub") opts (list start-file "-cargs") cargs)
        (file-name-directory body-file-name))
@@ -813,6 +777,30 @@ See also `gnat-prj-parse-emacs-final'."
       (set-buffer start-buffer)
       )
     nil))
+
+(defun ada-gnat-syntax-propertize (start end)
+  (goto-char start)
+  (save-match-data
+    (while (re-search-forward
+	    (concat
+	     "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
+	     "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
+	     )
+	    end t)
+      (cond
+       ((match-beginning 1)
+	(put-text-property
+	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+	(put-text-property
+	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+
+       ((match-beginning 3)
+	(put-text-property
+	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
+       )
+      )))
+
+(add-to-list 'wisi-prj-default-alist '("gpr" . ada-prj-default))
 
 (provide 'ada-compiler-gnat)
 (provide 'ada-compiler)

@@ -2,7 +2,7 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
---EMACSCMD:(progn (end-of-line 9)(delete-char 1)(ada-indent-newline-indent)(current-column))
+--EMACSCMD:(progn (end-of-line 9)(delete-char 1)(wisi-indent-newline-indent)(current-column))
 --EMACSRESULT: 3
 procedure Process_Tree
   (Tree         : in out Syntax_Trees.Tree;

@@ -56,18 +56,7 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    move environment, compiler, xref, src_dir to wisi-prj
-        including parse
-
-    ada-build uses ${src_dir} in a command; interpret that properly
-
-    move obj_dir to gnat-compiler
-
-    use gprls, not gnatls
-
-    move case-adjust to wisi
-
-    can't delete plist; users may be defining other vars - fix comments
+    add xref obj in wisi-prj, set global xref-find-backend to return it
 
     change wisi-xref-other to return xref-file-location?
 

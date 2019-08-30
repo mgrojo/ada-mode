@@ -1,15 +1,20 @@
---EMACSCMD:(ada-parse-prj-file "gds_test.adp") ;; for ff-find-other-file
---EMACSCMD:(ada-select-prj-file "gds_test.adp")
+-- The project file will normally be parsed by a language mode other
+-- than gpr. So for this test, tell wisi-prj what parser to use.
+--EMACSCMD:(add-to-list 'wisi-prj-default-alist (cons "prj" #'gpr-prj-default))
+--EMACSCMD:(add-to-list 'wisi-prj-parser-alist (cons "prj" #'wisi-prj-parse-file-1))
+--EMACSCMD:(wisi-prj-select-file "gds_test.prj")
 
 with "opentoken";
 with "sal";
 with "standard_common";
---EMACSCMD:(progn (forward-line 2)(ff-find-the-other-file)(looking-at "-- for testing"))
+--EMACSCMD:(progn (forward-line 2)(ff-find-other-file)(looking-at "-- for testing"))
 --EMACSRESULT:t
 with "../common_text_io";
 --EMACSCMD:(test-face "project" font-lock-keyword-face)
 --EMACSCMD:(test-face "GDS" font-lock-function-name-face)
 project GDS is
+   --EMACSCMD:(progn (forward-line -1)(capitalize-word 1)(wisi-case-adjust-at-point)(let ((case-fold-search nil))(looking-back "project")))
+   --EMACSRESULT:t
 
    --  FIXME: add face, autocase test for 'external_as_list'
    --  for Foo use external_as_list ("bar");
@@ -58,8 +63,9 @@ project GDS is
    end Builder;
 
    package Linker is
-      -- Project_Dir attribute
-      -- FIXME: test face, autocase on Project.
+      -- Project prefix in attribute is not a keyword.
+      --EMACSCMD:(test-face "Project" nil)
+      --EMACSCMD:(progn (end-of-line 2)(backward-word 3)(downcase-word 1)(wisi-case-adjust-at-point)(let ((case-fold-search nil))(looking-back "Project")))
       for Map_File_Option use "-Wl,-Map," & Project'Project_Dir;
    end Linker;
 

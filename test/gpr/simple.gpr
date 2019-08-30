@@ -8,7 +8,7 @@
 --EMACSRESULT:'gpr-mode
 library project Simple is
 
-   type GNAT_Version_Type
+   type Gnat_Version_Type
      is ("7.0.1",
          "6.2.2", "6.2.1",
          "GPL-2012", "GPL-2011");
@@ -16,15 +16,16 @@ library project Simple is
    --EMACSCMD:(gpr-add-log-current-function)
    --EMACSRESULT:"Simple"
 
-   -- Keywords are case-insensitive
-   GNAT_Version : GNAT_Version_Type := EXTERNAL ("GNAT_VERSION");
+   Gnat_Version : Gnat_Version_Type := external ("GNAT_VERSION");
+
+   A_Path : A_Path_Type := external_as_list ("A_PATH");
 
    type Ext_Type is (".dll", ".so");
-   Dyn_Lib_Extension : Ext_Type := External ("DYNLIB_EXT", ".so");
+   Dyn_Lib_Extension : Ext_Type := external ("DYNLIB_EXT", ".so");
 
    for Source_Dirs use
      ("../auto",
-      External ("GNAT_VERSION") & "/foo",
+      external ("GNAT_VERSION") & "/foo",
       "../../1553");
 
    for Object_Dir use "objects";
@@ -35,7 +36,7 @@ library project Simple is
       --EMACSCMD:(gpr-add-log-current-function)
       --EMACSRESULT:"Compiler"
 
-      case GNAT_Version is
+      case Gnat_Version is
          when "GPL-2012" | "7.0.1" =>
             case Dyn_Lib_Extension is
                -- Nested case

@@ -7,14 +7,6 @@
   (setq wisi-process--alist nil)
   (ada-mode))
 
-(defun ada-test-casing ()
-  "Run a casing test on the current buffer."
-  (interactive)
-  (unless (or skip-recase-test
-	      (eq major-mode 'gpr-mode))
-    (message "casing")
-    (ada-case-adjust-buffer)))
-
 (defun test-moom (search-string refactor-string)
   "Refactor method (object ...) to object.method (...)"
   (test-refactor-1 ada-refactor-method-object-to-object-method
@@ -25,8 +17,6 @@
   (test-refactor-1 ada-refactor-object-index-to-element-object
 		   ada-refactor-element-object-to-object-index
 		   search-string refactor-string))
-
-(advice-add #'run-test-here :after #'ada-test-casing)
 
 (provide 'run-indent-test)
 ;; end of file

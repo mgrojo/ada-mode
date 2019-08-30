@@ -197,7 +197,8 @@ elements of the result may be nil."
 	    prev-pos
 	    prev-content)
 	;; compilation-environment is buffer-local; don't set in 'let'
-	(setq compilation-environment (plist-get (ada-prj-plist project) 'proc_env))
+	;; FIXME: need cl-copy-list? see gnat-run
+	(setq compilation-environment (wisi-prj-environment project))
 
 	;; WORKAROUND: the 'compilation' API doesn't let us specify "append", so we use this.
 	(with-current-buffer (get-buffer-create compilation-buffer-name)

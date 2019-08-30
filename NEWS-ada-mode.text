@@ -6,6 +6,21 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada Mode 7.0.0
+
+** Delete not-upper-case setting for ada-auto-case; instead, set
+   ada-case-strict to t.
+
+** Major restructuring of code, moving many functions from ada-mode to
+   wisi for use in other language modes, and using cl-defgeneric
+   dispatching instead of function variables. Normal users should see
+   no changes, but if you've written custom code that depends on
+   ada-mode functions, you may have to change it.
+
+** gpr-mode fully supports auto-casing; new user variables
+   gpr-auto-case, gpr-case-keyword, gpr-case-strict,
+   gpr-case-identifier, respects 'casing' project file settings.
+
 * Ada Mode 6.2.1
 17 Aug 2019
 

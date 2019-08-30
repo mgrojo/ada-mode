@@ -136,12 +136,12 @@ is -- target 0
      --EMACSCMD:(test-face "Integer" font-lock-type-face)
      access all Integer; -- it no longer matters whether this is 'all' or 'constant'
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(downcase-word 4)(ada-case-adjust))
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(upcase-word 4)(ada-case-adjust))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(downcase-word 4)(wisi-case-adjust))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(upcase-word 4)(wisi-case-adjust))
    type Object_Access_Type_5a is not
      --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(let ((case-fold-search nil))(looking-at "Object_Access_Type_5a")))
      --EMACSRESULT:t
-     --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "null")))
+     --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "null")))
      null access all Integer;
    --EMACSRESULT:t
    type Object_Access_Type_6 is
@@ -154,7 +154,7 @@ is -- target 0
    --EMACSRESULT:"Ada_Mode.Nominal"
 
    --  Test case-adjust of keyword in comment
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word -1)(ada-case-adjust-at-point t)(let ((case-fold-search nil))(looking-back "New")))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word -1)(wisi-case-adjust-at-point t)(let ((case-fold-search nil))(looking-back "New")))
    --  New is a keyword in code, but not here
 
    type

@@ -21,11 +21,10 @@
 
 ;;; Code:
 
-(cl-defstruct
-    (wisi-prj
-     (:constructor nil)
-     ;; higher-level projects will declare appropriate constructors.
-     )
+(require 'cl-lib)
+(require 'wisi)
+
+(cl-defstruct wisi-prj
   compiler    ;; compiler object
   xref 	      ;; xref object
   (environment (cl-copy-list process-environment)) ;; with project file env vars added.
@@ -101,23 +100,35 @@ after the project file PRJ-FILE-NAME is parsed.")
 (cl-defgeneric wisi-compiler-deselect-prj (compiler project)
   "PROJECT has been de-selected; undo any compiler-specific select actions.")
 
-(cl-defgeneric wisi-xref-parse-one (xref project name value )
+(cl-defgeneric wisi-compiler-show-prj-path (compiler)
+  "Display buffer listing project file search path.")
+
+;; We provide nil defaults for wisi-xref methods, because some
+;; language modes don't have a language-specific xref process (eg
+;; gpr-mode; or they just use Emacs xref).
+
+(cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
   "Set NAME, VALUE in XREF, if recognized by XREF.
-PROJECT is an `wisi-prj' object; XREF is `wisi-prj-xref'.")
+PROJECT is an `wisi-prj' object; XREF is `wisi-prj-xref'."
+  nil)
 
-(cl-defgeneric wisi-xref-parse-final (xref project prj-file-name)
+(cl-defgeneric wisi-xref-parse-final (_xref _project _prj-file-name)
   "Do any xref-specific processing on XREF and PROJECT
-after the project file PRJ-FILE-NAME is parsed.")
+after the project file PRJ-FILE-NAME is parsed."
+  nil)
 
-(cl-defgeneric wisi-xref-select-prj (xref project)
-  "PROJECT has been selected; do any xref-specific actions required.")
+(cl-defgeneric wisi-xref-select-prj (_xref _project)
+  "PROJECT has been selected; do any xref-specific actions required."
+  nil)
 
-(cl-defgeneric wisi-xref-deselect-prj (xref project)
-  "PROJECT has been de-selected; undo any xref-specific select actions.")
+(cl-defgeneric wisi-xref-deselect-prj (_xref _project)
+  "PROJECT has been de-selected; undo any xref-specific select actions."
+  nil)
 
-(cl-defgeneric wisi-xref-refresh-cache (xref project no-full)
+(cl-defgeneric wisi-xref-refresh-cache (_xref _project _no-full)
   "Refresh cached information in XREF. If no-full is non-nil,
-slow refresh operations may be skipped.")
+slow refresh operations may be skipped."
+  nil)
 
 (cl-defgeneric wisi-xref-other (xref project &key identifier filename line column)
   "Function that returns cross reference information.
@@ -449,6 +460,27 @@ Else return nil."
       result))
    ))
 
+(defun wisi-prj-parse-file-1 (prj-file project)
+  "Minimal wisi project file parser; most language modes will want to supercede this.
+Used in unit tests, and while developing a new language mode."
+  (with-current-buffer (find-file-noselect prj-file)
+    (goto-char (point-min))
+
+    ;; process each line
+    (while (not (eobp))
+
+      ;; ignore lines that don't have the format "name=value", put
+      ;; 'name', 'value' in match-string.
+      (when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
+	(let ((name (match-string 1))
+	      (value (match-string 2)))
+	  (wisi-prj-parse-one project name value)
+	  ))
+
+      (forward-line 1)
+      )
+    ))
+
 (defun wisi-prj-parse-file (prj-file)
   "Read project file PRJ-FILE, add result to `wisi-prj-alist'"
   (setq prj-file (expand-file-name prj-file))
@@ -459,8 +491,13 @@ Else return nil."
   (run-hooks `wisi-prj-parse-hook)
 
   (let* ((default-directory (file-name-directory prj-file))
-	 (project (funcall (cdr (assoc (file-name-extension prj-file) wisi-prj-default-alist))))
-	 (parser (cdr (assoc (file-name-extension prj-file) wisi-prj-parser-alist))))
+	 (default-function (cdr (assoc (file-name-extension prj-file) wisi-prj-default-alist)))
+	 (parser (cdr (assoc (file-name-extension prj-file) wisi-prj-parser-alist)))
+	 project)
+
+    (if default-function
+	(setq project (funcall default-function))
+      (error "no project default function defined for '%s'" prj-file))
 
     (if parser
 	(funcall parser prj-file project)
@@ -474,33 +511,59 @@ Else return nil."
       (push (cons prj-file project) wisi-prj-alist))
     ))
 
+(defun wisi-prj-show-prj-path ()
+  "Show the project project file search path."
+  (interactive)
+  (wisi-compiler-show-prj-path (wisi-prj-compiler (wisi-prj-require-prj))))
+
+(defun wisi-prj-show-src-path ()
+  "Show the project source file search path."
+  (interactive)
+  (if compilation-search-path
+      (progn
+	(pop-to-buffer (get-buffer-create "*source file search path*"))
+	(erase-buffer)
+	(dolist (file compilation-search-path)
+	  (insert (format "%s\n" file))))
+    (message "no source file search path set")
+    ))
+
 ;;;; auto-casing
 
 (defvar-local wisi-auto-case nil
   "Buffer-local value indicating whether to change case while typing.
-t means always; not-upper-case means only change case if typed
-word is not all upper-case.  Casing of language keywords is done
-according to `wisi-case-keyword', identifiers according to
-wisi-case-identifier."
-  ;; This is not a defcustom, because each language should declare a
-  ;; defcustom for this.
+Global value is default for project variable `auto_case'.  When
+non-nil, automatically change case of preceding word while
+typing.  Casing of keywords is done according to
+`wisi-case-keyword', identifiers according to
+`wisi-case-identifier'."
+  ;; This is not a defcustom, because it's buffer-local.
   )
 
 (defvar-local wisi-case-keyword 'lower-case
-  "Indicates how to adjust the case of Ada keywords.
-One of lower-case, upper-case."
-  ;; This is not a defcustom, because each language should declare a
-  ;; defcustom for this.
+  "Indicates how to adjust the case of `wisi-keywords'.
+Value is one of lower-case, upper-case."
+  ;; This is not a defcustom, because it's buffer-local
   )
 
 (defvar-local wisi-case-identifier 'mixed-case
   "Buffer-local value indicating how to case language keywords.
 Value is one of:
 
-- mixed-case-relaxed : Mixed_Case, unless already UPPER_CASE
-- mixed-case-strict  : Mixed_Case
-- lower-case         : lower_case
-- upper-case         : UPPER_CASE")
+- mixed-case : Mixed_Case
+- lower-case : lower_case
+- upper-case : UPPER_CASE")
+
+(defvar-local wisi-case-strict t
+  "If nil, preserve uppercase chars in identifiers.")
+
+(defvar-local wisi-language-keywords nil
+  "List of keywords for auto-case.")
+
+(defvar-local wisi-case-adjust-p-function nil
+  "Function taking one argument, the typed char; called from wisi-case-adjust.
+Return non-nil if case of symbol at point should be adjusted.
+Point is on last char of symbol.")
 
 (defun wisi-case-show-files (project)
   "Show PROJECT casing files list."
@@ -657,6 +720,246 @@ User is prompted to choose a file from the project
 case-exception-files if it is a list."
   (interactive)
   (wisi-case-create-exception t))
+
+(defun wisi-after-keyword-p ()
+  "Return non-nil if point is after an element of `wisi-language-keywords'."
+  (let ((word (buffer-substring-no-properties
+	       (save-excursion (skip-syntax-backward "w_") (point))
+	       (point))))
+    (member (downcase word) wisi-language-keywords)))
+
+(defvar-local wisi-ret-binding #'wisi-indent-newline-indent)
+(defvar-local wisi-lfd-binding #'newline-and-indent)
+
+(defun wisi-case-keyword (beg end)
+  (cl-ecase wisi-case-keyword
+    (lower-case (downcase-region beg end))
+    (upper-case (upcase-region beg end))
+    ))
+
+(defun wisi-case-identifier (start end case-strict)
+  (cl-ecase wisi-case-identifier
+    (mixed-case (wisi-mixed-case start end case-strict))
+    (lower-case (downcase-region start end))
+    (upper-case (upcase-region start end))
+    ))
+
+(defun wisi-mixed-case (start end case-strict)
+  "Adjust case of region START END to Mixed_Case."
+  (let ((done nil)
+	next)
+    (if (or case-strict wisi-case-strict)
+	(downcase-region start end))
+    (goto-char start)
+    (while (not done)
+      (setq next
+	    (or
+	     (save-excursion (when (search-forward "_" end t) (point-marker)))
+	     (copy-marker (1+ end))))
+
+      ;; upcase first char
+      (upcase-region (point) (1+ (point)))
+
+      (goto-char next)
+      (if (< (point) end)
+	  (setq start (point))
+	(setq done t))
+      )))
+
+(defun wisi-case-adjust-identifier (&optional force-case)
+  "Adjust case of the previous word as an identifier.
+Uses `wisi-case-identifier', with exceptions defined in
+`wisi-case-full-exceptions', `wisi-case-partial-exceptions'.  If
+force-case non-nil (default prefix), treat `wisi-strict-case' as
+t."
+  (interactive "P")
+  (save-excursion
+    (let ((prj (wisi-prj-require-prj))
+	  (end   (point-marker))
+	  (start (progn (skip-syntax-backward "w_") (point)))
+	  match
+	  next
+	  (done nil))
+
+      (if (setq match
+		(assoc-string (buffer-substring-no-properties start end)
+			      (wisi-prj-case-full-exceptions prj)
+			      t ;; case-fold
+			      ))
+	  ;; full word exception
+	  (progn
+	    ;; 'save-excursion' puts a marker at 'end'; if we do
+	    ;; 'delete-region' first, it moves that marker to 'start',
+	    ;; then 'insert' inserts replacement text after the
+	    ;; marker, defeating 'save-excursion'. So we do 'insert' first.
+	    (insert (car match))
+	    (delete-region (point) end))
+
+	;; else apply wisi-case-identifier
+	(wisi-case-identifier start end force-case)
+
+	;; apply partial-exceptions
+	(goto-char start)
+	(while (not done)
+	  (setq next
+		(or
+		 (save-excursion (when (search-forward "_" end t) (point-marker)))
+		 (copy-marker (1+ end))))
+
+	  (when (setq match (assoc-string (buffer-substring-no-properties start (1- next))
+					  (wisi-prj-case-partial-exceptions prj)
+					  t))
+	    ;; see comment above at 'full word exception' for why
+	    ;; we do insert first.
+	    (insert (car match))
+	    (delete-region (point) (1- next)))
+
+	  (goto-char next)
+	  (if (< (point) end)
+	      (setq start (point))
+	    (setq done t))
+          ))
+      )))
+
+(defun wisi-case-adjust-keyword ()
+  "Adjust the case of the previous symbol as a keyword."
+  (save-excursion
+    (let ((end   (point-marker))
+	  (start (progn (skip-syntax-backward "w_") (point))))
+      (wisi-case-keyword start end)
+    )))
+
+(defun wisi-case-adjust (&optional typed-char in-comment)
+  "Adjust the case of the symbol before point.
+When invoked interactively, TYPED-CHAR must be
+`last-command-event', and it must not have been inserted yet.  If
+IN-COMMENT is non-nil, adjust case of words in comments and
+strings as code, and treat `wisi-case-strict' as t in code."
+  (when (not (bobp))
+    (when (save-excursion
+	    (forward-char -1); back to last character in symbol
+	    (and (not (bobp))
+		 (eq (char-syntax (char-after)) ?w); it can be capitalized
+
+		 (or in-comment
+		     (not (wisi-in-string-or-comment-p)))
+
+		 (or (null wisi-case-adjust-p-function)
+		     (funcall wisi-case-adjust-p-function typed-char))
+		 ))
+
+      ;; The indentation engine may trigger a reparse on
+      ;; non-whitespace changes, but we know we don't need to reparse
+      ;; for this change (assuming the user has not abused case
+      ;; exceptions!).
+      (let ((inhibit-modification-hooks t))
+	(cond
+	 ;; Some attributes are also keywords, but captialized as
+	 ;; attributes. So check for attribute first.
+	 ((and
+	   (not in-comment)
+	   (save-excursion
+	     (skip-syntax-backward "w_")
+	     (eq (char-before) ?')))
+	  (wisi-case-adjust-identifier in-comment))
+
+	 ((and
+	   (not in-comment)
+	   (not (eq typed-char ?_))
+	   (wisi-after-keyword-p))
+	  (wisi-case-adjust-keyword))
+
+	 (t (wisi-case-adjust-identifier in-comment))
+	 ))
+      )))
+
+(defun wisi-case-adjust-at-point (&optional in-comment)
+  "If ’wisi-auto-case’ is non-nil, adjust case of symbol at point.
+Also move to end of symbol.  With prefix arg, adjust case as code
+even if in comment or string; otherwise, capitalize words in
+comments and strings.  If ’wisi-auto-case’ is nil, capitalize
+current word."
+  (interactive "P")
+  (cond
+   ((or (null wisi-auto-case)
+	(and (not in-comment)
+	     (wisi-in-string-or-comment-p)))
+    (skip-syntax-backward "w_")
+    (capitalize-word 1))
+
+   (t
+    (when
+	(and (not (eobp))
+	     ;; We use '(syntax-after (point))' here, not '(char-syntax
+	     ;; (char-after))', because the latter does not respect
+	     ;; syntax-propertize functions
+	     (memq (syntax-class (syntax-after (point))) '(2 3)))
+      (skip-syntax-forward "w_"))
+    (wisi-case-adjust nil in-comment))
+   ))
+
+(defun wisi-case-adjust-region (begin end)
+  "Adjust case of all words in region BEGIN END."
+  (interactive "r")
+  (narrow-to-region begin end)
+  (save-excursion
+    (goto-char begin)
+    (while (not (eobp))
+      (forward-comment (point-max))
+      (skip-syntax-forward "^w_")
+      (skip-syntax-forward "w_")
+      (wisi-case-adjust)))
+  (widen))
+
+(defun wisi-case-adjust-buffer ()
+  "Adjust case of current buffer."
+  (interactive)
+  (wisi-case-adjust-region (point-min) (point-max)))
+
+(defun wisi-case-adjust-interactive (arg)
+  "If `wisi-auto-case' is non-nil, adjust the case of the previous symbol,
+and process the character just typed.  To be bound to keys that
+should cause auto-casing.  ARG is the prefix the user entered
+with \\[universal-argument]."
+  (interactive "P")
+
+  ;; Character typed has not been inserted yet.
+  (let ((lastk last-command-event)
+	(do-adjust nil))
+    (cond
+     ((null wisi-auto-case))
+     (t
+      (setq do-adjust t)))
+
+    (cond
+     ((eq lastk ?\n)
+        (when do-adjust
+	  (wisi-case-adjust lastk))
+	(funcall wisi-lfd-binding))
+
+     ((memq lastk '(?\r return))
+      (when do-adjust
+	(wisi-case-adjust lastk))
+      (funcall wisi-ret-binding))
+
+     (t
+      (when do-adjust
+	(wisi-case-adjust lastk))
+      (self-insert-command (prefix-numeric-value arg)))
+     )))
+
+(defun wisi-case-activate-keys (map)
+  "Modify the key bindings for all the keys that should adjust casing."
+  (mapc (function
+	 (lambda(key)
+	   (define-key
+	     map
+	     (char-to-string key)
+	     'wisi-case-adjust-interactive)))
+	;; FIXME: any char with non-word/symbol syntax.
+	'( ?_ ?% ?& ?* ?\( ?\) ?- ?= ?+
+	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+  )
 
 ;;;; Initializations
 

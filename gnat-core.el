@@ -24,10 +24,12 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
+(require 'wisi-prj)
 
 ;;;;; code
 
 (defcustom ada-gnat-debug-run nil
+  ;; Name implies Ada, which is wrong. Kept for backward compatibility.
   "If t, compilation buffers containing a GNAT command will show
 the command.  Otherwise, they will show only the output of the
 command.  This applies e.g. to *gnatfind* buffers."
@@ -38,7 +40,7 @@ command.  This applies e.g. to *gnatfind* buffers."
 ;;;; project file handling
 
 (cl-defstruct gnat-compiler
-  "Used with ada-compiler-* generic functions."
+  "Used with wisi-compiler-* generic functions."
 
   gpr-file 	  ;; absolute file name of GNAT project file.
   run-buffer-name ;; string; some compiler objects have no gpr file
@@ -52,8 +54,8 @@ command.  This applies e.g. to *gnatfind* buffers."
 (defun gnat-compiler-require-prj ()
   "Return current `gnat-compiler' object from current project compiler.
 Throw an error if current project does not have a gnat-compiler."
-  (let* ((ada-prj (ada-prj-require-prj))
-	 (compiler (ada-prj-compiler ada-prj)))
+  (let* ((wisi-prj (wisi-prj-require-prj))
+	 (compiler (wisi-prj-compiler wisi-prj)))
     (if (gnat-compiler-p compiler)
 	compiler
       (error "no gnat-compiler in selected project compiler."))))
@@ -70,19 +72,6 @@ Throw an error if current project does not have a gnat-compiler."
     (setf (wisi-prj-environment project) (cl-copy-list process-environment))
     ))
 
-(defun gnat-prj-show-prj-path ()
-  "For `ada-prj-show-prj-path'."
-  (interactive)
-  ;; FIXME: broken
-  (if (plist-get 'prj_dir (ada-prj-plist (project-current)))
-      (progn
-	(pop-to-buffer (get-buffer-create "*GNAT project file search path*"))
-	(erase-buffer)
-	(dolist (file (plist-get (ada-prj-plist (project-current)) 'prj_dir))
-	  (insert (format "%s\n" file))))
-    (message "no project file search path set")
-    ))
-
 (defun gnat-get-paths-1 (project src-dirs obj-dirs prj-dirs)
   "Append list of source, project and object dirs in current gpr project to SRC-DIRS,
 OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIRS)."
@@ -92,7 +81,7 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
     ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
     ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
     ;; M724-045). The workaround is to include the Source_Dirs in an
-    ;; Emacs Ada mode project.
+    ;; wisi project file.
     ;; FIXME: update for gnat 2019
     (gnat-run-gnat project "list" (list "-v") '(0 4))
 
@@ -156,9 +145,9 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
 
 (defun gnat-get-paths (project)
   "Add project and/or compiler source, object, project paths to PROJECT source-path, obj_dir and/or project-path."
-  (let* ((compiler (ada-prj-compiler project))
+  (let* ((compiler (wisi-prj-compiler project))
 	 (src-dirs (wisi-prj-source-path project))
-         (obj-dirs (plist-get (ada-prj-plist project) 'obj_dir))
+	 (obj-dirs nil) ;; FIXME: don't need obj_dirs if using gpr file? move obj-path to gnat-compiler?
 	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler)))
 	 (res (gnat-get-paths-1 project src-dirs obj-dirs prj-dirs)))
 
@@ -174,19 +163,19 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
     ;; syntax errors).
 
     (setf (wisi-prj-source-path project) src-dirs)
-    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj-dirs)))
+    ;; Don't need project plist obj_dirs if using a project file?
     (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
 	  prj-dirs)
     ))
 
 (defun gnat-parse-gpr (gpr-file project)
-  "Append to source-path and project-path in PROJECT (an `ada-prj' object) by parsing GPR-FILE.
+  "Append to source-path and project-path in PROJECT (a `wisi-prj' object) by parsing GPR-FILE.
 GPR-FILE must be absolute file name.
 source-path will include compiler runtime."
   ;; this can take a long time; let the user know what's up
   (message "Parsing %s ..." gpr-file)
 
-  (let ((compiler (ada-prj-compiler project)))
+  (let ((compiler (wisi-prj-compiler project)))
     (if (gnat-compiler-gpr-file compiler)
 	;; gpr-file previously set; new one must match
 	(when (not (string-equal gpr-file (gnat-compiler-gpr-file compiler)))
@@ -211,14 +200,14 @@ source-path will include compiler runtime."
 
 (defun gnat-parse-gpr-1 (gpr-file project)
   "For `wisi-prj-parser-alist'."
-  (setf (gnat-compiler-run-buffer-name (ada-prj-compiler project)) gpr-file)
+  (setf (gnat-compiler-run-buffer-name (wisi-prj-compiler project)) gpr-file)
   (gnat-parse-gpr gpr-file project))
 
 ;;;; command line tool interface
 
 (defun gnat-run-buffer-name (prj-file-name &optional prefix)
   ;; We don't use (gnat-compiler-gpr-file compiler), because multiple
-  ;; ada-prj files can use one gpr-file.
+  ;; wisi-prj files can use one gpr-file.
   (concat (or prefix " *gnat-run-")
 	  prj-file-name
 	  "*"))
@@ -354,61 +343,10 @@ list."
        )
       )))
 
-(defconst ada-gnat-predefined-package-alist
-  '(
-    ("a-chahan" . "Ada.Characters.Handling")
-    ("a-comlin" . "Ada.Command_Line")
-    ("a-contai" . "Ada.Containers")
-    ("a-direct" . "Ada.Directories")
-    ("a-except" . "Ada.Exceptions")
-    ("a-ioexce" . "Ada.IO_Exceptions")
-    ("a-finali" . "Ada.Finalization")
-    ("a-numeri" . "Ada.Numerics")
-    ("a-nuflra" . "Ada.Numerics.Float_Random")
-    ("a-stream" . "Ada.Streams")
-    ("a-ststio" . "Ada.Streams.Stream_IO")
-    ("a-string" . "Ada.Strings")
-    ("a-strmap" . "Ada.Strings.Maps")
-    ("a-strunb" . "Ada.Strings.Unbounded")
-    ("a-stwiun" . "Ada.Strings.Wide_Unbounded")
-    ("a-textio" . "Ada.Text_IO")
-    ("g-comlin" . "GNAT.Command_Line")
-    ("g-dirope" . "GNAT.Directory_Operations")
-    ("g-socket" . "GNAT.Sockets")
-    ("i-c"      . "Interfaces.C")
-    ("i-cstrin" . "Interfaces.C.Strings")
-    ("interfac" . "Interfaces")
-    ("s-stoele" . "System.Storage_Elements")
-    )
-  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
-
-(defun ada-gnat-syntax-propertize (start end)
-  (goto-char start)
-  (save-match-data
-    (while (re-search-forward
-	    (concat
-	     "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
-	     "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
-	     )
-	    end t)
-      (cond
-       ((match-beginning 1)
-	(put-text-property
-	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
-	(put-text-property
-	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
-
-       ((match-beginning 3)
-	(put-text-property
-	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
-       )
-      )))
-
 ;;;; Initialization
 
 ;; These are shared between ada-compiler-gnat and gpr-query.
 (add-to-list 'wisi-prj-file-extensions  "gpr")
-(add-to-list 'wisi-prj-default-alist '("gpr" . ada-prj-default))
 (add-to-list 'wisi-prj-parser-alist  '("gpr" . gnat-parse-gpr-1))
 
 (add-to-list

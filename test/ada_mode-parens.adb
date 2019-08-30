@@ -44,7 +44,7 @@ package body Ada_Mode.Parens is
         (1 + 2 +
            3);
 
-      --EMACSCMD:(progn (end-of-line 2)(forward-char -3)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "aBc")))
+      --EMACSCMD:(progn (end-of-line 2)(forward-char -3)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "aBc")))
       Local_6 : String := ("123" & "456" & "aBc");
       --EMACSRESULT:t
       Local_7 : String := ("123" & "456" &
@@ -57,7 +57,7 @@ package body Ada_Mode.Parens is
                            "123" &
                              "456" &
                              "789 [");
-      --EMACSCMD:(progn (end-of-line 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "comMENT")))
+      --EMACSCMD:(progn (end-of-line 2)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "comMENT")))
       -- A comment for testing no auto-case in comMENT
       --EMACSRESULT:t
 

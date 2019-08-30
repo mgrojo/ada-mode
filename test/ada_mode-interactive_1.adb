@@ -12,7 +12,7 @@ is
    --EMACSRESULT:3
 
    -- For 'indent-region', don't insert spaces on an empty line
-   --EMACSCMD:(progn (forward-line 2)(ada-indent-statement)(current-column))
+   --EMACSCMD:(progn (forward-line 2)(wisi-indent-statement)(current-column))
    --EMACSRESULT:0
 
    -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
@@ -102,6 +102,7 @@ begin
       -- don't capitalize character constant
       --EMACSCMD:(progn (end-of-line 2)(backward-char 1)(delete-char -1)(execute-kbd-macro "'")(let ((case-fold-search nil))(looking-back "'z'")))
       E := 'z';
+      --EMACSRESULT:t
    end;
 
    --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))

@@ -8,7 +8,7 @@ project Casing_Agg
 extends "bar"
 is
 
-   --EMACSCMD:(ada-case-adjust-buffer)
+   --EMACSCMD:(wisi-case-adjust-buffer)
 
    for external ("FOO") use ("BAR");
    --  Only actually allowed in an aggregate project
