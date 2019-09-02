@@ -9,4 +9,5 @@
 ^obj$
 ^test/debug\.wy$
 ^test\.log$
+^wisitoken_grammar\.gpr$
 ^wisitoken_grammar_1_bnf\.wy$

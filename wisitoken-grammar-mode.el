@@ -5,7 +5,7 @@
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.0.1
+;; Version: 1.0.3
 ;; package-requires: ((wisi "2.2.1") (emacs "25.0") (mmm-mode "0.5.7"))
 
 ;; no upstream url; just ELPA
@@ -362,8 +362,6 @@ Otherwise insert a plain new line."
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
 	    t)
-  (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-  (add-hook 'before-save-hook 'copyright-update nil t)
 
   (wisi-setup
    :indent-calculate nil

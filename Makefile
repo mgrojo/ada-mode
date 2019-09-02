@@ -150,12 +150,13 @@ ELPA_ROOT ?= $(shell cd ../elpa; pwd)
 ELPA_EXTERNALS ?= $(shell cd ../elpa-externals; pwd)
 ELPA_WGM := $(ELPA_EXTERNALS)/wisitoken-grammar-mode
 
-pub-wisitoken-grammar : force
+pub-wisitoken-grammar : wisitoken_grammar.gpr force
 	mkdir -p $(ELPA_WGM)
 	rm -f $(ELPA_WGM)/*
-	cp wisitoken?grammar*.el $(ELPA_WGM)
+	cp wisitoken-grammar-mode.el $(ELPA_WGM)
+	cp wisitoken_grammar_1-process.el $(ELPA_WGM)
 	cp *wisitoken_grammar*.ad? $(ELPA_WGM)
-	cp wisitoken_grammar.gpr wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
+	cp wisitoken_grammar.gpr.gp wisitoken_grammar_1.wy wisitoken_grammar_1_re2c.c $(ELPA_WGM)
 	cp build.sh $(ELPA_WGM)
 
 # assume wisi built, installed (from ada-mode Makefile)
