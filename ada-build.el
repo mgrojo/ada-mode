@@ -163,7 +163,7 @@ selected, nil otherwise."
 				(lambda (name) (member (file-name-extension name) wisi-prj-file-extensions))))
 	)
     (when filename
-      (wisi-prj-select-file filename))
+      (wisi-prj-select-file filename (ada-prj-default (file-name-nondirectory (file-name-sans-extension filename)))))
     ))
 
 (defun ada-build-prompt-select-prj-file ()
@@ -192,7 +192,7 @@ Returns non-nil if a file is selected, nil otherwise."
 
     (when (and filename
 	       (not (equal "" filename)))
-      (wisi-prj-select-file filename)
+      (wisi-prj-select-file filename (ada-prj-default (file-name-nondirectory (file-name-sans-extension filename))))
       t)
     ))
 
@@ -243,7 +243,10 @@ user confirmation of the command, using PROMPT."
   (ada-build-require-project-file)
   (let* ((project (ada-prj-require-prj))
 	 (cmd (plist-get (ada-prj-plist project) prj-field))
-	 (process-environment (cl-copy-list (ada-prj-environment project))))
+	 (compilation-environment
+	  (append
+	   (wisi-prj-compile-env project)
+	   (wisi-prj-file-env project))))
 
     (unless cmd
       (setq cmd '("")

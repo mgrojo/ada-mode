@@ -44,7 +44,7 @@ command.  This applies e.g. to *gnatfind* buffers."
 
   gpr-file 	  ;; absolute file name of GNAT project file.
   run-buffer-name ;; string; some compiler objects have no gpr file
-  project-path    ;; list of directories for GPR_PROJECT_PATH
+  project-path    ;; list of directories from GPR_PROJECT_PATH
   target 	  ;; gnat --target argument. FIXME: add to -parse
   runtime 	  ;; gnat --RTS argument. FIXME: add to -parse
   gnat-stub-opts  ;; FIXME: add to -parse
@@ -62,14 +62,17 @@ Throw an error if current project does not have a gnat-compiler."
 
 (defun gnat-prj-add-prj-dir (project dir)
   "Add DIR to compiler.project_path, and to GPR_PROJECT_PATH in project.environment."
-  (let ((process-environment (cl-copy-list (wisi-prj-environment project)))
+  ;; We maintain two project values for this;
+  ;; project-path - a list of directories, for elisp find file
+  ;; GPR_PROJECT_PATH in environment, for gnat-run
+  (let ((process-environment (copy-sequence (wisi-prj-file-env project)))
 	(compiler (wisi-prj-compiler project)))
     (cl-pushnew dir (gnat-compiler-project-path compiler) :test #'string-equal)
 
     (setenv "GPR_PROJECT_PATH"
 	    (mapconcat 'identity
 		       (gnat-compiler-project-path compiler) path-separator))
-    (setf (wisi-prj-environment project) (cl-copy-list process-environment))
+    (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
 
 (defun gnat-get-paths-1 (project src-dirs obj-dirs prj-dirs)
@@ -244,7 +247,11 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment (cl-copy-list (wisi-prj-environment project)))
+  (let ((process-environment
+	 (append
+	   (wisi-prj-compile-env project)
+	   (wisi-prj-file-env project)
+	   (copy-sequence process-environment)))
 	status)
 
     (when ada-gnat-debug-run

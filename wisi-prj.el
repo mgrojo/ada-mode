@@ -19,15 +19,92 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Usage:
+;;
+;; The user must decide which function to add to
+;; `project-find-functions' and `xref-backend-functions', and set the
+;; corresponding variables. The choice depends on how much caching of
+;; project settings is needed (which depends on how slow parsing and
+;; re-parsing the project file is), and on whether there is a single
+;; current selected project, or the current project depends on the
+;; current buffer.
+;;
+;; In addition, if changing from one project to another requires
+;; setting global resources that must also be unset, then the project
+;; will define `wisi-prj-deselect' in addition to
+;; `wisi-prj-select'. Such projects require having a 'selected current
+;; project', so it can be deselected before a new one is selected;
+;; they must use either wisi-prj-current-parse or
+;; wisi-prj-current-cached. One example of such projects is different
+;; host and embedded target compilers that compile the same source;
+;; there will be one project for each compiler, with different
+;; settings for compilation-filter-hook, compilation-environment, and
+;; similar variables.
+;;
+;; One way to declare each project is to add a Local Variables section
+;; in the main Makefile for the project; when the Makefile is first
+;; visited, the project is declared. In the examples here, we assume
+;; that approach is used; each gives an :eval line.
+;;
+;; Note that wisi-prj-current-parse and wisi-prj-current-cached always
+;; succeed after some project is selected; no functions after them on
+;; project-find-functions will be called. That's why the depth is 90
+;; for those.
+;;
+;; -- No caching, current project depends on current buffer:
+;;
+;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-parse 0)
+;;
+;;   :eval (wisi-prj-set-dominating nil "foo.prj" (foo-prj-default "prj-name"))
+;;
+;; -- Caching, current project depends on current buffer:
+;;
+;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-cached 0)
+;;
+;;   :eval (wisi-prj-cache-dominating nil "foo.prj" (foo-prj-default "prj-name"))
+;;
+;; -- No caching, last selected project is current:
+;;
+;;   (add-hook 'project-find-functions #'wisi-prj-current-parse 90)
+;;
+;;   :eval: (wisi-prj-select-file <prj-file> (foo-prj-default "prj-name"))
+;;
+;; -- Caching, last selected project is current:
+;;
+;;   (add-hook 'project-find-functions #'wisi-prj-current-cached 90)
+;;
+;;   :eval: (wisi-select-prj-cached <prj-file> (foo-prj-default "prj-name"))
+;;
+;;
+;; In addition, the user should set xref-backend-functions (currently,
+;; there is only one choice for wisi projects):
+;;
+;; (add-to-list 'xref-backend-functions #'wisi-xref-backend 90)
+;;
+;; wisi-xref-backend returns the xref object from the current wisi
+;; project.
+
 ;;; Code:
 
 (require 'cl-lib)
 (require 'wisi)
 
 (cl-defstruct wisi-prj
+  name     ;; A user-friendly string, used in menus and messages.
+
+  compile-env
+  ;; List of strings NAME=VALUE for `compilation-environment'; used
+  ;; when running the compiler or makefile. Also prepended to
+  ;; `process-environment' when the project file is parsed, or when
+  ;; the project file is used by a tool in an external process.
+
+  file-env
+  ;; Environment (list of strings NAME=VALUE) set in project file;
+  ;; prepended to `process-environment' running tools in an external
+  ;; process.
+
   compiler    ;; compiler object
   xref 	      ;; xref object
-  (environment (cl-copy-list process-environment)) ;; with project file env vars added.
 
   (case-exception-files nil)
   ;; List of casing exception files; from `casing' project variable.
@@ -72,9 +149,13 @@ Throw an error if current project is not an wisi-prj."
   "List of wisi project file extensions.
 Used when searching for project files.")
 
-(defvar wisi-prj-alist nil
+(defvar wisi-prj-cache nil
   "Alist holding currently parsed project objects.
 Indexed by absolute project file name.")
+
+(cl-defgeneric wisi-prj-default (prj)
+  "Return a project with default values.
+Used to reset a project before refreshing it.")
 
 (cl-defgeneric wisi-prj-select (project)
   "PROJECT is selected; perform any required actions.")
@@ -86,6 +167,10 @@ Indexed by absolute project file name.")
   "Reparse the project file for PRJ, refresh all cached data in PRJ.
 If NOT-FULL is non-nil, very slow refresh operations may be skipped.")
 
+;; We provide nil defaults for some methods, because some language
+;; modes don't have a language-specific compiler (eg java-wisi) or
+;; xref process (eg gpr-mode).
+
 (cl-defgeneric wisi-compiler-parse-one (compiler project name value)
   "Set NAME, VALUE in COMPILER, if recognized by COMPILER.
 PROJECT is an `wisi-prj' object; COMPILER is `wisi-prj-compiler'.")
@@ -94,18 +179,16 @@ PROJECT is an `wisi-prj' object; COMPILER is `wisi-prj-compiler'.")
   "Do any compiler-specific processing on COMPILER and PROJECT
 after the project file PRJ-FILE-NAME is parsed.")
 
-(cl-defgeneric wisi-compiler-select-prj (compiler project)
-  "PROJECT has been selected; do any compiler-specific actions required.")
+(cl-defgeneric wisi-compiler-select-prj (_compiler _project)
+  "PROJECT has been selected; do any compiler-specific actions required."
+  nil)
 
-(cl-defgeneric wisi-compiler-deselect-prj (compiler project)
-  "PROJECT has been de-selected; undo any compiler-specific select actions.")
+(cl-defgeneric wisi-compiler-deselect-prj (_compiler _project)
+  "PROJECT has been de-selected; undo any compiler-specific select actions."
+  nil)
 
 (cl-defgeneric wisi-compiler-show-prj-path (compiler)
   "Display buffer listing project file search path.")
-
-;; We provide nil defaults for wisi-xref methods, because some
-;; language modes don't have a language-specific xref process (eg
-;; gpr-mode; or they just use Emacs xref).
 
 (cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
   "Set NAME, VALUE in XREF, if recognized by XREF.
@@ -360,13 +443,9 @@ With prefix arg, very slow refresh operations may be skipped."
     (error "no wisi project currently selected"))
   (wisi-prj-refresh-cache (project-current) not-full))
 
-(defvar wisi-prj--current-file nil
-  ;; FIXME: find a way to eliminate this; use buffer, dir info (or something)
-  "Current wisi project file; an absolute file name.")
-
-(defun wisi-find-project (_dir)
-  "For `project-find-functions'; return the current wisi project."
-  (cdr (assoc wisi-prj--current-file wisi-prj-alist)))
+(defvar wisi-prj-current-file nil
+  "Current wisi project file (the most recently selected); an
+  absolute file name.")
 
 (defun wisi-prj-parse-final (project prj-file)
   (wisi--case-read-all-exceptions project)
@@ -375,55 +454,44 @@ With prefix arg, very slow refresh operations may be skipped."
 
 (cl-defmethod wisi-prj-refresh-cache ((project wisi-prj) not-full)
   (wisi-prj-deselect project)
-  (let ((prj-file (car (rassoc project wisi-prj-alist))))
-    (setq wisi-prj-alist (delete (cons prj-file project) wisi-prj-alist))
-    (wisi-prj-select-file prj-file) ;; parses prj-file
+  (let ((prj-file (car (rassoc project wisi-prj-cache))))
+    (setq wisi-prj-cache (delete (cons prj-file project) wisi-prj-cache))
+    (setq project (wisi-prj-default project))
+    (wisi-prj-select-file prj-file project) ;; parses prj-file
     (wisi-xref-refresh-cache (wisi-prj-xref project) project not-full)))
 
 (cl-defmethod wisi-prj-select ((project wisi-prj))
   (setq compilation-search-path
 	(append (wisi-prj-source-path project)))
+
+  ;; ‘compilation-environment’ is buffer-local, but the user might
+  ;; delete that buffer. So set both global and local.
+  (let ((comp-env
+	 (append
+	  (wisi-prj-compile-env project)
+	  (copy-sequence (wisi-prj-file-env project))))
+	(comp-buf (get-buffer "*compilation*")))
+    (when (buffer-live-p comp-buf)
+      (with-current-buffer comp-buf
+	(setq compilation-environment comp-env)))
+    (set-default 'compilation-environment comp-env))
+
   (wisi-compiler-select-prj (wisi-prj-compiler project) project)
   (wisi-xref-select-prj     (wisi-prj-xref project)     project))
 
 (cl-defmethod wisi-prj-deselect ((project wisi-prj))
   (wisi-xref-deselect-prj (wisi-prj-xref project) project)
   (wisi-compiler-deselect-prj (wisi-prj-compiler project) project)
+  (setq compilation-environment nil)
   (setq compilation-search-path nil))
-
-(defun wisi-prj-select-file (prj-file)
-  "Select PRJ-FILE as current project, parsing if needed.
-Current project (if any) is deselected first."
-  (let ((prj (project-current)))
-    (when (wisi-prj-p prj)
-      (wisi-prj-deselect prj)))
-
-  (setq prj-file (expand-file-name prj-file))
-
-  (let ((prj (cdr (assoc prj-file wisi-prj-alist))))
-    (unless prj
-      (wisi-prj-parse-file prj-file)
-      (setq prj (cdr (assoc prj-file wisi-prj-alist)))
-      (unless prj
-	(error "parsing project file '%s' failed" prj-file)))
-
-    (setq wisi-prj--current-file prj-file)
-    (wisi-prj-select prj)
-    ))
 
 (defvar wisi-prj-parse-hook nil
   "Hook run at start of `wisi-prj-parse-file'.")
 
-(defvar wisi-prj-default-alist nil
-  "Alist of functions returning a default project, indexed by file extension.
-Function is called with no arguments.")
-
 (defvar wisi-prj-parser-alist nil
   "Alist of parsers for project files, indexed by file extension.
 Parser is called with two arguments; the project file name and
-the new project, initialized via `wisi-prj-default-alist.")
-;; We don't define a wisi-prj-default function; higher level projects
-;; must set wisi-prj slots or accept the defstruct default values.
+a project. Parser should update the project with values from the file.")
 
 (defun wisi-prj-parse-one (project name value)
   "If NAME is a wisi-prj slot, set it to VALUE, return t.
@@ -445,10 +513,9 @@ Else return nil."
 
    ((= ?$ (elt name 0))
     ;; Process env var.
-    (let ((process-environment (cl-copy-list (wisi-prj-environment project))))
-      (setenv (substring name 1)
-	      (substitute-in-file-name value))
-      (setf (wisi-prj-environment project) (cl-copy-list process-environment)))
+    (setf (wisi-prj-file-env project)
+	  (cons (concat (substring name 1) "=" (substitute-in-file-name value))
+		(wisi-prj-file-env project)))
     t)
 
    ((let (result)
@@ -481,8 +548,10 @@ Used in unit tests, and while developing a new language mode."
       )
     ))
 
-(defun wisi-prj-parse-file (prj-file)
-  "Read project file PRJ-FILE, add result to `wisi-prj-alist'"
+(cl-defun wisi-prj-parse-file (&key prj-file init-prj cache)
+  "Read project file PRJ-FILE with default values from INIT-PRJ.
+If CACHE is non-nil, add the project to `wisi-prj-cache'.
+In any case, return the project."
   (setq prj-file (expand-file-name prj-file))
 
   (unless (file-readable-p prj-file)
@@ -491,13 +560,9 @@ Used in unit tests, and while developing a new language mode."
   (run-hooks `wisi-prj-parse-hook)
 
   (let* ((default-directory (file-name-directory prj-file))
-	 (default-function (cdr (assoc (file-name-extension prj-file) wisi-prj-default-alist)))
 	 (parser (cdr (assoc (file-name-extension prj-file) wisi-prj-parser-alist)))
-	 project)
-
-    (if default-function
-	(setq project (funcall default-function))
-      (error "no project default function defined for '%s'" prj-file))
+	 (project init-prj)
+	 (process-environment (append (wisi-prj-compile-env init-prj) process-environment)))
 
     (if parser
 	(funcall parser prj-file project)
@@ -505,11 +570,13 @@ Used in unit tests, and while developing a new language mode."
 
     (wisi-prj-parse-final project prj-file)
 
-    ;; Store the project properties
-    (if (assoc prj-file wisi-prj-alist)
-	(setcdr (assoc prj-file wisi-prj-alist) project)
-      (push (cons prj-file project) wisi-prj-alist))
-    ))
+    (when cache
+      ;; Cache the project properties
+      (if (assoc prj-file wisi-prj-cache)
+	  (setcdr (assoc prj-file wisi-prj-cache) project)
+	(push (cons prj-file project) wisi-prj-cache)))
+
+    project))
 
 (defun wisi-prj-show-prj-path ()
   "Show the project project file search path."
@@ -532,8 +599,7 @@ Used in unit tests, and while developing a new language mode."
 
 (defvar-local wisi-auto-case nil
   "Buffer-local value indicating whether to change case while typing.
-Global value is default for project variable `auto_case'.  When
-non-nil, automatically change case of preceding word while
+When non-nil, automatically change case of preceding word while
 typing.  Casing of keywords is done according to
 `wisi-case-keyword', identifiers according to
 `wisi-case-identifier'."
@@ -961,9 +1027,124 @@ with \\[universal-argument]."
 	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )
 
-;;;; Initializations
+;;;; project-find-functions alternatives
 
-(add-hook 'project-find-functions #'wisi-find-project -50)
+(cl-defun wisi-prj-select-cached (&key prj-file init-prj)
+  "Select project matching PRJ-FILE in `wisi-prj-cache' as current project,
+parsing and caching if needed."
+  (let ((old-prj (project-current)))
+    ;; If old-prj is not a wisi-prj, we don't know how to deselect it;
+    ;; just ignore that.  If prj-file is the current file, user is
+    ;; re-selecting it.
+    (when (wisi-prj-p old-prj)
+      (wisi-prj-deselect old-prj)))
+
+  (setq prj-file (expand-file-name prj-file))
+
+  (let ((new-prj (cdr (assoc prj-file wisi-prj-cache))))
+    (unless new-prj
+      (setq new-prj (wisi-prj-parse-file :prj-file prj-file :init-prj init-prj :cache t))
+      (unless new-prj
+	(error "parsing project file '%s' failed" prj-file)))
+
+    (setq wisi-prj-current-file prj-file)
+    (wisi-prj-select new-prj)))
+
+(defun wisi-prj-current-cached (_dir)
+  "For `project-find-functions'; return the current project from `wisi-prj-cache'."
+  (cdr (assoc wisi-prj-current-file wisi-prj-cache)))
+
+(defvar wisi-prj-default nil
+  "Alist of (PRJ-FILE . INIT-PRJ), for `wisi-prj-parse-current'.
+PRJ-FILE is an absolute project file name; INIT-PRJ is the
+initial `wisi-prj' object for that project file.")
+
+(defun wisi-prj-select-file (prj-file default-prj)
+  "Set PRJ-FILE as current project, add DEFAULT-PRJ to `wisi-prj-default'."
+  (setq wisi-prj-current-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj-default (cons prj-file default-prj)))
+
+(defun wisi-prj-current-parse (_dir)
+  "For `project-find-functions'; parse the current project file, select and return the project"
+  (let ((prj (wisi-prj-parse-file
+	      :prj-file wisi-prj-current-file
+	      :init-prj (cdr (assoc wisi-prj-current-file wisi-prj-default #'string=))
+	      :cache nil)))
+    (wisi-prj-select prj)
+    prj))
+
+(defvar wisi-prj-dominating-alist nil
+"Alist of (DOMINATING-FILE . PRJ-FILE-NAME):
+DOMINATING-FILE is an absolute filename that can be found via
+`wisi-prj-find-dominating' from a typical project file.
+PRJ-FILE-NAME is the wisi project file for the project for that
+file.")
+
+(defcustom wisi-prj-dominating '("Makefile", "build/Makefile")
+  "List of relative filenames for `wisi-prj-find-dominating-cached'
+and `wisi-prj-find-dominating-parse'"
+  :group 'wisi
+  :type '(repeat (string :tag "relative file name")))
+
+(defun wisi-prj-cache-dominating (dom-file prj-file default-prj)
+  "Parse prj-file, add to `wisi-prj-cache'.
+Also add (DOM-FILE . PRJ-FILE) to `wisi-prj-dominating-alist'.
+DOM-FILE defaults to (buffer-file-name). "
+  (add-to-list 'wisi-prj-dominating-alist (cons (or dom-file (buffer-file-name)) prj-file))
+  (wisi-prj-parse-file :prj-file prj-file :init-prj default-prj :cache t))
+
+(defun wisi-prj--find-dominating-file ()
+  "Return the project file matching `wisi-prj-dominating'."
+  (let* (dom-file
+	 (_dom-dir
+	  (locate-dominating-file
+	   default-directory
+	   (lambda (dir)
+	     (let ((names wisi-prj-dominating))
+	       (while names
+		 (let ((filename (expand-file-name (pop names) dir)))
+		   (when (file-exists-p filename)
+		     (setq dom-file filename)
+		     (setq names nil)))))
+	     dom-file))))
+    (cdr (assoc dom-file wisi-prj-dominating-alist #'string=))))
+
+(defun wisi-prj-find-dominating-cached ()
+  "For `project-find-functions'; return the cached project matching
+`wisi-prj-dominating'. Select it if it is not the current project."
+  (let* ((prj-file (wisi-prj--find-dominating-file))
+	 (new-prj (cdr (assoc prj-file wisi-prj-cache #'string=))))
+    (unless (string= prj-file wisi-prj-current-file)
+      (let ((old-prj (cdr (assoc wisi-prj-current-file wisi-prj-cache #'string=))))
+	(when old-prj (wisi-prj-deselect old-prj))
+	(when new-prj (wisi-prj-select new-prj))))
+    new-prj))
+
+(defun wisi-prj-set-dominating (dom-file prj-file default-prj)
+  "Add (DOM-FILE . PRJ-FILE) to `wisi-prj-dominating-alist',
+and (PRJ-FILE . DEFAULT-PRJ) to `wisi-prj-default'.
+DOM-FILE defaults to (buffer-file-name).
+For example, call this in the Local Vars of a Makefile to
+associate a project with that Makefile."
+  (add-to-list 'wisi-prj-dominating-alist (cons (or dom-file (buffer-file-name)) (expand-file-name prj-file)))
+  (add-to-list 'wisi-prj-default (cons (expand-file-name prj-file) default-prj)))
+
+(defun wisi-prj-find-dominating-parse ()
+  "For `project-find-functions'; parse, select, and return the project
+file matching `wisi-prj-dominating'."
+  (let* ((prj-file (wisi-prj--find-dominating-file))
+	 (prj (wisi-prj-parse-file
+	       :proj-file prj-file
+	       :init-prj (cdr (assoc prj-file wisi-prj-default #'string=))
+	       :cache nil)))
+    (wisi-prj-select prj)
+    prj))
+
+(defun wisi-xref-backend ()
+  "For `xref-backend-functions'; return the xref object from the current wisi project."
+  (let ((prj (project-current)))
+    (when (wisi-prj-p prj)
+      (wisi-prj-xref prj))))
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

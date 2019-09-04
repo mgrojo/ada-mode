@@ -593,7 +593,6 @@ Also sets ff-function-name for ff-pre-load-hook."
 	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
     (save-excursion
       (condition-case nil
-	  ;; Throwing an error here disables which-function-mode, so don't do it.
 	  (progn
 	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
 	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
@@ -922,8 +921,8 @@ after."
   (ada-goto-declaration-start-1 include-type))
 
 (defun ada-goto-declaration-end ()
-  "For `end-of-defun-function'. Function to move point to end of
-current declaration."
+  "Move point to end of current declaration.
+For `end-of-defun-function'."
   (interactive)
   ;; First goto-declaration-start, so we get the right end, not just
   ;; the current statement end.
@@ -1467,10 +1466,6 @@ For `wisi-indent-calculate-functions'.
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
   (syntax-ppss-flush-cache (point-min));; reparse with new function
 
-  (when (boundp 'syntax-begin-function)
-    ;; default ‘beginning-of-defun’ in emacs-24.2; we need it nil
-    ;; obsolete in 25.1
-    (set (make-local-variable 'syntax-begin-function) nil))
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting

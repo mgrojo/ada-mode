@@ -68,10 +68,11 @@
       (setq buffer-read-only nil)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (cl-copy-list (wisi-prj-environment project)))
-	  ;; for GPR_PROJECT_PATH, other env vars set in wisi
-	  ;; project files and used by gpr files.
-
+    (let ((process-environment
+	   (append
+	    (wisi-prj-compile-env project)
+	    (wisi-prj-file-env project)
+	    (copy-sequence process-environment)))
 	  (gpr-file (file-name-nondirectory (gnat-compiler-gpr-file (wisi-prj-xref project)))))
 
       (erase-buffer); delete any previous messages, prompt
@@ -386,14 +387,6 @@ Enable mode if ARG is positive."
 
 (cl-defmethod wisi-xref-parse-final ((xref gnat-compiler) _project prj-file-name)
   (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix)))
-
-(cl-defmethod wisi-xref-select-prj ((_xref gnat-compiler) _project)
-  ;; FIXME: set xref-find-backend in all relevant buffers
-  )
-
-(cl-defmethod wisi-xref-deselect-prj ((_xref gnat-compiler) _project)
-  ;; FIXME: unset xref-find-backend in all relevant buffers
-  )
 
 (cl-defmethod wisi-xref-refresh-cache ((_xref gnat-compiler) project no-full)
   ;; Kill the current session and delete the database, to get changed

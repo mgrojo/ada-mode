@@ -1102,7 +1102,7 @@ package body Wisi is
               (File_Name => Data.Lexer.File_Name,
                Line      => Name_Token.Line,
                Column    => Name_Token.Column,
-               Message   => "wisi-name-action: name set twice.");
+               Message   => Trimmed_Image (Tree.Production_ID (Nonterm)) & ": wisi-name-action: name set twice.");
          else
             Data.Name_Caches.Insert (Name_Token.Char_Region);
          end if;

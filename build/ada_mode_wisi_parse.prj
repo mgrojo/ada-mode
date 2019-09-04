@@ -2,14 +2,14 @@ gpr_project_path=..
 gpr_project_path=$WISITOKEN/build
 -- gpr_project_path=$LIBADALANG
 gpr_project_path=../../org.stephe_leake.aunit_ext/build
-gpr_project_path=../../org.stephe_leake.sal/build
+gpr_project_path=$SAL/build
 gpr_project_path=../../org.stephe_leake.makerules
 
 gpr_file=ada_mode_wisi_parse.gpr
 
 casing=libadalang.casing
 casing=$WISITOKEN/build/emacs_case_exceptions
-casing=../../org.stephe_leake.sal/build/sal.casing
+casing=$SAL/build/sal.casing
 casing=../../org.stephe_leake.aunit_ext/build/aunit.casing
 
 -- for *.wy

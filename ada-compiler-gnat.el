@@ -693,9 +693,16 @@ Prompt user if more than one."
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
   (add-hook 'ada-syntax-propertize-hook #'gnatprep-syntax-propertize)
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook. FIXME: do this in all ada-mode buffers.
-  (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
+
+  ;; FIXME: do the following in all ada-mode buffers in the project?
+  ;; or assume each file has only one relevant setting, does not
+  ;; change with project (the file either has gnatprep syntax or
+  ;; not). In which case ada-mode needs to do this; need
+  ;; cl-defmethod ada-prj-compiler-buffer-setup (prj).
+  ;; Even with host/target compilers, both must run gnatprep first.
+  (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
   (font-lock-add-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
   (font-lock-refresh-defaults)
   )
@@ -761,7 +768,11 @@ Prompt user if more than one."
 		(split-string (gnat-compiler-gnat-stub-opts compiler))))
 	(cargs (when (gnat-compiler-gnat-stub-cargs compiler)
 		(split-string (gnat-compiler-gnat-stub-cargs compiler))))
-	(process-environment (cl-copy-list (wisi-prj-environment project))) ;; for GPR_PROJECT_PATH
+	(process-environment
+	 (append
+	   (wisi-prj-compile-env project)
+	   (wisi-prj-file-env project)
+	   (copy-sequence process-environment)))
 	)
 
     ;; Make sure all relevant files are saved to disk.
@@ -799,8 +810,6 @@ Prompt user if more than one."
 	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
        )
       )))
-
-(add-to-list 'wisi-prj-default-alist '("gpr" . ada-prj-default))
 
 (provide 'ada-compiler-gnat)
 (provide 'ada-compiler)

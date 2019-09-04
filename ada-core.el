@@ -359,7 +359,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
   (ada-refactor ada-refactor-format-paramlist))
 
 ;;;; xref
-(defvar ada-xref-tool (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr-query 'gnat)
+(defvar ada-xref-tool (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
   "Default Ada cross reference tool; can be overridden in project files.")
 
 (defcustom ada-xref-full-path nil
@@ -416,6 +416,27 @@ nil, only the file name."
 
 ;;;; project files
 
+(cl-defstruct
+    (ada-prj
+     (:include wisi-prj)
+     (:copier nil)
+     (:constructor nil)
+     (:constructor make-ada-prj
+		   (&key
+		    name
+		    compile-env
+		    (compiler-label ada-compiler)
+		    (xref-label ada-xref-tool)
+		    source-path
+		    plist
+		    file-pred
+		    &aux
+		    (compiler (ada-prj-make-compiler compiler-label))
+		    (xref (ada-prj-make-xref xref-label))
+		    )))
+  plist    ;; user-declared project variables; also obj_dir, mostly as an example.
+  )
+
 (defvar ada-prj-default-list nil
   ;; This is used by ada-build.el; we keep it to allow other similar
   ;; uses.
@@ -424,11 +445,12 @@ with one argument; the project. `default-directory' is set to the
 directory containing the project file. Function should update the
 project.")
 
-(defun ada-prj-default (&optional src-dir)
+(defun ada-prj-default (name &optional src-dir)
   "Return the default `ada-prj' object.
 If SRC-DIR is non-nil, use it as the default for project.source-path."
   (let ((project
 	 (make-ada-prj
+	  :name name
 	  :compiler-label  ada-compiler
 	  :xref-label      ada-xref-tool
 	  :source-path	  (cond
@@ -442,40 +464,14 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 
     project))
 
-;; This autoloaded because it is often used in Makefiles, and thus
-;; will be the first ada-mode function executed.
-;;;###autoload
-(defun ada-parse-prj-file (prj-file)
-    (wisi-prj-parse-file prj-file))
-(make-obsolete
- 'ada-parse-prj-file
- 'wisi-prj-parse-file
- "ada-mode 7.0")
+(cl-defmethod wisi-prj-default ((prj ada-prj))
+  (ada-prj-default (wisi-prj-name prj)))
 
 (defun ada-prj-make-compiler (label)
   (funcall (intern (format "make-%s-compiler" (symbol-name label)))))
 
 (defun ada-prj-make-xref (label)
   (funcall (intern (format "make-%s-xref" (symbol-name label)))))
-
-(cl-defstruct
-    (ada-prj
-     (:include wisi-prj)
-     (:copier nil)
-     (:constructor nil)
-     (:constructor make-ada-prj
-		   (&key
-		    compiler-label
-		    xref-label
-		    source-path
-		    plist
-		    file-pred
-		    &aux
-		    (compiler (ada-prj-make-compiler compiler-label))
-		    (xref (ada-prj-make-xref xref-label))
-		    )))
-  plist    ;; user-declared project variables; also obj_dir, mostly as an example.
-  )
 
 (defun ada-prj-require-prj ()
   "Return current `ada-prj' object.
@@ -554,8 +550,8 @@ PROJECT is an `ada-prj' object."
   ;; not ada-prj-select-file for backward compatibility
   "Select PRJ-FILE as the current project file, parsing it if necessary.
 Deselects the current project first."
-  (wisi-prj-select-file prj-file))
-(make-obsolete 'ada-select-prj-file 'wisi-prj-select-file "ada-mode 7.0")
+  (wisi-prj-select-file prj-file (ada-prj-default "")))
+(make-obsolete 'ada-select-prj-file 'wisi-prj-select-cached "ada-mode 7.0")
 
 (defun ada-create-select-default-prj (&optional directory)
   "Create a default project with source-path set to DIRECTORY (default current directory), select it."
@@ -565,11 +561,11 @@ Deselects the current project first."
 
     ;; Do this here so wisi-prj-select-file will not try to parse the
     ;; project file.
-    (if (assoc prj-file wisi-prj-alist)
-	(setcdr (assoc prj-file wisi-prj-alist) project)
-      (add-to-list 'wisi-prj-alist (cons prj-file project)))
+    (if (assoc prj-file wisi-prj-cache)
+	(setcdr (assoc prj-file wisi-prj-cache) project)
+      (add-to-list 'wisi-prj-cache (cons prj-file project)))
 
-    (wisi-prj-select-file prj-file)
+    (wisi-prj-select-file prj-file project)
     ))
 
 (cl-defgeneric ada-prj-select-compiler (compiler project)
@@ -640,10 +636,10 @@ identifier.  May be an Ada identifier or operator."
   "Return an easy-menu menu for `ada-project-menu-install'.
 Menu displays currently parsed Ada mode projects."
   (let (menu)
-    (dolist (item wisi-prj-alist)
+    (dolist (item wisi-prj-cache)
       (push
        (vector
-	(if (equal (car item) wisi-prj--current-file)
+	(if (equal (car item) wisi-prj-current-file)
 	    ;; current project
 	    (concat (car item) "  *")
 	  (car item))
@@ -656,8 +652,7 @@ Menu displays currently parsed Ada mode projects."
 ;;;; initialization
 (mapc
  (lambda (ext)
-   (push (cons ext #'ada-prj-parse-file) wisi-prj-parser-alist)
-   (push (cons ext #'ada-prj-default) wisi-prj-default-alist))
+   (push (cons ext #'ada-prj-parse-file) wisi-prj-parser-alist))
  '("adp" "prj"))
 
 (add-to-list 'wisi-prj-file-extensions '("adp" "prj"))

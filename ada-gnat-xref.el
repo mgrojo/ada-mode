@@ -196,9 +196,8 @@ elements of the result may be nil."
 	    ;; need to set compilation-error-regexp-alist
 	    prev-pos
 	    prev-content)
-	;; compilation-environment is buffer-local; don't set in 'let'
-	;; FIXME: need cl-copy-list? see gnat-run
-	(setq compilation-environment (wisi-prj-environment project))
+
+	;; compilation-environment is set in `wisi-prj-select'
 
 	;; WORKAROUND: the 'compilation' API doesn't let us specify "append", so we use this.
 	(with-current-buffer (get-buffer-create compilation-buffer-name)

@@ -18,6 +18,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi-tests)
+(require 'wisi-prj)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
@@ -279,7 +280,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (delete-trailing-whitespace)
     )
 
-  (unless skip-recase-test
+  (when (and wisi-auto-case (not skip-recase-test))
     (message "casing")
     (wisi-case-adjust-buffer))
   )

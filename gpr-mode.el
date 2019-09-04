@@ -230,7 +230,8 @@
   "Set FILE (default current buffer file) as Emacs project file."
   (interactive)
   (save-some-buffers t)
-  (wisi-prj-select-file (or file (buffer-file-name))))
+  (let ((filename (or file (buffer-file-name))))
+    (wisi-prj-select-file filename (gpr-prj-default (file-name-nondirectory (file-name-sans-extension filename))))))
 
 (defvar gpr-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -350,13 +351,18 @@ Otherwise, allow UPPERCASE for identifiers."
        ))))
 
 (cl-defstruct (gpr-wisi-parser (:include wisi-process--parser))
-  ;; no new structs
+  ;; no new slots
   )
 
-(defun gpr-prj-default ()
-  ;; only used in unit testing
-  (make-wisi-prj
-   :compiler (make-gnat-compiler)))
+(cl-defstruct (gpr-prj (:include wisi-prj))
+  ;; no new slots
+  )
+
+(defun gpr-prj-default (name)
+  (make-gpr-prj :name name :compiler (make-gnat-compiler)))
+
+(cl-defmethod wisi-prj-default ((prj gpr-prj))
+  (gpr-prj-default (wisi-prj-name prj)))
 
 (defun gpr-create-select-default-prj ()
   "Create a default project with source-path set to current directory, select it."
@@ -368,11 +374,11 @@ Otherwise, allow UPPERCASE for identifiers."
 
     ;; Do this here so wisi-prj-select-file will not try to parse the
     ;; project file.
-    (if (assoc prj-file wisi-prj-alist)
-	(setcdr (assoc prj-file wisi-prj-alist) project)
-      (add-to-list 'wisi-prj-alist (cons prj-file project)))
+    (if (assoc prj-file wisi-prj-cache)
+	(setcdr (assoc prj-file wisi-prj-cache) project)
+      (add-to-list 'wisi-prj-cache (cons prj-file project)))
 
-    (wisi-prj-select-file prj-file)
+    (wisi-prj-select-file prj-file project)
     ))
 
 (cl-defmethod wisi-parse-format-language-options ((_parser gpr-wisi-parser))
