@@ -364,23 +364,6 @@ Otherwise, allow UPPERCASE for identifiers."
 (cl-defmethod wisi-prj-default ((prj gpr-prj))
   (gpr-prj-default (wisi-prj-name prj)))
 
-(defun gpr-create-select-default-prj ()
-  "Create a default project with source-path set to current directory, select it."
-  (let* ((prj-file (expand-file-name "default_.gpr" default-directory)) ;; we assume this does not exist
-	 (project (make-wisi-prj
-		   :compiler (make-gnat-compiler :gpr-file prj-file)
-		   :source-path	(list default-directory)))
-	 )
-
-    ;; Do this here so wisi-prj-select-file will not try to parse the
-    ;; project file.
-    (if (assoc prj-file wisi-prj-cache)
-	(setcdr (assoc prj-file wisi-prj-cache) project)
-      (add-to-list 'wisi-prj-cache (cons prj-file project)))
-
-    (wisi-prj-select-file prj-file project)
-    ))
-
 (cl-defmethod wisi-parse-format-language-options ((_parser gpr-wisi-parser))
   (format "%d %d %d"
 	  gpr-indent
@@ -453,9 +436,6 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
   (setq wisi-language-keywords gpr-keywords)
   (setq wisi-case-keyword gpr-case-keyword)
   (setq wisi-case-adjust-p-function #'gpr-case-adjust-p)
-
-  (unless (wisi-prj-p (project-current))
-    (gpr-create-select-default-prj))
   )
 
 ;;;###autoload

@@ -23,9 +23,6 @@
 (require 'wisi)
 (require 'xref)
 
-(defun xref-ada-find-backend ()
-  'xref-ada)
-
 (cl-defmethod xref-backend-definitions ((_backend (eql xref-ada)) identifier)
   (wisi-xref-ident-make
    identifier
@@ -61,16 +58,6 @@
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
-  (wisi-xref-identifier-completion-table))
-
-(define-minor-mode xref-ada-mode ()
-  "Use xref-ada functions."
-  :init-value t
-  ;; The macro code sets the mode variable to the new value before we get here.
-  (if xref-ada-mode
-      (add-hook 'xref-backend-functions #'xref-ada-find-backend nil t)
-    (remove-hook 'xref-backend-functions #'xref-ada-find-backend t)))
-
-(add-hook 'ada-mode-hook #'xref-ada-mode)
+  (wisi-xref-names))
 
 (provide 'xref-ada)

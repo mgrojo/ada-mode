@@ -380,6 +380,7 @@ Enable mode if ARG is positive."
 
 ;;;;; wisi-prj-xref methods
 
+;;;###autoload
 (defalias 'make-gpr_query-xref 'make-gnat-compiler)
 
 (cl-defmethod wisi-xref-parse-one ((xref gnat-compiler) project name value)

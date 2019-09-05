@@ -56,6 +56,15 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
+    testing by compiling/editing o.e.java-wisi.s-1
+        wisi-prj-find-dominating-parse:
+            (project-current) noticeably slow on first and subsequent use
+            xref always calls (project-current) at least twice; once for find, once for function
+
+    testing by editing android music
+
+    need a function/hook for 'compile' to require prj to set compilation-environment
+
     set global xref-find-backend to return wisi-prj.xref, change xref-ada to use that
 
     change wisi-xref-other to return xref-file-location?

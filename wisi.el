@@ -1469,7 +1469,9 @@ If non-nil, only repair errors in BEG END region."
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
-(defun wisi-xref-identifier-completion-table ()
+(defun wisi-xref-names ()
+  "List of names; each is text from one 'wisi-name property in current buffer,
+with the line number appended."
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (let ((table nil)
 	(pos (point-min))
@@ -1478,7 +1480,7 @@ If non-nil, only repair errors in BEG END region."
       ;; We can’t store location data in a string text property -
       ;; it does not survive completion. So we include the line
       ;; number in the identifier string. This also serves to
-      ;; disambiguate overloaded identifiers.
+      ;; disambiguate overloaded identifiers in the user interface.
       (setq end-pos (next-single-property-change pos 'wisi-name))
       (push
        (format "%s<%d>"

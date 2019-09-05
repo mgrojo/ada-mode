@@ -196,6 +196,15 @@ Returns non-nil if a file is selected, nil otherwise."
       t)
     ))
 
+(defun ada-build-create-select-default-prj (&optional directory)
+  "Create a default project with source-path set to DIRECTORY (default current directory), select it."
+  (let* ((dir (or directory default-directory))
+	 (prj-file (expand-file-name "default_.adp" dir)) ;; we assume this does not exist
+	 (project (ada-prj-default dir)))
+
+    (wisi-prj-select-file prj-file project)
+    ))
+
 (defun ada-build-require-project-file ()
   "Ensure that a project file is selected.
 Action when no project file is currently selected is determined
@@ -221,7 +230,8 @@ error - Throw an error (no prompt, no default project).
     (cl-ecase ada-build-prompt-prj
       (default
 	(or (ada-build-find-select-prj-file)
-	    (ada-create-select-default-prj)))
+	    (ada-build-create-select-default-prj)
+	    ))
 
       (default-prompt
 	(or (ada-build-find-select-prj-file)

@@ -550,23 +550,8 @@ PROJECT is an `ada-prj' object."
   ;; not ada-prj-select-file for backward compatibility
   "Select PRJ-FILE as the current project file, parsing it if necessary.
 Deselects the current project first."
-  (wisi-prj-select-file prj-file (ada-prj-default "")))
+  (wisi-prj-select-cached prj-file (ada-prj-default "")))
 (make-obsolete 'ada-select-prj-file 'wisi-prj-select-cached "ada-mode 7.0")
-
-(defun ada-create-select-default-prj (&optional directory)
-  "Create a default project with source-path set to DIRECTORY (default current directory), select it."
-  (let* ((dir (or directory default-directory))
-	 (prj-file (expand-file-name "default_.adp" dir)) ;; we assume this does not exist
-	 (project (ada-prj-default dir)))
-
-    ;; Do this here so wisi-prj-select-file will not try to parse the
-    ;; project file.
-    (if (assoc prj-file wisi-prj-cache)
-	(setcdr (assoc prj-file wisi-prj-cache) project)
-      (add-to-list 'wisi-prj-cache (cons prj-file project)))
-
-    (wisi-prj-select-file prj-file project)
-    ))
 
 (cl-defgeneric ada-prj-select-compiler (compiler project)
   "PROJECT has been selected; set any project options that are both Ada and compiler specific.")
@@ -636,10 +621,10 @@ identifier.  May be an Ada identifier or operator."
   "Return an easy-menu menu for `ada-project-menu-install'.
 Menu displays currently parsed Ada mode projects."
   (let (menu)
-    (dolist (item wisi-prj-cache)
+    (dolist (item wisi-prj--cache)
       (push
        (vector
-	(if (equal (car item) wisi-prj-current-file)
+	(if (equal (car item) wisi-prj--current-file)
 	    ;; current project
 	    (concat (car item) "  *")
 	  (car item))
