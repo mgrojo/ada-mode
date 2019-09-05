@@ -1064,6 +1064,9 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
          begin
             if Trace_Action > Outline then
+               if Trace_Action > Extra then
+                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root);
+               end if;
                Parser.Trace.Put_Line
                  (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
                     (Parser_State.Tree.Root, Descriptor));
