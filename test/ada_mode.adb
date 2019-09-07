@@ -1,5 +1,5 @@
 package body Ada_Mode is
-   --EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
+   --EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
 
    protected body Separate_Protected_Body is separate;
 

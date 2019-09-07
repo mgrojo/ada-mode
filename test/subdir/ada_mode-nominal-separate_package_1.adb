@@ -1,5 +1,4 @@
---EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-cached "ada_mode.adp" (ada-prj-default))
 
 -- test "Text_IO" case exception set in project file
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 2)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "Text_IO")))

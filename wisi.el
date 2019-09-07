@@ -1180,8 +1180,10 @@ Called with BEGIN END.")
   (let ((col (current-column)))
     (while (and (not (eobp))
 		(< (point) end))
-      (forward-line 1)
-      (indent-line-to col)
+      (if (= 1 (forward-line 1))
+	  (indent-line-to col)
+	;; on last line of buffer; terminate loop
+	(goto-char (point-max)))
       (when (bobp)
 	;; single line in buffer; terminate loop
 	(goto-char (point-max))))))

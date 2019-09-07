@@ -1,4 +1,4 @@
---EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "package Ada_Mode"))
 procedure Ada_Mode.Child_Procedure
 is

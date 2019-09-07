@@ -55,24 +55,33 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+running ada-mode tests
+    test/gpr/gds.gpr
+        use proper wisi-prj-set, -select-
+
+wisi-prj-find-dominating-parse:
+    (project-current) noticeably slow on first and subsequent use
+    xref always calls (project-current) at least twice; once for find, once for function
+    compilation-environment (and other globals) set by most recently used project
+        so far not a problem
+
 major cleanup
-    testing by compiling/editing o.e.java-wisi.s-1
-        wisi-prj-find-dominating-parse:
-            (project-current) noticeably slow on first and subsequent use
-            xref always calls (project-current) at least twice; once for find, once for function
+    add project-menu to wisi-prj
+        for use with declared projects; wisi-*-alist, -cached
+        show currently selected if possible
 
-    testing by editing android music
+        ada-menu has Show project
+            neither ada-show-prj nor wisi-show-prj are defined
 
-    need a function/hook for 'compile' to require prj to set compilation-environment
+        delete/adapt ada-project-menu-install, -compute
 
-    set global xref-find-backend to return wisi-prj.xref, change xref-ada to use that
+        no select action if project-find-functions doesn't have a select variant?
 
-    change wisi-xref-other to return xref-file-location?
+    testing by compiling/editing o.e.java-wisi, android music
 
-    set/unset _all_ global items required for proper functioning in ada-project-select, -deselect
-        including xref-backend-functions
-
-    move gnatprep out of ada-prj-select-compiler into cl-defmethod ada-prj-compiler-buffer-setup (prj).
+    compilation-environment set by last used (project-current)
+        my make-command calls sal-ensure-prj
+        find some solution for that in pure emacs 27
 
     change ada-fix-error-alist to generic?
         dispatch on compiler
@@ -88,10 +97,10 @@ major cleanup
 
     test all menus
 
-    add project-menu to wisi-prj
-        for use with 'selected' project-find-functions
-
     run/update ada-build tutorial
+
+if there was a corrected error on a line, that is now gone, the indent
+should be recomputed, even if no prior text edited.
 
 mirror to github, ask people to try it, find backwards compat issues
     add defalias etc
@@ -156,6 +165,10 @@ why is wisi-hanging specified in each use of expression instead of on expression
     either way, improve example in wisi.texi
 
 in wisi-tests.el, delete call of syntax-propertize for emacs >= 25
+
+improve bug tracking
+    https://savannah.nongnu.org/userguide/?file=ch04.html
+    https://debbugs.gnu.org/Using.html
 
 indent bug:
                  (if GNAT.Regexp.Match (Value, Symbol_Regexp)

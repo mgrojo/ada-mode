@@ -39,7 +39,6 @@
 (require 'gpr-indent-user-options)
 (require 'gpr-process)
 (require 'gpr-skel)
-(require 'wisi-compiler-gnat)
 (require 'wisi-process-parse)
 (require 'wisi-prj)
 
@@ -82,7 +81,6 @@
 
     ["Customize"     (customize-group 'gpr)]
     ["------"        nil nil]
-    ["Parse and select current file" gpr-set-as-project             t]
     ["Show current project"        wisi-prj-show                    t]
     ["Show project search path"    wisi-prj-show-prj-path           t]
     ["Next compilation error"      next-error                       t]
@@ -225,13 +223,6 @@
   (save-excursion
     (end-of-line 1)
     (gpr-which-function)))
-
-(defun gpr-set-as-project (&optional file)
-  "Set FILE (default current buffer file) as Emacs project file."
-  (interactive)
-  (save-some-buffers t)
-  (let ((filename (or file (buffer-file-name))))
-    (wisi-prj-select-file filename (gpr-prj-default (file-name-nondirectory (file-name-sans-extension filename))))))
 
 (defvar gpr-mode-syntax-table
   (let ((table (make-syntax-table)))

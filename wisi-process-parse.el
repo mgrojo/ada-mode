@@ -83,7 +83,8 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (let ((exec-file (locate-file (wisi-process--parser-exec-file parser) exec-path '("" ".exe"))))
 
 	(unless exec-file
-	  (error "%s not found on `exec-path'" (wisi-process--parser-exec-file parser)))
+	  (error "%s not found on `exec-path'; run 'build.sh' in the ELPA package."
+		 (wisi-process--parser-exec-file parser)))
 
 	(push (cons (wisi-process--parser-label parser) parser) wisi-process--alist)
 

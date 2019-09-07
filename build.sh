@@ -1,5 +1,10 @@
 #!/bin/sh
 # Build and install executables for Ada mode.
+#
+# If you don't have write permission in the GNAT installation
+# directory, you need to add --prefix=<dir> to the gprinstall
+# commands.
+
 
 # In December 2016, GNATCOLL changed its Xref interface. First, the
 # GPR was split out; and second, one of the subprogram

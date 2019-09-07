@@ -38,7 +38,6 @@
 (require 'compile)
 (require 'gnat-core)
 (require 'wisi)
-(require 'wisi-compiler-gnat)
 
 ;;;; compiler message handling
 
@@ -684,38 +683,23 @@ Prompt user if more than one."
 
 ;;;; generic methods
 
-(defconst ada-gnatprep-preprocessor-keywords
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
-
 (cl-defmethod ada-prj-select-compiler ((_compiler gnat-compiler) _project)
   ;; These can't be in wisi-compiler-select-prj (gnat-compiler),
   ;; because that is shared with gpr-mode (and maybe others).
+  (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
   (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
-  (add-hook 'ada-syntax-propertize-hook #'gnatprep-syntax-propertize)
-  (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
-  ;; FIXME: do the following in all ada-mode buffers in the project?
-  ;; or assume each file has only one relevant setting, does not
-  ;; change with project (the file either has gnatprep syntax or
-  ;; not). In which case ada-mode needs to do this; need
-  ;; cl-defmethod ada-prj-compiler-buffer-setup (prj).
-  ;; Even with host/target compilers, both must run gnatprep first.
-  (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
-  (font-lock-add-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
-  (font-lock-refresh-defaults)
+  ;; We should call `syntax-ppss-flush-cache' here, to force ppss
+  ;; without the hook. But that must be done in all ada-mode buffers,
+  ;; which is tedious. So we're ignoring it until it becomes a
+  ;; problem.
   )
 
 (cl-defmethod ada-prj-deselect-compiler ((_compiler gnat-compiler) _project)
   (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
-  (setq ada-syntax-propertize-hook (delq #'gnatprep-syntax-propertize ada-syntax-propertize-hook))
   (setq ada-syntax-propertize-hook (delq #'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate without hook. FIXME: do this in all ada-mode buffers.
-  (setq wisi-indent-calculate-functions (delq 'gnatprep-indent wisi-indent-calculate-functions))
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
-  (font-lock-remove-keywords 'ada-mode ada-gnatprep-preprocessor-keywords)
-  (font-lock-refresh-defaults)
   )
 
 (cl-defmethod ada-compiler-file-name-from-ada-name ((compiler gnat-compiler) project ada-name)

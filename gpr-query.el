@@ -32,7 +32,6 @@
 (require 'compile)
 (require 'gnat-core)
 (require 'xref)
-(require 'xref-ada)
 (require 'wisi-prj)
 
 ;;;;; sessions
@@ -381,7 +380,7 @@ Enable mode if ARG is positive."
 ;;;;; wisi-prj-xref methods
 
 ;;;###autoload
-(defalias 'make-gpr_query-xref 'make-gnat-compiler)
+(defalias 'create-gpr_query-xref 'create-gnat-compiler)
 
 (cl-defmethod wisi-xref-parse-one ((xref gnat-compiler) project name value)
   (wisi-compiler-parse-one xref project name value))

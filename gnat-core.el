@@ -51,6 +51,26 @@ command.  This applies e.g. to *gnatfind* buffers."
   gnat-stub-cargs ;; FIXME: add to -parse
   )
 
+;;;###autoload
+(cl-defun create-gnat-compiler
+    (&key
+     gpr-file
+     run-buffer-name
+     project-path
+     target
+     runtime
+     gnat-stub-opts
+     gnat-stub-cargs)
+  (make-gnat-compiler
+   :gpr-file gpr-file
+   :run-buffer-name run-buffer-name
+   :project-path project-path
+   :target target
+   :runtime runtime
+   :gnat-stub-opts gnat-stub-opts
+   :gnat-stub-cargs gnat-stub-cargs
+   ))
+
 (defun gnat-compiler-require-prj ()
   "Return current `gnat-compiler' object from current project compiler.
 Throw an error if current project does not have a gnat-compiler."
@@ -58,7 +78,7 @@ Throw an error if current project does not have a gnat-compiler."
 	 (compiler (wisi-prj-compiler wisi-prj)))
     (if (gnat-compiler-p compiler)
 	compiler
-      (error "no gnat-compiler in selected project compiler."))))
+      (error "no gnat-compiler in current project"))))
 
 (defun gnat-prj-add-prj-dir (project dir)
   "Add DIR to compiler.project_path, and to GPR_PROJECT_PATH in project.environment."
@@ -320,6 +340,66 @@ which is displayed on error."
       (error "gnat %s failed" (car command)))
      )))
 
+(cl-defmethod wisi-compiler-parse-one ((compiler gnat-compiler) project name value)
+  "Handle gnat-specific wisi project file settings.
+If NAME recognized, update PROJECT, return t. Else return nil.
+See also `gnat-prj-parse-emacs-final'."
+  (cond
+   ((or
+     (string= name "ada_project_path") ;; backward compatibility
+     (string= name "gpr_project_path"))
+    (let ((process-environment
+	   (append
+	    (wisi-prj-compile-env project)
+	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
+      (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value))))
+    t)
+
+   ((string= name "gpr_file")
+    ;; The gpr file is parsed in `wisi-compiler-parse-final', so it
+    ;; sees all file environment vars.
+    (let ((process-environment
+	   (append
+	    (wisi-prj-compile-env project)
+	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
+      (setf (gnat-compiler-gpr-file compiler)
+	    (or
+	     (expand-file-name (substitute-in-file-name value))
+	     (locate-file (substitute-in-file-name value)
+			  (gnat-compiler-project-path compiler)))))
+    t)
+   ))
+
+(cl-defmethod wisi-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
+  (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name prj-file-name))
+
+  (if (gnat-compiler-gpr-file compiler)
+      (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project)
+
+    ;; add the compiler libraries to project.source-path
+    (gnat-get-paths project)
+    ))
+
+(cl-defmethod wisi-compiler-select-prj ((_compiler gnat-compiler) _project)
+  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
+  (setq compilation-error-regexp-alist '(gnat))
+  )
+
+(cl-defmethod wisi-compiler-deselect-prj ((_compiler gnat-compiler) _project)
+  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+  (setq compilation-error-regexp-alist (mapcar #'car compilation-error-regexp-alist-alist))
+  )
+
+(cl-defmethod wisi-compiler-show-prj-path ((compiler gnat-compiler))
+    (if (gnat-compiler-project-path compiler)
+      (progn
+	(pop-to-buffer (get-buffer-create "*project file search path*"))
+	(erase-buffer)
+	(dolist (file (gnat-compiler-project-path compiler))
+	  (insert (format "%s\n" file))))
+    (message "no project file search path set")
+    ))
+
 ;;;; gnatprep utils
 
 (defun gnatprep-indent ()
@@ -349,6 +429,23 @@ list."
 	 (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
        )
       )))
+
+(defconst gnatprep-preprocessor-keywords
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
+
+;; We assume that if this file is loaded, any ada-mode buffer may have
+;; gnatprep syntax; even with different host/target compilers, both
+;; must run gnatprep first. If support for another preprocessor is
+;; added, we'll need wisi-prj-preprocessor, along with -compiler and
+;; -xref.
+(defun gnatprep-setup ()
+  (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent)
+  (add-hook 'ada-syntax-propertize-hook #'gnatprep-syntax-propertize)
+  (font-lock-add-keywords 'ada-mode gnatprep-preprocessor-keywords)
+  ;; ada-mode calls font-lock-refresh-defaults after ada-mode-hook
+  )
+
+(add-hook 'ada-mode-hook #'gnatprep-setup)
 
 ;;;; Initialization
 

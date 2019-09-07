@@ -171,6 +171,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (setq indent-tabs-mode nil)
   (setq jit-lock-context-time 0.0);; for test-face
 
+  ;; Test files use wisi-prj-select-cached to parse and select a project file.
+  (setq project-find-functions #'wisi-prj-current-cached)
+
   (let ((error-count 0)
 	(test-buffer (current-buffer))
 	cmd-line
@@ -314,11 +317,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
   (let ((dir default-directory))
     (find-file file-name) ;; sets default-directory
-
-    (when (eq major-mode 'fundamental-mode)
-      ;; Running a grammar in test/wisi
-      (add-to-list 'load-path (expand-file-name "."))
-      (wisi-tests-setup (file-name-sans-extension (file-name-nondirectory file-name))))
 
     (run-test-here)
 

@@ -1,7 +1,7 @@
 --  Test ada-find-other-file
 
 -- Point on "package" line, goto its parent
---EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
+--EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
 --EMACSCMD:(progn (forward-line 1)(forward-word 1)(ada-find-other-file)(looking-at "package Ada_Mode is"))
 package Ada_Mode.Find_File is
    --EMACSRESULT:t

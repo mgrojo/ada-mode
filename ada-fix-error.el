@@ -197,7 +197,6 @@ extend a with_clause to include CHILD-NAME  .	"
   (insert "use " package ";"))
 
 (defvar ada-fix-error-hook nil
-  ;; determined by ada_compiler, set by *-select-prj-compiler
   "Hook to recognize and fix errors.
 Hook functions are called with three args:
 

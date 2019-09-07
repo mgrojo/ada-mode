@@ -359,6 +359,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
   (ada-refactor ada-refactor-format-paramlist))
 
 ;;;; xref
+
 (defvar ada-xref-tool (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
   "Default Ada cross reference tool; can be overridden in project files.")
 
@@ -437,6 +438,26 @@ nil, only the file name."
   plist    ;; user-declared project variables; also obj_dir, mostly as an example.
   )
 
+;;;###autoload
+(cl-defun create-ada-prj
+    (&key
+     name
+     compile-env
+     (compiler-label ada-compiler)
+     (xref-label ada-xref-tool)
+     source-path
+     plist
+     file-pred)
+  ;; We declare and autoload this because we can't autoload make-ada-prj.
+  (make-ada-prj
+   :name name
+   :compile-env compile-env
+   :compiler-label compiler-label
+   :xref-label xref-label
+   :source-path source-path
+   :plist plist
+   :file-pred file-pred))
+
 (defvar ada-prj-default-list nil
   ;; This is used by ada-build.el; we keep it to allow other similar
   ;; uses.
@@ -445,12 +466,12 @@ with one argument; the project. `default-directory' is set to the
 directory containing the project file. Function should update the
 project.")
 
-(defun ada-prj-default (name &optional src-dir)
+(defun ada-prj-default (&optional name src-dir)
   "Return the default `ada-prj' object.
 If SRC-DIR is non-nil, use it as the default for project.source-path."
   (let ((project
 	 (make-ada-prj
-	  :name name
+	  :name (or name "_default_")
 	  :compiler-label  ada-compiler
 	  :xref-label      ada-xref-tool
 	  :source-path	  (cond
@@ -467,11 +488,18 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 (cl-defmethod wisi-prj-default ((prj ada-prj))
   (ada-prj-default (wisi-prj-name prj)))
 
+;;;###autoload
 (defun ada-prj-make-compiler (label)
-  (funcall (intern (format "make-%s-compiler" (symbol-name label)))))
+  ;; We use the autoloaded constructor here
+  (require (intern (format "ada-compiler-%s" (symbol-name label))))
+  (funcall (intern (format "create-%s-compiler" (symbol-name label)))))
 
 (defun ada-prj-make-xref (label)
-  (funcall (intern (format "make-%s-xref" (symbol-name label)))))
+  ;; We use the autoloaded constructor here
+  (funcall (intern (format "create-%s-xref" (symbol-name label))))
+  ;; So far the only ada xref we have is gpr_query, which uses a
+  ;; gnat-compiler object, so no new require here.
+  )
 
 (defun ada-prj-require-prj ()
   "Return current `ada-prj' object.
@@ -479,7 +507,7 @@ Throw an error if current project is not an ada-prj."
   (let ((prj (project-current)))
     (if (ada-prj-p prj)
 	prj
-      (error "selected project is not an ada project."))))
+      (error "current project is not an ada project."))))
 
 (defun ada-prj-parse-file (prj-file project)
   "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.

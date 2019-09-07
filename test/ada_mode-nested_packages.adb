@@ -3,6 +3,8 @@
 --
 -- Also other stuff
 
+--EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
+
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention

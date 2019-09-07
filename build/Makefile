@@ -415,6 +415,6 @@ install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
 # end:
 # end of file

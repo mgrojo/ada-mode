@@ -1,6 +1,6 @@
 -- Various generic_instantiations
 -- test project file with no gpr file
---EMACSCMD:(wisi-prj-select-file "ada_mode-no-gpr.adp")
+--EMACSCMD:(wisi-prj-select-cached "ada_mode-no-gpr.adp" (ada-prj-default))
 
 --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "package Ada_Mode.Generic_Parent is"))
 --EMACSRESULT:t

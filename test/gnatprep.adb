@@ -4,7 +4,7 @@
 -- also test other usage of the '#' character, especially in based
 -- numbers and strings.
 
---EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
+--EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 

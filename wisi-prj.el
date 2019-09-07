@@ -143,7 +143,15 @@ Throw an error if current project is not an wisi-prj."
   (let ((prj (project-current)))
     (if (wisi-prj-p prj)
 	prj
-      (error "selected project is not a wisi project."))))
+      (error "current project is not a wisi project."))))
+
+(defun wisi-prj-current-prj ()
+  "Return current `wisi-prj' object.
+If (project-current) does not return a wisi-prj, return a default prj."
+  (let ((prj (project-current)))
+    (if (wisi-prj-p prj)
+	prj
+      (make-wisi-prj :name "default"))))
 
 (defvar wisi-prj-file-extensions nil
   "List of wisi project file extensions.
@@ -444,12 +452,12 @@ LINE, COLUMN are Emacs origin."
 With prefix arg, very slow refresh operations may be skipped."
   (interactive "P")
   (unless (wisi-prj-p (project-current))
-    (error "no wisi project currently selected"))
+    (error "current project is not a wisi project"))
   (wisi-prj-refresh-cache (project-current) not-full))
 
 (defvar wisi-prj--current-file nil
   "Current wisi project file (the most recently selected); an
-  absolute file name.")
+absolute file name.")
 
 (defun wisi-prj-parse-final (project prj-file)
   (wisi--case-read-all-exceptions project)
@@ -844,7 +852,9 @@ force-case non-nil (default prefix), treat `wisi-strict-case' as
 t."
   (interactive "P")
   (save-excursion
-    (let ((prj (wisi-prj-require-prj))
+    ;; We don't complain when there is no project; we may be editing a
+    ;; random Ada file.
+    (let ((prj (wisi-prj-current-prj))
 	  (end   (point-marker))
 	  (start (progn (skip-syntax-backward "w_") (point)))
 	  match
@@ -1031,10 +1041,54 @@ with \\[universal-argument]."
 	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )
 
+;;;; xref backend
+
+(cl-defmethod xref-backend-definitions ((prj wisi-prj) identifier)
+  (wisi-xref-ident-make
+   identifier
+   (lambda (ident file line column)
+     (let ((target (wisi-xref-other prj ident file line column)))
+       (list
+	(xref-make
+	 ident
+	 (xref-make-file-location
+	  (nth 0 target) ;; file
+	  (nth 1 target) ;; line
+	  (nth 2 target)) ;; column
+	 ))))))
+
+(cl-defmethod xref-backend-identifier-at-point ((prj wisi-prj))
+  (save-excursion
+    (condition-case nil
+	(let ((ident (wisi-prj-identifier-at-point prj))) ;; moves point to start of ident
+	  (put-text-property
+	   0 1
+	   'xref-identifier
+	   (list ':file (buffer-file-name)
+		 ':line (line-number-at-pos)
+		 ':column (current-column))
+	   ident)
+	  ident)
+	(error
+	 ;; from wisi-prj-identifier-at-point; no identifier
+	 nil))))
+
+(cl-defmethod xref-backend-identifier-completion-table ((_prj wisi-prj))
+  ;; Current buffer only.
+  (wisi-xref-names))
+
+
+;;;###autoload
+(defun wisi-prj-xref-backend ()
+  "For `xref-backend-functions'; return the current wisi project."
+  (let ((prj (project-current)))
+    (when (wisi-prj-p prj)
+      prj)))
+
 ;;;; project-find-functions alternatives
 
 ;;;###autoload
-(cl-defun wisi-prj-select-cached (&key prj-file init-prj)
+(defun wisi-prj-select-cached (prj-file init-prj)
   "Select project matching PRJ-FILE in `wisi-prj--cache' as current project,
 parsing and caching if needed."
   (let ((old-prj (project-current)))
@@ -1088,7 +1142,7 @@ DOMINATING-FILE is an absolute filename that can be found via
 PRJ-FILE-NAME is the wisi project file for the project for that
 file.")
 
-(defcustom wisi-prj-dominating '("Makefile", "build/Makefile")
+(defcustom wisi-prj-dominating '("Makefile" "build/Makefile")
   "List of relative filenames for `wisi-prj-find-dominating-cached'
 and `wisi-prj-find-dominating-parse'"
   :group 'wisi
@@ -1154,13 +1208,6 @@ file matching `wisi-prj-dominating'."
 		  :cache nil)))
 	(wisi-prj-select prj)
 	prj))))
-
-;;;###autoload
-(defun wisi-xref-backend ()
-  "For `xref-backend-functions'; return the xref object from the current wisi project."
-  (let ((prj (project-current)))
-    (when (wisi-prj-p prj)
-      (wisi-prj-xref prj))))
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

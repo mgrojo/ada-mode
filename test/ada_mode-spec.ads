@@ -1,6 +1,6 @@
 -- For testing ada-make-package-body
 
---EMACSCMD:(wisi-prj-select-file "ada_mode.gpr")
+--EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
 
 package Ada_Mode.Spec is
 

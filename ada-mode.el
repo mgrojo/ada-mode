@@ -34,8 +34,7 @@
 ;;
 ;; By default, ada-mode is configured to take full advantage of the
 ;; GNAT compiler.  If you are using another compiler, you
-;; should load that compiler's ada-* file first; that will define
-;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
+;; should load that compiler's ada-* file first.
 ;;
 ;; See the user guide (info "ada-mode"), built from ada-mode.texi.
 
@@ -221,8 +220,7 @@ slower to load on first use, but gives better error recovery."
     ["Customize"                  (customize-group 'ada)    t]
     ("Project files"
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
-     ["Select project ..."            ada-prj-select                   t]
-     ["Show project"                  ada-prj-show                     t]
+     ["Show project"                  wisi-prj-show                     t]
      ["Show project file search path" wisi-prj-show-prj-path           t]
      ["Show source file search path"  ada-prj-show-src-path            t]
      ["Delete project ..."            ada-prj-delete                   t]

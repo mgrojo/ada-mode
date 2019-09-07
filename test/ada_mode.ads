@@ -1,4 +1,4 @@
---EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
 package Ada_Mode is
    Global_Exception_1 : exception;
 

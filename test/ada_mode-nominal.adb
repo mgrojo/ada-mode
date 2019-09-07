@@ -2,7 +2,7 @@
 
 --EMACSCMD:(font-lock-ensure)
 
---EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
 
 --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(= (point) (point-min)))
 --EMACSRESULT:t

@@ -1,6 +1,6 @@
 --  Explores many issues around indenting within parens
 
---EMACSCMD:(wisi-prj-select-file "subdir/ada_mode.adp")
+--EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
 
 -- Since we are editing, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)

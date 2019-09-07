@@ -1,58 +1,24 @@
-;; Project definitions
+;; Project definitions for compiling ada-mode
 
-(require 'ada-project)
-(require 'xref-ada)
+(let ((wisitoken-core "/Projects/org.wisitoken"))
 
-(ada-parse-prj-file "fasttoken.prj")
-(ada-select-prj-file "fasttoken.prj")
-
-(add-to-list 'project-find-functions 'project-menu-prj)
-
-;; Ada mode adds another layer of project selection
-(project-menu-select "Ada mode")
-
-;; extensions to ada-fix-error
-
-(defun fasttoken-gnat-fix-error (msg source-buffer source-window)
-  "For `ada-gnat-fix-error-hook'."
-
-  (let ((start-pos (point))
-	result)
-    ;; Move to start of error message text
-    (skip-syntax-forward "^-")
-    (forward-char 1)
-
-    ;; recognize it, handle it
-    (setq
-     result
-     (unwind-protect
-	 (cond
-	  ;; Fasttoken access type naming convention
-	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
-	   (let ((type (match-string 2)))
-	     (next-line 1)
-	     (when (looking-at "found type .*_Ptr")
-	       ;; assume just need '.all'
-	       (progn
-		 (pop-to-buffer source-buffer)
-		 (forward-word 1)
-		 (insert ".all")
-		 t)
-	       )))
-	  ;; Ada hidden in wisi packages
-	  ((looking-at "package \"Ada\" is hidden by declaration")
-	   (pop-to-buffer source-buffer)
-	   (backward-word 1)
-	   (insert "Standard.")
-	   t)
-
-	  )));; end of setq unwind-protect cond
-    (if result
-	t
-      (goto-char start-pos)
-      nil)
-    ))
-
-(add-hook 'ada-gnat-fix-error-hook 'fasttoken-gnat-fix-error)
+  (wisi-prj-set-dominating
+   "Makefile"
+   "ada_mode_wisi_parse.prj"
+   (create-ada-prj
+    :name "ada_mode_wisi_parse main"
+    :compile-env
+    (append
+     (list "SAL=../../org.stephe_leake.sal")
+     (cl-ecase system-type
+      (gnu/linux
+       (list
+	(concat "WISITOKEN=" wisitoken-core)
+	"LIBADALANG=/Projects/libadalang/build/lib/gnat"))
+      (windows-nt
+       (list
+	(concat "WISITOKEN=c:" wisitoken-core))))
+      ))
+  ))
 
 ;; end of file
