@@ -1,21 +1,12 @@
 ;; Project definitions
 
-(require 'ada-project)
-(require 'project-menu)
-(require 'xref-ada)
-
-(add-to-list 'project-find-functions 'project-menu-prj)
-
-(let* ((prj-file (expand-file-name "wisitoken.prj"))
-       (prj-name "wisitoken main")
-       (prj (make-ada-project
-	     :env-vars nil
-	     :ada-prj-file prj-file)))
-
-  (project-menu-add-project prj prj-name default-directory)
-
-  (project-menu-select-by-name prj-name)
-  )
+(wisi-prj-set-dominating
+ "Makefile"
+ "wisitoken.prj"
+ (create-ada-prj
+  :name "wisitoken main"
+  :compile-env
+  '("SAL=../../org.stephe_leake.sal")))
 
 (defun wisitoken-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."

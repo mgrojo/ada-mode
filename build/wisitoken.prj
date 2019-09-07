@@ -1,5 +1,5 @@
 gpr_project_path=../../org.stephe_leake.aunit_ext/build
-gpr_project_path=../../org.stephe_leake.sal/build
+gpr_project_path=$SAL/build
 gpr_project_path=../../org.stephe_leake.makerules
 
 gpr_file=wisitoken_test.gpr
@@ -9,4 +9,4 @@ gnat_stub_opts=-P wisitoken_test.gpr
 casing=emacs_case_exceptions
 casing=wisitoken_grammar.casing
 casing=../../org.stephe_leake.aunit_ext/build/emacs_case_exceptions
-casing=../../org.stephe_leake.sal/build/sal.casing
+casing=$SAL/build/sal.casing
