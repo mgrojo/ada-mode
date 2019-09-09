@@ -55,9 +55,7 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-running ada-mode tests
-    test/gpr/gds.gpr
-        use proper wisi-prj-set, -select-
+delete obsolete stuff from ada-indent-user-options.el
 
 wisi-prj-find-dominating-parse:
     (project-current) noticeably slow on first and subsequent use
@@ -66,22 +64,9 @@ wisi-prj-find-dominating-parse:
         so far not a problem
 
 major cleanup
-    add project-menu to wisi-prj
-        for use with declared projects; wisi-*-alist, -cached
-        show currently selected if possible
-
-        ada-menu has Show project
-            neither ada-show-prj nor wisi-show-prj are defined
-
-        delete/adapt ada-project-menu-install, -compute
-
-        no select action if project-find-functions doesn't have a select variant?
-
-    testing by compiling/editing o.e.java-wisi, android music
-
     compilation-environment set by last used (project-current)
         my make-command calls sal-ensure-prj
-        find some solution for that in pure emacs 27
+        find some solution for that in pure emacs 27?
 
     change ada-fix-error-alist to generic?
         dispatch on compiler

@@ -237,67 +237,6 @@ parser accepts; the parser always accepts a superset of ada2012."
   :safe  #'symbolp)
 (make-variable-buffer-local 'ada-language-version)
 
-;;;; abbrev, align
-
-;; FIXME: move to ada-mode.el
-(defvar ada-mode-abbrev-table nil
-  "Local abbrev table for Ada mode.")
-
-(defvar ada-align-rules
-  '((ada-declaration-assign
-     (regexp  . "[^:]\\(\\s-*\\)\\(:\\)[^:]")
-     (valid   . (lambda () (ada-align-valid)))
-     (repeat . t)
-     (modes   . '(ada-mode)))
-    (ada-associate
-     (regexp  . "[^=]\\(\\s-*\\)\\(=>\\)")
-     (valid   . (lambda () (ada-align-valid)))
-     (modes   . '(ada-mode)))
-    (ada-comment
-     (regexp  . "\\(\\s-*\\)--")
-     (valid   . (lambda () (ada-align-valid)))
-     (modes   . '(ada-mode)))
-    (ada-use
-     (regexp  . "\\(\\s-*\\)\\<\\(use\\s-\\)")
-     (valid   . (lambda () (ada-align-valid)))
-     (modes   . '(ada-mode)))
-    (ada-at
-     (regexp . "\\(\\s-+\\)\\(at\\)\\_>")
-     (valid   . (lambda () (ada-align-valid)))
-     (modes . '(ada-mode))))
-  "Rules to use to align different lines.")
-
-(defun ada-align-valid ()
-  "See use in `ada-align-rules'."
-  (save-excursion
-    ;; we don't put "when (match-beginning n)" here; missing a match
-    ;; is a bug in the regexp.
-    (goto-char (or (match-beginning 2) (match-beginning 1)))
-    (not (wisi-in-string-or-comment-p))))
-
-(defconst ada-align-region-separate
-  (eval-when-compile
-    (concat
-     "^\\s-*\\($\\|\\("
-     "begin\\|"
-     "declare\\|"
-     "else\\|"
-     "end\\|"
-     "exception\\|"
-     "for\\|"
-     "function\\|"
-     "generic\\|"
-     "if\\|"
-     "is\\|"
-     "procedure\\|"
-     "private\\|"
-     "record\\|"
-     "return\\|"
-     "type\\|"
-     "when"
-     "\\)\\_>\\)"))
-  "See the variable `align-region-separate' for more information.")
-
 (defun ada-in-case-expression ()
   "Return non-nil if point is in a case expression."
   (save-excursion
@@ -643,24 +582,6 @@ identifier.  May be an Ada identifier or operator."
    (t
     (error "No identifier around"))
    ))
-
-;; FIXME: move to project menu to wisi, provide delete
-(defun ada-project-menu-compute ()
-  "Return an easy-menu menu for `ada-project-menu-install'.
-Menu displays currently parsed Ada mode projects."
-  (let (menu)
-    (dolist (item wisi-prj--cache)
-      (push
-       (vector
-	(if (equal (car item) wisi-prj--current-file)
-	    ;; current project
-	    (concat (car item) "  *")
-	  (car item))
-	`(lambda () (interactive) (wisi-prj-select ,(cdr item)))
-	t)
-       menu)
-      )
-    (nreverse menu)))
 
 ;;;; initialization
 (mapc

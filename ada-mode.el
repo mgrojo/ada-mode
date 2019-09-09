@@ -357,6 +357,66 @@ button was clicked."
   (mouse-set-point last-input-event)
   (popup-menu ada-refactor-menu))
 
+;;;; abbrev, align
+
+(defvar ada-mode-abbrev-table nil
+  "Local abbrev table for Ada mode.")
+
+(defvar ada-align-rules
+  '((ada-declaration-assign
+     (regexp  . "[^:]\\(\\s-*\\)\\(:\\)[^:]")
+     (valid   . (lambda () (ada-align-valid)))
+     (repeat . t)
+     (modes   . '(ada-mode)))
+    (ada-associate
+     (regexp  . "[^=]\\(\\s-*\\)\\(=>\\)")
+     (valid   . (lambda () (ada-align-valid)))
+     (modes   . '(ada-mode)))
+    (ada-comment
+     (regexp  . "\\(\\s-*\\)--")
+     (valid   . (lambda () (ada-align-valid)))
+     (modes   . '(ada-mode)))
+    (ada-use
+     (regexp  . "\\(\\s-*\\)\\<\\(use\\s-\\)")
+     (valid   . (lambda () (ada-align-valid)))
+     (modes   . '(ada-mode)))
+    (ada-at
+     (regexp . "\\(\\s-+\\)\\(at\\)\\_>")
+     (valid   . (lambda () (ada-align-valid)))
+     (modes . '(ada-mode))))
+  "Rules to use to align different lines.")
+
+(defun ada-align-valid ()
+  "See use in `ada-align-rules'."
+  (save-excursion
+    ;; we don't put "when (match-beginning n)" here; missing a match
+    ;; is a bug in the regexp.
+    (goto-char (or (match-beginning 2) (match-beginning 1)))
+    (not (wisi-in-string-or-comment-p))))
+
+(defconst ada-align-region-separate
+  (eval-when-compile
+    (concat
+     "^\\s-*\\($\\|\\("
+     "begin\\|"
+     "declare\\|"
+     "else\\|"
+     "end\\|"
+     "exception\\|"
+     "for\\|"
+     "function\\|"
+     "generic\\|"
+     "if\\|"
+     "is\\|"
+     "procedure\\|"
+     "private\\|"
+     "record\\|"
+     "return\\|"
+     "type\\|"
+     "when"
+     "\\)\\_>\\)"))
+  "See the variable `align-region-separate' for more information.")
+
 ;;;; syntax properties
 
 (defvar ada-mode-syntax-table

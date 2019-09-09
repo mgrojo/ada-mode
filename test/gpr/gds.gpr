@@ -1,8 +1,7 @@
 -- The project file will normally be parsed by a language mode other
 -- than gpr. So for this test, tell wisi-prj what parser to use.
---EMACSCMD:(add-to-list 'wisi-prj-default-alist (cons "prj" #'gpr-prj-default))
 --EMACSCMD:(add-to-list 'wisi-prj-parser-alist (cons "prj" #'wisi-prj-parse-file-1))
---EMACSCMD:(wisi-prj-select-file "gds_test.prj")
+--EMACSCMD:(wisi-prj-select-cached "gds_test.prj" (gpr-prj-default))
 
 with "opentoken";
 with "sal";

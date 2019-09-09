@@ -79,7 +79,6 @@ endif
 test : test-ada-lalr-process-gpr_query.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr-lalr-process.stamp
-test : test-elisp
 test : summarize
 
 summarize :

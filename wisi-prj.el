@@ -237,7 +237,11 @@ body, and vice versa.")
 
 (cl-defgeneric wisi-prj-identifier-at-point (project)
   "Return the identifier at point, move point to start of
-identifier.  Signal an error if no identifier is at point.")
+identifier.  Signal an error if no identifier is at point."
+  (let ((ident (thing-at-point 'symbol)))
+    (when ident
+      (skip-syntax-backward "w_")
+      ident)))
 
 (defun wisi-check-current-project (file-name)
   "Throw error if FILE-NAME (must be absolute) is not found in
@@ -458,6 +462,19 @@ With prefix arg, very slow refresh operations may be skipped."
 (defvar wisi-prj--current-file nil
   "Current wisi project file (the most recently selected); an
 absolute file name.")
+
+(defun wisi-prj-show ()
+  "Show name of current project."
+  (interactive)
+  (message
+   (cond
+    (wisi-prj--current-file
+     (wisi-prj-name (assoc wisi-prj--current-file wisi-prj--cached)))
+    (t
+     (let ((prj (project-current)))
+       (if (wisi-prj-p prj)
+	   (wisi-prj-name prj)
+	 "not a wisi project"))))))
 
 (defun wisi-prj-parse-final (project prj-file)
   (wisi--case-read-all-exceptions project)
@@ -1194,7 +1211,8 @@ associate a project with that Makefile."
   (when dom-file
     (setq dom-file (expand-file-name dom-file)))
   (add-to-list 'wisi-prj--dominating-alist (cons (or dom-file (buffer-file-name)) (expand-file-name prj-file)))
-  (add-to-list 'wisi-prj--default (cons (expand-file-name prj-file) default-prj)))
+  (add-to-list 'wisi-prj--default (cons (expand-file-name prj-file) default-prj))
+  nil)
 
 ;;;###autoload
 (defun wisi-prj-find-dominating-parse (dir)
@@ -1208,6 +1226,47 @@ file matching `wisi-prj-dominating'."
 		  :cache nil)))
 	(wisi-prj-select prj)
 	prj))))
+
+;;;; project menu
+
+(defun wisi-prj--menu-compute ()
+  "Return an easy-menu menu for `wisi-prj-menu-install'.
+Menu displays cached wisi projects."
+  (let (menu)
+    (dolist (item wisi-prj--cache)
+      (push
+       (vector
+	(if (equal (car item) wisi-prj--current-file)
+	    ;; current project
+	    (concat (car item) "  *")
+	  (car item))
+	`(lambda () (interactive) (wisi-prj-select ,(cdr item)))
+	t)
+       menu)
+      )
+    (nreverse menu)))
+
+(defun wisi-prj--menu-install ()
+  "Install the project menu, to display cached wisi projects."
+  (define-key-after
+    global-map
+    [menu-bar wisi-prj-select]
+    (easy-menu-binding
+     (easy-menu-create-menu
+      "Wisi Prj Select";; EDE uses "Project" menu
+      (wisi-prj--menu-compute)))
+    (lookup-key global-map [menu-bar tools])))
+
+(add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)
+
+(defun wisi-prj-delete (name)
+  "Delete project NAME (default prompt)."
+  (interactive (completing-read "project name: " (wisi-prj-completion-table wisi-prj--cache)))
+  (let ((item (assoc name wisi-prj--cache )))
+    (setq wisi-prj--cache
+	  (cl-delete-if (lambda (prj)
+			  (string= name (wisi-prj-name prj)))
+			wisi-prj--cache))))
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

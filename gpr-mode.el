@@ -349,8 +349,8 @@ Otherwise, allow UPPERCASE for identifiers."
   ;; no new slots
   )
 
-(defun gpr-prj-default (name)
-  (make-gpr-prj :name name :compiler (make-gnat-compiler)))
+(defun gpr-prj-default (&optional name)
+  (make-gpr-prj :name (or name "_default_") :compiler (make-gnat-compiler)))
 
 (cl-defmethod wisi-prj-default ((prj gpr-prj))
   (gpr-prj-default (wisi-prj-name prj)))

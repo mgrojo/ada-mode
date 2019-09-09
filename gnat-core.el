@@ -196,8 +196,6 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
 GPR-FILE must be absolute file name.
 source-path will include compiler runtime."
   ;; this can take a long time; let the user know what's up
-  (message "Parsing %s ..." gpr-file)
-
   (let ((compiler (wisi-prj-compiler project)))
     (if (gnat-compiler-gpr-file compiler)
 	;; gpr-file previously set; new one must match
@@ -213,10 +211,8 @@ source-path will include compiler runtime."
       ;; Can fail due to gpr_query not installed (FIXME: say what?),
       ;; or bad gpr file syntax; allow .prj file settings to still
       ;; work.
-      (progn
-	;; FIXME: merge gnat-get-paths here? used elsewhere?
-	(gnat-get-paths project)
-	(message "Parsing %s ... done" gpr-file))
+      ;; FIXME: merge gnat-get-paths here? used elsewhere?
+      (gnat-get-paths project)
     (error
        (message "Parsing %s ... error" gpr-file))
     ))
