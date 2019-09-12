@@ -706,8 +706,9 @@ package body WisiToken.Parse.LR.Parser is
                         Put
                           (Shared_Parser.Recover_Log_File,
                            Ada.Calendar.Formatting.Image (Ada.Calendar.Clock) & " " &
-                             McKenzie_Recover.Recover_Status'Image (Recover_Result) & " " &
-                             SAL.Base_Peek_Type'Image (Pre_Recover_Parser_Count) & " '" &
+                             Shared_Parser.Partial_Parse_Active'Image &
+                             Recover_Result'Image & " " &
+                             Pre_Recover_Parser_Count'Image & " '" &
                              Shared_Parser.Lexer.File_Name & "'");
 
                         Put (Shared_Parser.Recover_Log_File, '(');
