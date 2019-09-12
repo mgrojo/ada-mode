@@ -79,7 +79,11 @@
 	    (start-process (concat "gpr_query " (buffer-name))
 			   (gpr-query--session-buffer session)
 			   "gpr_query"
-			   (concat "--project=" gpr-file)))
+			   (concat "--project=" gpr-file)
+			   ;; to get debug info, add this:
+			   ;; (concat "--tracefile=gpr_query.trace")
+			   ;; the file should contain: gpr_query=yes
+			   ))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 
@@ -377,18 +381,40 @@ Enable mode if ARG is positive."
   file
   )
 
-;;;;; wisi-prj-xref methods
+;;;;; wisi-xref methods
+
+(cl-defstruct (gpr-query-xref (:include gnat-compiler))
+  ;; no new slots
+  )
 
 ;;;###autoload
-(defalias 'create-gpr_query-xref 'create-gnat-compiler)
+(cl-defun create-gpr_query-xref
+    (&key
+     gpr-file
+     run-buffer-name
+     project-path
+     target
+     runtime
+     gnat-stub-opts
+     gnat-stub-cargs)
+  ;; See note on `create-ada-prj' for why this is not a defalias.
+  (make-gpr-query-xref
+   :gpr-file gpr-file
+   :run-buffer-name run-buffer-name
+   :project-path project-path
+   :target target
+   :runtime runtime
+   :gnat-stub-opts gnat-stub-opts
+   :gnat-stub-cargs gnat-stub-cargs
+   ))
 
-(cl-defmethod wisi-xref-parse-one ((xref gnat-compiler) project name value)
+(cl-defmethod wisi-xref-parse-one ((xref gpr-query-xref) project name value)
   (wisi-compiler-parse-one xref project name value))
 
-(cl-defmethod wisi-xref-parse-final ((xref gnat-compiler) _project prj-file-name)
+(cl-defmethod wisi-xref-parse-final ((xref gpr-query-xref) _project prj-file-name)
   (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix)))
 
-(cl-defmethod wisi-xref-refresh-cache ((_xref gnat-compiler) project no-full)
+(cl-defmethod wisi-xref-refresh-cache ((_xref gpr-query-xref) project no-full)
   ;; Kill the current session and delete the database, to get changed
   ;; env vars etc when it restarts.
   ;;
@@ -412,7 +438,7 @@ Enable mode if ARG is positive."
     (gpr-query--start-process project session)
     ))
 
-(cl-defmethod wisi-xref-other ((_xref gnat-compiler) project &key identifier filename line column)
+(cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))
@@ -546,17 +572,17 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(cl-defmethod wisi-xref-all ((_xref gnat-compiler) project &key identifier filename line column _local-only _append)
+(cl-defmethod wisi-xref-all ((_xref gpr-query-xref) project identifier filename line column _local-only _append)
   ;; FIXME: implement local-only, append
   (gpr-query-compilation project identifier filename line column "refs" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-parents ((_xref gnat-compiler) project &key identifier filename line column)
+(cl-defmethod wisi-xref-parents ((_xref gpr-query-xref) project identifier filename line column)
   (gpr-query-compilation project identifier filename line column "parent_types" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-overriding ((_xref gnat-compiler) project &key identifier filename line column)
+(cl-defmethod wisi-xref-overriding ((_xref gpr-query-xref) project identifier filename line column)
   (gpr-query-compilation project identifier filename line column "overriding" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-overridden ((_xref gnat-compiler) project &key identifier filename line column)
+(cl-defmethod wisi-xref-overridden ((_xref gpr-query-xref) project identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))

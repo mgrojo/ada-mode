@@ -1,5 +1,3 @@
 build/Makefile
-build/ada_mode_wisi_parse.el
+build/prj.el
 build/ada_mode_wisi_parse.prj
-build/ada_mode_unit_tests.el
-build/ada_mode_unit_tests.prj

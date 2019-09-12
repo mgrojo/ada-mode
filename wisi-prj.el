@@ -103,8 +103,12 @@
   ;; prepended to `process-environment' running tools in an external
   ;; process.
 
-  compiler    ;; compiler object
-  xref 	      ;; xref object
+  compiler
+  xref
+  ;; xref functionality is often provided by the compiler. We allow
+  ;; for separate compiler and xref objects, to handle the case where
+  ;; the compiler is a cross-compiler for an embedded target, and xref
+  ;; is provided by a host compiler.
 
   (case-exception-files nil)
   ;; List of casing exception files; from `casing' project variable.
@@ -153,7 +157,7 @@ If (project-current) does not return a wisi-prj, return a default prj."
 	prj
       (make-wisi-prj :name "default"))))
 
-(defvar wisi-prj-file-extensions nil
+(defvar wisi-prj-file-extensions (list "prj")
   "List of wisi project file extensions.
 Used when searching for project files.")
 
@@ -164,6 +168,16 @@ Indexed by absolute project file name.")
 (cl-defgeneric wisi-prj-default (prj)
   "Return a project with default values.
 Used to reset a project before refreshing it.")
+
+(cl-defgeneric wisi-prj-parse-one (_project _name _value)
+  "If recognized by PROJECT, set NAME, VALUE in PROJECT, return non-nil.
+Else return nil."
+  nil)
+
+(cl-defgeneric wisi-prj-parse-final (_project _prj-file-name)
+  "Do any final processing on PROJECT
+after the project file PRJ-FILE-NAME is parsed."
+  nil)
 
 (cl-defgeneric wisi-prj-select (project)
   "PROJECT is selected; perform any required actions.")
@@ -202,8 +216,8 @@ after the project file PRJ-FILE-NAME is parsed.")
   "Display buffer listing project file search path.")
 
 (cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
-  "Set NAME, VALUE in XREF, if recognized by XREF.
-PROJECT is an `wisi-prj' object; XREF is `wisi-prj-xref'."
+  "If recognized by XREF, set NAME, VALUE in XREF, return non-nil.
+Else return nil."
   nil)
 
 (cl-defgeneric wisi-xref-parse-final (_xref _project _prj-file-name)
@@ -224,8 +238,17 @@ after the project file PRJ-FILE-NAME is parsed."
 slow refresh operations may be skipped."
   nil)
 
-(cl-defgeneric wisi-xref-other (xref project &key identifier filename line column)
-  "Function that returns cross reference information.
+(defun wisi-prj-reset-cache ()
+  "Delete all wisi project cached info."
+  (interactive)
+  (setq wisi-prj--cache nil)
+  (setq wisi-prj--current-file nil)
+  (setq wisi-prj--default nil)
+  (setq wisi-prj--dominating-alist nil))
+
+(cl-defgeneric wisi-xref-other (project &key identifier filename line column)
+  "Return cross reference information.
+PROJECT - dispatching object, normally a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol
 FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier (may be nil)
@@ -235,7 +258,7 @@ Returns a list (FILE LINE COLUMN) giving the corresponding location.
 If point is at the specification, the corresponding location is the
 body, and vice versa.")
 
-(cl-defgeneric wisi-prj-identifier-at-point (project)
+(cl-defgeneric wisi-prj-identifier-at-point (_project)
   "Return the identifier at point, move point to start of
 identifier.  Signal an error if no identifier is at point."
   (let ((ident (thing-at-point 'symbol)))
@@ -286,6 +309,8 @@ If at the declaration, go to the body, and vice versa."
 
 (cl-defgeneric wisi-xref-parents (xref project &key identifier filename line column)
   "Displays parent type declarations.
+XREF    - dispatching object.
+PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol
 FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier
@@ -308,6 +333,8 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
 
 (cl-defgeneric wisi-xref-all (xref project &key identifier filename line column local-only append)
   "Displays cross reference information.
+XREF    - dispatching object.
+PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol (a string).
 FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier
@@ -351,6 +378,8 @@ With prefix, keep previous references in output buffer."
 
 (cl-defgeneric wisi-xref-overriding (xref project &key identifier filename line column)
   "Displays a buffer in compilation-mode giving locations of the overriding declarations.
+XREF    - dispatching object.
+PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol
 FILENAME - filename containing the identifier
 LINE - line number containing the identifier
@@ -371,6 +400,8 @@ COLUMN - Emacs column of the start of the identifier ")
 
 (cl-defgeneric wisi-xref-overridden (xref project &key identifier filename line column)
   "Returns a list (FILE LINE COLUMN) giving the location of the overridden declaration.
+XREF    - dispatching object.
+PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol
 FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier
@@ -469,24 +500,23 @@ absolute file name.")
   (message
    (cond
     (wisi-prj--current-file
-     (wisi-prj-name (assoc wisi-prj--current-file wisi-prj--cached)))
+     (wisi-prj-name (assoc wisi-prj--current-file wisi-prj--cache)))
     (t
      (let ((prj (project-current)))
        (if (wisi-prj-p prj)
 	   (wisi-prj-name prj)
 	 "not a wisi project"))))))
 
-(defun wisi-prj-parse-final (project prj-file)
-  (wisi--case-read-all-exceptions project)
-  (wisi-compiler-parse-final (wisi-prj-compiler project) project prj-file)
-  (wisi-xref-parse-final     (wisi-prj-xref     project) project prj-file))
+(cl-defmethod wisi-prj-parse-final (project _prj-file)
+  (wisi--case-read-all-exceptions project))
 
 (cl-defmethod wisi-prj-refresh-cache ((project wisi-prj) not-full)
   (wisi-prj-deselect project)
   (let ((prj-file (car (rassoc project wisi-prj--cache))))
     (setq wisi-prj--cache (delete (cons prj-file project) wisi-prj--cache))
     (setq project (wisi-prj-default project))
-    (wisi-prj-select-file prj-file project) ;; parses prj-file
+    (wisi-prj-parse-file :prj-file prj-file :init-prj project :cache t)
+    (wisi-prj-select-file prj-file project)
     (wisi-xref-refresh-cache (wisi-prj-xref project) project not-full)))
 
 (cl-defmethod wisi-prj-select ((project wisi-prj))
@@ -517,12 +547,12 @@ absolute file name.")
 (defvar wisi-prj-parse-hook nil
   "Hook run at start of `wisi-prj-parse-file'.")
 
-(defvar wisi-prj-parser-alist nil
+(defvar wisi-prj-parser-alist (list (cons "prj" #'wisi-prj-parse-file-1))
   "Alist of parsers for project files, indexed by file extension.
 Parser is called with two arguments; the project file name and
 a project. Parser should update the project with values from the file.")
 
-(defun wisi-prj-parse-one (project name value)
+(cl-defmethod wisi-prj-parse-one (project name value)
   "If NAME is a wisi-prj slot, set it to VALUE, return t.
 Else return nil."
   (cond
@@ -547,18 +577,10 @@ Else return nil."
 		(wisi-prj-file-env project)))
     t)
 
-   ((let (result)
-      ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
-      (when (wisi-compiler-parse-one (wisi-prj-compiler project) project name value)
-	(setq result t))
-      (when (wisi-xref-parse-one (wisi-prj-xref project) project name value)
-	(setq result t))
-      result))
    ))
 
 (defun wisi-prj-parse-file-1 (prj-file project)
-  "Minimal wisi project file parser; most language modes will want to supercede this.
-Used in unit tests, and while developing a new language mode."
+  "Wisi project file parser."
   (with-current-buffer (find-file-noselect prj-file)
     (goto-char (point-min))
 
@@ -570,8 +592,16 @@ Used in unit tests, and while developing a new language mode."
       (when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
 	(let ((name (match-string 1))
 	      (value (match-string 2)))
-	  (wisi-prj-parse-one project name value)
-	  ))
+	  (cond
+	   ((let (result)
+	      ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
+	      (when (wisi-compiler-parse-one (wisi-prj-compiler project) project name value)
+		(setq result t))
+	      (when (wisi-xref-parse-one (wisi-prj-xref project) project name value)
+		(setq result t))
+	      result))
+	   ((wisi-prj-parse-one project name value))
+	   )))
 
       (forward-line 1)
       )
@@ -597,7 +627,9 @@ In any case, return the project."
       ;; If no parser, prj-file is just a placeholder; there is no file to parse.
       ;; For example, sal-android-prj has no project file.
 	(funcall parser prj-file project)
-	(wisi-prj-parse-final project prj-file))
+	(wisi-prj-parse-final project prj-file)
+	(wisi-compiler-parse-final (wisi-prj-compiler project) project prj-file)
+	(wisi-xref-parse-final (wisi-prj-xref project) project prj-file))
 
     (when cache
       ;; Cache the project properties
@@ -1064,7 +1096,7 @@ with \\[universal-argument]."
   (wisi-xref-ident-make
    identifier
    (lambda (ident file line column)
-     (let ((target (wisi-xref-other prj ident file line column)))
+     (let ((target (wisi-xref-other (wisi-prj-xref prj) prj ident file line column)))
        (list
 	(xref-make
 	 ident
@@ -1098,6 +1130,8 @@ with \\[universal-argument]."
 ;;;###autoload
 (defun wisi-prj-xref-backend ()
   "For `xref-backend-functions'; return the current wisi project."
+  ;; We return the project, not the xref object, because the
+  ;; wisi-xref-* functions need the project.
   (let ((prj (project-current)))
     (when (wisi-prj-p prj)
       prj)))
@@ -1166,12 +1200,15 @@ and `wisi-prj-find-dominating-parse'"
   :type '(repeat (string :tag "relative file name")))
 
 ;;;###autoload
-(defun wisi-prj--cache-dominating (dom-file prj-file default-prj)
+(defun wisi-prj-cache-dominating (dom-file prj-file default-prj)
   "Parse prj-file, add to `wisi-prj--cache'.
 Also add (DOM-FILE . PRJ-FILE) to `wisi-prj--dominating-alist'.
 DOM-FILE defaults to (buffer-file-name). "
-  (add-to-list 'wisi-prj--dominating-alist (cons (or dom-file (buffer-file-name)) prj-file))
-  (wisi-prj-parse-file :prj-file prj-file :init-prj default-prj :cache t))
+  (setq dom-file (if dom-file (expand-file-name dom-file) (buffer-file-name)))
+  (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating-alist (cons dom-file prj-file))
+  (wisi-prj-parse-file :prj-file prj-file :init-prj default-prj :cache t)
+  nil)
 
 (defun wisi-prj--find-dominating-file (start-dir)
   "Return the project file matching `wisi-prj-dominating'."
@@ -1195,9 +1232,18 @@ DOM-FILE defaults to (buffer-file-name). "
 `wisi-prj-dominating'. Select it if it is not the current project."
   (let* ((prj-file (wisi-prj--find-dominating-file dir))
 	 (new-prj (cdr (assoc prj-file wisi-prj--cache #'string=))))
+    (unless prj-file
+      (error "no dominating file found; run `wisi-prj-cache-dominating'?"))
     (unless (string= prj-file wisi-prj--current-file)
       (let ((old-prj (cdr (assoc wisi-prj--current-file wisi-prj--cache #'string=))))
 	(when old-prj (wisi-prj-deselect old-prj))
+	(unless new-prj
+	  ;; User may have used `wisi-prj-set-dominating' instead of
+	  ;; `wisi-prj-cache-dominating'; parse the project file now.
+	  (wisi-prj-parse-file
+	   :prj-file prj-file
+	   :init-prj (cdr (assoc prj-file wisi-prj--default #'string=))
+	   :cache t))
 	(when new-prj (wisi-prj-select new-prj))))
     new-prj))
 
@@ -1208,10 +1254,10 @@ and (PRJ-FILE . DEFAULT-PRJ) to `wisi-prj--default'.
 DOM-FILE defaults to (buffer-file-name).
 For example, call this in the Local Vars of a Makefile to
 associate a project with that Makefile."
-  (when dom-file
-    (setq dom-file (expand-file-name dom-file)))
-  (add-to-list 'wisi-prj--dominating-alist (cons (or dom-file (buffer-file-name)) (expand-file-name prj-file)))
-  (add-to-list 'wisi-prj--default (cons (expand-file-name prj-file) default-prj))
+  (setq dom-file (if dom-file (expand-file-name dom-file) (buffer-file-name)))
+  (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating-alist (cons dom-file prj-file))
+  (add-to-list 'wisi-prj--default (cons prj-file default-prj))
   nil)
 
 ;;;###autoload
@@ -1230,7 +1276,7 @@ file matching `wisi-prj-dominating'."
 ;;;; project menu
 
 (defun wisi-prj--menu-compute ()
-  "Return an easy-menu menu for `wisi-prj-menu-install'.
+  "Return an easy-menu menu for `wisi-prj-menu--install'.
 Menu displays cached wisi projects."
   (let (menu)
     (dolist (item wisi-prj--cache)
@@ -1257,16 +1303,19 @@ Menu displays cached wisi projects."
       (wisi-prj--menu-compute)))
     (lookup-key global-map [menu-bar tools])))
 
-(add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)
+(add-hook 'menu-bar-update-hook 'wisi-prj--menu-install)
+
+(defun wisi-prj-completion-table ()
+  "Return list of names of cached projects."
+  (mapcar (lambda (item) (wisi-prj-name (cdr item))) wisi-prj--cache))
 
 (defun wisi-prj-delete (name)
-  "Delete project NAME (default prompt)."
-  (interactive (completing-read "project name: " (wisi-prj-completion-table wisi-prj--cache)))
-  (let ((item (assoc name wisi-prj--cache )))
-    (setq wisi-prj--cache
-	  (cl-delete-if (lambda (prj)
-			  (string= name (wisi-prj-name prj)))
-			wisi-prj--cache))))
+  "Delete project NAME (default prompt) from the cached projects."
+  (interactive (list (completing-read "project name: " (wisi-prj-completion-table))))
+  (setq wisi-prj--cache
+	(cl-delete-if (lambda (item)
+			(string= name (wisi-prj-name (cdr item))))
+		      wisi-prj--cache)))
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

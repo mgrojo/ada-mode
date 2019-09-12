@@ -374,6 +374,10 @@ nil, only the file name."
 		    (compiler (ada-prj-make-compiler compiler-label))
 		    (xref (ada-prj-make-xref xref-label))
 		    )))
+  compiler-label
+  xref-label
+  ;; save labels for wisi-prj-default
+
   plist    ;; user-declared project variables; also obj_dir, mostly as an example.
   )
 
@@ -387,7 +391,10 @@ nil, only the file name."
      source-path
      plist
      file-pred)
-  ;; We declare and autoload this because we can't autoload make-ada-prj.
+  ;; We declare and autoload this because we can't autoload
+  ;; make-ada-prj in emacs < 27. We can't use '(defalias
+  ;; 'create-ada-prj 'make-ada-prj); then make-ada-prj is not defined
+  ;; by autoload.
   (make-ada-prj
    :name name
    :compile-env compile-env
@@ -405,6 +412,7 @@ with one argument; the project. `default-directory' is set to the
 directory containing the project file. Function should update the
 project.")
 
+;;;###autoload
 (defun ada-prj-default (&optional name src-dir)
   "Return the default `ada-prj' object.
 If SRC-DIR is non-nil, use it as the default for project.source-path."
@@ -425,7 +433,18 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
     project))
 
 (cl-defmethod wisi-prj-default ((prj ada-prj))
-  (ada-prj-default (wisi-prj-name prj)))
+  (let ((project
+	 (make-ada-prj
+	  :name           (wisi-prj-name prj)
+	  :compile-env    (wisi-prj-compile-env prj)
+	  :compiler-label (ada-prj-compiler-label prj)
+	  :xref-label     (ada-prj-xref-label prj)
+	  )))
+
+    (cl-dolist (func ada-prj-default-list)
+      (funcall func project))
+
+    project))
 
 ;;;###autoload
 (defun ada-prj-make-compiler (label)
@@ -448,67 +467,28 @@ Throw an error if current project is not an ada-prj."
 	prj
       (error "current project is not an ada project."))))
 
-(defun ada-prj-parse-file (prj-file project)
-  "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
-PROJECT is an `ada-prj' object."
-  (let (obj_dir)
+(cl-defmethod wisi-prj-parse-one :after (project name value)
+  (cond
+   ;; variable name alphabetical order
+   ((string= name "ada_compiler")
+    (let ((comp (intern value)))
+      (setf (ada-prj-compiler project) (ada-prj-make-compiler comp))))
 
-    (with-current-buffer (find-file-noselect prj-file)
-      (goto-char (point-min))
+   ((string= name "obj_dir")
+    (let ((obj-dir (plist-get (ada-prj-plist project) 'obj_dir)))
+      (cl-pushnew (file-name-as-directory (expand-file-name value))
+		  obj-dir :test #'equal)
+      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir obj-dir))
+      ))
 
-      ;; process each line
-      (while (not (eobp))
+   ;; FIXME:   ((string= name "xref_tool")
 
-	;; ignore lines that don't have the format "name=value", put
-	;; 'name', 'value' in match-string.
-	(when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
-	  (let ((name (match-string 1))
-		(value (match-string 2)))
-	    (cond
-	     ;; variable name alphabetical order
-
-	     ((wisi-prj-parse-one project name value))
-
-	     ((string= name "ada_compiler")
-	      (let ((comp (intern value)))
-		(setf (ada-prj-compiler project) (ada-prj-make-compiler comp))))
-
-	     ((string= name "auto_case")
-	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'auto_case (intern value))))
-
-	     ((string= name "case_keyword")
-	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_keyword (intern value))))
-
-	     ((string= name "case_identifier")
-	      (setf (ada-prj-plist project)
-		    (plist-put (ada-prj-plist project) 'case_identifier (intern value))))
-
-	     ((string= name "case_strict")
-	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'case_strict (intern value))))
-
-	     ((string= name "obj_dir")
-	      (cl-pushnew (file-name-as-directory
-			   (expand-file-name value))
-			  obj_dir :test #'equal))
-
- 	     ((string= name "xref_tool")
-	      (let ((xref (intern value)))
-		(setf (ada-prj-xref project) (ada-prj-make-xref xref))))
-
-	     (t
-	      ;; Any other field in the file is set as a project file variable.
-	      ;; eg "comp_opt"
-	      (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
-						       (intern name) value)))
-	     )))
-
-	(forward-line 1))
-
-      );; done reading file
-
-    ;; process accumulated lists
-    (if obj_dir (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir (reverse obj_dir))))
-    ))
+   (t
+    ;; Any other field in the file is set as a project file variable.
+    ;; eg "comp_opt"
+    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
+					     (intern name) value)))
+   ))
 
 ;; This is autoloaded because it is often used in Makefiles, and thus
 ;; will be the first ada-mode function executed.
@@ -584,13 +564,9 @@ identifier.  May be an Ada identifier or operator."
    ))
 
 ;;;; initialization
-(mapc
- (lambda (ext)
-   (push (cons ext #'ada-prj-parse-file) wisi-prj-parser-alist))
- '("adp" "prj"))
+(push (cons "adp" #'wisi-prj-parse-file-1) wisi-prj-parser-alist)
 
-(add-to-list 'wisi-prj-file-extensions '("adp" "prj"))
-
+(add-to-list 'wisi-prj-file-extensions "adp")
 
 (provide 'ada-core)
 ;; ada-core.el ends here

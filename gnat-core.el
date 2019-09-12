@@ -61,6 +61,7 @@ command.  This applies e.g. to *gnatfind* buffers."
      runtime
      gnat-stub-opts
      gnat-stub-cargs)
+  ;; See note on `create-ada-prj' for why this is not a defalias.
   (make-gnat-compiler
    :gpr-file gpr-file
    :run-buffer-name run-buffer-name
@@ -95,101 +96,93 @@ Throw an error if current project does not have a gnat-compiler."
     (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
 
-(defun gnat-get-paths-1 (project src-dirs obj-dirs prj-dirs)
-  "Append list of source, project and object dirs in current gpr project to SRC-DIRS,
-OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIRS)."
-  (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
-    ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
-    ;;
-    ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
-    ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
-    ;; M724-045). The workaround is to include the Source_Dirs in an
-    ;; wisi project file.
-    ;; FIXME: update for gnat 2019
-    (gnat-run-gnat project "list" (list "-v") '(0 4))
-
-    (goto-char (point-min))
-
-    (condition-case nil
-	(progn
-	  ;; Source path
-	  (search-forward "Source Search Path:")
-	  (forward-line 1)
-	  (while (not (looking-at "^$")) ; terminate on blank line
-	    (back-to-indentation) ; skip whitespace forward
-            (cl-pushnew
-	     (if (looking-at "<Current_Directory>")
-		 (directory-file-name default-directory)
-	       (expand-file-name ; Canonicalize path part.
-		(directory-file-name
-		 (buffer-substring-no-properties (point) (point-at-eol)))))
-	     src-dirs
-	     :test #'string-equal)
-	    (forward-line 1))
-
-          ;; Object path
-          (search-forward "Object Search Path:")
-          (forward-line 1)
-	  (while (not (looking-at "^$")) ; terminate on blank line
-	    (back-to-indentation) ; skip whitespace forward
-            (cl-pushnew
-	     (if (looking-at "<Current_Directory>")
-		 (directory-file-name default-directory)
-	       (expand-file-name ; Canonicalize path part.
-		(directory-file-name
-		 (buffer-substring-no-properties (point) (point-at-eol)))))
-	     obj-dirs
-	     :test #'string-equal)
-	    (forward-line 1))
-
-	  ;; Project path
-	  ;;
-	  ;; These are also added to src_dir, so compilation errors
-	  ;; reported in project files are found.
-	  (search-forward "Project Search Path:")
-	  (forward-line 1)
-	  (while (not (looking-at "^$"))
-	    (back-to-indentation)
-	    (if (looking-at "<Current_Directory>")
-                (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
-              (let ((f (expand-file-name
-                        (buffer-substring-no-properties (point) (point-at-eol)))))
-                (cl-pushnew f prj-dirs :test #'string-equal)
-                (cl-pushnew f src-dirs :test #'string-equal)))
-	    (forward-line 1))
-
-	  )
-      (error
-       (pop-to-buffer (current-buffer))
-       ;; search-forward failed
-       (error "parse gpr failed")
-       ))
-    (list (cl-remove-duplicates src-dirs) (cl-remove-duplicates obj-dirs) (cl-remove-duplicates prj-dirs))))
-
 (defun gnat-get-paths (project)
-  "Add project and/or compiler source, object, project paths to PROJECT source-path, obj_dir and/or project-path."
+  "Add project and/or compiler source, project paths to PROJECT source-path and project-path."
   (let* ((compiler (wisi-prj-compiler project))
 	 (src-dirs (wisi-prj-source-path project))
-	 (obj-dirs nil) ;; FIXME: don't need obj_dirs if using gpr file? move obj-path to gnat-compiler?
-	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler)))
-	 (res (gnat-get-paths-1 project src-dirs obj-dirs prj-dirs)))
+	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler))))
 
-    ;; FIXME: merge gnat-get-paths-1 here? used elsewhere?
+    ;; Don't need project plist obj_dirs if using a project file, so
+    ;; not setting obj-dirs.
+    ;;
+    ;; We only need to update prj-dirs if the gpr-file is an aggregate
+    ;; project that sets the project path.
 
-    (setq src-dirs (pop res))
-    (setq obj-dirs (pop res))
-    (setq prj-dirs (pop res))
+    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+      ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
+      ;;
+      ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
+      ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
+      ;; M724-045). The workaround is to include the Source_Dirs in an
+      ;; wisi project file.
+      ;; FIXME: update for gnat 2019
+      (gnat-run-gnat project "list" (list "-v") '(0 4))
 
-    ;; FIXME: we used to call gpr_query to get src-dirs, prj-dirs
-    ;; here, but that seems unnecessary. However, gprls (aka gnatls)
-    ;; fails if any files are missing string quotes (but not for other
-    ;; syntax errors).
+      (goto-char (point-min))
 
-    (setf (wisi-prj-source-path project) src-dirs)
-    ;; Don't need project plist obj_dirs if using a project file?
-    (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
-	  prj-dirs)
-    ))
+      (condition-case nil
+	  (progn
+	    ;; Source path
+	    (search-forward "Source Search Path:")
+	    (forward-line 1)
+	    (while (not (looking-at "^$")) ; terminate on blank line
+	      (back-to-indentation) ; skip whitespace forward
+              (cl-pushnew
+	       (if (looking-at "<Current_Directory>")
+		   (directory-file-name default-directory)
+		 (expand-file-name ; Canonicalize path part.
+		  (directory-file-name
+		   (buffer-substring-no-properties (point) (point-at-eol)))))
+	       src-dirs
+	       :test #'string-equal)
+	      (forward-line 1))
+
+            ;; Object path
+            (search-forward "Object Search Path:")
+            (forward-line 1)
+	    (while (not (looking-at "^$")) ; terminate on blank line
+	      (back-to-indentation) ; skip whitespace forward
+              (cl-pushnew
+	       (if (looking-at "<Current_Directory>")
+		   (directory-file-name default-directory)
+		 (expand-file-name ; Canonicalize path part.
+		  (directory-file-name
+		   (buffer-substring-no-properties (point) (point-at-eol)))))
+	       obj-dirs
+	       :test #'string-equal)
+	      (forward-line 1))
+
+	    ;; Project path
+	    ;;
+	    ;; These are also added to src_dir, so compilation errors
+	    ;; reported in project files are found.
+	    (search-forward "Project Search Path:")
+	    (forward-line 1)
+	    (while (not (looking-at "^$"))
+	      (back-to-indentation)
+	      (if (looking-at "<Current_Directory>")
+                  (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
+		(let ((f (expand-file-name
+                          (buffer-substring-no-properties (point) (point-at-eol)))))
+                  (cl-pushnew f prj-dirs :test #'string-equal)
+                  (cl-pushnew f src-dirs :test #'string-equal)))
+	      (forward-line 1))
+
+	    )
+	(error
+	 ;; search-forward failed
+	 (error "parse gpr failed")
+	 ))
+
+      ;; We used to call gpr_query to get src-dirs, prj-dirs here, but
+      ;; that seems unnecessary. However, gprls (aka gnatls) fails if
+      ;; any files are missing string quotes (but not for other syntax
+      ;; errors).
+
+      ;; 'nreverse' so project file dirs precede gnat library dirs
+      (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
+	    (nreverse prj-dirs))
+    )))
 
 (defun gnat-parse-gpr (gpr-file project)
   "Append to source-path and project-path in PROJECT (a `wisi-prj' object) by parsing GPR-FILE.
@@ -208,10 +201,9 @@ source-path will include compiler runtime."
       ))
 
   (condition-case-unless-debug nil
-      ;; Can fail due to gpr_query not installed (FIXME: say what?),
-      ;; or bad gpr file syntax; allow .prj file settings to still
-      ;; work.
-      ;; FIXME: merge gnat-get-paths here? used elsewhere?
+      ;; Can fail due to bad gpr file syntax or missing env var; allow
+      ;; .prj file settings to still work.  FIXME: merge
+      ;; gnat-get-paths here? used elsewhere?
       (gnat-get-paths project)
     (error
        (message "Parsing %s ... error" gpr-file))

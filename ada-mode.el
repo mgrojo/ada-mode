@@ -200,8 +200,8 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-w" 	 'wisi-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'wisi-show-overriding)
     (define-key map "\C-c\M-x"   'wisi-show-overridden)
-    (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
-    (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
+    (define-key map "\C-c\C-y" 	 'wisi-case-create-exception)
+    (define-key map "\C-c\C-\M-y" 'wisi-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
 
     (wisi-case-activate-keys map)
@@ -220,9 +220,9 @@ slower to load on first use, but gives better error recovery."
     ["Customize"                  (customize-group 'ada)    t]
     ("Project files"
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
-     ["Show project"                  wisi-prj-show                     t]
+     ["Show project"                  wisi-prj-show                    t]
      ["Show project file search path" wisi-prj-show-prj-path           t]
-     ["Show source file search path"  ada-prj-show-src-path            t]
+     ["Show source file search path"  wisi-prj-show-src-path           t]
      ["Delete project ..."            ada-prj-delete                   t]
     )
     ("Build"
@@ -240,17 +240,17 @@ slower to load on first use, but gives better error recovery."
      ["Other file"                    ada-find-other-file          t]
      ["Other file don't find decl"    ada-find-other-file-noset    t]
      ["Find file in project"          ada-find-file                t]
-     ["Goto declaration/body"         wisi-goto-declaration         t]
+     ["Goto declaration/body"         wisi-goto-declaration        t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
      ["Goto declarative region start" ada-goto-declarative-region-start   t]
      ["Goto declaration start"        ada-goto-declaration-start   t]
      ["Goto declaration end"          ada-goto-declaration-end     t]
      ["Show parent declarations"      ada-show-declaration-parents t]
-     ["Show references"               ada-show-references          t]
-     ["Show overriding"               ada-show-overriding          t]
-     ["Show overridden"               ada-show-overridden          t]
-     ["Goto secondary error"          ada-show-secondary-error     t]
+     ["Show references"               wisi-show-references          t]
+     ["Show overriding"               wisi-show-overriding          t]
+     ["Show overridden"               wisi-show-overridden          t]
+     ["Goto secondary error"          wisi-show-secondary-error     t]
      ["Goto prev position"            ada-goto-previous-pos        t]
      ["Next placeholder"              ada-next-placeholder    t]
      ["Previous placeholder"          ada-prev-placeholder    t]
@@ -287,33 +287,18 @@ slower to load on first use, but gives better error recovery."
      ["Reset parser"                  wisi-reset-parser            t]
      )))
 
-(defun ada-project-menu-install ()
-  "Install the Ada project menu as a submenu."
-  (when (eq major-mode 'ada-mode)
-    (lookup-key ada-mode-map [menu-bar Ada]) ;; map to put menu in
-    [ada-prj-select]          ;; key to insert (a menu entry)
-    (easy-menu-binding
-     (easy-menu-create-menu
-      "Select Project"
-      (ada-project-menu-compute)));; binding
-    nil;; after
-
-    ;; IMPROVEME: this doesn’t work for ’after’; "Select Project" is at end
-    ;; (lookup-key ada-mode-map [menu-bar Ada Build])
-    ))
-
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
     ["Goto declaration/body"         wisi-goto-declaration         t]
-    ["Show parent declarations"      ada-show-declaration-parents t]
+    ["Show parent declarations"      wisi-show-declaration-parents t]
     ["Goto declarative region start" ada-goto-declarative-region-start   t]
     ["Goto declaration start"        ada-goto-declaration-start   t]
     ["Goto declaration end"          ada-goto-declaration-end     t]
-    ["Show parent declarations"      ada-show-declaration-parents t]
-    ["Show references"               ada-show-references          t]
-    ["Show overriding"               ada-show-overriding          t]
-    ["Show overridden"               ada-show-overridden          t]
+    ["Show parent declarations"      wisi-show-declaration-parents t]
+    ["Show references"               wisi-show-references          t]
+    ["Show overriding"               wisi-show-overriding          t]
+    ["Show overridden"               wisi-show-overridden          t]
     ["Goto next statement keyword"   forward-sexp   t]
     ["Goto prev statement keyword"   backward-sexp   t]
 
@@ -1631,23 +1616,6 @@ process : external process specified by ‘ada-process-parse-exec ’."
   )
 
 ;;;;; Global initializations
-
-(add-hook 'menu-bar-update-hook #'ada-project-menu-install)
-
-(cl-case ada-xref-tool
-  (gnat (require 'ada-gnat-xref))
-  (gpr_query (require 'gpr-query))
-  (t
-   (if (locate-file "gpr_query" exec-path '("" ".exe"))
-       (progn
-         (require 'gpr-query)
-         (setq ada-xref-tool 'gpr_query))
-     (require 'ada-gnat-xref)
-     (setq ada-xref-tool 'gnat)))
-  )
-
-(unless (featurep 'ada-compiler)
-  (require 'ada-compiler-gnat))
 
 (when (featurep 'imenu)
   (require 'ada-imenu))

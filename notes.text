@@ -55,13 +55,27 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-delete obsolete stuff from ada-indent-user-options.el
+add partial-parse to recover.log
+
+wisitoken-* obj files showing up in project file completion
+    but "..wisitoken/build/obj" is not in src-path!
+    not if recompile wisi-prj project-current
+    not if do (project-files (project-current)) in scratch first!?
+    not second time run completion
+
+change ada-mode xref tests to use xref-backend-* whenever possible
+
+(project-current) in wisitoken.adb => not in ada-mode project (duh!)
+    => need select
+    or look for makefile dir in project-search-path of each prj in alist
 
 wisi-prj-find-dominating-parse:
     (project-current) noticeably slow on first and subsequent use
-    xref always calls (project-current) at least twice; once for find, once for function
+
     compilation-environment (and other globals) set by most recently used project
         so far not a problem
+
+    start gpr_query.exe in background
 
 major cleanup
     compilation-environment set by last used (project-current)
