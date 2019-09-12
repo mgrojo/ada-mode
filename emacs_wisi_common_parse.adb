@@ -309,7 +309,8 @@ package body Emacs_Wisi_Common_Parse is
                   Trace_Action   := Params.Action_Verbosity;
                   Debug_Mode     := Params.Debug_Mode;
 
-                  Partial_Parse_Active := Params.Partial_Parse_Active;
+                  Partial_Parse_Active        := Params.Partial_Parse_Active;
+                  Parser.Partial_Parse_Active := Params.Partial_Parse_Active;
 
                   if WisiToken.Parse.LR.McKenzie_Defaulted (Parser.Table.all) then
                      --  There is no McKenzie information; don't override that.

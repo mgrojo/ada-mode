@@ -55,19 +55,43 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-add partial-parse to recover.log
+M-F5 always includes <> on file names
+
+F5 in makefile doesn't complete "byte-"
+    uses completion-at-point
+        according to edebug on C-g, completion-at-point-functions is (comint-completion-at-point t)
+        but in Makefile it's (makefile-completions-at-point t)
+            both local
+        compilation-read-command calls read-shell-command,
+            calls shell-completion-vars,
+            sets completion-at-point-functions
+                eaeeece92da (Stefan Monnier      2018-12-04
+
+    works in emacs-26; same settings
+        only for byte-compile; not for targets in emacs/master/Makefile !?
+        why does it call makefile-completions-at-point!?; it doesn't
+        completion-at-point calls run-hook-wrapped with completion--capf-wrapper
+
+    makefile-completions-at-point uses makefile-target-table, which is nil until makefile-pickup-targets is run
+        so comint-completion-at-point must be recognizing byte-compile!?
+
+    make-compile let-bind comint-dynamic-complete-functions doesn't work; some hook is overriding that
+        arg. shell-completion-vars sets it to shell-dynamic-complete-functions
+        that calls makefile-completions-at-point, but that returns nil (sigh)
+            because makefile-target-table is local to Makefile, not minibuffer
+
+    have workaround, not clear why it's needed
+
+    posted on emacs-devel
 
 wisitoken-* obj files showing up in project file completion
     but "..wisitoken/build/obj" is not in src-path!
     not if recompile wisi-prj project-current
     not if do (project-files (project-current)) in scratch first!?
     not second time run completion
+        add (message ...) to show autoload, dispatching in first run
 
 change ada-mode xref tests to use xref-backend-* whenever possible
-
-(project-current) in wisitoken.adb => not in ada-mode project (duh!)
-    => need select
-    or look for makefile dir in project-search-path of each prj in alist
 
 wisi-prj-find-dominating-parse:
     (project-current) noticeably slow on first and subsequent use

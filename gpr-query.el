@@ -438,7 +438,7 @@ Enable mode if ARG is positive."
     (gpr-query--start-process project session)
     ))
 
-(cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project identifier filename line column)
+(cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))
@@ -572,17 +572,17 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(cl-defmethod wisi-xref-all ((_xref gpr-query-xref) project identifier filename line column _local-only _append)
+(cl-defmethod wisi-xref-parents ((_xref gpr-query-xref) project &key identifier filename line column)
+  (gpr-query-compilation project identifier filename line column "parent_types" 'gpr-query-ident-file))
+
+(cl-defmethod wisi-xref-all ((_xref gpr-query-xref) project &key identifier filename line column _local-only _append)
   ;; FIXME: implement local-only, append
   (gpr-query-compilation project identifier filename line column "refs" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-parents ((_xref gpr-query-xref) project identifier filename line column)
-  (gpr-query-compilation project identifier filename line column "parent_types" 'gpr-query-ident-file))
-
-(cl-defmethod wisi-xref-overriding ((_xref gpr-query-xref) project identifier filename line column)
+(cl-defmethod wisi-xref-overriding ((_xref gpr-query-xref) project &key identifier filename line column)
   (gpr-query-compilation project identifier filename line column "overriding" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-overridden ((_xref gpr-query-xref) project identifier filename line column)
+(cl-defmethod wisi-xref-overridden ((_xref gpr-query-xref) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq column (+ 1 column))

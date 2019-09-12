@@ -2,8 +2,7 @@
 
 (let ((wisitoken-core "/Projects/org.wisitoken"))
 
-  (wisi-prj-set-dominating
-   "Makefile"
+  (wisi-prj-select-cached
    "ada_mode_wisi_parse.prj"
    (create-ada-prj
     :name "ada_mode_wisi_parse main"

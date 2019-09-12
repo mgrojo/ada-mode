@@ -137,22 +137,7 @@ Throw an error if current project does not have a gnat-compiler."
 	       :test #'string-equal)
 	      (forward-line 1))
 
-            ;; Object path
-            (search-forward "Object Search Path:")
-            (forward-line 1)
-	    (while (not (looking-at "^$")) ; terminate on blank line
-	      (back-to-indentation) ; skip whitespace forward
-              (cl-pushnew
-	       (if (looking-at "<Current_Directory>")
-		   (directory-file-name default-directory)
-		 (expand-file-name ; Canonicalize path part.
-		  (directory-file-name
-		   (buffer-substring-no-properties (point) (point-at-eol)))))
-	       obj-dirs
-	       :test #'string-equal)
-	      (forward-line 1))
-
-	    ;; Project path
+            ;; Project path
 	    ;;
 	    ;; These are also added to src_dir, so compilation errors
 	    ;; reported in project files are found.
@@ -180,6 +165,7 @@ Throw an error if current project does not have a gnat-compiler."
       ;; errors).
 
       ;; 'nreverse' so project file dirs precede gnat library dirs
+      (setf (wisi-prj-source-path project) (nreverse src-dirs))
       (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
 	    (nreverse prj-dirs))
     )))
@@ -200,14 +186,7 @@ source-path will include compiler runtime."
       (setf (gnat-compiler-gpr-file compiler) gpr-file)
       ))
 
-  (condition-case-unless-debug nil
-      ;; Can fail due to bad gpr file syntax or missing env var; allow
-      ;; .prj file settings to still work.  FIXME: merge
-      ;; gnat-get-paths here? used elsewhere?
-      (gnat-get-paths project)
-    (error
-       (message "Parsing %s ... error" gpr-file))
-    ))
+  (gnat-get-paths project))
 
 (defun gnat-parse-gpr-1 (gpr-file project)
   "For `wisi-prj-parser-alist'."

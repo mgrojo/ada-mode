@@ -29,6 +29,13 @@
 ;; current selected project, or the current project depends on the
 ;; current buffer.
 ;;
+;; One reason to use a selected project is to handle a hierarchy of
+;; projects; if projects B and C both depend on library project A,
+;; then when in a file of project A, there is no way for
+;; `wisi-prj-find-dominating-*' to determine which of the three
+;; projects to return. So the user must indicate which is active, by
+;; using `wisi-prj-select-*'.
+;;
 ;; In addition, if changing from one project to another requires
 ;; setting global resources that must also be unset, then the project
 ;; will define `wisi-prj-deselect' in addition to
@@ -73,7 +80,7 @@
 ;;
 ;;   (add-hook 'project-find-functions #'wisi-prj-current-cached 90)
 ;;
-;;   :eval: (wisi-select-prj-cached <prj-file> (foo-prj-default "prj-name"))
+;;   :eval: (wisi-prj-select-cached <prj-file> (foo-prj-default "prj-name"))
 ;;
 ;;
 ;; In addition, the user should set xref-backend-functions (currently,
@@ -437,7 +444,7 @@ LINE, COLUMN are Emacs origin."
       (error "File %s not found; installed library, or set project?" file))
     )
 
-  (push-mark nil t)
+  (push-mark (point) t)
 
   (let ((buffer (get-file-buffer file)))
     (cond
@@ -1096,7 +1103,12 @@ with \\[universal-argument]."
   (wisi-xref-ident-make
    identifier
    (lambda (ident file line column)
-     (let ((target (wisi-xref-other (wisi-prj-xref prj) prj ident file line column)))
+     (let ((target (wisi-xref-other
+		    (wisi-prj-xref prj) prj
+		    :identifier ident
+		    :filename file
+		    :line line
+		    :column column)))
        (list
 	(xref-make
 	 ident

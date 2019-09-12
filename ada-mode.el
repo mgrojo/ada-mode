@@ -251,7 +251,8 @@ slower to load on first use, but gives better error recovery."
      ["Show overriding"               wisi-show-overriding          t]
      ["Show overridden"               wisi-show-overridden          t]
      ["Goto secondary error"          wisi-show-secondary-error     t]
-     ["Goto prev position"            ada-goto-previous-pos        t]
+     ["Goto prev position current buffer" pop-mark              t]
+     ["Goto prev position other buffer"   pop-global-mark       t]
      ["Next placeholder"              ada-next-placeholder    t]
      ["Previous placeholder"          ada-prev-placeholder    t]
      )
