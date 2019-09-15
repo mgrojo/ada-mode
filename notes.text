@@ -55,57 +55,10 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-M-F5 always includes <> on file names
-
-F5 in makefile doesn't complete "byte-"
-    uses completion-at-point
-        according to edebug on C-g, completion-at-point-functions is (comint-completion-at-point t)
-        but in Makefile it's (makefile-completions-at-point t)
-            both local
-        compilation-read-command calls read-shell-command,
-            calls shell-completion-vars,
-            sets completion-at-point-functions
-                eaeeece92da (Stefan Monnier      2018-12-04
-
-    works in emacs-26; same settings
-        only for byte-compile; not for targets in emacs/master/Makefile !?
-        why does it call makefile-completions-at-point!?; it doesn't
-        completion-at-point calls run-hook-wrapped with completion--capf-wrapper
-
-    makefile-completions-at-point uses makefile-target-table, which is nil until makefile-pickup-targets is run
-        so comint-completion-at-point must be recognizing byte-compile!?
-
-    make-compile let-bind comint-dynamic-complete-functions doesn't work; some hook is overriding that
-        arg. shell-completion-vars sets it to shell-dynamic-complete-functions
-        that calls makefile-completions-at-point, but that returns nil (sigh)
-            because makefile-target-table is local to Makefile, not minibuffer
-
-    have workaround, not clear why it's needed
-
-    posted on emacs-devel
-
-wisitoken-* obj files showing up in project file completion
-    but "..wisitoken/build/obj" is not in src-path!
-    not if recompile wisi-prj project-current
-    not if do (project-files (project-current)) in scratch first!?
-    not second time run completion
-        add (message ...) to show autoload, dispatching in first run
-
-change ada-mode xref tests to use xref-backend-* whenever possible
-
-wisi-prj-find-dominating-parse:
-    (project-current) noticeably slow on first and subsequent use
-
-    compilation-environment (and other globals) set by most recently used project
-        so far not a problem
-
-    start gpr_query.exe in background
+ada menu gone
+    because deleted prj menu?
 
 major cleanup
-    compilation-environment set by last used (project-current)
-        my make-command calls sal-ensure-prj
-        find some solution for that in pure emacs 27?
-
     change ada-fix-error-alist to generic?
         dispatch on compiler
 
@@ -121,6 +74,8 @@ major cleanup
     test all menus
 
     run/update ada-build tutorial
+
+start gpr_query.exe in background
 
 if there was a corrected error on a line, that is now gone, the indent
 should be recomputed, even if no prior text edited.

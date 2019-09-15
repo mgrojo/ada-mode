@@ -192,7 +192,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'backward-sexp)
     (define-key map "\C-c\M-p" 	 'ada-skel-prev-placeholder)
-    (define-key map "\C-c\C-q" 	 'wisi-xref-refresh)
+    (define-key map "\C-c\C-q" 	 'wisi-refresh-prj-cache)
     (define-key map "\C-c\C-r" 	 'wisi-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
     (define-key map "\C-c\C-s"   'pop-global-mark)
@@ -319,7 +319,7 @@ slower to load on first use, but gives better error recovery."
     ["Make body for subprogram"	      ada-make-subprogram-body          t]
     ))
 
-(defun				      ada-popup-menu ()
+(defun ada-popup-menu ()
   "Pops up `ada-context-menu'.
 When a function from the menu is called, point is where the mouse
 button was clicked."

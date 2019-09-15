@@ -172,7 +172,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (setq jit-lock-context-time 0.0);; for test-face
 
   ;; Test files use wisi-prj-select-cached to parse and select a project file.
-  (setq project-find-functions #'wisi-prj-current-cached)
+  (setq project-find-functions (list #'wisi-prj-current-cached))
+  (setq xref-backend-functions (list #'wisi-prj-xref-backend))
+
 
   (let ((error-count 0)
 	(test-buffer (current-buffer))

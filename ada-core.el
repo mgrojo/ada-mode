@@ -373,6 +373,7 @@ nil, only the file name."
 		    &aux
 		    (compiler (ada-prj-make-compiler compiler-label))
 		    (xref (ada-prj-make-xref xref-label))
+		    (compile-env (ada-prj-check-env compile-env))
 		    )))
   compiler-label
   xref-label
@@ -403,6 +404,18 @@ nil, only the file name."
    :source-path source-path
    :plist plist
    :file-pred file-pred))
+
+(defun ada-prj-check-env (env)
+  "Check that ENV has the proper structure; list of \"NAME=VALUE\".
+Return ENV."
+  ;; Previous versions used ("NAME" . "VALUE"), which screws up.
+  (let ((err-msg "env is not list of \"NAME=VALUE\"."))
+    (unless (listp env)
+      (error err-msg))
+    (dolist (item env)
+      (unless (stringp item)
+	(error err-msg))))
+  env)
 
 (defvar ada-prj-default-list nil
   ;; This is used by ada-build.el; we keep it to allow other similar
@@ -497,8 +510,8 @@ Throw an error if current project is not an ada-prj."
   ;; not ada-prj-select-file for backward compatibility
   "Select PRJ-FILE as the current project file, parsing it if necessary.
 Deselects the current project first."
-  (wisi-prj-select-cached prj-file (ada-prj-default "")))
-(make-obsolete 'ada-select-prj-file 'wisi-prj-select-cached "ada-mode 7.0")
+  (wisi-prj-select-cache prj-file (ada-prj-default "")))
+(make-obsolete 'ada-select-prj-file 'wisi-prj-select-cache "ada-mode 7.0")
 
 (cl-defgeneric ada-prj-select-compiler (compiler project)
   "PROJECT has been selected; set any project options that are both Ada and compiler specific.")

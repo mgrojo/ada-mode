@@ -62,13 +62,13 @@
 ;;
 ;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-parse 0)
 ;;
-;;   :eval (wisi-prj-set-dominating nil "foo.prj" (foo-prj-default "prj-name"))
+;;   :eval (wisi-prj-set-dominating "foo.prj" (foo-prj-default "prj-name"))
 ;;
 ;; -- Caching, current project depends on current buffer:
 ;;
 ;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-cached 0)
 ;;
-;;   :eval (wisi-prj-cache-dominating nil "foo.prj" (foo-prj-default "prj-name"))
+;;   :eval (wisi-prj-cache-dominating "foo.prj" (foo-prj-default "prj-name"))
 ;;
 ;; -- No caching, last selected project is current:
 ;;
@@ -80,15 +80,15 @@
 ;;
 ;;   (add-hook 'project-find-functions #'wisi-prj-current-cached 90)
 ;;
-;;   :eval: (wisi-prj-select-cached <prj-file> (foo-prj-default "prj-name"))
+;;   :eval: (wisi-prj-select-cache <prj-file> (foo-prj-default "prj-name"))
 ;;
 ;;
 ;; In addition, the user should set xref-backend-functions (currently,
 ;; there is only one choice for wisi projects):
 ;;
-;; (add-to-list 'xref-backend-functions #'wisi-xref-backend 90)
+;; (add-to-list 'xref-backend-functions #'wisi-prj-xref-backend 90)
 ;;
-;; wisi-xref-backend returns the xref object from the current wisi
+;; wisi-prj-xref-backend returns the xref object from the current wisi
 ;; project.
 
 ;;; Code:
@@ -571,8 +571,7 @@ Else return nil."
     t)
 
    ((string= name "src_dir")
-    (cl-pushnew (expand-file-name
-                 (substitute-in-file-name value))
+    (cl-pushnew (directory-file-name (expand-file-name (substitute-in-file-name value)))
                 (wisi-prj-source-path project)
 		:test #'string-equal)
     t)
@@ -1151,9 +1150,11 @@ with \\[universal-argument]."
 ;;;; project-find-functions alternatives
 
 ;;;###autoload
-(defun wisi-prj-select-cached (prj-file init-prj)
+(defun wisi-prj-select-cache (prj-file init-prj &optional dominating-file)
   "Select project matching PRJ-FILE in `wisi-prj--cache' as current project,
-parsing and caching if needed."
+parsing and caching if needed. Also add DOMINATING-FILE (default
+current buffer file name) to `wisi-prj--dominating-alist' (for
+`wisi-prj-select-dominating'.)"
   (let ((old-prj (project-current)))
     ;; If old-prj is not a wisi-prj, we don't know how to deselect it;
     ;; just ignore that.  If prj-file is the current file, user is
@@ -1161,7 +1162,9 @@ parsing and caching if needed."
     (when (wisi-prj-p old-prj)
       (wisi-prj-deselect old-prj)))
 
+  (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating-alist (cons dominating-file prj-file))
 
   (let ((new-prj (cdr (assoc prj-file wisi-prj--cache))))
     (unless new-prj
@@ -1171,6 +1174,21 @@ parsing and caching if needed."
 
     (setq wisi-prj--current-file prj-file)
     (wisi-prj-select new-prj)))
+
+(defun wisi-prj-select-dominating (&optional dominating-file)
+  "Unless it is already current, select a wisi-prj matching DOMINATING-FILE.
+Useful before running `compilation-start', to ensure the correct
+project is current."
+  (let ((prj-file (cdr (assoc (or dominating-file (buffer-file-name)) wisi-prj--dominating-alist))))
+    (unless (string-equal prj-file wisi-prj--current-file)
+      (message "Switching to project file '%s'" prj-file)
+      (let ((old-prj (assoc wisi-prj--current-file wisi-prj--cache))
+	    (new-prj (assoc prj-file wisi-prj--cache)))
+	(when (wisi-prj-p old-prj)
+	  (wisi-prj-deselect old-prj))
+	(when (wisi-prj-p new-prj)
+	  (wisi-prj-select new-prj))
+	(setq wisi-prj--current-file prj-file)))))
 
 ;;;###autoload
 (defun wisi-prj-current-cached (_dir)
@@ -1212,13 +1230,13 @@ and `wisi-prj-find-dominating-parse'"
   :type '(repeat (string :tag "relative file name")))
 
 ;;;###autoload
-(defun wisi-prj-cache-dominating (dom-file prj-file default-prj)
+(defun wisi-prj-cache-dominating (prj-file default-prj &optional dominating-file)
   "Parse prj-file, add to `wisi-prj--cache'.
-Also add (DOM-FILE . PRJ-FILE) to `wisi-prj--dominating-alist'.
-DOM-FILE defaults to (buffer-file-name). "
-  (setq dom-file (if dom-file (expand-file-name dom-file) (buffer-file-name)))
+Also add (DOMINATING-FILE . PRJ-FILE) to `wisi-prj--dominating-alist'.
+DOMINATING-FILE defaults to (buffer-file-name). "
+  (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
-  (add-to-list 'wisi-prj--dominating-alist (cons dom-file prj-file))
+  (add-to-list 'wisi-prj--dominating-alist (cons dominating-file prj-file))
   (wisi-prj-parse-file :prj-file prj-file :init-prj default-prj :cache t)
   nil)
 
@@ -1260,7 +1278,7 @@ DOM-FILE defaults to (buffer-file-name). "
     new-prj))
 
 ;;;###autoload
-(defun wisi-prj-set-dominating (dom-file prj-file default-prj)
+(defun wisi-prj-set-dominating (prj-file default-prj &optional dom-file)
   "Add (DOM-FILE . PRJ-FILE) to `wisi-prj--dominating-alist',
 and (PRJ-FILE . DEFAULT-PRJ) to `wisi-prj--default'.
 DOM-FILE defaults to (buffer-file-name).
@@ -1294,11 +1312,13 @@ Menu displays cached wisi projects."
     (dolist (item wisi-prj--cache)
       (push
        (vector
-	(if (equal (car item) wisi-prj--current-file)
-	    ;; current project
-	    (concat (car item) "  *")
-	  (car item))
-	`(lambda () (interactive) (wisi-prj-select ,(cdr item)))
+	(concat (wisi-prj-name (cdr item))
+		(when (equal (car item) wisi-prj--current-file) "  *")) ;; current project
+	`(lambda () (interactive)
+	   (when wisi-prj--current-file
+	     (wisi-prj-deselect (cdr (assoc wisi-prj--current-file wisi-prj--cache))))
+	   (setq wisi-prj--current-file ,(car item))
+	   (wisi-prj-select ,(cdr item)))
 	t)
        menu)
       )

@@ -56,6 +56,8 @@
 ;; *xref* buffer.
 (defconst gpr-query-buffer-name-prefix "*gpr_query-")
 
+(defvar gpr-query--debug-start nil)
+
 (defun gpr-query--start-process (project session)
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
@@ -80,10 +82,10 @@
 			   (gpr-query--session-buffer session)
 			   "gpr_query"
 			   (concat "--project=" gpr-file)
-			   ;; to get debug info, add this:
-			   ;; (concat "--tracefile=gpr_query.trace")
-			   ;; the file should contain: gpr_query=yes
-			   ))
+			   (when gpr-query--debug-start
+			     (concat "--tracefile=gpr_query.trace")
+			     ;; The file gpr_query.trace should contain: gpr_query=yes
+			     )))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 

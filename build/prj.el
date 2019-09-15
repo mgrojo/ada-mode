@@ -2,7 +2,7 @@
 
 (let ((wisitoken-core "/Projects/org.wisitoken"))
 
-  (wisi-prj-select-cached
+  (wisi-prj-select-cache
    "ada_mode_wisi_parse.prj"
    (create-ada-prj
     :name "ada_mode_wisi_parse main"

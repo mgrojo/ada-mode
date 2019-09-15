@@ -1,7 +1,6 @@
 gpr_project_path=..
 gpr_project_path=$WISITOKEN/build
 -- gpr_project_path=$LIBADALANG
-gpr_project_path=../../org.stephe_leake.aunit_ext/build
 gpr_project_path=$SAL/build
 gpr_project_path=../../org.stephe_leake.makerules
 

@@ -108,67 +108,69 @@ Throw an error if current project does not have a gnat-compiler."
     ;; We only need to update prj-dirs if the gpr-file is an aggregate
     ;; project that sets the project path.
 
-    (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
-      ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
-      ;;
-      ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
-      ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
-      ;; M724-045). The workaround is to include the Source_Dirs in an
-      ;; wisi project file.
-      ;; FIXME: update for gnat 2019
-      (gnat-run-gnat project "list" (list "-v") '(0 4))
+    (condition-case-unless-debug nil
+	(with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
+	  ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
+	  ;;
+	  ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
+	  ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
+	  ;; M724-045). The workaround is to include the Source_Dirs in an
+	  ;; wisi project file.
+	  ;; FIXME: update for gnat 2019
+	  (gnat-run-gnat project "list" (list "-v") '(0 4))
 
-      (goto-char (point-min))
+	  (goto-char (point-min))
 
-      (condition-case nil
-	  (progn
-	    ;; Source path
-	    (search-forward "Source Search Path:")
-	    (forward-line 1)
-	    (while (not (looking-at "^$")) ; terminate on blank line
-	      (back-to-indentation) ; skip whitespace forward
-              (cl-pushnew
-	       (if (looking-at "<Current_Directory>")
-		   (directory-file-name default-directory)
-		 (expand-file-name ; Canonicalize path part.
-		  (directory-file-name
-		   (buffer-substring-no-properties (point) (point-at-eol)))))
-	       src-dirs
-	       :test #'string-equal)
-	      (forward-line 1))
+	  ;; Source path
+	  (search-forward "Source Search Path:")
+	  (forward-line 1)
+	  (while (not (looking-at "^$")) ; terminate on blank line
+	    (back-to-indentation) ; skip whitespace forward
+            (cl-pushnew
+	     (if (looking-at "<Current_Directory>")
+		 (directory-file-name default-directory)
+	       (expand-file-name ; Canonicalize path part.
+		(directory-file-name
+		 (buffer-substring-no-properties (point) (point-at-eol)))))
+	     src-dirs
+	     :test #'string-equal)
+	    (forward-line 1))
 
-            ;; Project path
-	    ;;
-	    ;; These are also added to src_dir, so compilation errors
-	    ;; reported in project files are found.
-	    (search-forward "Project Search Path:")
-	    (forward-line 1)
-	    (while (not (looking-at "^$"))
-	      (back-to-indentation)
-	      (if (looking-at "<Current_Directory>")
-                  (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
-		(let ((f (expand-file-name
-                          (buffer-substring-no-properties (point) (point-at-eol)))))
-                  (cl-pushnew f prj-dirs :test #'string-equal)
-                  (cl-pushnew f src-dirs :test #'string-equal)))
-	      (forward-line 1))
+          ;; Project path
+	  ;;
+	  ;; These are also added to src_dir, so compilation errors
+	  ;; reported in project files are found.
+	  (search-forward "Project Search Path:")
+	  (forward-line 1)
+	  (while (not (looking-at "^$"))
+	    (back-to-indentation)
+	    (if (looking-at "<Current_Directory>")
+                (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'string-equal)
+	      (let ((f (expand-file-name
+                        (buffer-substring-no-properties (point) (point-at-eol)))))
+                (cl-pushnew f prj-dirs :test #'string-equal)
+                (cl-pushnew f src-dirs :test #'string-equal)))
+	    (forward-line 1))
 
-	    )
-	(error
-	 ;; search-forward failed
-	 (error "parse gpr failed")
-	 ))
+	  )
+      (error
+       ;; search-forward failed
+       (pop-to-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project))))
+       (message "project search path: %s" prj-dirs)
+       (error "parse gpr failed")
+       ))
 
-      ;; We used to call gpr_query to get src-dirs, prj-dirs here, but
-      ;; that seems unnecessary. However, gprls (aka gnatls) fails if
-      ;; any files are missing string quotes (but not for other syntax
-      ;; errors).
+    ;; We used to call gpr_query to get src-dirs, prj-dirs here, but
+    ;; that seems unnecessary. However, gprls (aka gnatls) fails if
+    ;; any files are missing string quotes (but not for other syntax
+    ;; errors).
 
-      ;; 'nreverse' so project file dirs precede gnat library dirs
-      (setf (wisi-prj-source-path project) (nreverse src-dirs))
-      (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
-	    (nreverse prj-dirs))
-    )))
+    ;; reverse prj-dirs so project file dirs precede gnat library dirs
+    (setf (wisi-prj-source-path project) (nreverse (delete-dups src-dirs)))
+    (setf (gnat-compiler-project-path compiler) nil)
+    (mapc (lambda (dir) (gnat-prj-add-prj-dir project dir))
+	  prj-dirs)
+    ))
 
 (defun gnat-parse-gpr (gpr-file project)
   "Append to source-path and project-path in PROJECT (a `wisi-prj' object) by parsing GPR-FILE.
