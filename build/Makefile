@@ -5,7 +5,7 @@
 ZIP_VERSION := 1.3.0
 #w-$(shell date +%Y-%m-%d)
 
-all : test-clean tests doc
+all : test-clean tests recover_stats.exe doc
 
 # export Standard_Common_Build := Debug
 

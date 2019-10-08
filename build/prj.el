@@ -1,12 +1,12 @@
 ;; Project definitions
 
-(wisi-prj-set-dominating
- "Makefile"
+(wisi-prj-select-cache
  "wisitoken.prj"
  (create-ada-prj
   :name "wisitoken main"
   :compile-env
-  '("SAL=../../org.stephe_leake.sal")))
+  '("SAL=../../org.stephe_leake.sal"))
+  "Makefile")
 
 (defun wisitoken-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
