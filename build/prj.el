@@ -121,13 +121,16 @@
       ;; leave cursor on 'got' value
       (search-forward "got")
       (forward-char 2))
-    (let ((abs-file (project-expand-file-name (project-current) filename))
-	  (display-buffer-overriding-action
-	   (cons (list #'ofw-display-buffer-other-window) nil)))
+    (let* ((uniq-files (uniq-file-uniquify (project-files (project-current))))
+	   (result (all-completions filename uniq-files))
+	   (abs-file (cdr (assoc (car result) uniq-files #'string=)))
+	   (display-buffer-overriding-action
+	    (cons (list #'ofw-display-buffer-other-window) nil)))
       (when (not (stringp abs-file))
 	(setq abs-file (car abs-file)))
       (find-file abs-file)
-      (xref-find-definitions (xref-expand-identifier (xref-find-backend) subprogram-name))
+      (let ((idents (xref-backend-identifier-completion-table (xref-find-backend))))
+	(xref-find-definitions (car (all-completions subprogram-name idents))))
       (when (string-equal filename "test_mckenzie_recover.adb")
 	(let ((begin (point))
 	      end)

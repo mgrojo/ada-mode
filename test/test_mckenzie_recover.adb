@@ -232,7 +232,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
          Enqueue_Low             => 118,
          Check_Low               => 25,
          Cost                    => 5);
@@ -244,7 +244,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
          Enqueue_Low             => 118,
          Check_Low               => 25,
          Cost                    => 5);
@@ -256,7 +256,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1, 1, 0) & (Insert, +SEMICOLON_ID, 1, 1, 0),
-         Strategy_Counts         => (Minimal_Complete => 1, Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
          Enqueue_Low             => 118,
          Check_Low               => 25,
          Cost                    => 5);
@@ -314,7 +314,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Undo_Reduce, +sequence_of_statements_ID, 0) &
            (Delete, +END_ID, 15),
-         Strategy_Counts         => (Explore_Table => 3, others => 0),
+         Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
          Enqueue_Low             => 42,
          Check_Low               => 9,
          Cost                    => 2);
@@ -441,7 +441,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (26, 34),
          Ops                     => +(Push_Back, +BEGIN_ID, 4) & (Undo_Reduce, +declarative_part_ID, 0) &
            (Delete, +BEGIN_ID, 4),
-         Strategy_Counts         => (Explore_Table => 3, others => 0),
+         Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
          Enqueue_Low             => 36,
          Check_Low               => 8,
          Cost                    => 1);
@@ -470,7 +470,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
-         Strategy_Counts         => (Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Delete => 1, others => 0),
          Enqueue_Low             => 30,
          Check_Low               => 7,
          Cost                    => 2);
@@ -495,7 +495,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
-         Strategy_Counts         => (Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Delete => 1, others => 0),
          Enqueue_Low             => 8,
          Check_Low               => 4,
          Cost                    => 2);
@@ -1507,7 +1507,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (84, 88),
          Ops                     => +(Delete, +BEGIN_ID, 15) & (Insert, +SEPARATE_ID, 16, 1, 0) &
            (Insert, +SEMICOLON_ID, 16, 1, 0),
-         Strategy_Counts         => (Minimal_Complete => 2, Explore_Table => 1, others => 0),
+         Strategy_Counts         => (Minimal_Complete => 2, Delete => 1, others => 0),
          Cost                    => 3);
 
       Check_Recover
@@ -1830,7 +1830,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (221, 221),
          Ops                     => +(Push_Back, +END_ID, 42) & (Delete, +END_ID, 42) & (Delete, +SEMICOLON_ID, 43),
-         Strategy_Counts         => (Explore_Table => 3, others => 0),
+         Strategy_Counts         => (Push_Back => 1, Delete => 2, others => 0),
          Cost                    => 4);
 
       Check_Recover
@@ -1936,20 +1936,32 @@ package body Test_McKenzie_Recover is
       --  That leads to a second error at EOI; minimal complete finishes the
       --  case statement.
 
-      Check_Recover
-        (Errors_Length           => 2,
-         Checking_Error          => 1,
-         Error_Token_ID          => +EQUAL_ID,
-         Error_Token_Byte_Region => (23, 23),
-         Ops                     =>
-           (case Test.Alg is
-            when LALR => +(Insert, +WHEN_ID, 4, 1, 0) & (Insert, +NUMERIC_LITERAL_ID, 4, 1, 0) &
-                (Insert, +EQUAL_GREATER_ID, 4, 1, 0) & (Insert, +IF_ID, 4, 1, 0) & (Insert, +IDENTIFIER_ID, 4, 1, 0),
-            when LR1 => +(Delete, +EQUAL_ID, 4) & (Insert, +WHEN_ID, 5, 1, 0) &
-                (Insert, +NUMERIC_LITERAL_ID, 5, 1, 0) & (Insert, +EQUAL_GREATER_ID, 5, 1, 0) &
-                (Insert, +IF_ID, 5, 1, 0)),
-         Strategy_Counts         => (Minimal_Complete => 3, Explore_Table => 2, others => 0),
-         Cost                    => 11);
+      declare
+         Strategy_Result : WisiToken.Parse.LR.Strategy_Counts;
+      begin
+         case Test.Alg is
+         --  Can't use 'others' in a case expression.
+         when LALR =>
+            Strategy_Result := (Minimal_Complete => 3, Insert => 2, others => 0);
+         when LR1 =>
+            Strategy_Result := (Minimal_Complete => 3, Insert => 1, Delete => 1, others => 0);
+         end case;
+
+         Check_Recover
+           (Errors_Length           => 2,
+            Checking_Error          => 1,
+            Error_Token_ID          => +EQUAL_ID,
+            Error_Token_Byte_Region => (23, 23),
+            Ops                     =>
+              (case Test.Alg is
+               when LALR => +(Insert, +WHEN_ID, 4, 1, 0) & (Insert, +NUMERIC_LITERAL_ID, 4, 1, 0) &
+                   (Insert, +EQUAL_GREATER_ID, 4, 1, 0) & (Insert, +IF_ID, 4, 1, 0) & (Insert, +IDENTIFIER_ID, 4, 1, 0),
+               when LR1 => +(Delete, +EQUAL_ID, 4) & (Insert, +WHEN_ID, 5, 1, 0) &
+                   (Insert, +NUMERIC_LITERAL_ID, 5, 1, 0) & (Insert, +EQUAL_GREATER_ID, 5, 1, 0) &
+                   (Insert, +IF_ID, 5, 1, 0)),
+            Strategy_Counts         => Strategy_Result,
+            Cost                    => 11);
+      end;
 
       Check_Recover
         (Errors_Length           => 2,
@@ -1994,6 +2006,9 @@ package body Test_McKenzie_Recover is
    procedure Do_Delete_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
+
+      Strategy_Result : WisiToken.Parse.LR.Strategy_Counts :=
+        (Minimal_Complete => 1, Matching_Begin => 1, Delete => 1, others => 0);
    begin
       --  This test case provided the motivation for doing delete before
       --  insert. If insert is first, the desired solution is:
@@ -2015,6 +2030,14 @@ package body Test_McKenzie_Recover is
       Parse_Text ("procedure Parse is begin Foo (not Data.First)) end if; end Parse;");
       --           1         2     3  4     5   6 7  8   9 10  11 13  14  16  17
 
+      case Test.Alg is
+      when LALR =>
+         null;
+      when LR1 =>
+         Strategy_Result (Delete) := 0;
+         Strategy_Result (Insert) := 1;
+      end case;
+
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +RIGHT_PAREN_ID,
@@ -2025,10 +2048,10 @@ package body Test_McKenzie_Recover is
                 (Insert, +IF_ID, 13, 1, 0) & (Insert, +THEN_ID, 13, 1, 0),
             when LR1 => +(Insert, +LEFT_PAREN_ID, 12, 1, 0) & (Fast_Forward, 13) & (Insert, +SEMICOLON_ID, 13, 1, 0) &
                 (Insert, +IF_ID, 13, 1, 0) & (Insert, +THEN_ID, 13, 1, 0)),
-         Strategy_Counts         => (Minimal_Complete => 1, Matching_Begin => 1, Explore_Table => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 284, when LR1 => 207),
-         Check_Low               => (case Test.Alg is when LALR => 44, when LR1 => 34),
-         Cost                    => 5);
+         Strategy_Counts         => Strategy_Result,
+         Enqueue_Low  => (case Test.Alg is when LALR => 284, when LR1 => 207),
+         Check_Low    => (case Test.Alg is when LALR => 44, when LR1 => 34),
+         Cost         => 5);
    end Do_Delete_First;
 
    procedure Forbid_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)

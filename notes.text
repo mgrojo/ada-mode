@@ -21,6 +21,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+recover log record post-parse action, error pos
+
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
         only active if mmm-mode recognizes action; improve that?
@@ -167,6 +169,9 @@ packrat space use
         use free list in syntax tree
 
 add packrat error recover
+    "d:/Books/eBooks/Parsing/Fischer Mauney 1992 - Simple fast LL1 error repair.pdf"
+    assumes no backtracking?
+        pg 112: "parser announces error when prediction does not fit next input"
 
 adacore langkit_support.packrat implements one row of the derivs table
         it only stores 16 most recently computed items; enough to compute a typical subroutine?
