@@ -1001,15 +1001,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             declare
-               Index : WisiToken.Token_Index := New_Config.Current_Shared_Token;
+               Index      : WisiToken.Token_Index               := New_Config.Current_Shared_Token;
+               Start_Line : constant WisiToken.Line_Number_Type := Terminals
+                 (Config.Error_Token.Min_Terminal_Index).Line;
             begin
                Delete_Check (Terminals, New_Config, Index, +TICK_1_ID); -- increments index
                loop
                   if Index > Terminals.Last_Index then
                      raise Bad_Config;
                   end if;
+                  if Terminals (Index).Line /= Start_Line then
+                     raise Bad_Config;
+                  end if;
                   exit when Terminals (Index).ID = +TICK_1_ID;
-                  Delete (Terminals, New_Config, Index);
+                  Delete (Terminals, New_Config, Index); -- increments index
                end loop;
                Delete_Check (Terminals, New_Config, Index, +TICK_1_ID);
                Insert (New_Config, Index, +STRING_LITERAL_ID);

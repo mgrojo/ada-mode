@@ -43,6 +43,7 @@
 
 (defconst ada-gnat-predefined-package-alist
   '(
+    ("a-calend" . "Ada.Calendar")
     ("a-chahan" . "Ada.Characters.Handling")
     ("a-comlin" . "Ada.Command_Line")
     ("a-contai" . "Ada.Containers")
@@ -276,7 +277,8 @@ Prompt user if more than one."
 		 (when (not done)
 		   (let* ((item (get-text-property pos 'ada-secondary-error))
 			  (unit-file (nth 0 item))
-			  (choice (ada-compiler-ada-name-from-file-name (make-gnat-compiler) unit-file)))
+			  (prj (project-current))
+			  (choice (ada-compiler-ada-name-from-file-name (wisi-prj-compiler prj) prj unit-file)))
 		     (unless (member choice choices) (push choice choices))
 		     (goto-char (1+ pos))
 		     (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
@@ -484,9 +486,12 @@ Prompt user if more than one."
 	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp
 			       "\\( defined at " ada-gnat-file-name-regexp "\\)?"))
 	   (let ((type (match-string 2))
-		 (package-file (match-string 4)))
+		 (package-file (match-string 4))
+		 (prj (project-current)))
 	     (when package-file
-	       (setq type (concat (ada-compiler-ada-name-from-file-name (make-gnat-compiler) package-file) "." type)))
+	       (setq type (concat
+			   (ada-compiler-ada-name-from-file-name (wisi-prj-compiler prj) prj package-file)
+			   "." type)))
 	     (pop-to-buffer source-buffer)
 	     (ada-fix-add-use-type type)
 	   t))

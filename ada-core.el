@@ -157,11 +157,6 @@ Called by `syntax-propertize', which is called by font-lock in
 (cl-defgeneric ada-compiler-ada-name-from-file-name (compiler project file-name)
   "Return the Ada library unit name that should be found in FILE-NAME.")
 
-(defun ada-ada-name-from-file-name (file-name)
-  "Return the ada-name that should be found in FILE-NAME."
-  (let ((project (ada-prj-require-prj)))
-    (ada-compiler-ada-name-from-file-name (ada-prj-compiler project) file-name)))
-
 (cl-defgeneric ada-compiler-make-package-body (compiler project body-file-name)
   "Create a package body skeleton from a package spec.
 BODY-FILE-NAME is the file name of the body file. Current buffer
@@ -264,8 +259,8 @@ current construct."
 	 (wisi-in-paren-p parse-result)
 	 (ada-in-case-expression))
 	;; align '=>'
-	(let ((begin (nth 1 parse-result))
-	      (end   (scan-lists (point) 1 1)))
+	(let* ((begin (nth 1 parse-result))
+	       (end   (scan-lists begin 1 1)))
 	  (align begin end 'entire)))
 
        (t

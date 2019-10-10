@@ -266,6 +266,10 @@ make -C xref install
 @node Building @file{gpr_query}
 @subsection Building @file{gpr_query}
 
+@file{gpr_query} requires the @code{pthread} library. On Windows, this
+is available in Mingw64 as package
+@code{mingw64/mingw-w64-x86_64-winpthreads-git}.
+
 To build and install @file{gpr_query}, assuming the
 @code{ada-mode-6.0.xx} GNU ELPA package is installed:
 

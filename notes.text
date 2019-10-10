@@ -55,9 +55,6 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-ada menu gone
-    because deleted prj menu?
-
 major cleanup
     change ada-fix-error-alist to generic?
         dispatch on compiler
@@ -74,6 +71,11 @@ major cleanup
     test all menus
 
     run/update ada-build tutorial
+
+move sal-make-prj into wisi-prj.el
+    doc use case; local in Makefile (or other builder file)
+
+improve test/ada_mode-recover_32.adb
 
 start gpr_query.exe in background
 

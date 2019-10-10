@@ -78,14 +78,18 @@
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
-	    (start-process (concat "gpr_query " (buffer-name))
-			   (gpr-query--session-buffer session)
-			   "gpr_query"
-			   (concat "--project=" gpr-file)
-			   (when gpr-query--debug-start
-			     (concat "--tracefile=gpr_query.trace")
-			     ;; The file gpr_query.trace should contain: gpr_query=yes
-			     )))
+	    (apply #'start-process
+		   (concat "gpr_query " (buffer-name))
+		   (gpr-query--session-buffer session)
+		   "gpr_query"
+		   (cl-delete-if
+		    'null
+		    (list
+		     (concat "--project=" gpr-file)
+		     (when gpr-query--debug-start
+		       (concat "--tracefile=gpr_query.trace")
+		       ;; The file gpr_query.trace should contain: gpr_query=yes
+		       )))))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 

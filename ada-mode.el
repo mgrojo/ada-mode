@@ -223,7 +223,6 @@ slower to load on first use, but gives better error recovery."
      ["Show project"                  wisi-prj-show                    t]
      ["Show project file search path" wisi-prj-show-prj-path           t]
      ["Show source file search path"  wisi-prj-show-src-path           t]
-     ["Delete project ..."            ada-prj-delete                   t]
     )
     ("Build"
      ["Next compilation error"     next-error                t]

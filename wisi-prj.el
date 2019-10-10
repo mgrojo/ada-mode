@@ -523,18 +523,18 @@ absolute file name.")
     (setq wisi-prj--cache (delete (cons prj-file project) wisi-prj--cache))
     (setq project (wisi-prj-default project))
     (wisi-prj-parse-file :prj-file prj-file :init-prj project :cache t)
-    (wisi-prj-select-file prj-file project)
+    (wisi-prj-select project)
     (wisi-xref-refresh-cache (wisi-prj-xref project) project not-full)))
 
 (cl-defmethod wisi-prj-select ((project wisi-prj))
-  (setq compilation-search-path
-	(append (wisi-prj-source-path project)))
+  (setq compilation-search-path (wisi-prj-source-path project))
 
   ;; ‘compilation-environment’ is buffer-local, but the user might
   ;; delete that buffer. So set both global and local.
   (let ((comp-env
 	 (append
 	  (wisi-prj-compile-env project)
+	  (wisi-prj-file-env project)
 	  (copy-sequence (wisi-prj-file-env project))))
 	(comp-buf (get-buffer "*compilation*")))
     (when (buffer-live-p comp-buf)
@@ -1179,16 +1179,18 @@ current buffer file name) to `wisi-prj--dominating-alist' (for
   "Unless it is already current, select a wisi-prj matching DOMINATING-FILE.
 Useful before running `compilation-start', to ensure the correct
 project is current."
-  (let ((prj-file (cdr (assoc (or dominating-file (buffer-file-name)) wisi-prj--dominating-alist))))
-    (unless (string-equal prj-file wisi-prj--current-file)
-      (message "Switching to project file '%s'" prj-file)
-      (let ((old-prj (assoc wisi-prj--current-file wisi-prj--cache))
-	    (new-prj (assoc prj-file wisi-prj--cache)))
-	(when (wisi-prj-p old-prj)
-	  (wisi-prj-deselect old-prj))
-	(when (wisi-prj-p new-prj)
-	  (wisi-prj-select new-prj))
-	(setq wisi-prj--current-file prj-file)))))
+  (when (or dominating-file (buffer-file-name))
+    ;; buffer-file-name is nil in *compilation* buffer
+    (let ((prj-file (cdr (assoc (or dominating-file (buffer-file-name)) wisi-prj--dominating-alist))))
+      (unless (string-equal prj-file wisi-prj--current-file)
+	(message "Switching to project file '%s'" prj-file)
+	(let ((old-prj (cdr (assoc  wisi-prj--current-file wisi-prj--cache)))
+	      (new-prj (cdr (assoc prj-file wisi-prj--cache))))
+	  (when (wisi-prj-p old-prj)
+	    (wisi-prj-deselect old-prj))
+	  (when (wisi-prj-p new-prj)
+	    (wisi-prj-select new-prj))
+	  (setq wisi-prj--current-file prj-file))))))
 
 ;;;###autoload
 (defun wisi-prj-current-cached (_dir)
@@ -1344,10 +1346,18 @@ Menu displays cached wisi projects."
 (defun wisi-prj-delete (name)
   "Delete project NAME (default prompt) from the cached projects."
   (interactive (list (completing-read "project name: " (wisi-prj-completion-table))))
-  (setq wisi-prj--cache
-	(cl-delete-if (lambda (item)
-			(string= name (wisi-prj-name (cdr item))))
-		      wisi-prj--cache)))
+  (let (pair)
+    (dolist (item wisi-prj--cache)
+      (if (string= name (wisi-prj-name (cdr item)))
+	  (setq pair item)))
+
+    (setq wisi-prj--cache (delete pair wisi-prj--cache))
+
+    (setq wisi-prj--dominating-alist
+	  (cl-delete-if (lambda (item)
+			  (string= (car pair (cdr item)))))
+	  wisi-prj--dominating-alist)
+    ))
 
 (provide 'wisi-prj)
 ;; end wisi-prj.el

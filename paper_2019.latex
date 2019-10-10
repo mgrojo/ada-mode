@@ -1,0 +1,19 @@
+\documentclass{article}
+\title{An error correcting parser for Emacs Ada mode}
+- Use case: interactive editing, providing indentation, syntax
+highlighting, navigation
+
+- Error correcting state of the art: summarize Grune overview,
+McKenzie LR table explore
+
+- minimal complete similar to Fischer and Mauney 1980
+S(A) = x such that A => x and Cost(x) is minimized = Terminal_Sequence (all cost 1)
+E(A,a) = x : A => xay, cost (x) minimal => superset of matching_begin?
+
+- Additions to McKenzie:
+Push_Back, Undo_Reduce, Delete?,
+String_Quote
+Minimal_Complete (add costs?)
+Matching_Begin
+Language_Fix
+\end{document}
