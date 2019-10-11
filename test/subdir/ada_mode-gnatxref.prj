@@ -1,0 +1,11 @@
+-- An Emacs Ada project file for use with gnatxref
+
+src_dir=..
+src_dir=.
+
+obj_dir=..
+
+casing=../case-exceptions-1
+casing=../case-exceptions-2
+
+-- end of file

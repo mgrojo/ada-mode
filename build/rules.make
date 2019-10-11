@@ -3,6 +3,8 @@
 ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
+GNATXREF_TEST_FILES := $(shell cd ../test; grep -l wisi-prj-select-cache *.ad[sb])
+
 GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))

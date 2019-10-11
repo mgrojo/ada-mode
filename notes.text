@@ -62,10 +62,6 @@ major cleanup
     change ada-mode to derive-major-mode?
         always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
 
-    add (restore?) gnatxref tests
-        explicit list of test files to save time
-        or at least filter ada_mode-recover
-
     review FIXME
 
     test all menus

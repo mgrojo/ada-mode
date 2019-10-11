@@ -1,5 +1,6 @@
 --  Test ada-find-other-file and a few other things
---EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
+
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package body Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))

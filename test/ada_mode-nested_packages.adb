@@ -3,7 +3,7 @@
 --
 -- Also other stuff
 
---EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache "ada_mode.gpr" (ada-prj-default))
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 

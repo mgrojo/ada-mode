@@ -1,9 +1,7 @@
 --  Explores many issues around indenting within parens
 
---EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
-
--- Since we are editing, the syntax will be illegal at times; don't fail for that.
---EMACSCMD:(setq wisi-debug 0)
+-- FIXME: does not need a project?
+-- EMACSCMD:(wisi-prj-select-cache "subdir/ada_mode.adp" (ada-prj-default))
 
 with Ada.Text_IO;
 package Ada_Mode.Parens is

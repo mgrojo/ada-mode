@@ -1,4 +1,4 @@
---EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 package Ada_Mode.Nominal.Child is
@@ -19,8 +19,8 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(wisi-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   --EMACSCMD:(progn (forward-line -1)(forward-word 3)(wisi-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
-   --EMACSRESULT:t
+   --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (forward-line -1)(forward-word 3)(wisi-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a")))
+   --EMACSRESULT:(eq ada-xref-tool 'gpr_query)
    -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))

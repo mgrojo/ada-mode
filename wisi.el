@@ -1661,7 +1661,7 @@ with the line number appended."
 	 (cons 'navigate nil)
 	 (cons 'indent nil)))
 
-  ;; file local variables may have added opentoken, gnatprep
+  ;; file local variables may have modified wisi-indent-calculate-functions
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) #'wisi-indent-line)
   (set (make-local-variable 'indent-region-function) #'wisi-indent-region)

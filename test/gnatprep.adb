@@ -4,7 +4,11 @@
 -- also test other usage of the '#' character, especially in based
 -- numbers and strings.
 
---EMACSCMD:(wisi-prj-select-cached "ada_mode.gpr" (ada-prj-default))
+-- gnatprep-setup is added to ada-mode-hook when gnat-core.el is loaded,
+-- which is normally before ada-mode-hook is executed. But in this test,
+-- gnat-core.el is not loaded until the project file is parsed.
+--EMACSCMD:(wisi-prj-select-cache "ada_mode.gpr" (ada-prj-default))
+--EMACSCMD:(ada-mode)
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
@@ -49,5 +53,4 @@ begin
    end;
 
 end Gnatprep;
-
 -- end of file

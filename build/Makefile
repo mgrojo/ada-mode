@@ -77,6 +77,7 @@ ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
 test : test-ada-lalr-process-gpr_query.stamp
+test : test-ada-lalr-process-gnatxref.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr-lalr-process.stamp
 test : summarize
@@ -87,18 +88,18 @@ summarize :
 include rules.make
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-#ONE_TEST_FILES ?= ada_mode-ada2005.ads
+#ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
+ONE_TEST_FILES ?= ada_mode.ads
 #one :: build_executables
-#one :: byte-compile
+#one :: byte-compile autoloads
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 	rm -f test.log
-one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
-#one :: RUNTEST := run-indent-test-elisp-gpr_query.el
-#one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+#one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
+one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
+one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
+#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
@@ -147,14 +148,14 @@ $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
-test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_ELISP_TEST_FILES)))
+test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
+test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))
 
-test-ada-elisp-gpr_query.stamp : force
+test-ada-lalr-process-gnatxref.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-ada-elisp-gpr_query
+	$(MAKE) test-ada-lalr-process-gnatxref
 	touch $@
-	echo "test-ada-elisp-gpr_query" >> test.log
+	echo "test-ada-lalr-process-gnatxref" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-lalr-process-gpr_query : RUNTEST := run-indent-test-lalr-process-gpr_query.el
@@ -175,16 +176,6 @@ test-ada-packrat-process-gpr_query.stamp : force
 	$(MAKE) test-ada-packrat-process-gpr_query
 	touch $@
 	echo "test-ada-packrat-process-gpr_query" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
-
-test-gpr-elisp : RUNTEST := run-indent-test-elisp-gpr_query.el
-test-gpr-elisp : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
-
-test-gpr-elisp.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-gpr-elisp
-	touch $@
-	echo "test-gpr-elisp" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-process-gpr_query.el

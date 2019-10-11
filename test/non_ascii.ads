@@ -1,6 +1,6 @@
 --  Test non-ASCII source encoding, and ASCII equivalent of non-ASCII characters
 
---EMACSCMD:(wisi-prj-select-cached "ada_mode-no-gpr.adp" (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache "ada_mode-no-gpr.adp" (ada-prj-default))
 with Ada.Numerics;
 package Non_ASCII is
 

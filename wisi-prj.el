@@ -1355,8 +1355,8 @@ Menu displays cached wisi projects."
 
     (setq wisi-prj--dominating-alist
 	  (cl-delete-if (lambda (item)
-			  (string= (car pair (cdr item)))))
-	  wisi-prj--dominating-alist)
+			  (string= (car pair) (cdr item)))
+			wisi-prj--dominating-alist))
     ))
 
 (provide 'wisi-prj)

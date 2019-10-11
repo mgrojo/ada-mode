@@ -1,5 +1,3 @@
---EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
-
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 with Ada.Strings.Maps;
@@ -27,7 +25,7 @@ package body Ada_Mode.Parens is
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff
    function Function_1
-     (Param_1, Param_2, Param_3 : in     Ada.Text_IO.Count;
+     (Param_1, Param_2, Param_3 : in     Ada.Text_Io.Count;
       Param_4                   : in out Integer;
       Param_5                   : in out Integer;
       Param_6                   : in     Float := 1.0)
@@ -208,7 +206,7 @@ package body Ada_Mode.Parens is
 
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- lines before ( and after ) not empty. result is tested by .diff
-   function Function_3 (Param_1 : in     Ada.Text_IO.Count;
+   function Function_3 (Param_1 : in     Ada.Text_Io.Count;
                         Param_2 : in out Integer) return Float
    is begin
       return
@@ -428,43 +426,43 @@ package body Ada_Mode.Parens is
    is
       Hello    : constant String := "hello";
       There    : constant String := " there";
-      Out_File : Ada.Text_IO.File_Type;
+      Out_File : Ada.Text_Io.File_Type;
    begin
-      Ada.Text_IO.Put_Line ("Hello" & ' ' &
+      Ada.Text_Io.Put_Line ("Hello" & ' ' &
                               "World");
 
-      Ada.Text_IO.Put_Line (Out_File,
+      Ada.Text_Io.Put_Line (Out_File,
                             Hello &
                               There);
-      Ada.Text_IO.Put_Line ( -- comment after paren
+      Ada.Text_Io.Put_Line ( -- comment after paren
                             Out_File,
                             Hello &
                               There
                               --  Comment before trailing paren
                            );
-      Ada.Text_IO.Put_Line (Out_File,
+      Ada.Text_Io.Put_Line (Out_File,
                             Hello & There
                             --  Comment before trailing paren, token.First = true
                            );
-      Ada.Text_IO.Put_Line
+      Ada.Text_Io.Put_Line
         (Hello & There
          --  Comment before trailing paren, token.First = False
         );
 
-      Ada.Text_IO.Put_Line (Item =>
+      Ada.Text_Io.Put_Line (Item =>
                               Hello & There
                               --  Comment before trailing paren, token.First = True
                            );
-      Ada.Text_IO.Put_Line (Item =>
+      Ada.Text_Io.Put_Line (Item =>
                               Hello &
                                 There
                                 --  Comment before trailing paren, token.First = True
                            );
-      Ada.Text_IO.Put_Line
+      Ada.Text_Io.Put_Line
         (Item => Hello & There
          --  Comment before trailing paren, token.First = False
         );
-      Ada.Text_IO.Put_Line (Item => Hello &
+      Ada.Text_Io.Put_Line (Item => Hello &
                               There
                               --  Comment before trailing paren, token.First = False
                            );

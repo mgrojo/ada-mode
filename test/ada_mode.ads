@@ -1,4 +1,4 @@
---EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package Ada_Mode is
    Global_Exception_1 : exception;
 
@@ -11,12 +11,12 @@ package Ada_Mode is
       function F return Boolean;
    end;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(wisi-goto-declaration)(looking-at "Separate_Procedure is separate"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(wisi-goto-declaration)(looking-at (cl-ecase ada-xref-tool (gpr_query "Separate_Procedure is separate")(gnatxref "Separate_Procedure is$"))))
    --EMACSRESULT:t
    procedure Separate_Procedure;
    -- WORKAROUND: GNAT GPL 2016/2017 puts a reference to the full body
    -- declaration in subdir/ada_mode-separate_procedure.adb in
-   -- ada_mode.ali, but gpr_query doesn't see it.
+   -- ada_mode.ali; gnatxref sees it, but gpr_query doesn't.
 
    --  test optional name in 'end'
 end;

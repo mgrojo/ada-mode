@@ -1,5 +1,5 @@
 package body Ada_Mode is
-   --EMACSCMD:(wisi-prj-select-cached "subdir/ada_mode.adp" (ada-prj-default))
+   --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "ada_mode.gpr") (gnatxref "ada_mode-gnatxref.prj")) (ada-prj-default))
 
    protected body Separate_Protected_Body is separate;
 

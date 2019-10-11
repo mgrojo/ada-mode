@@ -35,6 +35,7 @@
   :type 'boolean
   :group 'ada)
 
+;;;###autoload
 (defun ada-fix-context-clause ()
   "Return the region containing the context clause for the current buffer,
 excluding leading pragmas."

@@ -1,7 +1,5 @@
 ;;; ada-compiler-gnat.el --- Ada mode compiling functionality provided by GNAT  -*- lexical-binding:t -*-
 ;;;
-;; Includes related functions, such as gnatprep support.
-;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
 ;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
