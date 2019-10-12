@@ -182,6 +182,6 @@ install-elpa :
 .PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_re2c.c
 
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (load-file "wisitoken_grammar.el"))
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
 # end:
 # end of file

@@ -314,15 +314,15 @@ Otherwise insert a plain new line."
   (wisi-xref-identifier-at-point))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
-  (wisi-xref-identifier-completion-table))
+  (wisi-xref-names))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
   (unless (and (string-match wisi-xref-ident-regexp identifier)
 	       (match-string 2 identifier))
     ;; Identifier is from identifier-at-point; get line from completion table
-    (setq identifier (try-completion identifier (wisi-xref-identifier-completion-table)))
-    (unless (test-completion identifier (wisi-xref-identifier-completion-table))
-      (setq identifier (completing-read "decl: " (wisi-xref-identifier-completion-table) nil t identifier)))
+    (setq identifier (try-completion identifier (wisi-xref-names)))
+    (unless (test-completion identifier (wisi-xref-names))
+      (setq identifier (completing-read "decl: " (wisi-xref-names) nil t identifier)))
     (string-match wisi-xref-ident-regexp identifier))
 
   (let* ((ident (match-string 1 identifier))
