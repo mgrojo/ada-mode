@@ -39,9 +39,6 @@ is
 
    type Strategy_Counts is array (Strategies) of Natural;
 
-   --  FIXME: post-parse action counts
-   --  FIXME: increase parser number count
-
    Partial_Count : Integer := 0;
    --  Count of recover events with partial parse active
 

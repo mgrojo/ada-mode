@@ -1064,19 +1064,31 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      --  Don't count UTF-8 continuation bytes, or first byte of DOS newline
-      Indent_Line ("#define DO_COUNT ((*lexer->cursor & 0xC0) != 0xC0) && (*lexer->cursor != 0x0D)");
-      New_Line;
-
       Indent_Line ("static void skip(wisi_lexer* lexer)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
-      Indent_Line ("{");
       Indent_Line ("   ++lexer->cursor;");
-      Indent_Line ("   if (DO_COUNT) ++lexer->char_pos;");
-      Indent_Line ("   if (lexer->cursor <= lexer->buffer_last)");
-      Indent_Line ("      if (*lexer->cursor == 0x0A) ++lexer->line;");
+      Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
+      Indent_Line ("{");
+      Indent_Line ("   /* UFT-8 encoding: https://en.wikipedia.org/wiki/UTF-8#Description */");
+      Indent_Line ("   if (*lexer->cursor == 0x0D)");
+      Indent_Line ("     {/* second byte of DOS line ending */");
+      Indent_Line ("     }");
+      Indent_Line ("   else if ((*lexer->cursor & 0xF0) == 0xF0)");
+      Indent_Line ("     {/* first byte of 4 byte UTF-8 char */");
+      Indent_Line ("       lexer->char_pos = lexer->char_pos - 2;");
+      Indent_Line ("     }");
+      Indent_Line ("   else if ((*lexer->cursor & 0xE0) == 0xE0)");
+      Indent_Line ("     {/* first byte of 3 byte UTF-8 char */");
+      Indent_Line ("       --lexer->char_pos;");
+      Indent_Line ("     }");
+      Indent_Line ("   else if ((*lexer->cursor & 0xC0) == 0xC0)");
+      Indent_Line ("     {/* first byte of 2 byte UTF-8 char */");
+      Indent_Line ("     }");
+      Indent_Line ("   else");
+      Indent_Line ("       ++lexer->char_pos;");
+      Indent_Line ("   if (*lexer->cursor == 0x0A) ++lexer->line;");
       Indent_Line ("}");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -1238,11 +1250,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*byte_position = lexer->byte_token_start - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = lexer->cursor - lexer->byte_token_start;");
       Indent_Line ("*char_position = lexer->char_token_start;");
-      Indent_Line ("if (DO_COUNT)");
-      Indent_Line ("   *char_length = lexer->char_pos - lexer->char_token_start;");
-      Indent_Line ("else");
-      Indent_Line ("   *char_length = lexer->char_pos - lexer->char_token_start + 1;");
-      Indent_Line ("*line_start     = lexer->line_token_start;");
+      Indent_Line ("*char_length   = lexer->char_pos - lexer->char_token_start;");
+      Indent_Line ("*line_start    = lexer->line_token_start;");
       Indent_Line ("return status;");
       Indent_Line ("}");
       Indent := Indent - 3;
