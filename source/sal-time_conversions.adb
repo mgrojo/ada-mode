@@ -2,7 +2,7 @@
 --
 --  SEE spec.
 --
---  Copyright (C) 2004 - 2013, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2013, 2015, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -517,6 +517,15 @@ package body SAL.Time_Conversions is
    function To_Time (Microseconds : in Interfaces.Unsigned_32) return SAL.Time_Conversions.Time_Type
    is begin
       return Time_Type (Microseconds) / 1_000_000;
+   end To_Time;
+
+   function To_Time (Milliseconds : in Interfaces.Unsigned_64) return Time_Type
+   is
+      use Interfaces;
+      Seconds  : constant Unsigned_64 := Milliseconds / 1000;
+      Fraction : constant Unsigned_64 := Milliseconds mod 1000;
+   begin
+      return Time_Type (Seconds) + (Time_Type (Fraction) / 1000);
    end To_Time;
 
    function To_Microseconds (Time : in Time_Type) return Interfaces.Unsigned_16

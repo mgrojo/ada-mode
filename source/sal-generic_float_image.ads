@@ -2,7 +2,7 @@
 --
 --  Generic leading zero unsigned decimal image
 --
---  Copyright (C) 2004, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,6 +34,6 @@ function SAL.Generic_Float_Image
   return String;
 --  Return a decimal unsigned image of Item, with Fore digits before
 --  the point padded with leading zeros, Aft digits after, total
---  number of characters Width. If Fore is too small for Item, leading
---  digits are silently truncated.
+--  number of characters Fore + Aft + 1. If Fore is too small for
+--  Item, leading digits are silently truncated.
 pragma Pure (SAL.Generic_Float_Image);

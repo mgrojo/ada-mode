@@ -9,7 +9,7 @@
 --  [1] http://aa.usno.navy.mil/faq/docs/TT.html
 --  [2] http://hpiers.obspm.fr/eoppc/bul/bulc/UTC-TAI.history
 --
---  Copyright (C) 2001, 2004 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2004 - 2015, 2017, 2018, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -215,6 +215,7 @@ package SAL.Time_Conversions is
 
    function To_Time (Microseconds : in Interfaces.Unsigned_16) return Time_Type;
    function To_Time (Microseconds : in Interfaces.Unsigned_32) return Time_Type;
+   function To_Time (Milliseconds : in Interfaces.Unsigned_64) return Time_Type;
 
    function To_Microseconds (Time : in Time_Type) return SAL.Interfaces_More.Unsigned_15;
    function To_Microseconds (Time : in Time_Type) return Interfaces.Unsigned_16;
@@ -245,15 +246,16 @@ package SAL.Time_Conversions is
    subtype ASIST_Time_String_Type is String (1 .. 19);
    subtype Extended_ASIST_Time_String_Type is String (1 .. 21);
 
-   TAI_Epoch_String : constant Extended_ASIST_Time_String_Type := "1958-001-00:00:00.000";
-   J2000_TAI_String : constant Extended_ASIST_Time_String_Type := "2000-001-11:59:27.816";
+   TAI_Epoch_String  : constant Extended_ASIST_Time_String_Type := "1958-001-00:00:00.000";
+   Unix_Epoch_String : constant Extended_ASIST_Time_String_Type := "1970-001-00:00:00.000";
+   J2000_TAI_String  : constant Extended_ASIST_Time_String_Type := "2000-001-11:59:27.816";
 
    function To_TAI_Time
      (Time     : in String;
       Absolute : in Boolean)
      return Time_Type;
    --  Time must be ASIST format or extended ASIST format. If
-   --  absolute, result is seconds since TAI origin.
+   --  Absolute, result is seconds since TAI origin.
 
    function Image is new SAL.Generic_Decimal_Image (Integer);
    pragma Warnings (Off, "instance does not use primitive operation ""mod"" at line 97"); -- gnat 2017
