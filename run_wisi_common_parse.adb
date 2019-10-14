@@ -221,7 +221,7 @@ package body Run_Wisi_Common_Parse is
          if Cl_Params.Command = Refactor or else Cl_Params.End_Line = Invalid_Line_Number then
             --  User did not provide; run lexer to get end line.
             declare
-               Token : Base_Token;
+               Token       : Base_Token;
                Lexer_Error : Boolean;
                pragma Unreferenced (Lexer_Error);
             begin

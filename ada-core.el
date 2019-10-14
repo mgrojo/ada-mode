@@ -260,7 +260,7 @@ current construct."
 	 (ada-in-case-expression))
 	;; align '=>'
 	(let* ((begin (nth 1 parse-result))
-	       (end   (scan-lists begin 1 1)))
+	       (end   (scan-lists begin 1 0)))
 	  (align begin end 'entire)))
 
        (t

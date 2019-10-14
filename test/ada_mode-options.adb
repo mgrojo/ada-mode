@@ -1,5 +1,5 @@
 with
-    Ada.Text_IO;
+    Ada.Text_Io;
 package body Ada_Mode.Options is
 
    type Discrete_Type_1 is (A, B, C);

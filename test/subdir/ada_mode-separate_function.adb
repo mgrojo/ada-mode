@@ -2,7 +2,7 @@ separate (Ada_Mode)
 function Separate_Function return Integer is
    -- no comment before "separate"
    --EMACSCMD:(setq skip-recase-test t)
-   --EMACSCMD:(wisi-prj-select-cached "ada_mode.adp" (ada-prj-default))
+   --EMACSCMD:(wisi-prj-select-cache "ada_mode.adp" (ada-prj-default))
 
    --  WORKAROUND: GNAT GPL 2016 doesn't produce a .ali file for this
    --  file, so gpr_query doesn't work. And gnat find doesn't work either

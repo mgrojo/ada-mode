@@ -1,9 +1,6 @@
 --  Explores many issues around indenting within parens
 
--- FIXME: does not need a project?
--- EMACSCMD:(wisi-prj-select-cache "subdir/ada_mode.adp" (ada-prj-default))
-
-with Ada.Text_IO;
+with Ada.Text_Io;
 package Ada_Mode.Parens is
 
    -- non-pathological; compare to T3
@@ -31,7 +28,7 @@ package Ada_Mode.Parens is
    function Function_1
      (Param_1,
         Param_2,
-        Param_3 : in Ada.Text_IO.
+        Param_3 : in Ada.Text_Io.
         Count; -- pretending this is wrapped because of line length limit
       Param_4,
         Param_5 : in

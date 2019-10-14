@@ -7,8 +7,6 @@
 (setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_parse_packrat.exe"))
 (setq gpr-process-parse-exec (expand-file-name "../gpr_mode_wisi_parse_packrat.exe"))
 
-(setq wisi-test-parser 'process) ;; for non-Ada tests
-
 (require 'run-indent-test)
 
 ;; don’t report parse errors; recover from them!

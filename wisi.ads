@@ -500,12 +500,12 @@ private
    end record;
 
    type Face_Cache_Type is record
-      Region : WisiToken.Buffer_Region;
-      Class  : Face_Class_Type;
-      Face   : Nil_Integer;     -- not set, or index into *-process-faces-names
+      Char_Region : WisiToken.Buffer_Region;
+      Class       : Face_Class_Type;
+      Face        : Nil_Integer; -- not set, or index into *-process-faces-names
    end record;
 
-   function Key (Cache : in Face_Cache_Type) return WisiToken.Buffer_Pos is (Cache.Region.First);
+   function Key (Cache : in Face_Cache_Type) return WisiToken.Buffer_Pos is (Cache.Char_Region.First);
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, WisiToken.Buffer_Pos);
 

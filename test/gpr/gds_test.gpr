@@ -1,6 +1,6 @@
 --EMACSCMD:(setenv "GPR_PROJECT_PATH" nil)
 --EMACSCMD:(add-to-list 'wisi-prj-parser-alist (cons "prj" #'wisi-prj-parse-file-1))
---EMACSCMD:(wisi-prj-select-cached "gds_test.prj" (gpr-prj-default))
+--EMACSCMD:(wisi-prj-select-cache "gds_test.prj" (gpr-prj-default))
 
 --EMACSCMD:(progn (forward-line 2)(ff-find-other-file)(looking-at "-- captured from 'Standard settings"))
 --EMACSRESULT:t

@@ -31,7 +31,7 @@
   is no response from the parser after waiting this amount (in
   seconds)."
   :type 'float
-  :safe 'floatp)
+  :safe 'numberp)
 (make-variable-buffer-local 'wisi-process-time-out)
 
 (defconst wisi-process-parse-protocol-version "4"
@@ -407,7 +407,7 @@ complete."
 (defun wisi-process-parse--End (parser sexp)
   ;; sexp is [End pos]
   ;; see ‘wisi-process-parse--execute’
-  (setf (wisi-process--parser-end-pos parser) (aref sexp 1)))
+  (setf (wisi-process--parser-end-pos parser) (1+ (aref sexp 1))))
 
 (defun wisi-process-parse--Edit (parser sexp)
   ;; sexp is [Edit begin end text]

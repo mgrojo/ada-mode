@@ -4,7 +4,7 @@ is
    --
    -- also test ada-case-identifier = upcase-region
 
-   --EMACSCMD:(wisi-prj-select-cached "ada_mode.adp" (ada-prj-default))
+   --EMACSCMD:(wisi-prj-select-cache "ada_mode.adp" (ada-prj-default))
 
    --  WORKAROUND: GNAT GPL 2016 doesn't produce a .ali file for this
    --  file, so gpr_query doesn't work. And gnat find doesn't work either

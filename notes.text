@@ -72,6 +72,7 @@ move sal-make-prj into wisi-prj.el
     doc use case; local in Makefile (or other builder file)
 
 improve test/ada_mode-recover_32.adb
+    recover gets CONSTRAINT_ERROR, config ops full
 
 start gpr_query.exe in background
 

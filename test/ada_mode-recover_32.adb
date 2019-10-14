@@ -1,11 +1,11 @@
 --  Encounter lots of "config full" in try_insert_string_quote
 
 procedure Apply_Clues
-   is
-   begin
-      loop
-         if Run = 0 and then Clue_Index <= Max_Clue_Index then
-            case Get_Cell (Line, Pos) is
+is
+begin
+   loop
+      if Run = 0 and then Clue_Index <= Max_Clue_Index then
+         case Get_Cell (Line, Pos) is
             when Black =>
                if Run > 0 then
                   if First_Black (Clue_Index) = 0 then
@@ -25,20 +25,20 @@ procedure Apply_Clues
                   begin
                      if Current_Run_Start > Last_Run_End then
                         --  No overlap
-                     for I in 1 .. Clues (Clue_Index) loop
-                        case Get_Cell (Old_Pos) is
-                        when White => raise SAL.Programmer_Error;
-                        when Black => null;
-                        when Dots => Set_Cell (Line, Old_Pos, White);
-                        end case;
-                        Set_Cell (Line, New_Pos, Dot_White);
+                        for I in 1 .. Clues (Clue_Index) loop
+                           case Get_Cell (Old_Pos) is
+                              when White => raise Sal.Programmer_Error;
+                              when Black => null;
+                              when Dots => Set_Cell (Line, Old_Pos, White);
+                           end case;
+                           Set_Cell (Line, New_Pos, Dot_White);
                         end loop;
                      else
-                        raise SAL.Not_Implemented with "extra black
+                        raise Sal.Not_Implemented with "extra black
                end if;
 
-            end case;
-         end if;
-      end loop;
+         end case;
+      end if;
+   end loop;
 
-   end Apply_Clues;
+end Apply_Clues;

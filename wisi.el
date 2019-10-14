@@ -1495,23 +1495,29 @@ with the line number appended."
 
 ;;;; debugging
 
-(defun wisi-show-region (string)
-  (interactive "Mregion: ")
-  (when (not (= ?\( (aref string 0)))
-    (setq string (concat "(" string ")")))
+(defun wisi-show-region ()
+  (interactive)
+  (cond
+   ((use-region-p)
+    (message "(%s . %s)" (region-beginning) (region-end)))
+   (t
+    (let ((string (read-from-minibuffer "Mregion: ")))
+      (when (not (= ?\( (aref string 0)))
+	(setq string (concat "(" string ")")))
 
-  (let ((region (read string)))
-    (cond
-     ((consp (cdr region))
-      ;; region is a list; (begin end)
-      (set-mark  (nth 0 region))
-      (goto-char (nth 1 region)))
+      (let ((region (read string)))
+	(cond
+	 ((consp (cdr region))
+	  ;; region is a list; (begin end)
+	  (set-mark  (nth 0 region))
+	  (goto-char (nth 1 region)))
 
-     ((consp region)
-      ;; region is a cons; (begin . end)
-      (set-mark  (car region))
-      (goto-char (cdr region)))
-     )))
+	 ((consp region)
+	  ;; region is a cons; (begin . end)
+	  (set-mark  (car region))
+	  (goto-char (cdr region)))
+	 ))))
+   ))
 
 (defun wisi-debug-keys ()
   "Add debug key definitions to `global-map'."

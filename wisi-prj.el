@@ -622,7 +622,7 @@ In any case, return the project."
   (unless (file-readable-p prj-file)
     (error "Project file '%s' is not readable" prj-file))
 
-  (run-hooks `wisi-prj-parse-hook)
+  (run-hooks 'wisi-prj-parse-hook)
 
   (let* ((default-directory (file-name-directory prj-file))
 	 (parser (cdr (assoc (file-name-extension prj-file) wisi-prj-parser-alist)))

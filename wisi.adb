@@ -332,8 +332,8 @@ package body Wisi is
    begin
       if Cache.Face.Set then
          Append (Line, Face_Property_Code);
-         Append (Line, Buffer_Pos'Image (Cache.Region.First));
-         Append (Line, Buffer_Pos'Image (Cache.Region.Last));
+         Append (Line, Buffer_Pos'Image (Cache.Char_Region.First));
+         Append (Line, Buffer_Pos'Image (Cache.Char_Region.Last));
          Append (Line, Integer'Image (Cache.Face.Item));
          Append (Line, ']');
          Ada.Text_IO.Put_Line (To_String (Line));
@@ -1257,7 +1257,7 @@ package body Wisi is
                               Suf_Cache : Face_Cache_Type renames Data.Face_Caches (Suffix_Cur);
                            begin
                               if Suffix = Suf_Cache.Class and
-                                Inside (Suf_Cache.Region.First, Token.Char_Region)
+                                Inside (Suf_Cache.Char_Region.First, Token.Char_Region)
                               then
                                  Suf_Cache.Face := (True, Param.Suffix_Face);
                               end if;
@@ -1299,7 +1299,7 @@ package body Wisi is
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
-                    Data.Face_Caches (Cache_Cur).Region.First > Token.Char_Region.Last;
+                    Data.Face_Caches (Cache_Cur).Char_Region.First > Token.Char_Region.Last;
                   declare
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                   begin
@@ -1342,19 +1342,19 @@ package body Wisi is
                   declare
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                      Other_Cur : Cursor := Find_In_Range
-                       (Iter, Ascending, Cache.Region.Last + 1, Token.Char_Region.Last);
+                       (Iter, Ascending, Cache.Char_Region.Last + 1, Token.Char_Region.Last);
                      Temp : Cursor;
                   begin
                      loop
                         exit when not Has_Element (Other_Cur) or else
-                          Data.Face_Caches (Other_Cur).Region.First > Token.Char_Region.Last;
+                          Data.Face_Caches (Other_Cur).Char_Region.First > Token.Char_Region.Last;
                         Temp := Other_Cur;
                         Other_Cur := Next (Iter, Other_Cur);
                         Delete (Data.Face_Caches, Temp);
                      end loop;
 
-                     Cache.Class       := Param.Class;
-                     Cache.Region.Last := Token.Char_Region.Last;
+                     Cache.Class            := Param.Class;
+                     Cache.Char_Region.Last := Token.Char_Region.Last;
                   end;
                else
                   Data.Face_Caches.Insert ((Token.Char_Region, Param.Class, (Set => False)));
@@ -1388,7 +1388,7 @@ package body Wisi is
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
-                    Data.Face_Caches (Cache_Cur).Region.First > Token.Char_Region.Last;
+                    Data.Face_Caches (Cache_Cur).Char_Region.First > Token.Char_Region.Last;
                   Temp := Cache_Cur;
                   Cache_Cur := Next (Iter, Cache_Cur);
                   Delete (Data.Face_Caches, Temp);

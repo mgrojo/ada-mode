@@ -72,7 +72,6 @@ byte-compile : byte-compile-clean
 byte-compile-clean :
 	cd ..; rm -f *.elc
 
-# IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
