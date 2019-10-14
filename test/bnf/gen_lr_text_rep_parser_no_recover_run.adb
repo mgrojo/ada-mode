@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017, 2018 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2019 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -46,20 +46,17 @@ is
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
    --  Unrestricted_Access because can't make generic formal parameter aliased.
 
+   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
+
    procedure Parse
    is
       Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
-      Create_Parser
-        (Parser, Trace'Unchecked_Access,
-         User_Data          => null,
-         Text_Rep_File_Name => Text_Rep_File_Name);
+      Create_Parser (Parser, Trace'Unchecked_Access, User_Data'Unchecked_Access, Text_Rep_File_Name);
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;
-
-      --  No user data, so no point in calling Execute_Actions
-
+      Parser.Execute_Actions;
       Parser.Put_Errors;
 
    exception

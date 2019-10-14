@@ -21,8 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-recover log record post-parse action, error pos
-
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
         only active if mmm-mode recognizes action; improve that?

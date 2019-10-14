@@ -8,9 +8,9 @@ SHIFT 2; 5;
 ;
  1 1 9 4 2
  0 0 SHIFT 6 6;
-3 REDUCE 12 0 false false 1; 4
-REDUCE 12 0 false false 1; 5
-REDUCE 12 0 false false 1; 7;
+3 REDUCE 12 0 true false 1; 4
+REDUCE 12 0 true false 1; 5
+REDUCE 12 0 true false 1; 7;
 ;
  1 1 12 5 0
  0 0 REDUCE 12 1;

@@ -1,4 +1,4 @@
-;; Small grammar for testing lexer 'skip_to' function, and two comment tokens.
+;; Small grammar for testing lexer 'skip_to' function, two comment tokens, non-ASCII.
 ;;
 ;; Tests run by test_skip_to.ads
 
@@ -6,7 +6,7 @@
 
 %keyword PERCENT "%"
 %token <delimited-text> PREAMBLE "%{" "%}"
-%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z][$0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment> COMMENT_1 %[ ";;"[^\x0a\x04]* ]%
@@ -20,7 +20,7 @@
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list
-  %(Test_Declaration_0 ((Tree.ID (Nonterm), Tree.Byte_Region (Nonterm), others => <>));)%
+  %(Test_Declaration_0 (Nonterm);)%
   ;
 
 declaration_item_list
@@ -34,6 +34,7 @@ declaration_item
 
 compilation_unit
   : PREAMBLE
+  %(Test_Compilation_Unit_0 (Nonterm);)%
   | declaration
 ;
 

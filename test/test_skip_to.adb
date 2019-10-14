@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,11 +25,12 @@ with Skip_To_Grammar_Actions;
 with Skip_To_Grammar_LALR_Main;
 with Test_Skip_To_Aux;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar_Actions.Descriptor'Access);
-   Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Trace     : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar_Actions.Descriptor'Access);
+   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    ----------
    --  Test procedures
@@ -42,15 +43,16 @@ package body Test_Skip_To is
    begin
       Test_Skip_To_Aux.Enable := True;
 
-      Parser.Lexer.Reset_With_File (File_Name);
-      Parser.Parse;
+      Test_Skip_To_Aux.Parser.Lexer.Reset_With_File (File_Name);
+      Test_Skip_To_Aux.Parser.Parse;
+      Test_Skip_To_Aux.Parser.Execute_Actions;
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
       declare
          use Ada.Exceptions;
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         Parser.Put_Errors;
+         Test_Skip_To_Aux.Parser.Put_Errors;
       end;
       AUnit.Assertions.Assert (False, "exception");
    end Nominal;
@@ -76,7 +78,8 @@ package body Test_Skip_To is
    is
       pragma Unreferenced (T);
    begin
-      Skip_To_Grammar_LALR_Main.Create_Parser (Parser, Trace'Access, null, "skip_to_grammar_lalr_parse_table.txt");
+      Skip_To_Grammar_LALR_Main.Create_Parser
+        (Test_Skip_To_Aux.Parser, Trace'Access, User_Data'Access, "skip_to_grammar_lalr_parse_table.txt");
    end Set_Up_Case;
 
 end Test_Skip_To;

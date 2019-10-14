@@ -1,4 +1,4 @@
- 6 tokens lexed
+ 18 tokens lexed
  0: 0:  1:(PREAMBLE, (1 . 6)) : shift and goto state 2
  0: 2:  2:(PERCENT, (31 . 31)) : reduce 1 tokens to compilation_unit
 compilation_unit_0: (compilation_unit, (1 . 6)) <= ( 1:(PREAMBLE, (1 . 6)))
@@ -16,21 +16,96 @@ declaration_item_0: (declaration_item, (38 . 42)) <= ( 4:(IDENTIFIER, (38 . 42))
 declaration_item_list_1: (declaration_item_list, (38 . 42)) <= ((declaration_item, (38 . 42)))
  ... goto state 9
  0: 9:  5:(IDENTIFIER, (44 . 48)) : shift and goto state 8
- 0: 8:  6:(Wisi_EOI, (68 . 67)) : reduce 1 tokens to declaration_item
+ 0: 8:  6:(PERCENT, (51 . 51)) : reduce 1 tokens to declaration_item
 declaration_item_0: (declaration_item, (44 . 48)) <= ( 5:(IDENTIFIER, (44 . 48)))
  ... goto state 11
- 0: 11:  6:(Wisi_EOI, (68 . 67)) : reduce 2 tokens to declaration_item_list
+ 0: 11:  6:(PERCENT, (51 . 51)) : reduce 2 tokens to declaration_item_list
 declaration_item_list_0: (declaration_item_list, (38 . 48)) <= ((declaration_item_list, (38 . 42)), (declaration_item, (44 . 48)))
  ... goto state 9
- 0: 9:  6:(Wisi_EOI, (68 . 67)) : reduce 3 tokens to declaration
+ 0: 9:  6:(PERCENT, (51 . 51)) : reduce 3 tokens to declaration
 declaration_0: (declaration, (31 . 48)) <= ( 2:(PERCENT, (31 . 31)),  3:(IDENTIFIER, (32 . 36)), (declaration_item_list, (38 . 48)))
  ... goto state 3
- 0: 3:  6:(Wisi_EOI, (68 . 67)) : reduce 1 tokens to compilation_unit
+ 0: 3:  6:(PERCENT, (51 . 51)) : reduce 1 tokens to compilation_unit
 compilation_unit_1: (compilation_unit, (31 . 48)) <= ((declaration, (31 . 48)))
  ... goto state 7
- 0: 7:  6:(Wisi_EOI, (68 . 67)) : reduce 2 tokens to compilation_unit_list
+ 0: 7:  6:(PERCENT, (51 . 51)) : reduce 2 tokens to compilation_unit_list
 compilation_unit_list_0: (compilation_unit_list, (1 . 48)) <= ((compilation_unit_list, (1 . 6)), (compilation_unit, (31 . 48)))
  ... goto state 5
- 0: 5:  6:(Wisi_EOI, (68 . 67)) : accept it
-wisitoken_accept_0: (wisitoken_accept, (1 . 48)) <= ((compilation_unit_list, (1 . 48)))
+ 0: 5:  6:(PERCENT, (51 . 51)) : shift and goto state 1
+ 0: 1:  7:(IDENTIFIER, (52 . 56)) : shift and goto state 6
+ 0: 6:  8:(IDENTIFIER, (58 . 63)) : shift and goto state 8
+ 0: 8:  9:(IDENTIFIER, (65 . 70)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (58 . 63)) <= ( 8:(IDENTIFIER, (58 . 63)))
+ ... goto state 10
+ 0: 10:  9:(IDENTIFIER, (65 . 70)) : reduce 1 tokens to declaration_item_list
+declaration_item_list_1: (declaration_item_list, (58 . 63)) <= ((declaration_item, (58 . 63)))
+ ... goto state 9
+ 0: 9:  9:(IDENTIFIER, (65 . 70)) : shift and goto state 8
+ 0: 8:  10:(PERCENT, (104 . 104)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (65 . 70)) <= ( 9:(IDENTIFIER, (65 . 70)))
+ ... goto state 11
+ 0: 11:  10:(PERCENT, (104 . 104)) : reduce 2 tokens to declaration_item_list
+declaration_item_list_0: (declaration_item_list, (58 . 70)) <= ((declaration_item_list, (58 . 63)), (declaration_item, (65 . 70)))
+ ... goto state 9
+ 0: 9:  10:(PERCENT, (104 . 104)) : reduce 3 tokens to declaration
+declaration_0: (declaration, (51 . 70)) <= ( 6:(PERCENT, (51 . 51)),  7:(IDENTIFIER, (52 . 56)), (declaration_item_list, (58 . 70)))
+ ... goto state 3
+ 0: 3:  10:(PERCENT, (104 . 104)) : reduce 1 tokens to compilation_unit
+compilation_unit_1: (compilation_unit, (51 . 70)) <= ((declaration, (51 . 70)))
+ ... goto state 7
+ 0: 7:  10:(PERCENT, (104 . 104)) : reduce 2 tokens to compilation_unit_list
+compilation_unit_list_0: (compilation_unit_list, (1 . 70)) <= ((compilation_unit_list, (1 . 48)), (compilation_unit, (51 . 70)))
+ ... goto state 5
+ 0: 5:  10:(PERCENT, (104 . 104)) : shift and goto state 1
+ 0: 1:  11:(IDENTIFIER, (105 . 109)) : shift and goto state 6
+ 0: 6:  12:(IDENTIFIER, (111 . 116)) : shift and goto state 8
+ 0: 8:  13:(IDENTIFIER, (118 . 123)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (111 . 116)) <= ( 12:(IDENTIFIER, (111 . 116)))
+ ... goto state 10
+ 0: 10:  13:(IDENTIFIER, (118 . 123)) : reduce 1 tokens to declaration_item_list
+declaration_item_list_1: (declaration_item_list, (111 . 116)) <= ((declaration_item, (111 . 116)))
+ ... goto state 9
+ 0: 9:  13:(IDENTIFIER, (118 . 123)) : shift and goto state 8
+ 0: 8:  14:(PERCENT, (152 . 152)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (118 . 123)) <= ( 13:(IDENTIFIER, (118 . 123)))
+ ... goto state 11
+ 0: 11:  14:(PERCENT, (152 . 152)) : reduce 2 tokens to declaration_item_list
+declaration_item_list_0: (declaration_item_list, (111 . 123)) <= ((declaration_item_list, (111 . 116)), (declaration_item, (118 . 123)))
+ ... goto state 9
+ 0: 9:  14:(PERCENT, (152 . 152)) : reduce 3 tokens to declaration
+declaration_0: (declaration, (104 . 123)) <= ( 10:(PERCENT, (104 . 104)),  11:(IDENTIFIER, (105 . 109)), (declaration_item_list, (111 . 123)))
+ ... goto state 3
+ 0: 3:  14:(PERCENT, (152 . 152)) : reduce 1 tokens to compilation_unit
+compilation_unit_1: (compilation_unit, (104 . 123)) <= ((declaration, (104 . 123)))
+ ... goto state 7
+ 0: 7:  14:(PERCENT, (152 . 152)) : reduce 2 tokens to compilation_unit_list
+compilation_unit_list_0: (compilation_unit_list, (1 . 123)) <= ((compilation_unit_list, (1 . 70)), (compilation_unit, (104 . 123)))
+ ... goto state 5
+ 0: 5:  14:(PERCENT, (152 . 152)) : shift and goto state 1
+ 0: 1:  15:(IDENTIFIER, (153 . 157)) : shift and goto state 6
+ 0: 6:  16:(IDENTIFIER, (159 . 164)) : shift and goto state 8
+ 0: 8:  17:(IDENTIFIER, (166 . 170)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (159 . 164)) <= ( 16:(IDENTIFIER, (159 . 164)))
+ ... goto state 10
+ 0: 10:  17:(IDENTIFIER, (166 . 170)) : reduce 1 tokens to declaration_item_list
+declaration_item_list_1: (declaration_item_list, (159 . 164)) <= ((declaration_item, (159 . 164)))
+ ... goto state 9
+ 0: 9:  17:(IDENTIFIER, (166 . 170)) : shift and goto state 8
+ 0: 8:  18:(Wisi_EOI, (212 . 211)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (166 . 170)) <= ( 17:(IDENTIFIER, (166 . 170)))
+ ... goto state 11
+ 0: 11:  18:(Wisi_EOI, (212 . 211)) : reduce 2 tokens to declaration_item_list
+declaration_item_list_0: (declaration_item_list, (159 . 170)) <= ((declaration_item_list, (159 . 164)), (declaration_item, (166 . 170)))
+ ... goto state 9
+ 0: 9:  18:(Wisi_EOI, (212 . 211)) : reduce 3 tokens to declaration
+declaration_0: (declaration, (152 . 170)) <= ( 14:(PERCENT, (152 . 152)),  15:(IDENTIFIER, (153 . 157)), (declaration_item_list, (159 . 170)))
+ ... goto state 3
+ 0: 3:  18:(Wisi_EOI, (212 . 211)) : reduce 1 tokens to compilation_unit
+compilation_unit_1: (compilation_unit, (152 . 170)) <= ((declaration, (152 . 170)))
+ ... goto state 7
+ 0: 7:  18:(Wisi_EOI, (212 . 211)) : reduce 2 tokens to compilation_unit_list
+compilation_unit_list_0: (compilation_unit_list, (1 . 170)) <= ((compilation_unit_list, (1 . 123)), (compilation_unit, (152 . 170)))
+ ... goto state 5
+ 0: 5:  18:(Wisi_EOI, (212 . 211)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (1 . 170)) <= ((compilation_unit_list, (1 . 170)))
  0: succeed

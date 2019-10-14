@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -14,20 +14,80 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with WisiToken.AUnit;
+with AUnit.Checks; use AUnit.Checks;
+with WisiToken.AUnit; use WisiToken.AUnit;
 package body Test_Skip_To_Aux is
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Base_Token)
-   is
-      use WisiToken.AUnit;
-   begin
-      if Enable then
-         if WisiToken.Trace_Parse > WisiToken.Outline then
-            Ada.Text_IO.Put_Line ("Test_Declaration_0");
-         end if;
+   use all type WisiToken.Base_Buffer_Pos;
 
-         Check ("declaration_0 1 byte region", Nonterm.Byte_Region, (11, 28)); -- DOS line endings
+   Decl_Count : Integer := 0;
+
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index)
+   is begin
+      if Enable then
+         declare
+            Chars : constant WisiToken.Buffer_Region := Parser.Terminals
+              (Parser.Tree.Max_Terminal_Index (Nonterm)).Char_Region;
+            Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
+         begin
+            if WisiToken.Trace_Parse > WisiToken.Outline then
+               Ada.Text_IO.Put_Line ("Test_Declaration_0");
+            end if;
+
+            --  File has DOS line endings and non-ASCII chars.
+            --
+            --  Nonterm does not have Char_Region set; that must be done by
+            --  User_Data.Reduce, which is a noop here.
+            --
+            --  Char_Region from wisi-show-region in .input file (with point _before_ last char)
+            --
+            --  Byte_Region from hexl-mode in .input file, +1 to match Emacs origin.
+
+            Decl_Count := Decl_Count + 1;
+            case Decl_Count is
+            when 1 =>
+               Check ("declaration_0 RANGE char region", Chars, (39, 43));
+               Check ("declaration_0 RANGE byte region", Bytes, (16#1E# + 1, 16#2F# + 1));
+
+            when 2 =>
+               Check ("declaration_0 X1_Non char region", Chars, (59, 62));
+               Check ("declaration_0 X1_Non byte region", Bytes, (16#32# + 1, 70));
+
+            when 3 =>
+               Check ("declaration_0 X2_Non char region", Chars, (109, 112));
+               Check ("declaration_0 X2_Non byte region", Bytes, (16#67# + 1, 16#7A# + 1));
+            when 4 =>
+               Check ("declaration_0 X3_Non char region", Chars, (154, 157));
+               Check ("declaration_0 X3_Non byte region", Bytes, (16#97# + 1, 16#A9# + 1));
+
+            when others =>
+               raise WisiToken.Fatal_Error;
+            end case;
+         end;
       end if;
    end Test_Declaration_0;
+
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index)
+   is begin
+      if Enable then
+         if WisiToken.Trace_Parse > WisiToken.Outline then
+            Ada.Text_IO.Put_Line ("Test_Compilation_Unit_0");
+         end if;
+
+         --  See comment in Test_Declaration_0 for source of expected values.
+
+         Check ("compilation_unit_0 PREAMBLE char region",
+                Parser.Terminals (Parser.Tree.Max_Terminal_Index (Nonterm)).Char_Region,
+                (1, 5));
+         declare
+            Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
+         begin
+            Check ("compilation_unit_0 PREAMBLE byte region", Bytes, (0 + 1, 5 + 1));
+            Check ("compilation_unit_0 PREAMBLE text",
+                   Parser.Lexer.Buffer_Text (Bytes),
+                   "%{" & ASCII.CR & ASCII.LF & "%}");
+         end;
+      end if;
+   end Test_Compilation_Unit_0;
 
 end Test_Skip_To_Aux;

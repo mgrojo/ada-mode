@@ -4,5 +4,8 @@
 -- other comment
 
 %token RANGE range
+%token X1_Non X1_‰ -- per mille sign, 3 byte char
+%token X2_Non X2_€ -- Euro sign, 3 byte char
+%token X3_Non X3_θ -- theta, 2 byte char
 
 ;; end of file

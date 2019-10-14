@@ -13,14 +13,16 @@
 
 pragma License (GPL);
 
-with WisiToken.Lexer;
+with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Syntax_Trees;
 package Test_Skip_To_Aux is
 
    Enable : Boolean;
    --  If True, the following procedures execute checks. If False, they do nothing.
 
-   Lexer : access WisiToken.Lexer.Instance'Class;
+   Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Base_Token);
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index);
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index);
 
 end Test_Skip_To_Aux;
