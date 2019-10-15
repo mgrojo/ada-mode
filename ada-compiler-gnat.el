@@ -31,7 +31,6 @@
 ;; special needs to be done to use it.
 
 (require 'ada-core)
-(require 'ada-fix-error)
 (require 'cl-lib)
 (require 'compile)
 (require 'gnat-core)
@@ -172,12 +171,14 @@ Prompt user if more than one."
   ;;
   ;; column number can vary, so only check the line number
   (save-excursion
-    (let ((line (progn (beginning-of-line) (nth 1 (compilation--message->loc (ada-get-compilation-message)))))
-	  done choices)
+    (let* ((start-msg (get-text-property (line-beginning-position) 'compilation-message))
+	   (start-line (nth 1 (compilation--message->loc start-msg)))
+	   done choices)
       (while (not done)
 	(forward-line 1)
-	(setq done (or (not (ada-get-compilation-message))
-		       (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message)))))))
+	(let ((msg (get-text-property (line-beginning-position) 'compilation-message)))
+	  (setq done (or (not msg)
+			 (not (equal start-line (nth 1 (compilation--message->loc msg)))))))
 	(when (and (not done)
 		   (progn
 		     (skip-syntax-forward "^-")
@@ -206,8 +207,7 @@ Prompt user if more than one."
     (match-string 1)
     ))
 
-(defun ada-gnat-fix-error (_msg source-buffer _source-window)
-  "For `ada-fix-error-hook'."
+(cl-defmethod wisi-compiler-fix-error ((_compiler gnat-compiler) source-buffer)
   (let ((start-pos (point))
 	message-column
 	result)
@@ -244,9 +244,10 @@ Prompt user if more than one."
 	     t))
 
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
-	   (let ((done nil)
-		 (file-line-struct (progn (beginning-of-line) (ada-get-compilation-message)))
-		 pos choices unit-name)
+	   (let* ((done nil)
+		  (err-msg (get-text-property (line-beginning-position) 'compilation-message))
+		  (file-line-struct err-msg)
+		  pos choices unit-name)
 	     ;; next line may contain a reference to where ident is
 	     ;; defined; if present, it will have been marked by
 	     ;; ada-gnat-compilation-filter:
@@ -269,7 +270,7 @@ Prompt user if more than one."
 		 ;; 1- because next compilation error is at next line beginning
 		 (setq done (not
 			     (and
-			      (equal file-line-struct (ada-get-compilation-message))
+			      (equal file-line-struct err-msg)
 			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
 			      (< pos limit))))
 		 (when (not done)
@@ -690,7 +691,6 @@ Prompt user if more than one."
   ;; These can't be in wisi-compiler-select-prj (gnat-compiler),
   ;; because that is shared with gpr-mode (and maybe others).
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
-  (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
 
   ;; We should call `syntax-ppss-flush-cache' here, to force ppss
@@ -700,7 +700,6 @@ Prompt user if more than one."
   )
 
 (cl-defmethod ada-prj-deselect-compiler ((_compiler gnat-compiler) _project)
-  (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
   (setq ada-syntax-propertize-hook (delq #'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
   )

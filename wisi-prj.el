@@ -222,6 +222,11 @@ after the project file PRJ-FILE-NAME is parsed.")
 (cl-defgeneric wisi-compiler-show-prj-path (compiler)
   "Display buffer listing project file search path.")
 
+(cl-defgeneric wisi-compiler-fix-error (compiler source-buffer)
+  "Attempt to fix a compilation error, return non-nil if fixed.
+Current buffer is compilation buffer; point is at an error message.
+SOURCE-BUFFER contains the source code referenced in the error message.")
+
 (cl-defgeneric wisi-xref-parse-one (_xref _project _name _value)
   "If recognized by XREF, set NAME, VALUE in XREF, return non-nil.
 Else return nil."
@@ -661,6 +666,36 @@ In any case, return the project."
 	  (insert (format "%s\n" file))))
     (message "no source file search path set")
     ))
+
+(defun wisi-fix-compiler-error ()
+  "Attempt to fix the current compiler error.
+Point must be at the source location referenced in a compiler error.
+In `compilation-last-buffer', point must be at the compiler error.
+Leave point at fixed code."
+  (interactive)
+  (let ((source-buffer (current-buffer))
+	(line-move-visual nil)); screws up next-line otherwise
+
+    (cond
+     ((equal compilation-last-buffer wisi-error-buffer)
+      (set-buffer source-buffer)
+      (wisi-repair-error))
+
+     (t
+      (with-current-buffer compilation-last-buffer
+	(let ((comp-buf-pt (point))
+	      (success
+	       (wisi-compiler-fix-error
+		(wisi-prj-compiler (wisi-prj-require-prj))
+		source-buffer)))
+	  ;; restore compilation buffer point
+	  (set-buffer compilation-last-buffer)
+	  (goto-char comp-buf-pt)
+
+	  (unless success
+	    (error "error not recognized"))
+	  )))
+      )))
 
 ;;;; auto-casing
 

@@ -33,7 +33,6 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
-(require 'ada-fix-error)
 (require 'compile)
 (require 'gnat-core)
 

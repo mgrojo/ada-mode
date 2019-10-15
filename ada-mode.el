@@ -1283,13 +1283,6 @@ Point must have been set by `ada-wisi-find-begin'."
    (t indent)
    ))
 
-(defun ada-wisi-fix-error (_msg source-buffer _source-window)
-  "For ’ada-fix-error-hook’. Calls ’wisi-repair-error’ if appropriate."
-  (when (equal compilation-last-buffer wisi-error-buffer)
-    (set-buffer source-buffer)
-    (wisi-repair-error)
-    t))
-
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation
@@ -1525,8 +1518,6 @@ For `wisi-indent-calculate-functions'.
   (setq align-mode-rules-list ada-align-rules)
 
   (easy-menu-add ada-mode-menu ada-mode-map)
-
-  (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
   (wisi-setup
    :indent-calculate '(ada-wisi-comment)

@@ -32,6 +32,11 @@
   "Major mode for editing Ada source code in Emacs."
   :group 'languages)
 
+(defcustom ada-fix-sort-context-clause t
+  "*If non-nil, sort context clause when inserting `with'"
+  :type 'boolean
+  :group 'ada)
+
 (defconst ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\_<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\_>\\|<=\\|<\\|>=\\|>"
   "Regexp matching Ada operator_symbol.")
@@ -291,6 +296,168 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     (delete-horizontal-space)
     (insert " "))
   (ada-refactor ada-refactor-format-paramlist))
+
+;;;; fix compiler errors
+(defun ada-fix-context-clause ()
+  "Return the region containing the context clause for the current buffer,
+excluding leading pragmas."
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((begin nil)
+	  (end nil)
+	  cache)
+
+      (while (not end)
+	(setq cache (wisi-forward-cache))
+	(cl-case (wisi-cache-nonterm cache)
+	  (pragma_g (wisi-goto-end-1 cache))
+	  (use_clause (wisi-goto-end-1 cache))
+	  (with_clause
+	   (when (not begin)
+	     (setq begin (line-beginning-position)))
+	   (wisi-goto-end-1 cache))
+	  (t
+	   ;; start of compilation unit
+	   (setq end (line-beginning-position))
+	   (unless begin
+	     (setq begin end)))
+	  ))
+      (cons begin end)
+    )))
+
+(defun ada-fix-sort-context-pred (a b)
+  "Predicate for `sort-subr'; sorts \"limited with\", \"private with\" last.
+Returns non-nil if a should preceed b in buffer."
+  ;; a, b are buffer ranges in the current buffer
+  (cl-flet
+      ((starts-with
+	(pat reg)
+	(string= pat (buffer-substring-no-properties (car reg)
+						     (min (point-max)
+							  (+(car reg) (length pat)))))))
+    (cond
+     ((and
+       (starts-with "limited with" a)
+       (starts-with "private with" b))
+      t)
+
+     ((and
+       (starts-with "limited with" a)
+       (not (starts-with "limited with" b)))
+      nil)
+
+     ((and
+       (not (starts-with "limited with" a))
+       (starts-with "limited with" b))
+      t)
+
+     ((and
+       (starts-with "private with" a)
+       (not (starts-with "private with" b)))
+      nil)
+
+     ((and
+       (not (starts-with "private with" a))
+       (starts-with "private with" b))
+      t)
+
+     (t
+      (> 0 (compare-buffer-substrings
+	    nil (car a) (cdr a)
+	    nil (car b) (cdr b))) )
+     )))
+
+(defun ada-fix-sort-context-clause (beg end)
+  "Sort context clauses in range BEG END."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (sort-subr nil 'forward-line 'end-of-line nil nil 'ada-fix-sort-context-pred)
+      )))
+
+(defun ada-fix-add-with-clause (package-name)
+  "Add a with_clause for PACKAGE_NAME.
+If ada-fix-sort-context-clause, sort the context clauses using
+sort-lines."
+  (let ((context-clause (ada-fix-context-clause)))
+    (when (not context-clause)
+      (error "no compilation unit found"))
+
+    (goto-char (cdr context-clause))
+    (insert "with ")
+    (ada-fix-insert-unit-name package-name)
+    (insert ";\n")
+
+    (when (and (< (car context-clause) (cdr context-clause))
+	       ada-fix-sort-context-clause)
+      (ada-fix-sort-context-clause (car context-clause) (point)))
+    ))
+
+(defun ada-fix-extend-with-clause (child-name)
+  "Assuming point is in a selected name, just before CHILD-NAME, add or
+extend a with_clause to include CHILD-NAME  .	"
+  (let ((parent-name-end (point)))
+    ;; Find the full parent name; skip back to whitespace, then match
+    ;; the name forward.
+    (skip-syntax-backward "w_.")
+    (search-forward-regexp ada-name-regexp parent-name-end)
+    (let ((parent-name (match-string 0))
+	  (context-clause (ada-fix-context-clause)))
+      (goto-char (car context-clause))
+      (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
+	  ;; found exisiting 'with' for parent; extend it
+	  (progn
+	    (forward-char -1) ; skip back over semicolon
+	    (insert "." child-name))
+
+	;; not found; we are in a package body, with_clause for parent is in spec.
+	;; insert a new one
+	(ada-fix-add-with-clause (concat parent-name "." child-name)))
+      )))
+
+(defun ada-fix-insert-unit-name (unit-name)
+  "Insert UNIT-NAME at point and capitalize it."
+  ;; unit-name is normally gotten from a file-name, and is thus all lower-case.
+  (let ((start-point (point))
+        search-bound)
+    (insert unit-name)
+    (setq search-bound (point))
+    (insert " ") ; separate from following words, if any, for wisi-case-adjust-identifier
+    (goto-char start-point)
+    (while (search-forward "." search-bound t)
+      (forward-char -1)
+      (wisi-case-adjust-identifier)
+      (forward-char 1))
+    (goto-char search-bound)
+    (wisi-case-adjust-identifier)
+    (delete-char 1)))
+
+(defun ada-fix-add-use-type (type)
+  "Insert `use type' clause for TYPE at start of declarative part for current construct."
+  (ada-goto-declarative-region-start); leaves point after 'is'
+  (newline-and-indent)
+  (cl-ecase ada-language-version
+    (ada2012
+     (insert "use all type "))
+    ((ada83 ada95 ada2005)
+     (insert "use type ")))
+  (let ((begin (point))
+	end)
+    (insert type ";")
+    (setq end (point))
+    (goto-char begin)
+    (while (< (point) end)
+      (wisi-case-adjust-at-point)
+      (forward-char 1))
+    ))
+
+(defun ada-fix-add-use (package)
+  "Insert `use' clause for PACKAGE at start of declarative part for current construct."
+  (ada-goto-declarative-region-start); leaves point after 'is'
+  (newline-and-indent)
+  (insert "use " package ";"))
 
 ;;;; xref
 

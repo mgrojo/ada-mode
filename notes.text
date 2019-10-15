@@ -56,8 +56,10 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    change ada-fix-error-alist to generic?
-        dispatch on compiler
+    change ada-fix-error-hook to generic on compiler
+        edited, byte-compiles; testing
+
+    change ada-syntax-propertize-hook to generic on compiler?
 
     change ada-mode to derive-major-mode?
         always put ada-mode-post-local-vars on hack-local-variables-hook; it will be run at the right time
