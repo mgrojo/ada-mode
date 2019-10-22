@@ -8,6 +8,12 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada Mode 7.0.0
 
+** `ada-goto-declarative-region-start' now goes to the containing
+   region, when the start point is before the 'is' in the current
+   declaration (previously, it went to the declarative region of the
+   current declaration). This is required for adding a use_clause for
+   an identifier/operator in a format_part or aspect_clause.
+
 ** Delete not-upper-case setting for ada-auto-case; instead, set
    ada-case-strict to t.
 

@@ -74,27 +74,42 @@ Called by `syntax-propertize', which is called by font-lock in
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let ((done nil)
-	start-pos
-	(in-package-spec nil)
+	(start-pos (point))
+	(outermost nil)
 	(cache (or (wisi-get-cache (point))
 		   (wisi-backward-cache))))
 
     ;; We use backward-cache, not forward-cache, to handle the case
     ;; where point is in the whitespace or comment before a block; we
     ;; want the containing block, not the next block.
+    ;;
+    ;; The typical use case for calling this fuction is to add a
+    ;; use_clause for an identifier/operator at start-pos.
 
     (when cache ;; nil at bob
-      ;; If this is called with point in a comment after 'is', then the
-      ;; declarative region starts after the comment; don't hang in a
-      ;; package spec.
-      (setq start-pos (point))
       (while (not done)
-	(if (and (or (not in-package-spec)
-		     (< (point) start-pos))
-		 (ada-declarative-region-start-p cache))
-	    (progn
-	      (forward-word);; past 'is'
-	      (setq done t))
+	(unless (wisi-cache-containing cache)
+	  (setq outermost t))
+
+	(if (ada-declarative-region-start-p cache)
+	    (if (< (point) start-pos)
+		(progn
+		  (forward-word);; past 'is'
+		  (setq done t))
+
+	      ;; test/ada_mode-nominal.adb function F2
+	      ;;
+	      ;; start-point is in a formal_part or aspect_clause; we
+	      ;; want the next level up.
+	      (if outermost
+		  ;; there is no next level up; add the use_clause in the context_clause.
+		  (progn
+		    (setq cache (wisi-goto-containing cache))
+		    (setq done t))
+
+	      (setq cache (wisi-goto-containing cache))
+	      (setq cache (wisi-goto-containing cache))))
+
 	  (cl-case (wisi-cache-class cache)
 	    (motion
 	     (setq cache (wisi-goto-containing cache)));; statement-start
@@ -116,15 +131,13 @@ Called by `syntax-propertize', which is called by font-lock in
 	    (statement-start
 	     (cl-case (wisi-cache-nonterm cache)
 	       (generic_package_declaration
-		(setq in-package-spec t)
 		(setq cache (wisi-next-statement-cache cache)) ;; 'package'
 		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
 
 	       (package_declaration
-		(setq in-package-spec t)
 		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
 
-	       ((entry_body package_body package_declaration protected_body subprogram_body task_body)
+	       ((entry_body package_body protected_body subprogram_body task_body)
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache))))
 
@@ -142,11 +155,6 @@ Called by `syntax-propertize', which is called by font-lock in
 	    (t
 	     (setq cache (wisi-goto-containing cache t)))
 	    )))
-
-      ;; point is at start of first code statement after
-      ;; declaration-start keyword and comment; move back to end of
-      ;; keyword.
-      (while (forward-comment -1))
       )))
 
 ;;;; additional ada-compiler generic interfaces

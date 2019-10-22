@@ -1,7 +1,7 @@
 --  Test ada-find-other-file and a few other things
 
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
-package body Ada_Mode.Nominal.Child is
+package body Ada_Mode.Nominal.Child is -- target 0
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))
    -- result verified by diff.
@@ -30,7 +30,7 @@ package body Ada_Mode.Nominal.Child is
       return 0.0;
    end Function_2b;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target Function_2c"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
    overriding function Function_2c (Param : in Child_Type_1)
                                    return Float

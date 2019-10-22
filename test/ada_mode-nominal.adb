@@ -50,7 +50,7 @@ is -- target 0
 
    --EMACSCMD:(progn (forward-line 4) (back-to-indentation) (forward-sexp)(looking-at "is -- target 1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
    function Function_Access_1
      (A_Param : in Float)
@@ -233,9 +233,12 @@ is -- target 0
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
       --EMACSRESULT:t
 
-      --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-at " -- target F2"))
+      --EMACSCMD:(progn (end-of-line 3)(ada-goto-declarative-region-start)(looking-at " -- target 2"))
       --EMACSRESULT:t
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
+      with Pre => B > 0.0
+        --EMACSCMD:(progn (end-of-line 0)(ada-goto-declarative-region-start)(looking-at " -- target 2"))
+        --EMACSRESULT:t
       is -- target F2
          Local : Object_Access_Type_0a := new Float'(9.0);
       begin

@@ -1141,7 +1141,7 @@ formal_object_declaration
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
     %((progn
-      (wisi-statement-action [1 misc]) ;; for ada-wisi-in-paramlist-p
+      (wisi-statement-action [1 misc]) ;; for ada-wisi-in-paramlist-p, ada-goto-declarative-region-start
       (wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)])))%
   ;
 

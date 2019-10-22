@@ -175,7 +175,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
     (define-key map "\C-c<" 	 'ada-goto-declaration-start)
     (define-key map "\C-c>" 	 'ada-goto-declaration-end)
-    (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
+    (define-key map "\C-c\M-`" 	 'wisi-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
