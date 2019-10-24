@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Summarize ada-mode recover log.
+--  Summarize error recover log.
 --
 --  Copyright (C) 2019 Stephen Leake All Rights Reserved.
 --
@@ -34,48 +34,65 @@ is
 
    File : File_Type;
 
-   Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (",) ");
+   Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (",() ");
    Number     : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set ("0123456789");
 
    type Strategy_Counts is array (Strategies) of Natural;
 
-   Partial_Count : Integer := 0;
-   --  Count of recover events with partial parse active
+   type Recover_Label is (Full, Partial);
 
-   Enqueue_Stats : SAL.Long_Float_Stats.Stats_Type;
-   Check_Stats   : SAL.Long_Float_Stats.Stats_Type;
+   type Recover_Summary is record
+      Event_Count : Integer := 0;
+      --  1 per recover event (1 line in log file)
 
-   Strat_Counts_Total   : Strategy_Counts := (others => 0);
-   Strat_Counts_Present : Strategy_Counts := (others => 0);
-   --  1 per recover event if used
+      Enqueue_Stats : SAL.Long_Float_Stats.Stats_Type;
+      Check_Stats   : SAL.Long_Float_Stats.Stats_Type;
 
-   Ignore_Error : Integer := 0;
-   --  ie, error is name mismatch.
+      Strat_Counts_Total   : Strategy_Counts := (others => 0);
+      Strat_Counts_Present : Strategy_Counts := (others => 0);
+      --  1 per recover event if used
 
-   Recover_Count_Total : Integer := 0;
-   --  Sum of all strategy counts
+      Ignore_Error : Integer := 0;
+      --  ie, error is name mismatch.
 
-   Recover_Count_Present : Integer := 0;
-   --  1 per recover event
+      Recover_Count_Present : Integer := 0;
+      --  1 per parser in recover result
 
-   Fail_Count            : Integer := 0; -- for all reasons
-   Fail_Enqueue_Limit    : Integer := 0;
-   Fail_No_Configs_Left  : Integer := 0;
-   Fail_Programmer_Error : Integer := 0;
-   Fail_Other            : Integer := 0;
+      Recover_Count_Total : Integer := 0;
+      --  Sum of all strategy counts
 
+      Fail_Event_Count      : Integer := 0; -- for all reasons
+      Fail_Enqueue_Limit    : Integer := 0;
+      Fail_No_Configs_Left  : Integer := 0;
+      Fail_Programmer_Error : Integer := 0;
+      Fail_Other            : Integer := 0;
+   end record;
+
+   Summary : array (Recover_Label) of Recover_Summary;
 begin
    Open (File, In_File, Ada.Command_Line.Argument (1));
 
    loop
       exit when End_Of_File (File);
-      Recover_Count_Present := Recover_Count_Present + 1;
       declare
+         --  The recover log is written by code in
+         --  wisitoken-parse-lr-parser.adb Parse (search for Recover_Log).
+         --
+         --  A line has the syntax:
+         --  yyyy-mm-dd hh:mm:ss <partial> <success> pre_parser_count '<file_name>' (<parser_data>)...
+         --
+         --  where there is one (<parser_data) for each parser active after recover. <parser_data> is:
+         --
+         --  (<strategy_counts>) <enqueue_count> <check_count> <success>
+         --
+         --  Note that the per-parser success is always TRUE; it would not be
+         --  active if recover had failed.
+
          Line  : constant String := Get_Line (File);
          First : Integer         := Index (Line, " "); -- after date
          Last  : Integer;
 
-         Strategy_Found : Boolean := False;
+         Label : Recover_Label := Full;
 
          function Line_Eq (Item : in String) return Boolean
          is begin
@@ -100,85 +117,107 @@ begin
          function Next_Boolean return  Boolean
          is begin
             First := Last + 2;
-            Last  := Index (Line, Delimiters, First);
-            return Boolean'Value (Line (First .. Last - 1));
+            Last  := -1 + Index (Line, Delimiters, First);
+            return Boolean'Value (Line (First .. Last));
          end Next_Boolean;
+
+         function Read_Strat_Counts (Strategy_Found : out Boolean) return Strategy_Counts
+         is begin
+            Strategy_Found := False;
+            Last := Index (Line, "(", Last + 1);
+            return Result : Strategy_Counts do
+               for I in Strategies loop
+                  Result (I) := Next_Integer;
+                  if Result (I) > 0 then
+                     Strategy_Found := True;
+                  end if;
+               end loop;
+               Last := 1 + Index (Line, ")", Last + 1);
+            end return;
+         end Read_Strat_Counts;
 
       begin
          First := Index (Line, " ", First + 1); -- after time
          Last  := Index (Line, " ", First + 1); -- after Partial_Parse_Active
          if Boolean'Value (Line (First + 1 .. Last - 1)) then
-            Partial_Count := Partial_Count + 1;
+            Label := Partial;
          end if;
+
+         Summary (Label).Event_Count := Summary (Label).Event_Count + 1;
 
          First := Last + 1;
          if Line (First .. First + 3) = "FAIL" then
-            Fail_Count := Fail_Count + 1;
+            Summary (Label).Fail_Event_Count := Summary (Label).Fail_Event_Count + 1;
             First := First + 4;
 
             if Line_Eq ("NO_CONFIGS_LEFT") then
-               Fail_No_Configs_Left := Fail_No_Configs_Left + 1;
+               Summary (Label).Fail_No_Configs_Left := Summary (Label).Fail_No_Configs_Left + 1;
             elsif Line_Eq ("ENQUEUE_LIMIT") then
-               Fail_Enqueue_Limit := Fail_Enqueue_Limit + 1;
+               Summary (Label).Fail_Enqueue_Limit := Summary (Label).Fail_Enqueue_Limit + 1;
             elsif Line_Eq ("PROGRAMMER_ERROR") then
-               Fail_Programmer_Error := Fail_Programmer_Error + 1;
+               Summary (Label).Fail_Programmer_Error := Summary (Label).Fail_Programmer_Error + 1;
             else
-               Fail_Other := Fail_Other + 1;
+               Summary (Label).Fail_Other := Summary (Label).Fail_Other + 1;
             end if;
 
          else
-            --  Handle parser enqueue, check, success
-            Last := 1 + Index (Line, "(", First);
+            --  Process per-parser data
+            Last := Index (Line, "(", Last + 1);
             loop
+               exit when Line (Last + 1) = ')';
                declare
-                  Enqueue_Count : constant Integer := Next_Integer;
-                  Check_Count   : constant Integer := Next_Integer;
-                  Success       : constant Boolean := Next_Boolean;
+                  Strategy_Found : Boolean;
+                  Strat_Counts   : constant Strategy_Counts := Read_Strat_Counts (Strategy_Found);
+                  Enqueue_Count  : constant Integer         := Next_Integer;
+                  Check_Count    : constant Integer         := Next_Integer;
+                  Success        : constant Boolean         := Next_Boolean;
+                  pragma Unreferenced (Success);
                begin
-                  if Success then
-                     Enqueue_Stats.Accumulate (Long_Float (Enqueue_Count));
-                     Check_Stats.Accumulate (Long_Float (Check_Count));
-                  end if;
-               end;
-               exit when Line (Last) = ')';
-            end loop;
+                  Summary (Label).Recover_Count_Present := Summary (Label).Recover_Count_Present + 1;
 
-            Last := Last + 1; -- First strategy
-            for I in Strategies loop
-               declare
-                  Count : constant Integer := Next_Integer;
-               begin
-                  if Count > 0 then
-                     Strategy_Found := True;
-                  end if;
-                  Recover_Count_Total    := Recover_Count_Total + Count;
-                  Strat_Counts_Total (I) := Strat_Counts_Total (I) + Count;
-                  if Count > 0 then
-                     Strat_Counts_Present (I) := Strat_Counts_Present (I) + 1;
+                  if not Strategy_Found then
+                     Summary (Label).Ignore_Error := Summary (Label).Ignore_Error + 1;
+                  else
+                     --  We don't include Ignore_Error enqueue and check counts in the
+                     --  stats, because they distort them towards 1.
+                     Summary (Label).Enqueue_Stats.Accumulate (Long_Float (Enqueue_Count));
+                     Summary (Label).Check_Stats.Accumulate (Long_Float (Check_Count));
+                     for I in Strategies loop
+                        Summary (Label).Recover_Count_Total    :=
+                          Summary (Label).Recover_Count_Total + Strat_Counts (I);
+                        Summary (Label).Strat_Counts_Total (I) :=
+                          Summary (Label).Strat_Counts_Total (I) + Strat_Counts (I);
+                        if Strat_Counts (I) > 0 then
+                           Summary (Label).Strat_Counts_Present (I) := Summary (Label).Strat_Counts_Present (I) + 1;
+                        end if;
+                     end loop;
                   end if;
                end;
             end loop;
-            if not Strategy_Found then
-               Ignore_Error := Ignore_Error + 1;
-            end if;
          end if;
       end;
    end loop;
 
    declare
       use Ada.Strings;
-      Label_Field     : String (1 .. 23);
+
+      Label_Field     : String (1 .. 23); -- fits strategy and fail labels
       Count_Field     : String (1 .. 8);
       Percent_Field   : String (1 .. 4);
-      Percent_Present : Integer;
-      Percent_Total   : Integer;
+      --  Shared by Put_If, Put_Percent
 
-      procedure Put_If (Label : in String; Count : in Integer; Always : in Boolean := False)
-      is begin
+      procedure Put_If
+        (Summary_Label : in Recover_Label;
+         Name          : in String;
+         Count         : in Integer;
+         Always        : in Boolean := False)
+      is
+         Percent_Present : constant Integer :=
+           Integer (100.0 * Float (Count) / Float (Summary (Summary_Label).Event_Count));
+      begin
          if Count > 0 or Always then
-            Move (Label, Label_Field); Put (Label_Field & " => ");
+            Move (Name, Label_Field); Put (Label_Field & " => ");
             Move (Count'Image, Count_Field, Justify => Right); Put (Count_Field);
-            Percent_Present := Integer (100.0 * Float (Count) / Float (Recover_Count_Present));
             Move (Percent_Present'Image & "%", Percent_Field, Justify => Right); Put_Line (Percent_Field);
          end if;
       end Put_If;
@@ -191,26 +230,44 @@ begin
          Default_Sd_Fore   => 7,
          Default_Sd_Aft    => 1,
          Default_Sd_Exp    => 0);
-   begin
-      Put_Line ("           mean        std. dev.    min     max");
-      Put_Line ("Enqueue: " & Stats_Image.Image (Enqueue_Stats.Display));
-      Put_Line ("Check:   " & Stats_Image.Image (Check_Stats.Display));
-      Put_If ("Partial parse", Partial_Count, Always => True);
-      Put_If ("FAIL", Fail_Count, Always => True);
-      Put_If ("FAIL_ENQUEUE_LIMIT", Fail_Enqueue_Limit);
-      Put_If ("FAIL_NO_CONFIGS_LEFT", Fail_No_Configs_Left);
-      Put_If ("FAIL_PROGRAMMER_ERROR", Fail_Programmer_Error);
-      Put_If ("FAIL_OTHER", Fail_Other);
-      Put_If ("Ignore_Error", Ignore_Error);
-      Put_Line ("recover_count present/total:" & Recover_Count_Present'Image & " /" & Recover_Count_Total'Image);
-      for I in Strategies loop
-         Percent_Present := Integer (100.0 * Float (Strat_Counts_Present (I)) / Float (Recover_Count_Present));
-         Percent_Total   := Integer (100.0 * Float (Strat_Counts_Total (I)) / Float (Recover_Count_Total));
-         Move (I'Image, Label_Field); Put (Label_Field & " => ");
-         Move (Strat_Counts_Present (I)'Image, Count_Field, Justify => Right); Put (Count_Field);
+
+      procedure Put_Percent (Summary_Label : in Recover_Label; Present, Total : in Integer; Name : in String)
+      is
+         Percent_Present : constant Integer :=
+           Integer (100.0 * Float (Present) / Float (Summary (Summary_Label).Recover_Count_Present));
+         Percent_Total   : constant Integer :=
+           Integer (100.0 * Float (Total) / Float (Summary (Summary_Label).Recover_Count_Total));
+      begin
+         Move (Name, Label_Field); Put (Label_Field);
+         Move (Present'Image, Count_Field, Justify => Right); Put (Count_Field);
          Move (Percent_Present'Image & "%", Percent_Field, Justify => Right); Put (Percent_Field & " /");
-         Move (Strat_Counts_Total (I)'Image, Count_Field, Justify => Right); Put (Count_Field);
+         Move (Total'Image, Count_Field, Justify => Right); Put (Count_Field);
          Move (Percent_Total'Image & "%", Percent_Field, Justify => Right); Put_Line (Percent_Field);
+      end Put_Percent;
+
+   begin
+      for I in Recover_Label loop
+         Put_Line (I'Image);
+         Put_Line ("present/total:" & Summary (I).Event_Count'Image & " /" & Summary (I).Recover_Count_Total'Image);
+         if Summary (I).Event_Count > 0 then
+            Put_Line ("           mean        std. dev.    min     max");
+            Put_Line ("Enqueue: " & Stats_Image.Image (Summary (I).Enqueue_Stats.Display));
+            Put_Line ("Check:   " & Stats_Image.Image (Summary (I).Check_Stats.Display));
+            Put_If (I, "FAIL", Summary (I).Fail_Event_Count, Always => True);
+            Put_If (I, "FAIL_ENQUEUE_LIMIT", Summary (I).Fail_Enqueue_Limit);
+            Put_If (I, "FAIL_NO_CONFIGS_LEFT", Summary (I).Fail_No_Configs_Left);
+            Put_If (I, "FAIL_PROGRAMMER_ERROR", Summary (I).Fail_Programmer_Error);
+            Put_If (I, "FAIL_OTHER", Summary (I).Fail_Other);
+            for J in Strategies loop
+               Put_Percent
+                 (I,
+                  Summary (I).Strat_Counts_Present (J),
+                  Summary (I).Strat_Counts_Total (J),
+                  J'Image);
+            end loop;
+            Put_Percent (I, Summary (I).Ignore_Error, Summary (I).Ignore_Error, "Ignore_Error");
+         end if;
+         New_Line;
       end loop;
    end;
 exception

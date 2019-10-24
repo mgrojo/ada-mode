@@ -701,7 +701,6 @@ package body WisiToken.Parse.LR.Parser is
                   if Ada.Text_IO.Is_Open (Shared_Parser.Recover_Log_File) then
                      declare
                         use Ada.Text_IO;
-                        Strategy_Counts : LR.Strategy_Counts := (others => 0);
                      begin
                         Put
                           (Shared_Parser.Recover_Log_File,
@@ -713,7 +712,7 @@ package body WisiToken.Parse.LR.Parser is
 
                         Put (Shared_Parser.Recover_Log_File, '(');
                         for Parser of Shared_Parser.Parsers loop
-                           Accumulate (Parser.Recover, Strategy_Counts);
+                           Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
                            Put
                              (Shared_Parser.Recover_Log_File,
                               Integer'Image (Parser.Recover.Enqueue_Count) &
@@ -722,7 +721,6 @@ package body WisiToken.Parse.LR.Parser is
                         end loop;
                         Put (Shared_Parser.Recover_Log_File, ')');
 
-                        Put (Shared_Parser.Recover_Log_File, Image (Strategy_Counts));
                         New_Line (Shared_Parser.Recover_Log_File);
                         Flush (Shared_Parser.Recover_Log_File);
                      end;
