@@ -704,7 +704,7 @@ complete."
 
 	      (when (and (= (point-max) need-more)
 			 (> (wisi-process--parser-total-wait-time parser) wisi-process-time-out))
-		(error "wisi-process-parse not getting more text (or bad syntax in process output)"))
+		(error "wisi-process-parse timing out; increase `wisi-process-time-out'? (or bad syntax in process output)"))
 
 	      (setq need-more nil))
 	    );; while not done

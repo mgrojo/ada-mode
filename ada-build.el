@@ -166,6 +166,7 @@ selected, nil otherwise."
       (wisi-prj-select-file filename (ada-prj-default (file-name-nondirectory (file-name-sans-extension filename)))))
     ))
 
+;;;###autoload
 (defun ada-build-prompt-select-prj-file ()
   "Search for a project file, parse and select it.
 The file must have an extension from `wisi-prj-file-extensions'.
@@ -192,7 +193,18 @@ Returns non-nil if a file is selected, nil otherwise."
 
     (when (and filename
 	       (not (equal "" filename)))
-      (wisi-prj-select-file filename (ada-prj-default (file-name-nondirectory (file-name-sans-extension filename))))
+      (let ((default-prj (ada-prj-default (file-name-nondirectory (file-name-sans-extension filename)))))
+	(cond
+	 ((memq #'wisi-prj-current-cached project-find-functions)
+	  (wisi-prj-select-cache filename default-prj filename))
+
+	 ((memq #'wisi-prj-current-parse project-find-functions)
+	  (wisi-prj-select-file filename default-prj))
+
+	 (t ;; No known wisi-prj function in project-find-functions yet
+	  (add-hook 'project-find-functions #'wisi-prj-current-parse 90)
+	  (wisi-prj-select-file filename default-prj))
+	 ))
       t)
     ))
 

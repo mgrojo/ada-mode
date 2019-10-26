@@ -1084,6 +1084,18 @@ Return start cache."
       (wisi-goto-end-1 cache))
     ))
 
+(defun wisi-goto-containing-statement-start ()
+  "Move point to the start of the statement containing the current statement."
+  (interactive)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (let ((cache (or (wisi-get-cache (point))
+		   (wisi-backward-cache))))
+    (when cache
+      (setq cache (wisi-goto-start cache)))
+    (when cache
+      (setq cache (wisi-goto-containing cache nil)))
+    ))
+
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next, return cache; error if nil."
   (when (not (markerp (wisi-cache-next cache)))
@@ -1143,6 +1155,27 @@ the comment on the previous line."
       (when cache
 	;; can be nil if in header comment
 	(let ((start (progn (wisi-goto-start cache) (point)))
+	      (end (if (wisi-cache-end cache)
+			 ;; nil when cache is statement-end
+			 (wisi-cache-end cache)
+		       (point))))
+	  (indent-region start end)
+	  ))
+      )))
+
+(defun wisi-indent-containing-statement ()
+  "Indent region given by `wisi-goto-containing-statement-start', `wisi-cache-end'."
+  (interactive)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+  (save-excursion
+    (let ((cache (or (wisi-get-cache (point))
+		     (wisi-backward-cache))))
+      (when cache
+	;; can be nil if in header comment
+	(let ((start (progn
+		       (setq cache (wisi-goto-containing (wisi-goto-start cache)))
+		       (point)))
 	      (end (if (wisi-cache-end cache)
 			 ;; nil when cache is statement-end
 			 (wisi-cache-end cache)

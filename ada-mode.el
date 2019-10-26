@@ -184,6 +184,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-e" 	 'ada-skel-expand) ;; FIXME: move to wisi
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
+    (define-key map [3 backtab] 'wisi-indent-containing-statement);; C-c backtab, translated from C-c S-tab
     (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'forward-sexp)
@@ -242,6 +243,7 @@ slower to load on first use, but gives better error recovery."
      ["Goto declaration/body"         wisi-goto-declaration        t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
+     ["Goto containing statement start" wisi-goto-containing-statement-start t]
      ["Goto declarative region start" ada-goto-declarative-region-start   t]
      ["Goto declaration start"        ada-goto-declaration-start   t]
      ["Goto declaration end"          ada-goto-declaration-end     t]
@@ -259,6 +261,7 @@ slower to load on first use, but gives better error recovery."
      ["Expand skeleton"             ada-skel-expand              t]
      ["Indent line or selection"    indent-for-tab-command  t]
      ["Indent current statement"    wisi-indent-statement    t]
+     ["Indent containing statement" wisi-indent-containing-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
      ["Comment/uncomment selection" comment-dwim            t]

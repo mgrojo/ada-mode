@@ -70,6 +70,18 @@ major cleanup
 move sal-make-prj into wisi-prj.el
     doc use case; local in Makefile (or other builder file)
 
+libadalang backend
+    for indent and navigate
+        also face via tree traverse callback?
+
+    time on huge eurocontrol files c:/eurocontrol
+        if need more than one source file, use current buffer or disk file?
+        keep one context active, for the current project?
+            see playground.adb in libadalang source
+
+    pp-command_lines.ads Name_Casing Name_Case_As_Declared - requires name resolution
+        too slow?
+
 improve test/ada_mode-recover_32.adb
     recover gets CONSTRAINT_ERROR, config ops full
 
@@ -142,10 +154,6 @@ why is wisi-hanging specified in each use of expression instead of on expression
 
 in wisi-tests.el, delete call of syntax-propertize for emacs >= 25
 
-improve bug tracking
-    https://savannah.nongnu.org/userguide/?file=ch04.html
-    https://debbugs.gnu.org/Using.html
-
 indent bug:
                  (if GNAT.Regexp.Match (Value, Symbol_Regexp)
                   then Tree.Add_Nonterm
@@ -173,18 +181,6 @@ if partial parse finds dangling 'end', expand parse region towards bob
     -> send extra text, list of start parse points; initially use last start point
     don't always start at beginning of extra; too far from edit point, too many corrections required
         likely to include dangling 'end'!
-
-clean up elpa packages for ada-project, build/ada_mode_wisi_parse.el
-    eliminate env-project.el
-        used to store WISITOKEN, LIBADALANG
-            only needed in compilation-environment?
-                nope; used in ada_mode_wisi_parse.prj
-                    which is parsed by ada-prj-*, not under compilation-environment
-                        it could be
-                        but that should be merged into ada-project, which could have its own environment
-
-        also declares project-refresh, -select, -deselect
-            used by project-menu, which is used by ada_mode_wisi_parse.el
 
 Compilation-env includes PATH - reset in ada-refresh-prj-file
 
