@@ -26,15 +26,17 @@ export UNIQUIFY_FILES_VERSION := 1.0.1
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
 TEST_DIR ?= source
-ifeq ($(TEST_DIR),source)
-# test with mtn controlled source
-ADA_MODE_DIR := -L .. -l autoloads.el
-WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
+# emacs to test with
+#
+# This can be overridden on the 'make' command line or by an external
+# environment variable.
+ifeq ($(shell uname),Linux)
+EMACS_EXE ?= emacs
 else
-# test with installed elpa package
-ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.1/wisitoken-bnf-generate.exe
+# windows
+# specify uniscribe to workaround weird Windows harfbuzz bug
+EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
 # compile with debug to get assertions for testing new code
@@ -139,6 +141,18 @@ export WISITOKEN ?= c:/Projects/org.wisitoken
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
+endif
+
+# WISITOKEN_GENERATE must be after WISITOKEN
+ifeq ($(TEST_DIR),source)
+# test with mtn controlled source
+ADA_MODE_DIR := -L .. -l autoloads.el
+WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+
+else
+# test with installed elpa package
+ADA_MODE_DIR := -f package-initialize
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.1/wisitoken-bnf-generate.exe
 endif
 
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force

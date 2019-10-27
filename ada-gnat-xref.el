@@ -49,7 +49,7 @@
   )
 
 ;;;###autoload
-(cl-defun create-gnatxref-xref
+(cl-defun create-gnat-xref
     (&key
      gpr-file
      run-buffer-name

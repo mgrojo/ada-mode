@@ -4,6 +4,8 @@
 ^.*\.info$
 ^.*\.parse_table$
 ^.*\.re2c$
+^ada_mode_wisi_lalr_parse$
+^ada_mode_wisi_lr1_parse$
 ^ada_mode_wisi_parse\.gpr$
 ^autoloads\.el$
 ^build/.*\.adb$
@@ -33,6 +35,7 @@
 ^exec_mem$
 ^exec_pro$
 ^gmem\.out$
+^gpr_mode_wisi_parse$
 ^gpr_query$
 ^gpr_query-process_refresh\.adb$
 ^gpr_query\.gpr$
@@ -40,6 +43,9 @@
 ^obj_mem$
 ^obj_pro$
 ^recover\.log$
+^run_ada_lalr_parse$
+^run_ada_lr1_parse$
+^run_gpr_parse$
 ^test/.*\.ali$
 ^test/.*\.o$
 ^test/.*\.stderr$

@@ -202,7 +202,8 @@ Returns non-nil if a file is selected, nil otherwise."
 	  (wisi-prj-select-file filename default-prj))
 
 	 (t ;; No known wisi-prj function in project-find-functions yet
-	  (add-hook 'project-find-functions #'wisi-prj-current-parse 90)
+	  (add-hook 'project-find-functions #'wisi-prj-current-parse)
+	  (add-hook 'xref-backend-functions #'wisi-prj-xref-backend)
 	  (wisi-prj-select-file filename default-prj))
 	 ))
       t)

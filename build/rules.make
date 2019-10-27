@@ -18,13 +18,6 @@ vpath %.ads   ../test ../test/subdir
 vpath %.gpr   ../test/gpr
 vpath %.wy    ../
 
-# emacs to test with
-#
-# This can be overridden on the 'make' command line or by an external
-# environment variable.
-# specify uniscribe to workaround weird harfbuzz bug
-EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
-
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 

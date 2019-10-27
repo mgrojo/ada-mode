@@ -34,6 +34,15 @@
 (require 'xref)
 (require 'wisi-prj)
 
+(defgroup gpr-query nil
+  "gpr_query cross reference tool"
+  :group 'tools)
+
+(defcustom gpr-query-env nil
+  "Environment variables needed by the gpr_query executable.
+Value must be alist where each element is \"<name>=<value>\""
+  :type 'string)
+
 ;;;;; sessions
 
 ;; gpr_query reads the project files and the database at startup,
@@ -73,6 +82,7 @@
 	   (append
 	    (wisi-prj-compile-env project)
 	    (wisi-prj-file-env project)
+	    gpr-query-env
 	    (copy-sequence process-environment)))
 	  (gpr-file (file-name-nondirectory (gnat-compiler-gpr-file (wisi-prj-xref project)))))
 

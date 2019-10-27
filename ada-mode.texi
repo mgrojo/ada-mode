@@ -227,6 +227,18 @@ e.g. @file{/usr/local/gnat-2019}, and that @file{$prefix/bin} is first
 on the @code{PATH}. If you are running Windows, use mingw64
 @code{bash} to run these commands.
 
+@file{gpr_query} uses the @code{GNATCOLL} @file{iconv} package. On
+linux, that package explicity requires the @file{libiconv.so}
+library. GNAT provides the @file{libiconv.so} library in
+@file{<gnat>/lib64/libiconv.so}. On Debian, that directory is not in
+the standard load path, and iconv is provided by glibc, so
+@file{libiconv.so} is not found on the standard load path. So you must
+set @var{LD_LIBRARY_PATH}, but only for gpr-query:
+
+@example
+(setq gpr-query-env '("LD_LIBRARY_PATH=/Projects/gnat/pro_19.2/lib64")
+@end example
+
 In general, @file{gpr_query} should be compiled with the compiler
 version that is used to generate the user project @file{.ali} files;
 the @file{ali} file format can change with each compiler

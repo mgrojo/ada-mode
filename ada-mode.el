@@ -149,11 +149,10 @@ rather than to the same column."
   :type 'integer
   :safe #'integerp)
 
-(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe"
-  ;; We use .exe even on Linux to simplify the Makefile
+(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse"
   "Name of executable to use for external process Ada parser.
-There are two standard choices; ada_mode_wisi_lalr_parse.exe and
-ada_mode_wisi_lr1_parse.exe. The LR1 version (the default) is
+There are two standard choices; ada_mode_wisi_lalr_parse and
+ada_mode_wisi_lr1_parse. The LR1 version (the default) is
 slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada-indentation)
