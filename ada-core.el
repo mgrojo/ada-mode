@@ -472,6 +472,9 @@ extend a with_clause to include CHILD-NAME  .	"
 (defvar ada-xref-tool (if (locate-file "gpr_query" exec-path '("" ".exe")) 'gpr_query 'gnat)
   "Default Ada cross reference tool; can be overridden in project files.")
 
+(defconst ada-xref-known-tools '(gpr_query gnat)
+  "Supported xref tools")
+
 (defcustom ada-xref-full-path nil
   "If t, cross-references show the full path to source files; if
 nil, only the file name."
@@ -665,7 +668,16 @@ Throw an error if current project is not an ada-prj."
       (setf (ada-prj-plist project) (plist-put (ada-prj-plist project) 'obj_dir obj-dir))
       ))
 
-   ;; FIXME:   ((string= name "xref_tool")
+   ((string= name "xref_tool")
+    (let ((xref-label (intern value)))
+      (if (memq xref-label ada-xref-known-tools)
+	  (progn
+	    (setf (ada-prj-xref-label project) xref-label)
+	    (setf (ada-prj-xref project) (ada-prj-make-xref xref-label)))
+
+	(user-error "'%s' is not a recognized xref tool (must be one of %s)"
+		    xref-label ada-xref-known-tools))
+      ))
 
    (t
     ;; Any other field in the file is set as a project file variable.
@@ -710,13 +722,14 @@ identifier.  May be an Ada identifier or operator."
   ;; FIXME: use skip-syntax, to handle non-ascii
 
   ;; Move to the beginning of the identifier or operator
-  (if (looking-at "[a-zA-Z0-9_]")
-      ;; In an identifier
-      (skip-chars-backward "a-zA-Z0-9_")
-    ;; In an operator
-    (skip-chars-backward "+\\-\\*/&<>="))
+  (if (looking-at "+-*/&<>=")
+      ;; In an operator
+      (skip-chars-backward "+-*/&<>=")
 
-  ;; Just in front of, or inside, a string => we could have an
+    ;; Else in an identifier
+    (skip-syntax-backward "w_"))
+
+  ;; If point is just in front of, or inside, a string, we could have an
   ;; operator function declaration.
   (cond
    ((wisi-in-string-p)
@@ -740,8 +753,10 @@ identifier.  May be an Ada identifier or operator."
     ;; Return quoted operator, as this is what the back end expects.
     (concat "\"" (match-string-no-properties 0) "\""))
 
-   ((looking-at "[a-zA-Z0-9_]+")
-    (match-string-no-properties 0))
+   ((= 2 (syntax-class (syntax-after (point))))
+    ;; word syntax. Note that the first character of an identifier
+    ;; cannot have symbol syntax (ie cannot be '_')
+    (buffer-substring-no-properties (point) (save-excursion (skip-syntax-forward "w_") (point))))
 
    (t
     (error "No identifier around"))

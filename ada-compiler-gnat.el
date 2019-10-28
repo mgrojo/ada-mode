@@ -693,10 +693,11 @@ Prompt user if more than one."
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
   (add-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
 
-  ;; We should call `syntax-ppss-flush-cache' here, to force ppss
-  ;; without the hook. But that must be done in all ada-mode buffers,
-  ;; which is tedious. So we're ignoring it until it becomes a
-  ;; problem.
+  ;; We should call `syntax-ppss-flush-cache' here, to force ppss with
+  ;; the new hook function. But that must be done in all ada-mode
+  ;; buffers, which is tedious. So we're ignoring it until it becomes
+  ;; a problem; normally, the compiler is selected before any Ada
+  ;; files are visited, so it's not an issue.
   )
 
 (cl-defmethod ada-prj-deselect-compiler ((_compiler gnat-compiler) _project)
@@ -740,8 +741,7 @@ Prompt user if more than one."
   ;; gnatstub always creates the body in the current directory (in the
   ;; process where gnatstub is running); the -o parameter may not
   ;; contain path info. So we bind default-directory here.
-  (let ((start-buffer (current-buffer))
-	(start-file (buffer-file-name))
+  (let ((start-file (buffer-file-name))
 	(opts (when (gnat-compiler-gnat-stub-opts compiler)
 		(split-string (gnat-compiler-gnat-stub-opts compiler))))
 	(cargs (when (gnat-compiler-gnat-stub-cargs compiler)

@@ -21,6 +21,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** Delete not-upper-case setting for ada-auto-case; instead, set
    ada-case-strict to t.
 
+** wisi-prj-identifier-at-point (previously ada-identifier-at-point)
+   now handles non-ASCII characters.
+
 ** Major restructuring of code, moving many functions from ada-mode to
    wisi for use in other language modes, and using cl-defgeneric
    dispatching instead of function variables. Normal users should see

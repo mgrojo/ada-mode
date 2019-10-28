@@ -3,6 +3,11 @@
 -- setting text properties.
 
 --EMACSCMD:(wisi-prj-select-cache "ada_mode-no-gpr.adp" (ada-prj-default))
+
+-- Selecting the project changes ada-syntax-propertize-hook, but does
+-- not clear the syntax cache (see note in ada-prj-select-compiler for
+-- why). So we do that here.
+--EMACSCMD: (syntax-ppss-flush-cache (point-min))
 with Ada.Numerics;
 package Non_ASCII is
 
@@ -22,9 +27,14 @@ package Non_ASCII is
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(char-after))
    --EMACSRESULT:#x03c0
    π_non : constant := 3.14159;
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSRESULT: "π_non"
 
    --  Uppercase pi; auto-casing works for non-ASCII
    Π_Upper_Non : constant := 3.14159;
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSRESULT: "Π_Upper_Non"
+
 
    --  The bracket source character coding used here is not defined in
    --  the Ada Reference Manual, but is supported by GNAT (and
@@ -35,5 +45,7 @@ package Non_ASCII is
    X3_ASCII : Wide_Character := '["03B8"]';  -- theta
 
    ["03c0"]_ASCII : constant := 3.14159;
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSRESULT: "[\"03c0\"]_ASCII"
 
 end Non_ASCII;

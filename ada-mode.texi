@@ -1335,6 +1335,10 @@ directories from a GPR file.
 @item @code{xref_tool}      [default: @code{ada-xref-tool}]
 Cross reference tool for this project.
 
+Setting this in the project file reinitializes all options for the
+xref tool, so it must occur in the project file before any other
+settings that affect the xref tool.
+
 If @file{gpr_query} is found in @code{PATH}, @code{ada-xref-tool}
 defaults to @code{'gpr_query}. Otherwise, it defaults to @code{'gnat},
 which uses @code{gnat find}.
