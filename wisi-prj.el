@@ -1249,7 +1249,7 @@ initial `wisi-prj' object for that project file.")
   "For `project-find-functions'; parse the current project file, select and return the project"
   (let ((prj (wisi-prj-parse-file
 	      :prj-file wisi-prj--current-file
-	      :init-prj (cdr (assoc wisi-prj--current-file wisi-prj--default #'string=))
+	      :init-prj (cdr (assoc-string wisi-prj--current-file wisi-prj--default))
 	      :cache nil)))
     (wisi-prj-select prj)
     prj))
@@ -1292,25 +1292,25 @@ DOMINATING-FILE defaults to (buffer-file-name). "
 		     (setq dom-file filename)
 		     (setq names nil)))))
 	     dom-file))))
-    (cdr (assoc dom-file wisi-prj--dominating-alist #'string=))))
+    (cdr (assoc-string dom-file wisi-prj--dominating-alist))))
 
 ;;;###autoload
 (defun wisi-prj-find-dominating-cached (dir)
   "For `project-find-functions'; return the cached project matching
 `wisi-prj-dominating'. Select it if it is not the current project."
   (let* ((prj-file (wisi-prj--find-dominating-file dir))
-	 (new-prj (cdr (assoc prj-file wisi-prj--cache #'string=))))
+	 (new-prj (cdr (assoc-string prj-file wisi-prj--cache))))
     (unless prj-file
       (error "no dominating file found; run `wisi-prj-cache-dominating'?"))
     (unless (string= prj-file wisi-prj--current-file)
-      (let ((old-prj (cdr (assoc wisi-prj--current-file wisi-prj--cache #'string=))))
+      (let ((old-prj (cdr (assoc-string wisi-prj--current-file wisi-prj--cache))))
 	(when old-prj (wisi-prj-deselect old-prj))
 	(unless new-prj
 	  ;; User may have used `wisi-prj-set-dominating' instead of
 	  ;; `wisi-prj-cache-dominating'; parse the project file now.
 	  (wisi-prj-parse-file
 	   :prj-file prj-file
-	   :init-prj (cdr (assoc prj-file wisi-prj--default #'string=))
+	   :init-prj (cdr (assoc-string prj-file wisi-prj--default))
 	   :cache t))
 	(when new-prj (wisi-prj-select new-prj))))
     new-prj))
@@ -1336,7 +1336,7 @@ file matching `wisi-prj-dominating'."
     (when prj-file
       (let ((prj (wisi-prj-parse-file
 		  :prj-file prj-file
-		  :init-prj (cdr (assoc prj-file wisi-prj--default #'string=))
+		  :init-prj (cdr (assoc-string prj-file wisi-prj--default))
 		  :cache nil)))
 	(wisi-prj-select prj)
 	prj))))

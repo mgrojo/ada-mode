@@ -1,4 +1,4 @@
--- Test casing and font-lock with on keywords added in later language versions.
+-- Test casing and font-lock on keywords added in later language versions.
 --
 -- We only test the face of one keyword from each of the
 -- ada-*-casing-versions; enough to tell that the choice via file
@@ -6,9 +6,6 @@
 
 --EMACSCMD:(setq skip-reindent-test t)
 --EMACSCMD:(setq case-fold-search nil)
-
--- don't report parse failures
---EMACSCMD:(setq wisi-debug 0)
 
 -- from ada83
 --EMACSCMD:(test-face "abort" 'font-lock-keyword-face)

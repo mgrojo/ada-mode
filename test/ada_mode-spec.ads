@@ -1,6 +1,6 @@
 -- For testing ada-make-package-body
 
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "ada_mode.gpr") (gnatxref "ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "ada_mode.gpr") (gnat "ada_mode-gnatxref.prj")) (ada-prj-default))
 
 package Ada_Mode.Spec is
 

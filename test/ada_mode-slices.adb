@@ -1,6 +1,6 @@
 -- tests slices; example of typical code.
 
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 --EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO; use Ada.Text_IO;

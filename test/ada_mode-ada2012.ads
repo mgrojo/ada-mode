@@ -1,4 +1,4 @@
--- Test casing and font-lock with on keywords added in later language versions.
+-- Test casing and font-lock on keywords added in later language versions.
 --
 -- We only test the face of one keyword from each of the
 -- ada-*-casing-versions; enough to tell that the choice via file

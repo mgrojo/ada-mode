@@ -1427,24 +1427,10 @@ For `wisi-indent-calculate-functions'.
 (defvar which-func-functions nil) ;; which-func.el
 (defvar which-func-non-auto-modes nil) ;; ""
 
-;; ada-mode does not derive from prog-mode, because we need to call
-;; ada-mode-post-local-vars, and prog-mode does not provide a way to
-;; do that (at least before emacs 26).
-;;
-;; autoload required by automatic mode setting
 ;;;###autoload
-(defun ada-mode ()
+(define-derived-mode ada-mode prog-mode "Ada"
   "The major mode for editing Ada code."
-
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'ada-mode)
-  (setq mode-name "Ada")
-  (use-local-map ada-mode-map)
-
-  (set-syntax-table ada-mode-syntax-table)
-  (define-abbrev-table 'ada-mode-abbrev-table ())
-  (setq local-abbrev-table ada-mode-abbrev-table)
+  :group 'ada
 
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
   (syntax-ppss-flush-cache (point-min));; reparse with new function
@@ -1535,15 +1521,7 @@ For `wisi-indent-calculate-functions'.
      :token-table ada-process-token-table
      :repair-image ada-process-repair-image)))
 
-  (run-mode-hooks 'ada-mode-hook)
-
-  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
-
-  (if (<= emacs-major-version 25)
-      ;; run-mode-hooks does _not_ call hack-local-variables
-      (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
-    ;; >= 26; run-mode-hooks _does_ call hack-local-variables, after the hook functions
-    (ada-mode-post-local-vars))
+  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )
 
 (defun ada-mode-post-local-vars ()
@@ -1555,6 +1533,8 @@ For `wisi-indent-calculate-functions'.
   ;; do M-x ada-mode M-; (hack-local-variables)
 
   (setq hack-local-variables-hook (delq 'ada-mode-post-local-vars hack-local-variables-hook))
+
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on

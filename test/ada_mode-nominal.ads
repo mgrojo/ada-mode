@@ -18,7 +18,7 @@ with
 -- 'eval' is not a safe local variable, so we can't use local
 -- variables for this in batch mode.
 --
---EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnatxref "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
@@ -471,7 +471,11 @@ is -- target 0
       function F1 return Integer; -- end 3
 
       --EMACSCMD:(test-face "Discrete_Type_1" font-lock-type-face)
-      function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
+      function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
+      with Pre => B > 0.0;
+      --EMACSCMD:(progn (end-of-line 0)(ada-goto-declarative-region-start)(looking-at " -- Protected_1"))
+      --EMACSRESULT:t
+
       --EMACSCMD:(progn (forward-line 3)(ada-which-function t))
       --EMACSRESULT:"E1"
       entry E1

@@ -1,6 +1,6 @@
 ;; run tests using wisi-process-parse, gnatxref, otherwise ada-mode, gpr-mode defaults
 
-(setq ada-xref-tool 'gnatxref)
+(setq ada-xref-tool 'gnat)
 (setq ada-parser 'process)
 
 ;; Don’t require installing executables to run tests; use elpa if installed
