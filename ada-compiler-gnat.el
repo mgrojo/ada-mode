@@ -737,17 +737,9 @@ Prompt user if more than one."
       ada-name)))
 
 (cl-defmethod ada-compiler-make-package-body ((compiler gnat-compiler) project body-file-name)
-  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
-  ;; and doesn't use the gnatstub package if it is in a 'with'd
-  ;; project file; see AdaCore ticket LC30-001. On the other hand we
-  ;; need a project file to specify the source dirs so the tree file
-  ;; can be generated. So we use gnat-run-no-prj, and the user
-  ;; must specify the proper project file in gnat_stub_opts.
-  ;; FIXME: update to gnat 2019
-  ;;
   ;; gnatstub always creates the body in the current directory (in the
   ;; process where gnatstub is running); the -o parameter may not
-  ;; contain path info. So we pass a directory to gnat-run-no-prj.
+  ;; contain path info. So we bind default-directory here.
   (let ((start-buffer (current-buffer))
 	(start-file (buffer-file-name))
 	(opts (when (gnat-compiler-gnat-stub-opts compiler)
@@ -763,16 +755,17 @@ Prompt user if more than one."
 
     ;; Make sure all relevant files are saved to disk.
     (save-some-buffers t)
-    (with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name compiler))
-      (gnat-run-no-prj
-       (append (list "stub") opts (list start-file "-cargs") cargs)
-       (file-name-directory body-file-name))
 
-      (find-file body-file-name)
-      (indent-region (point-min) (point-max))
-      (save-buffer)
-      (set-buffer start-buffer)
-      )
+    (with-current-buffer (gnat-run-buffer compiler (gnat-compiler-run-buffer-name compiler))
+      (let ((default-directory (file-name-directory body-file-name)))
+	(gnat-run-gnat
+	 project
+	 "stub"
+	 (append opts (list start-file "-cargs") cargs))
+
+	(find-file body-file-name)
+	(indent-region (point-min) (point-max))
+	(save-buffer)))
     nil))
 
 (defun ada-gnat-syntax-propertize (start end)

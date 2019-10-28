@@ -509,7 +509,8 @@ nil, only the file name."
   ;; spec. So go back to the spec, and delete the body buffer so it
   ;; does not get written to disk.
   (let ((body-buffer (current-buffer))
-	(body-file-name (buffer-file-name)))
+	(body-file-name (buffer-file-name))
+	(prj (ada-prj-require-prj)))
 
     (set-buffer-modified-p nil);; may have a skeleton; allow silent delete
 
@@ -517,7 +518,7 @@ nil, only the file name."
 
     (kill-buffer body-buffer)
 
-    (ada-compiler-make-package-body (ada-prj-compiler (ada-prj-require-prj)) body-file-name)
+    (ada-compiler-make-package-body (ada-prj-compiler prj) prj body-file-name)
 
     ;; back to the new body file, read in from the disk.
     (ff-find-the-other-file)

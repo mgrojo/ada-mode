@@ -57,6 +57,7 @@ run test from emacs -Q using source:
  current work
 major cleanup
     review FIXME
+    (grep-find "find . -type f -print | \"xargs\" grep  -nH --null FIXME")
 
     test all menus
 
