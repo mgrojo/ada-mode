@@ -56,6 +56,8 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
+    add wisi-skel to skeleton.el for emacs 28? ask on emacs-devel
+
     review FIXME
     (grep "FIXME" *.el)
     (grep-find "find . -type f -print | \"xargs\" grep  -nH --null FIXME")
@@ -68,7 +70,7 @@ move sal-make-prj into wisi-prj.el
     doc use case; local in Makefile (or other builder file)
 
 libadalang backend
-    for indent and navigate
+    for indent, navigate
         also face via tree traverse callback?
 
     time on huge eurocontrol files c:/eurocontrol

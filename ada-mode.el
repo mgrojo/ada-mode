@@ -180,18 +180,18 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-c"   'ada-build-make)
     (define-key map "\C-c\C-d" 	 'wisi-goto-declaration)
     (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
-    (define-key map "\C-c\C-e" 	 'ada-skel-expand) ;; FIXME: move to wisi
+    (define-key map "\C-c\C-e" 	 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
     (define-key map [3 backtab] 'wisi-indent-containing-statement);; C-c backtab, translated from C-c S-tab
     (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'forward-sexp)
-    (define-key map "\C-c\M-n" 	 'ada-skel-next-placeholder)
+    (define-key map "\C-c\M-n" 	 'wisi-skel-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'backward-sexp)
-    (define-key map "\C-c\M-p" 	 'ada-skel-prev-placeholder)
+    (define-key map "\C-c\M-p" 	 'wisi-skel-prev-placeholder)
     (define-key map "\C-c\C-q" 	 'wisi-refresh-prj-cache)
     (define-key map "\C-c\C-r" 	 'wisi-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
@@ -253,13 +253,13 @@ slower to load on first use, but gives better error recovery."
      ["Goto secondary error"          wisi-show-secondary-error     t]
      ["Goto prev position current buffer" pop-mark              t]
      ["Goto prev position other buffer"   pop-global-mark       t]
-     ["Next placeholder"              ada-next-placeholder    t]
-     ["Previous placeholder"          ada-prev-placeholder    t]
+     ["Next placeholder"              wisi-next-placeholder    t]
+     ["Previous placeholder"          wisi-prev-placeholder    t]
      )
     ("Edit"
-     ["Expand skeleton"             ada-skel-expand              t]
+     ["Expand skeleton"             wisi-skel-expand        t]
      ["Indent line or selection"    indent-for-tab-command  t]
-     ["Indent current statement"    wisi-indent-statement    t]
+     ["Indent current statement"    wisi-indent-statement   t]
      ["Indent containing statement" wisi-indent-containing-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
@@ -316,7 +316,7 @@ slower to load on first use, but gives better error recovery."
     ["Create full case exception"     ada-case-create-exception         t]
     ["Create partial case exception"  ada-case-create-partial-exception t]
     ["Indent current statement"	      wisi-indent-statement             t]
-    ["Expand skeleton"		      ada-skel-expand                   t]
+    ["Expand skeleton"		      wisi-skel-expand                  t]
     ["Make body for subprogram"	      ada-make-subprogram-body          t]
     ))
 

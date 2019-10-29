@@ -12,7 +12,7 @@
 
 (require 'gpr-mode)
 
-(defun skeleton-expand-all (skel-token-alist exclude)
+(defun wisi-skel-expand-all (skel-token-alist exclude)
   "Expand all skeletons in SKEL-TOKEN-ALIST at point in the current buffer.
 Preserves text after point."
   (let (token-skel
@@ -27,7 +27,7 @@ Preserves text after point."
 	      (funcall (cdr token-skel) "foo")
 	      (goto-char (1- post-marker))
 	      (newline))
-	  (skeleton-expand-all (cdr token-skel) exclude)))
+	  (wisi-skel-expand-all (cdr token-skel) exclude)))
       )))
 
 (defun gpr-skel-test ()
@@ -48,10 +48,10 @@ Preserves text after point."
       ;; declaration, so they are accepted by the parser.
       (goto-char (point-min))
       (end-of-line)
-      (skeleton-expand) ;; header
+      (wisi-skel-expand) ;; header
       (goto-char (point-max))
-      (skeleton-expand "Project_1") ;; project
-      (skeleton-expand-all gpr-skel-token-alist '("header""project"))
+      (wisi-skel-expand "Project_1") ;; project
+      (wisi-skel-expand-all gpr-skel-token-alist '("header""project"))
       (goto-char (point-max))
       (when (not (= 0 (current-column)))
 	(insert "\n"))

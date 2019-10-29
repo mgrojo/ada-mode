@@ -53,7 +53,7 @@
     ;; global-map has C-x ` 'next-error
     (define-key map [return]   'wisi-indent-newline-indent)
     ;; comment-dwim is in global map on M-;
-    (define-key map "\C-c\C-e" 'skeleton-expand)
+    (define-key map "\C-c\C-e" 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 'wisi-indent-statement)
     (define-key map "\C-c\C-o" 'ff-find-other-file)
@@ -61,8 +61,8 @@
     (define-key map "\C-c\C-w" 'wisi-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'wisi-case-create-exception)
     (define-key map "\C-c\C-\M-y" 'wisi-case-create-partial-exception)
-    (define-key map "\M-n" 'skeleton-next-placeholder)
-    (define-key map "\M-p" 'skeleton-prev-placeholder)
+    (define-key map "\M-n" 'wisi-skel-next-placeholder)
+    (define-key map "\M-p" 'wisi-skel-prev-placeholder)
 
     (wisi-case-activate-keys map)
 
@@ -90,9 +90,9 @@
      ["Indent Line or selection"      indent-for-tab-command         t]
      ["Indent current statement"      wisi-indent-statement          t]
      ["Indent Lines in File"          (indent-region (point-min) (point-max))  t]
-     ["Expand skeleton"               skeleton-expand                t]
-     ["Next skeleton placeholder"     skeleton-next-placeholder      t]
-     ["Previous skeleton placeholder" skeleton-prev-placeholder      t]
+     ["Expand skeleton"               wisi-skel-expand               t]
+     ["Next skeleton placeholder"     wisi-skel-next-placeholder     t]
+     ["Previous skeleton placeholder" wisi-skel-prev-placeholder     t]
      ["Comment/uncomment selection"   comment-dwim                   t]
      ["Fill Comment Paragraph"        fill-paragraph                 t]
 
