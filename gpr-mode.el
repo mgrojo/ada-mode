@@ -95,9 +95,6 @@
      ["Previous skeleton placeholder" wisi-skel-prev-placeholder     t]
      ["Comment/uncomment selection"   comment-dwim                   t]
      ["Fill Comment Paragraph"        fill-paragraph                 t]
-
-     ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t] ;; FIXME: move to wisi
-     ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
      )
     ))
 

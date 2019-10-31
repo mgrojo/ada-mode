@@ -719,8 +719,6 @@ identifier.  May be an Ada identifier or operator."
   ;; test/ada_mode-slices.adb
   ;;   D1, D2 : Day := +Sun;
 
-  ;; FIXME: use skip-syntax, to handle non-ascii
-
   ;; Move to the beginning of the identifier or operator
   (if (looking-at "+-*/&<>=")
       ;; In an operator

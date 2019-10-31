@@ -38,6 +38,10 @@
   "gpr_query cross reference tool"
   :group 'tools)
 
+(defcustom gpr-query-exec "gpr_query"
+  "Executable for gpr_query."
+  :type 'string)
+
 (defcustom gpr-query-env nil
   "Environment variables needed by the gpr_query executable.
 Value must be alist where each element is \"<name>=<value>\""
@@ -91,11 +95,12 @@ Value must be alist where each element is \"<name>=<value>\""
 	    (apply #'start-process
 		   (concat "gpr_query " (buffer-name))
 		   (gpr-query--session-buffer session)
-		   "gpr_query"
+		   gpr-query-exec
 		   (cl-delete-if
 		    'null
 		    (list
 		     (concat "--project=" gpr-file)
+		     (when (not ada-xref-full-path) "--short_file_names")
 		     (when gpr-query--debug-start
 		       (concat "--tracefile=gpr_query.trace")
 		       ;; The file gpr_query.trace should contain: gpr_query=yes
@@ -257,9 +262,10 @@ Uses `gpr_query'. Returns new list."
 (defconst gpr-query-ident-file-regexp
   ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  "\\(\\(?:.:\\\\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  ;; gds-mil_std_1553-utf.ads:252:25 - when ada-xref-full-path is nil
+  "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
   ;; 1                             2                   3
-  "Regexp matching <file>:<line>:<column>")
+  "Regexp matching <file>:<line>:<column> where <file> is an absolute file name or basename.")
 
 (defconst gpr-query-ident-file-regexp-alist
   (list (concat "^" gpr-query-ident-file-regexp) 1 2 3)
@@ -275,7 +281,8 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
 
-  ;; FIXME: implement ada-xref-full-path.
+  ;; Note that ada-xref-full-path is used in gpr-query--start-process,
+  ;; not here; if it changes, the gpr-query session must be restarted.
   ;;
   ;; FIXME: implement append
 
@@ -383,18 +390,30 @@ Enable mode if ARG is positive."
   ;; just enable the menu and keymap
   )
 
-(defun gpr-query--normalize-filename (file)
+(defun gpr-query--normalize-filename (file &optional dir)
   "Takes account of filesystem differences."
-  (when (eq system-type 'windows-nt)
+  ;; need DIR to handle ada-xref-full-path nil
+  (cond
+   ((eq system-type 'windows-nt)
     ;; 'expand-file-name' converts Windows directory
     ;; separators to normal Emacs.  Since Windows file
     ;; system is case insensitive, GNAT and Emacs can
     ;; disagree on the case, so convert all to lowercase.
-    (setq file (downcase (expand-file-name file))))
-  (when (eq system-type 'darwin)
+    (downcase (expand-file-name file dir)))
+
+   ((eq system-type 'darwin)
     ;; case-insensitive case-preserving; so just downcase
-    (setq file (downcase file)))
-  file
+    (when (and dir
+	       (not ada-xref-full-path))
+      (setq file (expand-file-name file dir)))
+
+    (downcase file))
+
+   (t ;; linux
+    (when (and dir
+	       (not ada-xref-full-path))
+      (setq file (expand-file-name file dir)))
+    file))
   )
 
 ;;;;; wisi-xref methods
@@ -499,6 +518,8 @@ Enable mode if ARG is positive."
       ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration)
       ;;
       ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference)
+      ;;
+      ;; if ada-xref-full-path is nil, only the file basename is present.
 
       (message "parsing result ...")
 
@@ -517,7 +538,7 @@ Enable mode if ARG is positive."
 			       most-positive-fixnum))
 		 )
 
-            (setq found-file (gpr-query--normalize-filename found-file))
+            (setq found-file (gpr-query--normalize-filename found-file (file-name-directory filename)))
 
 	    (cond
 	     ((string-equal found-type "declaration")

@@ -238,7 +238,7 @@ slower to load on first use, but gives better error recovery."
     ("Navigate"
      ["Other file"                    ada-find-other-file          t]
      ["Other file don't find decl"    ada-find-other-file-noset    t]
-     ["Find file in project"          ada-find-file                t]
+     ["Find file in project"          project-find-file            t]
      ["Goto declaration/body"         wisi-goto-declaration        t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
@@ -769,18 +769,6 @@ previously set by a file navigation command."
     (ff-find-other-file)))
   )
 
-(defun ada-find-file (filename)
-  ;; FIXME: use project-find-file
-  ;; we assume compliation-search-path is set, either by an
-  ;; ada-mode project, or by some other means.
-  (interactive (list (completing-read "File: "
-				      (apply-partially
-				       'locate-file-completion-table
-				       compilation-search-path nil))))
-  (find-file (locate-file filename compilation-search-path))
-  )
-
-
 ;;;; Misc
 
 ;; This is autoloaded because it may be used in ~/.emacs
@@ -943,7 +931,6 @@ The ident for the paragraph is taken from the first line."
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
 	 ;; setting it in ada-mode causes indent-region to use it for
 	 ;; all indentation.
-	 ;; FIXME: use comment-start, comment-padding
 	 (fill-prefix ada-fill-comment-prefix)
 	 (fill-column (if ada-fill-comment-adaptive
 			  (save-excursion
@@ -1450,7 +1437,6 @@ For `wisi-indent-calculate-functions'.
   ;; AdaCore standard style (enforced by -gnaty) requires two spaces
   ;; after '--' in comments; this makes it easier to distinguish
   ;; special comments that have something else after '--'
-  ;; FIXME: this means we don't need ada-fill-comment-prefix
   (set (make-local-variable 'comment-padding) "  ")
 
   (set (make-local-variable 'require-final-newline) t)
@@ -1539,7 +1525,7 @@ For `wisi-indent-calculate-functions'.
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
   ;; ada-fill-comment-prefix. In post-local because user may want to
-  ;; set it per-file. IMPROVEME: only in emacs < 25? FIXME: use comment-start
+  ;; set it per-file.
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
   (cl-case ada-language-version

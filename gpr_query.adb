@@ -226,15 +226,17 @@ procedure Gpr_Query is
 
    --  Parsed command line info
    Cmdline              : GNAT.Command_Line.Command_Line_Configuration;
+
+   ALI_Encoding         : aliased GNAT.Strings.String_Access := new String'("");
    Commands_From_Switch : aliased GNAT.Strings.String_Access;
    DB_Name              : aliased GNAT.Strings.String_Access := new String'("gpr_query.db");
    Force_Refresh        : aliased Boolean;
-   Nightly_DB_Name      : aliased GNAT.Strings.String_Access;
-   Show_Progress        : aliased Boolean;
-   Project_Name         : aliased GNAT.Strings.String_Access;
-   Traces_Config_File   : aliased GNAT.Strings.String_Access;
    Gpr_Config_File      : aliased GNAT.Strings.String_Access;
-   ALI_Encoding         : aliased GNAT.Strings.String_Access := new String'("");
+   Nightly_DB_Name      : aliased GNAT.Strings.String_Access;
+   Project_Name         : aliased GNAT.Strings.String_Access;
+   Short_File_Names     : aliased Boolean;
+   Show_Progress        : aliased Boolean;
+   Traces_Config_File   : aliased GNAT.Strings.String_Access;
 
    ----------
    --  Procedure bodies, alphabetical
@@ -345,7 +347,11 @@ procedure Gpr_Query is
    is
       pragma Unreferenced (Self);
    begin
-      return File.Display_Full_Name;
+      if Short_File_Names then
+         return File.Display_Base_Name;
+      else
+         return File.Display_Full_Name;
+      end if;
    end Image;
 
    function Image (Self : GNATCOLL.Xref.Entity_Information) return String
@@ -551,6 +557,12 @@ begin
          Output      => Traces_Config_File'Access,
          Long_Switch => "--tracefile=",
          Help        => "Specify a traces configuration file, set projects lib verbose");
+      Define_Switch
+        (Cmdline,
+         Output      => Short_File_Names'Access,
+         Long_Switch => "--short_file_names",
+         Switch      => "-s",
+         Help        => "Show base filename, not full directory");
 
       Getopt (Cmdline, Callback => null);
    end;

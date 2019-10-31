@@ -24,4 +24,5 @@ package body Ada_Mode is
 end Ada_Mode;
 -- Local Variables:
 -- ada-auto-case: t
+-- ada-xref-full-path: nil
 -- End:

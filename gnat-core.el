@@ -45,10 +45,10 @@ command.  This applies e.g. to *gnatfind* buffers."
   gpr-file 	  ;; absolute file name of GNAT project file.
   run-buffer-name ;; string; some compiler objects have no gpr file
   project-path    ;; list of directories from GPR_PROJECT_PATH
-  target 	  ;; gnat --target argument. FIXME: add to -parse
-  runtime 	  ;; gnat --RTS argument. FIXME: add to -parse
-  gnat-stub-opts  ;; FIXME: add to -parse
-  gnat-stub-cargs ;; FIXME: add to -parse
+  target 	  ;; gnat --target argument.
+  runtime 	  ;; gnat --RTS argument.
+  gnat-stub-opts  ;; options for gnat stub
+  gnat-stub-cargs ;; cargs options for gnat stub
   )
 
 ;;;###autoload
@@ -111,12 +111,6 @@ Throw an error if current project does not have a gnat-compiler."
     (condition-case-unless-debug nil
 	(with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project)))
 	  ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
-	  ;;
-	  ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
-	  ;; does not return Source_Dirs from C++ projects (see AdaCore ticket
-	  ;; M724-045). The workaround is to include the Source_Dirs in an
-	  ;; wisi project file.
-	  ;; FIXME: update for gnat 2019
 	  (gnat-run-gnat project "list" (list "-v") '(0 4))
 
 	  (goto-char (point-min))
@@ -337,6 +331,19 @@ See also `gnat-prj-parse-emacs-final'."
 	     (locate-file (substitute-in-file-name value)
 			  (gnat-compiler-project-path compiler)))))
     t)
+
+   ((string= name "target")
+    (setf (gnat-compiler-target compiler) value))
+
+   ((string= name "runtime")
+    (setf (gnat-compiler-runtime compiler) value))
+
+   ((string= name "gnat-stub-opts")
+    (setf (gnat-compiler-gnat-stub-opts compiler) value))
+
+   ((string= name "gnat-stub-cargs")
+    (setf (gnat-compiler-gnat-stub-cargs compiler) value))
+
    ))
 
 (cl-defmethod wisi-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
