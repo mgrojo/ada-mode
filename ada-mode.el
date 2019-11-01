@@ -248,6 +248,7 @@ slower to load on first use, but gives better error recovery."
      ["Goto declaration end"          ada-goto-declaration-end     t]
      ["Show parent declarations"      ada-show-declaration-parents t]
      ["Show references"               wisi-show-references          t]
+     ["Show local references"         wisi-show-local-references    t]
      ["Show overriding"               wisi-show-overriding          t]
      ["Show overridden"               wisi-show-overridden          t]
      ["Goto secondary error"          wisi-show-secondary-error     t]

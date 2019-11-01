@@ -53,6 +53,7 @@
     ("a-stream" . "Ada.Streams")
     ("a-ststio" . "Ada.Streams.Stream_IO")
     ("a-string" . "Ada.Strings")
+    ("a-strfix" . "Ada.Strings.Fixed")
     ("a-strmap" . "Ada.Strings.Maps")
     ("a-strunb" . "Ada.Strings.Unbounded")
     ("a-stwiun" . "Ada.Strings.Wide_Unbounded")

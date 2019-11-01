@@ -22,6 +22,12 @@ with "wisi";
 with "wisitoken";
 #end if;
 with "standard_common";
+with "gnatcoll";
+with "gnatcoll_sqlite";
+#if HAVE_GNATCOLL_XREF="yes"
+with "gnatcoll_xref";
+#end if;
+with "gnat_util";
 --  #if HAVE_LIBADALANG="yes"
 --  with "libadalang";
 --  #end if;
@@ -36,7 +42,8 @@ project Ada_Mode_Wisi_Parse is
 --        "run_ada_libadalang_parse.ads",
 --  #end if;
       "gpr_mode_wisi_parse.ads",
-      "run_gpr_parse.ads"
+      "run_gpr_parse.ads",
+      "gpr_query.adb"
      );
 
    for Source_Dirs use (".");

@@ -373,7 +373,7 @@ With prefix, keep previous references in output buffer."
     ))
 
 (defun wisi-show-local-references (&optional append)
-  "Show all references of identifier at point.
+  "Show all references of identifier at point occuring in current file.
 With prefix, keep previous references in output buffer."
   (interactive "P")
   (let ((project (wisi-check-current-project (buffer-file-name))))

@@ -275,7 +275,7 @@ Uses `gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-(defun gpr-query-compilation (project identifier file line col cmd comp-err)
+(defun gpr-query-compilation (project identifier file line col cmd comp-err &optional local_only _append)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
@@ -287,11 +287,12 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; FIXME: implement append
 
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
-  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
+  (let* ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
+	(cmd-2 (if local_only (concat cmd-1 " local_only") cmd-1))
 	(result-count 0)
 	(session (gpr-query-cached-session project))
 	target-file target-line target-col)
-    (with-current-buffer (gpr-query-session-send session cmd-1 t)
+    (with-current-buffer (gpr-query-session-send session cmd-2 t)
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
 
@@ -614,9 +615,8 @@ Enable mode if ARG is positive."
 (cl-defmethod wisi-xref-parents ((_xref gpr-query-xref) project &key identifier filename line column)
   (gpr-query-compilation project identifier filename line column "parent_types" 'gpr-query-ident-file))
 
-(cl-defmethod wisi-xref-all ((_xref gpr-query-xref) project &key identifier filename line column _local-only _append)
-  ;; FIXME: implement local-only, append
-  (gpr-query-compilation project identifier filename line column "refs" 'gpr-query-ident-file))
+(cl-defmethod wisi-xref-all ((_xref gpr-query-xref) project &key identifier filename line column local-only append)
+  (gpr-query-compilation project identifier filename line column "refs" 'gpr-query-ident-file local-only append))
 
 (cl-defmethod wisi-xref-overriding ((_xref gpr-query-xref) project &key identifier filename line column)
   (gpr-query-compilation project identifier filename line column "overriding" 'gpr-query-ident-file))

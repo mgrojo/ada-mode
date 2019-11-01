@@ -40,7 +40,8 @@ EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
 # compile with debug to get assertions for testing new code
-# export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
+#export Gnatcoll_Build := Debug
 
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
 
@@ -60,7 +61,6 @@ update-install : update-elisp
 update-install : install
 update-install : docs
 
-install : install_gpr_query
 install : install_executables
 
 # *-elisp.el are in monotone, so this is all we need after a monotone
@@ -90,19 +90,19 @@ include rules.make
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode.ads
-#one :: build_executables
-#one :: byte-compile autoloads
+ONE_TEST_FILES ?= ada_mode-nominal.adb
+one :: build_executables
+one :: byte-compile autoloads
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 	rm -f test.log
-#one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
-one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
-one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
+one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
+#one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
@@ -353,8 +353,6 @@ uninstall-elpa :
 install-elpa :
 	emacs -Q --eval '(load-file "install-elpa.el")'
 
-## build gpr_query
-
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
 
@@ -377,11 +375,6 @@ INSTALL_BIN := $(dir $(GNAT_EXE))
 
 endif
 
-# for debugging:
-#export Gnatcoll_Build := Debug
-# export Gpr_Query_Build := Debug
-#export BUILD := Debug
-
 # In December 2016, GNATCOLL changed its Xref interface. First, the
 # GPR was split out; and second, one of the subprogram
 # interfaces.changed.
@@ -396,14 +389,8 @@ include Makefile.conf
 ../gpr_query-process_refresh.adb : ../gpr_query-process_refresh.adb.gp
 	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
 
-../gpr_query.gpr : ../gpr_query.gpr.gp
-	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
-
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
-	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
-
-gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
-	gprbuild -p ../gpr_query.gpr
+	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) -DELPA="no" $< $@
 
 trace :
 	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
@@ -411,7 +398,7 @@ trace :
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
-build_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c force
+build_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c ../gpr_query-process_refresh.adb force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

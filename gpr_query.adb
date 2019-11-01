@@ -82,8 +82,9 @@ procedure Gpr_Query is
 
    --  Subprogram specs for subprograms used before bodies
    procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer);
+   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Min, Max : in Integer);
    procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class);
-   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class);
+   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String := "");
    --  Display the results of a query
 
    procedure Put (Item : GNATCOLL.VFS.File_Array);
@@ -251,6 +252,16 @@ procedure Gpr_Query is
       end if;
    end Check_Arg_Count;
 
+   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Min, Max : in Integer)
+   is
+      Count : constant Integer := GNATCOLL.Arg_Lists.Args_Length (Args);
+   begin
+      if Count not in Min .. Max then
+         raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
+           "; expecting" & Min'Image & " .." & Max'Image;
+      end if;
+   end Check_Arg_Count;
+
    procedure Display_Progress (Current, Total : Integer) is
       Now : constant Integer := Integer (Float'Floor
         (Float (Current) / Float (Total) * 100.0));
@@ -274,7 +285,7 @@ procedure Gpr_Query is
       end loop;
    end Dump;
 
-   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class)
+   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String := "")
    is
       use GNATCOLL.Xref;
    begin
@@ -282,7 +293,9 @@ procedure Gpr_Query is
          declare
             Ref : constant Entity_Reference := Refs.Element;
          begin
-            Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Ref.Kind) & ")");
+            if Local_File_Name = "" or else Local_File_Name = Ref.File.Display_Base_Name then
+               Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Ref.Kind) & ")");
+            end if;
          end;
          Next (Refs);
       end loop;
@@ -464,7 +477,7 @@ procedure Gpr_Query is
    is
       use GNATCOLL.Arg_Lists;
    begin
-      Check_Arg_Count (Args, 1);
+      Check_Arg_Count (Args, 1, 2);
 
       declare
          use GNATCOLL.Xref;
@@ -472,7 +485,24 @@ procedure Gpr_Query is
          Refs   : References_Cursor;
       begin
          Xref.References (Entity, Cursor => Refs);
-         Dump (Refs);
+         if Args_Length (Args) > 1 then
+            if Nth_Arg (Args, 2) = "local_only" then
+               --  Xref doesn't let us get the full file name of Entity (sigh)
+               declare
+                  use Ada.Strings.Fixed;
+                  First           : constant Integer := 1 + Index (Nth_Arg (Args, 1), ":");
+                  Last            : constant Integer := -1 + Index (Nth_Arg (Args, 1), ":", First);
+                  Local_File_Name : constant String  := Nth_Arg (Args, 1) (First .. Last);
+               begin
+                  Dump (Refs, Local_File_Name);
+               end;
+            else
+               raise Invalid_Command with "Invalid argument '" & Nth_Arg (Args, 2) &
+                 "'; expecting 'local_only'";
+            end if;
+         else
+            Dump (Refs);
+         end if;
       end;
    end Process_Refs;
 
