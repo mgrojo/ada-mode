@@ -1362,18 +1362,20 @@ Menu displays cached wisi projects."
       )
     (nreverse menu)))
 
-(defun wisi-prj--menu-install ()
+(defun wisi-prj-menu-install ()
   "Install the project menu, to display cached wisi projects."
-  (define-key-after
-    global-map
-    [menu-bar wisi-prj-select]
-    (easy-menu-binding
-     (easy-menu-create-menu
-      "Wisi Prj Select";; EDE uses "Project" menu
-      (wisi-prj--menu-compute)))
-    (lookup-key global-map [menu-bar tools])))
+  (let ((menu (wisi-prj--menu-compute)))
+    (when menu
+      (define-key-after
+	global-map
+	[menu-bar wisi-prj-select]
+	(easy-menu-binding
+	 (easy-menu-create-menu
+	  "Wisi Prj Select";; EDE uses "Project" menu
+	  menu))
+	(lookup-key global-map [menu-bar tools])))))
 
-(add-hook 'menu-bar-update-hook 'wisi-prj--menu-install)
+(add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)
 
 (defun wisi-prj-completion-table ()
   "Return list of names of cached projects."

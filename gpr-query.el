@@ -275,7 +275,7 @@ Uses `gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-(defun gpr-query-compilation (project identifier file line col cmd comp-err &optional local_only _append)
+(defun gpr-query-compilation (project identifier file line col cmd comp-err &optional local_only append)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
@@ -283,26 +283,41 @@ with compilation-error-regexp-alist set to COMP-ERR."
 
   ;; Note that ada-xref-full-path is used in gpr-query--start-process,
   ;; not here; if it changes, the gpr-query session must be restarted.
-  ;;
-  ;; FIXME: implement append
 
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
   (let* ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
-	(cmd-2 (if local_only (concat cmd-1 " local_only") cmd-1))
-	(result-count 0)
-	(session (gpr-query-cached-session project))
-	target-file target-line target-col)
-    (with-current-buffer (gpr-query-session-send session cmd-2 t)
-      (setq buffer-read-only nil)
-      (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
+	 (cmd-2 (if local_only (concat cmd-1 " local_only") cmd-1))
+	 (session (gpr-query-cached-session project))
+	 (result-count 0)
+	 start-pos prev-content
+	 target-file target-line target-col)
 
+    (when append
+      (with-current-buffer (gpr-query--session-buffer session)
+	;; don't include trailing prompt in `prev-content'
+	(goto-char (point-max))
+	(forward-line 0)
+	(setq prev-content (buffer-substring (point-min) (point)))))
+
+    (with-current-buffer (gpr-query-session-send session cmd-2 t)
       ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
+      (setq start-pos (point-min))
+
+      (setq buffer-read-only nil)
+      (when append
+	(goto-char (point-min))
+	(insert prev-content)
+	(setq start-pos (point))
+	(goto-char (point-max)))
+
+      (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
 
       (compilation--flush-parse (point-min) (point-max))
       (compilation--ensure-parse (point-max))
 
-      (goto-char (point-min))
+      (goto-char start-pos)
+
       (cond
        ((looking-at "^warning: ")
 	(setq result-count (1- result-count))
@@ -311,32 +326,35 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	(error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
        )
 
-      (cl-case result-count
-	(0
-	 (error "gpr_query returned no results"))
-	(1
-	 ;; just go there, don't display session-buffer. We have to
-	 ;; fetch the compilation-message while in the
-	 ;; session-buffer. and call wisi-goto-source outside the
-	 ;; with-current-buffer above.
-	 (let* ((msg (compilation-next-error 0))
-                ;; IMPROVEME: '--' indicates internal-only. But we can't
-                ;; use compile-goto-error, because that displays the
-                ;; session-buffer.
-	 	(loc (compilation--message->loc msg)))
-	   (setq target-file (caar (compilation--loc->file-struct loc))
-		 target-line (caar (cddr (compilation--loc->file-struct loc)))
-		 target-col  (1- (compilation--loc->col loc))
-		 )
-	   ))
+      (cond
+       ((and (not append)
+	     (= result-count 1))
+	;; just go there, don't display session-buffer. We have to
+	;; fetch the compilation-message while in the
+	;; session-buffer. and call wisi-goto-source outside the
+	;; with-current-buffer above.
+	(let* ((msg (compilation-next-error 0))
+               ;; IMPROVEME: '--' indicates internal-only. But we can't
+               ;; use compile-goto-error, because that displays the
+               ;; session-buffer.
+	       (loc (compilation--message->loc msg)))
+	  (setq target-file (caar (compilation--loc->file-struct loc))
+		target-line (caar (cddr (compilation--loc->file-struct loc)))
+		target-col  (1- (compilation--loc->col loc))
+		)
+	  ))
 
-	(t
-	 ;; for next-error, below
-	 (setq next-error-last-buffer (current-buffer)))
+       ((= result-count 0)
+	(error "gpr_query returned no results"))
 
-	));; case, with-currrent-buffer
+       (t
+	;; for next-error, below
+	(setq next-error-last-buffer (current-buffer)))
 
-    (if (= result-count 1)
+       ));; case, with-currrent-buffer
+
+    (if (and (not append)
+	     (= result-count 1))
 	(wisi-goto-source target-file target-line target-col)
 
       ;; more than one result; display session buffer, goto first ref
@@ -345,10 +363,11 @@ with compilation-error-regexp-alist set to COMP-ERR."
       ;; at point-min; work around that by moving forward 0 errors for
       ;; the first one. Unless the first line contains "warning: ".
       (pop-to-buffer next-error-last-buffer)
-      (goto-char (point-min))
-      (if (looking-at "^warning: ")
-	  (next-error 1 t)
-	(next-error 0 t))
+      (goto-char start-pos)
+      (unless append
+	(if (looking-at "^warning: ")
+	    (next-error 1 t)
+	  (next-error 0 t)))
       )
     ))
 
