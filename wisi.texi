@@ -20,7 +20,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Wisi: (wisi).         Package providing error-correcting LR parsers.
+* Wisi: (wisi).         Error-correcting LR parsers and project integration.
 @end direntry
 
 @titlepage
@@ -43,6 +43,7 @@ Wisi Version 2.2.1
 @menu
 * Overview::
 * Grammar actions::
+* Project extension::
 * GNU Free Documentation License::
 * Index::
 @end menu
@@ -53,10 +54,12 @@ Wisi Version 2.2.1
 
 The wisi package provides an elisp interface to an external parser
 written in Ada. It uses the parser generator package WisiToken
-(@url{http://stephe-leake.org/ada/wisitoken.html}).
+(@url{http://stephe-leake.org/ada/wisitoken.html}). wisi provides
+several grammar actions, to implement indentation, navigating, and
+syntax highlighting (fontification).
 
-wisi provides several grammar actions, to implement indentation,
-navigating, and syntax highlighting (fontification).
+wisi also provides an extension to Emacs @file{project.el}, providing
+operations useful for compilation and cross-reference.
 
 @node Grammar actions
 @chapter Grammar Actions
@@ -575,6 +578,179 @@ have nil indent, and @code{wisi-indent-region} detects that and uses 0
 for the indent. You can set the variable @code{wisi-debug} to a value
 > 0 to signal an error for nil indents; this is useful to catch indent
 errors during development.
+
+@node Project extension
+@chapter Project extension
+wisi defines the defstuct @var{wisi-prj}, with operations suitable for
+compilation and cross-reference.
+
+In order to use wisi projects, the user must write project files and
+customize @var{project-find-functions} and
+@var{xref-backend-functions}.
+
+@menu
+* Project files::
+* Selecting projects::
+* Other project functions::
+@end menu
+
+@node Project files
+@section Project files
+
+Project file names must have an extension given by
+@code{wisi-prj-file-extensions} (default @file{.adp, .prj}).
+
+Project files have a simple syntax; they may be edited directly. Each
+line specifies a project variable name and its value, separated by
+``='' (spaces not allowed):
+@example
+src_dir=/Projects/my_project/src_1
+src_dir=/Projects/my_project/src_2
+@end example
+
+There must be no space between the variable name and ``='', and no
+trailing spaces after the value.
+
+Any line that does not have an ``='' is a comment.
+
+Some variables (like @code{src_dir}) are lists; each line in the
+project file specifies one element of the list. The value on the last
+line is the last element in the list.
+
+A variable name that starts with @code{$} is set as a process
+environment variable, for processes launched from Emacs for the
+project.
+
+In values, process environment variables can be referenced
+using the normal @code{$var} syntax.
+
+In values, relative file names are expanded relative to the
+directory containing the project file.
+
+Here is the list of project variables defined by wisi; major modes may
+add more.
+
+@table @asis
+@item @code{casing}         [slot: @code{case-exception-files}]
+List of files containing casing exceptions. @xref{Automatic casing}.
+
+@item @code{src_dir}        [slot: @code{source-path}]
+A list of directories to search for source files.
+
+@end table
+
+@node Selecting projects
+@section Selecting projects
+The current project can either be indicated by a global variable
+(called a ``selected project''), or depend on the current buffer.
+
+In addition, the project file can be parsed each time it is needed, or
+the result cached to improve response time,
+
+One reason to use a selected project is to handle a hierarchy of
+projects; if projects B and C both depend on library project A, then
+when in a file of project A, there is no way to determine which of the
+three projects to return. So the user must indicate which is active,
+by using one of @code{wisi-prj-select-file} or
+@code{wisi-prj-select-cache}.
+
+In addition, if changing from one project to another requires setting
+global resources that must also be unset (such as a syntax propertize
+hook or compilation filter hook), then the project should define
+@code{wisi-prj-deselect} in addition to @code{wisi-prj-select}. Such
+projects require having a selected current project, so it can be
+deselected before a new one is selected. One example of such projects
+is ada-mode.
+
+One way to declare each project is to add a Local Variables section
+in the main Makefile for the project; when the Makefile is first
+visited, the project is declared. In the examples here, we assume
+that approach is used; each gives an :eval line.
+
+Note that @code{wisi-prj-current-parse} and
+@code{wisi-prj-current-cached} always succeed after some project is
+selected; no functions after them on @var{project-find-functions} will
+be called. That's why the depth is 90 for those in the examples.
+
+@table @asis
+@item No caching, current project depends on current buffer
+@example
+  (add-hook 'project-find-functions #'wisi-prj-find-dominating-parse 0)
+
+  :eval (wisi-prj-set-dominating "foo.prj" (foo-prj-default "prj-name"))
+@end example
+
+@code{wisi-prj-set-dominating} declares the name of a project file,
+and a default project object.
+
+@code{wisi-prj-find-dominating-parse} looks for the declared project
+files in the parent directories of the current buffer. When one is
+found, the project file is parsed, using the default project object to
+dispatch to the appropriate parsers. Then the final project object is
+returned.
+
+@item Caching, current project depends on current buffer
+@example
+  (add-hook 'project-find-functions #'wisi-prj-find-dominating-cached 0)
+
+  :eval (wisi-prj-cache-dominating "foo.prj" (foo-prj-default "prj-name"))
+@end example
+
+@code{wisi-prj-cache-dominating} declares the project file, parses it,
+and saves the project object in a
+cache. @code{wisi-prj-find-dominating-cached} finds the dominating
+project file, and retrieves the object from the cache.
+
+@item No caching, last selected project is current
+@example
+  (add-hook 'project-find-functions #'wisi-prj-current-parse 90)
+
+  :eval: (wisi-prj-select-file <prj-file> (foo-prj-default "prj-name"))
+@end example
+
+@code{wisi-prj-select-file} sets the project file as the current
+project, and saves the default project object.
+
+@code{wisi-prj-current-parse} parses the current project file, using
+the saved default project object, and returns the project object.
+
+@item Caching, last selected project is current
+@example
+  (add-hook 'project-find-functions #'wisi-prj-current-cached 90)
+
+  :eval: (wisi-prj-select-cache <prj-file> (foo-prj-default
+  "prj-name"))
+@end example
+
+@code{wisi-prj-select-cache} parses the project file, caches the
+project object.
+
+@code{wisi-prj-current-cached} returns the cached current project
+object.
+
+@end table
+
+In addition, the user should set @code{xref-backend-functions}. Currently,
+there is only one choice for wisi projects:
+
+@example
+(add-to-list 'xref-backend-functions #'wisi-prj-xref-backend 90)
+@end example
+
+@code{wisi-prj-xref-backend} returns the current wisi project object.
+
+@node Other project functions
+@section Other project functions
+
+@table @code
+@item wisi-refresh-prj-cache (not-full)
+Refreshes all cached data in the project. If NOT-FULL is non-nil, slow
+refresh operations are skipped.
+
+This reparses the project file, and any cross reference information.
+
+@item wisi-prj-select-dominating
+@end table
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

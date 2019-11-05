@@ -304,9 +304,6 @@ which is displayed on error."
      )))
 
 (cl-defmethod wisi-compiler-parse-one ((compiler gnat-compiler) project name value)
-  "Handle gnat-specific wisi project file settings.
-If NAME recognized, update PROJECT, return t. Else return nil.
-See also `gnat-prj-parse-emacs-final'."
   (cond
    ((or
      (string= name "ada_project_path") ;; backward compatibility
@@ -317,6 +314,12 @@ See also `gnat-prj-parse-emacs-final'."
 	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
       (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value))))
     t)
+
+   ((string= name "gnat-stub-cargs")
+    (setf (gnat-compiler-gnat-stub-cargs compiler) value))
+
+   ((string= name "gnat-stub-opts")
+    (setf (gnat-compiler-gnat-stub-opts compiler) value))
 
    ((string= name "gpr_file")
     ;; The gpr file is parsed in `wisi-compiler-parse-final', so it
@@ -332,17 +335,11 @@ See also `gnat-prj-parse-emacs-final'."
 			  (gnat-compiler-project-path compiler)))))
     t)
 
-   ((string= name "target")
-    (setf (gnat-compiler-target compiler) value))
-
    ((string= name "runtime")
     (setf (gnat-compiler-runtime compiler) value))
 
-   ((string= name "gnat-stub-opts")
-    (setf (gnat-compiler-gnat-stub-opts compiler) value))
-
-   ((string= name "gnat-stub-cargs")
-    (setf (gnat-compiler-gnat-stub-cargs compiler) value))
+   ((string= name "target")
+    (setf (gnat-compiler-target compiler) value))
 
    ))
 

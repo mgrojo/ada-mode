@@ -56,10 +56,11 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    need to alias old "set ada project file" to wisi-prj-select-cache
-        and tell people to set project-find-functions?
-        do that by default?
+    add gnat-stub-cargs, gnat-stub-opts to ada-mode.texi
 
+
+    move other sections from ada-mode.info to wisi.info
+        automatic casing, at least the part on casing exception files
 
     review FIXME
     (grep "grep FIXME *.el")
@@ -68,6 +69,8 @@ major cleanup
     test all menus
 
     run/update ada-build tutorial
+
+    review manuals
 
 move sal-make-prj into wisi-prj.el
     doc use case; local in Makefile (or other builder file)

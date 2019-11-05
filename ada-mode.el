@@ -1410,6 +1410,17 @@ For `wisi-indent-calculate-functions'.
       ))
   (back-to-indentation))
 
+;;;###autoload
+(defun ada-select-prj-file (prj-file)
+  (wisi-prj-select-cache prj-file (ada-prj-default))
+
+  ;; We set project-find-functions, xref-backend-functions here for
+  ;; compatibility with ada-mode 6.x.
+  (unless (memq #'wisi-prj-current-cached project-find-functions)
+    (add-hook 'project-find-functions #'wisi-prj-current-cached)
+    (add-hook 'xref-backend-functions #'wisi-prj-xref-backend)))
+(make-obsolete 'ada-select-prj-file "wisi-prj-select-cache" "ada-mode 7.0")
+
 ;;;; ada-mode
 
 (defvar which-func-functions nil) ;; which-func.el

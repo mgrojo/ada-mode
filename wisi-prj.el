@@ -21,75 +21,7 @@
 
 ;;; Usage:
 ;;
-;; The user must decide which function to add to
-;; `project-find-functions' and `xref-backend-functions', and set the
-;; corresponding variables. The choice depends on how much caching of
-;; project settings is needed (which depends on how slow parsing and
-;; re-parsing the project file is), and on whether there is a single
-;; current selected project, or the current project depends on the
-;; current buffer.
-;;
-;; One reason to use a selected project is to handle a hierarchy of
-;; projects; if projects B and C both depend on library project A,
-;; then when in a file of project A, there is no way for
-;; `wisi-prj-find-dominating-*' to determine which of the three
-;; projects to return. So the user must indicate which is active, by
-;; using `wisi-prj-select-*'.
-;;
-;; In addition, if changing from one project to another requires
-;; setting global resources that must also be unset, then the project
-;; will define `wisi-prj-deselect' in addition to
-;; `wisi-prj-select'. Such projects require having a 'selected current
-;; project', so it can be deselected before a new one is selected;
-;; they must use either wisi-prj-current-parse or
-;; wisi-prj-current-cached. One example of such projects is different
-;; host and embedded target compilers that compile the same source;
-;; there will be one project for each compiler, with different
-;; settings for compilation-filter-hook, compilation-environment, and
-;; similar variables.
-;;
-;; One way to declare each project is to add a Local Variables section
-;; in the main Makefile for the project; when the Makefile is first
-;; visited, the project is declared. In the examples here, we assume
-;; that approach is used; each gives an :eval line.
-;;
-;; Note that wisi-prj-current-parse and wisi-prj-current-cached always
-;; succeed after some project is selected; no functions after them on
-;; project-find-functions will be called. That's why the depth is 90
-;; for those.
-;;
-;; -- No caching, current project depends on current buffer:
-;;
-;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-parse 0)
-;;
-;;   :eval (wisi-prj-set-dominating "foo.prj" (foo-prj-default "prj-name"))
-;;
-;; -- Caching, current project depends on current buffer:
-;;
-;;   (add-hook 'project-find-functions #'wisi-prj-find-dominating-cached 0)
-;;
-;;   :eval (wisi-prj-cache-dominating "foo.prj" (foo-prj-default "prj-name"))
-;;
-;; -- No caching, last selected project is current:
-;;
-;;   (add-hook 'project-find-functions #'wisi-prj-current-parse 90)
-;;
-;;   :eval: (wisi-prj-select-file <prj-file> (foo-prj-default "prj-name"))
-;;
-;; -- Caching, last selected project is current:
-;;
-;;   (add-hook 'project-find-functions #'wisi-prj-current-cached 90)
-;;
-;;   :eval: (wisi-prj-select-cache <prj-file> (foo-prj-default "prj-name"))
-;;
-;;
-;; In addition, the user should set xref-backend-functions (currently,
-;; there is only one choice for wisi projects):
-;;
-;; (add-to-list 'xref-backend-functions #'wisi-prj-xref-backend 90)
-;;
-;; wisi-prj-xref-backend returns the xref object from the current wisi
-;; project.
+;; See wisi.info (compiled from wisi.texi).
 
 ;;; Code:
 
@@ -652,7 +584,7 @@ In any case, return the project."
     project))
 
 (defun wisi-prj-show-prj-path ()
-  "Show the project project file search path."
+  "Show the compiler project file search path."
   (interactive)
   (wisi-compiler-show-prj-path (wisi-prj-compiler (wisi-prj-require-prj))))
 
@@ -1213,6 +1145,7 @@ current buffer file name) to `wisi-prj--dominating-alist' (for
 
 (defun wisi-prj-select-dominating (&optional dominating-file)
   "Unless it is already current, select a wisi-prj matching DOMINATING-FILE.
+DOMINATING-FILE defaults to the current buffer file name.
 Useful before running `compilation-start', to ensure the correct
 project is current."
   (when (or dominating-file (buffer-file-name))

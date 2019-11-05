@@ -27,7 +27,8 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** Major restructuring of code, moving many functions from ada-mode to
    wisi for use in other language modes, and using cl-defgeneric
    dispatching instead of function variables. Normal users should see
-   no changes, but if you've written custom code that depends on
+   no changes, except that some ada-mode functions will warn about
+   being obsolete. If you've written custom code that depends on
    ada-mode functions, you may have to change it.
 
 ** gpr-mode fully supports auto-casing; new user variables

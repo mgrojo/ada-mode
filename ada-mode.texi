@@ -1219,118 +1219,59 @@ functions are not available.
 @node Project file overview, Project file variables, Project files, Project files
 @section Project file overview
 
-Project files have a simple syntax; they may be edited directly. Each
-line specifies a project variable name and its value, separated by
-``='' (spaces not allowed):
-@example
-src_dir=/Projects/my_project/src_1
-src_dir=/Projects/my_project/src_2
-@end example
+ada-mode uses wisi project files; @ref{wisi, Project files, Project files, wisi}.
 
-Any line that does not have an ``='' is a comment.
-
-Some variables (like @code{src_dir}) are lists; multiple occurrences
-are concatenated.
-
-There must be no space between the variable name and ``='', and no
-trailing spaces after the value.
-
-The current project file is given by the lisp variable
-@code{ada-prj-default-project-file}, and shown by the menu command
+The current project file is shown by the menu command
 @key{Ada | Project Files | Show project}.
 
-To set the project file, use the menu command @samp{Ada | Set Project
-...}, or the elisp functions @code{ada-parse-prj-file,
-ada-select-prj-file}. The latter can be added to a Makefile:
+To set the project file, use the menu command @samp{Ada | Find and
+select Project ...}, or one of the elisp functions described in
+@ref{wisi, Selecting Projects, Selecting Projects, wisi}.
 
-@example
-# Local Variables:
-# eval: (ada-parse-prj-file "ada-mode.prj")
-# eval: (ada-select-prj-file ada-mode.prj")
-# End:
-@end example
-
-You specify either a GNAT project file or an Emacs Ada mode project
-file; if the file extension is @code{.gpr}, the file is treated as a
-GNAT project file. Extensions given by @code{ada-prj-file-extensions}
-(default @file{.adp, .prj}) are treated as an Emacs Ada mode
-project file.
-
-After a project file is parsed, you can make it current again with
-just @code{ada-select-prj-file}, or by selecting it from the menu.
+The project file may also be a GNAT project file (with file extension
+is @code{.gpr}).
 
 @node Project file variables,  , Project file overview, Project files
 @section Project file variables
 
-To set a project variable that is a list, specify each element of the
-list on a separate line in the project file. The value on the last
-line is the last element in the list.
-
-A variable name that starts with @code{$} is set as a process
-environment variable, for processes launched from Emacs for the
-project.
-
-In variable values, process environment variables can be referenced
-using the normal @code{$var} syntax.
-
-Most project variables have defaults that can be changed by setting
+Some project variables have defaults that can be changed by setting
 elisp variables; the table below identifies the elisp variable for each
 project variable. Elisp variables corresponding to project variables
 that are lists are elisp lists.
 
-In general, project variables are evaluated when referenced in Emacs
-Ada mode commands. Relative file paths are expanded relative to the
-directory containing the project file.
+wisi defines some project variables, Ada mode defines some, others are
+defined by the compiler and the cross reference tool.
 
-Ada mode defines some project variables; others are defined by the
-compiler.
-
-Here is the list of variables valid for all compilers. In the default
-values, the current directory @code{"."} is the directory containing
-the project file.
+Here is the list of variables valid defined by wisi and Ada mode. In
+the default values, the current directory @code{"."} is the directory
+containing the project file.
 
 @table @asis
-@c These are the names that appear in the .adp file, which are the
-@c same as the symbols used with ada-prj-get
+@c These are the names that appear in the .prj file. Most have a
+@c corresponding slot in the project object, with a name derived from
+@c the project file name by replacing '_' with '-'.
 @c
-@c defined in ada-mode.el ada-prj-parse-file-1; alphabetical order
+@c defined in wisi-prj.el and ada-mode.el wisi-prj-parse-one.
 @c defaults defined in ada-mode.el ada-prj-default
 
 @item @code{ada_compiler}   [default: @code{ada-compiler, gnat}]
-Ada compiler for this project. It must occur in the project file
-before any compiler-specific project variable.
+Ada compiler for this project.
 
-@item @code{auto_case}      [default: @code{ada-auto-case, t}]
-Non-nil means automatically change case of preceding word while typing.
+Setting this in the project file reinitializes all options for the
+xref tool, so it must occur before any compiler-specific project
+variable.
 
-@item @code{case_identifier}   [default: @code{ada-case-identifier, mixed-case}]
-Indicates how to adjust the case of an Ada identifier.
+@item @code{casing}
+List of files containing casing exceptions. @xref{Automatic casing,
+Automatic casing, wisi.info}.
 
-@item @code{case_keyword}   [default: @code{ada-case-keyword, lower-case}]
-Indicates how to adjust the case of an Ada keyword.
-
-@item @code{case_strict}    [default: @code{ada-case-strict, t}]
-If non-nil, @code{ada-mixed-case} forces @code{Mixed_Case} for identifiers.
-Otherwise, @code{ada-mixed-case} allows @code{UPPERCASE} for identifiers.
-
-@item @code{casing}         [default: @code{ada-case-exception-file, nil}]
-List of files containing casing exceptions. @xref{Automatic casing}.
-
-@item @code{el_file}        [default: ]
-The value is a file name, which is loaded as an elisp file when the
-project file is parsed or selected. This allows setting Ada mode indentation
-variables, and any arbitrary elisp code used to customize the project.
-
-@item @code{obj_dir}        [default: @code{"."}]
+@item @code{obj_dir}        [default: ]
 A list of directories to search for object and cross-reference
 files. Only needed if you are not using GPR files.
 
-@item @code{path_sep}       [default: @code{path-separator}]
-Separator character used in compiler search paths.
-
-@item @code{src_dir}        [default: @code{"."}]
+@item @code{src_dir}        [default: ]
 A list of directories to search for source files. Added to the source
-directories from a GPR file.
+directories from a gpr file (if any).
 
 @item @code{xref_tool}      [default: @code{ada-xref-tool}]
 Cross reference tool for this project.
@@ -1345,47 +1286,40 @@ which uses @code{gnat find}.
 
 @end table
 
-The following variables are valid with the GNAT compiler:
+The following project file variables are defined by the GNAT compiler:
 
 @table @asis
-@item @code{ada_project_path}   [default: @code{""}]
-@c FIXME: update these comments
-@c ada-prj-get 'prj_dir, 'proc_env
-A directory (relative to the directory containing the project file) to
-search for GNAT project files. The directory is added to the
+@c defined in gnat-core.el wisi-compiler-parse-one.
+@item @code{ada_project_path}   [default: ]
+Same as @code{gpr_project_path}; see below.
+
+@item @code{gpr_file}   [default: ]
+The GNAT project file for the project.
+
+If set, the source and project directories specified in the GNAT
+project file are appended to @code{src_dir} and
+@code{gpr_project_path}. This allows specifying Ada source directories
+with a GNAT project file, and other source directories with the Emacs
+project file.
+
+@item @code{gpr_project_path}   [default: ]
+A list of directories to
+search for GNAT project files. The list is passed to tools via the
 @code{GPR_PROJECT_PATH} process environment variable in the process
 used to run the @code{gnat} and @code{gpr_query} tools.
 
 If not set, @code{GPR_PROJECT_PATH} in the child process is inherited
 from the Emacs process.
 
-The project search path can also be set in GNAT aggregate
-projects. However, the gnat tools do not make that path available to
-Emacs, so you must duplicate it in an Emacs Ada project file.
-@c FIXME: test with gnat 2019
-
-@item @code{gpr_file}   [default: @code{""}]
-The GNAT project file.
-
-If set, the source and project directories specified in the GNAT
-project file are appended to @code{src_dir} and
-@code{ada_project_path}. This allows specifying Ada source directories
-with a GNAT project file, and other source directories with the Emacs
-project file.
-
-@item @code{gpr_project_path}   [default: @code{""}]
-Same as @code{ada_project_path}.
-
-@item @code{runtime} [default: @code{nil}]
-@c used in gnat-run-gnat
+@item @code{runtime} [default: ]
+@c slot gnat-compiler-runtime
 If set, the name of the runtime, used as the value of the @code{RTS}
-command line option.
+command line option for tools.
 
 @item @code{target} [default: @code{nil}]
-@c used in gnat-run-gnat, ada-gnat-xref-all
+@c slot gnat-compiler-target
 If set, the name of the cross-compilation target, prepended to the
 @code{gnat} executable name.
-
 
 @end table
 
@@ -1795,7 +1729,7 @@ all uppercase identifiers without defining a casing exception.
 @end table
 
 You can define exceptions to these rules, in files specified by the
-variable @code{ada-case-exception-file}. Each line in a case exception
+@code{casing} project variable. Each line in a case exception
 file specifies the casing of one word or word fragment. If an
 exception is defined in multiple files, the first occurrence is used.
 
@@ -1814,7 +1748,6 @@ GNAT
 The word fragment @code{*IO} applies to any word containing ``_io'';
 @code{Text_IO}, @code{Hardware_IO}, etc.
 
-@findex ada-case-create-exception
 There are two ways to add new items to this file: you can simply edit
 it as you would edit any text file. Or you can position point on the
 word you want to add, and select menu @samp{Ada | Casing | Create full

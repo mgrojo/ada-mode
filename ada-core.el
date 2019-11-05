@@ -669,6 +669,9 @@ Throw an error if current project is not an ada-prj."
       ))
 
    ((string= name "xref_tool")
+    ;; This is defined here, rather than in wisi, because the list of
+    ;; xref tools is likely to be language-specific (but not always;
+    ;; for example Gnu global supports many languages).
     (let ((xref-label (intern value)))
       (if (memq xref-label ada-xref-known-tools)
 	  (progn
@@ -682,6 +685,9 @@ Throw an error if current project is not an ada-prj."
    (t
     ;; Any other field in the file is set as a project file variable.
     ;; eg "comp_opt"
+    ;;
+    ;; This is defined here, rather than in wisi, because we only
+    ;; maintain it for compatibility with previous ada-mode versions.
     (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
 					     (intern name) value)))
    ))
