@@ -59,8 +59,9 @@ before that as the token."
   ;; Standard comment end included for languages where that is newline.
   (skip-syntax-backward " !>")
 
-  ;; Include punctuation here, to handle a dotted name (ie Ada.Text_IO)
-  (let* ((end (point))
+  (let* ((wisi-inhibit-parse t) ;; don't parse until skeleton is fully inserted
+	 (end (point))
+	 ;; Include punctuation here, to handle a dotted name (ie Ada.Text_IO)
 	 (token (progn (skip-syntax-backward "w_.")
 		  (downcase (buffer-substring-no-properties (point) end))))
 	 (skel (assoc-string token wisi-skel-token-alist))
@@ -92,11 +93,12 @@ before that as the token."
       (when (not name)
 	;; avoid infinite recursion
 
-	;; Adjust case now, because skeleton insert won't.
-	;;
-	;; We didn't do it above, because we don't want to adjust case
-	;; on tokens and placeholders.
-	(save-excursion (wisi-case-adjust-region (point) end))
+	(when wisi-auto-case
+	  ;; Adjust case now, because skeleton insert won't.
+	  ;;
+	  ;; We didn't do it above, because we don't want to adjust case
+	  ;; on tokens and placeholders.
+	  (save-excursion (wisi-case-adjust-region (point) end)))
 
 	(wisi-skel-expand (buffer-substring-no-properties (point) end))
 	(setq handled t)))

@@ -139,9 +139,10 @@ If NOT-FULL is non-nil, very slow refresh operations may be skipped.")
   "Set NAME, VALUE in COMPILER, if recognized by COMPILER.
 PROJECT is an `wisi-prj' object; COMPILER is `wisi-prj-compiler'.")
 
-(cl-defgeneric wisi-compiler-parse-final (compiler project prj-file-name)
+(cl-defgeneric wisi-compiler-parse-final (_compiler _project _prj-file-name)
   "Do any compiler-specific processing on COMPILER and PROJECT
-after the project file PRJ-FILE-NAME is parsed.")
+after the project file PRJ-FILE-NAME is parsed."
+  nil)
 
 (cl-defgeneric wisi-compiler-select-prj (_compiler _project)
   "PROJECT has been selected; do any compiler-specific actions required."
@@ -231,25 +232,6 @@ set. Otherwise return the current project."
         (error "%s (opened) and %s (found in project) are two different files"
                file-name found-file)))
     project))
-
-(defun wisi-goto-declaration ()
-  "Move to the declaration or body of the identifier around point.
-If at the declaration, go to the body, and vice versa."
-  (interactive)
-  (let* ((project (wisi-check-current-project (buffer-file-name)))
-	 (target (wisi-xref-other
-		  (wisi-prj-xref project)
-		  project
-		  :identifier (wisi-prj-identifier-at-point project)
-		  :filename (buffer-file-name)
-		  :line (line-number-at-pos)
-		  :column (current-column)
-		  )))
-
-    (wisi-goto-source (nth 0 target)
-		      (nth 1 target)
-		      (nth 2 target))
-    ))
 
 (cl-defgeneric wisi-xref-parents (xref project &key identifier filename line column)
   "Displays parent type declarations.
@@ -444,7 +426,7 @@ absolute file name.")
   (message
    (cond
     (wisi-prj--current-file
-     (wisi-prj-name (assoc wisi-prj--current-file wisi-prj--cache)))
+     (wisi-prj-name (cdr (assoc wisi-prj--current-file wisi-prj--cache))))
     (t
      (let ((prj (project-current)))
        (if (wisi-prj-p prj)
@@ -523,6 +505,10 @@ Else return nil."
 
    ))
 
+(defvar-local wisi-prj-parse-undefined-function nil
+  "Function called if a project file variable name is not recognized.
+Called with three args: PROJECT NAME VALUE.")
+
 (defun wisi-prj-parse-file-1 (prj-file project)
   "Wisi project file parser."
   (with-current-buffer (find-file-noselect prj-file)
@@ -533,19 +519,25 @@ Else return nil."
 
       ;; ignore lines that don't have the format "name=value", put
       ;; 'name', 'value' in match-string.
-      (when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
+      (when (looking-at "^\\([^= \n]+\\)=\\(.*\\)")
 	(let ((name (match-string 1))
-	      (value (match-string 2)))
-	  (cond
-	   ((let (result)
-	      ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
-	      (when (wisi-compiler-parse-one (wisi-prj-compiler project) project name value)
-		(setq result t))
-	      (when (wisi-xref-parse-one (wisi-prj-xref project) project name value)
-		(setq result t))
-	      result))
-	   ((wisi-prj-parse-one project name value))
-	   )))
+	      (value (match-string 2))
+	      result)
+
+	  ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.
+	  (when (wisi-compiler-parse-one (wisi-prj-compiler project) project name value)
+	    (setq result t))
+	  (when (wisi-xref-parse-one (wisi-prj-xref project) project name value)
+	    (setq result t))
+
+	  (unless result
+	    (setq result (wisi-prj-parse-one project name value)))
+
+	  (when (and (not result)
+		     wisi-prj-parse-undefined-function)
+	    (funcall wisi-prj-parse-undefined-function project name value))
+
+	   ))
 
       (forward-line 1)
       )
@@ -553,8 +545,10 @@ Else return nil."
 
 (cl-defun wisi-prj-parse-file (&key prj-file init-prj cache)
   "Read project file PRJ-FILE with default values from INIT-PRJ.
-If CACHE is non-nil, add the project to `wisi-prj--cache'.
-In any case, return the project."
+PRJ-FILE parser is from `wisi-prj-parser-alist'; if that yields
+no parser, no error occurs; the file is just a placeholder.  If
+CACHE is non-nil, add the project to `wisi-prj--cache'.  In any
+case, return the project."
   (setq prj-file (expand-file-name prj-file))
 
   (unless (file-readable-p prj-file)
@@ -1059,7 +1053,6 @@ with \\[universal-argument]."
 	     map
 	     (char-to-string key)
 	     'wisi-case-adjust-interactive)))
-	;; FIXME: any char with non-word/symbol syntax.
 	'( ?_ ?% ?& ?* ?\( ?\) ?- ?= ?+
 	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )

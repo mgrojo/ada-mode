@@ -155,12 +155,12 @@ There are two standard choices; ada_mode_wisi_lalr_parse and
 ada_mode_wisi_lr1_parse. The LR1 version (the default) is
 slower to load on first use, but gives better error recovery."
   :type 'string
-  :group 'ada-indentation)
+  :group 'ada)
 
 (defcustom ada-process-parse-exec-opts nil
   "List of process start options for `ada-process-parse-exec'."
   :type 'string
-  :group 'ada-indentation)
+  :group 'ada)
 
 ;;;; keymap and menus
 
@@ -178,7 +178,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
-    (define-key map "\C-c\C-d" 	 'wisi-goto-declaration)
+    (define-key map "\C-c\C-d" 	 'xref-find-definitions)
     (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
@@ -189,7 +189,6 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-n" 	 'forward-sexp)
     (define-key map "\C-c\M-n" 	 'wisi-skel-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
-    (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'backward-sexp)
     (define-key map "\C-c\M-p" 	 'wisi-skel-prev-placeholder)
     (define-key map "\C-c\C-q" 	 'wisi-refresh-prj-cache)
@@ -227,7 +226,7 @@ slower to load on first use, but gives better error recovery."
     ("Build"
      ["Next compilation error"     next-error                t]
      ["Show secondary error"       ada-show-secondary-error  t]
-     ["Fix compilation error"      ada-fix-compiler-error    t]
+     ["Fix compilation error"      wisi-fix-compiler-error   t]
      ["Show last parse error"      wisi-show-parse-error     t]
      ["Check syntax"               ada-build-check       t]
      ["Show main"                  ada-build-show-main   t]
@@ -237,9 +236,8 @@ slower to load on first use, but gives better error recovery."
      )
     ("Navigate"
      ["Other file"                    ada-find-other-file          t]
-     ["Other file don't find decl"    ada-find-other-file-noset    t]
      ["Find file in project"          project-find-file            t]
-     ["Goto declaration/body"         wisi-goto-declaration        t]
+     ["Goto declaration/body"         xref-find-definitions        t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
      ["Goto containing statement start" wisi-goto-containing-statement-start t]
@@ -293,7 +291,7 @@ slower to load on first use, but gives better error recovery."
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
-    ["Goto declaration/body"         wisi-goto-declaration         t]
+    ["Goto declaration/body"         xref-find-definitions         t]
     ["Show parent declarations"      wisi-show-declaration-parents t]
     ["Goto declarative region start" ada-goto-declarative-region-start   t]
     ["Goto declaration start"        ada-goto-declaration-start   t]
@@ -670,9 +668,8 @@ Also sets ff-function-name for ff-pre-load-hook."
 
 (defun ada-goto-subunit-name ()
   "Return non-nil if the current buffer contains a subunit.
-Also move point to the subunit name (for
-`wisi-goto-declaration'). If no subunit, leave point alone, return
-nil."
+Also move point to the subunit name. If no subunit, leave point
+alone, return nil."
   (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
@@ -764,7 +761,7 @@ previously set by a file navigation command."
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (wisi-goto-declaration))
+    (xref-find-definitions (thing-at-point 'symbol)))
 
    (t
     (ff-find-other-file)))
@@ -1518,6 +1515,8 @@ For `wisi-indent-calculate-functions'.
      :face-table ada-process-face-table
      :token-table ada-process-token-table
      :repair-image ada-process-repair-image)))
+
+  (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )

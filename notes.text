@@ -56,19 +56,29 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    add gnat-stub-cargs, gnat-stub-opts to ada-mode.texi
-
-
-    move other sections from ada-mode.info to wisi.info
-        automatic casing, at least the part on casing exception files
-
-    review FIXME
-    (grep "grep FIXME *.el")
-    (grep-find "find . -type f -print | \"xargs\" grep  -nH --null FIXME")
+    Use syntax flags for Ada comments. Placeholders?
 
     test all menus
+        except Build | *; tested in tutorial
+
+        Navigate | goto body/decl needs key?
+            should be C-c C-d; deleted in ada-mode-keys.el
+
+            fails with gnatxref prj file that does not set ada_xref_tool
+                (setq ada-gnat-debug-run t)
+                test/debug.adb
+                Ada | Projects | find/select: c:/Projects/org.emacs.ada-mode/test/ada_mode-gnatxref.prj
+
+                point on Require_Body
+                Ada | Navigate | goto declaration/body
+                    tries to run gpr_query, because ada-xref-tool is gpr_query
+                    fails with ".prj is not a project file"; need better error
+
+
+    verify all 6.x autoloads are still present/obsolete
 
     run/update ada-build tutorial
+        test all Build | * menu
 
     review manuals
 

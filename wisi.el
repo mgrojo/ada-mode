@@ -1258,100 +1258,106 @@ for parse errors. BEGIN, END is the parsed region."
   "For `indent-region-function', using the wisi indentation engine.
 If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 `indent-line-function')."
-  (when (< 0 wisi-debug)
-    (message "wisi-indent-region %d %d"
-	     (wisi-safe-marker-pos begin)
-	     (wisi-safe-marker-pos end)))
+  (if wisi-inhibit-parse
+      (when (< 0 wisi-debug)
+	(message "wisi-indent-region %d %d skipped; wisi-inhibit-parse"
+		 (wisi-safe-marker-pos begin)
+		 (wisi-safe-marker-pos end)))
 
-  (let ((wisi--parse-action 'indent)
-	(parse-required nil)
-	(end-mark (copy-marker end))
-	(prev-indent-failed wisi-indent-failed))
+    (let ((wisi--parse-action 'indent)
+	  (parse-required nil)
+	  (end-mark (copy-marker end))
+	  (prev-indent-failed wisi-indent-failed))
 
-    (wisi--check-change)
+      (when (< 0 wisi-debug)
+	(message "wisi-indent-region %d %d"
+		 (wisi-safe-marker-pos begin)
+		 (wisi-safe-marker-pos end)))
 
-    ;; BEGIN is inclusive; END is exclusive.
-    (save-excursion
-      (goto-char begin)
-      (setq begin (line-beginning-position))
+      (wisi--check-change)
 
-      (when (bobp) (forward-line))
-      (while (and (not parse-required)
-		  (or (and (= begin end) (= (point) end))
-		      (< (point) end))
-		  (not (eobp)))
-	(unless (get-text-property (1- (point)) 'wisi-indent)
-	  (setq parse-required t))
-	(forward-line))
-      )
-
-    ;; A parse either succeeds and sets the indent cache on all
-    ;; lines in the parsed region, or fails and leaves valid caches
-    ;; untouched.
-    (when (and parse-required
-	       (or (not wisi-parse-failed)
-		   (wisi-parse-try 'indent)))
-
-      (wisi-set-parse-try nil)
-      (wisi--run-parse begin end)
-
-      ;; If there were errors corrected, the indentation is
-      ;; potentially ambiguous; see
-      ;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
-      ;; where errors producing bad indent are pretty much expected.
-      (unless (wisi-partial-parse-p begin end)
-	(setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
-					 (length (wisi-parser-parse-errors wisi--parser))))))
-      )
-
-    (if wisi-parse-failed
-	(progn
-	  ;; primary indent failed
-	  (setq wisi-indent-failed t)
-	  (when (functionp wisi-indent-region-fallback)
-	    (when (< 0 wisi-debug)
-	      (message "wisi-indent-region fallback"))
-	    (funcall wisi-indent-region-fallback begin end)))
-
+      ;; BEGIN is inclusive; END is exclusive.
       (save-excursion
-	;; Apply cached indents.
 	(goto-char begin)
-	(let ((wisi-indenting-p t))
-	  (while (and (not (eobp))
-		      (or (and (= begin end) (= (point) end))
-			  (< (point) end-mark))) ;; end-mark is exclusive
-	    (when (or indent-blank-lines (not (eolp)))
-	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
-	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
-		    (indent-line-to indent))
-	      )
-	    (forward-line 1))
+	(setq begin (line-beginning-position))
 
-	  ;; Run wisi-indent-calculate-functions
-	  (when wisi-indent-calculate-functions
-	    (goto-char begin)
+	(when (bobp) (forward-line))
+	(while (and (not parse-required)
+		    (or (and (= begin end) (= (point) end))
+			(< (point) end))
+		    (not (eobp)))
+	  (unless (get-text-property (1- (point)) 'wisi-indent)
+	    (setq parse-required t))
+	  (forward-line))
+	)
+
+      ;; A parse either succeeds and sets the indent cache on all
+      ;; lines in the parsed region, or fails and leaves valid caches
+      ;; untouched.
+      (when (and parse-required
+		 (or (not wisi-parse-failed)
+		     (wisi-parse-try 'indent)))
+
+	(wisi-set-parse-try nil)
+	(wisi--run-parse begin end)
+
+	;; If there were errors corrected, the indentation is
+	;; potentially ambiguous; see
+	;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
+	;; where errors producing bad indent are pretty much expected.
+	(unless (wisi-partial-parse-p begin end)
+	  (setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
+					   (length (wisi-parser-parse-errors wisi--parser))))))
+	)
+
+      (if wisi-parse-failed
+	  (progn
+	    ;; primary indent failed
+	    (setq wisi-indent-failed t)
+	    (when (functionp wisi-indent-region-fallback)
+	      (when (< 0 wisi-debug)
+		(message "wisi-indent-region fallback"))
+	      (funcall wisi-indent-region-fallback begin end)))
+
+	(save-excursion
+	  ;; Apply cached indents.
+	  (goto-char begin)
+	  (let ((wisi-indenting-p t))
 	    (while (and (not (eobp))
-			(< (point) end-mark))
-	      (back-to-indentation)
-	      (let ((indent
-		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
-		(when indent
-		  (indent-line-to indent)))
+			(or (and (= begin end) (= (point) end))
+			    (< (point) end-mark))) ;; end-mark is exclusive
+	      (when (or indent-blank-lines (not (eolp)))
+		;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
+		(let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
+		  (indent-line-to indent))
+		)
+	      (forward-line 1))
 
-	      (forward-line 1)))
-	  )
+	    ;; Run wisi-indent-calculate-functions
+	    (when wisi-indent-calculate-functions
+	      (goto-char begin)
+	      (while (and (not (eobp))
+			  (< (point) end-mark))
+		(back-to-indentation)
+		(let ((indent
+		       (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		  (when indent
+		    (indent-line-to indent)))
 
-	(when
-	    (and prev-indent-failed
-		 (not wisi-indent-failed))
-	  ;; Previous parse failed or indent was potentially
-	  ;; ambiguous, this one is not.
-	  (goto-char end-mark)
-	  (when (< 0 wisi-debug)
-	    (message "wisi-indent-region post-parse-fail-hook"))
-	  (run-hooks 'wisi-post-indent-fail-hook))
-	))
-    ))
+		(forward-line 1)))
+	    )
+
+	  (when
+	      (and prev-indent-failed
+		   (not wisi-indent-failed))
+	    ;; Previous parse failed or indent was potentially
+	    ;; ambiguous, this one is not.
+	    (goto-char end-mark)
+	    (when (< 0 wisi-debug)
+	      (message "wisi-indent-region post-parse-fail-hook"))
+	    (run-hooks 'wisi-post-indent-fail-hook))
+	  ))
+      )))
 
 (defun wisi-indent-line ()
   "For `indent-line-function'."
@@ -1361,7 +1367,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
     (when (>= (point) savep)
       (setq to-indent t))
 
-    (wisi-indent-region (line-beginning-position (- wisi-indent-context-lines)) (1+ (line-end-position)) t)
+    (wisi-indent-region (line-beginning-position (1+ (- wisi-indent-context-lines))) (1+ (line-end-position)) t)
 
     (goto-char savep)
     (when to-indent (back-to-indentation))

@@ -1,14 +1,11 @@
---  encountered "error during resume". FIXME: still does
-
---EMACS_SKIP_UNLESS:(and nil (eq ada-parser 'process))
-
+-- Encountered "error during resume".
 begin
-accept Start;
+   accept Start;
 
-      loop
-         Explore.Process_One (Super, Shared, Status);
+   loop
+      Explore.Process_One (Super, Shared, Status);
 
-         if Status = All_Done then
+      if Status = All_Done then
          exit;
-            end if;
-         end select;
+      end if;
+   end select;

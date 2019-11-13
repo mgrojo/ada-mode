@@ -18,6 +18,7 @@
        (list
 	(concat "WISITOKEN=c:" wisitoken-core))))
       ))
-  ))
+   "Makefile"
+   ))
 
 ;; end of file

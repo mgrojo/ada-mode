@@ -15,8 +15,8 @@ project GDS is
    --EMACSCMD:(progn (forward-line -1)(capitalize-word 1)(wisi-case-adjust-at-point)(let ((case-fold-search nil))(looking-back "project")))
    --EMACSRESULT:t
 
-   --  FIXME: add face, autocase test for 'external_as_list'
-   --  for Foo use external_as_list ("bar");
+   --EMACSCMD:(test-face "external_as_list" font-lock-keyword-face)
+   for Foo use external_as_list ("bar");
 
    for Source_Dirs use
      ("../auto",

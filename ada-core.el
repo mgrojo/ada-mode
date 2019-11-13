@@ -681,16 +681,31 @@ Throw an error if current project is not an ada-prj."
 	(user-error "'%s' is not a recognized xref tool (must be one of %s)"
 		    xref-label ada-xref-known-tools))
       ))
-
-   (t
-    ;; Any other field in the file is set as a project file variable.
-    ;; eg "comp_opt"
-    ;;
-    ;; This is defined here, rather than in wisi, because we only
-    ;; maintain it for compatibility with previous ada-mode versions.
-    (setf (ada-prj-plist project) (plist-put (ada-prj-plist project)
-					     (intern name) value)))
    ))
+
+(defun ada-prj-parse-undefined (project name value)
+  "For `wisi-prj-parse-undefined-function'."
+  ;; Otherwise undefined names are set as a project file variable.
+  ;; eg "comp_opt"
+  ;;
+  ;; This is defined here, rather than in wisi, because we only
+  ;; maintain it for compatibility with previous ada-mode versions.
+  ;;
+  ;; We assume any repeated names are lists
+  (let ((prev (plist-get (ada-prj-plist project) (intern name))))
+    (if prev
+	(setf (ada-prj-plist project)
+	      (plist-put (ada-prj-plist project)
+			 (intern name)
+			 (append (if (listp prev) prev (list prev))
+				 (list value))))
+
+      (setf (ada-prj-plist project)
+	    (plist-put
+	     (ada-prj-plist project)
+	     (intern name)
+	     value)))
+    ))
 
 ;; This is autoloaded because it is often used in Makefiles, and thus
 ;; will be the first ada-mode function executed.

@@ -1247,9 +1247,7 @@ the default values, the current directory @code{"."} is the directory
 containing the project file.
 
 @table @asis
-@c These are the names that appear in the .prj file. Most have a
-@c corresponding slot in the project object, with a name derived from
-@c the project file name by replacing '_' with '-'.
+@c These are the names that appear in the .prj file.
 @c
 @c defined in wisi-prj.el and ada-mode.el wisi-prj-parse-one.
 @c defaults defined in ada-mode.el ada-prj-default
@@ -1265,11 +1263,17 @@ variable.
 List of files containing casing exceptions. @xref{Automatic casing,
 Automatic casing, wisi.info}.
 
-@item @code{obj_dir}        [default: ]
+@item @code{gnat-stub-args}
+List of strings passed to @code{gnat stub} when it is run.
+
+@item @code{gnat-stub-cargs}
+List of strings passed to @code{gnat stub} after @code{-cargs}.
+
+@item @code{obj_dir}
 A list of directories to search for object and cross-reference
 files. Only needed if you are not using GPR files.
 
-@item @code{src_dir}        [default: ]
+@item @code{src_dir}
 A list of directories to search for source files. Added to the source
 directories from a gpr file (if any).
 
@@ -1729,44 +1733,27 @@ all uppercase identifiers without defining a casing exception.
 @end table
 
 You can define exceptions to these rules, in files specified by the
-@code{casing} project variable. Each line in a case exception
-file specifies the casing of one word or word fragment. If an
-exception is defined in multiple files, the first occurrence is used.
+@code{casing} project variable; @ref{Casing exception files, Casing
+exception files, Casing exception files, wisi.info}.
 
-If the word starts with an asterisk (@code{*}), it defines the casing
-of a word fragment (or ``substring''); part of a word between two
-underscores or word boundary.
-
-For example:
-
-@example
-DOD
-*IO
-GNAT
-@end example
-
-The word fragment @code{*IO} applies to any word containing ``_io'';
-@code{Text_IO}, @code{Hardware_IO}, etc.
-
-There are two ways to add new items to this file: you can simply edit
-it as you would edit any text file. Or you can position point on the
-word you want to add, and select menu @samp{Ada | Casing | Create full
-exception} or @samp{Ada | Casing | Create partial exception}.  The
-word will be added to the current list of exceptions and to the file.
+There are two ways to add new items to a casing exception file: you
+can simply edit it as you would edit any text file, or you can
+position point on the word you want to add, and select menu @samp{Ada
+| Casing | Create full exception} or @samp{Ada | Casing | Create
+partial exception}.  The word will be added to the current list of
+exceptions and to the file.
 
 It is sometimes useful to have multiple exception files. For
 example, one could be the standard Ada acronyms, the second some
 company specific exceptions, and the last one some project specific
-exceptions. If you set up the variable @code{ada-case-exception-file}
-as a list of files, each of them will be parsed and used in your emacs
-session. When you create a new exception, you are prompted for the
+exceptions. When you create a new exception, you are prompted for the
 file to save it in.
 
 Other keys and menu entries are defined:
 
 @table @kbd
 @item C-c C-w
-@findex ada-case-adjust-at-point
+@findex wisi-case-adjust-at-point
 Adjust case of the word at point. With prefix arg, adjust case even if
 in a comment or string. Normally, comments and strings are not
 affected by case adjust.

@@ -10,7 +10,7 @@ package body Ada_Mode.Nominal.Child is -- target 0
       null;
    end Procedure_1a;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(looking-at "overriding function Function_2a"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.ads")))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float
    is

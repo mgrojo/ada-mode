@@ -393,7 +393,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
   '("gpr-query"
     ["Show gpr-query buffer"         gpr-query-show-buffer 	   t]
     ["Next xref"                     next-error 		   t]
-    ["Goto declaration/body"         wisi-goto-declaration 	   t]
+    ["Goto declaration/body"         xref-find-definitions 	   t]
     ["Show parent declarations"      wisi-show-declaration-parents t]
     ["Show references"               wisi-show-references 	   t]
     ["Show overriding"               wisi-show-overriding 	   t]

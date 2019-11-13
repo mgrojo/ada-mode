@@ -632,7 +632,7 @@ add more.
 
 @table @asis
 @item @code{casing}         [slot: @code{case-exception-files}]
-List of files containing casing exceptions. @xref{Automatic casing}.
+List of files containing casing exceptions. @xref{Casing exception files}.
 
 @item @code{src_dir}        [slot: @code{source-path}]
 A list of directories to search for source files.
@@ -738,6 +738,27 @@ there is only one choice for wisi projects:
 @end example
 
 @code{wisi-prj-xref-backend} returns the current wisi project object.
+
+@node Casing exception files
+@section Casing exception files
+Each line in a case exception
+file specifies the casing of one word or word fragment. If an
+exception is defined in multiple files, the first occurrence is used.
+
+If the word starts with an asterisk (@code{*}), it defines the casing
+of a word fragment (or ``substring''); part of a word between two
+underscores or word boundary.
+
+For example:
+
+@example
+DOD
+*IO
+GNAT
+@end example
+
+The word fragment @code{*IO} applies to any word containing ``_io'';
+@code{Text_IO}, @code{Hardware_IO}, etc.
 
 @node Other project functions
 @section Other project functions

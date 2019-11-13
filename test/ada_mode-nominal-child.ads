@@ -21,7 +21,6 @@ package Ada_Mode.Nominal.Child is
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
    --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (forward-line -1)(forward-word 3)(wisi-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a")))
    --EMACSRESULT:(eq ada-xref-tool 'gpr_query)
-   -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))
    overriding procedure Procedure_1b
@@ -42,10 +41,9 @@ package Ada_Mode.Nominal.Child is
       Item_2 : out    Character)
      is null;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(looking-at "overriding function Function_2a"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.adb")))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
-   -- FIXME: test does not distinguish spec from body!
 
    overriding
    function Function_2b (Param : in Child_Type_1) return
