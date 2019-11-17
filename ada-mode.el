@@ -408,6 +408,7 @@ button was clicked."
 (defvar ada-mode-syntax-table
   (let ((table (make-syntax-table)))
     ;; (info "(elisp)Syntax Class Table" "*info syntax class table*")
+    ;; (info "(elisp) Syntax Flags") for comment start/end
     ;; make-syntax-table sets all alphanumeric to w, etc; so we only
     ;; have to add ada-specific things.
 
@@ -423,7 +424,7 @@ button was clicked."
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
-    (modify-syntax-entry ?-  "." table); operator; see ada-syntax-propertize for double hyphen as comment
+    (modify-syntax-entry ?-  ". 124" table); operator, double hyphen as comment
     (modify-syntax-entry ?. "." table)
     (modify-syntax-entry ?/  "." table)
     (modify-syntax-entry ?:  "." table)
@@ -437,9 +438,8 @@ button was clicked."
 
     ;; \f and \n end a comment.
     ;; comment start set in ada-syntax-propertize.
-    ;; flag ’s’ experimental; end unterminated string at newline.
-    (modify-syntax-entry ?\f  "> s" table)
-    (modify-syntax-entry ?\n  "> s" table)
+    (modify-syntax-entry ?\f  ">" table)
+    (modify-syntax-entry ?\n  ">" table)
 
     (modify-syntax-entry ?_ "_" table); symbol constituents, not word.
 
@@ -472,7 +472,6 @@ Runs `ada-syntax-propertize-hook'."
 	      (concat
 	       "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
 	       "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
-	       "\\|\\(--\\)"; 4: comment start
 	       )
 	      end t)
 	;; syntax-propertize-extend-region-functions is set to
@@ -490,9 +489,6 @@ Runs `ada-syntax-propertize-hook'."
 	   (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
 	  (put-text-property
 	   (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
-	 ((match-beginning 4)
-	  (put-text-property
-	   (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
 	 )))
     (run-hook-with-args 'ada-syntax-propertize-hook start end))
   )

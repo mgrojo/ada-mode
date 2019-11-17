@@ -148,16 +148,19 @@ Throw an error if current project does not have a gnat-compiler."
 
 	  )
       (error
-       ;; search-forward failed
+       ;; search-forward failed. Possible causes:
+       ;;
+       ;; missing dirs in GPR_PROJECT_PATH => user error
+       ;; missing Object_Dir => gprbuild not run yet; it will be run soon
+       ;; some files are missing string quotes => user error
+       ;;
+       ;; We used to call gpr_query to get src-dirs, prj-dirs here; it
+       ;; is tolerant of the above errors. But ignoring the errors, to
+       ;; let gprbuild run with GPR_PROJECT_PATH set, is simpler.
        (pop-to-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-compiler project))))
        (message "project search path: %s" prj-dirs)
-       (error "parse gpr failed")
+       (message "parse gpr failed")
        ))
-
-    ;; We used to call gpr_query to get src-dirs, prj-dirs here, but
-    ;; that seems unnecessary. However, gprls (aka gnatls) fails if
-    ;; any files are missing string quotes (but not for other syntax
-    ;; errors).
 
     ;; reverse prj-dirs so project file dirs precede gnat library dirs
     (setf (wisi-prj-source-path project) (nreverse (delete-dups src-dirs)))

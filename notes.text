@@ -55,8 +55,10 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+review the rest of this file for old notes
+
 major cleanup
-    Use syntax flags for Ada comments. Placeholders?
+    use #'remove-hook
 
     test all menus
         except Build | *; tested in tutorial
@@ -81,6 +83,14 @@ major cleanup
         test all Build | * menu
 
     review manuals
+
+start gpr_query.exe in background
+
+release
+
+review eglot/lsp
+    completion; maybe more not obvious from the LSP main page
+
 
 move sal-make-prj into wisi-prj.el
     doc use case; local in Makefile (or other builder file)
@@ -117,8 +127,6 @@ libadalang backend
 
 improve test/ada_mode-recover_32.adb
     recover gets CONSTRAINT_ERROR, config ops full
-
-start gpr_query.exe in background
 
 if there was a corrected error on a line, that is now gone, the indent
 should be recomputed, even if no prior text edited.
@@ -458,11 +466,6 @@ do module interface
 
 remove all code supporting emacs < 25
     syntax-propertize calls
-
-use #'remove-hook
-
-review eglot
-    completion; maybe more not obvious from the LSP main page
 
 first use of lr1 can time out because of load table time
     does not recover nicely
@@ -1284,6 +1287,15 @@ sync for Debian check bogus execute permissions:
     (dvc-sync-review ".")
 
 Debian stable has elpa checkout
+    FIXME: update to Debian Buster 10.2 16 Nov 2019
+        use debian gnat:
+            apt-get install gnat
+            apt-get install libgnatcoll-xref18-dev
+
+            if other c compilers installed, may need to use gprconfig to select gnatgcc for C
+
+            add check for install dir writeable, prompt for sudo or --prefix
+
     ~/bin/mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
