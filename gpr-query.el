@@ -469,7 +469,9 @@ Enable mode if ARG is positive."
 (cl-defmethod wisi-xref-parse-final ((xref gpr-query-xref) _project prj-file-name)
   (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix))
   (unless (gnat-compiler-gpr-file xref)
-    (setf (gnat-compiler-gpr-file xref) prj-file-name)))
+    (if (string= "gpr" (file-name-extension prj-file-name))
+	(setf (gnat-compiler-gpr-file xref) prj-file-name)
+      (user-error "using gpr-query xref, but no gpr file provided"))))
 
 (cl-defmethod wisi-xref-refresh-cache ((_xref gpr-query-xref) project no-full)
   ;; Kill the current session and delete the database, to get changed

@@ -702,8 +702,8 @@ Prompt user if more than one."
   )
 
 (cl-defmethod ada-prj-deselect-compiler ((_compiler gnat-compiler) _project)
-  (setq ada-syntax-propertize-hook (delq #'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
-  (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
+  (remove-hook 'ada-syntax-propertize-hook #'ada-gnat-syntax-propertize)
+  (remove-hook 'compilation-filter-hook #'ada-gnat-compilation-filter)
   )
 
 (cl-defmethod ada-compiler-file-name-from-ada-name ((compiler gnat-compiler) project ada-name)

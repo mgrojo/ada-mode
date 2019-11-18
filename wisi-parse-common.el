@@ -74,7 +74,6 @@ and parse the whole buffer."
 (cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))
   "Return a string to be sent to the parser, containing settings
 for the language-specific parser options."
-  ;; not needed for the elisp parser, which can see the options directly.
   )
 
 (cl-defgeneric wisi-parse-expand-region ((_parser wisi-parser) begin end)

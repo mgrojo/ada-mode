@@ -235,6 +235,7 @@
     (modify-syntax-entry ?\" "\"" table)
 
     ;; punctuation; operators etc
+    (modify-syntax-entry ?-  ". 124" table); operator, double hyphen as comment
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?. "." table)
     (modify-syntax-entry ?:  "." table)
@@ -262,22 +263,6 @@
     table
     )
   "Syntax table to be used for editing gpr source code.")
-
-(defun gpr-syntax-propertize (start end)
-  "Assign `syntax-table' properties in accessible part of buffer."
-  ;; (info "(elisp)Syntax Properties")
-  ;;
-  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
-  ;; syntax-propertize-extend-region-functions is set to
-  ;; syntax-propertize-wholelines by default.
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (goto-char start)
-    (save-match-data
-      (while (re-search-forward "--" end t); comment start
-	(put-text-property
-	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
-  )))
 
 ;;;; wisi integration
 
@@ -379,10 +364,6 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
   (setq mode-name "GNAT Project")
   (use-local-map gpr-mode-map)
   (set-syntax-table gpr-mode-syntax-table)
-  (set (make-local-variable 'syntax-propertize-function) 'gpr-syntax-propertize)
-  (when (boundp 'syntax-begin-function)
-    ;; obsolete in emacs-25.1
-    (set (make-local-variable 'syntax-begin-function) nil))
   (set 'case-fold-search t); gpr is case insensitive; the syntax parsing requires this setting
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")

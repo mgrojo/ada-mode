@@ -6,6 +6,8 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
+--EMACSCMD:(set-default 'wisi-process-time-out 10) -- local to *parse* buffer
+
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is
    --  recover inserts 'procedure <identifier> (' here.
@@ -21,5 +23,4 @@ is begin
    -- Local Variables:
    -- wisi-mckenzie-task-count: 1
    -- wisi-mckenzie-enqueue-limit: 280000
-   -- wisi-process-time-out: 10
    -- End:

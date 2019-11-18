@@ -211,27 +211,37 @@ identifier.  Signal an error if no identifier is at point."
       (skip-syntax-backward "w_")
       ident)))
 
-(defun wisi-check-current-project (file-name)
-  "Throw error if FILE-NAME (must be absolute) is not found in
-the current project source directories, or if no project has been
-set. Otherwise return the current project."
-  (let* ((project (wisi-prj-require-prj))
-	 (visited-file (file-truename file-name)) ;; file-truename handles symbolic links
-         (found-file (locate-file (file-name-nondirectory visited-file)
-				  (wisi-prj-source-path project))))
-    (unless found-file
-      (error "current file not part of current project; wrong project?"))
+(defun wisi-check-current-project (file-name &optional default-prj-function)
+  "If FILE-NAME (must be absolute) is found in the current
+project source directories, return the current
+project. Otherwise, if the current project is a wisi project,
+throw an error.  If the current project is not a wisi project,
+and DEFAULT-PRJ-FUNCTION is non-nil, use it to return a default
+project. Otherwise throw an error."
+  (let ((visited-file (file-truename file-name)) ;; file-truename handles symbolic links
+        (project (project-current)))
+    (if (wisi-prj-p project)
+	(let ((found-file (locate-file (file-name-nondirectory visited-file)
+				       (wisi-prj-source-path project))))
+	  (unless found-file
+	    (error "current file not part of current project; wrong project?"))
 
-    (setq found-file (file-truename found-file))
+	  (setq found-file (file-truename found-file))
 
-    ;; (nth 10 (file-attributes ...)) is the inode; required when hard
-    ;; links are present.
-    (let* ((visited-file-inode (nth 10 (file-attributes visited-file)))
-           (found-file-inode (nth 10 (file-attributes found-file))))
-      (unless (equal visited-file-inode found-file-inode)
-        (error "%s (opened) and %s (found in project) are two different files"
-               file-name found-file)))
-    project))
+	  ;; (nth 10 (file-attributes ...)) is the inode; required when hard
+	  ;; links are present.
+	  (let* ((visited-file-inode (nth 10 (file-attributes visited-file)))
+		 (found-file-inode (nth 10 (file-attributes found-file))))
+	    (unless (equal visited-file-inode found-file-inode)
+              (error "%s (opened) and %s (found in project) are two different files"
+		     file-name found-file)))
+	  project)
+
+      ;; create a project?
+      (if default-prj-function
+	  (funcall default-prj-function nil (file-name-directory file-name))
+	(error "current project is not a wisi project."))
+      )))
 
 (cl-defgeneric wisi-xref-parents (xref project &key identifier filename line column)
   "Displays parent type declarations.
@@ -660,16 +670,20 @@ Value is one of:
 Return non-nil if case of symbol at point should be adjusted.
 Point is on last char of symbol.")
 
-(defun wisi-case-show-files (project)
-  "Show PROJECT casing files list."
-  (if (wisi-prj-case-exception-files project)
-      (progn
-	(pop-to-buffer (get-buffer-create "*casing files*"))
-	(erase-buffer)
-	(dolist (file (wisi-prj-case-exception-files project))
-	  (insert (format "%s\n" file))))
-    (message "no casing files")
-    ))
+(defun wisi-case-show-files ()
+  "Show casing files list for the current project."
+  (interactive)
+  (let ((project (project-current)))
+
+    (if (and (wisi-prj-p project)
+	     (wisi-prj-case-exception-files project))
+	(progn
+	  (pop-to-buffer (get-buffer-create "*casing files*"))
+	  (erase-buffer)
+	  (dolist (file (wisi-prj-case-exception-files project))
+	    (insert (format "%s\n" file))))
+      (message "no casing files")
+      )))
 
 (defun wisi--case-save-exceptions (full-exceptions partial-exceptions file-name)
   "Save FULL-EXCEPTIONS, PARTIAL-EXCEPTIONS to the file FILE-NAME."
@@ -748,13 +762,15 @@ An item in both lists has the RESULT value."
     (push (cons word t) exceptions))
   exceptions)
 
-(defun wisi-case-create-exception (project &optional partial)
-  "Define a word as an auto-casing exception in PROJECT.
+(defun wisi-case-create-exception (&optional partial)
+  "Define a word as an auto-casing exception in the current project.
 The word is the active region, or the symbol at point.  If
 PARTIAL is non-nil, create a partial word exception.  User is
 prompted to choose a file from the project case-exception-files
 if it is a list."
-  (let ((file-name
+  (interactive)
+  (let* ((project (wisi-prj-require-prj))
+	 (file-name
 	 (cond
 	   ((< 1 (length (wisi-prj-case-exception-files project)))
 	    (completing-read "case exception file: " (wisi-prj-case-exception-files project)
@@ -1122,6 +1138,9 @@ current buffer file name) to `wisi-prj--dominating-alist' (for
     ;; re-selecting it.
     (when (wisi-prj-p old-prj)
       (wisi-prj-deselect old-prj)))
+
+  (unless (memq #'wisi-prj-current-cached project-find-functions)
+    (message "wisi-prj-select-cache used without wisi-prj-current-cached in project-find-functions"))
 
   (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))

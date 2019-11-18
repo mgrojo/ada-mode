@@ -1590,7 +1590,7 @@ with the line number appended."
 	 'font-lock-face nil
 	 'fontified nil)))
      (wisi-validate-cache begin end t parse-action)
-     (when (fboundp 'font-lock-ensure) (font-lock-ensure))) ;; emacs < 25
+     (font-lock-ensure))
 
     (navigate
      (wisi-validate-cache begin end t parse-action))
@@ -1721,18 +1721,12 @@ with the line number appended."
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
-  ;; See comments above on syntax-propertize.
-  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
-
-  ;; In Emacs >= 26, ‘run-mode-hooks’ (in the major mode function)
-  ;; runs ‘hack-local-variables’ after ’*-mode-hooks’; we need
-  ;; ‘wisi-post-local-vars’ to run after ‘hack-local-variables’.
   (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
   )
 
 (defun wisi-post-local-vars ()
   "See wisi-setup."
-  (setq hack-local-variables-hook (delq 'wisi-post-local-vars hack-local-variables-hook))
+  (remove-hook 'hack-local-variables-hook #'wisi-post-local-vars)
 
   (unless wisi-disable-face
     (jit-lock-register #'wisi-fontify-region)))

@@ -134,11 +134,13 @@ before that as the token."
 
 (defun wisi-skel-next-placeholder ()
   "Move point to after next placeholder."
+  (interactive)
   (skip-syntax-forward "^!")
-  (skip-syntax-forward "w!"))
+  (skip-syntax-forward "w_!"))
 
 (defun wisi-skel-prev-placeholder ()
   "Move point to after previous placeholder."
+  (interactive)
   (skip-syntax-backward "^!"))
 
 (provide 'wisi-skel)

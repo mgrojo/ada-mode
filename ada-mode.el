@@ -240,27 +240,26 @@ slower to load on first use, but gives better error recovery."
      ["Goto declaration/body"         xref-find-definitions        t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
-     ["Goto containing statement start" wisi-goto-containing-statement-start t]
+     ["Goto subprogram/package start" ada-goto-declaration-start   t]
+     ["Goto subprogram/package end"   ada-goto-declaration-end     t]
      ["Goto declarative region start" ada-goto-declarative-region-start   t]
-     ["Goto declaration start"        ada-goto-declaration-start   t]
-     ["Goto declaration end"          ada-goto-declaration-end     t]
-     ["Show parent declarations"      ada-show-declaration-parents t]
+     ["Goto containing statement start" wisi-goto-containing-statement-start t]
+     ["Show parent declarations"      wisi-show-declaration-parents t]
      ["Show references"               wisi-show-references          t]
      ["Show local references"         wisi-show-local-references    t]
      ["Show overriding"               wisi-show-overriding          t]
      ["Show overridden"               wisi-show-overridden          t]
-     ["Goto secondary error"          wisi-show-secondary-error     t]
-     ["Goto prev position current buffer" pop-mark              t]
-     ["Goto prev position other buffer"   pop-global-mark       t]
-     ["Next placeholder"              wisi-next-placeholder    t]
-     ["Previous placeholder"          wisi-prev-placeholder    t]
+     ["Goto prev position current buffer" pop-to-mark-command  t]
+     ["Goto prev position other buffer"   pop-global-mark      t]
+     ["Next placeholder"              wisi-skel-next-placeholder    t]
+     ["Previous placeholder"          wisi-skel-prev-placeholder    t]
      )
     ("Edit"
      ["Expand skeleton"             wisi-skel-expand        t]
      ["Indent line or selection"    indent-for-tab-command  t]
      ["Indent current statement"    wisi-indent-statement   t]
      ["Indent containing statement" wisi-indent-containing-statement    t]
-     ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
+     ["Indent file"            (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
      ["Comment/uncomment selection" comment-dwim            t]
      ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
@@ -269,18 +268,18 @@ slower to load on first use, but gives better error recovery."
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ("Refactor"
-     ["Method (Object) => Object.Method"   ada-wisi-refactor-1 t]
-     ["Object.Method   => Method (Object)" ada-wisi-refactor-2 t]
-     ["Element (Object, Index) => Object (Index)" ada-wisi-refactor-3 t]
-     ["Object (Index) => Element (Object, Index)" ada-wisi-refactor-4 t]
+     ["Method (Object) => Object.Method"   ada-refactor-1 t]
+     ["Object.Method   => Method (Object)" ada-refactor-2 t]
+     ["Element (Object, Index) => Object (Index)" ada-refactor-3 t]
+     ["Object (Index) => Element (Object, Index)" ada-refactor-4 t]
      )
     ("Casing"
-     ["Create full exception"       ada-case-create-exception t]
-     ["Create partial exception"    ada-case-create-partial-exception t]
+     ["Create full exception"       wisi-case-create-exception t]
+     ["Create partial exception"    wisi-case-create-partial-exception t]
      ["Adjust case at point"        wisi-case-adjust-at-point  t]
      ["Adjust case region"          wisi-case-adjust-region    t]
      ["Adjust case buffer"          wisi-case-adjust-buffer    t]
-     ["Show casing files list"      ada-case-show-files       t]
+     ["Show casing files list"      wisi-case-show-files       t]
      )
     ("Misc"
      ["Show last parse error"         wisi-show-parse-error        t]
@@ -292,16 +291,16 @@ slower to load on first use, but gives better error recovery."
   "Context menu keymap for Ada mode"
   '("Ada"
     ["Goto declaration/body"         xref-find-definitions         t]
-    ["Show parent declarations"      wisi-show-declaration-parents t]
+    ["Goto next statement keyword"   forward-sexp   t]
+    ["Goto prev statement keyword"   backward-sexp   t]
     ["Goto declarative region start" ada-goto-declarative-region-start   t]
-    ["Goto declaration start"        ada-goto-declaration-start   t]
-    ["Goto declaration end"          ada-goto-declaration-end     t]
+    ["Goto containing statement start" wisi-goto-containing-statement-start t]
+    ["Goto subprogram/package start" ada-goto-declaration-start    t]
+    ["Goto subprogram/package end"   ada-goto-declaration-end      t]
     ["Show parent declarations"      wisi-show-declaration-parents t]
     ["Show references"               wisi-show-references          t]
     ["Show overriding"               wisi-show-overriding          t]
     ["Show overridden"               wisi-show-overridden          t]
-    ["Goto next statement keyword"   forward-sexp   t]
-    ["Goto prev statement keyword"   backward-sexp   t]
 
     ["-"                nil nil]
 
@@ -312,8 +311,8 @@ slower to load on first use, but gives better error recovery."
     ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) (wisi-in-comment-p)]
     ["Adjust case at point"	      wisi-case-adjust-at-point             (not (use-region-p))]
     ["Adjust case region"	      wisi-case-adjust-region               (use-region-p)]
-    ["Create full case exception"     ada-case-create-exception         t]
-    ["Create partial case exception"  ada-case-create-partial-exception t]
+    ["Create full case exception"     wisi-case-create-exception         t]
+    ["Create partial case exception"  wisi-case-create-partial-exception t]
     ["Indent current statement"	      wisi-indent-statement             t]
     ["Expand skeleton"		      wisi-skel-expand                  t]
     ["Make body for subprogram"	      ada-make-subprogram-body          t]
@@ -739,7 +738,7 @@ previously set by a file navigation command."
   ;;                       information
 
   (interactive)
-  (wisi-check-current-project (buffer-file-name))
+  (wisi-check-current-project (buffer-file-name) #'ada-prj-default)
 
   ;; clear ff-function-name, so either ff-special-constructs or
   ;; ada-which-function will set it.
@@ -889,7 +888,7 @@ compiler-specific compilation filters."
 (defun ada-goto-declaration-start (&optional include-type)
   "Move point to start of the generic, package, protected,
 subprogram, or task declaration point is currently in or just
-after."
+after.  For `beginning-of-defun-function'."
   (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (ada-goto-declaration-start-1 include-type))
@@ -1514,7 +1513,7 @@ For `wisi-indent-calculate-functions'.
 
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
 
-  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  (add-hook 'hack-local-variables-hook #'ada-mode-post-local-vars nil t)
   )
 
 (defun ada-mode-post-local-vars ()
@@ -1525,9 +1524,7 @@ For `wisi-indent-calculate-functions'.
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
 
-  (setq hack-local-variables-hook (delq 'ada-mode-post-local-vars hack-local-variables-hook))
-
-  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
+  (remove-hook 'hack-local-variables-hook #'ada-mode-post-local-vars)
 
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
