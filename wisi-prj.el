@@ -191,6 +191,11 @@ slow refresh operations may be skipped."
   (setq wisi-prj--default nil)
   (setq wisi-prj--dominating-alist nil))
 
+(defun wisi-prj-clear-current ()
+  "Clear the current project selection; make no project current."
+  (interactive)
+  (setq wisi-prj--current-file nil))
+
 (cl-defgeneric wisi-xref-other (project &key identifier filename line column)
   "Return cross reference information.
 PROJECT - dispatching object, normally a `wisi-prj' object.
@@ -560,9 +565,6 @@ no parser, no error occurs; the file is just a placeholder.  If
 CACHE is non-nil, add the project to `wisi-prj--cache'.  In any
 case, return the project."
   (setq prj-file (expand-file-name prj-file))
-
-  (unless (file-readable-p prj-file)
-    (error "Project file '%s' is not readable" prj-file))
 
   (run-hooks 'wisi-prj-parse-hook)
 

@@ -702,8 +702,7 @@ end Hello_Pkg;
 
 Yes, this is missing the keyword @code{body}; another compiler error
 example. However, note that the indentation engine parser accepts this
-code with no errors, making it easier to indent slightly illegal Ada
-code.
+code, making it possible to indent illegal Ada code.
 
 In buffer @file{hello.adb}, invoke the menu entry @samp{Ada | Build |
 Check syntax}. You should get a @code{*compilation*} buffer containing
@@ -713,12 +712,14 @@ something like (the directory paths will be different):
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
 Compilation started at Fri Oct 18 04:23:54
 
-gnatmake -u -c -gnatc  c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb -cargs
-gcc -c -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/ -gnatc -I- c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb
+gprbuild  -u -c -gnatc  c:/Projects/org.emacs.ada-mode/test/Example_1/hello.adb
+using project file D:\Apps\GNAT-gpl_2019\share\gpr\_default.gpr
+Compile
+   [Ada]          hello.adb
 hello.adb:4:04: "Put_Line" is not visible
 hello.adb:4:04: non-visible declaration at a-textio.ads:263
 hello.adb:4:04: non-visible declaration at a-textio.ads:259
-gnatmake: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb" compilation error
+gprbuild: *** compilation phase failed
 
 Compilation exited abnormally with code 4 at Fri Oct 18 04:23:54
 @end example
@@ -728,9 +729,9 @@ highlighted, with the file name in red.
 
 Now invoke @samp{Ada | Build | Next compilation error}.  Or you can
 click the middle mouse button on the first error line, or use the key
-binding shown on the menu.  The compilation buffer scrolls to put the
-first error on the top line, and point is put at the place of the
-error in the @file{hello.adb} buffer.
+binding shown on the menu.  In the compilation buffer, a triangle is
+placed in the left fringe on the first error line, and point is put at
+the place of the error in the @file{hello.adb} buffer.
 
 To fix the error, invoke @samp{Ada | Build | Fix compilation error};
 this adds ``Ada.Text_Io.'' to the line:
@@ -749,10 +750,15 @@ compilation buffer is displayed again, containing:
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
 Compilation started at Fri Oct 18 20:39:33
 
-gnatmake -o hello hello  -cargs  -bargs  -largs
-gcc -c hello.adb
-gnatbind -x hello.ali
-gnatlink hello.ali -o hello.exe
+gprbuild  hello  
+using project file D:\Apps\GNAT-gpl_2019\share\gpr\_default.gpr
+Compile
+   [Ada]          hello.adb
+Bind
+   [gprbind]      hello.bexch
+   [Ada]          hello.ali
+Link
+   [link]         hello.adb
 
 Compilation finished at Fri Oct 18 20:39:34
 @end example
@@ -783,10 +789,9 @@ Build}. This finds an error in @file{hello_pkg.adb}:
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 @end example
 
-This demonstrates that gnatmake finds the files needed by the main
+This demonstrates that gprbuild finds the files needed by the main
 program. However, it cannot find files in a different directory,
-unless you use an Emacs Ada mode project file or a GNAT project file
-to specify the other directories; @xref{Set source search path},
+unless you use a GNAT project file to specify the other directories;
 @ref{Use GNAT project file}.
 
 Invoke @samp{Ada | Build | Show main}; this displays @file{Ada mode
@@ -799,7 +804,7 @@ package body Hello_Pkg is
 @end example
 
 Now, while still in @file{hello_pkg.adb}, invoke @samp{Ada | Build |
-Build}.  gnatmake successfully builds @file{hello_2}. This
+Build}.  gprbuild successfully builds @file{hello_2}. This
 demonstrates that Emacs has remembered the main file, in the project
 variable @code{main}, and used it for the Build command.
 
@@ -835,6 +840,11 @@ If you have files from @file{Example_1} open in Emacs, you should
 close them so you don't get confused. Use menu @samp{File | Close
 (current buffer)}.
 
+In addition, invoke @samp{Ada | Project files | Clear current
+project}; even though we did not select a project file, ada-mode has
+selected a default dummy project file. Example_2 uses a project file,
+so we need to tell ada-mode to forget the default one.
+
 In directory @file{Example_2}, create these files:
 
 @file{hello.adb}:
@@ -851,40 +861,44 @@ This is the same as @file{hello.adb} from @file{Example_1}. It has two
 errors; missing ``use Ada.Text_IO;'', and no space between
 @code{Put_Line} and its argument list.
 
-@file{hello.adp}:
+@file{hello.gpr}:
 
 @example
-comp_opt=-gnatyt
+project Hello is
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnatyt");
+   end Compiler;
+end Hello;
 @end example
 
 This tells the GNAT compiler to check for token spacing; in
 particular, there must be a space preceding a parenthesis.
 
 In buffer @file{hello.adb}, invoke @samp{Ada | Build | Set main and
-Build}. This finds the project file @file{hello.adp}, uses it to set
+Build}. This finds the project file @file{hello.gpr}, uses it to set
 the compiler options, and builds the project. You should get a
 @code{*compilation*} buffer containing something like (the directory
 paths will be different):
 
 @example
-cd c:/Examples/Example_2/
-gnatmake -o hello hello -g -cargs -gnatyt  -bargs  -largs
-gcc -c -g -gnatyt hello.adb
+gprbuild -Pc:/Projects/org.emacs.ada-mode/test/Example_2/hello.gpr hello 
+Compile
+   [Ada]          hello.adb
 hello.adb:4:04: "Put_Line" is not visible
-hello.adb:4:04: non-visible declaration at a-textio.ads:264
-hello.adb:4:04: non-visible declaration at a-textio.ads:260
+hello.adb:4:04: non-visible declaration at a-textio.ads:508
+hello.adb:4:04: non-visible declaration at a-textio.ads:498
 hello.adb:4:12: (style) space required
-gnatmake: "hello.adb" compilation error
+gprbuild: *** compilation phase failed
 @end example
 
 Compare this to the compiler output in @ref{No project files}; the
-gnatmake option @code{-cargs} has been replaced by @code{-cargs
--gnaty}, and an additional error is reported in @file{hello.adb} on
-line 4. This shows that @file{hello.adp} is being used to set the
-compiler options.
+compiler-provided default gpr file has been replaced by
+@code{hello.gpr}, and an additional error is reported in
+@file{hello.adb} on line 4. This shows that @file{hello.gpr} is being
+used to set the compiler options.
 
-Fixing the error, linking and running the code proceed as in @ref{No
-project files}.
+Use @kbd{C-x`}, @kbd{C-c M-`} to fix the errors, then @samp{Ada |
+Build | Build} and @samp{Ada | Build | Run} to build and run.
 
 @node Set source search path, Use GNAT project file, Set compiler options, Compiling Examples
 @subsection Set source search path

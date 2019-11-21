@@ -352,6 +352,8 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parser.Lexer.Reset_With_String_Access
                     (Buffer, Params.Source_File_Name, Params.Begin_Char_Pos, Params.Begin_Line);
+
+                  --  Parser.Line_Begin_Token First, Last set by Lex_All
                   begin
                      Parser.Parse;
                   exception

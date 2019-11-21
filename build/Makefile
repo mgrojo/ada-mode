@@ -86,13 +86,11 @@ test : summarize
 summarize :
 	cat test.log
 
-include rules.make
-
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-nominal.adb
+ONE_TEST_FILES ?= ada_mode-options-markus_column_0.adb
 one :: build_executables
-one :: byte-compile autoloads
+#one :: byte-compile autoloads
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
@@ -100,9 +98,9 @@ one-clean :: force
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
@@ -154,6 +152,9 @@ else
 ADA_MODE_DIR := -f package-initialize
 WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.1/wisitoken-bnf-generate.exe
 endif
+
+# 'include' must be after WISITOKEN_GENERATE and other vars are set.
+include rules.make
 
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe

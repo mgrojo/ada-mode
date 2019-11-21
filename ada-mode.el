@@ -222,6 +222,7 @@ slower to load on first use, but gives better error recovery."
      ["Show project"                  wisi-prj-show                    t]
      ["Show project file search path" wisi-prj-show-prj-path           t]
      ["Show source file search path"  wisi-prj-show-src-path           t]
+     ["Clear current project"         wisi-prj-clear-current           t]
     )
     ("Build"
      ["Next compilation error"     next-error                t]
@@ -1402,16 +1403,41 @@ For `wisi-indent-calculate-functions'.
       ))
   (back-to-indentation))
 
+;;;; compatibility with previous ada-mode versions
+
 ;;;###autoload
-(defun ada-select-prj-file (prj-file)
-  (wisi-prj-select-cache prj-file (ada-prj-default))
+(defun ada-fix-compiler-error ()
+  (interactive)
+  (wisi-fix-compiler-error))
+(make-obsolete 'ada-fix-compiler-error 'wisi-fix-compiler-error "ada-mode 7.0.0")
+
+(defun ada-select-prj-file-1 (prj-file)
+;; avoid byte compiler warning about obsolete ada-select-prj-file
+  (wisi-prj-select-cache
+   prj-file
+   (ada-prj-default
+    (file-name-sans-extension (file-name-nondirectory prj-file))
+    (file-name-directory prj-file)))
 
   ;; We set project-find-functions, xref-backend-functions here for
   ;; compatibility with ada-mode 6.x.
   (unless (memq #'wisi-prj-current-cached project-find-functions)
     (add-hook 'project-find-functions #'wisi-prj-current-cached)
     (add-hook 'xref-backend-functions #'wisi-prj-xref-backend)))
-(make-obsolete 'ada-select-prj-file "wisi-prj-select-cache" "ada-mode 7.0")
+
+;;;###autoload
+(defun ada-parse-prj-file (prj-file)
+  (ada-select-prj-file-1 prj-file))
+(make-obsolete 'ada-parse-prj-file 'wisi-prj-select-cache "ada-mode 7.0.0")
+
+;;;###autoload
+(defun ada-select-prj-file (prj-file)
+  (ada-select-prj-file-1 prj-file))
+(make-obsolete 'ada-select-prj-file #'wisi-prj-select-cache "ada-mode 7.0.0")
+
+;;;###autoload
+(defalias 'ada-project-current #'wisi-prj-current-cached)
+(make-obsolete 'ada-project-current #'wisi-prj-current-cached "ada-mode 7.0.0")
 
 ;;;; ada-mode
 

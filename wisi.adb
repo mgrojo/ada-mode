@@ -644,7 +644,7 @@ package body Wisi is
       Data.Terminals.Clear;
       Data.Leading_Non_Grammar.Clear;
       --  Data.Line_Begin_Pos  set in Initialize, overwritten in Lexer_To_Augmented
-      --  Data.Line_Begin_Token  ""
+      --  Data.Line_Begin_Token set in WisiToken.Parse.Next_Grammar_Token.
 
       for S of Data.Line_Paren_State loop
          S := 0;
@@ -2115,10 +2115,55 @@ package body Wisi is
          if Data.Indent_Comment_Col_0 then
             declare
                use all type Ada.Text_IO.Count;
-               Indent : Boolean := True;
+
+               function Containing_Token return Base_Token_Index
+               is
+                  --  Return token index of terminal containing non_grammer on Line;
+                  --  Invalid_Token_Index if none.
+                  I : Line_Number_Type := Line;
+                  J : Base_Token_Index;
+               begin
+                  if Line < Data.Line_Begin_Token.First_Index then
+                     --  Line is before first grammar token; Leading_Non_Grammar checked
+                     --  below.
+                     return Invalid_Token_Index;
+                  end if;
+
+                  loop
+                     exit when Data.Line_Begin_Token.all (I) /= Augmented_Token_Arrays.No_Index;
+                     --  No_Index means Line is in a multi-line token, which could be a block comment.
+                     I := I - 1;
+                  end loop;
+
+                  J := Data.Line_Begin_Token.all (I);
+                  if Line in Data.Terminals (J).First_Trailing_Comment_Line ..
+                    Data.Terminals (J).Last_Trailing_Comment_Line
+                  then
+                     return J;
+                  else
+                     return Invalid_Token_Index;
+                  end if;
+               end Containing_Token;
+
+               Indent     : Boolean                   := True;
+               Containing : constant Base_Token_Index := Containing_Token;
             begin
-               if Data.Line_Begin_Token.all (Line - 1) /= Augmented_Token_Arrays.No_Index then
-                  for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
+               if Line < Data.Line_Begin_Token.First_Index then
+                  --  Line is before the first grammar token. We may be doing a partial
+                  --  parse where the initial indent is non-zero, so we still have to
+                  --  check for column 0.
+                  for Tok of Data.Leading_Non_Grammar loop
+                     if Tok.Line = Line and then
+                       Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
+                       Tok.Column = 0
+                     then
+                        Indent := False;
+                        exit;
+                     end if;
+                  end loop;
+
+               elsif Containing /= Invalid_Token_Index then
+                  for Tok of Data.Terminals (Containing).Non_Grammar loop
                      if Tok.Line = Line and then
                        Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
                        Tok.Column = 0

@@ -218,6 +218,8 @@ package body Run_Wisi_Common_Parse is
             return;
          end;
 
+         --  Parser.Line_Begin_Token First, Last set by Lex_All
+
          if Cl_Params.Command = Refactor or else Cl_Params.End_Line = Invalid_Line_Number then
             --  User did not provide; run lexer to get end line.
             declare
