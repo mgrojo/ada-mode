@@ -1,0 +1,7 @@
+-- Wisi project file
+
+gpr_project_path=More
+
+gpr_file=example_4.gpr
+
+casing=example_4.casing

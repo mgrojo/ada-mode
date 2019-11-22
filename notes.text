@@ -55,38 +55,35 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-split build.sh into build, install
-    when reproducing bugs, don't want to install
-    install may need sudo
-    add --prefix to install
-
 major cleanup
     run/update ada-build tutorial
-        in emacs-26-Q
+        in emacs-26-git-Q
         (progn
+	 (setq indent-line-function #'tab-to-tab-stop)
 	 (package-initialize)
          (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode")
 	 (add-to-list 'exec-path "d:/Apps/GNAT-gpl_2019/bin/")
 	 (setenv "PATH" (concat "d:/Apps/GNAT-gpl_2019/bin/;" (getenv "PATH")))
          (load-file "c:/Projects/org.emacs.ada-mode/autoloads.el")
-	 (setq ada-build-confirm-command t))
+	 (progn (find-file "ada-mode.texi") (search-forward "Example_4"))
+         (find-file-other-window "test/Example_4/More/hello_4.adb")
+	 (ada-build-make))
 
-        (progn (find-file "ada-mode.texi") (search-forward "Example_2"))
+        rewrite example 4 to show case exception
 
-        (find-file "test/Example_2/hello.adb")
-             no -P hello.gpr; gprbuild found it!
-	     default prj from example_1 is selected; need to explicitly deselect it
-
-	     fix errors in example_2 went to Example_1/hello.adb
-	     	 compilation-search-path not changed by selecting hello.gpr project file?
-		 show project shows Example_1 dir!?
 
         test all Build | * menu
             check syntax => ok
             show main => ok
 	    build => ok
+            set and build => ok
 
     review manuals
+
+split build.sh into build, install
+    when reproducing bugs, don't want to install
+    install may need sudo
+    add --prefix to install
 
 package for beta release
     ask for testing

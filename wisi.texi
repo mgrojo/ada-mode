@@ -680,14 +680,15 @@ be called. That's why the depth is 90 for those in the examples.
   :eval (wisi-prj-set-dominating "foo.prj" (foo-prj-default "prj-name"))
 @end example
 
-@code{wisi-prj-set-dominating} declares the name of a project file,
-and a default project object.
+@code{wisi-prj-set-dominating} declares the name of a project file, a
+default project object, and ensures that the current buffer file name
+is in @code{wisi-prj--dominating}.
 
-@code{wisi-prj-find-dominating-parse} looks for the declared project
-files in the parent directories of the current buffer. When one is
-found, the project file is parsed, using the default project object to
-dispatch to the appropriate parsers. Then the final project object is
-returned.
+@code{wisi-prj-find-dominating-parse} looks for the filenames in
+@code{wisi-prj--dominiating} in the parent directories of the current
+buffer. When one is found, the project file is parsed, using the
+default project object to dispatch to the appropriate parsers. Then
+the final project object is returned.
 
 @item Caching, current project depends on current buffer
 @example

@@ -660,14 +660,14 @@ First, create a directory @file{Example_1}, containing:
 @file{hello.adb}:
 
 @example
-with Ada.Text_IO;
+with Ada.Text_Io;
 procedure Hello
 is begin
    Put_Line("Hello from hello.adb");
 end Hello;
 @end example
 
-Yes, this is missing ``use Ada.Text_IO;'' - we want to demonstrate
+Yes, this is missing ``use Ada.Text_Io;'' - we want to demonstrate
 compiler error handling.
 
 @file{hello_2.adb} has no errors:
@@ -691,11 +691,11 @@ end Hello_Pkg;
 @file{hello_pkg.adb}:
 
 @example
-with Ada.Text_IO;
+with Ada.Text_Io;
 package Hello_Pkg is
    procedure Say_Hello
    is begin
-      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+      Ada.Text_Io.Put_Line ("Hello from hello_pkg.adb");
    end Say_Hello;
 end Hello_Pkg;
 @end example
@@ -750,7 +750,7 @@ compilation buffer is displayed again, containing:
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
 Compilation started at Fri Oct 18 20:39:33
 
-gprbuild  hello  
+gprbuild  hello
 using project file D:\Apps\GNAT-gpl_2019\share\gpr\_default.gpr
 Compile
    [Ada]          hello.adb
@@ -840,17 +840,12 @@ If you have files from @file{Example_1} open in Emacs, you should
 close them so you don't get confused. Use menu @samp{File | Close
 (current buffer)}.
 
-In addition, invoke @samp{Ada | Project files | Clear current
-project}; even though we did not select a project file, ada-mode has
-selected a default dummy project file. Example_2 uses a project file,
-so we need to tell ada-mode to forget the default one.
-
 In directory @file{Example_2}, create these files:
 
 @file{hello.adb}:
 
 @example
-with Ada.Text_IO;
+with Ada.Text_Io;
 procedure Hello
 is begin
    Put_Line("Hello from hello.adb");
@@ -858,7 +853,7 @@ end Hello;
 @end example
 
 This is the same as @file{hello.adb} from @file{Example_1}. It has two
-errors; missing ``use Ada.Text_IO;'', and no space between
+errors; missing ``use Ada.Text_Io;'', and no space between
 @code{Put_Line} and its argument list.
 
 @file{hello.gpr}:
@@ -881,7 +876,7 @@ the compiler options, and builds the project. You should get a
 paths will be different):
 
 @example
-gprbuild -Pc:/Projects/org.emacs.ada-mode/test/Example_2/hello.gpr hello 
+gprbuild -Phello.gpr hello
 Compile
    [Ada]          hello.adb
 hello.adb:4:04: "Put_Line" is not visible
@@ -904,8 +899,7 @@ Build | Build} and @samp{Ada | Build | Run} to build and run.
 @subsection Set source search path
 
 In this example, we show how to deal with files in more than one
-directory, using an Emacs Ada mode project file to set the search
-path.
+directory, setting the source search path in the gpr file.
 
 Create the directory @file{Example_3}, containing:
 
@@ -920,11 +914,11 @@ end Hello_Pkg;
 @file{hello_pkg.adb}:
 
 @example
-with Ada.Text_IO;
+with Ada.Text_Io;
 package Hello_Pkg is
    procedure Say_Hello
    is begin
-      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+      Ada.Text_Io.Put_Line ("Hello from hello_pkg.adb");
    end Say_Hello;
 end Hello_Pkg;
 @end example
@@ -932,13 +926,21 @@ end Hello_Pkg;
 These are the same files from example 1; @file{hello_pkg.adb} has an
 error on line 2.
 
-In addition, create a directory @file{Example_3/Other}, containing these files:
+@file{other.gpr}:
+
+@example
+project Other is
+   for Source_Dirs use (".", "Other");
+end Other;
+@end example
+
+In addition, create a directory @file{Example_3/Other}, containing this file:
 
 @file{Other/hello_3.adb}:
 
 @example
 with Hello_Pkg;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_Io; use Ada.Text_Io;
 procedure Hello_3
 is begin
    Hello_Pkg.Say_Hello;
@@ -948,19 +950,11 @@ end Hello_3;
 
 There are no errors in this file.
 
-@file{Other/other.adp}:
-
-@example
-src_dir=..
-@end example
-
-Note that there must be no trailing spaces.
-
 In buffer @file{hello_3.adb}, invoke @samp{Ada | Project files | Find and
-set project...}, and select @file{Example_3/Other/other.adp}. This
+select project...}, and select @file{Example_3/other.gpr}. This
 tells Emacs Ada mode to stop using the project file from
 @file{Example_2}, and use the one for @file{Example_3}. Also note that
-since this project file is not named @file{hello_3.adp}, it would not
+since this project file is not named @file{hello_3.gpr}, it would not
 be found by default.
 
 Then, again in @file{hello_3.adb}, invoke @samp{Ada | Set main and
@@ -968,30 +962,34 @@ Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
-cd c:/Examples/Example_3/Other/
-gnatmake -o hello_3 hello_3 -g -cargs -I.. -bargs  -largs
-gcc -c -g -I.. hello_3.adb
-gcc -c -I./ -g -I.. -I- C:\Examples\Example_3\hello_pkg.adb
+gprbuild -Pother.gpr hello_3
+Compile
+   [Ada]          hello_3.adb
+   [Ada]          hello_pkg.adb
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 gnatmake: "C:\Examples\Example_3\hello_pkg.adb" compilation error
 @end example
 
-Compare the @code{-cargs} option to the compiler output in @ref{Set
-compiler options}; this shows that @file{other.adp} is being used to
-set the compiler options.
-
 Move to the error with @kbd{C-x `}. Ada mode searches the list of
-directories given by @code{src_dir} for the file mentioned in the
+directories given by @code{Source_Dirs} for the file mentioned in the
 compiler error message.
 
-Fixing the error, linking and running the code proceed as in @ref{No
-project files}.
+Use @kbd{C-x`}, @kbd{C-c M-`} to fix the errors, then @samp{Ada |
+Build | Build} and @samp{Ada | Build | Run} to build and run.
 
-@node Use GNAT project file, Use multiple GNAT project files, Set source search path, Compiling Examples
+@node Use wisi project file, Use multiple GNAT project files, Set source search path, Compiling Examples
 @subsection Use GNAT project file
 
-In this example, we show how to use a GNAT project file, with no Ada
-mode project file.
+In this example, we show how to use a wisi project file to set some
+options that cannot be set in a gpr project file. In addition, we
+change a setting so you are prompted for a project file, rather than
+using a default one.
+
+Change the setting:
+
+@example
+M-x set-variable ada-build-prompt-prj search-prompt
+@end example
 
 Create the directory @file{Example_4}, containing:
 
@@ -1006,26 +1004,61 @@ end Hello_Pkg;
 @file{hello_pkg.adb}:
 
 @example
-with Ada.Text_IO;
-package Hello_Pkg is
+with Ada.Text_Io;
+package body Hello_Pkg is
    procedure Say_Hello
    is begin
-      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+      Put_Line ("Hello from hello_pkg.adb");
    end Say_Hello;
 end Hello_Pkg;
 @end example
 
-These are the same files from example 1; @file{hello_pkg.adb} has an
-error on line 2.
+These two files are the similar to files from example 1;
+@file{hello_pkg.adb} has an error on line 5 (missing
+``Ada.Text_IO.'').
 
-In addition, create a directory @file{Example_4/Gnat_Project},
+@file{example_4.prj}:
+
+@example
+-- Wisi project file
+
+gpr_project_path=More
+
+gpr_file=example_4.gpr
+
+casing=example_4.casing
+@end example
+
+@file{example_4.prj} is a wisi project file; it specifies the
+@code{gpr_project_path}, telling @code{gprbuild} where to search for
+gpr files, and specifies the gpr file to use. Finally it specifies a
+casing exception file:
+
+@file{example_4.casing}:
+
+@example
+Text_IO
+@end example
+
+The default auto casing rules in ada-mode state that the Ada package
+``Ada.Text_IO'' should be capitalized as ``Ada.Text_Io'', which does
+not match the Ada Reference Manual.  @file{example_4.casing} specifies
+that instead ``Text_IO'' should be capitalized as shown.
+
+You can create a casing exception by editing the file directly, or via
+the @code{Ada | Casing} menu.
+
+@code{gpr_project_path} and @code{casing} are list variables; each
+occurence in a wisi project file adds an entry to the list.
+
+In addition, create a directory @file{Example_4/More},
 containing these files:
 
-@file{Gnat_Project/hello_4.adb}:
+@file{more/hello_4.adb}:
 
 @example
 with Hello_Pkg;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_Io; use Ada.Text_Io;
 procedure Hello_4
 is begin
    Hello_Pkg.Say_Hello;
@@ -1033,41 +1066,33 @@ is begin
 end Hello_4;
 @end example
 
-There are no errors in this file.
+There are no errors in this file, except for the casing in ``Ada.Text_Io''.
 
-@file{Gnat_Project/hello_4.gpr}:
+@file{More/example_4.gpr}:
 
 @example
-project Hello_4 is
+project Example_4 is
    for Source_Dirs use (".", "..");
-end Hello_4;
+
+   package Compiler is
+      for Default_Switches use ("-gnatyknpr");
+   end Compiler;
+end Example_4;
 @end example
 
-In buffer @file{hello_4.adb}, invoke @samp{Ada | Project | Load...}, and
-select @file{Example_4/Gnat_Project/hello_4.gpr}.
+The compiler switch checks all casing; we will get errors for ``Ada.Text_Io''.
 
-Then, again in @file{hello_4.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Then, in @file{hello_4.adb}, invoke @samp{Ada | Set main and
+Build}. ada-mode looks for a project file @file{hello_4.prj} or
+@file{hello_4.gpr}; since neither is found, you are prompted to find a
+project file.  Select @file{Example_4/example_4.prj}; that is parsed
+and selected, and the build continues.
+
+You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
--*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project/" -*-
-Compilation started at Mon Oct 21 11:28:31
-
-gnatmake -Pc:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project/hello_4.gpr -o hello_4 hello_4  -cargs -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude  -bargs  -largs
-gcc -c -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude -I- -gnatA C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb
-hello_pkg.adb:2:08: keyword "body" expected here [see file name]
-gnatmake: "C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb" compilation error
-
-Compilation exited abnormally with code 4 at Mon Oct 21 11:28:31
 @end example
-
-Compare the @code{gcc} options to the compiler output in @ref{Set
-compiler options}; this shows that @file{hello_4.gpr} is being used to
-set the compiler options.
-
-Fixing the error, linking and running the code proceed as in @ref{No
-project files}.
 
 @node Use multiple GNAT project files, Use a Makefile, Use GNAT project file, Compiling Examples
 @subsection Use multiple GNAT project files

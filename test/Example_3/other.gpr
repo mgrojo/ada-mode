@@ -1,0 +1,4 @@
+project Other is
+   for Source_Dirs use (".", "Other");
+end Other;
+

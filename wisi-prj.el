@@ -189,6 +189,7 @@ slow refresh operations may be skipped."
   (setq wisi-prj--cache nil)
   (setq wisi-prj--current-file nil)
   (setq wisi-prj--default nil)
+  (setq wisi-prj--dominating nil)
   (setq wisi-prj--dominating-alist nil))
 
 (defun wisi-prj-clear-current ()
@@ -1186,9 +1187,17 @@ PRJ-FILE is an absolute project file name; INIT-PRJ is the
 initial `wisi-prj' object for that project file.")
 
 ;;;###autoload
-(defun wisi-prj-select-file (prj-file default-prj)
-  "Set PRJ-FILE as current project, add DEFAULT-PRJ to `wisi-prj--default'."
-  (setq wisi-prj--current-file (expand-file-name prj-file))
+(defun wisi-prj-select-file (prj-file default-prj &optional dominating-file)
+  "Set PRJ-FILE as current project, add DEFAULT-PRJ to `wisi-prj--default'.
+Also add DOMINATING-FILE (default current buffer file name) to
+`wisi-prj--dominating-alist' (for `wisi-prj-select-dominating'.)"
+  (unless (memq #'wisi-prj-current-parse project-find-functions)
+    (message "wisi-prj-select-file used without wisi-prj-current-parse in project-find-functions"))
+
+  (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
+  (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating-alist (cons dominating-file prj-file))
+  (setq wisi-prj--current-file prj-file)
   (add-to-list 'wisi-prj--default (cons prj-file default-prj)))
 
 ;;;###autoload
@@ -1208,11 +1217,9 @@ DOMINATING-FILE is an absolute filename that can be found via
 PRJ-FILE-NAME is the wisi project file for the project for that
 file.")
 
-(defcustom wisi-prj-dominating '("Makefile" "build/Makefile")
+(defvar wisi-prj--dominating nil
   "List of relative filenames for `wisi-prj-find-dominating-cached'
-and `wisi-prj-find-dominating-parse'"
-  :group 'wisi
-  :type '(repeat (string :tag "relative file name")))
+and `wisi-prj-find-dominating-parse'. Set by `wisi-prj-set-dominating'.")
 
 ;;;###autoload
 (defun wisi-prj-cache-dominating (prj-file default-prj &optional dominating-file)
@@ -1221,18 +1228,19 @@ Also add (DOMINATING-FILE . PRJ-FILE) to `wisi-prj--dominating-alist'.
 DOMINATING-FILE defaults to (buffer-file-name). "
   (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating (file-name-nondirectory dominating-file))
   (add-to-list 'wisi-prj--dominating-alist (cons dominating-file prj-file))
   (wisi-prj-parse-file :prj-file prj-file :init-prj default-prj :cache t)
   nil)
 
 (defun wisi-prj--find-dominating-file (start-dir)
-  "Return the project file matching `wisi-prj-dominating'."
+  "Return the project file matching `wisi-prj--dominating'."
   (let* (dom-file
 	 (_dom-dir
 	  (locate-dominating-file
 	   start-dir
 	   (lambda (dir)
-	     (let ((names wisi-prj-dominating))
+	     (let ((names wisi-prj--dominating))
 	       (while names
 		 (let ((filename (expand-file-name (pop names) dir)))
 		   (when (file-exists-p filename)
@@ -1243,24 +1251,24 @@ DOMINATING-FILE defaults to (buffer-file-name). "
 
 ;;;###autoload
 (defun wisi-prj-find-dominating-cached (dir)
-  "For `project-find-functions'; return the cached project matching
-`wisi-prj-dominating'. Select it if it is not the current project."
+  "For `project-find-functions'; return the cached project
+matching `wisi-prj--dominating' (nil if none). Select it if it is
+not the current project."
   (let* ((prj-file (wisi-prj--find-dominating-file dir))
 	 (new-prj (cdr (assoc-string prj-file wisi-prj--cache))))
-    (unless prj-file
-      (error "no dominating file found; run `wisi-prj-cache-dominating'?"))
-    (unless (string= prj-file wisi-prj--current-file)
-      (let ((old-prj (cdr (assoc-string wisi-prj--current-file wisi-prj--cache))))
-	(when old-prj (wisi-prj-deselect old-prj))
-	(unless new-prj
-	  ;; User may have used `wisi-prj-set-dominating' instead of
-	  ;; `wisi-prj-cache-dominating'; parse the project file now.
-	  (wisi-prj-parse-file
-	   :prj-file prj-file
-	   :init-prj (cdr (assoc-string prj-file wisi-prj--default))
-	   :cache t))
-	(when new-prj (wisi-prj-select new-prj))))
-    new-prj))
+    (when prj-file
+      (unless (string= prj-file wisi-prj--current-file)
+	(let ((old-prj (cdr (assoc-string wisi-prj--current-file wisi-prj--cache))))
+	  (when old-prj (wisi-prj-deselect old-prj))
+	  (unless new-prj
+	    ;; User may have used `wisi-prj-set-dominating' instead of
+	    ;; `wisi-prj-cache-dominating'; parse the project file now.
+	    (wisi-prj-parse-file
+	     :prj-file prj-file
+	     :init-prj (cdr (assoc-string prj-file wisi-prj--default))
+	     :cache t))
+	  (when new-prj (wisi-prj-select new-prj))))
+      new-prj)))
 
 ;;;###autoload
 (defun wisi-prj-set-dominating (prj-file default-prj &optional dom-file)
@@ -1271,6 +1279,7 @@ For example, call this in the Local Vars of a Makefile to
 associate a project with that Makefile."
   (setq dom-file (if dom-file (expand-file-name dom-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
+  (add-to-list 'wisi-prj--dominating (file-name-nondirectory dom-file))
   (add-to-list 'wisi-prj--dominating-alist (cons dom-file prj-file))
   (add-to-list 'wisi-prj--default (cons prj-file default-prj))
   nil)
@@ -1278,7 +1287,7 @@ associate a project with that Makefile."
 ;;;###autoload
 (defun wisi-prj-find-dominating-parse (dir)
   "For `project-find-functions'; parse, select, and return the project
-file matching `wisi-prj-dominating'."
+file matching `wisi-prj--dominating'."
   (let ((prj-file (wisi-prj--find-dominating-file dir)))
     (when prj-file
       (let ((prj (wisi-prj-parse-file
@@ -1287,6 +1296,34 @@ file matching `wisi-prj-dominating'."
 		  :cache nil)))
 	(wisi-prj-select prj)
 	prj))))
+
+(defun wisi-prj-dtrt-parse-file (prj-file default-prj dominating-file dir)
+  "Depending on wisi-prj function in `project-find-functions',
+Do The Right Thing to make PRJ-FILE active and selected; return the project."
+  (cond
+   ((memq #'wisi-prj-find-dominating-parse project-find-functions)
+    (wisi-prj-set-dominating prj-file default-prj dominating-file))
+
+   ((memq #'wisi-prj-find-dominating-cached project-find-functions)
+    (wisi-prj-cache-dominating prj-file default-prj dominating-file))
+
+   ((memq #'wisi-prj-current-cached project-find-functions)
+    (wisi-prj-select-cache prj-file default-prj dominating-file))
+
+   ((memq #'wisi-prj-current-parse project-find-functions)
+    (wisi-prj-select-file prj-file default-prj dominating-file))
+
+   (t
+    (user-error "No wisi-prj function in project-find-functions"))
+   )
+  (project-current nil dir))
+
+(defun wisi-prj-find-file-set-p ()
+  "Return non-nil if a wisi-prj function is present in `project-find-functions'."
+  (or (memq #'wisi-prj-find-dominating-parse project-find-functions)
+      (memq #'wisi-prj-find-dominating-cached project-find-functions)
+      (memq #'wisi-prj-current-cached project-find-functions)
+      (memq #'wisi-prj-current-parse project-find-functions)))
 
 ;;;; project menu
 
