@@ -315,8 +315,7 @@ which is displayed on error."
 	   (append
 	    (wisi-prj-compile-env project)
 	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
-      (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value))))
-    t)
+      (gnat-prj-add-prj-dir project (expand-file-name (substitute-in-file-name value)))))
 
    ((string= name "gnat-stub-cargs")
     (setf (gnat-compiler-gnat-stub-cargs compiler) value))
@@ -326,16 +325,19 @@ which is displayed on error."
 
    ((string= name "gpr_file")
     ;; The gpr file is parsed in `wisi-compiler-parse-final', so it
-    ;; sees all file environment vars.
+    ;; sees all file environment vars. We store the absolute gpr
+    ;; file name, so we can get the correct default-directory from
+    ;; it. Note that gprbuild requires the base name be found on
+    ;; GPR_PROJECT_PATH.
     (let ((process-environment
 	   (append
 	    (wisi-prj-compile-env project)
 	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
       (setf (gnat-compiler-gpr-file compiler)
 	    (or
-	     (expand-file-name (substitute-in-file-name value))
 	     (locate-file (substitute-in-file-name value)
-			  (gnat-compiler-project-path compiler)))))
+			  (gnat-compiler-project-path compiler))
+	     (expand-file-name (substitute-in-file-name value)))))
     t)
 
    ((string= name "runtime")

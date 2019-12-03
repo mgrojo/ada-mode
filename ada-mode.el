@@ -195,6 +195,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-r" 	 'wisi-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
     (define-key map "\C-c\C-s"   'pop-global-mark)
+    (define-key map "\C-c\C-t" 	 'ada-find-file)
     (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'wisi-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'wisi-show-overriding)
@@ -283,9 +284,9 @@ slower to load on first use, but gives better error recovery."
      ["Show casing files list"      wisi-case-show-files       t]
      )
     ("Misc"
-     ["Show last parse error"         wisi-show-parse-error        t]
-     ["Refresh cross reference cache" ada-xref-refresh             t]
-     ["Reset parser"                  wisi-reset-parser            t]
+     ["Show last parse error"         wisi-show-parse-error       t]
+     ["Refresh cross reference cache" ada-xref-refresh            t]
+     ["Restart parser"                wisi-kill-parser            t]
      )))
 
 (easy-menu-define ada-context-menu nil
@@ -1403,6 +1404,30 @@ For `wisi-indent-calculate-functions'.
       ))
   (back-to-indentation))
 
+(defun ada-find-file ()
+  "Find a file in the current project.
+Prompts with completion, defaults to filename at point."
+  (interactive)
+  ;; In emacs 27, we can just call 'project-find-file;
+  ;; project-read-file-name-function handles the uniquify-files alist
+  ;; completion table. In emacs 26, we must do that ourselves.
+  (cl-ecase emacs-major-version
+    (27
+     (project-find-file))
+
+    (26
+     (let* ((def (thing-at-point 'filename))
+	    (project (project-current))
+	    (all-files (project-files project nil))
+	    (alist (uniq-file-uniquify all-files))
+	    (table (apply-partially #'uniq-file-completion-table alist))
+            (file (project--completing-read-strict
+                   "Find file" table nil nil def)))
+       (if (string= file "")
+           (user-error "You didn't specify the file")
+	 (find-file (cdr (assoc file alist))))))
+    ))
+
 ;;;; compatibility with previous ada-mode versions
 
 ;;;###autoload
@@ -1421,7 +1446,7 @@ For `wisi-indent-calculate-functions'.
 
   ;; We set project-find-functions, xref-backend-functions here for
   ;; compatibility with ada-mode 6.x.
-  (unless (memq #'wisi-prj-current-cached project-find-functions)
+  (unless (wisi-prj-find-function-set-p)
     (add-hook 'project-find-functions #'wisi-prj-current-cached)
     (add-hook 'xref-backend-functions #'wisi-prj-xref-backend)))
 

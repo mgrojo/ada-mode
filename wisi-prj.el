@@ -420,10 +420,6 @@ LINE, COLUMN are Emacs origin."
 	 (directory-files dir t))))
     result))
 
-(when (not (fboundp 'project--read-file-cpd-relative)) ;; emacs < 27
-  (cl-defmethod project-file-completion-table ((project wisi-prj) &optional dirs)
-    (apply-partially #'uniq-file-completion-table (uniq-file-uniquify (project-files project dirs)))))
-
 (defun wisi-refresh-prj-cache (not-full)
   "Refresh all cached data in the current project.
 With prefix arg, very slow refresh operations may be skipped."
@@ -1158,6 +1154,7 @@ current buffer file name) to `wisi-prj--dominating-alist' (for
     (setq wisi-prj--current-file prj-file)
     (wisi-prj-select new-prj)))
 
+;;;###autoload
 (defun wisi-prj-select-dominating (&optional dominating-file)
   "Unless it is already current, select a wisi-prj matching DOMINATING-FILE.
 DOMINATING-FILE defaults to the current buffer file name.
@@ -1211,11 +1208,11 @@ Also add DOMINATING-FILE (default current buffer file name) to
     prj))
 
 (defvar wisi-prj--dominating-alist nil
-"Alist of (DOMINATING-FILE . PRJ-FILE-NAME):
-DOMINATING-FILE is an absolute filename that can be found via
-`wisi-prj-find-dominating' from a typical project file.
-PRJ-FILE-NAME is the wisi project file for the project for that
-file.")
+"Alist of (DOMINATING-FILE . PRJ-FILE-NAME): DOMINATING-FILE is
+an absolute filename that can be found by
+`wisi-prj-find-dominating-cached' or
+`wisi-prj-find-dominating-cached'.  PRJ-FILE-NAME is the wisi
+project file for the project for that file.")
 
 (defvar wisi-prj--dominating nil
   "List of relative filenames for `wisi-prj-find-dominating-cached'
@@ -1297,7 +1294,8 @@ file matching `wisi-prj--dominating'."
 	(wisi-prj-select prj)
 	prj))))
 
-(defun wisi-prj-dtrt-parse-file (prj-file default-prj dominating-file dir)
+;;;###autoload
+(defun wisi-prj-dtrt-parse-file (prj-file default-prj dominating-file &optional dir)
   "Depending on wisi-prj function in `project-find-functions',
 Do The Right Thing to make PRJ-FILE active and selected; return the project."
   (cond
@@ -1316,9 +1314,10 @@ Do The Right Thing to make PRJ-FILE active and selected; return the project."
    (t
     (user-error "No wisi-prj function in project-find-functions"))
    )
-  (project-current nil dir))
+  (project-current nil (or dir default-directory)))
 
-(defun wisi-prj-find-file-set-p ()
+;;;###autoload
+(defun wisi-prj-find-function-set-p ()
   "Return non-nil if a wisi-prj function is present in `project-find-functions'."
   (or (memq #'wisi-prj-find-dominating-parse project-find-functions)
       (memq #'wisi-prj-find-dominating-cached project-find-functions)
@@ -1347,17 +1346,22 @@ Menu displays cached wisi projects."
     (nreverse menu)))
 
 (defun wisi-prj-menu-install ()
-  "Install the project menu, to display cached wisi projects."
-  (let ((menu (wisi-prj--menu-compute)))
-    (when menu
-      (define-key-after
-	global-map
-	[menu-bar wisi-prj-select]
-	(easy-menu-binding
-	 (easy-menu-create-menu
-	  "Wisi Prj Select";; EDE uses "Project" menu
-	  menu))
-	(lookup-key global-map [menu-bar tools])))))
+  "Install the project menu if appropriate, to display cached wisi projects."
+  (when
+      (or (memq #'wisi-prj-find-dominating-cached project-find-functions)
+	  (memq #'wisi-prj-current-cached project-find-functions))
+
+    (let ((menu (wisi-prj--menu-compute)))
+      (when menu
+	(define-key-after
+	  global-map
+	  [menu-bar wisi-prj-select]
+	  (easy-menu-binding
+	   (easy-menu-create-menu
+	    "Wisi Prj Select";; EDE uses "Project" menu
+	    menu))
+	  (lookup-key global-map [menu-bar tools]))))
+    ))
 
 (add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)
 

@@ -978,7 +978,7 @@ Use @kbd{C-x`}, @kbd{C-c M-`} to fix the errors, then @samp{Ada |
 Build | Build} and @samp{Ada | Build | Run} to build and run.
 
 @node Use wisi project file, Use multiple GNAT project files, Set source search path, Compiling Examples
-@subsection Use GNAT project file
+@subsection Use wisi project file
 
 In this example, we show how to use a wisi project file to set some
 options that cannot be set in a gpr project file. In addition, we
@@ -1075,7 +1075,7 @@ project Example_4 is
    for Source_Dirs use (".", "..");
 
    package Compiler is
-      for Default_Switches use ("-gnatyknpr");
+      for Default_Switches ("Ada") use ("-gnatyknpr");
    end Compiler;
 end Example_4;
 @end example
@@ -1092,16 +1092,34 @@ You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
+gprbuild -Pexample_4.gpr hello_4
+Compile
+   [Ada]          hello_pkg.adb
+hello_pkg.adb:1:16: (style) bad casing of "Text_IO" declared at a-textio.ads:57
+hello_pkg.adb:5:07: "Put_Line" is not visible
+hello_pkg.adb:5:07: non-visible declaration at a-textio.ads:508
+hello_pkg.adb:5:07: non-visible declaration at a-textio.ads:498
+gprbuild: *** compilation phase failed
 @end example
+
+When you fix the errors, note that @kbd{C-c M-`} inserts the correct
+case for ``Ada.Text_IO'', and corrects the case where it is
+incorrect. The case is also corrected as you type; you can type
+``ada.text_io.'' and the case will be corrected when you type each
+``.'' or ``_''.
 
 @node Use multiple GNAT project files, Use a Makefile, Use GNAT project file, Compiling Examples
 @subsection Use multiple GNAT project files
 
 In this example, we show how to use multiple GNAT project files,
-specifying the GNAT project search path in an Ada mode project file.
+specifying the GNAT project search path in an Ada mode project
+file. This also requires explicitly setting
+@code{project-find-functions}.
 
-Create the directory @file{Example_4} as specified in @ref{Use GNAT
-project file}.
+If you haven't already, create the directory @file{Example_4} as
+specified in @ref{Use wisi project file}. If you've already created it
+and run the tutorial, restore the compilation error in hello_pkg.adb;
+delete @code{Ada.Text_IO.} in front of @code{Put_Line}.
 
 Create the directory @file{Example_5}, containing:
 
@@ -1119,49 +1137,108 @@ end Hello_5;
 
 There are no errors in this file.
 
-@file{hello_5.adp}:
+@file{hello_5.prj}:
 
 @example
-ada_project_path=../Example_4/Gnat_Project
+gpr_project_path=../Example_4/More
 gpr_file=hello_5.gpr
+
+casing=../Example_4/example_4.casing
 @end example
 
 @file{hello_5.gpr}:
 
 @example
-with "hello_4";
+with "example_4";
 project Hello_5 is
    for Source_Dirs use (".");
    package Compiler is
-      for Default_Switches ("Ada") use ("-g", "-gnatyt");
+      for Default_Switches ("Ada") use ("-g", "-gnatyknprt");
    end Compiler;
 end Hello_5;
 @end example
 
 In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Find and
-select project...}, and select @file{Example_5/hello_5.adp}. This
+select project...}, and select @file{Example_5/hello_5.prj}. This
 would also be found by default if no previous project file had been
-selected.
+selected. Note that if @file{example_5.gpr} were named
+@file{hello_5.gpr}, the project file search would find more than one
+match, causing an error.
 
 Then, again in @file{hello_5.adb}, invoke @samp{Ada | Build | Set main
 and Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
--*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5/" -*-
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode/test/Example_5/" -*-
 Compilation started at Mon Oct 21 11:32:05
 
-gnatmake -Pc:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5/hello_5.gpr -o hello_5 hello_5  -cargs -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5 -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude  -bargs  -largs
-gcc -c -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5 -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude -I- -gnatA C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb
-hello_pkg.adb:2:08: keyword "body" expected here [see file name]
-gnatmake: "C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb" compilation error
-
-Compilation exited abnormally with code 4 at Mon Oct 21 11:32:05
+gprbuild -Pexample_5.gpr hello_5
+Compile
+   [Ada]          hello_5.adb
+   [Ada]          hello_pkg.adb
+hello_pkg.adb:5:07: "Put_Line" is not visible
+hello_pkg.adb:5:07: non-visible declaration at a-textio.ads:508
+hello_pkg.adb:5:07: non-visible declaration at a-textio.ads:498
+gprbuild: *** compilation phase failed
 @end example
 
-Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
+Now type @kbd{C-x `}; @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
 used to set the compilation search path.
+
+Now, in buffer @file{hello_pkg.adb} invoke the menu @code{Ada |
+Navigate | Find file in project} (which calls
+@code{ada-find-file}) to get back to the @file{hello_5.adb}
+buffer. If you have not selected any project files previously in this
+emacs session, this gives an unexpected prompt for a ``project
+directory''. Kill that with @kbd{C-g}. Otherwise, enter @kbd{hel <tab>
+5 <tab>}; it will say ``no match''.
+
+The problem here the way Emacs projects work. To find the current
+project, the functions in @code{project-find-functions} are run; one
+should return a project. The ada-mode build functions add
+@code{wisi-prj-find-dominating-cached} to
+@code{project-find-functions}; that looks in the current directory
+tree for a project file with the same name as one that was previously
+selected.
+
+If @file{Example_5} is the only project in the current emacs session,
+@code{wisi-prj-find-dominating-cached} finds no project file (because
+@file{Example_4} is not a child directory of @file{Example_5}, so the
+default strategy of ``ask the user'' is used, giving the prompt for a
+directory.
+
+If @file{Example_4} is also a project in the current emacs session,
+@code{wisi-prj-find-dominating-cached} finds that; since it does not
+contain @file{hello_5.adb}, @code{ada-find-file} cannot find it.
+
+Any time you have a main project that depends on other projects that
+are not in the same directory tree, you will have this problem.
+
+The fix is to use a different function in
+@code{project-find-functions}; @code{wisi-prj-current-cached}. This
+uses a global variable to indicate what the current project is. wisi
+provides four different functions for @code{project-find-functions};
+see @ref{Selecting projects, Selecting projects, wisi.info}.
+
+To change @code{project-find-functions}, execute:
+
+@example
+M-: (remove-hook 'project-find-functions 'wisi-prj-find-dominating-cached)
+M-: (add-hook 'project-find-functions 'wisi-prj-current-cached)
+@end example
+
+Normally, you must set @code{project-find-functions} in your
+@file{~/.emacs}, using the @code{add-hook} function. The ada-mode
+Build menu functions set it for you to make things simpler for
+novices, but they do not change it if you have put one of the wisi
+functions on it.
+
+Now set the current project; invoke @samp{Ada | Project | Find and
+select project...}, and select @file{Example_5/hello_5.prj}. Then in
+@file{hello_pkg.adb}, invoke @code{Ada |
+Navigate | Find file in project}; now we can find @file{hello_5.adb}.
 
 @node Use a Makefile,  , Use multiple GNAT project files, Compiling Examples
 @subsection Use a Makefile
@@ -1184,31 +1261,38 @@ all : build run
 .PHONY : force
 
 build : force
-        gprbuild -Phello_5.gpr hello_5
+        gprbuild -PExample_5.gpr hello_5
 
 run :
         ./hello_5
 
 clean :
-        gnatclean -r -Phello_5
-
-export GPR_PROJECT_PATH = ../Example_4/Gnat_Project
+        gnatclean -r -PExample_5
 
 # Local Variables:
-# eval:(ada-parse-prj-file "hello_5.adp")
-# eval:(ada-select-prj-file "hello_5.adp")
+# eval:(unless (wisi-prj-find-function-set-p)(add-hook 'project-find-functions 'wisi-prj-current-cached))
+# eval:(wisi-prj-dtrt-parse-file "hello_5.prj" (ada-prj-default "hello_5 # main") "Makefile")
 # End:
 @end example
 
+Tell Emacs to allow @code{eval} in @code{Local Variables}:
+@example
+M-: (setq enable-local-eval t)
+@end example
+
 Close and re-open @file{Makefile}; the @samp{Local Variables} section
-sets the project file to @file{hello_5.adp} when the @file{Makefile}
-is opened. You can also use @key{C-x C-e} to execute the select line
-after the @file{Makefile} is opened, to change the project file back
-to @file{hello_5.adp}.
+sets the project file to @file{hello_5.prj} when the @file{Makefile}
+is opened.
+
+If you have set @code{project-find-functions} in your @file{~/.emacs},
+you can leave out the first @code{eval} line. Note that
+@code{wisi-prj-dtrt-parse-file} does the right thing depending on
+which wisi function is in @code{project-find-functions}.
 
 In @file{Makefile}, invoke @samp{Tools | Compile...}, and accept the
 default make command. This runs the @samp{all} target, which builds
-@file{hello_5} and runs it.
+@file{hello_5} and runs it (you may have to fix source errors first,
+depending on how fresh the Example_4 directory is).
 
 @node Compiler errors,  , Compiling Examples, Compiling Executing
 @section Compiler errors

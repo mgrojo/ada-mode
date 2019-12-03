@@ -745,9 +745,7 @@ Usefull if the parser appears to be hung."
   (interactive)
   (wisi-parse-kill wisi--parser)
   ;; also force re-parse
-  (dolist (parse-action '(face navigate indent))
-    (wisi-set-parse-try t parse-action)
-    (wisi-invalidate-cache parse-action (point-min)))
+  (wisi-reset-parser)
   )
 
 (defun wisi-partial-parse-p (begin end)

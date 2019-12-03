@@ -1,0 +1,7 @@
+with "example_4";
+project Example_5 is
+   for Source_Dirs use (".");
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g", "-gnatyknprt");
+   end Compiler;
+end Example_5;

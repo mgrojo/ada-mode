@@ -197,7 +197,7 @@ Returns the project if a file is selected, nil otherwise."
     (when (and filename
 	       (not (equal "" filename)))
 
-      (unless (wisi-prj-find-file-set-p)
+      (unless (wisi-prj-find-function-set-p)
 	;; See comment in ada-build-require-project-file. We also do
 	;; this here because it may be the first project-related
 	;; function the user runs.
@@ -243,7 +243,7 @@ error - Throw an error (no prompt, no default project).
 An error result does not change the current project."
   (let ((prj (project-current)))
 
-    (unless (wisi-prj-find-file-set-p)
+    (unless (wisi-prj-find-function-set-p)
       ;; We set project-find-functions, xref-backend-functions here so
       ;; the user doesn't have to for simple projects. We use
       ;; 'dominating' to avoid the user actions required by select
