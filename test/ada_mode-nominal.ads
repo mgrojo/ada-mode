@@ -8,7 +8,7 @@ with
 -- No comment on the first line, to make sure we can handle that :)
 -- blank on first line, to test beginning-of-buffer logic for "with-context"
 
--- testing wisi-goto-declaration, ada-find-other-file with an Emacs
+-- testing xref-find-definitions, ada-find-other-file with an Emacs
 -- Ada project file.
 --
 -- .adp and .gpr is tested here
@@ -58,7 +58,7 @@ private with Ada.Containers.Vectors,
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line -2)(forward-word 4)(wisi-goto-declaration)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line -2)(forward-word 4)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
@@ -296,7 +296,7 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(wisi-goto-declaration)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    -- result in same file
 
@@ -338,13 +338,15 @@ is -- target 0
    function A_Null_Record_Type_1 return Null_Record_Type_1 is (null record);
    --  expression function returning 'null record'
 
-   type Record_Type_1 is record
-      --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   : Integer := 1;
-      Component_2   : Integer := 2;
-      Component_356 : Float   := 3.0;
-      -- longer component name, shorter type name for align test
-   end record;
+   type Record_Type_1 is
+      record
+         --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
+         Component_1   : Integer := 1;
+         Component_2   : Integer := 2;
+         Component_356 : Float   := 3.0;
+         -- longer component name, shorter type name for align test
+      end record;
+
    --EMACSCMD:(test-face "Record_Type_1" font-lock-type-face)
    for Record_Type_1 use
       record
@@ -352,8 +354,11 @@ is -- target 0
          Component_1   at 0 range  0 .. 31;
          Component_2   at 0 range 32 .. 63;
          Component_356 at 0 range 64 .. 95;
+         --  Comment before 'end'.
       end record;
-   for Record_Type_1'Size use 32 * 3;
+   for Record_Type_1'Size
+     use 32 * 3;
+
    type Record_Type_2 is limited record
       Component_1 : Integer := 1;
       Component_2 : Integer := 2;
@@ -450,7 +455,7 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(wisi-goto-declaration)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
@@ -626,8 +631,8 @@ is -- target 0
    -- test that comment prefix is properly fontified, and that fill
    -- paragraph doesn't cause problems
    --
-   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(ada-fill-comment-paragraph)(font-lock-ensure)(forward-char 4)(syntax-class (syntax-after (point))))
-   --EMACSRESULT: 11
+   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(ada-fill-comment-paragraph)(font-lock-ensure)(forward-char 4)(face-at-point))
+   --EMACSRESULT: 'font-lock-comment-delimiter-face
 
    -- a filled comment. Now is the time for all good parsers to come
    -- to the aid of programmers.

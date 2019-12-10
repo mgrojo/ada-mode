@@ -111,15 +111,15 @@
 (defun ada-gnat-xref-common-args (project identifier file line col)
   "Returns a list of arguments to pass to gnatfind.  Some
 elements of the result may be nil."
-  (list "-a"
+  (list "-af"
         (when ada-xref-full-path "-f")
 	;; source-path contains Source_Dirs from gpr_file. Similarly for
 	;; obj_dir. So we don't need to pass the gpr file.
         (when (wisi-prj-source-path project)
-          (concat "\"-aI" (mapconcat 'identity (wisi-prj-source-path project) path-separator) "\""))
+          (concat "-aI" (mapconcat 'identity (wisi-prj-source-path project) path-separator) ""))
         (when (plist-get (ada-prj-plist project) 'obj_dir)
-          (concat "\"-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir) path-separator) "\""))
-        (format "\"%s:%s:%d:%d\""
+          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir) path-separator) ""))
+        (format "%s:%s:%d:%d"
                 identifier
                 (file-name-nondirectory file)
                 line

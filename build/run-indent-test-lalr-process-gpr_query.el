@@ -9,7 +9,7 @@
 (setq gpr-process-parse-exec (expand-file-name "gpr_mode_wisi_parse" ada-mode-dir))
 (setq gpr-query-exec (expand-file-name "gpr_query" ada-mode-dir))
 
-(setq project-find-functions #'wisi-prj-current-cached)
+(setq project-find-functions '(wisi-prj-current-cached))
 
 (require 'run-indent-test)
 

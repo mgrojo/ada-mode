@@ -205,8 +205,9 @@ FILENAME - absolute filename containing the identifier
 LINE - line number containing the identifier (may be nil)
 COLUMN - Emacs column of the start of the identifier (may be nil)
 Point is on the start of the identifier.
-Returns a list (FILE LINE COLUMN) giving the corresponding location.
-If point is at the specification, the corresponding location is the
+Returns a list (FILE LINE COLUMN) giving the corresponding location;
+FILE is an absolute file name.  If point is at the specification, the
+corresponding location is the
 body, and vice versa.")
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
@@ -421,12 +422,14 @@ LINE, COLUMN are Emacs origin."
     result))
 
 (defun wisi-refresh-prj-cache (not-full)
-  "Refresh all cached data in the current project.
+  "Refresh all cached data in the current project, and re-select it.
 With prefix arg, very slow refresh operations may be skipped."
   (interactive "P")
-  (unless (wisi-prj-p (project-current))
-    (error "current project is not a wisi project"))
-  (wisi-prj-refresh-cache (project-current) not-full))
+  (let ((prj (project-current)))
+    (unless (wisi-prj-p prj)
+      (error "current project is not a wisi project"))
+    (wisi-prj-refresh-cache prj not-full)
+    (wisi-prj-select prj)))
 
 (defvar wisi-prj--current-file nil
   "Current wisi project file (the most recently selected); an

@@ -107,7 +107,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_partial_19.adb",
       "ada_mode-recover_partial_20.adb",
       "ada_mode-recover_partial_21.adb",
-      "ada_mode-recover_redundant_solutions_1.adb",
       "ada_mode-recover_renaming_1.adb",
       "ada_mode-recover_repair_1.adb",
       "ada_mode-recover_string_quote_1.adb",
@@ -134,8 +133,7 @@ project Ada_Mode_Compile is
 
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
-      "gnatprep.adb", -- could run thru gnatprep, but it's not worth it.
-      "lalr_parse_fail.adb"
+      "gnatprep.adb" -- could run thru gnatprep, but it's not worth it.
      );
 
    -- .ali files are in source dir, so they are shared between backend

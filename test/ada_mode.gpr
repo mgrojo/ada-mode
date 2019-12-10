@@ -1,4 +1,4 @@
--- GNAT project file that does not require ADA_PROJECT_PATH
+-- GNAT project file that does not require GPR_PROJECT_PATH
 project Ada_Mode is
 
    for Source_Dirs use (".");
@@ -6,10 +6,11 @@ project Ada_Mode is
    for Exec_Dir use ".";
 
    -- Exclude files with missing string quotes; otherwise gnatls aka
-   -- gprls complains about them.
+   -- gprls complains about them. However, 'gnat stub' still fails;
+   -- see subdir/ada_mode-spec.ads.
    for Excluded_Source_Files use
      (
-     "ada_mode-recover_partial_12.adb",
+      "ada_mode-recover_partial_12.adb",
       "ada_mode-recover_partial_09.adb",
       "ada_mode-recover_partial_08.adb"
      );

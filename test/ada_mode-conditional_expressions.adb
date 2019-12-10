@@ -36,6 +36,7 @@ procedure Ada_Mode.Conditional_Expressions is
                          others => +1);
    L3 : Integer := (case J is
                        when 42 =>
+                          --  Comment aligned with "-1"
                           -1,
                        when Integer'First .. 41 =>
                           0,

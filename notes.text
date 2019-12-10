@@ -56,24 +56,6 @@ run test from emacs -Q using source:
 
  current work
 major cleanup
-    run/update ada-build tutorial
-        in emacs-26-git-Q
-        (progn
-	 (package-initialize)
-         (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode")
-	 (add-to-list 'exec-path "d:/Apps/GNAT-gpl_2019/bin/")
-	 (setenv "PATH" (concat "d:/Apps/GNAT-gpl_2019/bin/;" (getenv "PATH")))
-         (setq default-directory "c:/Projects/org.emacs.ada-mode/")
-         (load-file "autoloads.el")
-         (setq enable-local-eval t)
-         (find-file "test/Example_5/Makefile"))
-
-        test all Build | * menu
-            check syntax => ok
-            show main => ok
-	    build => ok
-            set and build => ok
-
     gpr-mode menus?
 
     review manuals

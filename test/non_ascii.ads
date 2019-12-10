@@ -2,12 +2,14 @@
 -- characters. Ensure that multi-byte characters don't interfere with
 -- setting text properties.
 
---EMACSCMD:(wisi-prj-select-cache "ada_mode-no-gpr.adp" (ada-prj-default))
+--EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
 -- Selecting the project changes ada-syntax-propertize-hook, but does
 -- not clear the syntax cache (see note in ada-prj-select-compiler for
 -- why). So we do that here.
---EMACSCMD: (syntax-ppss-flush-cache (point-min))
+--EMACSCMD:(syntax-ppss-flush-cache (point-min))
+
+--EMACSCMD:(setq skip-recase-test t)
 with Ada.Numerics;
 package Non_ASCII is
 

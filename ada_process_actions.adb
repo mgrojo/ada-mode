@@ -329,7 +329,9 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         null;
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Label => None))), (False, (Simple,
+         (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         Ada_Indent_Broken))), (False, (Simple, (Label => None)))));
       end case;
    end aspect_clause_0;
 
@@ -659,8 +661,7 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Label => None))), (True, (Simple,
-         (Label => None)), (Simple, (Int, Ada_Indent_When))), (False, (Simple, (Label => None)))));
+         null;
       end case;
    end case_expression_alternative_list_0;
 
@@ -3877,11 +3878,12 @@ package body Ada_Process_Actions is
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 2)));
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Label => None))), (False, (Simple,
-         (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Language,
-         Ada_Indent_Record_0'Access, 1 & 4 & 0))), (False, (Simple, (Language, Ada_Indent_Record_0'Access, 1 & 4 &
-         Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_0'Access, 1 & 4 & Ada_Indent))), (False, (Simple,
-         (Language, Ada_Indent_Record_0'Access, 1 & 4 & 0))), (False, (Simple, (Label => None))), (False, (Simple,
-         (Label => None)))));
+         (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Language,
+         Ada_Indent_Record_1'Access, 28 & 4 & 0)), (Simple, (Language, Ada_Indent_Record_1'Access, 28 & 4 &
+         Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_0'Access, 1 & 4 & Ada_Indent))), (True, (Simple,
+         (Language, Ada_Indent_Record_1'Access, 28 & 4 & Ada_Indent)), (Simple, (Language, Ada_Indent_Record_1'Access,
+         28 & 4 & Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_1'Access, 28 & 4 & 0))), (False,
+         (Simple, (Label => None))), (False, (Simple, (Label => None)))));
       end case;
    end record_representation_clause_0;
 

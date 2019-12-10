@@ -858,19 +858,28 @@ package body Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
-      --  We are indenting a token in 'record_definition'.
+      --  We are indenting a token in record_definition or
+      --  record_representation_clause.
       --
-      --  Args (1) is the token ID of the anchor (= TYPE); it appears as a
-      --  direct child in an ancestor 'full_type_declaration'.
+      --  If record_definition, args (1) is the token ID of the anchor (=
+      --  TYPE); it appears as a direct child in an ancestor
+      --  full_type_declaration.
+      --
+      --  If record_representation_clause, args (1) is FOR, child of
+      --  record_representation_clause.
 
       use all type WisiToken.Syntax_Trees.Node_Label;
       use Ada_Process_Actions;
 
-      Full_Type_Declaration : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Ancestor
-        (Tree_Indenting, +full_type_declaration_ID);
+      Anchor : constant Token_ID := Token_ID (Integer'(Args (1)));
 
-      Tree_Anchor : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Child
-        (Full_Type_Declaration, Token_ID (Integer'(Args (1))));
+      Declaration : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Ancestor
+        (Tree_Indenting,
+         (if To_Token_Enum (Anchor) = TYPE_ID
+          then +full_type_declaration_ID
+          else +record_representation_clause_ID));
+
+      Tree_Anchor : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Child (Declaration, Anchor);
    begin
       if Tree.Label (Tree_Anchor) /= WisiToken.Syntax_Trees.Shared_Terminal then
          --  Anchor is virtual; Indent_Record would return Null_Delta

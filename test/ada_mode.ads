@@ -11,7 +11,7 @@ package Ada_Mode is
       function F return Boolean;
    end;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(wisi-goto-declaration)(looking-at (cl-ecase ada-xref-tool (gpr_query "Separate_Procedure is separate")(gnat "Separate_Procedure is$"))))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at (cl-ecase ada-xref-tool (gpr_query "Separate_Procedure is separate")(gnat "Separate_Procedure is$"))))
    --EMACSRESULT:t
    procedure Separate_Procedure;
    -- WORKAROUND: GNAT GPL 2016/2017 puts a reference to the full body

@@ -81,6 +81,7 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile-ada-test : force
 	rm -f ../test/debug.ad?
+	rm -f ../test/subdir/ada_mode-spec.adb
 	gprbuild -p -j8 ../test/ada_mode_compile.gpr
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's

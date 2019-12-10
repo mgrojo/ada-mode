@@ -730,30 +730,20 @@ Deselects the current project first."
   (ada-prj-deselect-compiler (ada-prj-compiler project) project))
 
 (cl-defmethod wisi-prj-identifier-at-point ((_project ada-prj))
-  "Return the identifier around point, move point to start of
-identifier.  May be an Ada identifier or operator."
-  (when (wisi-in-comment-p)
-    ;; We don't abort on string; operator function names are strings.
-    (error "Inside comment"))
-
   ;; Handle adjacent operator/identifer like:
   ;; test/ada_mode-slices.adb
   ;;   D1, D2 : Day := +Sun;
+  ;;
+  ;; For operators, return quoted operator, for gpr_query or gnatfind.
 
-  ;; Move to the beginning of the identifier or operator
-  (if (looking-at "+-*/&<>=")
-      ;; In an operator
-      (skip-chars-backward "+-*/&<>=")
-
-    ;; Else in an identifier
-    (skip-syntax-backward "w_"))
-
-  ;; If point is just in front of, or inside, a string, we could have an
-  ;; operator function declaration.
   (cond
-   ((wisi-in-string-p)
-    (cond
+   ((wisi-in-comment-p)
+    (error "Inside comment"))
 
+   ((wisi-in-string-p)
+    ;; In an operator, or a string literal
+    (skip-chars-backward "+*/&<>=-")
+    (cond
      ((and (= (char-before) ?\")
 	   (progn
 	     (forward-char -1)
@@ -764,17 +754,15 @@ identifier.  May be an Ada identifier or operator."
       (error "Inside string or character constant"))
      ))
 
-   ((and (= (char-after) ?\")
-	 (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
-    (concat "\"" (match-string-no-properties 1) "\""))
+   ((looking-at (concat "\"\\(" ada-operator-re "\\)\""))
+    (match-string-no-properties 0))
 
    ((looking-at ada-operator-re)
-    ;; Return quoted operator, as this is what the back end expects.
     (concat "\"" (match-string-no-properties 0) "\""))
 
-   ((= 2 (syntax-class (syntax-after (point))))
-    ;; word syntax. Note that the first character of an identifier
-    ;; cannot have symbol syntax (ie cannot be '_')
+   ((memq (syntax-class (syntax-after (point))) '(2 3))
+    ;; word or symbol syntax.
+    (skip-syntax-backward "w_")
     (buffer-substring-no-properties (point) (save-excursion (skip-syntax-forward "w_") (point))))
 
    (t

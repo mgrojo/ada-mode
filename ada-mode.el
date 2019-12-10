@@ -438,7 +438,6 @@ button was clicked."
     (modify-syntax-entry ?\|  "." table)
 
     ;; \f and \n end a comment.
-    ;; comment start set in ada-syntax-propertize.
     (modify-syntax-entry ?\f  ">" table)
     (modify-syntax-entry ?\n  ">" table)
 
@@ -1338,14 +1337,12 @@ comment:      comment"
 For `wisi-indent-calculate-functions'.
 - align to previous comment after code.
 - respect `ada-indent-comment-gnat'."
-  ;; We know we are at the first token on a line. We check for comment
-  ;; syntax, not comment-start, to accomodate gnatprep, skeleton
-  ;; placeholders, etc.
+  ;; We know we are at the first token on a line.
   ;;
   ;; The normal indentation algorithm has already indented the
   ;; comment.
   (when (and (not (eobp))
-	     (= 11 (syntax-class (syntax-after (point)))))
+	     (string= comment-start (buffer-substring-no-properties (point) (+ 2 (point)))))
 
     ;; We are looking at a comment; check for preceding comments, code
     (let (after

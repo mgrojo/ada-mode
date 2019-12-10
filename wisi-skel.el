@@ -46,6 +46,11 @@ trailing `...' if there are more keys."
       (concat (mapconcat 'car alist-1 " | ") " | ... : "))
   ))
 
+(defvar wisi-skel-test-input nil
+  "Override prompt for input from wisi-skel-token-alist, for unit testing."
+  ;; see test/ada_skel.adb
+  )
+
 (defun wisi-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton.
 Tokens are defined by `wisi-skel-token-alist'; they must have
@@ -63,7 +68,7 @@ before that as the token."
 	 (end (point))
 	 ;; Include punctuation here, to handle a dotted name (ie Ada.Text_IO)
 	 (token (progn (skip-syntax-backward "w_.")
-		  (downcase (buffer-substring-no-properties (point) end))))
+		       (downcase (buffer-substring-no-properties (point) end))))
 	 (skel (assoc-string token wisi-skel-token-alist))
 	 (handled nil))
 
@@ -72,7 +77,9 @@ before that as the token."
 	  (when (listp (cdr skel))
 	    (let* ((alist (cdr skel))
 		   (prompt (wisi-skel-build-prompt alist 4)))
-	      (setq skel (assoc-string (completing-read prompt alist) alist))
+	      (setq skel (assoc-string
+			  (or wisi-skel-test-input (completing-read prompt alist))
+			  alist))
 	      ))
 
 	  ;; delete placeholder delimiters around token, token, and
