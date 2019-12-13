@@ -55,10 +55,22 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-major cleanup
-    gpr-mode menus?
+indent bugs
+    38589
+        ada-align in parameter list in procedure spec with 'is null' is wrong
+        reproduced in 6.2.1
+        present in devel
+            wisi-refactor ignores initial indent
 
+    38591
+        ada-align in procedure call sometimes indents last param incorrectly
+        present in devel
+
+major cleanup
     review manuals
+        wisi.texi       done
+        gpr-mode.texi
+        ada-mode.texi
 
 split build.sh into build, install
     when reproducing bugs, don't want to install

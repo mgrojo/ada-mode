@@ -1141,7 +1141,8 @@ current buffer file name) to `wisi-prj--dominating-alist' (for
     (when (wisi-prj-p old-prj)
       (wisi-prj-deselect old-prj)))
 
-  (unless (memq #'wisi-prj-current-cached project-find-functions)
+  (unless (or (memq #'wisi-prj-current-cached project-find-functions)
+	      (memq #'wisi-prj-current-cached (default-value 'project-find-functions)))
     (message "wisi-prj-select-cache used without wisi-prj-current-cached in project-find-functions"))
 
   (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
@@ -1191,7 +1192,8 @@ initial `wisi-prj' object for that project file.")
   "Set PRJ-FILE as current project, add DEFAULT-PRJ to `wisi-prj--default'.
 Also add DOMINATING-FILE (default current buffer file name) to
 `wisi-prj--dominating-alist' (for `wisi-prj-select-dominating'.)"
-  (unless (memq #'wisi-prj-current-parse project-find-functions)
+  (unless (or (memq #'wisi-prj-current-parse project-find-functions)
+	      (memq #'wisi-prj-current-parse (default-value 'project-find-functions)))
     (message "wisi-prj-select-file used without wisi-prj-current-parse in project-find-functions"))
 
   (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
@@ -1226,6 +1228,10 @@ and `wisi-prj-find-dominating-parse'. Set by `wisi-prj-set-dominating'.")
   "Parse prj-file, add to `wisi-prj--cache'.
 Also add (DOMINATING-FILE . PRJ-FILE) to `wisi-prj--dominating-alist'.
 DOMINATING-FILE defaults to (buffer-file-name). "
+  (unless (or (memq #'wisi-prj-find-dominating-cached project-find-functions)
+	      (memq #'wisi-prj-find-dominating-cached (default-value 'project-find-functions)))
+    (message "wisi-prj-cache-dominating used without wisi-prj-find-dominating-cached in project-find-functions"))
+
   (setq dominating-file (if dominating-file (expand-file-name dominating-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
   (add-to-list 'wisi-prj--dominating (file-name-nondirectory dominating-file))
@@ -1277,6 +1283,10 @@ and (PRJ-FILE . DEFAULT-PRJ) to `wisi-prj--default'.
 DOM-FILE defaults to (buffer-file-name).
 For example, call this in the Local Vars of a Makefile to
 associate a project with that Makefile."
+  (unless (or (memq #'wisi-prj-find-dominating-parse project-find-functions)
+	      (memq #'wisi-prj-find-dominating-parse (default-value 'project-find-functions)))
+    (message "wisi-prj-cache-dominating used without wisi-prj-find-dominating-parse in project-find-functions"))
+
   (setq dom-file (if dom-file (expand-file-name dom-file) (buffer-file-name)))
   (setq prj-file (expand-file-name prj-file))
   (add-to-list 'wisi-prj--dominating (file-name-nondirectory dom-file))

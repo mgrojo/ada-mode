@@ -6,9 +6,15 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi
+* wisi 3.0.0
 
 ** New commands `wisi-goto-containing-statement-start', `wisi-indent-containing-statement'.
+
+** Add project.el integration.
+
+** Move autocase functions from ada-mode to wisi.
+
+** Replace most ada-mode function variables with dispatching on wisi-prj.
 
 * wisi 2.2.1
 17 Aug 2019

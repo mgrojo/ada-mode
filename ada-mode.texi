@@ -95,7 +95,7 @@ Compiling Examples
 * No project files::            Just menus
 * Set compiler options::        A basic Ada mode project file
 * Set source search path::      Source in multiple directories
-* Use GNAT project file::
+* Use wisi project file::
 * Use multiple GNAT project files::
 * Use a Makefile::
 
@@ -646,7 +646,7 @@ website mentioned in @xref{Installation}.
 * No project files::            Just menus
 * Set compiler options::        A basic Ada mode project file
 * Set source search path::      Source in multiple directories
-* Use GNAT project file::
+* Use wisi project file::
 * Use multiple GNAT project files::
 * Use a Makefile::
 @end menu
@@ -792,7 +792,7 @@ hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 This demonstrates that gprbuild finds the files needed by the main
 program. However, it cannot find files in a different directory,
 unless you use a GNAT project file to specify the other directories;
-@ref{Use GNAT project file}.
+@ref{Set source search path}.
 
 Invoke @samp{Ada | Build | Show main}; this displays @file{Ada mode
 main: hello_2}.
@@ -833,7 +833,7 @@ specifies @code{main}.
 @node Set compiler options, Set source search path, No project files, Compiling Examples
 @subsection Set compiler options
 
-This example illustrates using an Emacs Ada mode project file to set a
+This example illustrates using a gnat project file to set a
 compiler option.
 
 If you have files from @file{Example_1} open in Emacs, you should
@@ -895,7 +895,7 @@ used to set the compiler options.
 Use @kbd{C-x`}, @kbd{C-c M-`} to fix the errors, then @samp{Ada |
 Build | Build} and @samp{Ada | Build | Run} to build and run.
 
-@node Set source search path, Use GNAT project file, Set compiler options, Compiling Examples
+@node Set source search path
 @subsection Set source search path
 
 In this example, we show how to deal with files in more than one
@@ -1108,7 +1108,7 @@ incorrect. The case is also corrected as you type; you can type
 ``ada.text_io.'' and the case will be corrected when you type each
 ``.'' or ``_''.
 
-@node Use multiple GNAT project files, Use a Makefile, Use GNAT project file, Compiling Examples
+@node Use multiple GNAT project files
 @subsection Use multiple GNAT project files
 
 In this example, we show how to use multiple GNAT project files,
@@ -1219,8 +1219,7 @@ are not in the same directory tree, you will have this problem.
 The fix is to use a different function in
 @code{project-find-functions}; @code{wisi-prj-current-cached}. This
 uses a global variable to indicate what the current project is. wisi
-provides four different functions for @code{project-find-functions};
-see @ref{Selecting projects, Selecting projects, wisi.info}.
+provides four different functions for @code{project-find-functions}. @xref{Selecting projects, Selecting projects, Selecting projects, wisi}.
 
 To change @code{project-find-functions}, execute:
 
@@ -1246,8 +1245,8 @@ Navigate | Find file in project}; now we can find @file{hello_5.adb}.
 In this example, we show how to use a Makefile to build an Ada project
 with GNAT, run the result, and clean the build directories.
 
-Create the directories @file{Example_4, Example_5} as specified in @ref{Use GNAT
-project file},  @ref{Use multiple GNAT project files}.
+Create the directories @file{Example_4, Example_5} as specified in
+@ref{Use wisi project file}, @ref{Use multiple GNAT project files}.
 
 In @file{Example_5}, add the file:
 
@@ -1857,7 +1856,7 @@ all uppercase identifiers without defining a casing exception.
 
 You can define exceptions to these rules, in files specified by the
 @code{casing} project variable; @ref{Casing exception files, Casing
-exception files, Casing exception files, wisi.info}.
+exception files, Casing exception files, wisi}.
 
 There are two ways to add new items to a casing exception file: you
 can simply edit it as you would edit any text file, or you can

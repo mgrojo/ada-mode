@@ -109,7 +109,8 @@ buffer file name including the directory and extension."
 	(setq value (gnat-compiler-project-path (ada-prj-compiler project))))
 
        ((string= name "gpr_file")
-	(setq value (file-name-nondirectory (gnat-compiler-gpr-file (ada-prj-compiler project)))))
+	(when (gnat-compiler-gpr-file (ada-prj-compiler project))
+	  (setq value (file-name-nondirectory (gnat-compiler-gpr-file (ada-prj-compiler project))))))
 
        )
 
