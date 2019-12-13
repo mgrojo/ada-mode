@@ -23,6 +23,14 @@ package body Ada_Mode.Parens is
                           Ada.Strings.Maps.To_Set (')'))))))));
 
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
+   -- test for bug 38589; param list starts on same line as 'function'.
+   function Function_1 (Param_1, Param_2, Param_3 : in     Ada.Text_Io.Count;
+                        Param_4                   : in out Integer;
+                        Param_5                   : in out Integer;
+                        Param_6                   : in     Float := 1.0)
+                       return Float;
+
+   --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff
    function Function_1
      (Param_1, Param_2, Param_3 : in     Ada.Text_Io.Count;

@@ -141,6 +141,9 @@ package Emacs_Wisi_Common_Parse is
       Parse_End_Line   : WisiToken.Line_Number_Type;
       --  Line numbers of lines containing Parse_Begin_Byte_Pos, Parse_End_Byte_Pos
 
+      Parse_Begin_Indent : Integer;
+      --  Indentation of Parse_Begin_Line
+
       Debug_Mode       : Boolean;
       Parse_Verbosity  : Integer;
       Action_Verbosity : Integer;

@@ -210,6 +210,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Parse_Begin_Char_Pos := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
          Result.Parse_Begin_Line     := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
          Result.Parse_End_Line       := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+         Result.Parse_Begin_Indent   := Get_Integer (Command_Line, Last);
          Result.Debug_Mode           := 1 = Get_Integer (Command_Line, Last);
          Result.Parse_Verbosity      := Get_Integer (Command_Line, Last);
          Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
@@ -416,7 +417,7 @@ package body Emacs_Wisi_Common_Parse is
                      Base_Terminals    => Parser.Terminals'Unrestricted_Access,
                      Begin_Line        => Params.Parse_Begin_Line,
                      End_Line          => Params.Parse_End_Line,
-                     Begin_Indent      => 0,
+                     Begin_Indent      => Params.Parse_Begin_Indent,
                      Params            => "");
 
                   if Params.Max_Parallel > 0 then

@@ -226,7 +226,7 @@ PARSE-END, wait for command to complete. PARSER will respond with
 one or more Edit messages."
   ;; Must match "refactor" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
-  (let* ((cmd (format "refactor %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d"
+  (let* ((cmd (format "refactor %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d"
 		      refactor-action
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (position-bytes parse-begin)
@@ -235,6 +235,7 @@ one or more Edit messages."
 		      parse-begin ;; char_pos
 		      (line-number-at-pos parse-begin)
 		      (line-number-at-pos parse-end)
+		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; indent-begin
 		      (if (> wisi-debug 0) 1 0) ;; debug-mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-action

@@ -62,6 +62,9 @@ indent bugs
         present in devel
             wisi-refactor ignores initial indent
 
+        test/ada_mode-parens.adb function_1
+            fixed
+
     38591
         ada-align in procedure call sometimes indents last param incorrectly
         present in devel
