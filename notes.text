@@ -33,6 +33,12 @@ build/Makefile clean
 
 build/Makefile all
 
+source/sal.html
+    "Current version: i.j"
+    doc version
+    # review mtn log since last release date
+    $ mtn log --to d:yyyy-mm-dd > release.log
+
 bump version
     build/Makefile
         ZIP_VERSION
@@ -42,11 +48,6 @@ bump version
 
     source/sal.adb
         Version
-
-source/sal.html
-    doc version
-    # review mtn log since last release date
-    $ mtn log --to d:yyyy-mm-dd > release.log
 
 # dvc-state-multiple above
 

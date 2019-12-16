@@ -51,6 +51,6 @@ tag :
 
 #
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (wisi--prj-set-dominating nil "sal.prj" (create-ada-prj :name "sal main"))
+# eval: (unless dvc-doing-ediff-p (wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal main") "Makefile"))
 # End:
 # end of file
