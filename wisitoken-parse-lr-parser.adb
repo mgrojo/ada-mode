@@ -368,13 +368,16 @@ package body WisiToken.Parse.LR.Parser is
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
-      Parser.Lexer                          := Lexer;
-      Parser.Trace                          := Trace;
+      Parser.Lexer     := Lexer;
+      Parser.Trace     := Trace;
+      Parser.User_Data := User_Data;
+
+      --  Terminals,  Line_Begin_Token are initialized to empty arrays.
+
       Parser.Table                          := Table;
       Parser.Language_Fixes                 := Language_Fixes;
       Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
       Parser.Language_String_ID_Set         := Language_String_ID_Set;
-      Parser.User_Data                      := User_Data;
 
       Parser.Enable_McKenzie_Recover := not McKenzie_Defaulted (Table.all);
 
