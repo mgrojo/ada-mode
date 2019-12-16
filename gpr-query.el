@@ -45,6 +45,9 @@
 (defcustom gpr-query-env nil
   "Environment variables needed by the gpr_query executable.
 Value must be alist where each element is \"<name>=<value>\""
+  ;; This could also be provided as a project file setting, But it is
+  ;; intended for LD_LIBRARY_PATH (info "(ada-mode)Ada executables"),
+  ;; which must be set for all projects on the system.
   :type 'string)
 
 ;;;;; sessions

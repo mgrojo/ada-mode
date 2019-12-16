@@ -898,4 +898,5 @@ end Ada_Mode.Nominal; -- Ada_Mode.Nominal
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70
+-- wisi-process-time-out: 6.0
 -- End:

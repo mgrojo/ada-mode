@@ -14,11 +14,15 @@ indentation. The parser is implemented in Ada, is fast enough even for very
 large files (via partial parsing), and recovers from almost all syntax
 errors.
 
-gpr_query and the parser are
-provided as Ada source code that must be compiled and installed:
+gpr_query and the parser are provided as Ada source code that must be
+compiled and installed:
 
 cd ~/.emacs.d/elpa/ada-mode-i.j.k
 ./build.sh
+./install.sh
+
+install.sh can take an option --prefix=<dir> to set the installation
+directory.
 
 See ada-mode.info section Installation for more information on
 installing; you may need additional packages.
@@ -29,6 +33,5 @@ with a matching extension (default *.ads, *.adb).
 Ada mode uses project files to define large (multi-directory)
 projects, and to define casing exceptions.
 
-See ada-mode.info for help on using and customizing Ada mode, and
-notes for Ada mode developers.
+See ada-mode.info for help on using and customizing Ada mode.
 

@@ -55,31 +55,6 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-indent bugs
-    38589
-        ada-align in parameter list in procedure spec with 'is null' is wrong
-        reproduced in 6.2.1
-        present in devel
-            wisi-refactor ignores initial indent
-
-        test/ada_mode-parens.adb function_1
-            fixed
-
-    38591
-        ada-align in procedure call sometimes indents last param incorrectly
-        present in devel
-
-major cleanup
-    review manuals
-        wisi.texi       done
-        gpr-mode.texi
-        ada-mode.texi
-
-split build.sh into build, install
-    when reproducing bugs, don't want to install
-    install may need sudo
-    add --prefix to install
-
 package for beta release
     ask for testing
 
@@ -851,6 +826,10 @@ check for ELPA patches by others
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     to update a bug: nnn@debbugs.gnu.org
+        subject: from bug title, for people who rely on that.
+    if fixed in devel sources, add 'pending' tag:
+        control@debbugs.gnu.org
+        tags nnn + pending
 
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/

@@ -792,5 +792,4 @@ Prompt user if more than one."
       )))
 
 (provide 'ada-compiler-gnat)
-(provide 'ada-compiler)
 ;; ada-compiler-gnat.el ends here

@@ -1036,9 +1036,8 @@ typing.  Casing of Ada keywords is done according to `ada-case-keyword',
 identifiers according to `ada-case-identifier'."
   :group 'ada
   :type  '(choice (const nil)
-		  (const t)
-		  (const not-upper-case))
-  :safe  (lambda (val) (memq val '(nil t not-upper-case))))
+		  (const t))
+  :safe  (lambda (val) (memq val '(nil t))))
 (make-variable-buffer-local 'ada-auto-case)
 
 (defcustom ada-case-keyword 'lower-case

@@ -487,7 +487,7 @@ nil, only the file name."
   (interactive)
   (wisi-goto-statement-start)
   ;; point is at start of subprogram specification;
-  ;; ada-wisi-expand-region will find the terminal semicolon.
+  ;; wisi-parse-expand-region will find the terminal semicolon.
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let* ((begin (point))

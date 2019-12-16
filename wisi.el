@@ -1318,18 +1318,21 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	      (funcall wisi-indent-region-fallback begin end)))
 
 	(save-excursion
-	  ;; Apply cached indents.
-	  (goto-char begin)
+	  ;; Apply cached indents. Start from end, so indenting
+	  ;; doesn't affect correcting for errors in
+	  ;; wisi--get-cached-indent.
+	  (goto-char (1- end)) ;; end is exclusive
+	  (goto-char (line-beginning-position))
 	  (let ((wisi-indenting-p t))
-	    (while (and (not (eobp))
+	    (while (and (not (bobp))
 			(or (and (= begin end) (= (point) end))
-			    (< (point) end-mark))) ;; end-mark is exclusive
+			    (>= (point) begin)))
 	      (when (or indent-blank-lines (not (eolp)))
 		;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
 		(let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
 		  (indent-line-to indent))
 		)
-	      (forward-line 1))
+	      (forward-line -1))
 
 	    ;; Run wisi-indent-calculate-functions
 	    (when wisi-indent-calculate-functions
@@ -1538,7 +1541,7 @@ with the line number appended."
    ((use-region-p)
     (message "(%s . %s)" (region-beginning) (region-end)))
    (t
-    (let ((string (read-from-minibuffer "Mregion: ")))
+    (let ((string (read-from-minibuffer "region: ")))
       (when (not (= ?\( (aref string 0)))
 	(setq string (concat "(" string ")")))
 

@@ -272,9 +272,8 @@ typing.  Casing of gpr keywords is done according to `gpr-case-keyword',
 identifiers according to `gpr-case-identifier'."
   :group 'gpr
   :type  '(choice (const nil)
-		  (const t)
-		  (const not-upper-case))
-  :safe  (lambda (val) (memq val '(nil t not-upper-case))))
+		  (const t))
+  :safe  (lambda (val) (memq val '(nil t))))
 (make-variable-buffer-local 'gpr-auto-case)
 
 (defcustom gpr-case-keyword 'lower-case

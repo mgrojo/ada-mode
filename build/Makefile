@@ -248,7 +248,7 @@ pub-ada : force
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
-	cp ../build.sh $(ELPA_ROOT)/packages/ada-mode/
+	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
