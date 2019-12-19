@@ -22,7 +22,7 @@ doc changes since last release
     ../Docs/wisitoken.html
         add to history (no NEWS.text)
     # review mtn log since last release date
-    $ cd org.wisitoken
+    $ cd c:/Projects/org.wisitoken
     $ mtn log --to d:yyyy-mm-dd > release.log
     ../release.log
 

@@ -4,7 +4,7 @@ project WisiToken_Lib is
 
    --  Version must change for each user-visible change; it does not
    --  have to match the source package version.
-   Version := "1.3.0";
+   Version := "1.3.1";
 
    type Lib_Type is ("static", "dynamic");
    Libtype : Lib_Type := External ("LIBTYPE", "dynamic");

@@ -45,14 +45,14 @@ projects.
 for recursive-descent, adding syntax error correction in the parser,
 and adding support for simple Packrat parsers.
 
-<h1>current version: 1.3.0</h1>
+<h1>current version: 1.3.1</h1>
 
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
 <p>WisiToken may be obtained in two ways:
 <ul>
-  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-1.3.0.tar.bz2">source
-  Gnu tar bzip2 wisitoken-1.3.0.tar.bz2</a>, from
+  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-1.3.1.tar.bz2">source
+  Gnu tar bzip2 wisitoken-1.3.1.tar.bz2</a>, from
   the <a href="http://download.savannah.gnu.org/releases/ada-mode/">Gnu
   savannah ada-mode download page</a>.
   <li><a href="/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.wisitoken. The ada-france server is maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
@@ -64,9 +64,11 @@ and adding support for simple Packrat parsers.
     <li><a href="http://re2c.org/">re2c lexer</a>.
   </ul>
 
-<p>WisiToken has been tested with AdaCore GNAT Community Edition 2018.
+<p>WisiToken has been tested with AdaCore GNAT Community Edition 2019.
 It uses Ada 2012 containers, so it requires an Ada 2012 compiler. It
 also uses some gnatcoll packages, so it may only work with GNAT.
+
+<p>Some packages have SPARK annotations, and can be proven by SPARK.
 
 <p>WisiToken is maintained
 by <a href="mailto:stephen_leake@stephe-leake.org">Stephen Leake</a>.
@@ -76,6 +78,12 @@ the <a href="https://lists.nongnu.org/mailman/listinfo/ada-mode-users">Emacs
 Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
+
+<h3>Version 1.3.1 </h3>
+<ul>
+  <li>16 Dec 2019
+  <li>Improve data output to recover log
+  <li>Add executable 'recover_stats' to summarize recover log.
 
 <h3>Version 1.3.0 </h3>
 <ul>
@@ -89,6 +97,7 @@ Ada mode mailing list</a>.
     by 30% by eliminating some dynamic memory allocation.
   <li>Misc bug fixes.
 </ul>
+
 <h3>Version 1.2.0 </h3>
 <ul>
   <li>11 Jul 2019
@@ -148,6 +157,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Tue Aug 13 10:12:52 Pacific Daylight Time 2019 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Dec 16 11:19:42 Pacific Standard Time 2019 <!-- hhmts end -->
 </body>
 </html>
