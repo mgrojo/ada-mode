@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'find-file)
 (require 'wisi)
 
 (cl-defstruct wisi-prj
@@ -182,20 +183,6 @@ after the project file PRJ-FILE-NAME is parsed."
   "Refresh cached information in XREF. If no-full is non-nil,
 slow refresh operations may be skipped."
   nil)
-
-(defun wisi-prj-reset-cache ()
-  "Delete all wisi project cached info."
-  (interactive)
-  (setq wisi-prj--cache nil)
-  (setq wisi-prj--current-file nil)
-  (setq wisi-prj--default nil)
-  (setq wisi-prj--dominating nil)
-  (setq wisi-prj--dominating-alist nil))
-
-(defun wisi-prj-clear-current ()
-  "Clear the current project selection; make no project current."
-  (interactive)
-  (setq wisi-prj--current-file nil))
 
 (cl-defgeneric wisi-xref-other (project &key identifier filename line column)
   "Return cross reference information.
@@ -434,6 +421,11 @@ With prefix arg, very slow refresh operations may be skipped."
 (defvar wisi-prj--current-file nil
   "Current wisi project file (the most recently selected); an
 absolute file name.")
+
+(defun wisi-prj-clear-current ()
+  "Clear the current project selection; make no project current."
+  (interactive)
+  (setq wisi-prj--current-file nil))
 
 (defun wisi-prj-show ()
   "Show name of current project."
@@ -1128,6 +1120,13 @@ with \\[universal-argument]."
 
 ;;;; project-find-functions alternatives
 
+(defvar wisi-prj--dominating-alist nil
+"Alist of (DOMINATING-FILE . PRJ-FILE-NAME): DOMINATING-FILE is
+an absolute filename that can be found by
+`wisi-prj-find-dominating-cached' or
+`wisi-prj-find-dominating-cached'.  PRJ-FILE-NAME is the wisi
+project file for the project for that file.")
+
 ;;;###autoload
 (defun wisi-prj-select-cache (prj-file init-prj &optional dominating-file)
   "Select project matching PRJ-FILE in `wisi-prj--cache' as current project,
@@ -1212,16 +1211,18 @@ Also add DOMINATING-FILE (default current buffer file name) to
     (wisi-prj-select prj)
     prj))
 
-(defvar wisi-prj--dominating-alist nil
-"Alist of (DOMINATING-FILE . PRJ-FILE-NAME): DOMINATING-FILE is
-an absolute filename that can be found by
-`wisi-prj-find-dominating-cached' or
-`wisi-prj-find-dominating-cached'.  PRJ-FILE-NAME is the wisi
-project file for the project for that file.")
-
 (defvar wisi-prj--dominating nil
   "List of relative filenames for `wisi-prj-find-dominating-cached'
 and `wisi-prj-find-dominating-parse'. Set by `wisi-prj-set-dominating'.")
+
+(defun wisi-prj-reset-cache ()
+  "Delete all wisi project cached info."
+  (interactive)
+  (setq wisi-prj--cache nil)
+  (setq wisi-prj--current-file nil)
+  (setq wisi-prj--default nil)
+  (setq wisi-prj--dominating nil)
+  (setq wisi-prj--dominating-alist nil))
 
 ;;;###autoload
 (defun wisi-prj-cache-dominating (prj-file default-prj &optional dominating-file)

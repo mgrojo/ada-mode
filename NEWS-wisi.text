@@ -8,16 +8,20 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi 3.0.0
 
-** New commands `wisi-goto-containing-statement-start', `wisi-indent-containing-statement'.
+** parser process protocol version 5
 
-** Add project.el integration.
+** Add project.el integration. See wisi.info for more information.
 
 ** Move autocase functions from ada-mode to wisi.
 
 ** Replace most ada-mode function variables with dispatching on wisi-prj.
 
+** New commands `wisi-goto-containing-statement-start', `wisi-indent-containing-statement'.
+
 * wisi 2.2.1
 17 Aug 2019
+
+** parser process protocol version 4
 
 ** fix packaging bugs
 

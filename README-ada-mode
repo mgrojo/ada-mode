@@ -1,4 +1,4 @@
-Emacs Ada mode version 6.2.1
+Emacs Ada mode version 7.0.0
 
 Ada mode provides auto-casing, fontification, navigation, and
 indentation for Ada source code files.
@@ -21,7 +21,7 @@ cd ~/.emacs.d/elpa/ada-mode-i.j.k
 ./build.sh
 ./install.sh
 
-install.sh can take an option --prefix=<dir> to set the installation
+install.sh can take an option "--prefix=<dir>" to set the installation
 directory.
 
 See ada-mode.info section Installation for more information on

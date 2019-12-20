@@ -22,7 +22,7 @@ pragma License (Modified_GPL);
 
 package Wisi.Ada is
 
-   Language_Protocol_Version : constant String := "2";
+   Language_Protocol_Version : constant String := "3";
    --  Defines the data passed to Initialize in Params.
    --
    --  This value must match ada-wisi.el

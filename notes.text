@@ -791,13 +791,30 @@ in ~/.gitconfig:
 	remote = origin
 	merge = refs/heads/master
 
- mini-release to Ludovic
+ beta test release
 run all tests
+
+do wisitoken, sal release
 
 bump version (elpa releases don't have to be consecutive)
 
-Makefile build-elpa install-elpa elpa-zip
+Makefile pub install-elpa elpa-zip-2
     # install-elpa verifies all required files are included and byte-compile successfully.
+
+verify beta install instructions d:/Web/savannah/ada-mode/index.html
+
+(dvc-state-one ".")
+
+in cygwin console for gpg prompts:
+    cd /Projects/elpa/archive/packages
+    ls *.tar*
+    rm <old>.tar*
+    gpg -b *.tar.*
+
+    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+
+all below from "build/Makefile tag zip"
+    except don't commit elpa?
 
  release process
 do wisitoken release ../org.wisitoken/build/release_process.text
@@ -876,6 +893,18 @@ bump versions
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
+
+    emacs_wisi_common_parse.ads
+        (should have been changed already, but verify)
+        Protocol_Version if this file changed, or
+        wisi-process-parse.el -send-parse, -send-refactor, -execute
+        changed, or for bug fixes/features in parser or wisi.adb
+        ie, if installed parser must be replaced on upgrade or downgrade
+
+    wisi-ada.ads
+        (should have been changed already, but verify)
+        Language_Protocol_Version if this file changed, or for bug fixes/features in wisi-ada.adb
+        ie, if installed parser must be replaced on upgrade or downgrade
 
     wisi.el
         Version:
@@ -1042,7 +1071,7 @@ in cygwin console for gpg prompts:
     cd /Projects/org.emacs.ada-mode/build/
     ls *.tar*
     rm <old>.tar*
-    gpg -b *.tar.bz2
+    gpg -b *.tar.*
 
     scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 

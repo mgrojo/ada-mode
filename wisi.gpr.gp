@@ -18,9 +18,11 @@
 --  MA 02110-1335, USA.
 
 with "gnatcoll";
-with "sal"; --  FIXME: use gnatprep to delete this in elpa install
 with "standard_common";
-with "wisitoken"; --  FIXME: use gnatprep to delete this in elpa install
+#if ELPA="no"
+with "sal";
+with "wisitoken";
+#end if;
 project Wisi is
 
    for Source_Dirs use (".");

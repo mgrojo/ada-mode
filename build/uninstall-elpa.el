@@ -8,6 +8,7 @@
 (setq ada-mode-version (getenv "ADA_MODE_VERSION"))
 (setq ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
 (setq wisi-version (getenv "WISI_VERSION"))
+(setq uniquify-files-version (getenv "UNIQUIFY_FILES_VERSION"))
 
 (defun pkg-dir (name version)
   (concat (locate-user-emacs-file "elpa") "/" name "-" version))
@@ -20,5 +21,6 @@
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)
 (pkg-dir-clean "wisi" wisi-version)
+(pkg-dir-clean "uniquify-files" uniquify-files-version)
 
 ;; end of file

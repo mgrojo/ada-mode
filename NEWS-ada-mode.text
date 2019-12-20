@@ -8,6 +8,19 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada Mode 7.0.0
 
+** parser Ada language protocol version 3
+
+** Major restructuring of code, moving many functions from ada-mode to
+   wisi for use in other language modes, and using cl-defgeneric
+   dispatching instead of function variables. Normal users should see
+   no changes, except that some ada-mode functions will warn about
+   being obsolete. If you've written custom code that depends on
+   ada-mode functions, you may have to change it.
+
+** gpr-mode fully supports auto-casing; new user variables
+   gpr-auto-case, gpr-case-keyword, gpr-case-strict,
+   gpr-case-identifier, respects 'casing' project file settings.
+
 ** New commands `wisi-goto-containing-statement-start',
    `wisi-indent-containing-statement' are in the menu.
    `wisi-indent-containing-statement' is bound to 'C-c S-i'.
@@ -23,17 +36,6 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** wisi-prj-identifier-at-point (previously ada-identifier-at-point)
    now handles non-ASCII characters.
-
-** Major restructuring of code, moving many functions from ada-mode to
-   wisi for use in other language modes, and using cl-defgeneric
-   dispatching instead of function variables. Normal users should see
-   no changes, except that some ada-mode functions will warn about
-   being obsolete. If you've written custom code that depends on
-   ada-mode functions, you may have to change it.
-
-** gpr-mode fully supports auto-casing; new user variables
-   gpr-auto-case, gpr-case-keyword, gpr-case-strict,
-   gpr-case-identifier, respects 'casing' project file settings.
 
 * Ada Mode 6.2.1
 17 Aug 2019

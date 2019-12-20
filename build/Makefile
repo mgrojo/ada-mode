@@ -18,10 +18,10 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 6.2.1
+export ADA_MODE_VERSION       := 7.0.0
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 2.2.1
-export UNIQUIFY_FILES_VERSION := 1.0.1
+export WISI_VERSION           := 3.0.0
+export UNIQUIFY_FILES_VERSION := 1.0.2
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -150,7 +150,7 @@ WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 else
 # test with installed elpa package
 ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.2.1/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-3.0.0/wisitoken-bnf-generate.exe
 endif
 
 # 'include' must be after WISITOKEN_GENERATE and other vars are set.
@@ -216,13 +216,19 @@ zip :
 	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
 
 
-# tarball of installed ELPA packages, for sending to customers without
-# good monotone access
+# tarball of ELPA packages source, for sending to customers with their
+# own CM but without good network access
 DATE := $(shell date +%Y-%m-%d)
-elpa-zip : docs pub-ada pub-wisi ada-mode-elpa-$(DATE).tar.gz
+elpa-zip : ada-mode-elpa-$(DATE).tar.gz
 
 ada-mode-elpa-$(DATE).tar.gz :
 	tar zcf ada-mode-elpa-$(DATE).tar.gz -C $(ELPA_ROOT)/packages ada-ref-man ada-mode wisi
+
+# tarball to create local ELPA archive
+elpa-archive-zip : ada-mode-elpa-archive-$(DATE).tar.bz2
+
+ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-contents
+	tar -c -C $(ELPA_ROOT) archive/packages | bzip2 -9 > ada-mode-elpa-archive-$(DATE).tar.bz2
 
 tag :
 	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
@@ -254,7 +260,6 @@ pub-ada : force
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
-	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
@@ -289,7 +294,7 @@ pub-wisi : force
 	cp ../gen_*parse.ad? ../*_wisi_common_parse.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../wisi.gpr  $(ELPA_ROOT)/packages/wisi
+	cp ../wisi.gpr.gp  $(ELPA_ROOT)/packages/wisi
 	cp ../wisitoken-parse_table-mode.el $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/Docs/dir $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/Docs/*.info $(ELPA_ROOT)/packages/wisi/
@@ -393,13 +398,16 @@ include Makefile.conf
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
 	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) -DELPA="no" $< $@
 
+../wisi.gpr : ../wisi.gpr.gp
+	gnatprep -DELPA="no" $< $@
+
 trace :
 	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
 
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
-build_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c ../gpr_query-process_refresh.adb force
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c ../gpr_query-process_refresh.adb force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
