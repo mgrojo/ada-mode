@@ -34,7 +34,7 @@
   :safe 'numberp)
 (make-variable-buffer-local 'wisi-process-time-out)
 
-(defconst wisi-process-parse-protocol-version "4"
+(defconst wisi-process-parse-protocol-version "5"
   "Defines data exchanged between this package and the background process.
 Must match emacs_wisi_common_parse.ads Protocol_Version.")
 

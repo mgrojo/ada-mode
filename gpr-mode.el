@@ -352,6 +352,11 @@ Must match wisi-gpr.ads Language_Protocol_Version.")
   :type 'string
   :group 'gpr)
 
+(defun gpr-set-as-project ()
+  "Set current buffer (a gpr file) as current project file."
+  (interactive)
+  (wisi-prj-dtrt-parse-file (buffer-file-name) (gpr-prj-default (buffer-file-name)) (buffer-file-name)))
+
 ;;;;
 ;;;###autoload
 (defun gpr-mode ()

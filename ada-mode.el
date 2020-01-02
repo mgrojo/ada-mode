@@ -1079,7 +1079,7 @@ Otherwise, allow UPPERCASE for identifiers."
 
 ;;;; wisi integration
 
-(defconst ada-wisi-language-protocol-version "2"
+(defconst ada-wisi-language-protocol-version "3"
   "Defines language-specific parser parameters.
 Must match wisi-ada.ads Language_Protocol_Version.")
 

@@ -413,29 +413,22 @@ Enable mode if ARG is positive."
   ;; just enable the menu and keymap
   )
 
-(defun gpr-query--normalize-filename (file &optional dir)
+(defun gpr-query--normalize-filename (file)
   "Takes account of filesystem differences."
-  ;; need DIR to handle ada-xref-full-path nil
+  ;; FILE must be abs
   (cond
    ((eq system-type 'windows-nt)
     ;; 'expand-file-name' converts Windows directory
     ;; separators to normal Emacs.  Since Windows file
     ;; system is case insensitive, GNAT and Emacs can
     ;; disagree on the case, so convert all to lowercase.
-    (downcase (expand-file-name file dir)))
+    (downcase (expand-file-name file)))
 
    ((eq system-type 'darwin)
     ;; case-insensitive case-preserving; so just downcase
-    (when (and dir
-	       (not ada-xref-full-path))
-      (setq file (expand-file-name file dir)))
-
     (downcase file))
 
    (t ;; linux
-    (when (and dir
-	       (not ada-xref-full-path))
-      (setq file (expand-file-name file dir)))
     file))
   )
 
@@ -507,6 +500,9 @@ Enable mode if ARG is positive."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
+  (unless ada-xref-full-path
+    (setq filename (locate-file filename compilation-search-path)))
+
   (setq filename (gpr-query--normalize-filename filename))
 
   (let ((cmd (format "refs %s:%s:%s:%s"
@@ -545,6 +541,7 @@ Enable mode if ARG is positive."
       ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference)
       ;;
       ;; if ada-xref-full-path is nil, only the file basename is present.
+      ;; FIXME: ada-xref-full-path is Ada-mode specific!
 
       (message "parsing result ...")
 
@@ -562,8 +559,10 @@ Enable mode if ARG is positive."
 				 (gpr-query-dist found-line line found-col column)
 			       most-positive-fixnum))
 		 )
+	    (unless ada-xref-full-path
+	      (setq found-file (locate-file found-file compilation-search-path)))
 
-            (setq found-file (gpr-query--normalize-filename found-file (file-name-directory filename)))
+            (setq found-file (gpr-query--normalize-filename found-file))
 
 	    (cond
 	     ((string-equal found-type "declaration")

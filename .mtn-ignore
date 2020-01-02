@@ -59,3 +59,4 @@
 ^test/gpr_query\.db$
 ^test/gpr_query\.db-shm$
 ^test/gpr_query\.db-wal$
+^wisi\.gpr$

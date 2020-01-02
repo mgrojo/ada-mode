@@ -8,7 +8,6 @@
 # If you don't have write permission in the GNAT installation
 # directory, you need to use --prefix=<dir>, or run with root priviledges.
 
-gprinstall -f -p -P gpr_query.gpr --install-name=gpr_query $1
 gprinstall -f -p -P ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse $1
 
 # end of file.

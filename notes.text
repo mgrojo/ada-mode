@@ -55,8 +55,16 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-package for beta release
-    ask for testing
+beta release
+
+
+implement xref-backend-references (prj wisi-prj)
+    need variant of gpr-query-compilation that returns a list of locations
+    ""              wisi-xref-all (_xref gnatxref-xref)
+
+xref-backend-references on abstract spec should show overridden and overriding (with annotations?)
+
+xref-backend-references on project name in .gpr with ada-prj current should not use gpr-query
 
 move dvc-kill-all-review/workspace to wisi? add delete projects in the workspace?
     need kill-xref-process, kill-parse-process called by delete project
@@ -1096,26 +1104,38 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
+Gnu Emacs Ada mode beta test 7.0.0
+-------------------
+
+Gnu Emacs Ada mode beta test 7.0.0 is now available at
+http://www.nongnu.org/ada-mode/. This is a significant refactoring,
+which may affect some user custom code, so it is not in Gnu ELPA yet.
+
+To install, download the candidate ELPA archive, set package-archives
+to point to it, and use list-packages (more detailed instructions at
+http://www.nongnu.org/ada-mode/).
+
+The wisi package now provides a more complete integration with Emacs
+project.el.
+
+Several bugs have been fixed.
+
+You may want to work thru the tutorials in ada-mode.info again; they
+now cover many of the new features.
+
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.0.0 and wisi-3.0.0,
+for more details. See wisi.info in the release for more information on
+the package.el integration.
+
+--------------------
+
+-------------------
 Gnu Emacs Ada mode 6.2.1 released.
 -------------------
 
 Gnu Emacs Ada mode 6.2.1 is now available in GNU ELPA. This is a minor
 feature and bug fix release.
 
-The elisp parser is deleted.
-
-ada-mode now supports some simple refactor operations; convert between
-Object.Method and Prefix.Method (Object) syntax.
-
-ada-mode now provides a project.el backend. `project-find-file' does
-file name completion on files in the current project, using the
-`uniquify-files' completion style. To use this backend with an
-existing Ada mode project file:
-
-   (setq ada-project-current (make-ada-project :ada-prj-file <exising-file.prj>))
-   (add-to-list 'project-find-functions #'ada-project-current)
-
-Error correction is faster.
 
 See the NEWS files in ~/.emacs.d/elpa/ada-mode-6.2.1 and wisi-2.2.1,
 or at http://www.nongnu.org/ada-mode/, for more details.
