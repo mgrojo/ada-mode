@@ -19,7 +19,7 @@ update-elisp :: build_executables
 update-elisp :: autoloads
 update-elisp :: byte-compile
 
-update-install : update-elisp install_executables
+update-install : update-elisp install
 
 test : test-wisitoken_grammar.stamp
 
@@ -102,8 +102,8 @@ test-clean : force
 build_executables : wisitoken_grammar_1_re2c.c wisitoken_grammar.gpr force
 	gprbuild -p wisitoken_grammar.gpr
 
-install_executables : build_executables
-	gprinstall -f -p -P wisitoken_grammar_1.gpr --install-name=wisitoken_grammar_wisi_parse
+install : build_executables
+	gprinstall -f -p -P wisitoken_grammar.gpr --install-name=wisitoken_grammar_wisi_parse
 
 wisitoken_grammar.gpr : wisitoken_grammar.gpr.gp
 	gnatprep -DELPA="no" $< $@
