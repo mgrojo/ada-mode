@@ -6,7 +6,7 @@ o.e.a: release, in use
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a with o.w.s-1, o.s_l.s-1): work
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser (very old)
-o.e.a.stephe-4 (from o.e.a with o.w.s-2, o.s_l.s-2): available
+o.e.a.stephe-4 (from o.e.a): eglot/ada_language_server
 o.e.a.stephe-5 (from o.e.a.s-2): libadalang backend
 o.e.a.stephe-6 (from o.e.a.s-2): available
 
@@ -57,6 +57,14 @@ run test from emacs -Q using source:
  current work
 beta release
 
+rename items in ada-gnat-xref.el; ada-gnat- prefix
+    gnatxref-buffer-name-prefix
+    gnatxref-xref
+
+delete explicit declaration of ada-mode-hook?
+    define-derived-mode does that?
+
+move (setenv GPR_PROJECT_PATH ...) to wisi-xref-parse-final, cleanup
 
 implement xref-backend-references (prj wisi-prj)
     need variant of gpr-query-compilation that returns a list of locations

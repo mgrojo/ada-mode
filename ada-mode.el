@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -1066,6 +1066,10 @@ Otherwise, allow UPPERCASE for identifiers."
   :safe (lambda (val) (memq val '(mixed-case lower-case upper-case))))
 (make-variable-buffer-local 'ada-case-identifier)
 
+(defun ada-in-based-numeric-literal-p ()
+  "Return t if point is after a prefix of a based numeric literal."
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)" (line-beginning-position)))
+
 (defun ada-case-adjust-p (typed-char)
   "For `wisi-case-adjust-p-function'."
   (and
@@ -1616,14 +1620,6 @@ Prompts with completion, defaults to filename at point."
   )
 
 (put 'ada-mode 'custom-mode-group 'ada)
-
-(defvar ada-parser 'process
-  "Indicate parser to use for Ada buffers:
-
-process : external process specified by ‘ada-process-parse-exec ’."
-  ;; As of ada-mode version 6.2, we no longer support the elisp
-  ;; parser. We may add a module implementation at some point.
-  )
 
 ;;;;; Global initializations
 

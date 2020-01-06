@@ -1,6 +1,6 @@
 ;;; ada-core.el --- core facilities for ada-mode -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 1997 - 2017, 2019  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -57,10 +57,6 @@ before file local variables are processed.")
   "Hook run from `ada-syntax-propertize'.
 Called by `syntax-propertize', which is called by font-lock in
 `after-change-functions'.")
-
-(defun ada-in-based-numeric-literal-p ()
-  "Return t if point is after a prefix of a based numeric literal."
-  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)" (line-beginning-position)))
 
 (defun ada-declarative-region-start-p (cache)
   "Return t if cache is a keyword starting a declarative region."
