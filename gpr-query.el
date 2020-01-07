@@ -3,7 +3,7 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2020  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -500,7 +500,7 @@ Enable mode if ARG is positive."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (unless ada-xref-full-path
+  (unless (file-name-absolute-p filename)
     (setq filename (locate-file filename compilation-search-path)))
 
   (setq filename (gpr-query--normalize-filename filename))
@@ -561,6 +561,10 @@ Enable mode if ARG is positive."
 		 )
 	    (unless ada-xref-full-path
 	      (setq found-file (locate-file found-file compilation-search-path)))
+
+	    (unless found-file
+	      ;; can be nil if actual file is renamed but gpr-query database not updated
+	      (error "file '%s' not found; refresh?" (match-string 1)))
 
             (setq found-file (gpr-query--normalize-filename found-file))
 

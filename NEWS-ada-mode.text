@@ -32,7 +32,7 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    an identifier/operator in a format_part or aspect_clause.
 
 ** Delete not-upper-case setting for ada-auto-case; instead, set
-   ada-case-strict to t.
+   ada-case-strict to nil.
 
 ** wisi-prj-identifier-at-point (previously ada-identifier-at-point)
    now handles non-ASCII characters.
