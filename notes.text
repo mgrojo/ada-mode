@@ -4,10 +4,10 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (from o.e.a with o.w.s-1, o.s_l.s-1): work
+o.e.a.stephe-2 (from o.e.a with o.w.s-1, o.s_l.s-1): work; ada2020 features
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser (very old)
-o.e.a.stephe-4 (from o.e.a with o.w.s-2, o.s_l.s-2): available
-o.e.a.stephe-5 (from o.e.a.s-2): libadalang backend
+o.e.a.stephe-4 (from o.e.a): eglot/LSP backends
+o.e.a.stephe-5 (from o.e.a): libadalang backend
 o.e.a.stephe-6 (from o.e.a.s-2): available
 
 run test from emacs -Q using source:
@@ -57,6 +57,11 @@ run test from emacs -Q using source:
  current work
 beta release
 
+wisi-prj-delete
+    remove "wisi prj select" menu if wisi-prj--alist is empty
+
+fringe error marks not shown for lexer errors
+    ada2020.adb
 
 implement xref-backend-references (prj wisi-prj)
     need variant of gpr-query-compilation that returns a list of locations
@@ -65,30 +70,29 @@ implement xref-backend-references (prj wisi-prj)
 xref-backend-references on abstract spec should show overridden and overriding (with annotations?)
 
 xref-backend-references on project name in .gpr with ada-prj current should not use gpr-query
+    cond on major-mode; use other-file
+    or fall back to other-file if gpr-query fails? only if ff-special?
 
-move dvc-kill-all-review/workspace to wisi? add delete projects in the workspace?
+move dvc-kill-all-review/workspace to wisi?
+    add delete projects in the workspace?
     need kill-xref-process, kill-parse-process called by delete project
-
-debug-on-error t should only throw error when there is a bug in the
-    elisp code, not for a syntax error in user code (since that's expected).
-    put errors on wisi--parser-errors lower down.
 
 interactive indent requires [0 ada-indent] on block start keywords when following token is virtual from recovery
     normally get indent from next token, but that's virtual, and is not in token.first/last_indent_lines
         or something like that
-        find a place to document this
-            in wisi.texi user guide
-                explain emacs wisi package
-                parser actions
-                section that explains indent-action syntax
+        document this in wisi.texi indentation section
 
         or fix it; for real comment, use indent from next token even if it's virtual
 
 Ada 2020 features in gnat pro 2018:
     and community 2019?
+        yes; add -gnatX to Compile? Build? gpr package
 
-    AI12-061: ?
+    o.e.a.s-2
+
+    http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0061-1.txt Index parameters in array aggregates
         http://www.adacore.com/developers/development-log/NF-17-P617-043-gnat
+        iterated_component_association ::= for defining_identifier in discrete_choice_list => expression
 
     AI12-0125 "@" shorthand  http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0125-3.txt
         target_name ::= @
@@ -106,8 +110,10 @@ Ada 2020 features in gnat pro 2018:
         procedure Twelfth (D : in out Date) -- see 3.8 for type Date with Post => D = (D'Old with delta Day => 12);
         A1 : Vector := ((1.0, 2.0, 3.0) with delta Integer (Random * 3.0) => 14.2);
 
-delete wisi-tests.el?
-    only used for old .wy tests?
+implement LSP language server, wisi lsp variant
+    gnu elpa eglot
+    https://github.com/emacs-lsp/lsp-mode
+    GNAT Studio, adalang
 
 delete "(progn" in actions
 

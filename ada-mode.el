@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -1341,7 +1341,7 @@ For `wisi-indent-calculate-functions'.
   ;; The normal indentation algorithm has already indented the
   ;; comment.
   (when (and (not (eobp))
-	     (string= comment-start (buffer-substring-no-properties (point) (+ 2 (point)))))
+	     (string= comment-start (buffer-substring-no-properties (point) (min (point-max) (+ 2 (point))))))
 
     ;; We are looking at a comment; check for preceding comments, code
     (let (after

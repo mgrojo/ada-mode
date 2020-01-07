@@ -146,7 +146,7 @@ project Ada_Mode_Compile is
       -- check. We don't check any other style requirements; not needed for
       -- comparing indentation, and they get in the way.
 
-      for Default_Switches ("Ada") use ("-gnat2012", "-gnatyN3");
+      for Default_Switches ("Ada") use ("-gnat2012", "-gnatyN3", "-gnatX");
 
       for Switches ("non_ascii.ads") use ("-gnatiw", "-gnatW8");
 

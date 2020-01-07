@@ -1,6 +1,6 @@
 ;;; wisi-prj.el --- project definition files -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2019 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -681,6 +681,14 @@ Point is on last char of symbol.")
 
 (defun wisi--case-save-exceptions (full-exceptions partial-exceptions file-name)
   "Save FULL-EXCEPTIONS, PARTIAL-EXCEPTIONS to the file FILE-NAME."
+  ;; If there is a buffer visiting file-name, it may be out of date
+  ;; due to a previous save-exceptions, which will give a user prompt
+  ;; about editing a file that has changed on disk. Update the buffer
+  (let ((buf (get-file-buffer file-name)))
+    (when buf
+      (with-current-buffer buf
+			(revert-buffer nil t t))))
+
   (with-temp-file (expand-file-name file-name)
     (mapc (lambda (x) (insert (car x) "\n"))
 	  (sort (copy-sequence full-exceptions)
@@ -807,7 +815,7 @@ if it is a list."
 	(setq file-full-exceptions (wisi--case-add-exception word file-full-exceptions)))
 
        (t
-	(setq (wisi-prj-case-partial-exceptions project)
+	(setf (wisi-prj-case-partial-exceptions project)
 	      (wisi--case-add-exception word (wisi-prj-case-partial-exceptions project)))
 	(setq file-partial-exceptions (wisi--case-add-exception word file-partial-exceptions)))
 
@@ -817,7 +825,8 @@ if it is a list."
 	       (if partial "partial" "full")
 	       word
 	       file-name)
-      )))
+      )
+    ))
 
 (defun wisi-case-create-partial-exception ()
   "Define active region or word at point as a partial word exception.
