@@ -10,6 +10,11 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser Ada language protocol version 3
 
+** Added support for the Ada 2020 features
+   iterated_component_association (ai12-0061), target_name
+   (ai12-0125), delta_aggregate (ai12-0127); these are supported in
+   GNAT Community 2019.
+
 ** Major restructuring of code, moving many functions from ada-mode to
    wisi for use in other language modes, and using cl-defgeneric
    dispatching instead of function variables. Normal users should see

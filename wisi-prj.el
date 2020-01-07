@@ -1375,15 +1375,22 @@ Menu displays cached wisi projects."
 	  (memq #'wisi-prj-current-cached project-find-functions))
 
     (let ((menu (wisi-prj--menu-compute)))
-      (when menu
-	(define-key-after
-	  global-map
-	  [menu-bar wisi-prj-select]
-	  (easy-menu-binding
-	   (easy-menu-create-menu
-	    "Wisi Prj Select";; EDE uses "Project" menu
-	    menu))
-	  (lookup-key global-map [menu-bar tools]))))
+      (if menu
+	  (define-key-after
+	    global-map
+	    [menu-bar wisi-prj-select]
+	    (easy-menu-binding
+	     (easy-menu-create-menu
+	      "Wisi Prj Select";; EDE uses "Project" menu
+	      menu))
+	    (lookup-key global-map [menu-bar tools]))
+	;; delete empty menu
+	  (define-key-after
+	    global-map
+	    [menu-bar wisi-prj-select]
+	    nil
+	    (lookup-key global-map [menu-bar tools]))
+	))
     ))
 
 (add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)

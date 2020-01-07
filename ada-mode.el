@@ -432,6 +432,7 @@ button was clicked."
     (modify-syntax-entry ?<  "." table)
     (modify-syntax-entry ?=  "." table)
     (modify-syntax-entry ?>  "." table)
+    (modify-syntax-entry ?@  "." table)
     (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
     (modify-syntax-entry ?\; "." table)
     (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings

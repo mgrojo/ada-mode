@@ -57,21 +57,6 @@ run test from emacs -Q using source:
  current work
 beta release
 
-rename items in ada-gnat-xref.el; ada-gnat- prefix
-    gnatxref-buffer-name-prefix
-    gnatxref-xref
-
-delete explicit declaration of ada-mode-hook?
-    define-derived-mode does that?
-
-move (setenv GPR_PROJECT_PATH ...) to wisi-xref-parse-final, cleanup
-
-wisi-prj-delete
-    remove "wisi prj select" menu if wisi-prj--alist is empty
-
-fringe error marks not shown for lexer errors
-    ada2020.adb
-
 implement xref-backend-references (prj wisi-prj)
     need variant of gpr-query-compilation that returns a list of locations
     ""              wisi-xref-all (_xref gnatxref-xref)
@@ -92,32 +77,6 @@ interactive indent requires [0 ada-indent] on block start keywords when followin
         document this in wisi.texi indentation section
 
         or fix it; for real comment, use indent from next token even if it's virtual
-
-Ada 2020 features in gnat pro 2018:
-    and community 2019?
-        yes; add -gnatX to Compile? Build? gpr package
-
-    o.e.a.s-2
-
-    http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0061-1.txt Index parameters in array aggregates
-        http://www.adacore.com/developers/development-log/NF-17-P617-043-gnat
-        iterated_component_association ::= for defining_identifier in discrete_choice_list => expression
-
-    AI12-0125 "@" shorthand  http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0125-3.txt
-        target_name ::= @
-        Name : target_name | ... ;
-        My_Array(I) := @*2 + @/2;
-
-    AI12-0127 delta_aggregates http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.25&raw=N
-        aggregate ::= record_aggregate | extension_aggregate | array_aggregate | delta_aggregate
-        delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
-        record_delta_aggregate ::=
-          (*base_*expression with delta record_component_association_list)
-        array_delta_aggregate ::=
-          (*base_*expression with delta array_component_association_list)
-
-        procedure Twelfth (D : in out Date) -- see 3.8 for type Date with Post => D = (D'Old with delta Day => 12);
-        A1 : Vector := ((1.0, 2.0, 3.0) with delta Integer (Random * 3.0) => 14.2);
 
 implement LSP language server, wisi lsp variant
     gnu elpa eglot

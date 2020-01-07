@@ -48,11 +48,6 @@
   "Default Ada compiler; can be overridden in project files.
 Values defined by compiler packages.")
 
-(defvar ada-mode-hook nil
-  "List of functions to call when Ada mode is invoked.
-This hook is executed after `ada-mode' is fully loaded, but
-before file local variables are processed.")
-
 (defvar ada-syntax-propertize-hook nil
   "Hook run from `ada-syntax-propertize'.
 Called by `syntax-propertize', which is called by font-lock in
