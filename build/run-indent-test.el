@@ -18,5 +18,31 @@
 		   ada-refactor-element-object-to-object-index
 		   search-string refactor-string))
 
+(defun test-all-refs (name)
+  "Return list of (FILENAME CATEGORY) for all references of NAME."
+  (search-forward name)
+  (backward-word 1)
+  (let* ((prj (project-current))
+	 (xrefs (xref-backend-references prj (xref-backend-identifier-at-point (xref-find-backend))))
+	 result)
+    (dolist (ref xrefs)
+      (with-slots (summary location) ref
+	(with-slots (file) location
+	  (push (list (file-name-nondirectory file) summary) result))))
+    result))
+
+(defun test-all-defs (name)
+  "Return list of (FILENAME CATEGORY) for all definitions of NAME (and parent and child types)."
+  (search-forward name)
+  (backward-word 1)
+  (let* ((prj (project-current))
+	 (xrefs (xref-backend-definitions prj (xref-backend-identifier-at-point (xref-find-backend))))
+	 result)
+    (dolist (ref xrefs)
+      (with-slots (summary location) ref
+	(with-slots (file) location
+	  (push (list (file-name-nondirectory file) summary) result))))
+    result))
+
 (provide 'run-indent-test)
 ;; end of file

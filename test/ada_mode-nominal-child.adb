@@ -30,6 +30,16 @@ package body Ada_Mode.Nominal.Child is -- target 0
       return 0.0;
    end Function_2b;
 
+   function Static_Call_Function_2b return Float
+   is begin
+      return Function_2b (Child_Type_1'(1, 1.0, False, 2, 2.0, True));
+   end Static_Call_Function_2b;
+
+   function Dynamic_Call_Function_2b (Item : in Parent_Type_1'Class) return Float
+   is begin
+      return Function_2b (Item);
+   end Dynamic_Call_Function_2b;
+
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
    overriding function Function_2c (Param : in Child_Type_1)

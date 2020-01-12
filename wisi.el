@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -1470,6 +1470,44 @@ If non-nil, only repair errors in BEG END region."
 
       (list (xref-make ident (xref-make-file-location file (or line 1) column)))
       )))
+
+(defun wisi-xref-item (identifier)
+  "Given IDENTIFIER, return an xref-item.
+IDENTIFIER is from a user prompt with completion, or from
+`xref-backend-identifier-at-point'."
+  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
+	 ;; If t-prop is non-nil: identifier is from
+	 ;; identifier-at-point.
+	 ;;
+	 ;; If t-prop is nil: identifier is from prompt/completion,
+	 ;; the line number may be included in the identifier
+	 ;; wrapped in <>.
+	 (ident
+	  (if t-prop
+	      (substring-no-properties identifier 0 nil)
+	    (string-match wisi-xref-ident-regexp identifier)
+	    (match-string 1 identifier)
+	    ))
+	 (file
+	  (if t-prop
+	      (plist-get t-prop ':file)
+	    (buffer-file-name)))
+	 (line
+	  (if t-prop
+	      (plist-get t-prop ':line)
+	    (when (match-string 2 identifier)
+	      (string-to-number (match-string 2 identifier)))))
+	 (column
+	  (if t-prop
+	      (plist-get t-prop ':column)
+	    0))
+	 )
+
+    (unless (file-name-absolute-p file)
+      (setq file (locate-file file compilation-search-path)))
+
+    (xref-make ident (xref-make-file-location file (or line 1) column))
+    ))
 
 (defun wisi-xref-identifier-at-point ()
   (let ((ident (thing-at-point 'symbol)))

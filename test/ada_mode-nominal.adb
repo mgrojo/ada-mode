@@ -651,6 +651,16 @@ is -- target 0
       end Block_1;
    end;
 
+   function Static_Call_Function_2b return Float
+   is begin
+      return Function_2b ((1, 1.0, False));
+   end Static_Call_Function_2b;
+
+   function Dynamic_Call_Function_2b (Item : in Parent_Type_1'Class) return Float
+   is begin
+      return Function_2b (Item);
+   end Dynamic_Call_Function_2b;
+
    function Function_2c (Param : in Parent_Type_1) return Float
    is
       type Array_Type_1 is array (1 .. 3) of Float;

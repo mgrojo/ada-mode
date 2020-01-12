@@ -184,6 +184,9 @@ after the project file PRJ-FILE-NAME is parsed."
 slow refresh operations may be skipped."
   nil)
 
+(cl-defgeneric wisi-xref-references (_xref project item)
+  "Return all references to ITEM (an xref-item), as a list of xref-items.")
+
 (cl-defgeneric wisi-xref-other (project &key identifier filename line column)
   "Return cross reference information.
 PROJECT - dispatching object, normally a `wisi-prj' object.
@@ -1117,6 +1120,8 @@ with \\[universal-argument]."
   ;; Current buffer only.
   (wisi-xref-names))
 
+(cl-defmethod xref-backend-references  ((prj wisi-prj) identifier)
+  (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier)))
 
 ;;;###autoload
 (defun wisi-prj-xref-backend ()

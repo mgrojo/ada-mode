@@ -50,6 +50,10 @@ Value must be alist where each element is \"<name>=<value>\""
   ;; which must be set for all projects on the system.
   :type 'string)
 
+(defconst gpr-query-protocol-version "2"
+  "Defines data exchanged between this package and the background process.
+Must match gpr_query.adb Version.")
+
 ;;;;; sessions
 
 ;; gpr_query reads the project files and the database at startup,
@@ -111,11 +115,19 @@ Value must be alist where each element is \"<name>=<value>\""
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 
-      ;; Check for warnings about invalid directories etc. But some
-      ;; warnings are tolerable, so only abort if process actually
-      ;; died.
       (if (process-live-p (gpr-query--session-process session))
 	  (progn
+	    (goto-char (point-min))
+	    (if (search-forward-regexp "version: \\([0-9]+\\)$")
+		(unless (string-equal (match-string 1) gpr-query-protocol-version)
+		  (user-error "gpr-query version mismatch: elisp %s process %s"
+			      gpr-query-protocol-version
+			      (match-string 1)))
+	      (user-error "gpr-query is an old version; expecting %s" gpr-query-protocol-version))
+
+	    ;; Check for warnings about invalid directories etc. But some
+	    ;; warnings are tolerable, so only abort if process actually
+	    ;; died.
 	    (goto-char (point-min))
 	    (when (search-forward "warning:" nil t)
 	      (if debug-on-error
@@ -414,7 +426,8 @@ Enable mode if ARG is positive."
   )
 
 (defun gpr-query--normalize-filename (file)
-  "Takes account of filesystem differences."
+  "Convert FILE from native format to Emacs standard.
+FILE is from gpr-query."
   ;; FILE must be abs
   (cond
    ((eq system-type 'windows-nt)
@@ -493,6 +506,88 @@ Enable mode if ARG is positive."
     (gpr-query--start-process project session)
     ))
 
+(cl-defmethod wisi-xref-references (_xref project item)
+  ;; ITEM is an xref-item
+  (with-slots (summary location) item
+    (with-slots (file line column) location
+      (when (eq ?\" (aref summary 0))
+	;; gpr_query wants the quotes stripped
+	(setq column (+ 1 column))
+	(setq summary (substring summary 1 (1- (length summary)))))
+
+      (let ((cmd (format "tree_refs %s:%s:%s:%s"
+			 summary
+			 (file-name-nondirectory file)
+			 (or line "")
+			 (if column (1+ column) "")))
+	    (result nil)
+	    (session (gpr-query-cached-session project)))
+
+	(with-current-buffer (gpr-query-session-send session cmd t)
+	  ;; 'gpr_query refs' returns a list containing the declaration,
+	  ;; the body, and all the references (including to overridden and
+	  ;; overriding items), in no particular order.
+	  ;;
+	  ;; the format of each line is file:line:column (type)
+	  ;;                            1    2    3       4
+	  ;;
+	  ;; 'type' can be:
+	  ;;   body
+	  ;;   declaration
+	  ;;   full declaration  (for a private type)
+	  ;;   implicit reference
+	  ;;   reference
+	  ;;   static call
+	  ;;
+	  ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration)
+	  ;;
+	  ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference)
+
+	  (goto-char (point-min))
+
+	  (while (not (eobp))
+	    (cond
+	     ((looking-at gpr-query-ident-file-type-regexp)
+	      ;; process line
+	      (let* ((found-file (match-string 1))
+		     (found-line (string-to-number (match-string 2)))
+		     (found-col  (string-to-number (match-string 3)))
+		     (found-type (match-string 4))
+		     )
+
+		(unless ada-xref-full-path
+		  (setq found-file (locate-file found-file compilation-search-path)))
+
+		(unless found-file
+		  ;; Can be nil if actual file is renamed but gpr-query
+		  ;; database not updated. We abort, rather than just
+		  ;; ignoring this entry, because it means other ref are
+		  ;; probably out of date as well.
+		  (error "file '%s' not found; refresh?" (match-string 1)))
+
+		(setq found-file (gpr-query--normalize-filename found-file))
+
+		(push (xref-make
+		       (if found-type (concat summary " " found-type) summary)
+		       (xref-make-file-location found-file found-line found-col))
+		      result)
+		))
+
+	     (t ;; ignore line
+	      ;;
+	      ;; This skips GPR_PROJECT_PATH and echoed command at start of buffer.
+	      ;;
+	      ;; It also skips warning lines.
+	      )
+	     )
+	    (forward-line 1)
+	    )
+
+	  (when (null result)
+	    (user-error "gpr_query did not return any references; refresh?"))
+
+	  result)))))
+
 (cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
@@ -559,6 +654,8 @@ Enable mode if ARG is positive."
 				 (gpr-query-dist found-line line found-col column)
 			       most-positive-fixnum))
 		 )
+
+	    ;; FIXME: merge all of this ...
 	    (unless ada-xref-full-path
 	      (setq found-file (locate-file found-file compilation-search-path)))
 
@@ -567,6 +664,7 @@ Enable mode if ARG is positive."
 	      (error "file '%s' not found; refresh?" (match-string 1)))
 
             (setq found-file (gpr-query--normalize-filename found-file))
+	    ;; end FIXME: into normalize-filename
 
 	    (cond
 	     ((string-equal found-type "declaration")

@@ -1,6 +1,6 @@
 ;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests
 ;;
-;; Copyright (C) 2018 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2018 - 2020  Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -191,6 +191,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     ;;    of the previous EMACSCMD, and the test fails if they don't
     ;;    match.
     ;;
+    ;; EMACSRESULT_START:<first list element>
+    ;; EMACSRESULT_ADD:  <list element>
+    ;; EMACSRESULT_FINISH:
+    ;;    build a list, compare it to the result of the previous EMACSCMD.
+    ;;
     ;; EMACS_SKIP_UNLESS: <form>
     ;;   skip entire test if form evals nil
     ;;
@@ -239,6 +244,45 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		    last-result
 		    expected-result)
 	    ))))
+
+       ((string= (match-string 1) "RESULT_START")
+	(looking-at ".*$")
+	(setq expected-result (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
+
+       ((string= (match-string 1) "RESULT_ADD")
+	(looking-at ".*$")
+	(setq expected-result (append expected-result
+				      (list
+				       (save-excursion (end-of-line 1)
+						       (eval (car (read-from-string (match-string 0)))))))))
+
+       ((string= (match-string 1) "RESULT_FINISH")
+	(unless (equal (length expected-result) (length last-result))
+	  (when debug-on-error (debug))
+	  (setq error-count (1+ error-count))
+	  (message
+	   (concat
+	    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+	    (format "Length of result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+		    last-cmd
+		    (length last-result)
+		    (length expected-result)))))
+
+	(let ((i 0))
+	  (while (< i (length expected-result))
+	    (unless (equal (nth i expected-result) (nth i last-result))
+	      (when debug-on-error (debug))
+	      (setq error-count (1+ error-count))
+	      (message
+	       (concat
+		(format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+		(format "Nth (%d) result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+			i
+			last-cmd
+			(nth i last-result)
+			(nth i expected-result))
+		)))
+	    (setq i (1+ i)))))
 
        ((string= (match-string 1) "_SKIP_UNLESS")
 	(looking-at ".*$")

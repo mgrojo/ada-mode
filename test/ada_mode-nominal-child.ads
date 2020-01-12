@@ -45,6 +45,17 @@ package Ada_Mode.Nominal.Child is
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
 
+   --EMACSCMD:(progn (forward-line 10)(test-all-refs "Function_2b"))
+   --EMACSRESULT_START:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration")
+   --EMACSRESULT_FINISH:
    overriding
    function Function_2b (Param : in Child_Type_1) return
      Float;

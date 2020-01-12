@@ -5,7 +5,7 @@
 --
 --  requires gnatcoll 1.7w 20140330, gnat 7.2.1
 --
---  Copyright (C) 2014-2019 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014 - 2020 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -47,6 +47,8 @@ with GNATCOLL.Xref;
 procedure Gpr_Query is
    use GNATCOLL;
 
+   Version : constant String := "2";
+
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
 
    Db_Error        : exception;
@@ -84,7 +86,8 @@ procedure Gpr_Query is
    procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer);
    procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Min, Max : in Integer);
    procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class);
-   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String := "");
+   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Controlling_Type_Name : in String := "");
+   procedure Dump_Local (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String);
    --  Display the results of a query
 
    procedure Put (Item : GNATCOLL.VFS.File_Array);
@@ -168,6 +171,7 @@ procedure Gpr_Query is
    procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
+   procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    type Command_Descr is record
@@ -219,6 +223,12 @@ procedure Gpr_Query is
        new String'("name:file:line:column"),
        new String'("All known references to the entity."),
        Process_Refs'Access),
+
+      (new String'("tree_refs"),
+       new String'("name:file:line:column"),
+       new String'
+         ("All known references to the entity, and to parent/child types or overridden/overriding operations."),
+       Process_Tree_Refs'Access),
 
       (new String'("source_dirs"),
        null,
@@ -285,7 +295,26 @@ procedure Gpr_Query is
       end loop;
    end Dump;
 
-   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String := "")
+   procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Controlling_Type_Name : in String := "")
+   is
+      use GNATCOLL.Xref;
+   begin
+      while Has_Element (Refs) loop
+         declare
+            Ref : constant Entity_Reference := Refs.Element;
+         begin
+            Ada.Text_IO.Put_Line
+              (Xref.Image (Ref) & " (" &
+                 (if Controlling_Type_Name'Length = 0
+                  then ""
+                  else Controlling_Type_Name & "; ") &
+                 (+Ref.Kind) & ")");
+         end;
+         Next (Refs);
+      end loop;
+   end Dump;
+
+   procedure Dump_Local (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String)
    is
       use GNATCOLL.Xref;
    begin
@@ -299,7 +328,7 @@ procedure Gpr_Query is
          end;
          Next (Refs);
       end loop;
-   end Dump;
+   end Dump_Local;
 
    function Get_Entity (Arg : String) return GNATCOLL.Xref.Entity_Information
    is
@@ -494,7 +523,7 @@ procedure Gpr_Query is
                   Last            : constant Integer := -1 + Index (Nth_Arg (Args, 1), ":", First);
                   Local_File_Name : constant String  := Nth_Arg (Args, 1) (First .. Last);
                begin
-                  Dump (Refs, Local_File_Name);
+                  Dump_Local (Refs, Local_File_Name);
                end;
             else
                raise Invalid_Command with "Invalid argument '" & Nth_Arg (Args, 2) &
@@ -505,6 +534,74 @@ procedure Gpr_Query is
          end if;
       end;
    end Process_Refs;
+
+   procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      use GNATCOLL.Arg_Lists;
+   begin
+      Check_Arg_Count (Args, 1);
+
+      declare
+         use GNATCOLL.Xref;
+         Entity            : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+         Name              : constant String             := +Xref.Declaration (Entity).Name;
+         Direct_Refs       : References_Cursor;
+         Controlling_Types : Entities_Cursor;
+
+         procedure Dump_Type (Entity : in Entity_Information)
+         is
+            Methods : Entities_Cursor;
+         begin
+            Xref.Methods (Entity, Methods, Include_Inherited => False);
+            loop
+               exit when not Has_Element (Methods);
+               declare
+                  Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
+               begin
+                  if Method_Name = Name then
+                     Xref.References (Methods.Element, Direct_Refs);
+                     Dump (Direct_Refs, +Xref.Declaration (Entity).Name);
+                  end if;
+               end;
+               Next (Methods);
+            end loop;
+         end Dump_Type;
+
+         Other_Types : Entities_Cursor;
+         procedure Dump_Other_Types
+         is begin
+            loop
+               exit when not Has_Element (Other_Types);
+               Dump_Type (Other_Types.Element);
+               Next (Other_Types);
+            end loop;
+         end Dump_Other_Types;
+      begin
+         Xref.Method_Of (Entity, Controlling_Types);
+         --  Despite the documentation, 'Method_Of' does not return parent or
+         --  child types, if Entity is a primitive subprogram of a type. Not
+         --  clear when it returns more than one element.
+
+         if not Has_Element (Controlling_Types) then
+            --  Not a primitive subprogram
+            Xref.References (Entity, Direct_Refs);
+            Dump (Direct_Refs);
+         else
+            loop
+               exit when not Has_Element (Controlling_Types);
+               Dump_Type (Controlling_Types.Element);
+
+               Xref.Parent_Types (Controlling_Types.Element, Other_Types);
+               Dump_Other_Types;
+
+               Xref.Child_Types (Controlling_Types.Element, Other_Types);
+               Dump_Other_Types;
+
+               Next (Controlling_Types);
+            end loop;
+         end if;
+      end;
+   end Process_Tree_Refs;
 
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
@@ -530,6 +627,8 @@ procedure Gpr_Query is
    end Put;
 
 begin
+   Ada.Text_IO.Put_Line ("version: " & Version);
+
    declare
       use GNAT.Command_Line;
    begin

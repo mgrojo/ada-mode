@@ -57,11 +57,29 @@ run test from emacs -Q using source:
  current work
 beta release
 
-implement xref-backend-references (prj wisi-prj)
-    need variant of gpr-query-compilation that returns a list of locations
-    ""              wisi-xref-all (_xref gnatxref-xref)
+implement xref-backend-definitions (prj wisi-prj)
+    test/ada_mode-nominal.ads:630
+   --EMACSCMD:(progn (forward-line 5)(test-all-defs "Parent_Type_1"))
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Parent_Type_1; public declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Parent_Type_1; private declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; private declaration")
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Type_1; public declaration")
+   --EMACSRESULT_FINISH:
 
-xref-backend-references on abstract spec should show overridden and overriding (with annotations?)
+    add test on child type declaration
+
+    change menu to match
+
+    test with gnat xref_tool
+        skip tests somehow
+
+fix gpr_query so short_file_names is per-command; never set in 'xref' style queries
+    also see FIXMEs
+
+gpr_query handle .gpr xref?
+
+xref-backend-definitions on abstract spec should show overridden and overriding
+    don't have separate wisi-xref- defgenerics for those
 
 xref-backend-references on project name in .gpr with ada-prj current should not use gpr-query
     cond on major-mode; use other-file

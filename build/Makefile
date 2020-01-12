@@ -91,10 +91,12 @@ summarize :
 ONE_TEST_FILES ?= ada_mode-options-markus_column_0.adb
 one :: build_executables
 #one :: byte-compile autoloads
+one :: compile-ada-test
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 	rm -f test.log
+	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
