@@ -560,7 +560,13 @@ FILE is from gpr-query."
 		(push (xref-make
 		       (cond
 			((string= op "tree_refs")
-			 (if found-type (concat summary " " found-type) summary))
+			 (if found-type
+			     (if (string-match ";" found-type)
+				 ;; ref is to the identifier
+				 (concat summary " " found-type)
+			       ;; ref is to the controlling type of the identifier
+			       found-type)
+			   summary))
 
 			((string= op "tree_defs")
 			 found-type)

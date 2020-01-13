@@ -542,51 +542,77 @@ procedure Gpr_Query is
       end;
    end Process_Refs;
 
+   function Root_Parent_Type
+     (Entity : in GNATCOLL.Xref.Entity_Information)
+     return GNATCOLL.Xref.Entity_Information
+   is
+      use GNATCOLL.Xref;
+      Result  : Entity_Information := Entity;
+      Parents : Entities_Cursor;
+   begin
+      loop
+         Xref.Parent_Types (Result, Parents);
+         --  There is more than one parent when the type inherits interfaces.
+         --  We assume the first parent is a non-interface (if there is one),
+         --  and ignore the rest.
+         exit when not Parents.Has_Element;
+         Result := Parents.Element;
+      end loop;
+      return Result;
+   end Root_Parent_Type;
+
+   procedure All_Child_Types
+     (Entity : in GNATCOLL.Xref.Entity_Information;
+      Cursor : in out GNATCOLL.Xref.Recursive_Entities_Cursor)
+   is begin
+      GNATCOLL.Xref.Recursive
+        (Self    => Xref'Unchecked_Access,
+         Entity  => Entity,
+         Compute => GNATCOLL.Xref.Child_Types'Access,
+         Cursor  => Cursor);
+   end All_Child_Types;
+
+   procedure Dump_Body (Entity : in GNATCOLL.Xref.Entity_Information)
+   is
+      use GNATCOLL.Xref;
+      Refs : References_Cursor;
+   begin
+      Xref.Bodies (Entity, Refs);
+      loop
+         exit when not Has_Element (Refs);
+         declare
+            Ref  : constant Entity_Reference   := Refs.Element;
+            Decl : constant Entity_Declaration := Xref.Declaration (Ref.Entity); -- For name
+         begin
+            Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Decl.Name) & " " & (+Ref.Kind) & ")");
+         end;
+         Next (Refs);
+      end loop;
+   end Dump_Body;
+
+   procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information)
+   is
+      use GNATCOLL.Xref;
+      Decl : constant Entity_Declaration := Xref.Declaration (Entity);
+   begin
+      Ada.Text_IO.Put_Line
+        (Xref.Image (Decl.Location) & " (" &
+           (+Decl.Name) & " " &
+           (+Decl.Kind) & ")");
+
+      Dump_Body (Entity);
+   end Dump_Entity;
+
    procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
-      Entity       : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-      Parent_Types : Entities_Cursor;
-      Child_Types  : Entities_Cursor;
 
-      procedure Dump_Body (Entity : in Entity_Information)
-      is
-         Refs : References_Cursor;
-      begin
-         Xref.References (Entity, Refs);
-         loop
-            exit when not Has_Element (Refs);
-            declare
-               Ref  : constant Entity_Reference   := Refs.Element;
-               Kind : constant String             := +Ref.Kind;
-               Decl : constant Entity_Declaration := Xref.Declaration (Ref.Entity); -- For name
-            begin
-               if Kind = "full declaration" or
-                 Kind = "body"
-               then
-                  Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Decl.Name) & " " & Kind & ")");
-               end if;
-            end;
-            Next (Refs);
-         end loop;
-      end Dump_Body;
+      Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Root_Parent : constant Entity_Information := Root_Parent_Type (Entity);
+      Child_Types : Recursive_Entities_Cursor;
 
-      procedure Dump_Entity (Entity : in Entity_Information)
-      is
-         Decl : constant Entity_Declaration := Xref.Declaration (Entity);
-      begin
-         Ada.Text_IO.Put_Line
-           (Xref.Image (Decl.Location) & " (" &
-              (+Decl.Name) & " " &
-              (+Decl.Kind) & ")");
-
-         --  Parent_Types, Child_Types do not return the full declaration of a
-         --  private/protected/task type; find those here.
-         Dump_Body (Entity);
-      end Dump_Entity;
-
-      procedure Dump_Entities (Entities : in out Entities_Cursor)
+      procedure Dump_Entities (Entities : in out Recursive_Entities_Cursor)
       is begin
          loop
             exit when not Has_Element (Entities);
@@ -596,85 +622,73 @@ procedure Gpr_Query is
       end Dump_Entities;
 
    begin
-      Xref.Parent_Types (Entity, Parent_Types);
-      Xref.Child_Types (Entity, Child_Types);
-
-      if Has_Element (Parent_Types) or Has_Element (Child_Types) then
-         Dump_Entities (Parent_Types);
-         Dump_Entity (Entity);
-         Dump_Entities (Child_Types);
-      else
-         --  Not a tagged type, or no derived types
-         Dump_Entity (Entity);
-      end if;
+      All_Child_Types (Root_Parent, Child_Types);
+      Dump_Entity (Root_Parent);
+      Dump_Entities (Child_Types);
    end Process_Tree_Defs;
 
    procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
       use GNATCOLL.Arg_Lists;
-   begin
-      Check_Arg_Count (Args, 1);
+      use GNATCOLL.Xref;
+      Entity            : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Name              : constant String             := +Xref.Declaration (Entity).Name;
+      Controlling_Types : Entities_Cursor;
 
-      declare
-         use GNATCOLL.Xref;
-         Entity            : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-         Name              : constant String             := +Xref.Declaration (Entity).Name;
-         Direct_Refs       : References_Cursor;
-         Controlling_Types : Entities_Cursor;
-
-         procedure Dump_Type (Entity : in Entity_Information)
-         is
-            Methods : Entities_Cursor;
-         begin
-            Xref.Methods (Entity, Methods, Include_Inherited => False);
-            loop
-               exit when not Has_Element (Methods);
-               declare
-                  Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
-               begin
-                  if Method_Name = Name then
-                     Xref.References (Methods.Element, Direct_Refs);
-                     Dump (Direct_Refs, +Xref.Declaration (Entity).Name);
-                  end if;
-               end;
-               Next (Methods);
-            end loop;
-         end Dump_Type;
-
-         Other_Types : Entities_Cursor;
-         procedure Dump_Other_Types
-         is begin
-            loop
-               exit when not Has_Element (Other_Types);
-               Dump_Type (Other_Types.Element);
-               Next (Other_Types);
-            end loop;
-         end Dump_Other_Types;
+      procedure Dump_Type (Entity : in Entity_Information)
+      is
+         Methods : Entities_Cursor;
       begin
-         Xref.Method_Of (Entity, Controlling_Types);
-         --  Despite the documentation, 'Method_Of' does not return parent or
-         --  child types, if Entity is a primitive subprogram of a type. Not
-         --  clear when it returns more than one element.
+         Dump_Entity (Entity);
 
-         if not Has_Element (Controlling_Types) then
-            --  Not a primitive subprogram
-            Xref.References (Entity, Direct_Refs);
-            Dump (Direct_Refs);
-         else
-            loop
-               exit when not Has_Element (Controlling_Types);
-               Dump_Type (Controlling_Types.Element);
+         Xref.Methods (Entity, Methods, Include_Inherited => False);
+         loop
+            exit when not Has_Element (Methods);
+            declare
+               Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
+               Refs : References_Cursor;
+            begin
+               if Method_Name = Name then
+                  Xref.References (Methods.Element, Refs);
+                  Dump (Refs, +Xref.Declaration (Entity).Name);
+               end if;
+            end;
+            Next (Methods);
+         end loop;
+      end Dump_Type;
 
-               Xref.Parent_Types (Controlling_Types.Element, Other_Types);
-               Dump_Other_Types;
+      procedure Dump_Types (Types : in out Recursive_Entities_Cursor)
+      is begin
+         loop
+            exit when not Has_Element (Types);
+            Dump_Type (Types.Element);
+            Next (Types);
+         end loop;
+      end Dump_Types;
+   begin
+      Xref.Method_Of (Entity, Controlling_Types);
+      --  'Method_Of' does not return parent or child types if Entity is
+      --  overridden in the child.
 
-               Xref.Child_Types (Controlling_Types.Element, Other_Types);
-               Dump_Other_Types;
+      if not Has_Element (Controlling_Types) then
+         --  Not a primitive subprogram
+         declare
+            Refs : References_Cursor;
+         begin
+            Xref.References (Entity, Refs);
+            Dump (Refs);
+         end;
+      else
+         declare
+            Root_Parent : constant Entity_Information := Root_Parent_Type (Controlling_Types.Element);
+            Child_Types : Recursive_Entities_Cursor;
+         begin
+            All_Child_Types (Root_Parent, Child_Types);
 
-               Next (Controlling_Types);
-            end loop;
-         end if;
-      end;
+            Dump_Type (Root_Parent);
+            Dump_Types (Child_Types);
+         end;
+      end if;
    end Process_Tree_Refs;
 
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List)

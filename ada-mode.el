@@ -1482,6 +1482,7 @@ Prompts with completion, defaults to filename at point."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
+  (set 'completion-ignore-case t)
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")

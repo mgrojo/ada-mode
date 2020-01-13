@@ -58,16 +58,17 @@ run test from emacs -Q using source:
 beta release
 
 implement xref-backend-definitions (prj wisi-prj)
-    add test on child type declaration
-
-    add test on private tagged type
-
-    add test on private nontagged type
-
-    change menu to match
+    run ada_mode-nominal.ads test
 
     test with gnat xref_tool
         skip tests somehow
+
+    run all tests
+
+
+C-u M-. Child_Type_1 used to just go there
+    but now puts up an xref buffer, and does _not_ go to first entry (which is Child_Type_1)
+    add wisi-goto-name
 
 test-all-refs on variable, non-dispatching subprogram
 

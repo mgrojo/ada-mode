@@ -30,6 +30,8 @@ package Ada_Mode.Expression_Functions is
          when D => "Unk");
 
    --  Don't require extra parens for aggregate result in expression function
+   --EMACSCMD:(progn (forward-line -3)(test-all-defs "Private_Type_1"))
+   --EMACSRESULT:'(("ada_mode-nominal.ads" "Result record type"))
    type Result is record
       A : Integer;
       B : Integer;

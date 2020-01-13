@@ -14,8 +14,13 @@ package Ada_Mode.Nominal.Child is
          Child_Element_2 : Float;
          Child_Element_3 : Boolean;
       end record;
+   --EMACSCMD:(progn (forward-line -7)(test-all-defs "Child_Type_1"))
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
+   --EMACSRESULT_FINISH:
 
-   -- goto parent type declaration for Child_Type_1
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(wisi-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
@@ -45,16 +50,20 @@ package Ada_Mode.Nominal.Child is
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
 
-   --EMACSCMD:(progn (forward-line 10)(test-all-refs "Function_2b"))
-   --EMACSRESULT_START:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
+   --EMACSCMD:(test-all-refs "function Function_2b")
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
    --EMACSRESULT_FINISH:
    overriding
    function Function_2b (Param : in Child_Type_1) return
@@ -133,6 +142,18 @@ package Ada_Mode.Nominal.Child is
       Child_Element_1 => 10,
       Child_Element_2 => 12.0,
       Child_Element_3 => True);
+
+   type Child_Type_2 is new Parent_Type_1 with private;
+   --  Child_Type_2 is used to test xref on a type tree
+
+   overriding function Function_2i (Param : in Child_Type_2) return Child_Type_2;
+
+private
+
+   type Child_Type_2 is new Parent_Type_1 with record
+      --  Only present to test xref on a type tree
+      Child_2 : Integer;
+   end record;
 
 end Ada_Mode.Nominal.Child;
 -- WORKAROUND: There is some race condition or uninit var that causes

@@ -20,6 +20,7 @@
 
 (defun test-all-refs (name)
   "Return list of (FILENAME CATEGORY) for all references of NAME."
+  (end-of-line)
   (search-forward name)
   (backward-word 1)
   (let* ((prj (project-current))
