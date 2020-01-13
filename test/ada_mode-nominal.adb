@@ -653,7 +653,7 @@ is -- target 0
 
    function Static_Call_Function_2b return Float
    is begin
-      return Function_2b ((1, 1.0, False));
+      return Function_2b (Parent_Type_1'(1, 1.0, False));
    end Static_Call_Function_2b;
 
    function Dynamic_Call_Function_2b (Item : in Parent_Type_1'Class) return Float

@@ -625,6 +625,10 @@ is -- target 0
    P_8
      : Ada.Strings.Unbounded.String_Access;
 
+   --EMACSCMD:(progn (forward-line 4)(test-all-defs "Task_Type_1"))
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Task_Type_1 task type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Task_Type_1 body")
+   --EMACSRESULT_FINISH:
    task type Task_Type_1 (Name : access String)
    with
      Storage_Size => 512 + 256
@@ -648,9 +652,11 @@ is -- target 0
    -- We make these procedures primitive operations, so we can test
    -- 'overriding' in ada_mode-nominal-child.ads
 
-   --EMACSCMD:(progn (forward-line 5)(test-all-defs "Parent_Type_1"))
+   --EMACSCMD:(test-all-defs "type Parent_Type_1")
    --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
    --EMACSRESULT_FINISH:
    type Parent_Type_1 is tagged record
       Parent_Element_1 : Integer;
@@ -718,16 +724,20 @@ is -- target 0
 
    function Function_2a (Param : in Parent_Type_1) return Float;
 
-   --EMACSCMD:(progn (forward-line 10)(test-all-refs "Function_2b"))
-   --EMACSRESULT_START:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
+   --EMACSCMD:(test-all-refs "function Function_2b")
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")
    --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
    --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
    --EMACSRESULT_FINISH:
    function Function_2b (Param : in Parent_Type_1) return
      Float;

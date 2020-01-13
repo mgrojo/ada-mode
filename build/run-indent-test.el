@@ -20,7 +20,9 @@
 
 (defun test-all-refs (name)
   "Return list of (FILENAME CATEGORY) for all references of NAME."
-  (end-of-line)
+  (unless (bolp)
+    ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-all-defs ...).
+    (end-of-line))
   (search-forward name)
   (backward-word 1)
   (let* ((prj (project-current))
@@ -34,6 +36,9 @@
 
 (defun test-all-defs (name)
   "Return list of (FILENAME CATEGORY) for all definitions of NAME (and parent and child types)."
+  (unless (bolp)
+    ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-all-defs ...).
+    (end-of-line))
   (search-forward name)
   (backward-word 1)
   (let* ((prj (project-current))

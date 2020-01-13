@@ -2,5 +2,7 @@
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 function Ada_Mode.Library_Function return Integer; -- spec
 
---EMACSCMD:(progn (forward-line -2)(forward-word 4)(forward-char 1)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at "Library_Function return Integer is"))
---EMACSRESULT:t
+--EMACSCMD:(progn (forward-line -3)(test-all-defs "Library_Function"))
+--EMACSRESULT_START:'("ada_mode-library_function.ads" "Library_Function function")
+--EMACSRESULT_ADD:'("ada_mode-library_function.adb" "Library_Function body")
+--EMACSRESULT_FINISH:

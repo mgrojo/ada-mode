@@ -58,12 +58,11 @@ run test from emacs -Q using source:
 beta release
 
 implement xref-backend-definitions (prj wisi-prj)
-    run ada_mode-nominal.ads test
+    run all gpr_query tests: pass
 
-    test with gnat xref_tool
+    run all gnat xref_tool tests
         skip tests somehow
 
-    run all tests
 
 
 C-u M-. Child_Type_1 used to just go there
