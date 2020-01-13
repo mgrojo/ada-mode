@@ -55,11 +55,16 @@ private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
 
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
+--EMACSRESULT:t
 with Ada_Mode.Library_Function;
+--EMACSCMD:(progn (forward-line -1)(forward-word 4)(wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line -2)(forward-word 4)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at "Library_Function return Integer; -- spec"))
---EMACSRESULT:t
+--EMACSCMD:(progn (forward-line -4)(test-all-defs "Ada_Mode.Library_Function"))
+--EMACSRESULT_START:'("ada_mode-library_function.ads" "Library_Function function")
+--EMACSRESULT_ADD:'("ada_mode-library_function.adb" "Library_Function body")
+--EMACSRESULT_FINISH:
+
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
 --EMACSRESULT:t
@@ -296,9 +301,26 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
-   -- result in same file
+   --EMACSCMD:(progn (forward-line -3)(test-all-defs "Private_Type_1"))
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Private_Type_1 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Private_Type_1 full declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1 full declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1a abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1b abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1c abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1d abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2 full declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2a abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_3 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_3 full declaration")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_4 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_5 abstract record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_6 abstract record type")
+   --EMACSRESULT_FINISH:
 
    type Private_Type_2 is abstract tagged limited
      private;
@@ -454,16 +476,20 @@ is -- target 0
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
-   -- result in other file
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(xref-find-definitions (xref-backend-identifier-at-point (xref-find-backend)))(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(wisi-goto-spec/body)(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
    protected type Protected_1 is -- Protected_1
 
-      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
+      --EMACSCMD:(progn (forward-line -2)(test-all-defs "Protected_1"))
+      --EMACSRESULT_START:'("ada_mode-nominal.ads" "Protected_1 protected type")
+      --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Protected_1 body")
+      --EMACSRESULT_FINISH:
+
+      --EMACSCMD:(progn (end-of-line -5)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -7)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -622,6 +648,10 @@ is -- target 0
    -- We make these procedures primitive operations, so we can test
    -- 'overriding' in ada_mode-nominal-child.ads
 
+   --EMACSCMD:(progn (forward-line 5)(test-all-defs "Parent_Type_1"))
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
+   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
+   --EMACSRESULT_FINISH:
    type Parent_Type_1 is tagged record
       Parent_Element_1 : Integer;
       Parent_Element_2 : Float;

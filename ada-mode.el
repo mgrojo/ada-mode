@@ -178,7 +178,7 @@ slower to load on first use, but gives better error recovery."
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'ada-build-make)
-    (define-key map "\C-c\C-d" 	 'xref-find-definitions)
+    (define-key map "\C-c\C-d" 	 'wisi-goto-spec/body)
     (define-key map "\C-c\M-d" 	 'wisi-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 'wisi-skel-expand)
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
@@ -239,7 +239,7 @@ slower to load on first use, but gives better error recovery."
     ("Navigate"
      ["Other file"                    ada-find-other-file          t]
      ["Find file in project"          project-find-file            t]
-     ["Goto declaration/body"         xref-find-definitions        t]
+     ["Goto declaration/body"         wisi-goto-spec/body          t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
      ["Goto subprogram/package start" ada-goto-declaration-start   t]
@@ -293,7 +293,7 @@ slower to load on first use, but gives better error recovery."
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
-    ["Goto declaration/body"         xref-find-definitions         t]
+    ["Goto declaration/body"         wisi-goto-spec-body         t]
     ["Goto next statement keyword"   forward-sexp   t]
     ["Goto prev statement keyword"   backward-sexp   t]
     ["Goto declarative region start" ada-goto-declarative-region-start   t]
@@ -759,7 +759,7 @@ previously set by a file navigation command."
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (xref-find-definitions (thing-at-point 'symbol)))
+    (wisi-goto-spec/body))
 
    (t
     (ff-find-other-file)))

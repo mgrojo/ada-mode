@@ -171,6 +171,7 @@ procedure Gpr_Query is
    procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
+   procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
 
@@ -223,6 +224,12 @@ procedure Gpr_Query is
        new String'("name:file:line:column"),
        new String'("All known references to the entity."),
        Process_Refs'Access),
+
+      (new String'("tree_defs"),
+       new String'("name:file:line:column"),
+       new String'
+         ("All known references to the entity, and to parent/child types or overridden/overriding operations."),
+       Process_Tree_Defs'Access),
 
       (new String'("tree_refs"),
        new String'("name:file:line:column"),
@@ -513,7 +520,7 @@ procedure Gpr_Query is
          Entity : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
          Refs   : References_Cursor;
       begin
-         Xref.References (Entity, Cursor => Refs);
+         Xref.References (Entity, Refs);
          if Args_Length (Args) > 1 then
             if Nth_Arg (Args, 2) = "local_only" then
                --  Xref doesn't let us get the full file name of Entity (sigh)
@@ -534,6 +541,73 @@ procedure Gpr_Query is
          end if;
       end;
    end Process_Refs;
+
+   procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      use GNATCOLL.Arg_Lists;
+      use GNATCOLL.Xref;
+      Entity       : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Parent_Types : Entities_Cursor;
+      Child_Types  : Entities_Cursor;
+
+      procedure Dump_Body (Entity : in Entity_Information)
+      is
+         Refs : References_Cursor;
+      begin
+         Xref.References (Entity, Refs);
+         loop
+            exit when not Has_Element (Refs);
+            declare
+               Ref  : constant Entity_Reference   := Refs.Element;
+               Kind : constant String             := +Ref.Kind;
+               Decl : constant Entity_Declaration := Xref.Declaration (Ref.Entity); -- For name
+            begin
+               if Kind = "full declaration" or
+                 Kind = "body"
+               then
+                  Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Decl.Name) & " " & Kind & ")");
+               end if;
+            end;
+            Next (Refs);
+         end loop;
+      end Dump_Body;
+
+      procedure Dump_Entity (Entity : in Entity_Information)
+      is
+         Decl : constant Entity_Declaration := Xref.Declaration (Entity);
+      begin
+         Ada.Text_IO.Put_Line
+           (Xref.Image (Decl.Location) & " (" &
+              (+Decl.Name) & " " &
+              (+Decl.Kind) & ")");
+
+         --  Parent_Types, Child_Types do not return the full declaration of a
+         --  private/protected/task type; find those here.
+         Dump_Body (Entity);
+      end Dump_Entity;
+
+      procedure Dump_Entities (Entities : in out Entities_Cursor)
+      is begin
+         loop
+            exit when not Has_Element (Entities);
+            Dump_Entity (Entities.Element);
+            Next (Entities);
+         end loop;
+      end Dump_Entities;
+
+   begin
+      Xref.Parent_Types (Entity, Parent_Types);
+      Xref.Child_Types (Entity, Child_Types);
+
+      if Has_Element (Parent_Types) or Has_Element (Child_Types) then
+         Dump_Entities (Parent_Types);
+         Dump_Entity (Entity);
+         Dump_Entities (Child_Types);
+      else
+         --  Not a tagged type, or no derived types
+         Dump_Entity (Entity);
+      end if;
+   end Process_Tree_Defs;
 
    procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is

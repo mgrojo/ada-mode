@@ -58,20 +58,20 @@ run test from emacs -Q using source:
 beta release
 
 implement xref-backend-definitions (prj wisi-prj)
-    test/ada_mode-nominal.ads:630
-   --EMACSCMD:(progn (forward-line 5)(test-all-defs "Parent_Type_1"))
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Parent_Type_1; public declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Parent_Type_1; private declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; private declaration")
-   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Type_1; public declaration")
-   --EMACSRESULT_FINISH:
-
     add test on child type declaration
+
+    add test on private tagged type
+
+    add test on private nontagged type
 
     change menu to match
 
     test with gnat xref_tool
         skip tests somehow
+
+test-all-refs on variable, non-dispatching subprogram
+
+test-all-defs on non-tagged type, variable
 
 fix gpr_query so short_file_names is per-command; never set in 'xref' style queries
     also see FIXMEs

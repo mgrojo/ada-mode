@@ -506,8 +506,8 @@ FILE is from gpr-query."
     (gpr-query--start-process project session)
     ))
 
-(cl-defmethod wisi-xref-references (_xref project item)
-  ;; ITEM is an xref-item
+(defun gpr-query-tree-refs (project item op)
+  "Run gpr_query tree command OP on ITEM, return list of xref-items."
   (with-slots (summary location) item
     (with-slots (file line column) location
       (when (eq ?\" (aref summary 0))
@@ -515,7 +515,8 @@ FILE is from gpr-query."
 	(setq column (+ 1 column))
 	(setq summary (substring summary 1 (1- (length summary)))))
 
-      (let ((cmd (format "tree_refs %s:%s:%s:%s"
+      (let ((cmd (format "%s %s:%s:%s:%s"
+			 op
 			 summary
 			 (file-name-nondirectory file)
 			 (or line "")
@@ -524,24 +525,13 @@ FILE is from gpr-query."
 	    (session (gpr-query-cached-session project)))
 
 	(with-current-buffer (gpr-query-session-send session cmd t)
-	  ;; 'gpr_query refs' returns a list containing the declaration,
-	  ;; the body, and all the references (including to overridden and
-	  ;; overriding items), in no particular order.
+	  ;; 'gpr_query tree_*' returns a list containing the declarations,
+	  ;; bodies, and references (classwide), in no particular order.
 	  ;;
 	  ;; the format of each line is file:line:column (type)
 	  ;;                            1    2    3       4
 	  ;;
-	  ;; 'type' can be:
-	  ;;   body
-	  ;;   declaration
-	  ;;   full declaration  (for a private type)
-	  ;;   implicit reference
-	  ;;   reference
-	  ;;   static call
-	  ;;
-	  ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration)
-	  ;;
-	  ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference)
+	  ;; 'type' includes the type name
 
 	  (goto-char (point-min))
 
@@ -551,7 +541,7 @@ FILE is from gpr-query."
 	      ;; process line
 	      (let* ((found-file (match-string 1))
 		     (found-line (string-to-number (match-string 2)))
-		     (found-col  (string-to-number (match-string 3)))
+		     (found-col  (1- (string-to-number (match-string 3))))
 		     (found-type (match-string 4))
 		     )
 
@@ -563,12 +553,18 @@ FILE is from gpr-query."
 		  ;; database not updated. We abort, rather than just
 		  ;; ignoring this entry, because it means other ref are
 		  ;; probably out of date as well.
-		  (error "file '%s' not found; refresh?" (match-string 1)))
+		  (user-error "file '%s' not found; refresh?" (match-string 1)))
 
 		(setq found-file (gpr-query--normalize-filename found-file))
 
 		(push (xref-make
-		       (if found-type (concat summary " " found-type) summary)
+		       (cond
+			((string= op "tree_refs")
+			 (if found-type (concat summary " " found-type) summary))
+
+			((string= op "tree_defs")
+			 found-type)
+			)
 		       (xref-make-file-location found-file found-line found-col))
 		      result)
 		))
@@ -587,6 +583,12 @@ FILE is from gpr-query."
 	    (user-error "gpr_query did not return any references; refresh?"))
 
 	  result)))))
+
+(cl-defmethod wisi-xref-definitions (_xref project item)
+  (gpr-query-tree-refs project item "tree_defs"))
+
+(cl-defmethod wisi-xref-references (_xref project item)
+  (gpr-query-tree-refs project item "tree_refs"))
 
 (cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project &key identifier filename line column)
   (when (eq ?\" (aref identifier 0))

@@ -184,6 +184,9 @@ after the project file PRJ-FILE-NAME is parsed."
 slow refresh operations may be skipped."
   nil)
 
+(cl-defgeneric wisi-xref-definitions (_xref project item)
+  "Return all definitions (classwide) of ITEM (an xref-item), as a list of xref-items.")
+
 (cl-defgeneric wisi-xref-references (_xref project item)
   "Return all references to ITEM (an xref-item), as a list of xref-items.")
 
@@ -199,6 +202,55 @@ Returns a list (FILE LINE COLUMN) giving the corresponding location;
 FILE is an absolute file name.  If point is at the specification, the
 corresponding location is the
 body, and vice versa.")
+
+(defun wisi-goto-source (file line column)
+  "Find and select FILE, at LINE and COLUMN.
+FILE may be absolute, or on `compilation-search-path'.
+LINE, COLUMN are Emacs origin."
+  (let ((file-1
+	 (if (file-name-absolute-p file) file
+	   (ff-get-file-name compilation-search-path file))))
+    (if file-1
+	(setq file file-1)
+      (error "File %s not found; installed library, or set project?" file))
+    )
+
+  (push-mark (point) t)
+
+  (let ((buffer (get-file-buffer file)))
+    (cond
+     ((bufferp buffer)
+      ;; use pop-to-buffer, so package other-frame-window works.
+      (pop-to-buffer buffer (list #'display-buffer-same-window)))
+
+     ((file-exists-p file)
+      (find-file file))
+
+     (t
+      (error "'%s' not found" file))))
+
+  ;; move the cursor to the correct position
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (forward-char column))
+
+(defun wisi-goto-spec/body ()
+  "Goto declaration or body for symbol at point."
+  (interactive)
+  (let ((prj (project-current)))
+    (wisi-xref-ident-make
+     (xref-backend-identifier-at-point (xref-find-backend))
+     (lambda (ident file line column)
+       (let ((target (wisi-xref-other
+		      (wisi-prj-xref prj) prj
+		      :identifier ident
+		      :filename file
+		      :line line
+		      :column column)))
+	 (wisi-goto-source (nth 0 target)
+			   (nth 1 target)
+			   (nth 2 target))
+	 )))))
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
   "Return the identifier at point, move point to start of
@@ -357,37 +409,6 @@ COLUMN - Emacs column of the start of the identifier")
 		      (nth 1 target)
 		      (nth 2 target))
   ))
-
-(defun wisi-goto-source (file line column)
-  "Find and select FILE, at LINE and COLUMN.
-FILE may be absolute, or on `compilation-search-path'.
-LINE, COLUMN are Emacs origin."
-  (let ((file-1
-	 (if (file-name-absolute-p file) file
-	   (ff-get-file-name compilation-search-path file))))
-    (if file-1
-	(setq file file-1)
-      (error "File %s not found; installed library, or set project?" file))
-    )
-
-  (push-mark (point) t)
-
-  (let ((buffer (get-file-buffer file)))
-    (cond
-     ((bufferp buffer)
-      ;; use pop-to-buffer, so package other-frame-window works.
-      (pop-to-buffer buffer (list #'display-buffer-same-window)))
-
-     ((file-exists-p file)
-      (find-file file))
-
-     (t
-      (error "'%s' not found" file))))
-
-  ;; move the cursor to the correct position
-  (goto-char (point-min))
-  (forward-line (1- line))
-  (forward-char column))
 
 ;;;; wisi-prj specific methods
 
@@ -1082,23 +1103,7 @@ with \\[universal-argument]."
 ;;;; xref backend
 
 (cl-defmethod xref-backend-definitions ((prj wisi-prj) identifier)
-  (wisi-xref-ident-make
-   identifier
-   (lambda (ident file line column)
-     (let ((target (wisi-xref-other
-		    (wisi-prj-xref prj) prj
-		    :identifier ident
-		    :filename file
-		    :line line
-		    :column column)))
-       (list
-	(xref-make
-	 ident
-	 (xref-make-file-location
-	  (nth 0 target) ;; file
-	  (nth 1 target) ;; line
-	  (nth 2 target)) ;; column
-	 ))))))
+  (wisi-xref-definitions (wisi-prj-xref prj) prj (wisi-xref-item identifier)))
 
 (cl-defmethod xref-backend-identifier-at-point ((prj wisi-prj))
   (save-excursion
