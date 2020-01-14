@@ -278,8 +278,8 @@ Uses `gpr_query'. Returns new list."
   ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
   ;; gds-mil_std_1553-utf.ads:252:25 - when ada-xref-full-path is nil
-  "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
-  ;; 1                             2                   3
+  "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0-9]+\\):\\([0-9]+\\)"
+  ;; 1                              2            3
   "Regexp matching <file>:<line>:<column> where <file> is an absolute file name or basename.")
 
 (defconst gpr-query-ident-file-regexp-alist

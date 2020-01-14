@@ -30,3 +30,6 @@ package body Ada_Mode.Recover_24 is
    end Fast_Forward;
 
 end Ada_Mode.Recover_24;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

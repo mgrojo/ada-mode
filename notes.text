@@ -57,18 +57,6 @@ run test from emacs -Q using source:
  current work
 beta release
 
-implement xref-backend-definitions (prj wisi-prj)
-    run all gpr_query tests: pass
-
-    run all gnat xref_tool tests
-        skip tests somehow
-
-
-
-C-u M-. Child_Type_1 used to just go there
-    but now puts up an xref buffer, and does _not_ go to first entry (which is Child_Type_1)
-    add wisi-goto-name
-
 test-all-refs on variable, non-dispatching subprogram
 
 test-all-defs on non-tagged type, variable

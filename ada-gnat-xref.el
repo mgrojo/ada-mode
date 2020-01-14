@@ -5,7 +5,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -43,6 +43,10 @@
 (defconst gnatxref-buffer-name-prefix "*gnatxref-")
 
 (defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
+
+(defconst ada-gnat-file-line-col-type-regexp
+  (concat ada-gnat-file-line-col-regexp ": \\(?:(\\(.*\\))\\)?")
+  "Regexp matching <file>:<line>:<column> (<type>)")
 
 (cl-defstruct (gnatxref-xref (:include gnat-compiler))
   ;; no new slots
@@ -124,6 +128,43 @@ elements of the result may be nil."
                 (file-name-nondirectory file)
                 line
                 (ada-gnat-xref-adj-col identifier col))))
+
+(defun ada-gnat-xref-refs (project item all)
+  (with-slots (summary location) item
+    (with-slots (file line column) location
+      (let ((result nil))
+	(with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
+	  (gnat-run project
+		    (ada-gnat-xref-common-cmd project)
+		    (cons "-r" (ada-gnat-xref-common-args project summary file line column)))
+
+	  (goto-char (point-min))
+	  (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
+
+	  (while (not (eobp))
+	    (cond
+	     ((looking-at ada-gnat-file-line-col-type-regexp)
+	      ;; process line
+	      (let ((found-file (match-string 1))
+		    (found-line (string-to-number (match-string 2)))
+		    (found-col  (string-to-number (match-string 3)))
+		    (found-type (match-string 4)))
+		(when (or all found-type)
+		  (push (xref-make (concat summary " " found-type)
+				   (xref-make-file-location found-file found-line found-col))
+			result))
+		))
+	     (t
+	      ;; ignore line
+	      ))
+	    (forward-line 1)))
+	result))))
+
+(cl-defmethod wisi-xref-definitions (_xref project item)
+  (ada-gnat-xref-refs project item nil))
+
+(cl-defmethod wisi-xref-references (_xref project item)
+  (ada-gnat-xref-refs project item t))
 
 (cl-defmethod wisi-xref-other ((_xref gnatxref-xref) project &key identifier filename line column)
   (let* ((result nil))

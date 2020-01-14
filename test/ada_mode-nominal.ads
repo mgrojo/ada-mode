@@ -61,7 +61,7 @@ with Ada_Mode.Library_Function;
 --EMACSCMD:(progn (forward-line -1)(forward-word 4)(wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line -4)(test-all-defs "Ada_Mode.Library_Function"))
---EMACSRESULT_START:'("ada_mode-library_function.ads" "Library_Function function")
+--EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function " (cl-ecase ada-xref-tool (gpr_query "function") (gnat "spec"))))
 --EMACSRESULT_ADD:'("ada_mode-library_function.adb" "Library_Function body")
 --EMACSRESULT_FINISH:
 
@@ -304,22 +304,22 @@ is -- target 0
    --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line -3)(test-all-defs "Private_Type_1"))
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Private_Type_1 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Private_Type_1 full declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1 full declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1a abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1b abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1c abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_1d abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2 full declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_2a abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_3 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_3 full declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_4 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_5 abstract record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Limited_Derived_Type_6 abstract record type")
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Private_Type_1 " (cl-ecase ada-xref-tool (gpr_query "abstract record type") (gnat "spec"))))
+   --EMACSRESULT_ADD:(list "ada_mode-nominal.ads" (concat "Private_Type_1 " (cl-ecase ada-xref-tool (gpr_query "full declaration") (gnat "body")))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1 abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1 full declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1a abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1b abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1c abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_1d abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_2 abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_2 full declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_2a abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_3 abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_3 full declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_4 abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_5 abstract record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Limited_Derived_Type_6 abstract record type"))
    --EMACSRESULT_FINISH:
 
    type Private_Type_2 is abstract tagged limited
@@ -483,7 +483,7 @@ is -- target 0
    protected type Protected_1 is -- Protected_1
 
       --EMACSCMD:(progn (forward-line -2)(test-all-defs "Protected_1"))
-      --EMACSRESULT_START:'("ada_mode-nominal.ads" "Protected_1 protected type")
+      --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Protected_1 " (cl-ecase ada-xref-tool (gpr_query "protected type")(gnat "spec"))))
       --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Protected_1 body")
       --EMACSRESULT_FINISH:
 
@@ -626,7 +626,7 @@ is -- target 0
      : Ada.Strings.Unbounded.String_Access;
 
    --EMACSCMD:(progn (forward-line 4)(test-all-defs "Task_Type_1"))
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Task_Type_1 task type")
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Task_Type_1 " (cl-ecase ada-xref-tool (gpr_query "task type") (gnat "spec"))))
    --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Task_Type_1 body")
    --EMACSRESULT_FINISH:
    task type Task_Type_1 (Name : access String)
@@ -653,10 +653,10 @@ is -- target 0
    -- 'overriding' in ada_mode-nominal-child.ads
 
    --EMACSCMD:(test-all-defs "type Parent_Type_1")
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Parent_Type_1 " (cl-ecase ada-xref-tool (gpr_query "record type")(gnat "spec"))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_1 record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_2 record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_2 full declaration"))
    --EMACSRESULT_FINISH:
    type Parent_Type_1 is tagged record
       Parent_Element_1 : Integer;
@@ -725,19 +725,19 @@ is -- target 0
    function Function_2a (Param : in Parent_Type_1) return Float;
 
    --EMACSCMD:(test-all-refs "function Function_2b")
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (cl-ecase ada-xref-tool (gpr_query "Parent_Type_1 record type")(gnat "Function_2b spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat (list "ada_mode-nominal.adb" "Function_2b body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b ")))
+   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b " (when (eq ada-xref-tool 'gpr_query) "Parent_Type_1; static call"))))
+   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b " (when (eq ada-xref-tool 'gpr_query) "Parent_Type_1; dispatching call"))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_1 record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_2 record type"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Child_Type_2 full declaration"))
    --EMACSRESULT_FINISH:
    function Function_2b (Param : in Parent_Type_1) return
      Float;

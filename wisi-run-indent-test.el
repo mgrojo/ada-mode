@@ -234,7 +234,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
-	  (when debug-on-error (debug))
 	  (setq error-count (1+ error-count))
 	  (message
 	   (concat
@@ -251,14 +250,13 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
        ((string= (match-string 1) "RESULT_ADD")
 	(looking-at ".*$")
-	(setq expected-result (append expected-result
-				      (list
-				       (save-excursion (end-of-line 1)
-						       (eval (car (read-from-string (match-string 0)))))))))
+	(let ((val (save-excursion (end-of-line 1)
+				   (eval (car (read-from-string (match-string 0)))))))
+	  (when val
+	    (setq expected-result (append expected-result (list val))))))
 
        ((string= (match-string 1) "RESULT_FINISH")
 	(unless (equal (length expected-result) (length last-result))
-	  (when debug-on-error (debug))
 	  (setq error-count (1+ error-count))
 	  (message
 	   (concat
@@ -271,7 +269,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(let ((i 0))
 	  (while (< i (length expected-result))
 	    (unless (equal (nth i expected-result) (nth i last-result))
-	      (when debug-on-error (debug))
 	      (setq error-count (1+ error-count))
 	      (message
 	       (concat
