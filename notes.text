@@ -57,21 +57,8 @@ run test from emacs -Q using source:
  current work
 beta release
 
-test-all-refs on variable, non-dispatching subprogram
-
-test-all-defs on non-tagged type, variable
-
 fix gpr_query so short_file_names is per-command; never set in 'xref' style queries
     also see FIXMEs
-
-gpr_query handle .gpr xref?
-
-xref-backend-definitions on abstract spec should show overridden and overriding
-    don't have separate wisi-xref- defgenerics for those
-
-xref-backend-references on project name in .gpr with ada-prj current should not use gpr-query
-    cond on major-mode; use other-file
-    or fall back to other-file if gpr-query fails? only if ff-special?
 
 move dvc-kill-all-review/workspace to wisi?
     add delete projects in the workspace?
@@ -88,6 +75,7 @@ implement LSP language server, wisi lsp variant
     gnu elpa eglot
     https://github.com/emacs-lsp/lsp-mode
     GNAT Studio, adalang
+    https://github.com/microsoft/language-server-protocol/issues/18 semantic info for highlight
 
 delete "(progn" in actions
 

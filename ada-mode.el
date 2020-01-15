@@ -247,7 +247,7 @@ slower to load on first use, but gives better error recovery."
      ["Goto declarative region start" ada-goto-declarative-region-start   t]
      ["Goto containing statement start" wisi-goto-containing-statement-start t]
      ["Show parent declarations"        wisi-show-declaration-parents        t]
-     ["Show all references (classwide)" xref-references                      t]
+     ["Show all references (classwide)" xref-find-references                 t]
      ["Show all direct references"      wisi-show-reference                  t]
      ["Show local references"         wisi-show-local-references    t]
      ["Show overriding"               wisi-show-overriding          t]

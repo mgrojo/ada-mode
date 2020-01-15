@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program
 ;;
-;; Copyright (C) 2014, 2017 - 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017 - 2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -398,7 +398,7 @@ complete."
       (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
 	(push
 	 (make-wisi--parse-error-repair
-	  :pos (aref (aref sexp i) 0)
+	  :pos (copy-marker (aref (aref sexp i) 0))
 	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
 	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
 	  :deleted-region (aref (aref sexp i) 3))

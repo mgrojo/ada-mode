@@ -606,6 +606,9 @@ FILE is from gpr-query."
   (unless (file-name-absolute-p filename)
     (setq filename (locate-file filename compilation-search-path)))
 
+  (unless filename
+    (user-error "'%s' not found in current project - renamed?" filename))
+
   (setq filename (gpr-query--normalize-filename filename))
 
   (let ((cmd (format "refs %s:%s:%s:%s"

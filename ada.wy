@@ -259,7 +259,7 @@
 ;; Error recovery will insert 'end if;', after push_back or
 ;; undo_reduce of the handled_sequence_of_statements including
 ;; 'statement'. If it uses push_back, then 'end if;' is before
-;; 'statement'; if undo_reduce, after, which is the desired result.;;
+;; 'statement'; if undo_reduce, after, which is the desired result.
 %mckenzie_cost_undo_reduce handled_sequence_of_statements 0
 %mckenzie_cost_undo_reduce sequence_of_statements 0
 %mckenzie_cost_undo_reduce sequence_of_statements_opt 0
