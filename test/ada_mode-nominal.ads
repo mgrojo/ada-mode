@@ -58,7 +58,7 @@ private with Ada.Containers.Vectors,
 --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 with Ada_Mode.Library_Function;
---EMACSCMD:(progn (forward-line -1)(forward-word 4)(wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line -1)(forward-word 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line -4)(test-all-defs "Ada_Mode.Library_Function"))
 --EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function " (cl-ecase ada-xref-tool (gpr_query "function") (gnat "spec"))))
@@ -301,7 +301,7 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(call-interactively 'wisi-goto-spec/body)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line -3)(test-all-defs "Private_Type_1"))
    --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Private_Type_1 " (cl-ecase ada-xref-tool (gpr_query "abstract record type") (gnat "spec"))))
@@ -476,7 +476,7 @@ is -- target 0
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(wisi-goto-spec/body)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(call-interactively 'wisi-goto-spec/body)(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t

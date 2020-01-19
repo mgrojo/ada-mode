@@ -116,7 +116,7 @@
   "Returns a list of arguments to pass to gnatfind.  Some
 elements of the result may be nil."
   (list "-af"
-        (when ada-xref-full-path "-f")
+        (when wisi-xref-full-path "-f")
 	;; source-path contains Source_Dirs from gpr_file. Similarly for
 	;; obj_dir. So we don't need to pass the gpr file.
         (when (wisi-prj-source-path project)

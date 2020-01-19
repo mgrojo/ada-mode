@@ -107,7 +107,6 @@ Must match gpr_query.adb Version.")
 		    'null
 		    (list
 		     (concat "--project=" gpr-file)
-		     (when (not ada-xref-full-path) "--short_file_names")
 		     (when gpr-query--debug-start
 		       (concat "--tracefile=gpr_query.trace")
 		       ;; The file gpr_query.trace should contain: gpr_query=yes
@@ -277,7 +276,7 @@ Uses `gpr_query'. Returns new list."
 (defconst gpr-query-ident-file-regexp
   ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  ;; gds-mil_std_1553-utf.ads:252:25 - when ada-xref-full-path is nil
+  ;; gds-mil_std_1553-utf.ads:252:25 - when wisi-xref-full-path is nil
   "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0-9]+\\):\\([0-9]+\\)"
   ;; 1                              2            3
   "Regexp matching <file>:<line>:<column> where <file> is an absolute file name or basename.")
@@ -291,17 +290,18 @@ Uses `gpr_query'. Returns new list."
   "Regexp matching <file>:<line>:<column> (<type>)")
 
 (defun gpr-query-compilation (project identifier file line col cmd comp-err &optional local_only append)
-  "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
+  "Run gpr_query CMD IDENTIFIER:FILE:LINE:COL,
 with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
 
-  ;; Note that ada-xref-full-path is used in gpr-query--start-process,
-  ;; not here; if it changes, the gpr-query session must be restarted.
-
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
-  (let* ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
-	 (cmd-2 (if local_only (concat cmd-1 " local_only") cmd-1))
+  (let* ((cmd-1 (concat (format "%s %s:%s:%d:%d "
+				cmd identifier file line (1+ col))
+			(when (member cmd '("refs"))
+			      (if local_only "local_only" "global"))
+			(when (member cmd '("overrides" "overridden_by" "parent_types" "refs"))
+			      (if wisi-xref-full-path "full_file_names" "short_file_names"))))
 	 (session (gpr-query-cached-session project))
 	 (result-count 0)
 	 start-pos prev-content
@@ -314,7 +314,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	(forward-line 0)
 	(setq prev-content (buffer-substring (point-min) (point)))))
 
-    (with-current-buffer (gpr-query-session-send session cmd-2 t)
+    (with-current-buffer (gpr-query-session-send session cmd-1 t)
       ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
       (setq start-pos (point-min))
@@ -515,7 +515,7 @@ FILE is from gpr-query."
 	(setq column (+ 1 column))
 	(setq summary (substring summary 1 (1- (length summary)))))
 
-      (let ((cmd (format "%s %s:%s:%s:%s"
+      (let ((cmd (format "%s %s:%s:%s:%s global full_file_names"
 			 op
 			 summary
 			 (file-name-nondirectory file)
@@ -544,9 +544,6 @@ FILE is from gpr-query."
 		     (found-col  (1- (string-to-number (match-string 3))))
 		     (found-type (match-string 4))
 		     )
-
-		(unless ada-xref-full-path
-		  (setq found-file (locate-file found-file compilation-search-path)))
 
 		(unless found-file
 		  ;; Can be nil if actual file is renamed but gpr-query
@@ -603,15 +600,18 @@ FILE is from gpr-query."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (unless (file-name-absolute-p filename)
-    (setq filename (locate-file filename compilation-search-path)))
+  (let ((temp filename))
 
-  (unless filename
-    (user-error "'%s' not found in current project - renamed?" filename))
+    (unless (file-name-absolute-p temp)
+      (setq temp (locate-file filename compilation-search-path)))
+
+    (if temp
+	(setq filename temp)
+      (user-error "'%s' not found in current project - renamed?" filename)))
 
   (setq filename (gpr-query--normalize-filename filename))
 
-  (let ((cmd (format "refs %s:%s:%s:%s"
+  (let ((cmd (format "refs %s:%s:%s:%s global full_file_names"
 		     identifier
 		     (file-name-nondirectory filename)
 		     (or line "")
@@ -645,9 +645,6 @@ FILE is from gpr-query."
       ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration)
       ;;
       ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference)
-      ;;
-      ;; if ada-xref-full-path is nil, only the file basename is present.
-      ;; FIXME: ada-xref-full-path is Ada-mode specific!
 
       (message "parsing result ...")
 
@@ -666,16 +663,11 @@ FILE is from gpr-query."
 			       most-positive-fixnum))
 		 )
 
-	    ;; FIXME: merge all of this ...
-	    (unless ada-xref-full-path
-	      (setq found-file (locate-file found-file compilation-search-path)))
-
 	    (unless found-file
 	      ;; can be nil if actual file is renamed but gpr-query database not updated
 	      (error "file '%s' not found; refresh?" (match-string 1)))
 
             (setq found-file (gpr-query--normalize-filename found-file))
-	    ;; end FIXME: into normalize-filename
 
 	    (cond
 	     ((string-equal found-type "declaration")
@@ -764,7 +756,9 @@ FILE is from gpr-query."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory filename) line (1+ column)))
+  (let ((cmd (format "overridden %s:%s:%d:%d %s"
+		     identifier (file-name-nondirectory filename) line (1+ column)
+		     (if wisi-xref-full-path "full_file_names" "short_file_names")))
 	(session (gpr-query-cached-session project))
 	result)
     (with-current-buffer (gpr-query-session-send session cmd t)

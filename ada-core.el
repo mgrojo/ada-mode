@@ -466,13 +466,6 @@ extend a with_clause to include CHILD-NAME  .	"
 (defconst ada-xref-known-tools '(gpr_query gnat)
   "Supported xref tools")
 
-(defcustom ada-xref-full-path nil
-  "If t, cross-references show the full path to source files; if
-nil, only the file name."
-  :group 'ada
-  :type 'boolean
-  :safe #'booleanp)
-
 (defun ada-make-subprogram-body ()
   "Convert subprogram specification after point into a subprogram body stub."
   (interactive)

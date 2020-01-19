@@ -72,6 +72,10 @@ procedure Gpr_Query is
    type My_Xref_Database is new GNATCOLL.Xref.Xref_Database with null record;
    --  Derived so we can override Image to output full paths
 
+   Short_File_Names : Boolean; -- set by each command that calls Image
+   --  Full_File_Names_Arg : constant String := "full_file_names";
+   Short_File_Names_Arg : constant String := "short_file_names";
+
    overriding function Image (Self : My_Xref_Database; File : GNATCOLL.VFS.Virtual_File) return String;
    function Image (Self : GNATCOLL.Xref.Entity_Information) return String;
    --  Return a display version of the argument
@@ -84,7 +88,6 @@ procedure Gpr_Query is
 
    --  Subprogram specs for subprograms used before bodies
    procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer);
-   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Min, Max : in Integer);
    procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class);
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Controlling_Type_Name : in String := "");
    procedure Dump_Local (Refs : in out GNATCOLL.Xref.References_Cursor'Class; Local_File_Name : in String);
@@ -111,7 +114,9 @@ procedure Gpr_Query is
       Entity : Entity_Information;
       Comp   : Entity_Information;
    begin
-      Check_Arg_Count (Args, 1);
+      Check_Arg_Count (Args, 2);
+
+      Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
 
       Entity := Get_Entity (Nth_Arg (Args, 1));
       Comp := Compute (Xref, Entity);
@@ -144,7 +149,9 @@ procedure Gpr_Query is
          Compute (Self, Entity, Cursor);
       end Do_Compute;
    begin
-      Check_Arg_Count (Args, 1);
+      Check_Arg_Count (Args, 2);
+
+      Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
 
       Entity := Get_Entity (Nth_Arg (Args, 1));
 
@@ -252,7 +259,6 @@ procedure Gpr_Query is
    Gpr_Config_File      : aliased GNAT.Strings.String_Access;
    Nightly_DB_Name      : aliased GNAT.Strings.String_Access;
    Project_Name         : aliased GNAT.Strings.String_Access;
-   Short_File_Names     : aliased Boolean;
    Show_Progress        : aliased Boolean;
    Traces_Config_File   : aliased GNAT.Strings.String_Access;
 
@@ -266,16 +272,6 @@ procedure Gpr_Query is
       if Count /= Expected then
          raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
            "; expecting" & Integer'Image (Expected);
-      end if;
-   end Check_Arg_Count;
-
-   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Min, Max : in Integer)
-   is
-      Count : constant Integer := GNATCOLL.Arg_Lists.Args_Length (Args);
-   begin
-      if Count not in Min .. Max then
-         raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
-           "; expecting" & Min'Image & " .." & Max'Image;
       end if;
    end Check_Arg_Count;
 
@@ -503,6 +499,7 @@ procedure Gpr_Query is
       pragma Unreferenced (Args);
       Dirs : constant GNATCOLL.VFS.File_Array := GNATCOLL.Projects.Predefined_Project_Path (Env.all);
    begin
+      Short_File_Names := False;
       Put (Dirs);
    end Process_Project_Path;
 
@@ -513,7 +510,9 @@ procedure Gpr_Query is
    is
       use GNATCOLL.Arg_Lists;
    begin
-      Check_Arg_Count (Args, 1, 2);
+      Check_Arg_Count (Args, 3); --  entity, local/global, full/short
+
+      Short_File_Names := Nth_Arg (Args, 3) = Short_File_Names_Arg;
 
       declare
          use GNATCOLL.Xref;
@@ -521,21 +520,16 @@ procedure Gpr_Query is
          Refs   : References_Cursor;
       begin
          Xref.References (Entity, Refs);
-         if Args_Length (Args) > 1 then
-            if Nth_Arg (Args, 2) = "local_only" then
-               --  Xref doesn't let us get the full file name of Entity (sigh)
-               declare
-                  use Ada.Strings.Fixed;
-                  First           : constant Integer := 1 + Index (Nth_Arg (Args, 1), ":");
-                  Last            : constant Integer := -1 + Index (Nth_Arg (Args, 1), ":", First);
-                  Local_File_Name : constant String  := Nth_Arg (Args, 1) (First .. Last);
-               begin
-                  Dump_Local (Refs, Local_File_Name);
-               end;
-            else
-               raise Invalid_Command with "Invalid argument '" & Nth_Arg (Args, 2) &
-                 "'; expecting 'local_only'";
-            end if;
+         if Nth_Arg (Args, 2) = "local_only" then
+            --  Xref doesn't let us get the full file name of Entity (sigh)
+            declare
+               use Ada.Strings.Fixed;
+               First           : constant Integer := 1 + Index (Nth_Arg (Args, 1), ":");
+               Last            : constant Integer := -1 + Index (Nth_Arg (Args, 1), ":", First);
+               Local_File_Name : constant String  := Nth_Arg (Args, 1) (First .. Last);
+            begin
+               Dump_Local (Refs, Local_File_Name);
+            end;
          else
             Dump (Refs);
          end if;
@@ -622,6 +616,7 @@ procedure Gpr_Query is
       end Dump_Entities;
 
    begin
+      Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
       All_Child_Types (Root_Parent, Child_Types);
       Dump_Entity (Root_Parent);
       Dump_Entities (Child_Types);
@@ -666,6 +661,7 @@ procedure Gpr_Query is
          end loop;
       end Dump_Types;
    begin
+      Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
       Xref.Method_Of (Entity, Controlling_Types);
       --  'Method_Of' does not return parent or child types if Entity is
       --  overridden in the child.
@@ -702,6 +698,7 @@ procedure Gpr_Query is
          Recursive => True) &
         Predefined_Source_Path (Env.all);
    begin
+      Short_File_Names := False;
       Put (Dirs);
    end Process_Source_Dirs;
 
@@ -774,12 +771,6 @@ begin
          Output      => Traces_Config_File'Access,
          Long_Switch => "--tracefile=",
          Help        => "Specify a traces configuration file, set projects lib verbose");
-      Define_Switch
-        (Cmdline,
-         Output      => Short_File_Names'Access,
-         Long_Switch => "--short_file_names",
-         Switch      => "-s",
-         Help        => "Show base filename, not full directory");
 
       Getopt (Cmdline, Callback => null);
    end;

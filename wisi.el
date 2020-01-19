@@ -1392,7 +1392,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	(dolist (id (wisi--parse-error-repair-inserted repair))
 	  (when (and (not (bobp))
 		     (not (= ?\( (char-before (point))))
-		     (= 2 (syntax-class (syntax-after (1- (point)))))) ;; word
+		     (member (syntax-class (syntax-after (1- (point)))) '(2 3))) ;; word or symbol
 	    (insert " "))
 	  (insert (cdr (assoc id (wisi-parser-repair-image wisi--parser)))))
 	))
@@ -1441,14 +1441,16 @@ If non-nil, only repair errors in BEG END region."
   "Match line number encoded into identifier by `wisi-xref-identifier-at-point'.")
 
 (defun wisi-xref-ident-make (identifier &optional other-function)
+  "Return an xref-item for IDENTIFIER."
   (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
 	 ;; If t-prop is non-nil: identifier is from
 	 ;; identifier-at-point, the desired location is the ’other’
 	 ;; (spec/body).
 	 ;;
 	 ;; If t-prop is nil: identifier is from prompt/completion,
-	 ;; the line number may be included in the identifier
-	 ;; wrapped in <>, and the desired file is the current file.
+	 ;; the line number may be included in the identifier wrapped
+	 ;; in <>, and the desired location is that line in the current
+	 ;; file.
 	 (ident
 	  (if t-prop
 	      (substring-no-properties identifier 0 nil)
@@ -1473,7 +1475,7 @@ If non-nil, only repair errors in BEG END region."
     (if t-prop
 	(funcall other-function ident file line column)
 
-      (list (xref-make ident (xref-make-file-location file (or line 1) column)))
+      (xref-make ident (xref-make-file-location file (or line 1) column))
       )))
 
 (defun wisi-xref-item (identifier)

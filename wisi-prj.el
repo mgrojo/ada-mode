@@ -203,6 +203,9 @@ FILE is an absolute file name.  If point is at the specification, the
 corresponding location is the
 body, and vice versa.")
 
+(defvar-local wisi-xref-full-path nil
+  "If non-nil, xref functions show full paths in results.")
+
 (defun wisi-goto-source (file line column)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
@@ -234,23 +237,30 @@ LINE, COLUMN are Emacs origin."
   (forward-line (1- line))
   (forward-char column))
 
-(defun wisi-goto-spec/body ()
-  "Goto declaration or body for symbol at point."
-  (interactive)
+(defun wisi-goto-spec/body (identifier)
+  "Goto declaration or body for IDENTIFIER (default symbol at point).
+If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
+  (interactive (list (xref--read-identifier "Goto spec of: ")))
   (let ((prj (project-current)))
-    (wisi-xref-ident-make
-     (xref-backend-identifier-at-point (xref-find-backend))
-     (lambda (ident file line column)
-       (let ((target (wisi-xref-other
-		      (wisi-prj-xref prj) prj
-		      :identifier ident
-		      :filename file
-		      :line line
-		      :column column)))
-	 (wisi-goto-source (nth 0 target)
-			   (nth 1 target)
-			   (nth 2 target))
-	 )))))
+    (xref--show-location
+      (xref-item-location
+       (wisi-xref-ident-make
+	identifier
+	(lambda (ident file line column)
+	  (let ((target (wisi-xref-other
+			 (wisi-prj-xref prj) prj
+			 :identifier ident
+			 :filename file
+			 :line line
+			 :column column)))
+	    (xref-make ident
+		       (xref-make-file-location
+			(nth 0 target) ;; file
+			(nth 1 target) ;; line
+			(nth 2 target))) ;; column
+	    ))))
+      t) ;; select
+    ))
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
   "Return the identifier at point, move point to start of

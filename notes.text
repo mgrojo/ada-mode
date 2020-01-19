@@ -57,8 +57,8 @@ run test from emacs -Q using source:
  current work
 beta release
 
-fix gpr_query so short_file_names is per-command; never set in 'xref' style queries
-    also see FIXMEs
+C-u M-. prompts for function name with line number, but then puts both spec and body in an xref buffer
+    different completion table in C-u M-. ?
 
 move dvc-kill-all-review/workspace to wisi?
     add delete projects in the workspace?

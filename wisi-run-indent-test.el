@@ -358,6 +358,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   ;; that rely on font-lock do explicitly.
   (setq font-lock-support-mode nil)
 
+  (setq xref-prompt-for-identifier nil)
+
   (let ((dir default-directory))
     (find-file file-name) ;; sets default-directory
 

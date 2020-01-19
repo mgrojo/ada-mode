@@ -12,7 +12,7 @@ package body Ada_Mode is
    -- WORKAROUND: prior to GNAT 2016, this went to
    -- ada_mode-separate_procedure.adb. Now it goes to ada_mode.ads.
    --
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(wisi-goto-spec/body)(looking-at "Separate_Procedure;"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(call-interactively 'wisi-goto-spec/body)(looking-at "Separate_Procedure;"))
    --EMACSRESULT:t
    procedure Separate_Procedure is separate;
    --EMACSCMD:(progn (forward-line -1) (test-all-defs "Separate_Procedure"))

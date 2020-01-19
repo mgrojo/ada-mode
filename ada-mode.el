@@ -162,6 +162,13 @@ slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada)
 
+(defcustom ada-xref-full-path nil
+  "If t, cross-references show the full path to source files; if
+nil, only the file name."
+  :group 'ada
+  :type 'boolean
+  :safe #'booleanp)
+
 ;;;; keymap and menus
 
 (defvar ada-mode-map
@@ -759,7 +766,7 @@ previously set by a file navigation command."
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (wisi-goto-spec/body))
+    (call-interactively (wisi-goto-spec/body)))
 
    (t
     (ff-find-other-file)))
@@ -1566,6 +1573,7 @@ Prompts with completion, defaults to filename at point."
      :repair-image ada-process-repair-image)))
 
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
+  (setq wisi-xref-full-path ada-xref-full-path)
 
   (add-hook 'hack-local-variables-hook #'ada-mode-post-local-vars nil t)
   )

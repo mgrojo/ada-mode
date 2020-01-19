@@ -34,7 +34,7 @@ procedure Field_parent is
    type D2_T is (D4, D5, D6);
 
    type Var_T (Disc1 : D1_T, Disc2 : D2_T) is record T --  Error: ',' should be ';' ; extra 'T'
-      Field1 : Integer;
+        Field1 : Integer;
    end record;
 
 
@@ -42,7 +42,7 @@ procedure Field_parent is
                        Root_Field => 3, Root_Field2 => 1.42);
 begin
    Put_Line ("Hi:" & Child.Child_Field'Image);
-   end;
-   -- Local Variables:
-   -- wisi-mckenzie-task-count: 1
-   -- End:
+end;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:
