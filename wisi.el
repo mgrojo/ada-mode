@@ -1479,7 +1479,7 @@ If non-nil, only repair errors in BEG END region."
       )))
 
 (defun wisi-xref-item (identifier)
-  "Given IDENTIFIER, return an xref-item.
+  "Given IDENTIFIER, return an xref-item, with line, column nil if unknown.
 IDENTIFIER is from a user prompt with completion, or from
 `xref-backend-identifier-at-point'."
   (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
@@ -1505,15 +1505,15 @@ IDENTIFIER is from a user prompt with completion, or from
 	    (when (match-string 2 identifier)
 	      (string-to-number (match-string 2 identifier)))))
 	 (column
-	  (if t-prop
-	      (plist-get t-prop ':column)
-	    0))
+	  (when t-prop
+	    (plist-get t-prop ':column)))
 	 )
 
     (unless (file-name-absolute-p file)
       (setq file (locate-file file compilation-search-path)))
 
-    (xref-make ident (xref-make-file-location file (or line 1) column))
+    (let ((eieio-skip-typecheck t)) ;; allow line, column nil.
+      (xref-make ident (xref-make-file-location file line column)))
     ))
 
 (defun wisi-xref-identifier-at-point ()
@@ -1556,9 +1556,9 @@ IDENTIFIER is from a user prompt with completion, or from
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
-(defun wisi-xref-names ()
-  "List of names; each is text from one 'wisi-name property in current buffer,
-with the line number appended."
+(defun wisi-names (append-lines)
+  "List of names; each is text from one 'wisi-name property in current buffer.
+If APPEND-LINES is non-nil, each has the line number it occurs on appended."
   (when wisi--parser
     ;; wisi--parser is nil in a non-language buffer, like Makefile
     (wisi-validate-cache (point-min) (point-max) t 'navigate)
@@ -1572,9 +1572,11 @@ with the line number appended."
 	;; disambiguate overloaded identifiers in the user interface.
 	(setq end-pos (next-single-property-change pos 'wisi-name))
 	(push
-	 (format "%s<%d>"
-		 (buffer-substring-no-properties pos end-pos)
-		 (line-number-at-pos pos))
+	 (if append-lines
+	     (format "%s<%d>"
+		     (buffer-substring-no-properties pos end-pos)
+		     (line-number-at-pos pos))
+	   (buffer-substring-no-properties pos end-pos))
 	 table)
 	(setq pos end-pos)
 	)

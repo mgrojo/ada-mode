@@ -507,85 +507,87 @@ FILE is from gpr-query."
     ))
 
 (defun gpr-query-tree-refs (project item op)
-  "Run gpr_query tree command OP on ITEM, return list of xref-items."
+  "Run gpr_query tree command OP on ITEM (an xref-item), return list of xref-items."
   (with-slots (summary location) item
-    (with-slots (file line column) location
-      (when (eq ?\" (aref summary 0))
-	;; gpr_query wants the quotes stripped
-	(setq column (+ 1 column))
-	(setq summary (substring summary 1 (1- (length summary)))))
+    ;; 'location' may have line, column nil
+    (let ((eieio-skip-typecheck t))
+      (with-slots (file line column) location
+	(when (eq ?\" (aref summary 0))
+	  ;; gpr_query wants the quotes stripped
+	  (when column (setq column (+ 1 column)))
+	  (setq summary (substring summary 1 (1- (length summary)))))
 
-      (let ((cmd (format "%s %s:%s:%s:%s full_file_names"
-			 op
-			 summary
-			 (file-name-nondirectory file)
-			 (or line "")
-			 (if column (1+ column) "")))
-	    (result nil)
-	    (session (gpr-query-cached-session project)))
+	(let ((cmd (format "%s %s:%s:%s:%s full_file_names"
+			   op
+			   summary
+			   (file-name-nondirectory file)
+			   (or line "")
+			   (if column (1+ column) "")))
+	      (result nil)
+	      (session (gpr-query-cached-session project)))
 
-	(with-current-buffer (gpr-query-session-send session cmd t)
-	  ;; 'gpr_query tree_*' returns a list containing the declarations,
-	  ;; bodies, and references (classwide), in no particular order.
-	  ;;
-	  ;; the format of each line is file:line:column (type)
-	  ;;                            1    2    3       4
-	  ;;
-	  ;; 'type' includes the type name
+	  (with-current-buffer (gpr-query-session-send session cmd t)
+	    ;; 'gpr_query tree_*' returns a list containing the declarations,
+	    ;; bodies, and references (classwide), in no particular order.
+	    ;;
+	    ;; the format of each line is file:line:column (type)
+	    ;;                            1    2    3       4
+	    ;;
+	    ;; 'type' includes the type name
 
-	  (goto-char (point-min))
+	    (goto-char (point-min))
 
-	  (while (not (eobp))
-	    (cond
-	     ((looking-at gpr-query-ident-file-type-regexp)
-	      ;; process line
-	      (let* ((found-file (match-string 1))
-		     (found-line (string-to-number (match-string 2)))
-		     (found-col  (1- (string-to-number (match-string 3))))
-		     (found-type (match-string 4))
-		     )
+	    (while (not (eobp))
+	      (cond
+	       ((looking-at gpr-query-ident-file-type-regexp)
+		;; process line
+		(let* ((found-file (match-string 1))
+		       (found-line (string-to-number (match-string 2)))
+		       (found-col  (1- (string-to-number (match-string 3))))
+		       (found-type (match-string 4))
+		       )
 
-		(unless found-file
-		  ;; Can be nil if actual file is renamed but gpr-query
-		  ;; database not updated. We abort, rather than just
-		  ;; ignoring this entry, because it means other ref are
-		  ;; probably out of date as well.
-		  (user-error "file '%s' not found; refresh?" (match-string 1)))
+		  (unless found-file
+		    ;; Can be nil if actual file is renamed but gpr-query
+		    ;; database not updated. We abort, rather than just
+		    ;; ignoring this entry, because it means other ref are
+		    ;; probably out of date as well.
+		    (user-error "file '%s' not found; refresh?" (match-string 1)))
 
-		(setq found-file (gpr-query--normalize-filename found-file))
+		  (setq found-file (gpr-query--normalize-filename found-file))
 
-		(push (xref-make
-		       (cond
-			((string= op "tree_refs")
-			 (if found-type
-			     (if (string-match ";" found-type)
-				 ;; ref is to the identifier
-				 (concat summary " " found-type)
-			       ;; ref is to the controlling type of the identifier
-			       found-type)
-			   summary))
+		  (push (xref-make
+			 (cond
+			  ((string= op "tree_refs")
+			   (if found-type
+			       (if (string-match ";" found-type)
+				   ;; ref is to the identifier
+				   (concat summary " " found-type)
+				 ;; ref is to the controlling type of the identifier
+				 found-type)
+			     summary))
 
-			((string= op "tree_defs")
-			 found-type)
-			)
-		       (xref-make-file-location found-file found-line found-col))
-		      result)
-		))
+			  ((string= op "tree_defs")
+			   found-type)
+			  )
+			 (xref-make-file-location found-file found-line found-col))
+			result)
+		  ))
 
-	     (t ;; ignore line
-	      ;;
-	      ;; This skips GPR_PROJECT_PATH and echoed command at start of buffer.
-	      ;;
-	      ;; It also skips warning lines.
+	       (t ;; ignore line
+		;;
+		;; This skips GPR_PROJECT_PATH and echoed command at start of buffer.
+		;;
+		;; It also skips warning lines.
+		)
+	       )
+	      (forward-line 1)
 	      )
-	     )
-	    (forward-line 1)
-	    )
 
-	  (when (null result)
-	    (user-error "gpr_query did not return any references; refresh?"))
+	    (when (null result)
+	      (user-error "gpr_query did not return any references; refresh?"))
 
-	  result)))))
+	    result))))))
 
 (cl-defmethod wisi-xref-definitions (_xref project item)
   (gpr-query-tree-refs project item "tree_defs"))

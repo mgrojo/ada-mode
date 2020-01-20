@@ -3,8 +3,6 @@
 --  Support Emacs Ada mode and gpr-query minor mode queries about
 --  GNAT projects and cross reference data
 --
---  requires gnatcoll 1.7w 20140330, gnat 7.2.1
---
 --  Copyright (C) 2014 - 2020 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
@@ -633,8 +631,6 @@ procedure Gpr_Query is
       Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
       Decl        : constant Entity_Declaration := Xref.Declaration (Entity);
       Root_Parent : Entity_Information;
-      Child_Types : Recursive_Entities_Cursor;
-      Controlling_Types : Entities_Cursor;
 
       procedure Dump_Method
         (Entity            : in GNATCOLL.Xref.Entity_Information;
@@ -657,9 +653,10 @@ procedure Gpr_Query is
       is begin
          loop
             exit when not Has_Element (Entities);
-            Dump_Entity (Entities.Element);
             if Decl.Flags.Is_Subprogram then
                Dump_Method (Entities.Element, +Decl.Name);
+            else
+               Dump_Entity (Entities.Element);
             end if;
             Next (Entities);
          end loop;
@@ -667,6 +664,7 @@ procedure Gpr_Query is
 
    begin
       Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
+
       if Decl.Flags.Is_Type then
          --  It is tempting to find the highest ancestor type here, then show
          --  all types derived from that. But in Ada, that root ancestor is
@@ -679,27 +677,37 @@ procedure Gpr_Query is
          Root_Parent := Root_Parent_Type (Entity, Generations => 1);
 
       elsif Decl.Flags.Is_Subprogram then
-         Xref.Method_Of (Entity, Controlling_Types);
-         if not Has_Element (Controlling_Types) then
-            --  Not a primitive subprogram
-            Dump_Decl (Decl);
-            return;
-         else
-            --  Here we find the highest ancestor type that has this method.
-            Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
-         end if;
+         declare
+            Controlling_Types : Entities_Cursor;
+         begin
+            Xref.Method_Of (Entity, Controlling_Types);
+
+            if not Has_Element (Controlling_Types) then
+               --  Not a primitive subprogram
+               Dump_Entity (Entity);
+               return;
+            else
+               --  Here we find the highest ancestor type that has this method.
+               Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
+            end if;
+         end;
       else
          --  A variable
          Dump_Decl (Decl);
          return;
       end if;
 
-      All_Child_Types (Root_Parent, Child_Types);
-      Dump_Entity (Root_Parent);
-      if Decl.Flags.Is_Subprogram then
-         Dump_Method (Root_Parent, +Decl.Name);
-      end if;
-      Dump_Entities (Child_Types);
+      declare
+         Child_Types : Recursive_Entities_Cursor;
+      begin
+         All_Child_Types (Root_Parent, Child_Types);
+         if Decl.Flags.Is_Subprogram then
+            Dump_Method (Root_Parent, +Decl.Name);
+         else
+            Dump_Entity (Root_Parent);
+         end if;
+         Dump_Entities (Child_Types);
+      end;
    end Process_Tree_Defs;
 
    procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
@@ -708,30 +716,32 @@ procedure Gpr_Query is
 
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
-      Entity            : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-      Name              : constant String             := +Xref.Declaration (Entity).Name;
-      Controlling_Types : Entities_Cursor;
+      Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Decl        : constant Entity_Declaration := Xref.Declaration (Entity);
+      Root_Parent : Entity_Information;
 
       procedure Dump_Type (Entity : in Entity_Information)
       is
          Methods : Entities_Cursor;
       begin
-         Dump_Entity (Entity);
-
-         Xref.Methods (Entity, Methods, Include_Inherited => False);
-         loop
-            exit when not Has_Element (Methods);
-            declare
-               Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
-               Refs : References_Cursor;
-            begin
-               if Method_Name = Name then
-                  Xref.References (Methods.Element, Refs);
-                  Dump (Refs, +Xref.Declaration (Entity).Name);
-               end if;
-            end;
-            Next (Methods);
-         end loop;
+         if Decl.Flags.Is_Subprogram then
+            Xref.Methods (Entity, Methods, Include_Inherited => False);
+            loop
+               exit when not Has_Element (Methods);
+               declare
+                  Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
+                  Refs : References_Cursor;
+               begin
+                  if Method_Name = +Decl.Name then
+                     Xref.References (Methods.Element, Refs);
+                     Dump (Refs, +Xref.Declaration (Entity).Name);
+                  end if;
+               end;
+               Next (Methods);
+            end loop;
+         else
+            Dump_Entity (Entity);
+         end if;
       end Dump_Type;
 
       procedure Dump_Types (Types : in out Recursive_Entities_Cursor)
@@ -744,29 +754,49 @@ procedure Gpr_Query is
       end Dump_Types;
    begin
       Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
-      Xref.Method_Of (Entity, Controlling_Types);
-      --  'Method_Of' does not return parent or child types if Entity is
-      --  overridden in the child.
 
-      if not Has_Element (Controlling_Types) then
-         --  Not a primitive subprogram
+      if Decl.Flags.Is_Type then
+         --  See comment in Process_Tree_Defs
+         Root_Parent := Root_Parent_Type (Entity, Generations => 1);
+
+      elsif Decl.Flags.Is_Subprogram then
+         declare
+            Controlling_Types : Entities_Cursor;
+         begin
+            Xref.Method_Of (Entity, Controlling_Types);
+
+            if not Has_Element (Controlling_Types) then
+               --  Not a primitive subprogram
+               declare
+                  Refs : References_Cursor;
+               begin
+                  Xref.References (Entity, Refs);
+                  Dump (Refs);
+                  return;
+               end;
+            else
+               Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
+            end if;
+         end;
+      else
+         --  A variable
          declare
             Refs : References_Cursor;
          begin
             Xref.References (Entity, Refs);
             Dump (Refs);
-         end;
-      else
-         declare
-            Root_Parent : constant Entity_Information := Root_Parent_Type (Controlling_Types.Element);
-            Child_Types : Recursive_Entities_Cursor;
-         begin
-            All_Child_Types (Root_Parent, Child_Types);
-
-            Dump_Type (Root_Parent);
-            Dump_Types (Child_Types);
+            return;
          end;
       end if;
+
+      declare
+         Child_Types : Recursive_Entities_Cursor;
+      begin
+         All_Child_Types (Root_Parent, Child_Types);
+
+         Dump_Type (Root_Parent);
+         Dump_Types (Child_Types);
+      end;
    end Process_Tree_Refs;
 
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List)

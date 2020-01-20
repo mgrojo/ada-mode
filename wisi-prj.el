@@ -243,10 +243,33 @@ LINE, COLUMN are Emacs origin."
     (pop-to-buffer (marker-buffer marker))
     (goto-char (marker-position marker))))
 
+(defun wisi-get-identifier (prompt)
+  "Get identifier at point, or if no identifier at point, or with user arg, prompt for one."
+  ;; Similar to xref--read-identifier, but uses a different completion
+  ;; table, because we want a more specific reference.
+  (let* ((backend (xref-find-backend))
+         (def (xref-backend-identifier-at-point backend)))
+
+    (cond
+     ((or current-prefix-arg
+          (not def))
+      (let ((id
+             (completing-read
+              (if def
+		  (format "%s (default %s): " prompt def)
+                prompt)
+              (wisi-names t)
+              nil nil nil
+              'xref--read-identifier-history def)))
+        (if (equal id "")
+            (user-error "No identifier provided")
+          id)))
+     (t def))))
+
 (defun wisi-goto-spec/body (identifier)
   "Goto declaration or body for IDENTIFIER (default symbol at point).
 If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
-  (interactive (list (xref--read-identifier "Goto spec of: ")))
+  (interactive (list (wisi-get-identifier "Goto spec/body of: ")))
   (let ((prj (project-current)))
     (wisi-show-xref
      (wisi-xref-ident-make
@@ -1137,7 +1160,7 @@ with \\[universal-argument]."
 
 (cl-defmethod xref-backend-identifier-completion-table ((_prj wisi-prj))
   ;; Current buffer only.
-  (wisi-xref-names))
+  (wisi-names nil))
 
 (cl-defmethod xref-backend-references  ((prj wisi-prj) identifier)
   (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier)))

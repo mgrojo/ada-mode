@@ -35,17 +35,10 @@ o.e.a.stephe-6 (from ): available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
+(setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
+
  current work
 beta release
-
-tree_defs on method don't list types
-
-compare gpr_query.adb Process_tree_defs to _refs
-    handle type ancestors the same
-    extract common
-
-C-u M-. prompts for function name with line number, but then puts both spec and body in an xref buffer
-    need different completion table in C-u M-.
 
 move dvc-kill-all-review/workspace to wisi?
     add delete projects in the workspace?
