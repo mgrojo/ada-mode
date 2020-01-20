@@ -1559,24 +1559,26 @@ IDENTIFIER is from a user prompt with completion, or from
 (defun wisi-xref-names ()
   "List of names; each is text from one 'wisi-name property in current buffer,
 with the line number appended."
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
-  (let ((table nil)
-	(pos (point-min))
-	end-pos)
-    (while (setq pos (next-single-property-change pos 'wisi-name))
-      ;; We can’t store location data in a string text property -
-      ;; it does not survive completion. So we include the line
-      ;; number in the identifier string. This also serves to
-      ;; disambiguate overloaded identifiers in the user interface.
-      (setq end-pos (next-single-property-change pos 'wisi-name))
-      (push
-       (format "%s<%d>"
-	       (buffer-substring-no-properties pos end-pos)
-	       (line-number-at-pos pos))
-       table)
-      (setq pos end-pos)
-      )
-    table))
+  (when wisi--parser
+    ;; wisi--parser is nil in a non-language buffer, like Makefile
+    (wisi-validate-cache (point-min) (point-max) t 'navigate)
+    (let ((table nil)
+	  (pos (point-min))
+	  end-pos)
+      (while (setq pos (next-single-property-change pos 'wisi-name))
+	;; We can’t store location data in a string text property -
+	;; it does not survive completion. So we include the line
+	;; number in the identifier string. This also serves to
+	;; disambiguate overloaded identifiers in the user interface.
+	(setq end-pos (next-single-property-change pos 'wisi-name))
+	(push
+	 (format "%s<%d>"
+		 (buffer-substring-no-properties pos end-pos)
+		 (line-number-at-pos pos))
+	 table)
+	(setq pos end-pos)
+	)
+      table)))
 
 ;;;; debugging
 

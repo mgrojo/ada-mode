@@ -300,7 +300,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 				cmd identifier file line (1+ col))
 			(when (member cmd '("refs"))
 			      (if local_only "local_only" "global"))
-			(when (member cmd '("overrides" "overridden_by" "parent_types" "refs"))
+			(when (member cmd '("overriding" "overridden_by" "parent_types" "refs"))
 			      (if wisi-xref-full-path "full_file_names" "short_file_names"))))
 	 (session (gpr-query-cached-session project))
 	 (result-count 0)
@@ -515,7 +515,7 @@ FILE is from gpr-query."
 	(setq column (+ 1 column))
 	(setq summary (substring summary 1 (1- (length summary)))))
 
-      (let ((cmd (format "%s %s:%s:%s:%s global full_file_names"
+      (let ((cmd (format "%s %s:%s:%s:%s full_file_names"
 			 op
 			 summary
 			 (file-name-nondirectory file)

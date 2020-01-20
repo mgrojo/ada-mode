@@ -2,7 +2,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2019  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2020  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -453,8 +453,7 @@ See @file{ada-gnat-xref.el} and @file{gpr-query.el} for examples.
 
 All user-settable Ada mode variables can be set via the menu @samp{Ada
 | Customize}; some can also be set in wisi project files
-(@pxref{Project files}).  Click on the @samp{Help} button there for
-help on using customize.
+(@pxref{Project files}).
 
 To modify a specific variable, you can directly call the function
 @code{customize-variable}; just type @kbd{M-x customize-variable
@@ -482,6 +481,19 @@ Ada mode does not provide any @code{other-frame} or
 recommended to use the Gnu ELPA package @code{other-frame-window}.
 @item delete-trailing-whitespace
 Deletes space, tab at end of line and blank lines at end of buffer.
+@item xref configuration
+@table @code
+@item xref-prompt-for-identifier
+Set to @code{nil} to be prompted less when finding definitions or
+references.
+@item xref-show-xrefs-function
+Determine placement of the window where references are shown.
+@item xref-show-definitions-function
+Determine placement of the window where definitions are shown.
+@item xref--transient-buffer-mode-map
+keymap used in some xref windows; you may want to disable the
+@key{RET} binding there.
+@end table
 @item untabify
 Deletes tab characters that have crept into the file.
 @item indent-tabs-mode
@@ -515,6 +527,11 @@ first.
 
 @example
 (setq-default indent-tabs-mode nil)
+(define-key xref--transient-buffer-mode-map (kbd "RET") 'xref-goto-xref)
+(setq xref-prompt-for-identifier nil) ;; only prompt on C-u
+(setq xref-show-xrefs-function #'xref--show-defs-buffer-at-bottom)
+(setq xref-show-definitions-function #'xref--show-defs-buffer-at-bottom)
+
 (electric-pair-mode 1)
 (require 'imenu) ;; also enables speedbar
 (require 'ada-mode)

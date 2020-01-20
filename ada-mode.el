@@ -766,7 +766,7 @@ previously set by a file navigation command."
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (call-interactively (wisi-goto-spec/body)))
+    (call-interactively 'wisi-goto-spec/body))
 
    (t
     (ff-find-other-file)))

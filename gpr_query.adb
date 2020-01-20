@@ -536,21 +536,46 @@ procedure Gpr_Query is
       end;
    end Process_Refs;
 
+   function Has_Op
+     (Entity            : in GNATCOLL.Xref.Entity_Information;
+      Primitive_Op_Name : in String := "")
+     return Boolean
+   is
+      use GNATCOLL.Xref;
+      Ops : Entities_Cursor;
+   begin
+      Xref.Methods (Entity, Ops);
+      loop
+         exit when not Has_Element (Ops);
+         if Primitive_Op_Name = +Xref.Declaration (Element (Ops)).Name then
+            return True;
+         end if;
+         Next (Ops);
+      end loop;
+      return False;
+   end Has_Op;
+
    function Root_Parent_Type
-     (Entity : in GNATCOLL.Xref.Entity_Information)
+     (Entity            : in GNATCOLL.Xref.Entity_Information;
+      Generations       : in Natural := 0;
+      Primitive_Op_Name : in String  := "")
      return GNATCOLL.Xref.Entity_Information
    is
       use GNATCOLL.Xref;
       Result  : Entity_Information := Entity;
       Parents : Entities_Cursor;
+      Count   : Integer            := 0;
    begin
       loop
          Xref.Parent_Types (Result, Parents);
          --  There is more than one parent when the type inherits interfaces.
          --  We assume the first parent is a non-interface (if there is one),
          --  and ignore the rest.
-         exit when not Parents.Has_Element;
+         exit when (not Parents.Has_Element) or
+           (Primitive_Op_Name'Length > 0 and then Has_Op (Result, Primitive_Op_Name));
          Result := Parents.Element;
+         Count  := Count + 1;
+         exit when Generations > 0 and Count = Generations;
       end loop;
       return Result;
    end Root_Parent_Type;
@@ -584,46 +609,103 @@ procedure Gpr_Query is
       end loop;
    end Dump_Body;
 
-   procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information)
-   is
-      use GNATCOLL.Xref;
-      Decl : constant Entity_Declaration := Xref.Declaration (Entity);
-   begin
+   procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration)
+   is begin
       Ada.Text_IO.Put_Line
         (Xref.Image (Decl.Location) & " (" &
            (+Decl.Name) & " " &
            (+Decl.Kind) & ")");
+   end Dump_Decl;
 
+   procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information)
+   is begin
+      Dump_Decl (Xref.Declaration (Entity));
       Dump_Body (Entity);
    end Dump_Entity;
 
    procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
+      --  "tree_defs" <name:loc> {short_file_names | full_file_names}
+
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
 
       Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-      Root_Parent : constant Entity_Information := Root_Parent_Type (Entity);
+      Decl        : constant Entity_Declaration := Xref.Declaration (Entity);
+      Root_Parent : Entity_Information;
       Child_Types : Recursive_Entities_Cursor;
+      Controlling_Types : Entities_Cursor;
+
+      procedure Dump_Method
+        (Entity            : in GNATCOLL.Xref.Entity_Information;
+         Primitive_Op_Name : in String)
+      is
+         Ops : Entities_Cursor;
+      begin
+         Xref.Methods (Entity, Ops);
+         loop
+            exit when not Has_Element (Ops);
+            if Primitive_Op_Name = +Xref.Declaration (Element (Ops)).Name then
+               Dump_Decl (Xref.Declaration (Element (Ops)));
+               return;
+            end if;
+            Next (Ops);
+         end loop;
+      end Dump_Method;
 
       procedure Dump_Entities (Entities : in out Recursive_Entities_Cursor)
       is begin
          loop
             exit when not Has_Element (Entities);
             Dump_Entity (Entities.Element);
+            if Decl.Flags.Is_Subprogram then
+               Dump_Method (Entities.Element, +Decl.Name);
+            end if;
             Next (Entities);
          end loop;
       end Dump_Entities;
 
    begin
       Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
+      if Decl.Flags.Is_Type then
+         --  It is tempting to find the highest ancestor type here, then show
+         --  all types derived from that. But in Ada, that root ancestor is
+         --  often Ada.Finalization.[Limited_]Controlled (or some similar root
+         --  type), so the tree is much larger than we really want. So we just
+         --  show one generation parent, and all children of that parent; the
+         --  user can then climb the tree if they want to enlarge it.
+         --  IMPROVEME: exclude the root type explicitly; allow projects to
+         --  specify root types to exclude.
+         Root_Parent := Root_Parent_Type (Entity, Generations => 1);
+
+      elsif Decl.Flags.Is_Subprogram then
+         Xref.Method_Of (Entity, Controlling_Types);
+         if not Has_Element (Controlling_Types) then
+            --  Not a primitive subprogram
+            Dump_Decl (Decl);
+            return;
+         else
+            --  Here we find the highest ancestor type that has this method.
+            Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
+         end if;
+      else
+         --  A variable
+         Dump_Decl (Decl);
+         return;
+      end if;
+
       All_Child_Types (Root_Parent, Child_Types);
       Dump_Entity (Root_Parent);
+      if Decl.Flags.Is_Subprogram then
+         Dump_Method (Root_Parent, +Decl.Name);
+      end if;
       Dump_Entities (Child_Types);
    end Process_Tree_Defs;
 
    procedure Process_Tree_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
+      --  "tree_refs" <name:loc> {short_file_names | full_file_names}
+
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
       Entity            : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
@@ -820,15 +902,15 @@ begin
 
       Gpr_Project_Path : constant String :=
         (if Exists ("GPR_PROJECT_PATH") then Ada.Directories.Current_Directory &
-           GNAT.OS_Lib.Path_Separator &
-           Value ("GPR_PROJECT_PATH")
+            GNAT.OS_Lib.Path_Separator &
+            Value ("GPR_PROJECT_PATH")
          else Ada.Directories.Current_Directory);
 
       Path : constant Virtual_File := -- must be an absolute file name
         (if Is_Absolute_Path (+Project_Name.all) then
-           Create_From_UTF8 (Project_Name.all, Normalize => True)
+            Create_From_UTF8 (Project_Name.all, Normalize => True)
          else
-           Locate_Regular_File (+Project_Name.all, From_Path (+Gpr_Project_Path)));
+            Locate_Regular_File (+Project_Name.all, From_Path (+Gpr_Project_Path)));
    begin
       if not Path.Is_Regular_File then
          Put (Project_Name.all & ": not found on path " & Gpr_Project_Path);

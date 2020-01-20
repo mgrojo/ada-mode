@@ -237,29 +237,33 @@ LINE, COLUMN are Emacs origin."
   (forward-line (1- line))
   (forward-char column))
 
+(defun wisi-show-xref (xref)
+  "Display XREF location."
+  (let ((marker (xref-location-marker (xref-item-location xref))))
+    (pop-to-buffer (marker-buffer marker))
+    (goto-char (marker-position marker))))
+
 (defun wisi-goto-spec/body (identifier)
   "Goto declaration or body for IDENTIFIER (default symbol at point).
 If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
   (interactive (list (xref--read-identifier "Goto spec of: ")))
   (let ((prj (project-current)))
-    (xref--show-location
-      (xref-item-location
-       (wisi-xref-ident-make
-	identifier
-	(lambda (ident file line column)
-	  (let ((target (wisi-xref-other
-			 (wisi-prj-xref prj) prj
-			 :identifier ident
-			 :filename file
-			 :line line
-			 :column column)))
-	    (xref-make ident
-		       (xref-make-file-location
-			(nth 0 target) ;; file
-			(nth 1 target) ;; line
-			(nth 2 target))) ;; column
-	    ))))
-      t) ;; select
+    (wisi-show-xref
+     (wisi-xref-ident-make
+      identifier
+      (lambda (ident file line column)
+	(let ((target (wisi-xref-other
+		       (wisi-prj-xref prj) prj
+		       :identifier ident
+		       :filename file
+		       :line line
+		       :column column)))
+	  (xref-make ident
+		     (xref-make-file-location
+		      (nth 0 target) ;; file
+		      (nth 1 target) ;; line
+		      (nth 2 target))) ;; column
+	  ))))
     ))
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
