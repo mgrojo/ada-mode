@@ -1,6 +1,6 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2020  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -314,16 +314,21 @@ Otherwise insert a plain new line."
   (wisi-xref-identifier-at-point))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
-  (wisi-xref-names))
+  (wisi-names t))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
-  (unless (and (string-match wisi-xref-ident-regexp identifier)
-	       (match-string 2 identifier))
-    ;; Identifier is from identifier-at-point; get line from completion table
-    (setq identifier (try-completion identifier (wisi-xref-names)))
-    (unless (test-completion identifier (wisi-xref-names))
-      (setq identifier (completing-read "decl: " (wisi-xref-names) nil t identifier)))
-    (string-match wisi-xref-ident-regexp identifier))
+  (let (temp)
+    (unless (and (string-match wisi-xref-ident-regexp identifier)
+		 (match-string 2 identifier))
+      ;; Identifier is from identifier-at-point; get line from completion table
+      (setq temp (try-completion identifier (wisi-names t)))
+      (unless temp
+	(user-error "%s not found" identifier))
+
+      (setq identifier temp)
+      (unless (test-completion identifier (wisi-names t))
+	(setq identifier (completing-read "decl: " (wisi-names t) nil t identifier)))
+      (string-match wisi-xref-ident-regexp identifier)))
 
   (let* ((ident (match-string 1 identifier))
 	 (line-str (match-string 2 identifier))
