@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -701,12 +701,15 @@ package body Wisi.Ada is
       --  In our grammar, 'aggregate' can be an Ada aggregate, or a
       --  parenthesized expression.
       --
-      --  We always want an 'aggregate' to be indented by
-      --  ada-indent-broken. However, in some places in the grammar,
-      --  'aggregate' is indented by ada-indent. The following checks for
-      --  those places, and returns a correction value.
+      --  We always want an 'aggregate' to be indented by ada-indent-broken.
+      --  However, in some places in the grammar, 'aggregate' is indented by
+      --  ada-indent. The following checks for those places, and returns a
+      --  correction value. The aggregate may be nested inside a conidtional
+      --  expression, so we search for 'name' as well; see
+      --  test/ada_mode-conditional_expressions-more_1.adb.
 
-      Expression : constant Syntax_Trees.Node_Index := Tree.Find_Ancestor (Tree_Indenting, +expression_opt_ID);
+      Expression : constant Syntax_Trees.Node_Index := Tree.Find_Ancestor
+        (Tree_Indenting, (+expression_opt_ID, +name_ID));
    begin
       if Expression = Syntax_Trees.Invalid_Node_Index or else
         Tree.Parent (Expression) = Syntax_Trees.Invalid_Node_Index

@@ -16,6 +16,8 @@ project Ada_Mode_Compile is
       "ada_mode-ada2005.ads", -- font-lock only
       "ada_mode-ada2012.ads", -- font-lock only
 
+      "ada_mode-conditional_expressions-more_1.adb",
+
       "ada_mode-debbugs_35124.ads", -- spec
 
       "ada_mode-debbugs_36548.adb", -- partial syntax

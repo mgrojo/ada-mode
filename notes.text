@@ -40,6 +40,11 @@ o.e.a.stephe-6 (from ): available
  current work
 beta release
 
+delete elisp refs in wisi.ad[sb]
+
+gpr_query
+    if declaration and body at same location, only return body
+
 change wisi-cache text property to wisi-navigate
 
 rename "semantic checks" to "in-parse actions", others to "post-parse actions".
@@ -59,15 +64,6 @@ gpr_query needs list of root types to exclude from tree_[dr]efs?
 gpr_query does not see libraries?
     need clear example; libadalang mains vs langkit?
     compare to GPS, gnatinspect
-
-indent bug:
-    A :=
-        (if GNAT.Regexp.Match (Value, Symbol_Regexp)
-         then Tree.Add_Nonterm
-           ((+token_keyword_non_grammar_ID, 0),
-           (1 => Tree.Add_Identifier (+KEYWORD_ID, New_Identifier ("keyword"), Tree.Byte_Region (Node))))
-           -- '(1' should be indented one more
-         else Tree.Add_Nonterm)
 
 align region too large:
    case A is

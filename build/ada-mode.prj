@@ -2,9 +2,6 @@ ada_project_path=../test
 ada_project_path=../test/subdir
 gpr_file=ada_mode_parent.gpr
 
--- for compiling wisent grammars
-src_dir=..
-
 -- for testing casing exceptions
 -- casing=test.casing
 
