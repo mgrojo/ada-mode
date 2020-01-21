@@ -34,8 +34,6 @@ package body Wisi.Ada is
    is
       use Ada_Process_Actions;
    begin
-      --  [1] ada-wisi-elisp-parse--indent-record-1.
-
       if Anchor_Token.Byte_Region = Null_Buffer_Region or
         Record_Token.Byte_Region = Null_Buffer_Region or
         Indenting_Token.Byte_Region = Null_Buffer_Region
@@ -70,7 +68,6 @@ package body Wisi.Ada is
             end if;
          end if;
 
-         --  from [2] wisi-elisp-parse--anchored-1
          return Indent_Anchored_2
            (Data,
             Anchor_Line => Anchor_Token.Line,

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -95,7 +95,7 @@ package body Wisi is
       Indent       : in out Indent_Type)
    with Pre => Delta_Indent.Label = Anchored
    is begin
-      --  [2] wisi-elisp-parse--apply-anchored; add Delta_Indent to Indent
+      --  Add Delta_Indent to Indent
 
       case Indent.Label is
       when Not_Set =>
@@ -130,7 +130,7 @@ package body Wisi is
 
    procedure Indent_Apply_Int (Indent : in out Indent_Type; Offset : in Integer)
    is begin
-      --  [2] wisi-elisp-parse--apply-int; add an Int indent to Indent
+      --  Add an Int indent to Indent
       case Indent.Label is
       when Not_Set =>
          Indent := (Int, Offset);
@@ -255,8 +255,6 @@ package body Wisi is
       Paren_Char_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
       Text_Begin_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
    begin
-      --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
-      --  we search Terminals.
       loop
          declare
             Tok : Augmented_Token renames Data.Terminals (I);
@@ -1116,7 +1114,6 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array)
    is
-      --  [2] wisi-motion-action
       use Navigate_Cache_Trees;
 
       Start          : Nil_Buffer_Pos    := (Set => False);
@@ -1284,8 +1281,6 @@ package body Wisi is
       Params  : in     Face_Apply_Param_Array)
    is
       pragma Unreferenced (Nonterm);
-
-      --  [2] wisi-face-apply-list-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -1372,8 +1367,6 @@ package body Wisi is
       Params  : in     Face_Remove_Param_Array)
    is
       pragma Unreferenced (Nonterm);
-
-      --  [2] wisi-face-remove-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -1459,7 +1452,6 @@ package body Wisi is
          Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, Data.Descriptor.all));
       end if;
 
-      --  [2] wisi-indent-action
       for I in Tokens'Range loop
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
@@ -1520,7 +1512,6 @@ package body Wisi is
    is
       use all type Syntax_Trees.Node_Label;
    begin
-      --  [2] wisi-indent-action*
       for I in Tokens'First .. N loop
          if Tree.Label (Tokens (I)) /= Virtual_Terminal and then
            Get_Aug_Token (Data, Tree, Tokens (I)).First
@@ -1931,7 +1922,7 @@ package body Wisi is
       Accumulate  : in     Boolean)
      return Delta_Type
    is
-      --  [2] wisi-elisp-parse--anchored-2; return an anchored delta
+      --  Return an anchored delta
       use Anchor_ID_Vectors;
       --  We can't use a Reference here, because the Element in reference
       --  types is constrained (as are all allocated objects of access
@@ -1987,7 +1978,7 @@ package body Wisi is
    is
       Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
    begin
-      --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
+      --  Evaluate wisi-anchored*, wisi-hanging*.
       case Param.Label is
       when Simple =>
          case Param.Param.Label is
@@ -2010,7 +2001,7 @@ package body Wisi is
                begin
                   case Anchored_Label'(Param.Param.Label) is
                   when Anchored_0 =>
-                     --  [2] wisi-anchored, wisi-anchored-1
+                     --  [2] wisi-anchored
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,

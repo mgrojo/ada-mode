@@ -40,8 +40,6 @@ o.e.a.stephe-6 (from ): available
  current work
 beta release
 
-delete elisp refs in wisi.ad[sb]
-
 gpr_query
     if declaration and body at same location, only return body
 
