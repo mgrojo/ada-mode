@@ -255,7 +255,7 @@ nil, only the file name."
      ["Goto containing statement start" wisi-goto-containing-statement-start t]
      ["Show parent declarations"        wisi-show-declaration-parents        t]
      ["Show all references (classwide)" xref-find-references                 t]
-     ["Show all direct references"      wisi-show-reference                  t]
+     ["Show all direct references"      wisi-show-references                 t]
      ["Show local references"         wisi-show-local-references    t]
      ["Show overriding"               wisi-show-overriding          t]
      ["Show overridden"               wisi-show-overridden          t]

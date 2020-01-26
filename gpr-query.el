@@ -296,12 +296,12 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; can navigate to each result in turn via `next-error'.
 
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
-  (let* ((cmd-1 (concat (format "%s %s:%s:%d:%d "
+  (let* ((cmd-1 (concat (format "%s %s:%s:%d:%d"
 				cmd identifier file line (1+ col))
 			(when (member cmd '("refs"))
-			      (if local_only "local_only" "global"))
+			      (if local_only " local_only" " global"))
 			(when (member cmd '("overriding" "overridden_by" "parent_types" "refs"))
-			      (if wisi-xref-full-path "full_file_names" "short_file_names"))))
+			      (if wisi-xref-full-path " full_file_names" " short_file_names"))))
 	 (session (gpr-query-cached-session project))
 	 (result-count 0)
 	 start-pos prev-content
@@ -587,7 +587,8 @@ FILE is from gpr-query."
 	    (when (null result)
 	      (user-error "gpr_query did not return any references; refresh?"))
 
-	    result))))))
+	    (nreverse result) ;; root of tree first.
+	    ))))))
 
 (cl-defmethod wisi-xref-definitions (_xref project item)
   (gpr-query-tree-refs project item "tree_defs"))

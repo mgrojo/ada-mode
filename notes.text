@@ -38,17 +38,11 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
-gpr_query
-    in tree_defs, reverse xref list; parent_type first
-
-    in tree_defs on method, include controlling type name in xref summary
-
-    wisi-show-references not defined (should call wisi-xref-all)
-
-
-    xref.From_Prefix does name completion
+run all tests
 
 release
+
+xref.From_Prefix does name completion
 
 change wisi-cache text property to wisi-navigate
 

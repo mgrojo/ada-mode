@@ -18,37 +18,37 @@
 		   ada-refactor-element-object-to-object-index
 		   search-string refactor-string))
 
-(defun test-all-refs (name)
-  "Return list of (FILENAME CATEGORY) for all references of NAME."
+(defun test-xref-helper (name generator)
+  "Call GENERATOR with point on NAME, return list of (FILENAME CATEGORY) from resulting xrefs"
   (unless (bolp)
-    ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-all-defs ...).
+    ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-* "NAME").
     (end-of-line))
   (search-forward name)
   (backward-word 1)
-  (let* ((prj (project-current))
-	 (xrefs (xref-backend-references prj (xref-backend-identifier-at-point (xref-find-backend))))
-	 result)
+  (let ((xrefs (funcall generator))
+	result)
     (dolist (ref xrefs)
       (with-slots (summary location) ref
 	(with-slots (file) location
 	  (push (list (file-name-nondirectory file) summary) result))))
-    result))
+    (nreverse result)))
+
+
+(defun test-all-refs (name)
+  "Return list of (FILENAME CATEGORY) for all (class-wide) references of NAME."
+  (let ((prj (project-current)))
+    (test-xref-helper
+     name
+     (lambda () (xref-backend-references prj (xref-backend-identifier-at-point (xref-find-backend)))))
+    ))
 
 (defun test-all-defs (name)
   "Return list of (FILENAME CATEGORY) for all definitions of NAME (and parent and child types)."
-  (unless (bolp)
-    ;; We are at bol if we did (forward-line -n). Otherwise, skip the (test-all-defs ...).
-    (end-of-line))
-  (search-forward name)
-  (backward-word 1)
-  (let* ((prj (project-current))
-	 (xrefs (xref-backend-definitions prj (xref-backend-identifier-at-point (xref-find-backend))))
-	 result)
-    (dolist (ref xrefs)
-      (with-slots (summary location) ref
-	(with-slots (file) location
-	  (push (list (file-name-nondirectory file) summary) result))))
-    result))
+    (let ((prj (project-current)))
+      (test-xref-helper
+       name
+       (lambda () (xref-backend-definitions prj (xref-backend-identifier-at-point (xref-find-backend)))))
+      ))
 
 (provide 'run-indent-test)
 ;; end of file

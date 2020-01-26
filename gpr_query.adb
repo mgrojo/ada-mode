@@ -603,15 +603,29 @@ procedure Gpr_Query is
       return Result;
    end Controlling_Type;
 
-   procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration)
+   procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration; Controlling_Type_Name : in String := "")
    is begin
       Ada.Text_IO.Put_Line
         (Xref.Image (Decl.Location) & " (" &
            (+Decl.Name) & " " &
+           (if Controlling_Type_Name'Length = 0
+            then ""
+            else Controlling_Type_Name & "; ") &
            (+Decl.Kind) & ")");
    end Dump_Decl;
 
-   procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information)
+   procedure Dump_Ref (Ref : in GNATCOLL.Xref.Entity_Reference; Controlling_Type_Name : in String := "")
+   is begin
+      Ada.Text_IO.Put_Line
+        (Xref.Image (Ref) & " (" &
+           (+Xref.Declaration (Ref.Entity).Name) & " " &
+           (if Controlling_Type_Name'Length = 0
+            then ""
+            else Controlling_Type_Name & "; ") &
+           (+Ref.Kind) & ")");
+   end Dump_Ref;
+
+   procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information; Controlling_Type_Name : in String := "")
    is
       use GNATCOLL.Xref;
       Spec_Decl : constant Entity_Declaration := Xref.Declaration (Entity);
@@ -623,20 +637,21 @@ procedure Gpr_Query is
       else
          declare
             use all type GNATCOLL.VFS.Virtual_File;
-            First_Body_Decl : constant Entity_Reference := Body_Decls.Element;
+            First_Body_Ref : constant Entity_Reference := Body_Decls.Element;
          begin
-            if First_Body_Decl.File = Spec_Decl.Location.File and
-              First_Body_Decl.Line = Spec_Decl.Location.Line and
-              First_Body_Decl.Column = Spec_Decl.Location.Column
+            if First_Body_Ref.File = Spec_Decl.Location.File and
+              First_Body_Ref.Line = Spec_Decl.Location.Line and
+              First_Body_Ref.Column = Spec_Decl.Location.Column
             then
                Ada.Text_IO.Put_Line
-                 (Xref.Image (First_Body_Decl) & " (" & (+Spec_Decl.Name) & " " &
-                    (+Spec_Decl.Kind) & "/" & (+First_Body_Decl.Kind) & ")");
+                 (Xref.Image (First_Body_Ref) & " (" & (+Spec_Decl.Name) & " " &
+                    (if Controlling_Type_Name'Length = 0
+                     then ""
+                     else Controlling_Type_Name & "; ") &
+                    (+Spec_Decl.Kind) & "/" & (+First_Body_Ref.Kind) & ")");
             else
-               Dump_Decl (Spec_Decl);
-               Ada.Text_IO.Put_Line
-                 (Xref.Image (First_Body_Decl) & " (" &
-                    (+Xref.Declaration (First_Body_Decl.Entity).Name) & " " & (+First_Body_Decl.Kind) & ")");
+               Dump_Decl (Spec_Decl, Controlling_Type_Name);
+               Dump_Ref (First_Body_Ref, Controlling_Type_Name);
             end if;
          end;
 
@@ -644,12 +659,7 @@ procedure Gpr_Query is
 
          loop
             exit when not Has_Element (Body_Decls);
-            declare
-               Body_Decl : constant Entity_Reference   := Body_Decls.Element;
-               Decl      : constant Entity_Declaration := Xref.Declaration (Body_Decl.Entity); -- For name
-            begin
-               Ada.Text_IO.Put_Line (Xref.Image (Body_Decl) & " (" & (+Decl.Name) & " " & (+Body_Decl.Kind) & ")");
-            end;
+            Dump_Ref (Body_Decls.Element, Controlling_Type_Name);
             Next (Body_Decls);
          end loop;
       end if;
@@ -670,7 +680,8 @@ procedure Gpr_Query is
         (Type_Entity       : in GNATCOLL.Xref.Entity_Information;
          Primitive_Op_Name : in String)
       is
-         Ops : Entities_Cursor;
+         Type_Name : constant String := +Xref.Declaration (Type_Entity).Name;
+         Ops       : Entities_Cursor;
       begin
          Xref.Methods (Type_Entity, Ops);
          loop
@@ -679,7 +690,7 @@ procedure Gpr_Query is
                Method_Name : constant String := +Xref.Declaration (Element (Ops)).Name;
             begin
                if Primitive_Op_Name = Method_Name then
-                  Dump_Decl (Xref.Declaration (Element (Ops)));
+                  Dump_Entity (Element (Ops), Type_Name);
                   return;
                end if;
             end;
@@ -728,7 +739,7 @@ procedure Gpr_Query is
             end if;
          end;
       else
-         --  A variable
+         --  Something else (variable, package, ...)
          Dump_Decl (Orig_Decl);
          return;
       end if;

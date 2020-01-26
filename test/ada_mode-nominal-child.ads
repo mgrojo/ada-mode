@@ -15,11 +15,7 @@ package Ada_Mode.Nominal.Child is
          Child_Element_3 : Boolean;
       end record;
    --EMACSCMD:(progn (forward-line -7)(test-all-defs "Child_Type_1"))
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
-   --EMACSRESULT_FINISH:
+   --EMACSRESULT:'(("ada_mode-nominal-child.ads" "Child_Type_1 record type"))
 
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(wisi-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
@@ -51,24 +47,24 @@ package Ada_Mode.Nominal.Child is
    overriding function Function_2a (Param : in Child_Type_1) return Float;
 
    --EMACSCMD:(test-all-refs "function Function_2b")
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Parent_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_1 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 record type")
-   --EMACSRESULT_ADD:'("ada_mode-nominal-child.ads" "Child_Type_2 full declaration")
+   --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat (list "ada_mode-nominal.ads" "Function_2b spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat (list "ada_mode-nominal.adb" "Function_2b body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b ")))
+   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b " (when (eq ada-xref-tool 'gpr_query) "Parent_Type_1; dispatching call"))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; declaration"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_2; dispatching call"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; static call"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; dispatching call"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Child_Type_2; declaration"))
    --EMACSRESULT_FINISH:
    overriding
    function Function_2b (Param : in Child_Type_1) return
      Float;
-
    overriding function Function_2c (Param : in Child_Type_1)
                                    return Float;
 

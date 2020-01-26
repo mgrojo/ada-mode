@@ -742,6 +742,15 @@ is -- target 0
    --EMACSRESULT_FINISH:
    function Function_2b (Param : in Parent_Type_1) return
      Float;
+   --EMACSCMD:(progn (forward-line -2)(test-all-defs "function Function_2b"))
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal.ads" "Function_2b Child_Type_2; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body")
+   --EMACSRESULT_FINISH:
+
    function Function_2c (Param : in Parent_Type_1)
                         return Float;
    function Function_2d
