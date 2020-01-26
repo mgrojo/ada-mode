@@ -206,17 +206,17 @@ procedure Gpr_Query is
       --  queries
 
       (new String'("overridden"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {full_file_names | short_file_names}"),
        new String'("The entity that is overridden by the parameter"),
        Process_Overridden'Access),
 
       (new String'("overriding"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {full_file_names | short_file_names}"),
        new String'("The entities that override the parameter"),
        Process_Overriding'Access),
 
       (new String'("parent_types"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {full_file_names | short_file_names}"),
        new String'("The parent types of the entity."),
        Process_Parent_Types'Access),
 
@@ -226,18 +226,18 @@ procedure Gpr_Query is
        Process_Project_Path'Access),
 
       (new String'("refs"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {global | local_only} {full_file_names | short_file_names}"),
        new String'("All known references to the entity."),
        Process_Refs'Access),
 
       (new String'("tree_defs"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {full_file_names | short_file_names}"),
        new String'
          ("All known references to the entity, and to parent/child types or overridden/overriding operations."),
        Process_Tree_Defs'Access),
 
       (new String'("tree_refs"),
-       new String'("name:file:line:column"),
+       new String'("name:file:line:column {full_file_names | short_file_names}"),
        new String'
          ("All known references to the entity, and to parent/child types or overridden/overriding operations."),
        Process_Tree_Refs'Access),
@@ -555,25 +555,21 @@ procedure Gpr_Query is
 
    function Root_Parent_Type
      (Entity            : in GNATCOLL.Xref.Entity_Information;
-      Generations       : in Natural := 0;
       Primitive_Op_Name : in String  := "")
      return GNATCOLL.Xref.Entity_Information
    is
       use GNATCOLL.Xref;
       Result  : Entity_Information := Entity;
       Parents : Entities_Cursor;
-      Count   : Integer            := 0;
    begin
       loop
          Xref.Parent_Types (Result, Parents);
          --  There is more than one parent when the type inherits interfaces.
          --  We assume the first parent is a non-interface (if there is one),
          --  and ignore the rest.
-         exit when (not Parents.Has_Element) or
-           (Primitive_Op_Name'Length > 0 and then Has_Op (Result, Primitive_Op_Name));
+         exit when (not Parents.Has_Element) or else
+           (Primitive_Op_Name'Length > 0 and then not Has_Op (Parents.Element, Primitive_Op_Name));
          Result := Parents.Element;
-         Count  := Count + 1;
-         exit when Generations > 0 and Count = Generations;
       end loop;
       return Result;
    end Root_Parent_Type;
@@ -589,23 +585,23 @@ procedure Gpr_Query is
          Cursor  => Cursor);
    end All_Child_Types;
 
-   procedure Dump_Body (Entity : in GNATCOLL.Xref.Entity_Information)
+   function Controlling_Type (Entity : in GNATCOLL.Xref.Entity_Information) return GNATCOLL.Xref.Entity_Information
    is
       use GNATCOLL.Xref;
-      Refs : References_Cursor;
+      --  Method_Of returns a derived type if the subprogram is not
+      --  overridden for the child; the type we want is the non-child; the
+      --  last item in Controlling_Types.
+      Types  : Entities_Cursor;
+      Result : Entity_Information := No_Entity;
    begin
-      Xref.Bodies (Entity, Refs);
+      Xref.Method_Of (Entity, Types);
       loop
-         exit when not Has_Element (Refs);
-         declare
-            Ref  : constant Entity_Reference   := Refs.Element;
-            Decl : constant Entity_Declaration := Xref.Declaration (Ref.Entity); -- For name
-         begin
-            Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Decl.Name) & " " & (+Ref.Kind) & ")");
-         end;
-         Next (Refs);
+         exit when not Has_Element (Types);
+         Result := Types.Element;
+         Next (Types);
       end loop;
-   end Dump_Body;
+      return Result;
+   end Controlling_Type;
 
    procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration)
    is begin
@@ -616,9 +612,47 @@ procedure Gpr_Query is
    end Dump_Decl;
 
    procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information)
-   is begin
-      Dump_Decl (Xref.Declaration (Entity));
-      Dump_Body (Entity);
+   is
+      use GNATCOLL.Xref;
+      Spec_Decl : constant Entity_Declaration := Xref.Declaration (Entity);
+      Body_Decls : References_Cursor;
+   begin
+      Xref.Bodies (Entity, Body_Decls);
+      if not Has_Element (Body_Decls) then
+         Dump_Decl (Spec_Decl);
+      else
+         declare
+            use all type GNATCOLL.VFS.Virtual_File;
+            First_Body_Decl : constant Entity_Reference := Body_Decls.Element;
+         begin
+            if First_Body_Decl.File = Spec_Decl.Location.File and
+              First_Body_Decl.Line = Spec_Decl.Location.Line and
+              First_Body_Decl.Column = Spec_Decl.Location.Column
+            then
+               Ada.Text_IO.Put_Line
+                 (Xref.Image (First_Body_Decl) & " (" & (+Spec_Decl.Name) & " " &
+                    (+Spec_Decl.Kind) & "/" & (+First_Body_Decl.Kind) & ")");
+            else
+               Dump_Decl (Spec_Decl);
+               Ada.Text_IO.Put_Line
+                 (Xref.Image (First_Body_Decl) & " (" &
+                    (+Xref.Declaration (First_Body_Decl.Entity).Name) & " " & (+First_Body_Decl.Kind) & ")");
+            end if;
+         end;
+
+         Next (Body_Decls);
+
+         loop
+            exit when not Has_Element (Body_Decls);
+            declare
+               Body_Decl : constant Entity_Reference   := Body_Decls.Element;
+               Decl      : constant Entity_Declaration := Xref.Declaration (Body_Decl.Entity); -- For name
+            begin
+               Ada.Text_IO.Put_Line (Xref.Image (Body_Decl) & " (" & (+Decl.Name) & " " & (+Body_Decl.Kind) & ")");
+            end;
+            Next (Body_Decls);
+         end loop;
+      end if;
    end Dump_Entity;
 
    procedure Process_Tree_Defs (Args : GNATCOLL.Arg_Lists.Arg_List)
@@ -628,23 +662,27 @@ procedure Gpr_Query is
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
 
-      Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-      Decl        : constant Entity_Declaration := Xref.Declaration (Entity);
+      Orig_Entity : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Orig_Decl   : constant Entity_Declaration := Xref.Declaration (Orig_Entity);
       Root_Parent : Entity_Information;
 
       procedure Dump_Method
-        (Entity            : in GNATCOLL.Xref.Entity_Information;
+        (Type_Entity       : in GNATCOLL.Xref.Entity_Information;
          Primitive_Op_Name : in String)
       is
          Ops : Entities_Cursor;
       begin
-         Xref.Methods (Entity, Ops);
+         Xref.Methods (Type_Entity, Ops);
          loop
             exit when not Has_Element (Ops);
-            if Primitive_Op_Name = +Xref.Declaration (Element (Ops)).Name then
-               Dump_Decl (Xref.Declaration (Element (Ops)));
-               return;
-            end if;
+            declare
+               Method_Name : constant String := +Xref.Declaration (Element (Ops)).Name;
+            begin
+               if Primitive_Op_Name = Method_Name then
+                  Dump_Decl (Xref.Declaration (Element (Ops)));
+                  return;
+               end if;
+            end;
             Next (Ops);
          end loop;
       end Dump_Method;
@@ -653,8 +691,8 @@ procedure Gpr_Query is
       is begin
          loop
             exit when not Has_Element (Entities);
-            if Decl.Flags.Is_Subprogram then
-               Dump_Method (Entities.Element, +Decl.Name);
+            if Orig_Decl.Flags.Is_Subprogram then
+               Dump_Method (Entities.Element, +Orig_Decl.Name);
             else
                Dump_Entity (Entities.Element);
             end if;
@@ -665,35 +703,33 @@ procedure Gpr_Query is
    begin
       Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
 
-      if Decl.Flags.Is_Type then
+      if Orig_Decl.Flags.Is_Type then
          --  It is tempting to find the highest ancestor type here, then show
          --  all types derived from that. But in Ada, that root ancestor is
          --  often Ada.Finalization.[Limited_]Controlled (or some similar root
          --  type), so the tree is much larger than we really want. So we just
-         --  show one generation parent, and all children of that parent; the
-         --  user can then climb the tree if they want to enlarge it.
-         --  IMPROVEME: exclude the root type explicitly; allow projects to
-         --  specify root types to exclude.
-         Root_Parent := Root_Parent_Type (Entity, Generations => 1);
+         --  show all children of the given type; the user can then climb the
+         --  tree if they want to enlarge it. This also allows the user to
+         --  choose which anscestor to examine when there is more than one,
+         --  with interfaces.
+         Root_Parent := Orig_Entity;
 
-      elsif Decl.Flags.Is_Subprogram then
+      elsif Orig_Decl.Flags.Is_Subprogram then
          declare
-            Controlling_Types : Entities_Cursor;
+            Controlling : constant Entity_Information := Controlling_Type (Orig_Entity);
          begin
-            Xref.Method_Of (Entity, Controlling_Types);
-
-            if not Has_Element (Controlling_Types) then
+            if Controlling = No_Entity then
                --  Not a primitive subprogram
-               Dump_Entity (Entity);
+               Dump_Entity (Orig_Entity);
                return;
             else
                --  Here we find the highest ancestor type that has this method.
-               Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
+               Root_Parent := Root_Parent_Type (Controlling, Primitive_Op_Name => +Orig_Decl.Name);
             end if;
          end;
       else
          --  A variable
-         Dump_Decl (Decl);
+         Dump_Decl (Orig_Decl);
          return;
       end if;
 
@@ -701,10 +737,10 @@ procedure Gpr_Query is
          Child_Types : Recursive_Entities_Cursor;
       begin
          All_Child_Types (Root_Parent, Child_Types);
-         if Decl.Flags.Is_Subprogram then
-            Dump_Method (Root_Parent, +Decl.Name);
-         else
+         if Orig_Decl.Flags.Is_Type then
             Dump_Entity (Root_Parent);
+         else
+            Dump_Method (Root_Parent, +Orig_Decl.Name);
          end if;
          Dump_Entities (Child_Types);
       end;
@@ -716,31 +752,31 @@ procedure Gpr_Query is
 
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
-      Entity      : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-      Decl        : constant Entity_Declaration := Xref.Declaration (Entity);
+      Orig_Entity : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+      Orig_Decl   : constant Entity_Declaration := Xref.Declaration (Orig_Entity);
       Root_Parent : Entity_Information;
 
-      procedure Dump_Type (Entity : in Entity_Information)
+      procedure Dump_Type (Type_Entity : in Entity_Information)
       is
          Methods : Entities_Cursor;
       begin
-         if Decl.Flags.Is_Subprogram then
-            Xref.Methods (Entity, Methods, Include_Inherited => False);
+         if Orig_Decl.Flags.Is_Subprogram then
+            Xref.Methods (Type_Entity, Methods);
             loop
                exit when not Has_Element (Methods);
                declare
                   Method_Name : constant String := +Xref.Declaration (Methods.Element).Name;
                   Refs : References_Cursor;
                begin
-                  if Method_Name = +Decl.Name then
+                  if Method_Name = +Orig_Decl.Name then
                      Xref.References (Methods.Element, Refs);
-                     Dump (Refs, +Xref.Declaration (Entity).Name);
+                     Dump (Refs, +Xref.Declaration (Type_Entity).Name);
                   end if;
                end;
                Next (Methods);
             end loop;
          else
-            Dump_Entity (Entity);
+            Dump_Entity (Type_Entity);
          end if;
       end Dump_Type;
 
@@ -755,27 +791,25 @@ procedure Gpr_Query is
    begin
       Short_File_Names := Nth_Arg (Args, 2) = Short_File_Names_Arg;
 
-      if Decl.Flags.Is_Type then
+      if Orig_Decl.Flags.Is_Type then
          --  See comment in Process_Tree_Defs
-         Root_Parent := Root_Parent_Type (Entity, Generations => 1);
+         Root_Parent := Orig_Entity;
 
-      elsif Decl.Flags.Is_Subprogram then
+      elsif Orig_Decl.Flags.Is_Subprogram then
          declare
-            Controlling_Types : Entities_Cursor;
+            Controlling : constant Entity_Information := Controlling_Type (Orig_Entity);
          begin
-            Xref.Method_Of (Entity, Controlling_Types);
-
-            if not Has_Element (Controlling_Types) then
+            if Controlling = No_Entity then
                --  Not a primitive subprogram
                declare
                   Refs : References_Cursor;
                begin
-                  Xref.References (Entity, Refs);
+                  Xref.References (Orig_Entity, Refs);
                   Dump (Refs);
                   return;
                end;
             else
-               Root_Parent := Root_Parent_Type (Controlling_Types.Element, Primitive_Op_Name => +Decl.Name);
+               Root_Parent := Root_Parent_Type (Controlling, Primitive_Op_Name => +Orig_Decl.Name);
             end if;
          end;
       else
@@ -783,7 +817,7 @@ procedure Gpr_Query is
          declare
             Refs : References_Cursor;
          begin
-            Xref.References (Entity, Refs);
+            Xref.References (Orig_Entity, Refs);
             Dump (Refs);
             return;
          end;

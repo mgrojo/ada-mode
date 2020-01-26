@@ -689,8 +689,10 @@ Used to ignore whitespace changes in before/after change hooks.")
       ;; else show all errors in a ’compilation’ buffer
       (setq wisi-error-buffer (get-buffer-create wisi-error-buffer-name))
 
-      (let ((lexer-errs (nreverse (cl-copy-seq (wisi-parser-lexer-errors wisi--parser))))
-	    (parse-errs (nreverse (cl-copy-seq (wisi-parser-parse-errors wisi--parser))))
+      (let ((lexer-errs (sort (cl-copy-seq (wisi-parser-lexer-errors wisi--parser))
+			      (lambda (a b) (< (wisi--parse-error-pos a) (wisi--parse-error-pos b)))))
+	    (parse-errs (sort (cl-copy-seq (wisi-parser-parse-errors wisi--parser))
+			      (lambda (a b) (< (wisi--parse-error-pos a) (wisi--parse-error-pos b)))))
 	    (dir default-directory))
 	(with-current-buffer wisi-error-buffer
 	  (setq window-size-fixed nil)

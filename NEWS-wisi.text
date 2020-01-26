@@ -18,6 +18,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** New commands `wisi-goto-containing-statement-start', `wisi-indent-containing-statement'.
 
+** Displayed parser errors are sorted in increasing error position.
+
 * wisi 2.2.1
 17 Aug 2019
 

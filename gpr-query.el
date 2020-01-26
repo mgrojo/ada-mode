@@ -684,6 +684,7 @@ FILE is from gpr-query."
 	    (when (and (equal found-file filename)
 		       (or
 			(string-equal found-type "body")
+			(string-equal found-type "full declaration")
 			(string-equal found-type "declaration"))
 		       (<= dist min-distance))
 	      ;; The source may have changed since the xref database
@@ -728,8 +729,10 @@ FILE is from gpr-query."
 
        ((and
 	 (not line)
-	 (string-equal search-type "body"))
-	;; We started in the body file; find the body
+	 (or
+	  (string-equal search-type "body")
+	  (string-equal search-type "full declaration")))
+	;; We started n the body file; find the body
 	(setq result body-loc))
 
        (decl-loc
