@@ -64,6 +64,14 @@
     map
   )  "Local keymap used for wisitoken-grammar mode.")
 
+(define-key emacs-lisp-mode-map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
+
+(defvar wisitoken-grammar-mode-menu (make-sparse-keymap "Wisi-Grammar"))
+(easy-menu-define wisitoken-grammar-mode-menu wisitoken-grammar-mode-map "Menu keymap for Wisitoken Grammar mode"
+  '("Wisi-Grammar"
+    ["Goto declaration" xref-find-definitions t]
+    ["mmm-ify action"   wisitoken-grammar-mmm-parse t]))
+
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
   )

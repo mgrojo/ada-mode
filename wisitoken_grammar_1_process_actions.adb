@@ -71,15 +71,15 @@ package body Wisitoken_Grammar_1_Process_Actions is
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
-      pragma Unreferenced (Nonterm);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         null;
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((1, 5, 0), (2, 5, 2)));
       when Indent =>
-         null;
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Label => None))), (False, (Simple,
+         (Label => None))), (False, (Hanging_0, (Int, 4), (Int, 2)))));
       end case;
    end declaration_2;
 
