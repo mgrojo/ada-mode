@@ -47,8 +47,26 @@ package body Wisi.Ada is
            (Data, Anchor_Token.Line, Record_Token.Last_Line (Indenting_Comment), Ada_Indent_Record_Rel_Type,
             Accumulate => True);
 
+      elsif Indenting_Comment and Indenting_Token.ID = +WITH_ID then
+         --  comment before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
+         return Indent_Anchored_2
+           (Data, Anchor_Token.Line, Indenting_Token.Last_Line (Indenting_Comment), Ada_Indent_Record_Rel_Type,
+            Accumulate => True);
+
+      elsif Indenting_Comment and Indenting_Token.ID = +IS_ID then
+         --  comment after 'is'
+         if Record_Token.ID = +RECORD_ID then
+            --  before 'record'. test/ada_mode-nominal.ads Record_Type_1
+            return Indent_Anchored_2
+              (Data, Anchor_Token.Line, Indenting_Token.Last_Line (Indenting_Comment), Ada_Indent_Record_Rel_Type,
+               Accumulate => True);
+         else
+            --  not before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
+            return (Simple, (Int, Offset));
+         end if;
+
       else
-         --  Indenting comment, component or 'end'
+         --  Indenting other comment, component or 'end'
          --
          --  Ensure 'record' line is anchored.
          if not (Data.Indents (Record_Token.Line).Label = Anchored or
@@ -859,7 +877,7 @@ package body Wisi.Ada is
      return Wisi.Delta_Type
    is
       --  We are indenting a token in record_definition or
-      --  record_representation_clause.
+      --  record_representation_clause, or a comment before 'record'.
       --
       --  If record_definition, args (1) is the token ID of the anchor (=
       --  TYPE); it appears as a direct child in an ancestor
@@ -889,9 +907,15 @@ package body Wisi.Ada is
       declare
          Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Anchor);
 
-         --  Args (2) is the index of RECORD in Tokens
-         Record_Token : constant Aug_Token_Ref := Get_Aug_Token
-           (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (2)))));
+         --  Args (2) is the index of RECORD (or a nonterminal possibly
+         --  starting with RECORD) in Tokens
+         Record_Token_Tree_Index : constant Syntax_Trees.Node_Index :=
+           Tokens (Positive_Index_Type (Integer'(Args (2))));
+         Record_Token : constant Aug_Token_Ref :=
+           (case Tree.Label (Record_Token_Tree_Index) is
+            when Shared_Terminal | Virtual_Terminal | Virtual_Identifier => Get_Aug_Token
+              (Data, Tree, Record_Token_Tree_Index),
+            when Nonterm => To_Aug_Token_Ref (Data.Terminals (Tree.Min_Terminal_Index (Record_Token_Tree_Index))));
 
          Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
       begin

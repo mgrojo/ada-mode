@@ -61,8 +61,8 @@ with Ada_Mode.Library_Function;
 --EMACSCMD:(progn (forward-line -1)(forward-word 4)(call-interactively 'wisi-goto-spec/body)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line -4)(test-all-defs "Ada_Mode.Library_Function"))
---EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function " (cl-ecase ada-xref-tool (gpr_query "function") (gnat "spec"))))
---EMACSRESULT_ADD:'("ada_mode-library_function.adb" "Library_Function body")
+--EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function " (cl-ecase ada-xref-tool (gpr_query "function")(gnat "spec"))))
+--EMACSRESULT_ADD:(list "ada_mode-library_function.adb" (concat "Library_Function " (cl-ecase ada-xref-tool (gpr_query "body")(gnat "body"))))
 --EMACSRESULT_FINISH:
 
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
@@ -361,6 +361,7 @@ is -- target 0
    --  expression function returning 'null record'
 
    type Record_Type_1 is
+      -- Comment after 'is' before 'record'
       record
          --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
          Component_1   : Integer := 1;
@@ -727,9 +728,9 @@ is -- target 0
    --EMACSCMD:(test-all-refs "function Function_2b")
    --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat (list "ada_mode-nominal.ads" "Function_2b spec")))
    --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat (list "ada_mode-nominal.adb" "Function_2b body")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b ")))
-   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b " (when (eq ada-xref-tool 'gpr_query) "Parent_Type_1; dispatching call"))))
-   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b" (when (eq ada-xref-tool 'gpr_query) " Parent_Type_1; dispatching call"))))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))(gnat '("ada_mode-nominal.adb" "Function_2b")))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line"))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; static call"))
@@ -743,12 +744,12 @@ is -- target 0
    function Function_2b (Param : in Parent_Type_1) return
      Float;
    --EMACSCMD:(progn (forward-line -2)(test-all-defs "function Function_2b"))
-   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Function_2b Parent_Type_1; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal.ads" "Function_2b Child_Type_2; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body")
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Parent_Type_1; function")(gnat "spec"))))
+   --EMACSRESULT_ADD:  (list "ada_mode-nominal.adb" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Parent_Type_1; body")(gnat "body"))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Function_2b Child_Type_1; function"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Child_Type_2; function"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Child_Type_2; body"))
    --EMACSRESULT_FINISH:
 
    function Function_2c (Param : in Parent_Type_1)

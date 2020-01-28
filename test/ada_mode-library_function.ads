@@ -3,6 +3,6 @@
 function Ada_Mode.Library_Function return Integer; -- spec
 
 --EMACSCMD:(progn (forward-line -3)(test-all-defs "Library_Function"))
---EMACSRESULT_START:'("ada_mode-library_function.ads" "Library_Function function")
---EMACSRESULT_ADD:'("ada_mode-library_function.adb" "Library_Function body")
+--EMACSRESULT_START:(list "ada_mode-library_function.ads" (concat "Library_Function "(cl-ecase ada-xref-tool (gpr_query "function")(gnat "spec"))))
+--EMACSRESULT_ADD:(list "ada_mode-library_function.adb" (concat "Library_Function "(cl-ecase ada-xref-tool (gpr_query "body")(gnat "body"))))
 --EMACSRESULT_FINISH:

@@ -7,15 +7,17 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(test-face "new" font-lock-keyword-face)
    --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
-   type Child_Type_1 is new Parent_Type_1 with
-   -- comment between 'with' and 'record'
+   type Child_Type_1 is
+     -- comment after 'is', not before 'record'
+     new Parent_Type_1 with
+      -- comment between 'with' and 'record'
       record
          Child_Element_1 : Integer;
          Child_Element_2 : Float;
          Child_Element_3 : Boolean;
       end record;
-   --EMACSCMD:(progn (forward-line -7)(test-all-defs "Child_Type_1"))
-   --EMACSRESULT:'(("ada_mode-nominal-child.ads" "Child_Type_1 record type"))
+   --EMACSCMD:(progn (forward-line -9)(test-all-defs "Child_Type_1"))
+   --EMACSRESULT:(list (list "ada_mode-nominal-child.ads" (concat "Child_Type_1 " (cl-ecase ada-xref-tool (gpr_query "record type")(gnat "spec")))))
 
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(wisi-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
@@ -47,10 +49,10 @@ package Ada_Mode.Nominal.Child is
    overriding function Function_2a (Param : in Child_Type_1) return Float;
 
    --EMACSCMD:(test-all-refs "function Function_2b")
-   --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat (list "ada_mode-nominal.ads" "Function_2b spec")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat (list "ada_mode-nominal.adb" "Function_2b body")))
-   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query (list "ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat (list "ada_mode-nominal-child.adb" "Function_2b ")))
-   --EMACSRESULT_ADD:(list "ada_mode-nominal.adb" (concat "Function_2b " (when (eq ada-xref-tool 'gpr_query) "Parent_Type_1; dispatching call"))))
+   --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat '("ada_mode-nominal-child.ads" "Function_2b spec")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; body"))(gnat '("ada_mode-nominal-child.adb" "Function_2b body")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; static call"))(gnat '("ada_mode-nominal-child.adb" "Function_2b")))
+   --EMACSRESULT_ADD:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal.adb" "Function_2b Parent_Type_1; dispatching call"))(gnat '("ada_mode-nominal-child.adb" "Function_2b")))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Parent_Type_1; declaration"))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; body"))
    --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Child_Type_1; label on end line"))
@@ -152,12 +154,3 @@ private
    end record;
 
 end Ada_Mode.Nominal.Child;
--- WORKAROUND: There is some race condition or uninit var that causes
--- indent to fail weirdly if wisi-disable-face is nil. Doesn't happen
--- in any other test, only happens when running full test (can't
--- reproduce otherwise).
---
---  Local Variables:
---  ada-indent-comment-gnat: t
---  wisi-disable-face: t
---  End:

@@ -38,11 +38,21 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
-run all tests
+gpr_query tree_defs on c:/projects/org.emacs.ada-mode/wisi.ads Indent_Token_1
+    7 specs, 7 bodies!?, all in same file!?
+        abstract root User_Data_Type
+        wisi Parse_Data_Type
+        Ada  Parse_Data_Type
+        gpr  Parse_Data_Type
+        => 4 specs, 2 bodies; _not_ all in same file
 
 release
 
 xref.From_Prefix does name completion
+
+figure out how gnatfind finds ada_mode-separate_procedure body
+    report bug: -f not respected (test/ada_mode.ads)
+    improve gpr_query to find separate body
 
 change wisi-cache text property to wisi-navigate
 

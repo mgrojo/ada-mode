@@ -45,7 +45,7 @@
 (defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
 
 (defconst ada-gnat-file-line-col-type-regexp
-  (concat ada-gnat-file-line-col-regexp ": \\(?:(\\(.*\\))\\)?")
+  (concat ada-gnat-file-line-col-regexp ": +\\(?:(\\(.*\\))\\)?")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
 (cl-defstruct (gnatxref-xref (:include gnat-compiler))
@@ -115,14 +115,15 @@
 (defun ada-gnat-xref-common-args (project identifier file line col)
   "Returns a list of arguments to pass to gnatfind.  Some
 elements of the result may be nil."
-  (list "-af"
+  (list "-a"
         (when wisi-xref-full-path "-f")
-	;; source-path contains Source_Dirs from gpr_file. Similarly for
-	;; obj_dir. So we don't need to pass the gpr file.
+	;; 'gnatfind' does not take a gnat project file argument. We
+	;; assue you are not using gnatxref if you are using a gnat
+	;; project file; use gpr_query.
         (when (wisi-prj-source-path project)
-          (concat "-aI" (mapconcat 'identity (wisi-prj-source-path project) path-separator) ""))
+          (concat "-aI" (mapconcat 'identity (wisi-prj-source-path project) " -aI")))
         (when (plist-get (ada-prj-plist project) 'obj_dir)
-          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir) path-separator) ""))
+          (concat "-aO" (mapconcat 'identity (plist-get (ada-prj-plist project) 'obj_dir) " -aO")))
         (format "%s:%s:%d:%d"
                 identifier
                 (file-name-nondirectory file)
@@ -132,11 +133,11 @@ elements of the result may be nil."
 (defun ada-gnat-xref-refs (project item all)
   (with-slots (summary location) item
     (with-slots (file line column) location
-      (let ((result nil))
+      (let* ((wisi-xref-full-path t)
+	     (args (cons "-r" (ada-gnat-xref-common-args project summary file line column)))
+	     (result nil))
 	(with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
-	  (gnat-run project
-		    (ada-gnat-xref-common-cmd project)
-		    (cons "-r" (ada-gnat-xref-common-args project summary file line column)))
+	  (gnat-run project (ada-gnat-xref-common-cmd project) args)
 
 	  (goto-char (point-min))
 	  (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
@@ -150,7 +151,9 @@ elements of the result may be nil."
 		    (found-col  (string-to-number (match-string 3)))
 		    (found-type (match-string 4)))
 		(when (or all found-type)
-		  (push (xref-make (concat summary " " found-type)
+		  (push (xref-make (if found-type
+				       (concat summary " " found-type)
+				     summary)
 				   (xref-make-file-location found-file found-line found-col))
 			result))
 		))
@@ -158,7 +161,8 @@ elements of the result may be nil."
 	      ;; ignore line
 	      ))
 	    (forward-line 1)))
-	result))))
+	(nreverse result) ;; specs first.
+	))))
 
 (cl-defmethod wisi-xref-definitions (_xref project item)
   (ada-gnat-xref-refs project item nil))
@@ -167,11 +171,12 @@ elements of the result may be nil."
   (ada-gnat-xref-refs project item t))
 
 (cl-defmethod wisi-xref-other ((_xref gnatxref-xref) project &key identifier filename line column)
-  (let* ((result nil))
+  (let* ((wisi-xref-full-path t)
+	 (cmd (ada-gnat-xref-common-cmd project))
+	 (args (ada-gnat-xref-common-args project identifier filename line column))
+	 (result nil))
     (with-current-buffer (gnat-run-buffer project (gnat-compiler-run-buffer-name (wisi-prj-xref project)))
-      (gnat-run project
-		(ada-gnat-xref-common-cmd project)
-		(ada-gnat-xref-common-args project identifier filename line column))
+      (gnat-run project cmd args)
 
       (goto-char (point-min))
       (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
@@ -190,14 +195,19 @@ elements of the result may be nil."
 	  (let ((found-file (match-string 1))
 		(found-line (string-to-number (match-string 2)))
 		(found-col  (string-to-number (match-string 3))))
+	    ;; Sometimes gnatfind does not respect "-f" (test/ada_mode.ads Separate_Procedure full body)
+	    (unless (file-name-absolute-p found-file)
+	      (setq found-file (locate-file found-file compilation-search-path)))
+
 	    (if (not
 		 (and
 		  ;; due to symbolic links, only the non-dir filename is comparable.
 		  (equal (file-name-nondirectory filename) (file-name-nondirectory found-file))
 		  (= line found-line)
 		  (= (ada-gnat-xref-adj-col identifier column) found-col)))
-		;; found other item
+		;; Found other item.
 		(setq result (list found-file found-line (1- found-col)))
+	      ;; else keep searching
 	      (forward-line 1))
 	    ))
 

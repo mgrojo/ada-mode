@@ -832,7 +832,9 @@ delay_statement
 
 derived_type_definition
   : abstract_limited_opt NEW name and_interface_list_opt WITH record_definition
-    %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))%
+    %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
+      ;; comment after 'with' same as 'record'
+      (wisi-indent-action [nil nil nil nil [nil (ada-indent-record* 'TYPE 6 0)] nil]))%
   | abstract_limited_opt NEW name constraint_opt
     %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))%
   ;
@@ -1204,11 +1206,11 @@ full_type_declaration
         (wisi-name-action 2)
         (wisi-face-apply-action [2 nil font-lock-type-face])
 
-        ;; FIXME: indentation of comment after 'is' (and 'with' in
-        ;; derived_type_definition) should be ada-indent-record-rel-type
-        ;; if type_definition is a record. Worse if
-        ;; ada-indent-comment-gnat is t. Need 'anchor to next line'.
-        (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken nil nil]))%
+        ;; Indentation of comment after 'is' is
+        ;; ada-indent-record-rel-type if type_definition is a record.
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                                 [ada-indent-broken (ada-indent-record* 'TYPE 5 ada-indent-broken)]
+                                 ada-indent-broken nil nil]))%
   | task_type_declaration
   | protected_type_declaration
   ;

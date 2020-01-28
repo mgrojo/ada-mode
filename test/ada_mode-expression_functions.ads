@@ -31,7 +31,7 @@ package Ada_Mode.Expression_Functions is
          when D => "Unk");
 
    --EMACSCMD:(test-all-defs "type Result")
-   --EMACSRESULT:'(("ada_mode-expression_functions.ads" "Result record type"))
+   --EMACSRESULT:(list (list "ada_mode-expression_functions.ads" (concat "Result " (cl-ecase ada-xref-tool (gpr_query "record type")(gnat "spec")))))
    type Result is record
       A : Integer;
       B : Integer;

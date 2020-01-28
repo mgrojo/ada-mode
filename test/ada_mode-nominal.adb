@@ -99,8 +99,10 @@ is -- target 0
       return Function_Access_1'Access;
    end
      Function_Access_11;
-   --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(call-interactively 'xref-find-definitions)(forward-word -1)(looking-at "function Function_Access_11"))
-   --EMACSRESULT: t
+   --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (end-of-line 0)(forward-word -1)(call-interactively 'xref-find-definitions)(forward-word -1)(looking-at "function Function_Access_11"))
+   --EMACSRESULT: (eq ada-xref-tool 'gpr_query)
+   -- gnatxref goes to an *xref* buffer for this, with body and spec
+   -- lines both pointing at the same place. gpr_query is smarter.
 
    --EMACSCMD:(progn (forward-line 3)(ada-find-other-file)(looking-at "protected type Protected_1"))
    protected body Protected_1 is -- target 2

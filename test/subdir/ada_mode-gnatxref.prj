@@ -6,6 +6,7 @@ xref_tool=gnat
 src_dir=..
 src_dir=.
 
+obj_dir=.
 obj_dir=..
 
 casing=../case-exceptions-1
