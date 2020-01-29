@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -2235,5 +2235,5 @@ package body Test_McKenzie_Recover is
 
 end Test_McKenzie_Recover;
 --  Local Variables:
---  ada-auto-case: not-upper-case
+--  ada-case-strict: nil
 --  End:
