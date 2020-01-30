@@ -89,14 +89,14 @@ summarize :
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 ONE_TEST_FILES ?= ada_mode-options-markus_column_0.adb
-one :: build_executables
+#one :: build_executables
 #one :: byte-compile autoloads
-one :: compile-ada-test
+#one :: compile-ada-test
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 	rm -f test.log
-	rm -f ../test/gpr_query.db*
+#	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
@@ -290,6 +290,7 @@ pub-ada-ref-man : force
 
 # copy files to ELPA wisi package
 pub-wisi : force
+	make -C $(WISITOKEN)/build doc
 	rm -f $(ELPA_ROOT)/packages/wisi/*
 	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS

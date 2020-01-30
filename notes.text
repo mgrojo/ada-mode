@@ -933,26 +933,17 @@ sync for Debian check bogus execute permissions:
     (dvc-sync-review ".")
 
 Debian stable has elpa checkout
-    FIXME: update to Debian Buster 10.2 16 Nov 2019
-        use debian gnat:
-            apt-get install gnat
-            apt-get install libgnatcoll-xref18-dev
-
-            if other c compilers installed, may need to use gprconfig to select gnatgcc for C
-
-            add check for install dir writeable, prompt for sudo or --prefix
-
     ~/bin/mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
-    if new machine, install gnat CE 2018, gnatcoll
+    if new machine, install gnat CE 2019, gnatcoll
         http://libre.adacore.com
         ada-mode.texi
 
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 
-    /Projects/org.emacs.ada-mode/build/Makefile
+    build/Makefile
         # no ARM_INFO on Debian
         docs pub-ada pub-wisi clean-elpa build-elpa uninstall-elpa
         install-elpa
@@ -967,7 +958,7 @@ Debian stable has elpa checkout
 
     commit elpa:
     (dvc-state-one "/Projects/elpa")
-        add, stage, commit ada-mode, wisi
+        add/delete, stage, commit ada-mode, wisi
 
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
