@@ -8,7 +8,7 @@
 ;; (setq wisi-debug 1)
 
 ;; Don’t require installing executables to run tests
-(setq gpr-process-parse-exec (expand-file-name "../gpr_mode_wisi_parse.exe"))
+(setq gpr-process-parse-exec (expand-file-name "../gpr_mode_wisi_parse"))
 
 (require 'gpr-mode)
 

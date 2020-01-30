@@ -3,7 +3,7 @@
 (require 'wisi-run-indent-test)
 
 (defun switch-to-lr1 ()
-  (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
+  (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
   (ada-mode))
 

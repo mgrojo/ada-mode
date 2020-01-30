@@ -2,7 +2,7 @@
 ;;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -746,7 +746,7 @@ Prompt user if more than one."
 	(opts (when (gnat-compiler-gnat-stub-opts compiler)
 		(split-string (gnat-compiler-gnat-stub-opts compiler))))
 	(cargs (when (gnat-compiler-gnat-stub-cargs compiler)
-		(split-string (gnat-compiler-gnat-stub-cargs compiler))))
+		(append (list "-cargs") (split-string (gnat-compiler-gnat-stub-cargs compiler)))))
 	(process-environment
 	 (append
 	   (wisi-prj-compile-env project)
@@ -762,7 +762,7 @@ Prompt user if more than one."
 	(gnat-run-gnat
 	 project
 	 "stub"
-	 (append opts (list start-file "-cargs") cargs))
+	 (append opts (list start-file) cargs))
 
 	(find-file body-file-name)
 	(indent-region (point-min) (point-max))
