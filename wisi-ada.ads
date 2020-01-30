@@ -25,7 +25,7 @@ package Wisi.Ada is
    Language_Protocol_Version : constant String := "3";
    --  Defines the data passed to Initialize in Params.
    --
-   --  This value must match ada-wisi.el
+   --  This value must match ada-mode.el
    --  ada-wisi-language-protocol-version.
    --
    --  Only changes once per ada-mode release. Increment as soon as

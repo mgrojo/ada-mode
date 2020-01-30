@@ -19,7 +19,7 @@ gnatprep -DHAVE_GNATCOLL_XREF=$HAVE_GNATCOLL_XREF gpr_query-process_refresh.adb.
 # support for libadalang is still experimental
 gnatprep -DHAVE_GNATCOLL_XREF=$HAVE_GNATCOLL_XREF -DHAVE_LIBADALANG="no" -DELPA="yes" ada_mode_wisi_parse.gpr.gp ada_mode_wisi_parse.gpr
 
-export GPR_PROJECT_PATH="../wisi-3.0.0"
+export GPR_PROJECT_PATH="../wisi-3.0.1"
 
 gnatprep -DELPA="yes" $GPR_PROJECT_PATH/wisi.gpr.gp $GPR_PROJECT_PATH/wisi.gpr
 

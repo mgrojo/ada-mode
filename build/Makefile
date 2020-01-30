@@ -18,9 +18,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 7.0.0
+export ADA_MODE_VERSION       := 7.0.1
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 3.0.0
+export WISI_VERSION           := 3.0.1
 export UNIQUIFY_FILES_VERSION := 1.0.2
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
@@ -152,7 +152,7 @@ WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 else
 # test with installed elpa package
 ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-3.0.0/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-3.0.1/wisitoken-bnf-generate.exe
 endif
 
 # 'include' must be after WISITOKEN_GENERATE and other vars are set.

@@ -1,12 +1,20 @@
 GNU Emacs wisi NEWS -- history of user-visible changes.
 
-Copyright (C) 2019 Free Software Foundation, Inc.
+Copyright (C) 2014 - 2020 Free Software Foundation, Inc.
 
 Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 3.0.1
+30 Jan 2020
+
+** fix packaging bugs
+
+** improve xref integration
+
 * wisi 3.0.0
+19 Dec 2019
 
 ** parser process protocol version 5
 

@@ -40,6 +40,9 @@ o.e.a.stephe-6 (from ): available
  current work
 release (see below)
 
+delete gnatcoll xref gnatprep?
+    don't support old gnat
+
 xref.From_Prefix does name completion
 
 figure out how gnatfind finds ada_mode-separate_procedure body
@@ -854,6 +857,9 @@ bump versions
     build.sh
         GPR_PROJECT_PATH wisi version
 
+    install.sh
+        GPR_PROJECT_PATH wisi version
+
     ada-mode.el
         Version:
         package-requires wisi version
@@ -907,8 +913,8 @@ Emacs 25.3, current gnat
     (gpr-query-kill-all-sessions)
     (list-processes)
     # 'd' = kill; gpr_mode_wisi_parse.exe, ada_mode_lr1_wisi_parse.exe
-    cd ~/.emacs.d/elpa/ada-mode-6.2.0; ./build.sh
-    cd ~/.emacs.d/elpa/wisi-2.2.0; ./build-wisitoken-bnf-generate.sh
+    cd ~/.emacs.d/elpa/ada-mode-7.0.1; ./build.sh; ./install.sh
+    cd ~/.emacs.d/elpa/wisi-3.0.1; ./build-wisitoken-bnf-generate.sh
 
     restart Emacs to set load-path
 
