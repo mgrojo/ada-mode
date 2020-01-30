@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -245,7 +245,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       if Trace_McKenzie > Outline then
          Trace.New_Line;
-         Trace.Put_Line (System.Multiprocessors.CPU_Range'Image (Worker_Tasks'Last) & " parallel tasks");
+         Trace.Put_Line (Task_Count'Image & " parallel tasks");
       end if;
 
       for I in Worker_Tasks'First .. Task_Count loop
