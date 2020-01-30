@@ -38,15 +38,7 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
-gpr_query tree_defs on c:/projects/org.emacs.ada-mode/wisi.ads Indent_Token_1
-    7 specs, 7 bodies!?, all in same file!?
-        abstract root User_Data_Type
-        wisi Parse_Data_Type
-        Ada  Parse_Data_Type
-        gpr  Parse_Data_Type
-        => 4 specs, 2 bodies; _not_ all in same file
-
-release
+release (see below)
 
 xref.From_Prefix does name completion
 
@@ -756,6 +748,7 @@ all below from "build/Makefile tag zip"
     except don't commit elpa?
 
  release process
+keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
 (dvc-status ".")
@@ -792,9 +785,12 @@ check for latest Emacs release
 
 run all tests without elpa:
     build/Makefile elisp
+    build/Makefile byte-compile-clean
 
-    Windows current Emacs, current gnat
-    Windows Emacs 25.3, current gnat
+    - Windows master Emacs, current gnat
+    - Windows Emacs 25.3, current gnat
+    - Windows Emacs 26.1, current gnat
+    - Debian testing, current gnat (community or pro)
 
 compare:
     build stuff to compare with previous release in elpa:

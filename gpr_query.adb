@@ -690,6 +690,8 @@ procedure Gpr_Query is
                Method_Name : constant String := +Xref.Declaration (Element (Ops)).Name;
             begin
                if Primitive_Op_Name = Method_Name then
+                  --  IMPROVEME: if the method is inherited but not overridden, use the
+                  --  type location.
                   Dump_Entity (Element (Ops), Type_Name);
                   return;
                end if;
@@ -747,6 +749,9 @@ procedure Gpr_Query is
       declare
          Child_Types : Recursive_Entities_Cursor;
       begin
+         --  "Child_Types" includes generic formal parameters (ie
+         --  gen_run_wisi_lr_parse.ads Parse_Data_Type) in addition to the
+         --  actual parameters.
          All_Child_Types (Root_Parent, Child_Types);
          if Orig_Decl.Flags.Is_Type then
             Dump_Entity (Root_Parent);

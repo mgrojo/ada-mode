@@ -590,10 +590,10 @@ FILE is from gpr-query."
 	    (nreverse result) ;; root of tree first.
 	    ))))))
 
-(cl-defmethod wisi-xref-definitions (_xref project item)
+(cl-defmethod wisi-xref-definitions ((_xref gpr-query-xref) project item)
   (gpr-query-tree-refs project item "tree_defs"))
 
-(cl-defmethod wisi-xref-references (_xref project item)
+(cl-defmethod wisi-xref-references ((_xref gpr-query-xref) project item)
   (gpr-query-tree-refs project item "tree_refs"))
 
 (cl-defmethod wisi-xref-other ((_xref gpr-query-xref) project &key identifier filename line column)
