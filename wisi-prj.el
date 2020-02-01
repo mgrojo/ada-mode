@@ -184,10 +184,13 @@ after the project file PRJ-FILE-NAME is parsed."
 slow refresh operations may be skipped."
   nil)
 
-(cl-defgeneric wisi-xref-definitions (_xref project item)
+(cl-defgeneric wisi-xref-completion-table (xref project)
+  "Return a completion table of names defined in PROJECT.")
+
+(cl-defgeneric wisi-xref-definitions (xref project item)
   "Return all definitions (classwide) of ITEM (an xref-item), as a list of xref-items.")
 
-(cl-defgeneric wisi-xref-references (_xref project item)
+(cl-defgeneric wisi-xref-references (xref project item)
   "Return all references to ITEM (an xref-item), as a list of xref-items.")
 
 (cl-defgeneric wisi-xref-other (project &key identifier filename line column)
@@ -247,23 +250,27 @@ LINE, COLUMN are Emacs origin."
   "Get identifier at point, or if no identifier at point, or with user arg, prompt for one."
   ;; Similar to xref--read-identifier, but uses a different completion
   ;; table, because we want a more specific reference.
-  (let* ((backend (xref-find-backend))
-         (def (xref-backend-identifier-at-point backend)))
+  (let* ((prj (project-current))
+         (def (xref-backend-identifier-at-point (wisi-prj-xref prj))))
 
     (cond
      ((or current-prefix-arg
           (not def))
-      (let ((id
-             (completing-read
-              (if def
-		  (format "%s (default %s): " prompt def)
-                prompt)
-              (wisi-names t)
-              nil nil nil
-              'xref--read-identifier-history def)))
+      (let* ((table (wisi-xref-completion-table (wisi-prj-xref prj) prj))
+	     (id
+              (completing-read
+	       (if def
+		   (format "%s (default %s): " prompt def)
+                 prompt)
+	       table
+	       nil nil nil
+	       'xref--read-identifier-history def)))
         (if (equal id "")
             (user-error "No identifier provided")
-          id)))
+          (if (consp (car table))
+	      ;; alist; return key and value.
+	      (assoc id table)
+	    id))))
      (t def))))
 
 (defun wisi-goto-spec/body (identifier)
@@ -271,22 +278,38 @@ LINE, COLUMN are Emacs origin."
 If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
   (interactive (list (wisi-get-identifier "Goto spec/body of: ")))
   (let ((prj (project-current)))
-    (wisi-show-xref
-     (wisi-xref-ident-make
-      identifier
-      (lambda (ident file line column)
-	(let ((target (wisi-xref-other
-		       (wisi-prj-xref prj) prj
-		       :identifier ident
-		       :filename file
-		       :line line
-		       :column column)))
-	  (xref-make ident
-		     (xref-make-file-location
-		      (nth 0 target) ;; file
-		      (nth 1 target) ;; line
-		      (nth 2 target))) ;; column
-	  ))))
+    (cond
+     ((consp identifier)
+      ;; alist element from wisi-xref-completion-table
+      (wisi-show-xref
+	(xref-make (car identifier)
+		   (xref-make-file-location
+		    (nth 0 (cdr identifier)) ;; file
+		    (nth 1 (cdr identifier)) ;; line
+		    (nth 2 (cdr identifier)) ;; column
+	    ))))
+
+     ((stringp identifier)
+      ;; from xref-backend-identifier-at-point
+      (wisi-show-xref
+       (wisi-xref-ident-make
+	identifier
+	(lambda (ident file line column)
+	  (let ((target (wisi-xref-other
+			 (wisi-prj-xref prj) prj
+			 :identifier ident
+			 :filename file
+			 :line line
+			 :column column)))
+	    (xref-make ident
+		       (xref-make-file-location
+			(nth 0 target) ;; file
+			(nth 1 target) ;; line
+			(nth 2 target))) ;; column
+	    )))))
+
+     (t ;; something else
+      (error "unknown case in wisi-goto-spec/body")))
     ))
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
@@ -1158,9 +1181,11 @@ with \\[universal-argument]."
 	 ;; from wisi-prj-identifier-at-point; no identifier
 	 nil))))
 
-(cl-defmethod xref-backend-identifier-completion-table ((_prj wisi-prj))
-  ;; Current buffer only.
-  (wisi-names nil))
+(cl-defmethod xref-backend-identifier-completion-table ((prj wisi-prj))
+  (if current-prefix-arg
+      ;; Current buffer only.
+      (wisi-names nil)
+    (wisi-xref-completion-table (wisi-prj-xref prj) prj)))
 
 (cl-defmethod xref-backend-references  ((prj wisi-prj) identifier)
   (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier)))

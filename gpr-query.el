@@ -7,7 +7,6 @@
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +49,7 @@ Value must be alist where each element is \"<name>=<value>\""
   ;; which must be set for all projects on the system.
   :type 'string)
 
-(defconst gpr-query-protocol-version "2"
+(defconst gpr-query-protocol-version "3"
   "Defines data exchanged between this package and the background process.
 Must match gpr_query.adb Version.")
 
@@ -541,11 +540,11 @@ FILE is from gpr-query."
 	      (cond
 	       ((looking-at gpr-query-ident-file-type-regexp)
 		;; process line
-		(let* ((found-file (match-string 1))
-		       (found-line (string-to-number (match-string 2)))
-		       (found-col  (1- (string-to-number (match-string 3))))
-		       (found-type (match-string 4))
-		       )
+		(let ((found-file (match-string 1))
+		      (found-line (string-to-number (match-string 2)))
+		      (found-col  (1- (string-to-number (match-string 3))))
+		      (found-type (match-string 4))
+		      )
 
 		  (unless found-file
 		    ;; Can be nil if actual file is renamed but gpr-query
@@ -589,6 +588,37 @@ FILE is from gpr-query."
 
 	    (nreverse result) ;; root of tree first.
 	    ))))))
+
+(cl-defmethod wisi-xref-completion-table ((_xref gpr-query-xref) project)
+  (let ((cmd "complete \"\" ")
+	(result nil)
+	(session (gpr-query-cached-session project)))
+    (with-current-buffer (gpr-query-session-send session cmd t)
+      ;; 'compelete' returns a fully qualified name and declaration location for each name:
+      ;; Gpr_Query.Process_Command_Multiple C:\Projects\org.emacs.ada-mode.stephe-2\gpr_query.adb:131:14
+      ;;
+      ;; Build a completion table as an alist of (simple_name<prefix> . location)
+	    (goto-char (point-min))
+
+	    (while (not (eobp))
+	      (cond
+	       ;; FIXME: store 'parent regexp' in xref, so it is not ada-specific
+	       ;; FIXME: handle operators in names
+	       ;; FIXME: :alnum: doesn't work here
+	       ((looking-at (concat "\\([A-Za-z0-9_.]+\\)\\.\\([A-Za-z0-9_]+\\) " gpr-query-ident-file-regexp))
+		;; process line
+		(let ((found-file (match-string 3))
+		      (found-line (string-to-number (match-string 4)))
+		      (found-col  (1- (string-to-number (match-string 5)))))
+		  (push
+		   (cons (concat (match-string 2) "<" (match-string 1) ">") (list found-file found-line found-col))
+		   result)))
+
+	       (t ;; ignore line
+		)
+	       )
+	      (forward-line 1))
+	    result)))
 
 (cl-defmethod wisi-xref-definitions ((_xref gpr-query-xref) project item)
   (gpr-query-tree-refs project item "tree_defs"))

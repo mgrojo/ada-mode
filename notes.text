@@ -4,7 +4,7 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (from o.e.a with o.w.s-1, o.s_l.s-1): work; ada2020 features
+o.e.a.stephe-2 (from o.e.a): work;
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser (very old)
 o.e.a.stephe-4 (from o.e.a): eglot/ada_language_server
 o.e.a.stephe-5 (from o.e.a): libadalang backend
@@ -38,12 +38,8 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
-release (see below)
-
 delete gnatcoll xref gnatprep?
     don't support old gnat
-
-xref.From_Prefix does name completion
 
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)

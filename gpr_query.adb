@@ -45,7 +45,9 @@ with GNATCOLL.Xref;
 procedure Gpr_Query is
    use GNATCOLL;
 
-   Version : constant String := "2";
+   Version : constant String := "3";
+   --  Changes once per release when the API (commands and responses)
+   --  changes; must match gpr-query.el gpr-query-protocol-version
 
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
 
@@ -171,6 +173,7 @@ procedure Gpr_Query is
    procedure Process_DB_Name (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    --  Queries; alphabetical
+   procedure Process_Complete (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Overridden is new Process_Command_Single (GNATCOLL.Xref.Overrides);
    procedure Process_Overriding is new Process_Command_Multiple (GNATCOLL.Xref.Overridden_By);
    procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
@@ -204,6 +207,11 @@ procedure Gpr_Query is
        Process_DB_Name'Access),
 
       --  queries
+
+      (new String'("complete"),
+       new String'("pattern"),
+       new String'("Names that complete the pattern."),
+       Process_Complete'Access),
 
       (new String'("overridden"),
        new String'("name:file:line:column {full_file_names | short_file_names}"),
@@ -491,6 +499,27 @@ procedure Gpr_Query is
 
       GNAT.Strings.Free (Expr);
    end Process_Line;
+
+   procedure Process_Complete (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      use GNATCOLL.Arg_Lists;
+      use GNATCOLL.Xref;
+      Prefix : constant String := Nth_Arg (Args, 1);
+      Matches : Entities_Cursor;
+   begin
+      Short_File_Names := False;
+      Xref.From_Prefix
+        (Prefix,
+         Is_Partial => True,
+         Cursor     => Matches);
+      loop
+         exit when not Has_Element (Matches);
+         Ada.Text_IO.Put_Line
+           (Xref.Qualified_Name (Element (Matches)) & " " &
+              Image (Element (Matches)));
+         Next (Matches);
+      end loop;
+   end Process_Complete;
 
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
