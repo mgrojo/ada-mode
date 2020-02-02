@@ -530,8 +530,20 @@ procedure Gpr_Query is
       Put (Dirs);
    end Process_Project_Path;
 
-   procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List) is separate;
-   --  Requires different code for GNAT GPL 2016 vs 2017
+   procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      pragma Unreferenced (Args);
+   begin
+      Parse_All_LI_Files
+        (Self                => Xref,
+         Project             => Tree.Root_Project,
+         Parse_Runtime_Files => False,
+         Show_Progress       => Progress_Reporter,
+         ALI_Encoding        => ALI_Encoding.all,
+         From_DB_Name        => Nightly_DB_Name.all,
+         To_DB_Name          => DB_Name.all,
+         Force_Refresh       => Force_Refresh);
+   end Process_Refresh;
 
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is

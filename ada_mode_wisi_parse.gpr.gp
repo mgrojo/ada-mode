@@ -24,9 +24,7 @@ with "wisitoken";
 with "standard_common";
 with "gnatcoll";
 with "gnatcoll_sqlite";
-#if HAVE_GNATCOLL_XREF="yes"
 with "gnatcoll_xref";
-#end if;
 with "gnat_util";
 --  #if HAVE_LIBADALANG="yes"
 --  with "libadalang";

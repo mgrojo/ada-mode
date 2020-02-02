@@ -38,8 +38,16 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
-delete gnatcoll xref gnatprep?
-    don't support old gnat
+wisi.adb
+    C-u M-. "Put" => only one xref!
+        get_entity returns only one
+        if no line or column, call Prefix, filter on file; o.e.a.s-2
+        need test
+
+wisi-goto-spec/body
+    distinguish homonyms in same file; add line number
+    wisi.adb
+
 
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)
@@ -809,6 +817,7 @@ compare:
         NEWS-ada-mode.text
             add release date
             add new features
+            list fixed bugs
 
     (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.5" "/Projects/elpa/packages/ada-ref-man" nil)
         /Projects/org.adaic.arm_form/NEWS
@@ -928,7 +937,7 @@ sync for Debian check bogus execute permissions:
     $ mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
-Debian stable has elpa checkout
+Debian testing has elpa checkout
     ~/bin/mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
@@ -968,7 +977,7 @@ $ mtn_sync_ada_france.sh
 (dvc-sync-review ".")
 
 delete changes in elpa:
-    $ cd /Projects/elpa/
+    $ cd c:/Projects/elpa/
     $ git checkout .
 
 update elpa, commit elpa/ada-ref-man (not done on Debian)
@@ -987,7 +996,7 @@ update elpa, commit elpa/ada-ref-man (not done on Debian)
 
 after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
-    see 'build/Makefile install-elpa' above for details
+    see 'build.sh; install.sh' above for compiling
     also wisitoken-grammar-mode
 
 (dvc-state-one ".")
@@ -1024,61 +1033,44 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
-Gnu Emacs Ada mode beta test 7.0.0
+Gnu Emacs Ada mode 7.0.1 released.
 -------------------
 
-Gnu Emacs Ada mode beta test 7.0.0 is now available at
-http://www.nongnu.org/ada-mode/. This is a significant refactoring,
-which may affect some user custom code, so it is not in Gnu ELPA yet.
+Gnu Emacs Ada mode 7.0.1 is now available in GNU ELPA.
 
-To install, download the candidate ELPA archive, set package-archives
-to point to it, and use list-packages (more detailed instructions at
-http://www.nongnu.org/ada-mode/).
+Relative to the previous Ada mode release (6.2.1), this is a
+significant refactoring, which may affect some user custom code.
 
 The wisi package now provides a more complete integration with Emacs
 project.el.
 
-Several bugs have been fixed.
-
 You may want to work thru the tutorials in ada-mode.info again; they
 now cover many of the new features.
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.0.0 and wisi-3.0.0,
-for more details. See wisi.info in the release for more information on
-the package.el integration.
-
---------------------
-
--------------------
-Gnu Emacs Ada mode 6.2.1 released.
--------------------
-
-Gnu Emacs Ada mode 6.2.1 is now available in GNU ELPA. This is a minor
-feature and bug fix release.
+Relative to the previous beta test (7.0.0), this is a minor feature
+and bug fix release.
 
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-6.2.1 and wisi-2.2.1,
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.0.1 and wisi-3.0.1,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
-The process parser requires a manual compile step, after the normal
-list-packages installation:
+The required Ada code requires a manual compile step, after the normal
+list-packages installation ('install.sh' is new in this release):
 
-cd ~/.emacs.d/elpa/ada-mode-6.2.1
+cd ~/.emacs.d/elpa/ada-mode-7.0.1
 ./build.sh
+./install.sh
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
 --------------------
 
 mark fixed bugs
-    add to NEWS-ada-mode.text or NEWS-wisi.text when closed.
-    confirm with submitter.
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
-    email to nnn@debbugs.gnu.org giving ada-mode version containing fix
     email to nnn-close@debbugs.gnu.org
-    subject: 'closed by ada-mode version i.j.k'
-    don't include Version: header; that's an Emacs version
+        subject: closed by ada-mode version 7.0.1
+        don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 
 check https://www.emacswiki.org/emacs/AdaMode

@@ -519,6 +519,7 @@ The extensions should include a `.' if needed.")
 See `ff-other-file-alist'.")
 
 (defconst ada-parent-name-regexp
+  ;; FIXME: :alnum: doesn't work here
   "\\([a-zA-Z0-9_\\.]+\\)\\.[a-zA-Z0-9_]+"
   "Regexp for extracting the parent name from fully-qualified name.")
 

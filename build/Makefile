@@ -266,7 +266,6 @@ pub-ada : force
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
-	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	cp ../config.pragmas $(ELPA_ROOT)/packages/ada-mode
@@ -395,9 +394,6 @@ Makefile.conf : create_makefile_conf.sh
 
 include Makefile.conf
 
-../gpr_query-process_refresh.adb : ../gpr_query-process_refresh.adb.gp
-	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
-
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
 	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) -DELPA="no" $< $@
 
@@ -410,7 +406,7 @@ trace :
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c ../gpr_query-process_refresh.adb force
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

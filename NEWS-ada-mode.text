@@ -6,6 +6,14 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada Mode 7.x
+
+** gpr_query Version 3
+
+** C-u C-c C-d (wisi-goto-spec/body) now prompts with a completion
+   table of all names in the project; previously it was just the names
+   in the current file.
+
 * Ada Mode 7.0.1
 30 Jan 2020
 
