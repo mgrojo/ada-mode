@@ -82,7 +82,7 @@ Throw an error if current project does not have a gnat-compiler."
       (error "no gnat-compiler in current project"))))
 
 (defun gnat-prj-add-prj-dir (project dir)
-  "Add DIR to compiler.project_path, and to GPR_PROJECT_PATH in project.environment."
+  "Add DIR to compiler.project_path, and to GPR_PROJECT_PATH in project.file-env"
   ;; We maintain two project values for this;
   ;; project-path - a list of directories, for elisp find file
   ;; GPR_PROJECT_PATH in environment, for gnat-run

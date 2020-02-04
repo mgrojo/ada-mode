@@ -42,13 +42,17 @@
      (lambda () (xref-backend-references prj (xref-backend-identifier-at-point (xref-find-backend)))))
     ))
 
-(defun test-all-defs (name)
+(defun test-all-defs (name &optional no-line-col)
   "Return list of (FILENAME CATEGORY) for all definitions of NAME (and parent and child types)."
-    (let ((prj (project-current)))
-      (test-xref-helper
-       name
-       (lambda () (xref-backend-definitions prj (xref-backend-identifier-at-point (xref-find-backend)))))
-      ))
+  (let ((prj (project-current)))
+    (test-xref-helper
+     name
+     (lambda () (xref-backend-definitions
+		 prj
+		 (if no-line-col
+		     (thing-at-point 'symbol)
+		   (xref-backend-identifier-at-point (xref-find-backend))))))
+    ))
 
 (provide 'run-indent-test)
 ;; end of file

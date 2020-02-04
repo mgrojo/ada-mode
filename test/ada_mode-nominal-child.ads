@@ -103,7 +103,19 @@ package Ada_Mode.Nominal.Child is
       Child_Element_2  => 1.0,
       Child_Element_3  => True); -- expression function returning aggregate
 
+   --  New primitive operation on child type
+   --EMACSCMD:(test-all-defs "function Child_Add")
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; body")
+   --EMACSRESULT_FINISH:
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
+
+   --  New primitive operation on child type, hominym of parent primitive op
+   --EMACSCMD:(test-all-defs "procedure Function_2h")
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; body")
+   --EMACSRESULT_FINISH:
+   procedure Function_2h (Param_1 : in Child_Type_1; Param_2 : in Integer);
 
    Child_Obj_1 : constant Child_Type_1 :=
      (Default_Parent with 10, 12.0, True);

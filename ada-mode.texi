@@ -276,6 +276,16 @@ make -C xref
 make -C xref install
 @end example
 
+@c To build gnatcoll-core with debug, edit the corresponding gpr file
+@c to delete @code{-gnatwe} (there are lots of warnings about license
+@c incompatibility, and a few other things). Then _do not_ build or
+@c install; just setup to create the .gpr files. Installing causes
+@c lots of spurious warnings about files need to be
+@c recompiled. Uninstall core, sql, sqlite, xref; add the build
+@c directories to GPR_PROJECT_PATH, add @code{BUILD=DEBUG} to the
+@c command line, edit the .gpr files to set OS. Sigh; that still
+@c doesn't work.
+
 @node Building the executables
 @subsection Building the executables
 

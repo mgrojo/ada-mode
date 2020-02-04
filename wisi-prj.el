@@ -251,7 +251,7 @@ LINE, COLUMN are Emacs origin."
   ;; Similar to xref--read-identifier, but uses a different completion
   ;; table, because we want a more specific reference.
   (let* ((prj (project-current))
-         (def (xref-backend-identifier-at-point (wisi-prj-xref prj))))
+         (def (xref-backend-identifier-at-point prj)))
 
     (cond
      ((or current-prefix-arg

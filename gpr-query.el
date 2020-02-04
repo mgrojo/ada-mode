@@ -79,6 +79,9 @@ Must match gpr_query.adb Version.")
 
 (defun gpr-query--start-process (project session)
   "Start the session process running gpr_query."
+  (unless (locate-file gpr-query-exec exec-path '(".exe"))
+    (user-error "'%s' not found on PATH" gpr-query-exec))
+
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
     (setf (gpr-query--session-buffer session)
@@ -107,7 +110,7 @@ Must match gpr_query.adb Version.")
 		    (list
 		     (concat "--project=" gpr-file)
 		     (when gpr-query--debug-start
-		       (concat "--tracefile=gpr_query.trace")
+		       "--tracefile=gpr_query.trace"
 		       ;; The file gpr_query.trace should contain: gpr_query=yes
 		       )))))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
@@ -183,6 +186,11 @@ Must match gpr_query.adb Version.")
 		    (goto-char search-start)
 		    (not (re-search-forward gpr-query-prompt (point-max) 1))))
 	(setq search-start (point));; don't search same text again
+	;; IMPROVME: if we are simply waiting for output (as at
+	;; process start), then wait-count is a count of seconds, and
+	;; adding wait-count dots makes sense. However, if we are
+	;; processing lots of output (as after "complete"), then this
+	;; outputs too many dots.
 	(message (concat "running gpr_query ..." (make-string wait-count ?.)))
 	;; IMPROVEME: use --display-progress
 	(accept-process-output process 1.0)

@@ -74,6 +74,24 @@ package body Ada_Mode.Nominal.Child is -- target 0
               with 1, 0.0, False);
    end Child_Add;
 
+   --  Homonym, for testing gpr_query with no line/col info
+   --EMACSCMD:(test-all-defs "function Child_Add" t)
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Child_Type_1; function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Child_Type_1; body")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add function/body")
+   --EMACSRESULT_FINISH:
+   function Child_Add (Left : in Child_Type_1) return Child_Type_1
+   is begin
+      return (Parent_Type_1 with 1, 0.0, False);
+   end Child_Add;
+
+   procedure Function_2h (Param_1 : in Child_Type_1; Param_2 : in Integer)
+   is
+      pragma Unreferenced (Param_1, Param_2);
+   begin
+      null;
+   end Function_2h;
+
    overriding function Function_2i (Param : in Child_Type_2) return Child_Type_2
      is (1, 1.0, False, 2);
 
