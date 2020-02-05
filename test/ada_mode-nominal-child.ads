@@ -105,15 +105,18 @@ package Ada_Mode.Nominal.Child is
 
    --  New primitive operation on child type
    --EMACSCMD:(test-all-defs "function Child_Add")
-   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; body")
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) body")
    --EMACSRESULT_FINISH:
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 
    --  New primitive operation on child type, hominym of parent primitive op
    --EMACSCMD:(test-all-defs "procedure Function_2h")
-   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; body")
+   --EMACSRESULT_START:'("ada_mode-nominal.ads" "Function_2h Ada_Mode.Nominal.Parent_Type_1; (Param) function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.ads" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; (Param) function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.ads" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; (Param_1, Param_2) procedure")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Function_2h Ada_Mode.Nominal.Child.Child_Type_1; (Param_1, Param_2) body")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal.ads" "Function_2h Ada_Mode.Nominal.Child.Child_Type_2; (Param) function")
    --EMACSRESULT_FINISH:
    procedure Function_2h (Param_1 : in Child_Type_1; Param_2 : in Integer);
 

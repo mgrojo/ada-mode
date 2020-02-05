@@ -76,9 +76,9 @@ package body Ada_Mode.Nominal.Child is -- target 0
 
    --  Homonym, for testing gpr_query with no line/col info
    --EMACSCMD:(test-all-defs "function Child_Add" t)
-   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Child_Type_1; function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Child_Type_1; body")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add function/body")
+   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) function")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) body")
+   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body")
    --EMACSRESULT_FINISH:
    function Child_Add (Left : in Child_Type_1) return Child_Type_1
    is begin

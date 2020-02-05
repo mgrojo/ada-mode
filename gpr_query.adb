@@ -58,6 +58,9 @@ procedure Gpr_Query is
    function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
+   function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+     renames Ada.Strings.Unbounded.To_Unbounded_String;
+
    function "+" (Item : in GNATCOLL.VFS.Filesystem_String) return String
    is begin
       return String (Item);
@@ -649,37 +652,64 @@ procedure Gpr_Query is
       return Result;
    end Controlling_Type;
 
-   procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration; Controlling_Type_Name : in String := "")
+   procedure Dump_Decl (Decl : in GNATCOLL.Xref.Entity_Declaration; Annotation : in String := "")
    is begin
       Ada.Text_IO.Put_Line
         (Xref.Image (Decl.Location) & " (" &
            (+Decl.Name) & " " &
-           (if Controlling_Type_Name'Length = 0
+           (if Annotation'Length = 0
             then ""
-            else Controlling_Type_Name & "; ") &
+            else Annotation & " ") &
            (+Decl.Kind) & ")");
    end Dump_Decl;
 
-   procedure Dump_Ref (Ref : in GNATCOLL.Xref.Entity_Reference; Controlling_Type_Name : in String := "")
+   procedure Dump_Ref (Ref : in GNATCOLL.Xref.Entity_Reference; Annotation : in String := "")
    is begin
       Ada.Text_IO.Put_Line
         (Xref.Image (Ref) & " (" &
            (+Xref.Declaration (Ref.Entity).Name) & " " &
-           (if Controlling_Type_Name'Length = 0
+           (if Annotation'Length = 0
             then ""
-            else Controlling_Type_Name & "; ") &
+            else Annotation & " ") &
            (+Ref.Kind) & ")");
    end Dump_Ref;
 
    procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information; Controlling_Type_Name : in String := "")
    is
       use GNATCOLL.Xref;
+      use Ada.Strings.Unbounded;
       Spec_Decl : constant Entity_Declaration := Xref.Declaration (Entity);
       Body_Decls : References_Cursor;
+      Parameters : Unbounded_String;
    begin
+      if Controlling_Type_Name'Length > 0 then
+         Parameters := +Controlling_Type_Name & ";";
+      end if;
+
+      if Spec_Decl.Flags.Is_Subprogram then
+         declare
+            Params : Parameters_Cursor := GNATCOLL.Xref.Parameters (Xref, Spec_Decl.Location.Entity);
+            Need_Paren : Boolean := True;
+         begin
+            loop
+               exit when not Has_Element (Params);
+               Parameters := Parameters &
+                 ((if Need_Paren
+                   then (if Length (Parameters) > 0 then " (" else "(")
+                   else ", ") &
+                    Xref.Declaration (Element (Params).Parameter).Name);
+               Need_Paren := False;
+               Next (Params);
+            end loop;
+            if not Need_Paren then
+               Parameters := Parameters & ")";
+            end if;
+         end;
+      end if;
+
       Xref.Bodies (Entity, Body_Decls);
       if not Has_Element (Body_Decls) then
-         Dump_Decl (Spec_Decl);
+         Dump_Decl (Spec_Decl, +Parameters);
       else
          declare
             use all type GNATCOLL.VFS.Virtual_File;
@@ -691,13 +721,13 @@ procedure Gpr_Query is
             then
                Ada.Text_IO.Put_Line
                  (Xref.Image (First_Body_Ref) & " (" & (+Spec_Decl.Name) & " " &
-                    (if Controlling_Type_Name'Length = 0
+                    (if Length (Parameters) = 0
                      then ""
-                     else Controlling_Type_Name & "; ") &
+                     else +Parameters & " ") &
                     (+Spec_Decl.Kind) & "/" & (+First_Body_Ref.Kind) & ")");
             else
-               Dump_Decl (Spec_Decl, Controlling_Type_Name);
-               Dump_Ref (First_Body_Ref, Controlling_Type_Name);
+               Dump_Decl (Spec_Decl, +Parameters);
+               Dump_Ref (First_Body_Ref, +Parameters);
             end if;
          end;
 
@@ -705,7 +735,7 @@ procedure Gpr_Query is
 
          loop
             exit when not Has_Element (Body_Decls);
-            Dump_Ref (Body_Decls.Element, Controlling_Type_Name);
+            Dump_Ref (Body_Decls.Element, +Parameters);
             Next (Body_Decls);
          end loop;
       end if;
@@ -723,8 +753,8 @@ procedure Gpr_Query is
 
       procedure One_Entity (Orig_Entity : in Entity_Information; No_Children : in Boolean := False)
       is
-         Orig_Decl : constant Entity_Declaration := Xref.Declaration (Orig_Entity);
-         Orig_Name : constant String             := Xref.Qualified_Name (Orig_Entity);
+         Orig_Decl       : constant Entity_Declaration := Xref.Declaration (Orig_Entity);
+         Orig_Short_Name : constant String             := +Orig_Decl.Name;
 
          procedure Dump_Method
            (Type_Entity       : in GNATCOLL.Xref.Entity_Information;
@@ -754,7 +784,7 @@ procedure Gpr_Query is
             loop
                exit when not Has_Element (Entities);
                if Orig_Decl.Flags.Is_Subprogram then
-                  Dump_Method (Entities.Element, Orig_Name);
+                  Dump_Method (Entities.Element, Primitive_Op_Name => Orig_Short_Name);
                else
                   Dump_Entity (Entities.Element);
                end if;
@@ -787,7 +817,9 @@ procedure Gpr_Query is
                      Root_Parent := Controlling; -- for type name
                   else
                      --  Here we find the highest ancestor type that has this method.
-                     Root_Parent := Root_Parent_Type (Controlling, Primitive_Op_Name => Orig_Name);
+                     --  gnatcoll.xref does not let us get the type of each parameter, so
+                     --  we can't match profiles, just names.
+                     Root_Parent := Root_Parent_Type (Controlling, Primitive_Op_Name => Orig_Short_Name);
                   end if;
                end if;
             end;
