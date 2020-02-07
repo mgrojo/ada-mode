@@ -3,7 +3,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -97,7 +97,7 @@ Throw an error if current project does not have a gnat-compiler."
     ))
 
 (defun gnat-get-paths (project)
-  "Add project and/or compiler source, project paths to PROJECT source-path and project-path."
+  "Add project and/or compiler source, project paths to PROJECT source-path"
   (let* ((compiler (wisi-prj-compiler project))
 	 (src-dirs (wisi-prj-source-path project))
 	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler))))

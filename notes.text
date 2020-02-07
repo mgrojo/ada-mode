@@ -38,6 +38,13 @@ o.e.a.stephe-6 (from ): available
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
  current work
+doc symptom of -dominating in dependent project
+    gprbuild command line has no -P<gpr file>
+
+ada-build.el
+    error if run gprbuild with no gpr_file?
+        but want to support simple Ada projects
+
 wisi.adb
     C-u M-. "Put" => only one xref!
         get_entity returns only one
@@ -48,6 +55,9 @@ wisi-goto-spec/body
     distinguish homonyms in same file; add line number
     wisi.adb
 
+report/fix :alnum:
+    use instead of A-Za-z in regexp
+    test/ada_mode-nonascii.ads Pi
 
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)

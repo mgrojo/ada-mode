@@ -243,6 +243,7 @@ LINE, COLUMN are Emacs origin."
 (defun wisi-show-xref (xref)
   "Display XREF location."
   (let ((marker (xref-location-marker (xref-item-location xref))))
+    (push-mark)
     (pop-to-buffer (marker-buffer marker) (list #'display-buffer-same-window))
     (goto-char (marker-position marker))))
 
@@ -251,20 +252,17 @@ LINE, COLUMN are Emacs origin."
   ;; Similar to xref--read-identifier, but uses a different completion
   ;; table, because we want a more specific reference.
   (let* ((prj (project-current))
-         (def (xref-backend-identifier-at-point (wisi-prj-xref prj))))
+         (def (xref-backend-identifier-at-point prj)))
 
     (cond
      ((or current-prefix-arg
           (not def))
-      (let* ((table (wisi-xref-completion-table (wisi-prj-xref prj) prj))
+      ;; FIXME: use (wisi-xref-completion-table (wisi-prj-xref prj) prj)
+      (let* ((table (wisi-names t))
 	     (id
-              (completing-read
-	       (if def
-		   (format "%s (default %s): " prompt def)
-                 prompt)
-	       table
-	       nil nil nil
-	       'xref--read-identifier-history def)))
+	      ;; Since the user decided not to use the identifier at
+	      ;; point, don't use it as the default.
+              (completing-read prompt table nil nil nil 'xref--read-identifier-history)))
         (if (equal id "")
             (user-error "No identifier provided")
           (if (consp (car table))

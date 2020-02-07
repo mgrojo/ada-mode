@@ -331,11 +331,16 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (wisi-case-adjust-buffer))
   )
 
+(defvar cl-print-readably); cl-print.el, used by edebug
+
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
   (interactive "f")
 
   (package-initialize) ;; for uniquify-files
+
+  ;; Let edebug display strings full-length, and show internals of records
+  (setq cl-print-readably t)
 
   ;; we'd like to run emacs from a makefile as:
   ;;
