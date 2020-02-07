@@ -10,9 +10,14 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** gpr_query Version 3
 
-** C-u C-c C-d (wisi-goto-spec/body) now prompts with a completion
-   table of all names in the project; previously it was just the names
-   in the current file.
+** gpr_query now starts in the background, and provides a completion
+   table of all symbols in the project.
+
+** Commands that prompt for a symbol (ie C-u C-c C-d
+   (wisi-goto-spec/body) and C-u M-. (xref-find-definitions)) use the
+   completion table provided by gpr_query. With a single C-u, only
+   symbols defined in the current file are used; with two C-u, all
+   symbols are used.
 
 * Ada Mode 7.0.1
 30 Jan 2020

@@ -43,23 +43,14 @@ for ada_mode_wisi_parse.gpr:
 (setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode.stephe-2;c:/Projects/org.emacs.ada-mode.stephe-2;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
  current work
-tree_def | wisi-goto-spec/body user options:
-    all use gpr_query; it shows more info for each name
-    fall back to wisi-names if gpr_query returns no results
+C-u M-. Put:wisi.adb::
+
+add to ada-mode.texi: wisi-goto-spec/body, xref-find-definitions user options:
     complete on all symbols          ; double user arg
     complete on symbols in this file ; single user arg, or no symbol at point
-                                     ; if use default in completion, strip properties
     at point                         ; no user arg
 
-    distinguish non-primitive homonyms in same file;
-        add argument list names (and types?); xref function Parameters (entity)
-
-    tree_defs Put:wisi.adb::
-
 process_overridden should return method def for all ancestor types, not just parent
-
-start gpr_query.exe in background
-    also get all names at startup and on refresh
 
 too many dots in session-wait for "complete"
 

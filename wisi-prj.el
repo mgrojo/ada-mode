@@ -258,13 +258,9 @@ LINE, COLUMN are Emacs origin."
           (not def))
       (let* ((table (wisi-xref-completion-table (wisi-prj-xref prj) prj))
 	     (id
-              (completing-read
-	       (if def
-		   (format "%s (default %s): " prompt def)
-                 prompt)
-	       table
-	       nil nil nil
-	       'xref--read-identifier-history def)))
+	      ;; Since the user decided not to use the identifier at
+	      ;; point, don't use it as the default.
+              (completing-read prompt table nil nil nil 'xref--read-identifier-history)))
         (if (equal id "")
             (user-error "No identifier provided")
           (if (consp (car table))
