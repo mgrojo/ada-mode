@@ -43,16 +43,33 @@ for ada_mode_wisi_parse.gpr:
 (setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode.stephe-2;c:/Projects/org.emacs.ada-mode.stephe-2;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
  current work
-C-u M-. Put:wisi.adb::
-
 add to ada-mode.texi: wisi-goto-spec/body, xref-find-definitions user options:
     complete on all symbols          ; double user arg
     complete on symbols in this file ; single user arg, or no symbol at point
     at point                         ; no user arg
 
+doc symptom of -dominating in dependent project
+    gprbuild command line has no -P<gpr file>
+
+ada-build.el
+    error if run gprbuild with no gpr_file?
+        but want to support simple Ada projects
+
+wisi.adb
+    C-u M-. "Put" => only one xref!
+        get_entity returns only one
+        if no line or column, call Prefix, filter on file; o.e.a.s-2
+        need test
+
+wisi-goto-spec/body
+    distinguish homonyms in same file; add line number
+    wisi.adb
+
 process_overridden should return method def for all ancestor types, not just parent
 
-too many dots in session-wait for "complete"
+report/fix :alnum:
+    use instead of A-Za-z in regexp
+    test/ada_mode-nonascii.ads Pi
 
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)

@@ -243,6 +243,7 @@ LINE, COLUMN are Emacs origin."
 (defun wisi-show-xref (xref)
   "Display XREF location."
   (let ((marker (xref-location-marker (xref-item-location xref))))
+    (push-mark)
     (pop-to-buffer (marker-buffer marker) (list #'display-buffer-same-window))
     (goto-char (marker-position marker))))
 

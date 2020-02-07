@@ -1232,7 +1232,7 @@ selected.
 
 If @file{Example_5} is the only project in the current emacs session,
 @code{wisi-prj-find-dominating-cached} finds no project file (because
-@file{Example_4} is not a child directory of @file{Example_5}, so the
+@file{Example_4} is not a child directory of @file{Example_5}), so the
 default strategy of ``ask the user'' is used, giving the prompt for a
 directory.
 
@@ -1246,7 +1246,9 @@ are not in the same directory tree, you will have this problem.
 The fix is to use a different function in
 @code{project-find-functions}; @code{wisi-prj-current-cached}. This
 uses a global variable to indicate what the current project is. wisi
-provides four different functions for @code{project-find-functions}. @xref{Selecting projects, Selecting projects, Selecting projects, wisi}.
+provides four different functions for
+@code{project-find-functions}. @xref{Selecting projects, Selecting
+projects, Selecting projects, wisi}.
 
 To change @code{project-find-functions}, execute:
 
