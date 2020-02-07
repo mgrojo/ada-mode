@@ -247,8 +247,22 @@ LINE, COLUMN are Emacs origin."
     (pop-to-buffer (marker-buffer marker) (list #'display-buffer-same-window))
     (goto-char (marker-position marker))))
 
+(defun wisi-filter-table (table file)
+  "If FILE is nil, return TABLE. Otherwise return only items in TABLE with location FILE."
+  (cond
+   ((null file)
+    table)
+
+   (t
+    (let (result)
+      (dolist (item table)
+	(when (string= file (car (cdr item)))
+	  (push item result)))
+      result))))
+
 (defun wisi-get-identifier (prompt)
-  "Get identifier at point, or if no identifier at point, or with user arg, prompt for one."
+  "Get identifier at point, or if no identifier at point, or with user arg, prompt for one.
+Single user arg limits completion to current file; double user arg completes on all files in project."
   ;; Similar to xref--read-identifier, but uses a different completion
   ;; table, because we want a more specific reference.
   (let* ((prj (project-current))
@@ -257,7 +271,8 @@ LINE, COLUMN are Emacs origin."
     (cond
      ((or current-prefix-arg
           (not def))
-      (let* ((table (wisi-xref-completion-table (wisi-prj-xref prj) prj))
+      (let* ((table (wisi-filter-table (wisi-xref-completion-table (wisi-prj-xref prj) prj)
+				       (when (equal '(4) current-prefix-arg) (buffer-file-name))))
 	     (id
 	      ;; Since the user decided not to use the identifier at
 	      ;; point, don't use it as the default.
@@ -531,8 +546,8 @@ absolute file name.")
 	(setq wisi-prj--cache (delete (cons prj-file project) wisi-prj--cache))
 	(setq project (wisi-prj-default project))
 	(wisi-prj-parse-file :prj-file prj-file :init-prj project :cache t)
-	(wisi-prj-select project)))
-  (wisi-xref-refresh-cache (wisi-prj-xref project) project not-full))
+	(wisi-xref-refresh-cache (wisi-prj-xref project) project not-full)
+	(wisi-prj-select project))))
 
 (cl-defmethod wisi-prj-select ((project wisi-prj))
   (setq compilation-search-path (wisi-prj-source-path project))

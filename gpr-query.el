@@ -342,29 +342,40 @@ Uses `gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
+(defconst gpr-query--symbol-char "[-+*/=<>&A-Za-z0-9_.]")
+
 (defun gpr-query--read-symbols (session)
   (let ((result nil))
-    ;; 'compelete' returns a fully qualified name and declaration location for each name:
+    ;; 'compelete' returns a fully qualified name. line number, and
+    ;; declaration location for each name (the line number ensures
+    ;; there is a unique entry for each overloaded name):
     ;;
-    ;; Gpr_Query.Process_Command_Multiple C:\Projects\org.emacs.ada-mode.stephe-2\gpr_query.adb:131:14
-    ;; Ada_Mode.Slices.- C:\Projects\org.emacs.ada-mode.stephe-2\test\ada_mode-slices.adb:19:14
+    ;; Wisi.Ada.Ada_Indent_Aggregate.Args<102> C:\Projects\org.emacs.ada-mode\wisi-ada.ads:102:7
     ;;
-    ;; Build a completion table as an alist of (simple_name<prefix> . location)
+    ;; For subprograms it includes the parameters (but not a function result):
+    ;;
+    ;; Gpr_Query.Process_Command_Single<109>(Args) C:\Projects\org.emacs.ada-mode\gpr_query.adb:109:14
+    ;;
+    ;; Build a completion table as an alist of (simple_name<line>(args)<prefix> . location)
     (goto-char (point-min))
 
     (while (not (eobp))
       (cond
-       ;; FIXME: store 'parent regexp' in SESSION, so it is not ada-specific
-       ;; FIXME: handle operators in names
+       ;; FIXME: dispatch on language
        ;; FIXME: :alnum: doesn't work here
-       ((looking-at (concat "\\([-+*/=<>A-Za-z0-9_.]+\\)\\.\\([-+*/=<>A-Za-z0-9_]+\\) " gpr-query-ident-file-regexp))
+       ((looking-at (concat "\\(" gpr-query--symbol-char "+\\)"    ;; 1: prefix
+			    "\\.\\(" gpr-query--symbol-char "+\\)" ;; 2: simple name
+			    "\\(<[0-9]+>\\(?:(.*)\\)?\\) "          ;; 3: line number, args
+			    gpr-query-ident-file-regexp)) ;;          4, 5, 6: file:line:col
 	;; process line
-	(let ((found-file (match-string 3))
-	      (found-line (string-to-number (match-string 4)))
-	      (found-col  (1- (string-to-number (match-string 5)))))
-	  (push
-	   (cons (concat (match-string 2) "<" (match-string 1) ">") (list found-file found-line found-col))
-	   result)))
+	(push
+	 (cons (concat (match-string-no-properties 2)
+		       (match-string-no-properties 3)
+		       "<" (match-string-no-properties 1) ">")
+	       (list (gpr-query--normalize-filename (match-string-no-properties 4))
+		     (string-to-number (match-string 5))
+		     (1- (string-to-number (match-string 6)))))
+	 result))
 
        (t ;; ignore line
 	)
@@ -516,14 +527,13 @@ FILE is from gpr-query."
   (cond
    ((eq system-type 'windows-nt)
     ;; 'expand-file-name' converts Windows directory
-    ;; separators to normal Emacs.  Since Windows file
-    ;; system is case insensitive, GNAT and Emacs can
-    ;; disagree on the case, so convert all to lowercase.
-    (downcase (expand-file-name file)))
+    ;; separators to normal Emacs.
+    ;; FIXME: we used to downcase here; need use case. Counter use case:
+    ;; completion table matching (buffer-file-name) in wisi-filter-table
+    (expand-file-name file))
 
    ((eq system-type 'darwin)
-    ;; case-insensitive case-preserving; so just downcase
-    (downcase file))
+    file)
 
    (t ;; linux
     file))
@@ -566,7 +576,7 @@ FILE is from gpr-query."
 	(setf (gnat-compiler-gpr-file xref) prj-file-name)
       (user-error "using gpr-query xref, but no gpr file provided"))))
 
-(cl-defmethod wisi-xref-select ((_xref gpr-query-xref) project)
+(cl-defmethod wisi-xref-select-prj ((_xref gpr-query-xref) project)
   ;; Start the process if needed; it will read the db and return the
   ;; symbols in the background.
   (gpr-query-cached-session project)

@@ -42,6 +42,7 @@ with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
 with GNATCOLL.Xref;
+with SAL.Gen_Trimmed_Image;
 procedure Gpr_Query is
    use all type GNATCOLL.VFS.File_Array;
    use GNATCOLL;
@@ -65,6 +66,8 @@ procedure Gpr_Query is
    is begin
       return String (Item);
    end "+";
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
 
    procedure Process_Line (Line : String);
    --  Process a full line of commands.
@@ -508,8 +511,33 @@ procedure Gpr_Query is
       GNAT.Strings.Free (Expr);
    end Process_Line;
 
+   function Get_Parameters (Entity : GNATCOLL.Xref.Entity_Information) return String
+   is
+      use Ada.Strings.Unbounded;
+      use GNATCOLL.Xref;
+      Params     : Parameters_Cursor := GNATCOLL.Xref.Parameters (Xref, Entity);
+      Result     : Unbounded_String;
+      Need_Paren : Boolean           := True;
+   begin
+      loop
+         exit when not Has_Element (Params);
+         Result := Result &
+           ((if Need_Paren
+             then (if Length (Result) > 0 then " (" else "(")
+             else ", ") &
+              Xref.Declaration (Element (Params).Parameter).Name);
+         Need_Paren := False;
+         Next (Params);
+      end loop;
+      if not Need_Paren then
+         Result := Result & ")";
+      end if;
+      return +Result;
+   end Get_Parameters;
+
    procedure Process_Complete (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
+      use Ada.Text_IO;
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
       Prefix : constant String := Nth_Arg (Args, 1);
@@ -522,9 +550,16 @@ procedure Gpr_Query is
          Cursor     => Matches);
       loop
          exit when not Has_Element (Matches);
-         Ada.Text_IO.Put_Line
-           (Xref.Qualified_Name (Element (Matches)) & " " &
-              Image (Element (Matches)));
+         declare
+            Decl : constant Entity_Declaration := Xref.Declaration (Element (Matches));
+         begin
+            Put (Xref.Qualified_Name (Element (Matches)));
+            Put ("<" & Trimmed_Image (Decl.Location.Line) & ">");
+            if Decl.Flags.Is_Subprogram then
+               Ada.Text_IO.Put (Get_Parameters (Decl.Location.Entity));
+            end if;
+         end;
+         Ada.Text_IO.Put_Line (" " & Image (Element (Matches)));
          Next (Matches);
       end loop;
    end Process_Complete;
@@ -676,8 +711,8 @@ procedure Gpr_Query is
 
    procedure Dump_Entity (Entity : in GNATCOLL.Xref.Entity_Information; Controlling_Type_Name : in String := "")
    is
-      use GNATCOLL.Xref;
       use Ada.Strings.Unbounded;
+      use GNATCOLL.Xref;
       Spec_Decl : constant Entity_Declaration := Xref.Declaration (Entity);
       Body_Decls : References_Cursor;
       Parameters : Unbounded_String;
@@ -687,24 +722,7 @@ procedure Gpr_Query is
       end if;
 
       if Spec_Decl.Flags.Is_Subprogram then
-         declare
-            Params : Parameters_Cursor := GNATCOLL.Xref.Parameters (Xref, Spec_Decl.Location.Entity);
-            Need_Paren : Boolean := True;
-         begin
-            loop
-               exit when not Has_Element (Params);
-               Parameters := Parameters &
-                 ((if Need_Paren
-                   then (if Length (Parameters) > 0 then " (" else "(")
-                   else ", ") &
-                    Xref.Declaration (Element (Params).Parameter).Name);
-               Need_Paren := False;
-               Next (Params);
-            end loop;
-            if not Need_Paren then
-               Parameters := Parameters & ")";
-            end if;
-         end;
+         Parameters := Parameters & Get_Parameters (Spec_Decl.Location.Entity);
       end if;
 
       Xref.Bodies (Entity, Body_Decls);
