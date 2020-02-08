@@ -326,23 +326,20 @@ Uses `gpr_query'. Returns new list."
       ))
   prj-dirs)
 
-(defconst gpr-query-ident-file-regexp
-  ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
-  ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  ;; gds-mil_std_1553-utf.ads:252:25 - when wisi-xref-full-path is nil
-  "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0-9]+\\):\\([0-9]+\\)"
-  ;; 1                              2            3
-  "Regexp matching <file>:<line>:<column> where <file> is an absolute file name or basename.")
-
 (defconst gpr-query-ident-file-regexp-alist
-  (list (concat "^" gpr-query-ident-file-regexp) 1 2 3)
+  (list (concat "^" wisi-file-line-col-regexp) 1 2 3)
   "For compilation-error-regexp-alist, matching gpr_query output")
 
 (defconst gpr-query-ident-file-type-regexp
-  (concat gpr-query-ident-file-regexp " (\\(.*\\))")
+  (concat wisi-file-line-col-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
+;; FIXME: use :alnum:
 (defconst gpr-query--symbol-char "[-+*/=<>&A-Za-z0-9_.]")
+
+(defconst gpr-query-completion-regexp
+  (concat "\\(" gpr-query--symbol-char "+\\)\\((.*)\\)?""<" gpr-query--symbol-char "+>>")
+  "Regexp matching completion item from gpr-query--read-symbols.")
 
 (defun gpr-query--read-symbols (session)
   (let ((result nil))
@@ -356,7 +353,16 @@ Uses `gpr_query'. Returns new list."
     ;;
     ;; Gpr_Query.Process_Command_Single<109>(Args) C:\Projects\org.emacs.ada-mode\gpr_query.adb:109:14
     ;;
-    ;; Build a completion table as an alist of (simple_name<line>(args)<prefix> . location)
+    ;; Build a completion table as an alist of:
+    ;;
+    ;;    (simple_name(args)<prefix<line>> . location).
+    ;;
+    ;; The car matches wisi-xref-completion-regexp.
+    ;;
+    ;; We include the line number to make each name unique. This
+    ;; doesn't work for one-line parameter lists, variable
+    ;; declaration lists and similar, but they should be
+    ;; unique names anyway.
     (goto-char (point-min))
 
     (while (not (eobp))
@@ -365,13 +371,13 @@ Uses `gpr_query'. Returns new list."
        ;; FIXME: :alnum: doesn't work here
        ((looking-at (concat "\\(" gpr-query--symbol-char "+\\)"    ;; 1: prefix
 			    "\\.\\(" gpr-query--symbol-char "+\\)" ;; 2: simple name
-			    "\\(<[0-9]+>\\(?:(.*)\\)?\\) "          ;; 3: line number, args
-			    gpr-query-ident-file-regexp)) ;;          4, 5, 6: file:line:col
+			    "\\((.*)\\)? "                         ;; 3: args,
+			    wisi-file-line-col-regexp))            ;; 4, 5, 6 file:line:col
 	;; process line
 	(push
 	 (cons (concat (match-string-no-properties 2)
 		       (match-string-no-properties 3)
-		       "<" (match-string-no-properties 1) ">")
+		       "<" (match-string-no-properties 1) "<" (match-string-no-properties 5) ">>")
 	       (list (gpr-query--normalize-filename (match-string-no-properties 4))
 		     (string-to-number (match-string 5))
 		     (1- (string-to-number (match-string 6)))))
@@ -696,6 +702,9 @@ FILE is from gpr-query."
     (gpr-query-session-wait session);; ensure symbols is ready
     (gpr-query--session-symbols session)))
 
+(cl-defmethod wisi-xref-completion-regexp ((_xref gpr-query-xref))
+  gpr-query-completion-regexp)
+
 (cl-defmethod wisi-xref-definitions ((_xref gpr-query-xref) project item)
   (gpr-query-tree-refs project item "tree_defs"))
 
@@ -876,7 +885,7 @@ FILE is from gpr-query."
     (with-current-buffer (gpr-query-session-send session cmd t)
 
       (goto-char (point-min))
-      (when (looking-at gpr-query-ident-file-regexp)
+      (when (looking-at wisi-file-line-col-regexp)
 	(setq result
 	      (list
 	       (match-string 1)

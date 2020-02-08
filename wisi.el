@@ -1439,84 +1439,6 @@ If non-nil, only repair errors in BEG END region."
     ))
 
 ;;; xref integration
-(defconst wisi-xref-ident-regexp "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?"
-  "Match line number encoded into identifier by `wisi-xref-identifier-at-point'.")
-
-(defun wisi-xref-ident-make (identifier &optional other-function)
-  "Return an xref-item for IDENTIFIER."
-  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
-	 ;; If t-prop is non-nil: identifier is from
-	 ;; identifier-at-point, the desired location is the ’other’
-	 ;; (spec/body).
-	 ;;
-	 ;; If t-prop is nil: identifier is from prompt/completion,
-	 ;; the line number may be included in the identifier wrapped
-	 ;; in <>, and the desired location is that line in the current
-	 ;; file.
-	 (ident
-	  (if t-prop
-	      (substring-no-properties identifier 0 nil)
-	    (string-match wisi-xref-ident-regexp identifier)
-	    (match-string 1 identifier)
-	    ))
-	 (file
-	  (if t-prop
-	      (plist-get t-prop ':file)
-	    (buffer-file-name)))
-	 (line
-	  (if t-prop
-	      (plist-get t-prop ':line)
-	    (when (match-string 2 identifier)
-	      (string-to-number (match-string 2 identifier)))))
-	 (column
-	  (if t-prop
-	      (plist-get t-prop ':column)
-	    0))
-	 )
-
-    (if t-prop
-	(funcall other-function ident file line column)
-
-      (xref-make ident (xref-make-file-location file (or line 1) column))
-      )))
-
-(defun wisi-xref-item (identifier)
-  "Given IDENTIFIER, return an xref-item, with line, column nil if unknown.
-IDENTIFIER is from a user prompt with completion, or from
-`xref-backend-identifier-at-point'."
-  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
-	 ;; If t-prop is non-nil: identifier is from
-	 ;; identifier-at-point.
-	 ;;
-	 ;; If t-prop is nil: identifier is from prompt/completion,
-	 ;; the line number may be included in the identifier
-	 ;; wrapped in <>.
-	 (ident
-	  (if t-prop
-	      (substring-no-properties identifier 0 nil)
-	    (string-match wisi-xref-ident-regexp identifier)
-	    (match-string 1 identifier)
-	    ))
-	 (file
-	  (if t-prop
-	      (plist-get t-prop ':file)
-	    (buffer-file-name)))
-	 (line
-	  (if t-prop
-	      (plist-get t-prop ':line)
-	    (when (match-string 2 identifier)
-	      (string-to-number (match-string 2 identifier)))))
-	 (column
-	  (when t-prop
-	    (plist-get t-prop ':column)))
-	 )
-
-    (unless (file-name-absolute-p file)
-      (setq file (locate-file file compilation-search-path)))
-
-    (let ((eieio-skip-typecheck t)) ;; allow line, column nil.
-      (xref-make ident (xref-make-file-location file line column)))
-    ))
 
 (defun wisi-xref-identifier-at-point ()
   (let ((ident (thing-at-point 'symbol)))
@@ -1557,6 +1479,9 @@ IDENTIFIER is from a user prompt with completion, or from
   "Return the text at or before point with text property 'wisi-name'."
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
+
+(defconst wisi-names-regexp "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?"
+  "Match line number encoded into identifier by `wisi-names'.")
 
 (defun wisi-names (append-lines)
   "List of names; each is text from one 'wisi-name property in current buffer.

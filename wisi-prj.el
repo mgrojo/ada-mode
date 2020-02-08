@@ -185,7 +185,19 @@ slow refresh operations may be skipped."
   nil)
 
 (cl-defgeneric wisi-xref-completion-table (xref project)
-  "Return a completion table of names defined in PROJECT.")
+  "Return a completion table of names defined in PROJECT.
+The table must be an alist of (ANNOTATED-SYMBOL . LOC), where:
+
+- ANNOTATED-SYMBOL is the simple name and possibly annotations
+such as function arguments, controlling type, containing package,
+and line number.
+
+- LOC is the declaration of the name as a list (FILE LINE
+COLUMN).")
+
+(cl-defgeneric wisi-xref-completion-regexp (xref)
+  "Return a regular expression matching the result of completing with `wisi-xref-completion-table'.
+Group 1 must be the simple symbol; the rest of the item may be annotations.")
 
 (cl-defgeneric wisi-xref-definitions (xref project item)
   "Return all definitions (classwide) of ITEM (an xref-item), as a list of xref-items.")
@@ -289,39 +301,44 @@ Single user arg limits completion to current file; double user arg completes on 
   "Goto declaration or body for IDENTIFIER (default symbol at point).
 If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
   (interactive (list (wisi-get-identifier "Goto spec/body of: ")))
-  (let ((prj (project-current)))
+  (let ((prj (project-current))
+	desired-loc)
     (cond
      ((consp identifier)
-      ;; alist element from wisi-xref-completion-table
-      (wisi-show-xref
-	(xref-make (car identifier)
-		   (xref-make-file-location
-		    (nth 0 (cdr identifier)) ;; file
-		    (nth 1 (cdr identifier)) ;; line
-		    (nth 2 (cdr identifier)) ;; column
-	    ))))
+      ;; alist element from wisi-xref-completion-table; desired
+      ;; location is primary declaration
+      (setq desired-loc
+	    (xref-make (car identifier)
+		       (xref-make-file-location
+			(nth 0 (cdr identifier)) ;; file
+			(nth 1 (cdr identifier)) ;; line
+			(nth 2 (cdr identifier)) ;; column
+			))))
 
      ((stringp identifier)
-      ;; from xref-backend-identifier-at-point
-      (wisi-show-xref
-       (wisi-xref-ident-make
-	identifier
-	(lambda (ident file line column)
-	  (let ((target (wisi-xref-other
-			 (wisi-prj-xref prj) prj
-			 :identifier ident
-			 :filename file
-			 :line line
-			 :column column)))
-	    (xref-make ident
-		       (xref-make-file-location
-			(nth 0 target) ;; file
-			(nth 1 target) ;; line
-			(nth 2 target))) ;; column
-	    )))))
+      ;; from xref-backend-identifier-at-point; desired location is 'other'
+      (let ((item (wisi-xref-item identifier prj)))
+	(with-slots (summary location) item
+	  (let ((eieio-skip-typecheck t))
+	    (with-slots (file line column) location
+	      (let ((target
+		     (wisi-xref-other
+		      (wisi-prj-xref prj) prj
+		      :identifier summary
+		      :filename file
+		      :line line
+		      :column column)))
+		(setq desired-loc
+		      (xref-make summary
+				 (xref-make-file-location
+				  (nth 0 target) ;; file
+				  (nth 1 target) ;; line
+				  (nth 2 target))) ;; column
+	    )))))))
 
      (t ;; something else
       (error "unknown case in wisi-goto-spec/body")))
+	  (wisi-show-xref desired-loc)
     ))
 
 (cl-defgeneric wisi-prj-identifier-at-point (_project)
@@ -1174,8 +1191,60 @@ with \\[universal-argument]."
 
 ;;;; xref backend
 
+(defconst wisi-file-line-col-regexp
+  ;; matches Gnu-style file references:
+  ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
+  ;; gds-mil_std_1553-utf.ads:252:25 - when wisi-xref-full-path is nil
+  "\\(\\(?:.:\\\\\\|/\\)?[^:]*\\):\\([0-9]+\\):\\([0-9]+\\)"
+  ;; 1                              2            3
+  "Regexp matching <file>:<line>:<column> where <file> is an absolute file name or basename.")
+
+(defun wisi-xref-item (identifier prj)
+  "Given IDENTIFIER, return an xref-item, with line, column nil if unknown.
+IDENTIFIER is from a user prompt with completion, or from
+`xref-backend-identifier-at-point'."
+  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
+	 ident file line column)
+    (cond
+     (t-prop
+      ;; IDENTIFIER is from wisi-xref-identifier-at-point.
+      (setq ident (substring-no-properties identifier 0 nil))
+      (setq file (plist-get t-prop ':file))
+      (setq line (plist-get t-prop ':line))
+      (setq column (plist-get t-prop ':column))
+      )
+
+     ((string-match (wisi-xref-completion-regexp (wisi-prj-xref prj)) identifier)
+      ;; IDENTIFIER is from prompt/completion on wisi-xref-completion-table
+      (setq ident (match-string 1 identifier))
+
+      (let* ((table (wisi-xref-completion-table (wisi-prj-xref prj) prj))
+	     (loc (cdr (assoc identifier table))))
+
+	(setq file (nth 0 loc))
+	(setq line (nth 1 loc))
+	(setq column (nth 2 loc))
+	))
+
+     ((string-match wisi-names-regexp identifier)
+      ;; IDENTIFIER is from prompt/completion on wisi-names.
+      (setq ident (match-string 1 identifier))
+      (setq file (buffer-file-name))
+      (when (match-string 2 identifier)
+	(setq line (string-to-number (match-string 2 identifier))))
+      )
+     )
+
+    (unless (file-name-absolute-p file)
+      (setq file (locate-file file compilation-search-path)))
+
+    (let ((eieio-skip-typecheck t)) ;; allow line, column nil.
+      (xref-make ident (xref-make-file-location file line column)))
+    ))
+
 (cl-defmethod xref-backend-definitions ((prj wisi-prj) identifier)
-  (wisi-xref-definitions (wisi-prj-xref prj) prj (wisi-xref-item identifier)))
+  (wisi-xref-definitions (wisi-prj-xref prj) prj (wisi-xref-item identifier prj)))
 
 (cl-defmethod xref-backend-identifier-at-point ((prj wisi-prj))
   (save-excursion
@@ -1194,13 +1263,11 @@ with \\[universal-argument]."
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((prj wisi-prj))
-  (if current-prefix-arg
-      ;; Current buffer only.
-      (wisi-names nil)
-    (wisi-xref-completion-table (wisi-prj-xref prj) prj)))
+  (wisi-filter-table (wisi-xref-completion-table (wisi-prj-xref prj) prj)
+		     (when (equal '(4) current-prefix-arg) (buffer-file-name))))
 
 (cl-defmethod xref-backend-references  ((prj wisi-prj) identifier)
-  (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier)))
+  (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier prj)))
 
 ;;;###autoload
 (defun wisi-prj-xref-backend ()

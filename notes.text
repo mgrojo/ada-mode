@@ -37,28 +37,24 @@ o.e.a.stephe-6 (from ): available
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
-(setenv "GPR_PROJECT_PATH" "c:\\Projects\\org.emacs.ada_mode.stephe-2\\test;c:\\Projects\\org.emacs.ada_mode.stephe-2\\test\\subdir")
+for test/subdir/ada_mode_parent.gpr
+(setenv "GPR_PROJECT_PATH" "C:\\Projects\\org.emacs.ada_mode\\test;C:\\Projects\\org.emacs.ada_mode\\test\\subdir")
 
 for ada_mode_wisi_parse.gpr:
-(setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode.stephe-2;c:/Projects/org.emacs.ada-mode.stephe-2;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
+(setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-wisi.adb Put
-    xref-find-definitions
-        C-u M-.
-        shows all in file, but with wrong type; wisi.ada.parse_data_type
-            ie missing wisi.parse_data_type on same line
-        uses completion table to get name, calls gpr_query to get list
+report/fix :alnum:
+    use instead of A-Za-z in regexp
+    test/ada_mode-nonascii.ads Pi
 
-        implement C-u C-u
-            xref-backend-identifier-completion-table
+metric for comparing error correction
+    write perfect, corrected source one token per line
+    diff perfect corrected
 
-handle predefined:
-    Positive predefined entity: Positive
-    short int predefined entity: short int
-    short unsigned int predefined entity: short unsigned int
-
+    get corrected source from adalang
+        just use pretty-printer, if it works in presence of errors
 
 add to ada-mode.texi: wisi-goto-spec/body, xref-find-definitions user options:
     complete on all symbols          ; double user arg
@@ -74,15 +70,9 @@ ada-build.el
 
 process_overridden should return method def for all ancestor types, not just parent
 
-report/fix :alnum:
-    use instead of A-Za-z in regexp
-    test/ada_mode-nonascii.ads Pi
-
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)
     improve gpr_query to find separate body
-
-change wisi-cache text property to wisi-navigate
 
 rename "semantic checks" to "in-parse actions", others to "post-parse actions".
 
@@ -90,9 +80,16 @@ move dvc-kill-all-review/workspace to wisi?
     add delete projects in the workspace?
     delete project call wisi-kill-xref, wisi-kill-parser
 
-gpr_query needs list of root types to exclude from tree_[dr]efs?
-    --exclude_root_types=<filename>
-    books-database_remote.ads:202:30 Database
+xref-find-definitions
+    add <>() to completion-pcm-word-delimiters?
+        (setq completion-pcm-word-delimiters "-_./:| <>()") doesn't work
+        see uniquify-files
+        should be property of completion-table
+
+    wisi.adb Put
+        C-u M-.
+        shows all in file, but with wrong type; wisi.ada.parse_data_type
+            ie missing wisi.parse_data_type on same line
 
 gpr_query does not see libraries?
     need clear example; libadalang mains vs langkit?

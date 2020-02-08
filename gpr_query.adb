@@ -42,7 +42,6 @@ with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
 with GNATCOLL.Xref;
-with SAL.Gen_Trimmed_Image;
 procedure Gpr_Query is
    use all type GNATCOLL.VFS.File_Array;
    use GNATCOLL;
@@ -66,8 +65,6 @@ procedure Gpr_Query is
    is begin
       return String (Item);
    end "+";
-
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
 
    procedure Process_Line (Line : String);
    --  Process a full line of commands.
@@ -554,7 +551,6 @@ procedure Gpr_Query is
             Decl : constant Entity_Declaration := Xref.Declaration (Element (Matches));
          begin
             Put (Xref.Qualified_Name (Element (Matches)));
-            Put ("<" & Trimmed_Image (Decl.Location.Line) & ">");
             if Decl.Flags.Is_Subprogram then
                Ada.Text_IO.Put (Get_Parameters (Decl.Location.Entity));
             end if;
@@ -1175,7 +1171,14 @@ begin
       GNATCOLL.Traces.Trace (Me, "GPR_PROJECT_PATH " & Gpr_Project_Path);
 
       if not Path.Is_Regular_File then
-         Put (Project_File_Name.all & ": not found on path " & Gpr_Project_Path);
+         declare
+            Path : constant File_Array := From_Path (+Gpr_Project_Path);
+         begin
+            Put_Line (Project_File_Name.all & ": not found on path:");
+            for P of Path loop
+               Put_Line (+Full_Name (P));
+            end loop;
+         end;
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
