@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2019 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -127,7 +127,7 @@ package body BNF_WY_Test is
          Trace     => Trace'Unchecked_Access,
          User_Data => Input_Data'Unchecked_Access);
 
-      Grammar_Parser.Lexer.Reset_With_File ("../Test/bnf/" & Root_Name & ".wy");
+      Grammar_Parser.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
       Grammar_Parser.Parse;
       Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
       Grammar_Parser.Execute_Actions;
@@ -176,7 +176,7 @@ package body BNF_WY_Test is
      (Computed : in String;
       Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
    is begin
-      AUnit.Checks.Text_IO.Check_Files ("", Computed, "../Test/bnf/" & Computed & "_good", Skip);
+      AUnit.Checks.Text_IO.Check_Files ("", Computed, "../test/bnf/" & Computed & "_good", Skip);
    end Diff_One;
 
    procedure Diff_Gen
@@ -263,7 +263,7 @@ package body BNF_WY_Test is
       Last := Last + 1; -- For input file name
 
       declare
-         Default_Input_Name : constant String := "../Test/bnf/" & Root_Name & ".input";
+         Default_Input_Name : constant String := "../test/bnf/" & Root_Name & ".input";
 
          Output : constant String := Root_Name & "_" &
            To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
@@ -274,7 +274,7 @@ package body BNF_WY_Test is
             Spawn (Exe, Args (1 .. Last), Output);
             Dos2unix (Output);
 
-            AUnit.Checks.Text_IO.Check_Files ("", Output, "../Test/bnf/" & Output & "_good");
+            AUnit.Checks.Text_IO.Check_Files ("", Output, "../test/bnf/" & Output & "_good");
          end if;
       end;
 
@@ -283,11 +283,11 @@ package body BNF_WY_Test is
             Output : constant String := Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
               "-" & Input_Name & ".parse";
          begin
-            Args (Last) := new String'("../Test/bnf/" & Input_Name & ".input");
+            Args (Last) := new String'("../test/bnf/" & Input_Name & ".input");
             Spawn (Exe, Args (1 .. Last), Output);
             Dos2unix (Output);
 
-            AUnit.Checks.Text_IO.Check_Files ("", Output, "../Test/bnf/" & Output & "_good");
+            AUnit.Checks.Text_IO.Check_Files ("", Output, "../test/bnf/" & Output & "_good");
          end;
       end if;
    end Execute_Parse;

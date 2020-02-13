@@ -1,5 +1,5 @@
 
-OK test_generate_errors.adb ../Test/bnf/unused_tokens : Run_Test
+OK test_generate_errors.adb ../test/bnf/unused_tokens : Run_Test
 OK bnf_wy_test.adb ada_lite_ebnf ada_lite : Run_Test
 OK bnf_wy_test.adb body_instantiation_conflict : Run_Test
 OK bnf_wy_test.adb case_expression : Run_Test

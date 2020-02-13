@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -245,14 +245,14 @@ package body Test_Partial_Parse is
    begin
       for Choice in Test_Choice loop
          --  Header comment
-         Parse_Choice (Choice, "0", "../Test/bnf/ada_lite.input", 1, 160, 160, 1, 1, 160, WisiToken.Invalid_Token_ID);
+         Parse_Choice (Choice, "0", "../test/bnf/ada_lite.input", 1, 160, 160, 1, 1, 160, WisiToken.Invalid_Token_ID);
 
          --  πroc_1 spec
          Parse_Choice
-           (Choice, "1", "../Test/bnf/ada_lite.input", 161, 200, 175, 161, 4, 178, +subprogram_declaration_ID);
+           (Choice, "1", "../test/bnf/ada_lite.input", 161, 200, 175, 161, 4, 178, +subprogram_declaration_ID);
 
          --  πroc_1 body and Func_1 spec
-         Parse_Choice (Choice, "2", "../Test/bnf/ada_lite.input", 181, 350, 201, 180, 6, 252, +subprogram_body_ID);
+         Parse_Choice (Choice, "2", "../test/bnf/ada_lite.input", 181, 350, 201, 180, 6, 252, +subprogram_body_ID);
       end loop;
    end File_String_Access;
 

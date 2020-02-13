@@ -3,7 +3,7 @@
 ;; re2c lookahead.
 
 %code copyright_license %{
---  Copyright (C) 2013, 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -65,7 +65,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 

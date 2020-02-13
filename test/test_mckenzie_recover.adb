@@ -210,7 +210,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
 
-      File_Name : constant String := "../Test/bnf/ada_lite.input";
+      File_Name : constant String := "../test/bnf/ada_lite.input";
    begin
       --  The test is that there is no exception and no errors.
 

@@ -1,8 +1,8 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as

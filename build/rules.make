@@ -8,8 +8,8 @@
 .PHONY : zip force
 
 VPATH := ..
-VPATH += ../Test
-VPATH += ../Test/bnf
+VPATH += ../test
+VPATH += ../test/bnf
 
 vpath %.texinfo ../Docs
 

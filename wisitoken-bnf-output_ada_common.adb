@@ -1170,6 +1170,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Put_Line ("/*!re2c");
       Indent_Line ("re2c:yyfill:enable   = 0;");
+      Indent_Line ("re2c:sentinel   = 4;");
       New_Line;
 
       --  Regexps used in definitions

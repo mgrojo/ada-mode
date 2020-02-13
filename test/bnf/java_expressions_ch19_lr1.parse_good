@@ -17,7 +17,7 @@ LeftHandSide_0: (LeftHandSide, (69 . 69)) <= ( 2:(Identifier, (69 . 69)))
 parser 0: State 22 Current_Token 7:(RIGHT_CURLY_BRACKET, (87 . 87)) Resume_Token_Goal 11
 Action
 
- 7 parallel tasks
+ 1 parallel tasks
  0: succeed 1, enqueue 16, check  2, cost:  1
  0:  1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (87 . 87))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
 recover: succeed, parser count 1
@@ -109,7 +109,7 @@ ArgumentList_0: (ArgumentList, (219 . 219)) <= ((Expression, (219 . 219)))
 parser 0: State 62 Current_Token 13:(RIGHT_CURLY_BRACKET, (222 . 222)) Resume_Token_Goal 17
 Action
 
- 7 parallel tasks
+ 1 parallel tasks
  0: succeed 2, enqueue 11, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
  1:  1, ( 0 2 0 0 0 0 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (222 . 222))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13)) minimal_complete ACTIVE
@@ -218,7 +218,7 @@ LeftHandSide_0: (LeftHandSide, (360 . 360)) <= ( 20:(Identifier, (360 . 360)))
 parser 1: State 17 Current_Token 22:(RIGHT_CURLY_BRACKET, (364 . 364)) Resume_Token_Goal 26
 Action
 
- 7 parallel tasks
+ 1 parallel tasks
  1: succeed 1, enqueue 4, check  2, cost:  1
  1:  1, ( 0 1 0 0 0 0 0 0), (36 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (364 . 364))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
 recover: succeed, parser count 1
@@ -259,9 +259,9 @@ CompilationUnit_0: (CompilationUnit, (67 . 364)) <= ((nonterminal_004_list, (67 
  1: 2:  23:(Wisi_EOI, (381 . 380)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (67 . 364)) <= ((CompilationUnit, (67 . 364)))
  1: succeed
-java_expressions_ch19.input:2:20: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
+java_expressions_ch19.input:2:86: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
-java_expressions_ch19.input:6:17: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
+java_expressions_ch19.input:6:132: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
    recovered: ((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
-java_expressions_ch19.input:12:6: syntax error: expecting Identifier, found '}'
+java_expressions_ch19.input:12:71: syntax error: expecting Identifier, found '}'
    recovered: ((INSERT, Identifier, 22))

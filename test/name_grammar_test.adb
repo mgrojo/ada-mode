@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -129,7 +129,7 @@ package body Name_Grammar_Test is
       Trace_File_Name : constant String := "name_grammar_test.out";
       Trace_File : File_Type;
 
-      Expected_Trace_File_Name : constant String := "../Test/name_grammar_test.out_good";
+      Expected_Trace_File_Name : constant String := "../test/name_grammar_test.out_good";
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.

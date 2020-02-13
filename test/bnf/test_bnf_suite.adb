@@ -2,7 +2,7 @@
 --
 --  Build AUnit test suite containing tests that run wisitoken-bnf-generate
 --
---  Copyright (C) 2013-2015, 2017, 2018, 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -41,7 +41,7 @@ is
 begin
    --  test error handling when generate fails
    Add_Test (Suite, Test_Case_Access'(new Test_Generate_Errors.Test_Case
-               (+"../Test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
+               (+"../test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
 
    --  generate succeeds; grammar file name order
 

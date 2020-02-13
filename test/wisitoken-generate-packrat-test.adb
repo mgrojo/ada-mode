@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -35,7 +35,7 @@ package body WisiToken.Generate.Packrat.Test is
    is
       pragma Unreferenced (T);
 
-      Grammar_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
+      Grammar_File_Name  : constant String := "../test/bnf/ada_lite.wy";
       Grammar_Parse_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser     : WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017, 2018, 2019 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -66,7 +66,7 @@ package body Test_Generate_Errors is
                   Success      => Success);
 
                --  Note that we don't need dos2unix here; Ada.Text_IO handles that.
-               AUnit.Checks.Text_IO.Check_Files ("1", Computed, "../Test/bnf/" & Computed & "_good");
+               AUnit.Checks.Text_IO.Check_Files ("1", Computed, "../test/bnf/" & Computed & "_good");
             end;
          end if;
       end loop;

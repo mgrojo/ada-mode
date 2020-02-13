@@ -6,7 +6,7 @@
 ;; (ediff "case_expression.wy" "../../../org.wisitoken/wisi/test/case_expression.wy")
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -29,7 +29,7 @@
 %generate Packrat_Proc Ada re2c
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
-%non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n\x04]*[\n] ]%
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."

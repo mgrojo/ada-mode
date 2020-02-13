@@ -160,7 +160,7 @@ Action
 parser 1: State 15 Current_Token 22:(IDENTIFIER, (150 . 152)) Resume_Token_Goal 25
 Action
 
- 7 parallel tasks
+ 1 parallel tasks
  6: succeed 2, enqueue 61, check  31, cost:  11
 spawn parser 7 from 6 (4 active)
  7:  11, ( 0 1 0 2 0 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (PUSH_BACK, expression, 19), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE

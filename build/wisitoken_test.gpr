@@ -22,8 +22,8 @@ project WisiToken_Test is
    for Source_Dirs use
      (
       ".",
-      "../Test",
-      "../Test/bnf"
+      "../test",
+      "../test/bnf"
      );
 
    for Languages use ("Ada", "C");

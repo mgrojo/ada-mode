@@ -49,7 +49,7 @@
 %token <punctuation> STAR "*"
 
 %token <symbol> Identifier %[ [a-zA-Z]+ ]%
-%non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n]* ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n\x04]*[\n\x04] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
