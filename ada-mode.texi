@@ -221,7 +221,7 @@ but supports additional queries.
 Both the parser and @file{gpr_query} require the @code{GNATCOLL}
 library provided by AdaCore, distributed with GNAT GPL 2017 or later,
 and also available at Github
-(@url{https://github.com/AdaCore/gnatcoll}). The notes below assume
+(@url{https://github.com/AdaCore}). The notes below assume
 that the compiler is installed at @file{$prefix},
 e.g. @file{/usr/local/gnat-2019}, and that @file{$prefix/bin} is first
 on the @code{PATH}. If you are running Windows, use mingw64
@@ -252,22 +252,32 @@ does not include the xref package, which is required by
 @file{gpr_query}. So we must build gnatcoll xref from sources.
 
 @menu
-* Building GNATCOLL 2019::
+* Building GNATCOLL 20.2::
 * Building the executables::
 @end menu
 
 @node Building GNATCOLL 2019
 @subsection Building GNATCOLL 2019
 
-Download the gnatcoll xref source file from
-@url{https://github.com/AdaCore/gnatcoll-db}; click on the ``clone or
-download'' button, select ``Download ZIP''.
+Download the gnatcoll-db from
+@url{https://github.com/AdaCore/gnatcoll-db}; select the latest
+release branch (or the one that matches your compiler), click on the
+``clone or download'' button, select ``Download ZIP''.
+
+Similarly, download gnatcoll-bindings from
+@url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for gnatcoll-iconv).
 
 Then unpack, build, and install the required components:
 
 @example
-tar xf ~/Downloads/gnatcoll-db-19.2.zip
-cd gnatcoll-db-19.2
+tar xf ~/Downloads/gnatcoll-bindings-20.2.zip
+cd gnatcoll-bindings-20.2
+cd iconv
+./setup.py build
+./setup.py install
+
+tar xf ~/Downloads/gnatcoll-db-20.2.zip
+cd gnatcoll-db-20.2
 make -C sql
 make -C sql install
 make -C sqlite

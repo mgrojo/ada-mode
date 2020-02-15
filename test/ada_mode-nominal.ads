@@ -744,12 +744,12 @@ is -- target 0
    function Function_2b (Param : in Parent_Type_1) return
      Float;
    --EMACSCMD:(progn (forward-line -2)(test-all-defs "function Function_2b"))
-   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Ada_Mode.Nominal.Parent_Type_1; (Param) function")(gnat "spec"))))
-   --EMACSRESULT_ADD:  (list "ada_mode-nominal.adb" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Ada_Mode.Nominal.Parent_Type_1; (Param) body")(gnat "body"))))
-   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1; (Param) function"))
-   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1; (Param) body"))
-   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2; (Param) function"))
-   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2; (Param) body"))
+   --EMACSRESULT_START:(list "ada_mode-nominal.ads" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Ada_Mode.Nominal.Parent_Type_1;(Param) function")(gnat "spec"))))
+   --EMACSRESULT_ADD:  (list "ada_mode-nominal.adb" (concat "Function_2b " (cl-ecase ada-xref-tool (gpr_query "Ada_Mode.Nominal.Parent_Type_1;(Param) body")(gnat "body"))))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) function"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal-child.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_1;(Param) body"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.ads" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) function"))
+   --EMACSRESULT_ADD:(when (eq ada-xref-tool 'gpr_query) '("ada_mode-nominal.adb" "Function_2b Ada_Mode.Nominal.Child.Child_Type_2;(Param) body"))
    --EMACSRESULT_FINISH:
 
    function Function_2c (Param : in Parent_Type_1)

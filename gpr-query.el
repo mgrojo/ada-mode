@@ -146,7 +146,7 @@ Must match gpr_query.adb Version.")
 
 (defun gpr-query--start-process (project session)
   "Start the session process running gpr_query."
-  (unless (locate-file gpr-query-exec exec-path '(".exe"))
+  (unless (locate-file gpr-query-exec exec-path '("" ".exe"))
     (user-error "'%s' not found on PATH" gpr-query-exec))
 
   (unless (buffer-live-p (gpr-query--session-buffer session))

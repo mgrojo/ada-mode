@@ -7,9 +7,9 @@ package body Ada_Mode.Nominal.Child is -- target 0
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
-      null;
+null;
    end Procedure_1a;
-
+   
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.ads")))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float
@@ -27,9 +27,9 @@ package body Ada_Mode.Nominal.Child is -- target 0
    function Function_2b (Param : in Child_Type_1) return
      Float
    is begin
-      return 0.0;
+return 0.0;
    end Function_2b;
-
+   
    function Static_Call_Function_2b return Float
    is begin
       return Function_2b (Child_Type_1'(1, 1.0, False, 2, 2.0, True));
@@ -74,11 +74,12 @@ package body Ada_Mode.Nominal.Child is -- target 0
               with 1, 0.0, False);
    end Child_Add;
 
-   --  Homonym, for testing gpr_query with no line/col info
+   --  Homonym, for testing xref with no line/col info
    --EMACSCMD:(test-all-defs "function Child_Add" t)
-   --EMACSRESULT_START:'("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) function")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1; (Left, Right) body")
-   --EMACSRESULT_ADD:  '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body")
+   --EMACSRESULT_START:(cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.ads" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) function")) (gnat '("ada_mode-nominal-child.adb" "Child_Add spec")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.adb" "Child_Add Ada_Mode.Nominal.Child.Child_Type_1;(Left, Right) body")) (gnat '("ada_mode-nominal-child.adb" "Child_Add body")))
+   --EMACSRESULT_ADD:  (cl-ecase ada-xref-tool (gpr_query '("ada_mode-nominal-child.adb" "Child_Add (Left) function/body"))(gnat '("ada_mode-nominal-child.ads" "Child_Add spec")))
+   --EMACSRESULT_ADD: (when (eq ada-xref-tool 'gnat) '("ada_mode-nominal-child.adb" "Child_Add body"))
    --EMACSRESULT_FINISH:
    function Child_Add (Left : in Child_Type_1) return Child_Type_1
    is begin

@@ -45,6 +45,16 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+run all tests on Debian
+    test-ada-lalr-process-gpr_query
+        test/ada_mode-recover_partial_13.adb
+            indent changed again
+
+    test-ada-lalr-process-gnatxref
+        test/ada_mode-nested_packages.adb
+            gpr_query, gnat disagree on whether operator names are quoted
+            can't easily change gpr_query to put quotes on them.
+
 report/fix :alnum:
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi

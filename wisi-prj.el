@@ -1234,6 +1234,11 @@ IDENTIFIER is from a user prompt with completion, or from
       (when (match-string 2 identifier)
 	(setq line (string-to-number (match-string 2 identifier))))
       )
+
+     (t
+      ;; IDENTIFIER has no line/column info
+      (setq ident identifier)
+      (setq file (buffer-file-name)))
      )
 
     (unless (file-name-absolute-p file)

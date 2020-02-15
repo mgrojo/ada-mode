@@ -333,6 +333,17 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 (defvar cl-print-readably); cl-print.el, used by edebug
 
+(defun large-screen ()
+  (interactive)
+  (modify-frame-parameters
+      nil
+      (list
+       (cons 'width 120) ;; characters; fringe extra
+       (cons 'height 71) ;; characters
+       (cons 'left 0) ;; pixels
+       (cons 'top 0))))
+(define-key global-map "\C-cp" 'large-screen)
+
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
   (interactive "f")

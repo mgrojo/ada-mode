@@ -1480,12 +1480,14 @@ If non-nil, only repair errors in BEG END region."
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
-(defconst wisi-names-regexp "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?"
+(defconst wisi-names-regexp "\\([^<]*\\)\\(<\\([0-9]+\\)>\\)"
   "Match line number encoded into identifier by `wisi-names'.")
 
-(defun wisi-names (append-lines)
+(defun wisi-names (append-lines alist)
   "List of names; each is text from one 'wisi-name property in current buffer.
-If APPEND-LINES is non-nil, each has the line number it occurs on appended."
+If APPEND-LINES is non-nil, each name has the line number it
+occurs on appended. If ALIST is non-nil, the result is an alist
+where the car is a list (FILE LINE COL)."
   (when wisi--parser
     ;; wisi--parser is nil in a non-language buffer, like Makefile
     (wisi-validate-cache (point-min) (point-max) t 'navigate)
@@ -1498,13 +1500,19 @@ If APPEND-LINES is non-nil, each has the line number it occurs on appended."
 	;; number in the identifier string. This also serves to
 	;; disambiguate overloaded identifiers in the user interface.
 	(setq end-pos (next-single-property-change pos 'wisi-name))
-	(push
-	 (if append-lines
-	     (format "%s<%d>"
-		     (buffer-substring-no-properties pos end-pos)
-		     (line-number-at-pos pos))
-	   (buffer-substring-no-properties pos end-pos))
-	 table)
+	(let* ((line (line-number-at-pos pos))
+	       (summary
+		(if append-lines
+		    (format "%s<%d>"
+			    (buffer-substring-no-properties pos end-pos)
+			    line)
+		  (buffer-substring-no-properties pos end-pos))))
+	  (if alist
+	      (save-excursion
+		(goto-char pos)
+		(push (cons summary (list (buffer-file-name) line (current-column)))
+		      table))
+	    (push summary table)))
 	(setq pos end-pos)
 	)
       table)))
