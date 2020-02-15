@@ -1,4 +1,14 @@
-build/*.re2c
+build/*-elisp.el
+build/*-process.el
 build/*.adb
 build/*.ads
+build/*.c
+build/*.exe
+build/*.out
 build/*.parse
+build/*.parse_table
+build/*.re2c
+build/*.txt
+build/*.wy
+build/obj/
+build/*.diff

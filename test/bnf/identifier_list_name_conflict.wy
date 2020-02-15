@@ -21,7 +21,7 @@
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
-%non_grammar <non-reporting> COMMENT %[ "--"[^\n\x04]*[\n\x04] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n\x04]* ]%
 
 ;; not first nonterminal
 %start compilation

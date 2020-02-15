@@ -7,7 +7,7 @@
 ;; (ediff "ada_lite_ebnf.wy" "ada_lite_bnf.wy")
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -114,7 +114,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n\x04]*[\n\x04] ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
 %start compilation_unit_list
 
