@@ -2,7 +2,7 @@
 --
 --  A simple bounded sorted vector of definite items, in Spark.
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -26,8 +26,10 @@ package SAL.Gen_Bounded_Definite_Vectors_Sorted
 is
    use all type Ada.Containers.Count_Type;
 
+   No_Index : constant Base_Peek_Type := 0;
+
    type Vector is private with
-     Default_Initial_Condition => Length (Vector) = 0;
+     Default_Initial_Condition => Last_Index (Vector) = No_Index;
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type with
      Post => Length'Result in 0 .. Capacity;
@@ -36,7 +38,7 @@ is
      Post => Is_Full'Result = (Length (Container) = Capacity);
 
    procedure Clear (Container : in out Vector) with
-     Post => Length (Container) = 0;
+     Post => Last_Index (Container) = No_Index;
 
    function First_Index (Container : in Vector) return Peek_Type
      is (Peek_Type'First) with
@@ -58,8 +60,8 @@ is
       Ignore_If_Equal : in     Boolean := False) with
      Pre  => Length (Container) < Capacity,
      Post => Is_Sorted (Container) and
-             (Length (Container) = Length (Container'Old) or
-              Length (Container) = Length (Container'Old) + 1);
+             (Last_Index (Container) = Last_Index (Container'Old) or
+              Last_Index (Container) = Last_Index (Container'Old) + 1);
    --  Insert New_Item in sorted position. Items are sorted in increasing
    --  order according to Element_Compare. New_Item is inserted after
    --  Equal items, unless Ignore_If_Equal is true, in which case
@@ -72,13 +74,16 @@ private
 
    type Array_Type is array (Peek_Type range 1 .. Peek_Type (Capacity)) of aliased Element_Type;
 
-   No_Index : constant Base_Peek_Type := 0;
+   function Is_Sorted (Container : in Array_Type; Last : in Base_Peek_Type) return Boolean
+     is (for all I in Container'First .. Last - 1 =>
+           Element_Compare (Container (I), Container (I + 1)) in Less | Equal)
+     with Pre => Last <= Container'Last;
 
    type Vector is record
       Elements : Array_Type;
       Last     : Base_Peek_Type := No_Index;
    end record with
-     Type_Invariant => Last <= Elements'Last and Is_Sorted (Vector);
+     Type_Invariant => Last <= Elements'Last and Is_Sorted (Vector.Elements, Vector.Last);
    pragma Annotate (GNATprove, Intentional, "type ""Vector"" is not fully initialized",
                     "Only items in Elements with index < Last are accessed");
 
