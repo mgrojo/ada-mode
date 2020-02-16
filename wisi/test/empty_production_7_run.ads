@@ -1,4 +1,0 @@
-with Gen_Parser_Run_Counted_GNAT_OS_Lib;
-with Empty_Production_7;
-procedure Empty_Production_7_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
-  (Empty_Production_7.Create_Parser);
