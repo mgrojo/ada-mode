@@ -254,14 +254,14 @@ VPATH := ..
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
-	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+	cp ../ada*.el ../ada-mode.texi ../ada-mode.info  ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../gpr*.el ../gpr-mode.texi ../gpr-mode.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
 	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
@@ -294,7 +294,7 @@ pub-wisi : force
 	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../gen_*parse.ad? ../*_wisi_common_parse.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
+	cp ../wisi*.el ../wisi.texi ../wisi.info $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.gpr.gp  $(ELPA_ROOT)/packages/wisi
 	cp ../wisitoken-parse_table-mode.el $(ELPA_ROOT)/packages/wisi

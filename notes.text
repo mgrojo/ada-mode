@@ -45,19 +45,17 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-run all tests on Debian
-    test-ada-lalr-process-gpr_query
-        test/ada_mode-recover_partial_13.adb
-            indent changed again
-
-    test-ada-lalr-process-gnatxref
-        test/ada_mode-nested_packages.adb
-            gpr_query, gnat disagree on whether operator names are quoted
-            can't easily change gpr_query to put quotes on them.
-
 report/fix :alnum:
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi
+
+debian at re2c 1.3
+    update windows; msys has 1.2.1
+
+add re2c to wisitoken user guide
+    fix title
+    remove from ada-mode home page; move to stephe-leake.org
+    mention in wisi.html; add section on changing ada grammar
 
 metric for comparing error correction
     write perfect, corrected source one token per line
@@ -321,11 +319,6 @@ time lex with no lex debug
 
 move gnatcoll install instructions to wisi elpa package, for reference
     from wisitoken-grammar-mode.
-
-https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
-    export, incremental update of git mirror works
-    push my stuff to savannah
-        also to github?
 
 do module interface
     see if it's faster
@@ -975,6 +968,7 @@ Debian testing has elpa checkout
     ~/bin/mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
+    upgrade debian (to avoid eventually needing to reinstall from scratch)
     if new machine, install gnat CE 2019, gnatcoll
         http://libre.adacore.com
         ada-mode.texi

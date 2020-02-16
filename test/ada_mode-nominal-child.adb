@@ -7,9 +7,9 @@ package body Ada_Mode.Nominal.Child is -- target 0
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
-null;
+      null;
    end Procedure_1a;
-   
+
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.ads")))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float
@@ -27,9 +27,9 @@ null;
    function Function_2b (Param : in Child_Type_1) return
      Float
    is begin
-return 0.0;
+      return 0.0;
    end Function_2b;
-   
+
    function Static_Call_Function_2b return Float
    is begin
       return Function_2b (Child_Type_1'(1, 1.0, False, 2, 2.0, True));

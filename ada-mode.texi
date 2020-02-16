@@ -221,7 +221,7 @@ but supports additional queries.
 Both the parser and @file{gpr_query} require the @code{GNATCOLL}
 library provided by AdaCore, distributed with GNAT GPL 2017 or later,
 and also available at Github
-(@url{https://github.com/AdaCore}). The notes below assume
+(@url{https://github.com/AdaCore/gnatcoll}). The notes below assume
 that the compiler is installed at @file{$prefix},
 e.g. @file{/usr/local/gnat-2019}, and that @file{$prefix/bin} is first
 on the @code{PATH}. If you are running Windows, use mingw64
