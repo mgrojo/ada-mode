@@ -322,21 +322,21 @@ Otherwise insert a plain new line."
   (wisi-xref-identifier-at-point))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
-  (wisi-names t))
+  (wisi-names t nil))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
   (let (temp)
-    (unless (and (string-match wisi-xref-ident-regexp identifier)
+    (unless (and (string-match wisi-names-regexp identifier)
 		 (match-string 2 identifier))
       ;; Identifier is from identifier-at-point; get line from completion table
-      (setq temp (try-completion identifier (wisi-names t)))
+      (setq temp (try-completion identifier (wisi-names t nil)))
       (unless temp
 	(user-error "%s not found" identifier))
 
       (setq identifier temp)
-      (unless (test-completion identifier (wisi-names t))
-	(setq identifier (completing-read "decl: " (wisi-names t) nil t identifier)))
-      (string-match wisi-xref-ident-regexp identifier)))
+      (unless (test-completion identifier (wisi-names t nil))
+	(setq identifier (completing-read "decl: " (wisi-names t nil) nil t identifier)))
+      (string-match wisi-names-regexp identifier)))
 
   (let* ((ident (match-string 1 identifier))
 	 (line-str (match-string 2 identifier))

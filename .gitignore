@@ -1,0 +1,13 @@
+*.diff
+*.tmp
+autoloads.el
+obj/
+run_wisitoken_grammar_parse.exe
+*.stamp
+test.log
+*.elc
+wisitoken_grammar.gpr
+wisitoken_grammar_1.re2c
+wisitoken_grammar_1_bnf.wy
+wisitoken_grammar_1_lr1.parse_table
+*.exe
