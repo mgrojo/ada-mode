@@ -1601,16 +1601,22 @@ this menu command.
 @node Identifier completion, Indentation, Moving Through Ada Code, Top
 @chapter Identifier completion
 
-Emacs provides a general way of completing identifiers: @kbd{M-/}
-(bound to @code{dabbrev-expand}). This is an easy way to type faster:
-you just have to type the first few letters of an identifier, and then
-loop through all the possible completions.
+Emacs provides two general ways of completing identifiers while typing: @kbd{M-/}
+(bound to @code{dabbrev-expand}), and @kbd{M-tab} (bound to
+@code{complete-symbol}.
+
+This is an easy way to type faster: you just have to type the first
+few letters of an identifier, and then loop through all the possible
+completions.
+
+@code{complete-symbol} completes on all the symbols defined in the
+current project, as returned by @code{gpr_query}.
 
 If you have bound @code{hippie-expand}, that also uses
 @code{dabbrev-expand}.
 
-@kbd{M-/} works by parsing all open Ada files for possible
-completions.
+@code{dabbrev-expand} completes on all words in all open Ada files for
+possible completions, using simple Emacs syntax-class parsing.
 
 For instance, if the words @samp{my_identifier} and @samp{my_subprogram}
 are the only words starting with @samp{my} in any of the open Ada files,
@@ -1626,6 +1632,13 @@ Pressing @kbd{M-/} once more will bring you back to @samp{my_identifier}.
 
 This is a very fast way to do completion, and the casing of words will
 also be respected.
+
+Another place where identifier completion is used in the
+@code{xref-find-definitions} (@key{C-u M-.}) and
+@code{wisi-goto-spec/body} (@key{C-u C-c C-d} commands; these complete
+on all symbols in the project (provided by @code{gpr_query}). With two
+@kbd{C-u}, the completion is limited to symbols defined in the current
+file.
 
 @node Indentation, Statement skeletons, Identifier completion, Top
 @chapter Indentation

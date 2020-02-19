@@ -191,6 +191,7 @@ nil, only the file name."
     (define-key map "\C-c\C-f" 	 'wisi-show-parse-error)
     (define-key map "\C-c\C-i" 	 'wisi-indent-statement)
     (define-key map [3 backtab] 'wisi-indent-containing-statement);; C-c backtab, translated from C-c S-tab
+    ;; "\C-\M-i" 'complete-symbol ;; (translated from M tab) in default global map
     (define-key map "\C-c\C-l" 	 'wisi-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'forward-sexp)

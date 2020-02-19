@@ -718,39 +718,45 @@ Deselects the current project first."
   ;; test/ada_mode-slices.adb
   ;;   D1, D2 : Day := +Sun;
   ;;
-  ;; For operators, return quoted operator, for gpr_query or gnatfind.
+  ;; For operators, return quoted operator
 
   (cond
    ((wisi-in-comment-p)
-    (error "Inside comment"))
+    nil)
 
    ((wisi-in-string-p)
     ;; In an operator, or a string literal
-    (skip-chars-backward "+*/&<>=-")
-    (cond
-     ((and (= (char-before) ?\")
-	   (progn
-	     (forward-char -1)
-	     (looking-at (concat "\"\\(" ada-operator-re "\\)\""))))
-      (concat "\"" (match-string-no-properties 1) "\""))
+    (let (start)
+      (skip-chars-backward "+*/&<>=-")
+      (setq start (point))
+      (cond
+       ((and (= (char-before) ?\")
+	     (progn
+	       (forward-char -1)
+	       (looking-at (concat "\"\\(" ada-operator-re "\\)\""))))
+	(list start (match-end 1) (concat "\"" (match-string-no-properties 1) "\"")))
 
      (t
-      (error "Inside string or character constant"))
-     ))
+      nil)
+     )))
 
    ((looking-at (concat "\"\\(" ada-operator-re "\\)\""))
-    (match-string-no-properties 0))
+    (list (match-beginning 0) (match-end 0) (match-string-no-properties 0)))
 
    ((looking-at ada-operator-re)
-    (concat "\"" (match-string-no-properties 0) "\""))
+    (list (match-beginning 0) (match-end 0) (concat "\"" (match-string-no-properties 0) "\"")))
 
-   ((memq (syntax-class (syntax-after (point))) '(2 3))
+   ((or (memq (syntax-class (syntax-after (1- (point)))) '(2 3))
+	(memq (syntax-class (syntax-after (point))) '(2 3)))
     ;; word or symbol syntax.
-    (skip-syntax-backward "w_")
-    (buffer-substring-no-properties (point) (save-excursion (skip-syntax-forward "w_") (point))))
+    (let (start)
+      (skip-syntax-backward "w_")
+      (setq start (point))
+      (skip-syntax-forward "w_")
+      (list start (point) (buffer-substring-no-properties start (point)))))
 
    (t
-    (error "No identifier around"))
+    nil)
    ))
 
 ;;;; initialization

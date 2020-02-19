@@ -13,11 +13,14 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** gpr_query now starts in the background, and provides a completion
    table of all symbols in the project.
 
+** `complete-symbols' (bound by default in the global key map to M-tab
+   (or C-M-i)) now uses the symbol table provided by gpr-query.
+
 ** Commands that prompt for a symbol (ie C-u C-c C-d
-   (wisi-goto-spec/body) and C-u M-. (xref-find-definitions)) use the
-   completion table provided by gpr_query. With a single C-u, only
-   symbols defined in the current file are used; with two C-u, all
-   symbols are used.
+   wisi-goto-spec/body and C-u M-. xref-find-definitions) use the
+   completion table provided by gpr_query. With a single C-u, all
+   symbols in the project are used; with two C-u, only
+   symbols defined in the current file are used.
 
 * Ada Mode 7.0.1
 30 Jan 2020

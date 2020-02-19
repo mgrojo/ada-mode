@@ -74,7 +74,8 @@ Must match gpr_query.adb Version.")
   (buffer nil) ;; receives output of gpr_query; default-directory gives location of db
   (state nil) ;; one of gpr-query--states
 
-  symbols ;; result of gpr-query--read-symbols, below
+  symbol-locs ;; alist completion table, with locations; see gpr-query--read-symbols
+  symbols ;; just symbols compeltion table; see gpr-query--read-symbols
   )
 
 ;; Starting the buffer name with a space hides it from some lists, and
@@ -169,6 +170,7 @@ Must match gpr_query.adb Version.")
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-state session) 'started)
+      (setf (gpr-query--session-symbol-locs session) nil)
       (setf (gpr-query--session-symbols session) nil)
       (setf (gpr-query--session-process session)
 	    (apply #'start-process
@@ -342,16 +344,17 @@ Uses `gpr_query'. Returns new list."
   "Regexp matching completion item from gpr-query--read-symbols.")
 
 (defun gpr-query--read-symbols (session)
-  (let ((result nil))
-    ;; 'compelete' returns a fully qualified name. line number, and
-    ;; declaration location for each name (the line number ensures
-    ;; there is a unique entry for each overloaded name):
+  "Read result of gpr_query 'complete' command, store completion table in SESSION."
+  (let ((symbol-locs nil)
+	(symbols nil))
+    ;; The gpr_query 'complete' command returns a fully qualified name
+    ;; and declaration location for each name:
     ;;
-    ;; Wisi.Ada.Ada_Indent_Aggregate.Args<102> C:\Projects\org.emacs.ada-mode\wisi-ada.ads:102:7
+    ;; Wisi.Ada.Ada_Indent_Aggregate.Args C:\Projects\org.emacs.ada-mode\wisi-ada.ads:102:7
     ;;
     ;; For subprograms it includes the parameters (but not a function result):
     ;;
-    ;; Gpr_Query.Process_Command_Single<109>(Args) C:\Projects\org.emacs.ada-mode\gpr_query.adb:109:14
+    ;; Gpr_Query.Process_Command_Single(Args) C:\Projects\org.emacs.ada-mode\gpr_query.adb:109:14
     ;;
     ;; Build a completion table as an alist of:
     ;;
@@ -374,6 +377,7 @@ Uses `gpr_query'. Returns new list."
 			    "\\((.*)\\)? "                         ;; 3: args,
 			    wisi-file-line-col-regexp))            ;; 4, 5, 6 file:line:col
 	;; process line
+	(push (match-string-no-properties 2) symbols)
 	(push
 	 (cons (concat (match-string-no-properties 2)
 		       (match-string-no-properties 3)
@@ -381,14 +385,15 @@ Uses `gpr_query'. Returns new list."
 	       (list (gpr-query--normalize-filename (match-string-no-properties 4))
 		     (string-to-number (match-string 5))
 		     (1- (string-to-number (match-string 6)))))
-	 result))
+	 symbol-locs))
 
        (t ;; ignore line
 	)
        )
       (forward-line 1))
 
-    (setf (gpr-query--session-symbols session) result)))
+    (setf (gpr-query--session-symbol-locs session) symbol-locs)
+    (setf (gpr-query--session-symbols session) (delete-dups symbols))))
 
 (defun gpr-query-compilation (project identifier file line col cmd comp-err &optional local_only append)
   "Run gpr_query CMD IDENTIFIER:FILE:LINE:COL,
@@ -699,11 +704,16 @@ FILE is from gpr-query."
 
 (cl-defmethod wisi-xref-completion-table ((_xref gpr-query-xref) project)
   (let ((session (gpr-query-cached-session project)))
-    (gpr-query-session-wait session);; ensure symbols is ready
-    (gpr-query--session-symbols session)))
+    (gpr-query-session-wait session);; ensure symbol-locs is ready
+    (gpr-query--session-symbol-locs session)))
 
 (cl-defmethod wisi-xref-completion-regexp ((_xref gpr-query-xref))
   gpr-query-completion-regexp)
+
+(cl-defmethod wisi-xref-completion-at-point-table ((_xref gpr-query-xref) project)
+  (let ((session (gpr-query-cached-session project)))
+    ;; no wait for symbols to be ready; this is supposed to be fast
+    (gpr-query--session-symbols session)))
 
 (cl-defmethod wisi-xref-definitions ((_xref gpr-query-xref) project item)
   (gpr-query-tree-refs project item "tree_defs"))

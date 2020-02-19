@@ -1691,7 +1691,6 @@ where the car is a list (FILE LINE COL)."
 	 (cons 'navigate nil)
 	 (cons 'indent nil)))
 
-  ;; file local variables may have modified wisi-indent-calculate-functions
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) #'wisi-indent-line)
   (set (make-local-variable 'indent-region-function) #'wisi-indent-region)
@@ -1705,6 +1704,8 @@ where the car is a list (FILE LINE COL)."
   (setq wisi--change-end (copy-marker (point-min) t))
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+
+  (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t)
 
   (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
   )
