@@ -1,1 +1,6 @@
 build/obj/
+build/*.csv
+build/*.config
+build/*.diff
+build/*.exe
+build/*.out
