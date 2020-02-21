@@ -16,7 +16,7 @@ t_all : test_all_harness.run
 # --report=all to see all successfull proofs.
 # -d debug; save proof files in build/obj/gnatprove/* (_not_ build/gnatprove!)
 prove :
-	gnatprove -P sal_test.gpr -j 0 --level 4 --no-subprojects --mode all -u prove_integer_queues.ads
+	gnatprove -P sal_test.gpr -j 0 --level 4 --no-subprojects --mode all -u prove_bounded_definite_queues.ads
 
 
 trace :
