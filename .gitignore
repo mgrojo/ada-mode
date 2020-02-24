@@ -42,3 +42,4 @@ test/gpr_query.db-wal
 test/subdir/gpr_query.db
 wisi.gpr
 ada_annex_p.wy
+autoloads.el~

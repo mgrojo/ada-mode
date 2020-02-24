@@ -59,7 +59,14 @@ metric for comparing error correction
     diff perfect corrected
 
     get corrected source from adalang
-        just use pretty-printer, if it works in presence of errors
+        dump_libadalang_corrected.adb
+        Token_Range only includes real tokens
+        print diagnostics?
+        need to traverse tree, print implied tokens
+        mimic gnatpp
+        ask on libadalang github issue first
+             retrieving error correction tokens #455
+             https://github.com/AdaCore/libadalang/issues/455
 
 doc symptom of -dominating in dependent project
     gprbuild command line has no -P<gpr file>
