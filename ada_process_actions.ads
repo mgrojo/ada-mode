@@ -24,15 +24,15 @@ package Ada_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal     => 108,
-      First_Nonterminal => 109,
-      Last_Nonterminal  => 333,
-      EOI_ID            => 108,
-      Accept_ID         => 109,
+      Last_Terminal     => 110,
+      First_Nonterminal => 111,
+      Last_Nonterminal  => 335,
+      EOI_ID            => 110,
+      Accept_ID         => 111,
       Case_Insensitive  => True,
       New_Line_ID       => 1,
-      String_1_ID       => 107,
-      String_2_ID       => 106,
+      String_1_ID       => 109,
+      String_2_ID       => 108,
       Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
@@ -111,7 +111,9 @@ package Ada_Process_Actions is
          new String'("WITH"),
          new String'("XOR"),
          new String'("LEFT_PAREN"),
+         new String'("LEFT_SQUARE_BRACKET"),
          new String'("RIGHT_PAREN"),
+         new String'("RIGHT_SQUARE_BRACKET"),
          new String'("AMPERSAND"),
          new String'("AT_SIGN"),
          new String'("BAR"),
@@ -368,9 +370,9 @@ package Ada_Process_Actions is
          new String'("unary_adding_operator"),
          new String'("use_clause"),
          new String'("with_clause")),
-      Terminal_Image_Width => 17,
+      Terminal_Image_Width => 20,
       Image_Width          => 38,
-      Last_Lookahead       => 108);
+      Last_Lookahead       => 110);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -450,7 +452,9 @@ package Ada_Process_Actions is
       WITH_ID,
       XOR_ID,
       LEFT_PAREN_ID,
+      LEFT_SQUARE_BRACKET_ID,
       RIGHT_PAREN_ID,
+      RIGHT_SQUARE_BRACKET_ID,
       AMPERSAND_ID,
       AT_SIGN_ID,
       BAR_ID,
@@ -761,7 +765,7 @@ package Ada_Process_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-   procedure aggregate_1
+   procedure aggregate_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -777,6 +781,11 @@ package Ada_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure aggregate_5
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure aggregate_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -826,7 +835,12 @@ package Ada_Process_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-   procedure association_opt_5
+   procedure association_opt_6
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure association_opt_7
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;

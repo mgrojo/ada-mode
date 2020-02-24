@@ -117,8 +117,10 @@
 %keyword WITH "with"
 %keyword XOR "xor"
 
-%token <left-paren> LEFT_PAREN "("
+%token <left-paren>  LEFT_PAREN  "("
 %token <right-paren> RIGHT_PAREN ")"
+%token <left-paren>  LEFT_SQUARE_BRACKET  "["
+%token <right-paren> RIGHT_SQUARE_BRACKET "]"
 
 %token <punctuation> AMPERSAND "&"
 %token <punctuation> AT_SIGN "@"
@@ -287,10 +289,13 @@
 %conflict REDUCE/REDUCE in state aggregate, aggregate on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state derived_type_definition, derived_type_definition  on token WITH
+%conflict REDUCE/REDUCE in state discrete_choice, discrete_subtype_definition on token EQUAL_GREATER
+%conflict REDUCE/REDUCE in state discrete_choice, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state full_type_declaration, full_type_declaration  on token NEW
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
@@ -323,10 +328,6 @@
 %conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
 %conflict SHIFT/REDUCE in state task_body, task_body  on token IS
 %conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token FOR
-
-%if parser = LALR
-%conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
-%end if
 
 ;;;; grammar rules
 ;;
@@ -436,21 +437,28 @@ actual_parameter_part_opt
 ;; All LEFT_PAREN in aggregate are indented 0 here. Special cases for
 ;; -1 are handled in 'primary'.
 aggregate
-  : LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
+  : LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  | LEFT_PAREN NULL RECORD RIGHT_PAREN ;; record_aggregate
+
+  | LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
     %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) nil nil (wisi-anchored 1 0)]))%
   | LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN ;; extension_aggregate
     %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) [(wisi-anchored 1 1) (wisi-anchored 1 1)]
-                         (wisi-anchored 1 0)]))%
-  | LEFT_PAREN NULL RECORD RIGHT_PAREN
+                               (wisi-anchored 1 0)]))%
+  
   | LEFT_PAREN expression WITH DELTA association_list RIGHT_PAREN ;; record_delta_aggregate, array_delta_aggregate
     %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)  
                                [(wisi-anchored 1 1) (wisi-anchored 1 1)]
                                (wisi-anchored 1 0)]))%
-
+  
+  | LEFT_SQUARE_BRACKET expression WITH DELTA association_list RIGHT_SQUARE_BRACKET ;; array_delta_aggregate
+    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)  
+                               [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                               (wisi-anchored 1 0)]))%
+  
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
-  | LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
@@ -534,13 +542,17 @@ association_opt
                                             (wisi-anchored% 2 (* 2 ada-indent-broken)))]]))%
   | discrete_choice_list EQUAL_GREATER BOX
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken) ada-indent-broken nil]))%
-  | FOR IDENTIFIER IN discrete_choice_list EQUAL_GREATER expression ;; iterated_component_association
-    %((wisi-indent-action [nil nil nil (wisi-hanging nil ada-indent-broken) ada-indent-broken
-                               [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   | expression
  ;; test/ada_mode-parens.adb Hello
     %((wisi-indent-action [[(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   | ;; empty
+    
+  | FOR IDENTIFIER IN discrete_choice_list EQUAL_GREATER expression ;; iterated_component_association
+    %((wisi-indent-action [nil nil nil (wisi-hanging nil ada-indent-broken) ada-indent-broken
+                               [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
+  | FOR iterator_specification EQUAL_GREATER expression ;; iterated_component_association
+    %((wisi-indent-action [nil (wisi-hanging nil ada-indent-broken) ada-indent-broken
+                               [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   ;
 
 association_list

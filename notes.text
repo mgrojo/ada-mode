@@ -45,7 +45,7 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-report/fix :alnum:
+use [:alnum:] (ie "[[:alpha:][[:alnum:]_]+")
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi
 
@@ -53,6 +53,9 @@ add re2c install to wisitoken user guide
     fix title
     remove from ada-mode home page; move to stephe-leake.org
     mention in wisi.html; add section on changing ada grammar
+
+option to disable gpr_query.symbols
+    too slow at startup
 
 metric for comparing error correction
     write perfect, corrected source one token per line
@@ -67,6 +70,41 @@ metric for comparing error correction
         ask on libadalang github issue first
              retrieving error correction tokens #455
              https://github.com/AdaCore/libadalang/issues/455
+other ada 202x syntax
+    http://www.ada-auth.org/standards/ada2x.html /5
+    http://www.ada-auth.org/standards/2xrm/html/RM-0-2.html Language Changes
+        put not-yet supported features in ada_mode-ada2020_more.adb, move that to -ada2020.adb when available
+
+        parallel
+             parallel loops 5.5 3/5, 4/5 [parallel [chunck]] for
+             iterator_filter 5.5 :== when condition
+             parallel blocks 5.6.1
+             parallel container iteration
+
+             parallel reduction
+                subset of parallel container/array iteration
+
+        container aggregate 4.3.5 []
+
+        lightweight iteration => procedure iterators
+
+        reduction expression 4.5.10 attributes Reduce, Parallel_Reduce
+            no new syntax, just new semantics
+
+        iterator filter
+
+    declare_expression
+        http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0236-1.txt?rev=1.10
+
+    process all acats tests?
+        http://www.ada-auth.org/acats.html
+        not avail for 202x yet
+        d:/Archive/GNAT/ACATS41.ZIP
+
+present spark counter example info
+    c:/Projects/org.stephe_leake.sal/build/obj/gnatprove/prove_bounded_definite_vectors_sorted.spark
+        JSON format
+    <gnat>share/gps/plug-ins/spark2014.py
 
 doc symptom of -dominating in dependent project
     gprbuild command line has no -P<gpr file>
@@ -74,6 +112,8 @@ doc symptom of -dominating in dependent project
 ada-build.el
     error if run gprbuild with no gpr_file?
         but want to support simple Ada projects
+
+    add spark commands: prove { project | file | function/procedure | assertion at point}
 
 process_overridden should return method def for all ancestor types, not just parent
 

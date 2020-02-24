@@ -88,8 +88,8 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-options-markus_column_0.adb
-#one :: build_executables
+ONE_TEST_FILES ?= ada_mode-ada2020_more.adb
+one :: build_executables
 #one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
