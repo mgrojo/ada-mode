@@ -152,7 +152,7 @@ is
       ID       : constant Token_ID := Tree.ID (Node);
       ID_Image : constant String   := Image (ID).all;
    begin
-      if ID = +IDENTIFIER_ID and Tree.Label (Node) = Shared_Terminal then
+      if -ID in IDENTIFIER_ID | CHARACTER_LITERAL_ID and Tree.Label (Node) = Shared_Terminal then
          declare
             Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
          begin

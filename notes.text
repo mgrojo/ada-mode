@@ -56,13 +56,15 @@ add re2c install to wisitoken user guide
 
 metric for comparing error correction
     make -r wisitoken-libadalang-diff
-        done thru recover_11
+        done thru recover_17
 
     excellent examples:
         recover_02: wisitoken inserts "end; end;" prematurely
         recover_05: libadalang deletes entire partial record type declaration; wisitoken finishes it
         recover_07: libadalang splits an assignment rather than insert a semicolon.
         recover_08: wisitoken inserts "end;" prematurely
+        recover_15; wisitoken inserts "end loop;" just right.
+        recover_16; wisitoken inserts "end if;" just right.
 
     libadalang github issue
              retrieving error correction tokens #455
