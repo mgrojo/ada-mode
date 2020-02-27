@@ -56,17 +56,35 @@ add re2c install to wisitoken user guide
 
 metric for comparing error correction
     make -r wisitoken-libadalang-diff
+        done thru recover_11
+
+    excellent examples:
+        recover_02: wisitoken inserts "end; end;" prematurely
+        recover_05: libadalang deletes entire partial record type declaration; wisitoken finishes it
+        recover_07: libadalang splits an assignment rather than insert a semicolon.
+        recover_08: wisitoken inserts "end;" prematurely
 
     libadalang github issue
              retrieving error correction tokens #455
              https://github.com/AdaCore/libadalang/issues/455
 
-    allowing partial parse allows sub-optimal error recover
-        ada_mode-recover_02.adb
-            inserts 'end; end;' prematurely, ending package; next statement is legal
-                but there's no way to know that without looking farther ahead.
-            minimal complete is too cheap?
-            review all error corrections to see if there's a way to optimize?
+bugs/suboptimal:
+    ada_mode-recover_02.adb
+        inserts 'end; end;' prematurely, ending package; next statement is legal
+            but there's no way to know that without looking farther ahead.
+        minimal complete is too cheap?
+        review all error corrections to see if there's a way to optimize?
+
+    ada_mode-recover_09,adb
+        inserts 'if then if then end if;' instead of 'if then'
+
+    ada_mode-recover_10.adb
+        allow "of" where "in" should be; common mistake
+            produce warning?
+
+        missing 'end' inserted _after_ 'end check_rhs_order'; should be before
+
+delete Local Variables: wisi-mckenzie-task-count: 1 in tests/*.ad? ; set in run-indent-test?
 
 doc symptom of -dominating in dependent project
     gprbuild command line has no -P<gpr file>
