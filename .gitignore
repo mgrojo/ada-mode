@@ -43,3 +43,11 @@ test/subdir/gpr_query.db
 wisi.gpr
 ada_annex_p.wy
 autoloads.el~
+build/correct-tokens/
+build/libadalang-tokens/
+build/*.stamp
+build/wisitoken-tokens/
+dump_libadalang_corrected
+dump_wisitoken_corrected
+test/correct/
+test/debug.adb

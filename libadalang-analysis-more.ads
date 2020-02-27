@@ -3,7 +3,7 @@
 --  Functions we need that are not provided by
 --  Libadalang.Analysis.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,7 +20,10 @@ pragma License (Modified_GPL);
 
 package Libadalang.Analysis.More is
 
-   function TDH (Unit : aliased in Analysis_Unit) return access constant
-     Libadalang.Lexer.Token_Data_Handlers.Token_Data_Handler;
-
+   function Is_Node (Node : in Ada_Node'class) return Boolean;
+   --  Return True if Node.Internal is not No_Entity.
+   --
+   --  Comparison with Ada_No_Node fails if internal is no_entity but
+   --  safety_net is not no_node_safety_net, which is common in error
+   --  recovery.
 end Libadalang.Analysis.More;

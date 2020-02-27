@@ -49,6 +49,10 @@ pub : docs pub-ada pub-wisi pub-ada-ref-man clean-elpa build-elpa uninstall-elpa
 
 docs : info html
 
+recover-compare : wisitoken-recover-compare.stamp
+recover-compare : libadalang-recover-compare.stamp
+recover-compare : wisitoken-libadalang-diff
+
 # This updates elisp and related executables after any source change,
 # without running the tests.
 update-elisp : build_executables
@@ -203,6 +207,39 @@ test-gpr-lalr-process.stamp : force
 	touch $@
 	echo "test-gpr-lalr-process" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
+
+wisitoken-recover-compare.stamp : correct-tokens wisitoken-tokens force
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens wisitoken-tokens/$$file.tokens > $$file.diff ; done
+	touch $@
+
+libadalang-recover-compare.stamp : correct-tokens libadalang-tokens force
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
+	touch $@
+
+wisitoken-libadalang-diff : wisitoken-tokens libadalang-tokens
+	rm -f *.diff
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u wisitoken-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
+
+wisitoken-tokens/%.tokens : dump_wisitoken_corrected$(EXE_EXT)
+	../dump_wisitoken_corrected  ../test/$* > wisitoken-tokens/$*.tokens
+
+libadalang-tokens/%.tokens : dump_libadalang_corrected$(EXE_EXT)
+	../dump_libadalang_corrected  ../test/$* > libadalang-tokens/$*.tokens
+
+%.tokens.diff : wisitoken-tokens/%.tokens libadalang-tokens/%.tokens
+	diff -u wisitoken-tokens/$*.tokens libadalang-tokens/$*.tokens > $*.tokens.diff
+
+wisitoken-tokens : dump_wisitoken_corrected$(EXE_EXT)
+	mkdir -p wisitoken-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected  ../test/$$file > wisitoken-tokens/$$file.tokens ; done
+
+libadalang-tokens : dump_libadalang_corrected$(EXE_EXT)
+	mkdir -p libadalang-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_libadalang_corrected  ../test/$$file > libadalang-tokens/$$file.tokens ; done
+
+correct-tokens : dump_wisitoken_corrected$(EXE_EXT)
+	mkdir -p correct-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected  ../test/correct/$$file > correct-tokens/$$file.tokens ; done
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
@@ -395,7 +432,7 @@ Makefile.conf : create_makefile_conf.sh
 include Makefile.conf
 
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
-	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) -DELPA="no" $< $@
+	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
 
 ../wisi.gpr : ../wisi.gpr.gp
 	gnatprep -DELPA="no" $< $@
@@ -405,6 +442,9 @@ trace :
 
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
+
+%$(EXE_EXT) : %.adb force
+	gprbuild -p ../ada_mode_wisi_parse.gpr $*.adb
 
 build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr

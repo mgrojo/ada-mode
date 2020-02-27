@@ -1279,7 +1279,8 @@ IDENTIFIER is from a user prompt with completion, or from
 	 (list ':file (buffer-file-name)
 	       ':line (line-number-at-pos)
 	       ':column (current-column))
-	 ident)))))
+	 ident)
+	ident))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((prj wisi-prj))
   (wisi-filter-table (wisi-xref-completion-table (wisi-prj-xref prj) prj)

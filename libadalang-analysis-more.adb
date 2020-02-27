@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,13 +17,15 @@
 
 pragma License (Modified_GPL);
 
-with Libadalang.Analysis.Implementation.More;
+with Libadalang.Implementation;
 package body Libadalang.Analysis.More is
 
-   function TDH (Unit : aliased in Analysis_Unit) return access constant
-     Libadalang.Lexer.Token_Data_Handlers.Token_Data_Handler
-   is begin
-      return Libadalang.Analysis.Implementation.More.TDH (Unit.all);
-   end TDH;
+   function Is_Node (Node : in Ada_Node'class) return Boolean
+   is
+      use Libadalang.Implementation;
+      use Libadalang.Implementation.AST_Envs;
+   begin
+      return Node.Internal /= No_Entity;
+   end Is_Node;
 
 end Libadalang.Analysis.More;

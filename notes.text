@@ -55,18 +55,18 @@ add re2c install to wisitoken user guide
     mention in wisi.html; add section on changing ada grammar
 
 metric for comparing error correction
-    write perfect, corrected source one token per line
-    diff perfect corrected
+    make -r wisitoken-libadalang-diff
 
-    get corrected source from adalang
-        dump_libadalang_corrected.adb
-        Token_Range only includes real tokens
-        print diagnostics?
-        need to traverse tree, print implied tokens
-        mimic gnatpp
-        ask on libadalang github issue first
+    libadalang github issue
              retrieving error correction tokens #455
              https://github.com/AdaCore/libadalang/issues/455
+
+    allowing partial parse allows sub-optimal error recover
+        ada_mode-recover_02.adb
+            inserts 'end; end;' prematurely, ending package; next statement is legal
+                but there's no way to know that without looking farther ahead.
+            minimal complete is too cheap?
+            review all error corrections to see if there's a way to optimize?
 
 doc symptom of -dominating in dependent project
     gprbuild command line has no -P<gpr file>
