@@ -61,16 +61,6 @@ is
          return Libadalang.Analysis.More.Is_Node (Node) and then Base_Assoc_List_Has_Element (Node, 1);
       end Not_Empty;
 
-      function Not_Empty (Node : in Name_List) return Boolean
-      is begin
-         return Libadalang.Analysis.More.Is_Node (Node) and then Name_List_Has_Element (Node, 1);
-      end Not_Empty;
-
-      function Not_Empty (Node : in Discriminant_Part) return Boolean
-      is begin
-         return Libadalang.Analysis.More.Is_Node (Node) and then Discriminant_Part_Has_Element (Node, 1);
-      end Not_Empty;
-
    begin
       if Node = No_Ada_Node then
          return;
@@ -100,14 +90,110 @@ is
                Put_Tokens (N);
             end loop;
          end if;
+
          --  Ada_Aspect_Assoc_List,
-         --  Ada_Base_Assoc_List, Ada_Assoc_List, Ada_Case_Expr_Alternative_List,
+      when Ada_Base_Assoc_List =>
+         declare
+            Assocs : constant Base_Assoc_List := Node.As_Base_Assoc_List;
+            I : Integer := Base_Assoc_List_First (Assocs);
+         begin
+            loop
+               Put_Tokens (Base_Assoc_List_Element (Assocs, I));
+               I := Base_Assoc_List_Next (Assocs, I);
+               exit when not Base_Assoc_List_Has_Element (Assocs, I);
+               Put_Line (",");
+            end loop;
+         end;
+
+      when Ada_Assoc_List =>
+         declare
+            N : constant Basic_Assoc_List := Node.As_Basic_Assoc_List;
+            I : Integer := N.Basic_Assoc_List_First;
+         begin
+            Put_Line ("(");
+            loop
+               Put_Tokens (Basic_Assoc_List_Element (N, I));
+               I := Basic_Assoc_List_Next (N, I);
+               if Basic_Assoc_List_Has_Element (N, I) then
+                  Put_Line (",");
+               else
+                  exit;
+               end if;
+            end loop;
+            Put_Line (")");
+         end;
+
+         --  Ada_Case_Expr_Alternative_List,
          --  Ada_Case_Stmt_Alternative_List, Ada_Compilation_Unit_List,
-         --  Ada_Contract_Case_Assoc_List, Ada_Defining_Name_List,
-         --  Ada_Discriminant_Spec_List, Ada_Elsif_Expr_Part_List,
+         --  Ada_Contract_Case_Assoc_List,
+      when Ada_Defining_Name_List =>
+         declare
+            Names : constant Defining_Name_List := Node.As_Defining_Name_List;
+            I : Integer := Names.Defining_Name_List_First;
+         begin
+            loop
+               Put_Tokens (Names.Defining_Name_List_Element (I));
+               I := Names.Defining_Name_List_Next (I);
+               if Names.Defining_Name_List_Has_Element (I) then
+                  Put_Line (",");
+               else
+                  exit;
+               end if;
+            end loop;
+         end;
+
+      when Ada_Discriminant_Spec_List =>
+         declare
+            M : constant Discriminant_Spec_List := Node.As_Discriminant_Spec_List;
+            I : Integer := M.Discriminant_Spec_List_First;
+         begin
+            loop
+               Put_Tokens (M.Discriminant_Spec_List_Element (I));
+               I := M.Discriminant_Spec_List_Next (I);
+               if M.Discriminant_Spec_List_Has_Element (I) then
+                  Put_Line (";");
+               else
+                  exit;
+               end if;
+            end loop;
+         end;
+
+         --  Ada_Elsif_Expr_Part_List,
          --  Ada_Elsif_Stmt_Part_List, Ada_Enum_Literal_Decl_List,
-         --  Ada_Expr_Alternatives_List, Ada_Discriminant_Choice_List, Ada_Name_List,
-         --  Ada_Parent_List, Ada_Param_Spec_List, Ada_Pragma_Node_List,
+         --  Ada_Expr_Alternatives_List, Ada_Discriminant_Choice_List,
+      when Ada_Name_List | Ada_Parent_List =>
+         declare
+            Names : constant Name_List := Node.As_Name_List;
+            I : Integer := Names.Name_List_First;
+         begin
+            loop
+               Put_Tokens (Names.Name_List_Element (I));
+               I := Names.Name_List_Next (I);
+               if Names.Name_List_Has_Element (I) then
+                  Put_Line (",");
+               else
+                  exit;
+               end if;
+            end loop;
+         end;
+
+      when Ada_Param_Spec_List =>
+         declare
+            M : constant Param_Spec_List := As_Param_Spec_List (Node);
+            I : Integer := Param_Spec_List_First (M);
+         begin
+            loop
+               Put_Tokens (Param_Spec_List_Element (M, I));
+               I := Param_Spec_List_Next (M, I);
+               if Param_Spec_List_Has_Element (M, I) then
+                  Put_Line (";");
+               else
+                  exit;
+               end if;
+            end loop;
+         end;
+
+         --  Ada_Pragma_Node_List,
          --  Ada_Select_When_Part_List, Ada_Unconstrained_Array_Index_List,
          --  Ada_Variant_List
       when Ada_Aliased_Present =>
@@ -142,25 +228,30 @@ is
          declare
             N : constant Pragma_Argument_Assoc := As_Pragma_Argument_Assoc (Node);
          begin
-            if N.F_ID /= No_Identifier then
+            if N.F_Id /= No_Identifier then
                Put_Tokens (N.F_Id);
                Put_Line ("=>");
             end if;
             Put_Tokens (N.F_Expr);
          end;
 
-         --  Ada_Entry_Spec, Ada_Enum_Subp_Spec,
+      when Ada_Entry_Spec =>
+         declare
+            N : constant Entry_Spec := Node.As_Entry_Spec;
+         begin
+            Put_Tokens (N.F_Entry_Name);
+            Put_Tokens (N.F_Family_Type);
+            Put_Tokens (N.F_Entry_Params);
+         end;
+
+         --  Ada_Enum_Subp_Spec,
       when Ada_Subp_Spec =>
          declare
             N : constant Subp_Spec := As_Subp_Spec (Node);
          begin
             Put_Tokens (N.F_Subp_Kind);
             Put_Tokens (N.F_Subp_Name);
-            if N.F_Subp_Params /= No_Ada_Node then
-               Put_Line ("(");
-               Put_Tokens (N.F_Subp_Params);
-               Put_Line (")");
-            end if;
+            Put_Tokens (N.F_Subp_Params);
             if N.P_Returns /= No_Ada_Node then
                Put_Line ("return");
                Put_Tokens (N.P_Returns);
@@ -168,13 +259,58 @@ is
          end;
 
          --  Ada_Component_List,
-         --  Ada_Known_Discriminant_Part, Ada_Unknown_Discriminant_Part,
+      when Ada_Known_Discriminant_Part =>
+         Put_Line ("(");
+         Put_Tokens (Node.As_Known_Discriminant_Part.F_Discr_Specs);
+         Put_Line (")");
+
+         --  Ada_Unknown_Discriminant_Part,
          --  Ada_Entry_Completion_Formal_Params, Ada_Generic_Formal_Part,
          --  Ada_Null_Record_Def, Ada_Record_Def, Ada_Aggregate_Assoc,
-         --  Ada_Multi_Dim_Array_Assoc, Ada_Discriminant_Assoc, Ada_Param_Assoc,
-         --  Ada_Component_Decl, Ada_Discriminant_Spec, Ada_Generic_Formal_Obj_Decl,
+         --  Ada_Multi_Dim_Array_Assoc, Ada_Discriminant_Assoc,
+      when Ada_Param_Assoc =>
+         declare
+            N : constant Param_Assoc := Node.As_Param_Assoc;
+         begin
+            if N.F_Designator /= No_Ada_Node then
+               Put_Tokens (N.F_Designator);
+               Put_Line ("=>");
+            end if;
+            Put_Tokens (N.F_R_Expr);
+         end;
+
+         --  Ada_Component_Decl,
+      when Ada_Discriminant_Spec =>
+         declare
+            M : constant Discriminant_Spec := As_Discriminant_Spec (Node);
+         begin
+            Put_Tokens (M.F_Ids);
+            Put_Line (":");
+            Put_Tokens (M.F_Type_Expr);
+            if M.F_Default_Expr /= No_Expr then
+               Put_Line (":=");
+               Put_Tokens (M.F_Default_Expr);
+            end if;
+         end;
+
+         --  Ada_Generic_Formal_Obj_Decl,
          --  Ada_Generic_Formal_Package, Ada_Generic_Formal_Subp_Decl,
-         --  Ada_Generic_Formal_Type_Decl, Ada_Param_Spec,
+         --  Ada_Generic_Formal_Type_Decl,
+      when Ada_Param_Spec =>
+         declare
+            M : constant Param_Spec := As_Param_Spec (Node);
+         begin
+            Put_Tokens (M.F_Ids);
+            Put_Line (":");
+            Put_Tokens (M.F_Has_Aliased);
+            Put_Tokens (M.F_Mode);
+            Put_Tokens (M.F_Type_Expr);
+            if M.F_Default_Expr /= No_Expr then
+               Put_Line (":=");
+               Put_Tokens (M.F_Default_Expr);
+            end if;
+         end;
+
          --  Ada_Generic_Package_Internal, Ada_Package_Decl,
          --  Ada_Discrete_Base_Subtype_Decl, Ada_Subtype_Decl,
          --  Ada_Classwide_Type_Decl, Ada_Incomplete_Type_Decl,
@@ -186,19 +322,42 @@ is
             Put_Line ("task");
             Put_Line ("type");
             Put_Tokens (N.F_Name);
-            if Not_Empty (N.F_Discriminants) then
-               Put_Line ("(");
-               Put_Tokens (Discriminant_Part);
-               Put_Line (")");
-            end if;
+            Put_Tokens (N.F_Discriminants);
             Put_Line ("is");
             Put_Tokens (N.F_Definition);
             --  F_End_Name is in F_Definition
+         end;
 
-         --  Ada_Single_Task_Type_Decl, Ada_Type_Decl,
-         --  Ada_Anonymous_Type_Decl, Ada_Synth_Anonymous_Type_Decl,
+         --  Ada_Single_Task_Type_Decl,
+      when Ada_Type_Decl | Ada_Anonymous_Type_Decl =>
+         declare
+            N : constant Type_Decl := As_Type_Decl (Node);
+         begin
+            if N.F_Name /= No_Defining_Name then
+               Put_Line ("type");
+               Put_Tokens (N.F_Name);
+               Put_Line ("is");
+            end if;
+            Put_Tokens (N.F_Discriminants);
+            Put_Tokens (N.F_Type_Def);
+            if N.F_Name /= No_Defining_Name then
+               Put_Line (";");
+            end if;
+         end;
+
+         --  Ada_Synth_Anonymous_Type_Decl,
          --  Ada_Abstract_Subp_Decl, Ada_Abstract_Formal_Subp_Decl,
-         --  Ada_Concrete_Formal_Subp_Decl, Ada_Subp_Decl, Ada_Entry_Decl,
+         --  Ada_Concrete_Formal_Subp_Decl, Ada_Subp_Decl,
+      when Ada_Entry_Decl =>
+         declare
+            N : constant Entry_Decl := Node.As_Entry_Decl;
+         begin
+            Put_Tokens (N.F_Overriding);
+            Put_Line ("entry");
+            Put_Tokens (N.F_Spec);
+            Put_Line (";");
+         end;
+
          --  Ada_Enum_Literal_Decl, Ada_Generic_Subp_Internal, Ada_Expr_Function,
          --  Ada_Null_Subp_Decl,
       when Ada_Subp_Body =>
@@ -245,19 +404,8 @@ is
       when Ada_Object_Decl =>
          declare
             M : constant Object_Decl := As_Object_Decl (Node);
-            IDs : constant Defining_Name_List := F_IDs (M);
-            I : Integer;
          begin
-            I := Defining_Name_List_First;
-            loop
-               Put_Tokens (Defining_Name_List_Element (Args, I);
-               I := Defining_Name_List_Next (Args, I);
-               if Defining_Name_List_Has_Element (Args, I) then
-                  Put_Line (",");
-               else
-                  exit;
-               end if;
-            end loop;
+            Put_Tokens (M.F_Ids);
             Put_Line (":");
             if F_Has_Aliased (M) then
                Put_Line ("aliased");
@@ -268,11 +416,14 @@ is
             Put_Tokens (F_Mode (M));
             Put_Tokens (F_Type_Expr (M));
             if F_Default_Expr (M) /= No_Expr then
+               Put_Line (":=");
                Put_Tokens (F_Default_Expr (M));
             end if;
             if F_Renaming_Clause (M) /= No_Renaming_Clause then
                Put_Tokens (F_Renaming_Clause (M));
             end if;
+            Put_Line (";");
+         end;
 
          --  Ada_Extended_Return_Stmt_Object_Decl,
          --  Ada_Package_Renaming_Decl, Ada_Single_Protected_Decl,
@@ -306,7 +457,12 @@ is
                end loop;
             end if;
          end;
-         --  Ada_Private_Part, Ada_Public_Part,
+         --  Ada_Private_Part,
+      when Ada_Public_Part =>
+         for D of Node.As_Declarative_Part.F_Decls loop
+            Put_Tokens (D);
+         end loop;
+
          --  Ada_Elsif_Expr_Part, Ada_Elsif_Stmt_Part, Ada_Allocator, Ada_Aggregate,
          --  Ada_Null_Record_Aggregate,
       when Ada_Bin_Op | Ada_Relation_Op =>
@@ -323,7 +479,7 @@ is
          --  Ada_Update_Attribute_Ref,
       when Ada_Call_Expr =>
          declare
-            N : Constant Call_Expr := As_Call_Expr (Node);
+            N : constant Call_Expr := As_Call_Expr (Node);
          begin
             Put_Tokens (F_Name (N));
             Put_Tokens (F_Suffix (N));
@@ -381,30 +537,32 @@ is
          Put_Tokens (As_Library_Item (Node).F_Item);
 
          --  Ada_Limited_Present, Ada_For_Loop_Spec, Ada_While_Loop_Spec,
-         --  Ada_Mode_Default, Ada_Mode_In, Ada_Mode_In_Out, Ada_Mode_Out,
-         --  , Ada_Not_Null_Present, Ada_Null_Component_Decl,
+         --
+      when Ada_Mode_Default =>
+         null;
+
+         --  Ada_Mode_In, Ada_Mode_In_Out, Ada_Mode_Out,
+      when Ada_Not_Null_Present =>
+         Put_Line ("not");
+         Put_Line ("null");
+
+         --  Ada_Null_Component_Decl,
          --  Ada_Others_Designator, Ada_Overriding_Not_Overriding,
          --  Ada_Overriding_Overriding, ,
       when Ada_Params =>
-         Put_Tokens (F_Params (As_Params (Node)));
+         Put_Line ("(");
+         Put_Tokens (Node.As_Params.F_Params);
+         Put_Line (")");
 
       when Ada_Pragma_Node =>
          declare
             N : constant Pragma_Node := As_Pragma_Node (Node);
-            Args : constant Base_Assoc_List := N.F_Args;
-            I : Integer;
          begin
             Put_Line ("pragma");
             Put_Tokens (N.F_Id);
-            if Not_Empty (Args) then
+            if Not_Empty (N.F_Args) then
                Put_Line ("(");
-               I := Base_Assoc_List_First (Args);
-               loop
-                  Put_Tokens (Base_Assoc_List_Element (Args, I));
-                  I := Base_Assoc_List_Next (Args, I);
-                  exit when not Base_Assoc_List_Has_Element (Args, I);
-                  Put_Line (",");
-               end loop;
+               Put_Tokens (N.F_Args);
                Put_Line (")");
             end if;
             Put_Line (";");
@@ -476,6 +634,7 @@ is
             Put_Tokens (N.F_Dest);
             Put_Line (":=");
             Put_Tokens (N.F_Expr);
+            Put_Line (";");
          end;
 
       when Ada_Call_Stmt =>
@@ -508,13 +667,53 @@ is
          Put_Line ("procedure");
          --, Ada_Subunit, ,
          --  Ada_Synchronized_Present, , Ada_Tagged_Present,
-         --  Ada_Task_Def, Ada_Access_To_Subp_Def, Ada_Anonymous_Type_Access_Def,
-         --  Ada_Type_Access_Def, Ada_Array_Type_Def, Ada_Derived_Type_Def,
+      when Ada_Task_Def =>
+         declare
+            M : constant Task_Def := As_Task_Def (Node);
+         begin
+            Put_Tokens (M.F_Interfaces);
+            Put_Tokens (M.F_Public_Part);
+            if M.F_Private_Part /= No_Private_Part then
+               Put_Line ("private");
+               Put_Tokens (M.F_Private_Part);
+            end if;
+            Put_Line ("end");
+            Put_Tokens (M.F_End_Name);
+            Put_Line (";");
+         end;
+
+         --  Ada_Access_To_Subp_Def, Ada_Anonymous_Type_Access_Def,
+      when Ada_Type_Access_Def =>
+         declare
+            N : constant Type_Access_Def := Node.As_Type_Access_Def;
+         begin
+            Put_Tokens (N.F_Has_Not_Null);
+            Put_Line ("access");
+            Put_Tokens (N.F_Has_All);
+            Put_Tokens (N.F_Has_Constant);
+            Put_Tokens (N.F_Subtype_Indication);
+         end;
+
+         --  Ada_Array_Type_Def, Ada_Derived_Type_Def,
          --  Ada_Enum_Type_Def, Ada_Formal_Discrete_Type_Def, Ada_Interface_Type_Def,
          --  Ada_Mod_Int_Type_Def, Ada_Private_Type_Def, Ada_Decimal_Fixed_Point_Def,
          --  Ada_Floating_Point_Def, Ada_Ordinary_Fixed_Point_Def,
-         --  Ada_Record_Type_Def, Ada_Signed_Int_Type_Def, Ada_Anonymous_Type,
-         --  Ada_Enum_Lit_Synth_Type_Expr, Ada_Subtype_Indication,
+         --  Ada_Record_Type_Def, Ada_Signed_Int_Type_Def,
+      when Ada_Anonymous_Type =>
+         Put_Tokens (Node.As_Anonymous_Type.F_Type_Decl);
+
+         --  Ada_Enum_Lit_Synth_Type_Expr,
+      when Ada_Subtype_Indication =>
+         declare
+            N : constant Subtype_Indication := As_Subtype_Indication (Node);
+         begin
+            if N.F_Has_Not_Null then
+               Put_Tokens (N.F_Has_Not_Null);
+            end if;
+            Put_Tokens (N.F_Name);
+            Put_Tokens (N.F_Constraint);
+         end;
+
          --  Ada_Constrained_Subtype_Indication, Ada_Discrete_Subtype_Indication,
          --  Ada_Unconstrained_Array_Index, , Ada_Until_Present,
          --  Ada_Use_Package_Clause, Ada_Use_Type_Clause, Ada_Variant,
@@ -522,8 +721,6 @@ is
       when Ada_With_Clause =>
          declare
             N : constant With_Clause := As_With_Clause (Node);
-            Args : constant Name_List := F_Packages (N);
-            I : Integer;
          begin
             if F_Has_Limited (N) then
                Put_Tokens (F_Has_Limited (N));
@@ -532,15 +729,7 @@ is
                Put_Tokens (F_Has_Private (N));
             end if;
             Put_Line ("with");
-            if Not_Empty (Args) then
-               I := Name_List_First (Args);
-               loop
-                  Put_Tokens (Name_List_Element (Args, I));
-                  I := Name_List_Next (Args, I);
-                  exit when not Name_List_Has_Element (Args, I);
-                  Put_Line (",");
-               end loop;
-            end if;
+            Put_Tokens (F_Packages (N));
             Put_Line (";");
          end;
 
