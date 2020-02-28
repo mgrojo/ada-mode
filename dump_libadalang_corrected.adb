@@ -532,7 +532,19 @@ is
          end;
 
          --  Ada_Protected_Body,
-         --  Ada_Task_Body, Ada_Entry_Index_Spec, , Ada_Exception_Decl,
+      when Ada_Task_Body =>
+         Put_Line ("task");
+         Put_Line ("body");
+         Put_Tokens (Node.As_Task_Body.F_Name);
+         Put_Line ("is");
+         Put_Tokens (Node.As_Task_Body.F_Decls);
+         Put_Line ("begin");
+         Put_Tokens (Node.As_Task_Body.F_Stmts);
+         Put_Line ("end");
+         Put_Tokens (Node.As_Task_Body.F_End_Name);
+         Put_Line (";");
+
+         --  Ada_Entry_Index_Spec, , Ada_Exception_Decl,
       when Ada_Exception_Handler =>
          declare
             N : constant Exception_Handler := Node.As_Exception_Handler;
