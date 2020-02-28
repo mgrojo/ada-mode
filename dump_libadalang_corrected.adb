@@ -66,6 +66,11 @@ is
          return Libadalang.Analysis.More.Is_Node (Node) and then Identifier_List_Has_Element (Node, 1);
       end Not_Empty;
 
+      function Not_Empty (Node : in Elsif_Expr_Part_List) return Boolean
+      is begin
+         return Libadalang.Analysis.More.Is_Node (Node) and then Elsif_Expr_Part_List_Has_Element (Node, 1);
+      end Not_Empty;
+
       procedure Put_Ada_Node_List (Node : in Ada_Node_List; Separator : in String := "")
       is begin
          if Not_Empty (Node) then
@@ -508,7 +513,10 @@ is
          --  Ada_Generic_Package_Decl,
          --  Ada_Generic_Subp_Decl, Ada_Generic_Package_Instantiation,
          --  Ada_Generic_Subp_Instantiation, Ada_Generic_Package_Renaming_Decl,
-         --  Ada_Generic_Subp_Renaming_Decl, Ada_Label_Decl,
+         --  Ada_Generic_Subp_Renaming_Decl,
+      when Ada_Label_Decl =>
+         Put_Tokens (Node.As_Label_Decl.F_Name);
+
       when Ada_Named_Stmt_Decl =>
          Put_Tokens (Node.As_Named_Stmt_Decl.F_Name);
          Put_Line (":");
@@ -613,9 +621,24 @@ is
             Put_Tokens (N.F_Op);
             Put_Tokens (N.F_Right);
          end;
+
          --  Ada_Box_Expr,
          --  Ada_Case_Expr, Ada_Case_Expr_Alternative, Ada_Contract_Cases,
-         --  Ada_If_Expr,
+      when Ada_If_Expr =>
+         Put_Line ("if");
+         Put_Tokens (Node.As_If_Expr.F_Cond_Expr);
+         Put_Line ("then");
+         Put_Tokens (Node.As_If_Expr.F_Then_Expr);
+         if Not_Empty (Node.As_If_Expr.F_Alternatives) then
+            for N of Node.As_If_Expr.F_Alternatives loop
+               Put_Tokens (N);
+            end loop;
+         end if;
+         if Node.As_If_Expr.F_Else_Expr /= No_Expr then
+            Put_Line ("else");
+            Put_Tokens (Node.As_If_Expr.F_Else_Expr);
+         end if;
+
       when Ada_Membership_Expr =>
          Put_Tokens (Node.As_Membership_Expr.F_Expr);
          Put_Tokens (Node.As_Membership_Expr.F_Op);
@@ -659,7 +682,11 @@ is
          Put_Line (".");
          Put_Line ("all");
 
-         --  Ada_Qual_Expr,
+      when Ada_Qual_Expr =>
+         Put_Tokens (Node.As_Qual_Expr.F_Prefix);
+         Put_Line ("'");
+         Put_Tokens (Node.As_Qual_Expr.F_Suffix);
+
       when Ada_Char_Literal =>
          Put ("CHARACTER_LITERAL "); Ada.Wide_Wide_Text_IO.Put_Line (Text (Token_Start (Node)));
 
@@ -774,6 +801,7 @@ is
          begin
             Put_Ada_Node_List (Ada_Node_List (M.F_Stmts));
             if Not_Empty (M.F_Exceptions) then
+               Put_Line ("exception");
                for N of M.F_Exceptions loop
                   Put_Tokens (N);
                end loop;
@@ -983,7 +1011,13 @@ is
             end if;
             Put_Line (";");
          end;
-         --  Ada_Goto_Stmt, Ada_Label,
+
+         --  Ada_Goto_Stmt,
+      when Ada_Label =>
+         Put_Line ("<<");
+         Put_Tokens (Node.As_Label.F_Decl);
+         Put_Line (">>");
+
       when Ada_Null_Stmt =>
          Put_Line ("null");
          Put_Line (";");
@@ -1060,7 +1094,19 @@ is
 
          --  Ada_Constrained_Subtype_Indication, Ada_Discrete_Subtype_Indication,
          --  Ada_Unconstrained_Array_Index, , Ada_Until_Present,
-         --  Ada_Use_Package_Clause, Ada_Use_Type_Clause, Ada_Variant,
+
+      when Ada_Use_Package_Clause =>
+         Put_Line ("use");
+         Put_Tokens (Node.As_Use_Package_Clause.F_Packages);
+         Put_Line (";");
+
+      when Ada_Use_Type_Clause =>
+         Put_Line ("use");
+         Put_Tokens (Node.As_Use_Type_Clause.F_Has_All);
+         Put_Line ("type");
+         Put_Tokens (Node.As_Use_Type_Clause.F_Types);
+
+         --  Ada_Variant,
          --  Ada_Variant_Part,
       when Ada_With_Clause =>
          declare

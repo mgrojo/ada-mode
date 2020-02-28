@@ -65,6 +65,8 @@ metric for comparing error correction
         recover_08: wisitoken inserts "end;" prematurely
         recover_15; wisitoken inserts "end loop;" just right.
         recover_16; wisitoken inserts "end if;" just right.
+        recover_18; libadalang deletes start of two loops; can't get indentation right.
+        recover_21: libadalang deletes 'elsif', 'else' instead of inserting 'if then'; can't get indentation right.
 
     libadalang github issue
              retrieving error correction tokens #455

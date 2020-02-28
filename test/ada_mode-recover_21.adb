@@ -21,8 +21,7 @@ begin
       loop
          exit when Arg > Argument_Count;
 
-         --  Missing 'if then' here; recover inserts it after 'loop', so 'exit
-         -- ...' is indented.
+         --  Missing 'if then' here.
 
          elsif Argument (Arg) = "--lang_params" then
             Lang_Params := +Argument (Arg + 1);

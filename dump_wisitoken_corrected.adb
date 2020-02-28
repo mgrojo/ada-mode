@@ -34,6 +34,8 @@ is
       Put_Line ("dump_wisitoken_corrected <file> [verbosity]");
    end Put_Usage;
 
+   Verbosity : Integer := 0;
+
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Ada_Process_Actions.Descriptor'Unrestricted_Access);
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
@@ -182,7 +184,7 @@ begin
       end if;
 
       declare
-            File_Name : constant String := Argument (1);
+         File_Name : constant String := Argument (1);
       begin
          Parser.Lexer.Reset_With_File (File_Name);
       exception
@@ -191,9 +193,19 @@ begin
          Set_Exit_Status (Failure);
          return;
       end;
+
+      if Argument_Count > 1 then
+         Verbosity := Integer'Value (Argument (2));
+      end if;
    end;
 
+   Parser.Table.McKenzie_Param.Task_Count := 1; -- minimize race conditions
+
    Parser.Parse;
+
+   if Verbosity > 0 then
+      Parser.Put_Errors;
+   end if;
 
    declare
       Terminals : constant Syntax_Trees.Valid_Node_Index_Array := Parser.Tree.Get_Terminals (Parser.Tree.Root);
