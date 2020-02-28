@@ -1,4 +1,4 @@
--- Converting 'if then' to 'case'; parser fails.
+-- Converting 'if then' to 'case'; parser used to fail.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)

@@ -61,6 +61,11 @@ is
          return Libadalang.Analysis.More.Is_Node (Node) and then Base_Assoc_List_Has_Element (Node, 1);
       end Not_Empty;
 
+      function Not_Empty (Node : in Basic_Assoc_List) return Boolean
+      is begin
+         return Libadalang.Analysis.More.Is_Node (Node) and then Basic_Assoc_List_Has_Element (Node, 1);
+      end Not_Empty;
+
       function Not_Empty (Node : in Identifier_List) return Boolean
       is begin
          return Libadalang.Analysis.More.Is_Node (Node) and then Identifier_List_Has_Element (Node, 1);
@@ -69,6 +74,16 @@ is
       function Not_Empty (Node : in Elsif_Expr_Part_List) return Boolean
       is begin
          return Libadalang.Analysis.More.Is_Node (Node) and then Elsif_Expr_Part_List_Has_Element (Node, 1);
+      end Not_Empty;
+
+      function Not_Empty (Node : in Case_Expr_Alternative_List) return Boolean
+      is begin
+         return Libadalang.Analysis.More.Is_Node (Node) and then Case_Expr_Alternative_List_Has_Element (Node, 1);
+      end Not_Empty;
+
+      function Not_Empty (Node : in Aspect_Assoc_List) return Boolean
+      is begin
+         return Libadalang.Analysis.More.Is_Node (Node) and then Aspect_Assoc_List_Has_Element (Node, 1);
       end Not_Empty;
 
       procedure Put_Ada_Node_List (Node : in Ada_Node_List; Separator : in String := "")
@@ -114,7 +129,19 @@ is
       when Ada_Stmt_List =>
          Put_Ada_Node_List (Ada_Node_List (As_Stmt_List (Node)));
 
-         --  Ada_Aspect_Assoc_List,
+      when Ada_Aspect_Assoc_List =>
+         declare
+            M : constant Aspect_Assoc_List := Node.As_Aspect_Assoc_List;
+            I : Integer := M.Aspect_Assoc_List_First;
+         begin
+            loop
+               Put_Tokens (M.Aspect_Assoc_List_Element (I));
+               I := M.Aspect_Assoc_List_Next (I);
+               exit when not M.Aspect_Assoc_List_Has_Element (I);
+               Put_Line (",");
+            end loop;
+         end;
+
       when Ada_Base_Assoc_List =>
          declare
             Assocs : constant Base_Assoc_List := Node.As_Base_Assoc_List;
@@ -144,7 +171,19 @@ is
             end loop;
          end;
 
-         --  Ada_Case_Expr_Alternative_List,
+      when Ada_Case_Expr_Alternative_List =>
+         declare
+            M : constant Case_Expr_Alternative_List := Node.As_Case_Expr_Alternative_List;
+            I : Integer := M.Case_Expr_Alternative_List_First;
+         begin
+            loop
+               Put_Tokens (M.Case_Expr_Alternative_List_Element (I));
+               I := M.Case_Expr_Alternative_List_Next (I);
+               exit when not M.Case_Expr_Alternative_List_Has_Element (I);
+               Put_Line (",");
+            end loop;
+         end;
+
       when Ada_Case_Stmt_Alternative_List =>
          for N of Node.As_Case_Stmt_Alternative_List loop
             Put_Tokens (N);
@@ -263,15 +302,20 @@ is
             Put_Tokens (N);
          end loop;
 
-         --  when Ada_Aspect_Assoc =>
-         --     declare
-         --        N : Aspect_Assoc := As_Aspect_Assoc (Node);
-         --     begin
-         --        null;
-         --     end;
+      when Ada_Aspect_Assoc =>
+         Put_Tokens (Node.As_Aspect_Assoc.F_Id);
+         Put_Line ("=>");
+         Put_Tokens (Node.As_Aspect_Assoc.F_Expr);
+
          --, Ada_At_Clause,
          --  Ada_Attribute_Def_Clause, Ada_Enum_Rep_Clause, Ada_Record_Rep_Clause,
-         --  Ada_Aspect_Spec, Ada_Contract_Case_Assoc,
+      when Ada_Aspect_Spec =>
+         if Not_Empty (Node.As_Aspect_Spec.F_Aspect_Assocs) then
+            Put_Line ("with");
+            Put_Tokens (Node.As_Aspect_Spec.F_Aspect_Assocs);
+         end if;
+
+         --  Ada_Contract_Case_Assoc,
       when Ada_Pragma_Argument_Assoc =>
          declare
             N : constant Pragma_Argument_Assoc := As_Pragma_Argument_Assoc (Node);
@@ -458,6 +502,7 @@ is
          begin
             Put_Tokens (N.F_Overriding);
             Put_Tokens (N.F_Subp_Spec);
+            Put_Tokens (N.F_Aspects);
             Put_Line ("is");
             Put_Tokens (N.F_Decls);
             Put_Line ("begin");
@@ -511,7 +556,20 @@ is
          end;
 
          --  Ada_Generic_Package_Decl,
-         --  Ada_Generic_Subp_Decl, Ada_Generic_Package_Instantiation,
+         --  Ada_Generic_Subp_Decl,
+      when Ada_Generic_Package_Instantiation =>
+         Put_Line ("package");
+         Put_Tokens (Node.As_Generic_Package_Instantiation.F_Name);
+         Put_Line ("is");
+         Put_Line ("new");
+         Put_Tokens (Node.As_Generic_Package_Instantiation.F_Generic_Pkg_Name);
+         if Not_Empty (Basic_Assoc_List (Node.As_Generic_Package_Instantiation.F_Params)) then
+            Put_Line ("(");
+            Put_Tokens (Node.As_Generic_Package_Instantiation.F_Params);
+            Put_Line (")");
+         end if;
+         Put_Line (";");
+
          --  Ada_Generic_Subp_Instantiation, Ada_Generic_Package_Renaming_Decl,
          --  Ada_Generic_Subp_Renaming_Decl,
       when Ada_Label_Decl =>
@@ -573,8 +631,16 @@ is
             end if;
          end;
 
-         --  Ada_Component_Clause, Ada_Component_Def,
-         --  Ada_Constant_Present, Ada_Delta_Constraint, Ada_Digits_Constraint,
+         --  Ada_Component_Clause,
+      when Ada_Component_Def =>
+         Put_Tokens (Node.As_Component_Def.F_Has_Aliased);
+         Put_Tokens (Node.As_Component_Def.F_Has_Constant);
+         Put_Tokens (Node.As_Component_Def.F_Type_Expr);
+
+      when Ada_Constant_Present =>
+         Put_Line ("constant");
+
+         --  Ada_Delta_Constraint, Ada_Digits_Constraint,
       when Ada_Discriminant_Constraint =>
          Put_Line ("(");
          Put_Tokens (Node.As_Discriminant_Constraint.F_Constraints);
@@ -598,17 +664,33 @@ is
             Put_Tokens (D);
          end loop;
 
-         --  Ada_Elsif_Expr_Part,
+      when Ada_Elsif_Expr_Part =>
+         Put_Line ("elsif");
+         Put_Tokens (Node.As_Elsif_Expr_Part.F_Cond_Expr);
+         Put_Line ("then");
+         Put_Tokens (Node.As_Elsif_Expr_Part.F_Then_Expr);
+
       when Ada_Elsif_Stmt_Part =>
          Put_Line ("elsif");
          Put_Tokens (Node.As_Elsif_Stmt_Part.F_Cond_Expr);
          Put_Line ("then");
          Put_Tokens (Node.As_Elsif_Stmt_Part.F_Stmts);
 
-         --  Ada_Allocator,
+      when Ada_Allocator =>
+         Put_Line ("new");
+         if Node.As_Allocator.F_Subpool /= No_Ada_Node then
+            Put_Line ("(");
+            Put_Tokens (Node.As_Allocator.F_Subpool);
+            Put_Line (")");
+         end if;
+         Put_Tokens (Node.As_Allocator.F_Type_Or_Expr);
+
       when Ada_Aggregate =>
          Put_Line ("(");
-         Put_Tokens (Node.As_Aggregate.F_Ancestor_Expr);
+         if Node.As_Aggregate.F_Ancestor_Expr /= No_Ada_Node then
+            Put_Tokens (Node.As_Aggregate.F_Ancestor_Expr);
+            Put_Line ("with");
+         end if;
          Put_Tokens (Node.As_Aggregate.F_Assocs);
          Put_Line (")");
 
@@ -622,8 +704,24 @@ is
             Put_Tokens (N.F_Right);
          end;
 
-         --  Ada_Box_Expr,
-         --  Ada_Case_Expr, Ada_Case_Expr_Alternative, Ada_Contract_Cases,
+      when Ada_Box_Expr =>
+         Put_Line ("<>");
+
+      when Ada_Case_Expr =>
+         Put_Line ("case");
+         Put_Tokens (Node.As_Case_Expr.F_Expr);
+         Put_Line ("is");
+         if Not_Empty (Node.As_Case_Expr.F_Cases) then
+            Put_Tokens (Node.As_Case_Expr.F_Cases);
+         end if;
+
+      when Ada_Case_Expr_Alternative =>
+         Put_Line ("when");
+         Put_Tokens (Node.As_Case_Expr_Alternative.F_Choices);
+         Put_Line ("=>");
+         Put_Tokens (Node.As_Case_Expr_Alternative.F_Expr);
+
+         --  Ada_Contract_Cases,
       when Ada_If_Expr =>
          Put_Line ("if");
          Put_Tokens (Node.As_If_Expr.F_Cond_Expr);
@@ -789,7 +887,13 @@ is
          Put_Line ("=>");
          Put_Tokens (Node.As_Quantified_Expr.F_Expr);
 
-         --  Ada_Raise_Expr,
+      when Ada_Raise_Expr =>
+         Put_Line ("raise");
+         Put_Tokens (Node.As_Raise_Expr.F_Exception_Name);
+         if Node.As_Raise_Expr.F_Error_Message /= No_Expr then
+            Put_Line ("with");
+            Put_Tokens (Node.As_Raise_Expr.F_Error_Message);
+         end if;
 
       when Ada_Un_Op =>
          Put_Tokens (Node.As_Un_Op.F_Op);
@@ -944,6 +1048,9 @@ is
          Put_Tokens (Node.As_Case_Stmt.F_Expr);
          Put_Line ("is");
          Put_Tokens (Node.As_Case_Stmt.F_Alternatives);
+         Put_Line ("end");
+         Put_Line ("case");
+         Put_Line (";");
 
       when Ada_Extended_Return_Stmt =>
          Put_Line ("return");
@@ -1072,7 +1179,15 @@ is
             Put_Tokens (N.F_Subtype_Indication);
          end;
 
-         --  Ada_Array_Type_Def, Ada_Derived_Type_Def,
+      when Ada_Array_Type_Def =>
+         Put_Line ("array");
+         Put_Line ("(");
+         Put_Tokens (Node.As_Array_Type_Def.F_Indices);
+         Put_Line (")");
+         Put_Line ("of");
+         Put_Tokens (Node.As_Array_Type_Def.F_Component_Type);
+
+         --  Ada_Derived_Type_Def,
          --  Ada_Enum_Type_Def, Ada_Formal_Discrete_Type_Def, Ada_Interface_Type_Def,
          --  Ada_Mod_Int_Type_Def, Ada_Private_Type_Def, Ada_Decimal_Fixed_Point_Def,
          --  Ada_Floating_Point_Def, Ada_Ordinary_Fixed_Point_Def,
@@ -1105,6 +1220,7 @@ is
          Put_Tokens (Node.As_Use_Type_Clause.F_Has_All);
          Put_Line ("type");
          Put_Tokens (Node.As_Use_Type_Clause.F_Types);
+         Put_Line (";");
 
          --  Ada_Variant,
          --  Ada_Variant_Part,

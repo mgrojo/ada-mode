@@ -56,7 +56,11 @@ add re2c install to wisitoken user guide
 
 metric for comparing error correction
     make -r wisitoken-libadalang-diff
-        done thru recover_17
+        done thru recover_30
+
+    libadalang parses foo'range as IDENTIFIER TICK IDENTIFIER; wisitoken as IDENTIFIER TICK RANGE
+        could have libadalang-correct, but so far this is the only difference, and it only affects recover_30.
+        also foo'access
 
     excellent examples:
         recover_02: wisitoken inserts "end; end;" prematurely
@@ -67,6 +71,8 @@ metric for comparing error correction
         recover_16; wisitoken inserts "end if;" just right.
         recover_18; libadalang deletes start of two loops; can't get indentation right.
         recover_21: libadalang deletes 'elsif', 'else' instead of inserting 'if then'; can't get indentation right.
+        recover_deleted_procedure_1: libadalang deletes lots of code
+        recover_end_1: libadalang deletes 'procedure'
 
     libadalang github issue
              retrieving error correction tokens #455
