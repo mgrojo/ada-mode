@@ -45,6 +45,11 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+gpr-query get symbols in separate process
+    process buffer:
+        just use (process-buffer process); it works when the buffer is live
+        name: compute at creation time, from gnat-compiler-gpr-file
+
 report/fix :alnum:
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi
