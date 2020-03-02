@@ -29,12 +29,12 @@ package Non_ASCII is
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(char-after))
    --EMACSRESULT:#x03c0
    π_non : constant := 3.14159;
-   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "π_non"
 
    --  Uppercase pi; auto-casing works for non-ASCII
    Π_Upper_Non : constant := 3.14159;
-   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Π_Upper_Non"
 
 
@@ -47,7 +47,7 @@ package Non_ASCII is
    X3_ASCII : Wide_Character := '["03B8"]';  -- theta
 
    ["03c0"]_ASCII : constant := 3.14159;
-   --EMACSCMD:(progn (forward-line -1)(forward-word) (wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "[\"03c0\"]_ASCII"
 
 end Non_ASCII;

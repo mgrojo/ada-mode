@@ -126,7 +126,7 @@ is -- target 0
    ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    type Object_Access_Type_2b is not null access constant
      Integer;
    --EMACSRESULT:"Object_Access_Type_2b"

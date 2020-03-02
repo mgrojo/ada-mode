@@ -413,14 +413,15 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
 (defun wisi-show-declaration-parents ()
   "Display the locations of the parent type declarations of the type identifier around point."
   (interactive)
-  (let ((project (wisi-check-current-project (buffer-file-name))))
+  (let* ((project (wisi-check-current-project (buffer-file-name)))
+	 (id (wisi-prj-identifier-at-point project)))
     (wisi-xref-parents
      (wisi-prj-xref project)
      project
-     :identifier (nth 2 (wisi-prj-identifier-at-point project))
+     :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (current-column))
+     :column (save-excursion (goto-char (nth 1 id)) (current-column)))
     ))
 
 (cl-defgeneric wisi-xref-all (xref project &key identifier filename line column local-only append)
@@ -440,14 +441,15 @@ identifier is declared or referenced.")
   "Show all references of identifier at point.
 With prefix, keep previous references in output buffer."
   (interactive "P")
-  (let ((project (wisi-check-current-project (buffer-file-name))))
+  (let* ((project (wisi-check-current-project (buffer-file-name)))
+	 (id (wisi-prj-identifier-at-point project)))
     (wisi-xref-all
      (wisi-prj-xref project)
      project
-     :identifier (nth 2 (wisi-prj-identifier-at-point project))
+     :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (current-column)
+     :column (save-excursion (goto-char (nth 1 id)) (current-column))
      :local-only nil
      :append append)
     ))
@@ -456,14 +458,15 @@ With prefix, keep previous references in output buffer."
   "Show all references of identifier at point occuring in current file.
 With prefix, keep previous references in output buffer."
   (interactive "P")
-  (let ((project (wisi-check-current-project (buffer-file-name))))
+  (let* ((project (wisi-check-current-project (buffer-file-name)))
+	 (id (wisi-prj-identifier-at-point project)))
     (wisi-xref-all
      (wisi-prj-xref project)
      project
-     :identifier (nth 2 (wisi-prj-identifier-at-point project))
+     :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (current-column)
+     :column (save-excursion (goto-char (nth 1 id)) (current-column))
      :local-only t
      :append append)
     ))
@@ -480,14 +483,15 @@ COLUMN - Emacs column of the start of the identifier ")
 (defun wisi-show-overriding ()
   "Show all overridings of identifier at point."
   (interactive)
-  (let ((project (wisi-check-current-project (buffer-file-name))))
+  (let* ((project (wisi-check-current-project (buffer-file-name)))
+	 (id (wisi-prj-identifier-at-point project)))
     (wisi-xref-overriding
      (wisi-prj-xref project)
      project
-     :identifier (nth 2 (wisi-prj-identifier-at-point project))
+     :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (current-column))
+     :column (save-excursion (goto-char (nth 1 id)) (current-column)))
     ))
 
 (cl-defgeneric wisi-xref-overridden (xref project &key identifier filename line column)
@@ -503,14 +507,15 @@ COLUMN - Emacs column of the start of the identifier")
   "Show the overridden declaration of identifier at point."
   (interactive)
   (let* ((project (wisi-check-current-project (buffer-file-name)))
+	 (id (wisi-prj-identifier-at-point project))
 	 (target
 	  (wisi-xref-overridden
 	   (wisi-prj-xref project)
 	   project
-	   :identifier (nth 2 (wisi-prj-identifier-at-point project))
+	   :identifier (nth 2 id)
 	   :filename (file-name-nondirectory (buffer-file-name))
 	   :line (line-number-at-pos)
-	   :column (current-column))))
+	   :column (save-excursion (goto-char (nth 1 id)) (current-column)))))
 
     (wisi-goto-source (nth 0 target)
 		      (nth 1 target)
