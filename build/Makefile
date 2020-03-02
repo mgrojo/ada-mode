@@ -221,10 +221,10 @@ wisitoken-libadalang-diff : wisitoken-tokens libadalang-tokens
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u wisitoken-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
 
 wisitoken-tokens/%.tokens : dump_wisitoken_corrected$(EXE_EXT)
-	../dump_wisitoken_corrected  ../test/$* > wisitoken-tokens/$*.tokens
+	../dump_wisitoken_corrected  ../test/$* $(VERBOSE) > wisitoken-tokens/$*.tokens
 
 libadalang-tokens/%.tokens : dump_libadalang_corrected$(EXE_EXT)
-	../dump_libadalang_corrected  ../test/$* > libadalang-tokens/$*.tokens
+	../dump_libadalang_corrected  ../test/$* $(VERBOSE) > libadalang-tokens/$*.tokens
 
 %.tokens.diff : wisitoken-tokens/%.tokens libadalang-tokens/%.tokens
 	diff -u wisitoken-tokens/$*.tokens libadalang-tokens/$*.tokens > $*.tokens.diff

@@ -625,9 +625,8 @@ If SRC-DIR is non-nil, use it as the default for project.source-path."
 
 (defun ada-prj-make-xref (label)
   ;; We use the autoloaded constructor here
+  ;; No new require here.
   (funcall (intern (format "create-%s-xref" (symbol-name label))))
-  ;; So far the only ada xref we have is gpr_query, which uses a
-  ;; gnat-compiler object, so no new require here.
   )
 
 (defun ada-prj-require-prj ()
