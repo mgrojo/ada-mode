@@ -252,12 +252,12 @@ does not include the xref package, which is required by
 @file{gpr_query}. So we must build gnatcoll xref from sources.
 
 @menu
-* Building GNATCOLL 20.2::
+* Building GNATCOLL::
 * Building the executables::
 @end menu
 
-@node Building GNATCOLL 2019
-@subsection Building GNATCOLL 2019
+@node Building GNATCOLL
+@subsection Building GNATCOLL
 
 Download the gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
