@@ -395,7 +395,8 @@ Uses `gpr_query'. Returns new list."
 (defconst gpr-query--symbol-char "[-+*/=<>&A-Za-z0-9_.]")
 
 (defconst gpr-query-completion-regexp
-  (concat "\\(" gpr-query--symbol-char "+\\)\\((.*)\\)?""<" gpr-query--symbol-char "+>>")
+  ;; id<package<line>>
+  (concat "\\(" gpr-query--symbol-char "+\\)<.*<[0-9]+>>")
   "Regexp matching completion item from gpr-query--read-symbols.")
 
 (defun gpr-query--read-symbols (session)
@@ -619,7 +620,6 @@ FILE is from gpr-query."
   (wisi-compiler-parse-one xref project name value))
 
 (cl-defmethod wisi-xref-parse-final ((xref gpr-query-xref) _project prj-file-name)
-  (setf (gnat-compiler-run-buffer-name xref) (gnat-run-buffer-name prj-file-name gpr-query-buffer-name-prefix))
   (unless (gnat-compiler-gpr-file xref)
     (if (string= "gpr" (file-name-extension prj-file-name))
 	(setf (gnat-compiler-gpr-file xref) prj-file-name)
