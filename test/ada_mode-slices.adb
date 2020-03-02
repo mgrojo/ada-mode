@@ -27,13 +27,13 @@ procedure Ada_Mode.Slices is
       return Item;
    end "+";
 
-   --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "\"+\""
-   --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Sun"
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 3)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Sun"
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Sun"
    D1, D2 : Day := +Sun;
    --EMACSCMD:(when (eq ada-xref-tool 'gpr_query) (end-of-line 0)(backward-char 5)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Item"))
