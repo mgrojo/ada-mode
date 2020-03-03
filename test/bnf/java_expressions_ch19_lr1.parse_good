@@ -259,9 +259,9 @@ CompilationUnit_0: (CompilationUnit, (67 . 364)) <= ((nonterminal_004_list, (67 
  1: 2:  23:(Wisi_EOI, (381 . 380)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (67 . 364)) <= ((CompilationUnit, (67 . 364)))
  1: succeed
-java_expressions_ch19.input:2:86: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
+java_expressions_ch19.input:2:20: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
-java_expressions_ch19.input:6:132: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
+java_expressions_ch19.input:6:17: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
    recovered: ((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
-java_expressions_ch19.input:12:71: syntax error: expecting Identifier, found '}'
+java_expressions_ch19.input:12:6: syntax error: expecting Identifier, found '}'
    recovered: ((INSERT, Identifier, 22))

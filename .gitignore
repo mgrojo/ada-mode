@@ -12,3 +12,6 @@ build/*.txt
 build/*.wy
 build/obj/
 build/*.diff
+Docs/dir
+Docs/wisitoken-user_guide.html
+Docs/wisitoken-user_guide.info

@@ -51,8 +51,8 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT_1 %[ "--"[^\n\x04]*[\n\x04] ]%
-%non_grammar <comment> COMMENT_2 %[ "//"[^\n\x04]*[\n\x04] ]%
+%non_grammar <comment> COMMENT_1 %[ "--"[^\n\x04]* ]%
+%non_grammar <comment> COMMENT_2 %[ "//"[^\n\x04]* ]%
 
 %mckenzie_check_limit 3
 %mckenzie_check_delta_limit 200

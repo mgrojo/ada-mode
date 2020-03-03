@@ -94,7 +94,7 @@ BOOL_LITERAL
 
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WS %[ [ \t\u000C]+ ]%
-%non_grammar <comment> EndOfLine_COMMENT %[ '//' [^\r\n\x04]*[\r\n\x04] ]%
+%non_grammar <comment> EndOfLine_COMMENT %[ '//' [^\r\n\x04]* ]%
 
 %token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
 

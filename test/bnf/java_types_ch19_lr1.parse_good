@@ -12,9 +12,9 @@ Action
 
  1 parallel tasks
  0: succeed 1, enqueue 5, check  2, cost:  1
- 0:  1, ( 0 1 0 0 0 0 0 0), (12 : (Identifier))| 3:(Wisi_EOI, (54 . 53))|((INSERT, Identifier, 3)) minimal_complete ACTIVE
+ 0:  1, ( 0 1 0 0 0 0 0 0), (12 : (Identifier))| 3:(Wisi_EOI, (68 . 67))|((INSERT, Identifier, 3)) minimal_complete ACTIVE
 recover: succeed, parser count 1
- 0: Current_Token (Identifier) Shared_Token  3:(Wisi_EOI, (54 . 53))
+ 0: Current_Token (Identifier) Shared_Token  3:(Wisi_EOI, (68 . 67))
  0: resume_active: True, token goal 7
  0: 7: (Identifier) : reduce 1 tokens to ClassType
 ClassType_3: (ClassType, (45 . 50)) <= ( 2:(Identifier, (45 . 50)))
