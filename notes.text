@@ -45,6 +45,8 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+use GPRBUILD consistently in Makefile, rules.make
+
 use [:alnum:] (ie "[[:alpha:][[:alnum:]_]+")
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi

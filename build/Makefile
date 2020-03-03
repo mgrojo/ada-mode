@@ -94,7 +94,7 @@ summarize :
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 ONE_TEST_FILES ?= ada_mode-ada2020_more.adb
 one :: build_executables
-#one :: byte-compile autoloads
+one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
@@ -154,16 +154,13 @@ ADA_MODE_DIR := -L .. -l autoloads.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
-# test with installed elpa package
+# test with installed elpa package; don't rebuild grammars
 ADA_MODE_DIR := -f package-initialize
-WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-3.0.1/wisitoken-bnf-generate.exe
+WISITOKEN_GENERATE :=
 endif
 
 # 'include' must be after WISITOKEN_GENERATE and other vars are set.
 include rules.make
-
-$(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
-	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
 
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
