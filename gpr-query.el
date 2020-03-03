@@ -500,7 +500,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	(setq result-count (1- result-count))
 	(forward-line 1))
        ((looking-at "^Error: entity not found")
-	(error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+	(user-error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
        )
 
       (cond
@@ -522,7 +522,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	  ))
 
        ((= result-count 0)
-	(error "gpr_query returned no results"))
+	(user-error "gpr_query returned no results"))
 
        (t
 	;; for next-error, below
@@ -832,7 +832,7 @@ FILE is from gpr-query."
 
 	    (unless found-file
 	      ;; can be nil if actual file is renamed but gpr-query database not updated
-	      (error "file '%s' not found; refresh?" (match-string 1)))
+	      (user-error "file '%s' not found; refresh?" (match-string 1)))
 
             (setq found-file (gpr-query--normalize-filename found-file))
 
@@ -905,7 +905,7 @@ FILE is from gpr-query."
        )
 
       (when (null result)
-	(error "gpr_query did not return other item; refresh?"))
+	(user-error "gpr_query did not return other item; refresh?"))
 
       (message "parsing result ... done")
       result)))
@@ -949,7 +949,7 @@ FILE is from gpr-query."
 	 ))
 
       (when (null result)
-	(error "gpr_query did not return a result; refresh?"))
+	(user-error "gpr_query did not return a result; refresh?"))
 
       (message "parsing result ... done")
       result)))

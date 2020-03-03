@@ -323,23 +323,35 @@ If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
      ((stringp identifier)
       ;; from xref-backend-identifier-at-point; desired location is 'other'
       (let ((item (wisi-xref-item identifier prj)))
-	(with-slots (summary location) item
-	  (let ((eieio-skip-typecheck t))
-	    (with-slots (file line column) location
-	      (let ((target
-		     (wisi-xref-other
-		      (wisi-prj-xref prj) prj
-		      :identifier summary
-		      :filename file
-		      :line line
-		      :column column)))
-		(setq desired-loc
-		      (xref-make summary
-				 (xref-make-file-location
-				  (nth 0 target) ;; file
-				  (nth 1 target) ;; line
-				  (nth 2 target))) ;; column
-	    )))))))
+	(condition-case-unless-debug err
+	    (with-slots (summary location) item
+	      (let ((eieio-skip-typecheck t))
+		(with-slots (file line column) location
+		  (let ((target
+			 (wisi-xref-other
+			  (wisi-prj-xref prj) prj
+			  :identifier summary
+			  :filename file
+			  :line line
+			  :column column)))
+		    (setq desired-loc
+			  (xref-make summary
+				     (xref-make-file-location
+				      (nth 0 target) ;; file
+				      (nth 1 target) ;; line
+				      (nth 2 target))) ;; column
+			  )))))
+	  (user-error ;; from gpr-query; current file might be new to project, so try wisi-names
+	   (let ((item (assoc identifier (wisi-names nil t))))
+	     (if item
+		 (setq desired-loc
+		       (xref-make identifier
+				  (xref-make-file-location
+				   (nth 1 item) ;; file
+				   (nth 2 item) ;; line
+				   (nth 3 item))))
+	       (signal (car err) (cdr err)))))
+	  )))
 
      (t ;; something else
       (error "unknown case in wisi-goto-spec/body")))
