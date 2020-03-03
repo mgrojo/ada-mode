@@ -2,8 +2,6 @@
 --
 -- Recover used to fail to find a solution; now it does.
 
--- Missing several "end ...;"
---
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 package body Ada_Mode.Recover_10 is

@@ -58,16 +58,29 @@ option to disable gpr_query.symbols
     too slow at startup
 
 metric for comparing error correction
-    write perfect, corrected source one token per line
-    diff perfect corrected
+    make -r wisitoken-libadalang-diff
+        done
 
-    get corrected source from adalang
-        dump_libadalang_corrected.adb
-        Token_Range only includes real tokens
-        print diagnostics?
-        need to traverse tree, print implied tokens
-        mimic gnatpp
-        ask on libadalang github issue first
+    sum .diff lengths
+
+    libadalang parses foo'range as IDENTIFIER TICK IDENTIFIER; wisitoken as IDENTIFIER TICK RANGE
+        could have libadalang-correct, but so far this is the only difference, and it only affects recover_30.
+        also foo'access
+
+    excellent examples:
+        recover_02: wisitoken inserts "end; end;" prematurely
+        recover_05: libadalang deletes entire partial record type declaration; wisitoken finishes it
+        recover_07: libadalang splits an assignment rather than insert a semicolon.
+        recover_08: wisitoken inserts "end;" prematurely
+        recover_15; wisitoken inserts "end loop;" just right.
+        recover_16; wisitoken inserts "end if;" just right.
+        recover_18; libadalang deletes start of two loops; can't get indentation right.
+        recover_21: libadalang deletes 'elsif', 'else' instead of inserting 'if then'; can't get indentation right.
+        recover_deleted_procedure_1: libadalang deletes lots of code
+        recover_end_1: libadalang deletes 'procedure'
+        recover_string_quote_1, 2, 3: libadalang does better
+
+    libadalang github issue
              retrieving error correction tokens #455
              https://github.com/AdaCore/libadalang/issues/455
 other ada 202x syntax
@@ -105,6 +118,24 @@ present spark counter example info
     c:/Projects/org.stephe_leake.sal/build/obj/gnatprove/prove_bounded_definite_vectors_sorted.spark
         JSON format
     <gnat>share/gps/plug-ins/spark2014.py
+
+bugs/suboptimal:
+    ada_mode-recover_02.adb
+        inserts 'end; end;' prematurely, ending package; next statement is legal
+            but there's no way to know that without looking farther ahead.
+        minimal complete is too cheap?
+        review all error corrections to see if there's a way to optimize?
+
+    ada_mode-recover_09,adb
+        inserts 'if then if then end if;' instead of 'if then'
+
+    ada_mode-recover_10.adb
+        allow "of" where "in" should be; common mistake
+            produce warning?
+
+        missing 'end' inserted _after_ 'end check_rhs_order'; should be before
+
+delete Local Variables: wisi-mckenzie-task-count: 1 in tests/*.ad? ; set in run-indent-test?
 
 doc symptom of -dominating in dependent project
     gprbuild command line has no -P<gpr file>

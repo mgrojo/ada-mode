@@ -31,7 +31,7 @@ package body Ada_Mode.Recover_02 is
    begin
       --  Started adding a procedure call
       Config_Store.Get
-        (Parser_label
+        (Parser_Label
 
          -- Copied from above, intending to move the function call here.
          -- recover finishes Check_One and Ada_Mode_Recover_02

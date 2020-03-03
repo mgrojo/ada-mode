@@ -195,7 +195,7 @@ parse region."
 		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
 			      (< (point-max) wisi-partial-parse-threshold))
 			  0 1) ;; partial parse active
-		      (if (> wisi-debug 0) 1 0) ;; debug-mode
+		      (if (> wisi-debug 0) 1 0) ;; debug_mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-mckenzie
 		      wisi-trace-action
