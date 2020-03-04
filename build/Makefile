@@ -208,12 +208,14 @@ test-gpr-lalr-process.stamp : force
 	echo "test-gpr-lalr-process" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-wisitoken-recover-compare.stamp : correct-tokens wisitoken-tokens force
+wisitoken-recover-compare.stamp : correct-tokens wisitoken-tokens sum_diff_lengths force
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens wisitoken-tokens/$$file.tokens > $$file.diff ; done
+	../sum_diff_lengths
 	touch $@
 
-libadalang-recover-compare.stamp : correct-tokens libadalang-tokens force
+libadalang-recover-compare.stamp : correct-tokens libadalang-tokens sum_diff_lengths force
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
+	../sum_diff_lengths
 	touch $@
 
 wisitoken-libadalang-diff : wisitoken-tokens libadalang-tokens

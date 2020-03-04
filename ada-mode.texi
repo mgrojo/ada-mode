@@ -71,7 +71,7 @@ Installation
 
 Ada executables
 
-* Building GNATCOLL 2019::
+* Building GNATCOLL::
 * Building the executables::
 
 Customizing Ada mode

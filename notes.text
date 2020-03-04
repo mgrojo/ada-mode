@@ -45,6 +45,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+use hippie-expand to put both wisi-skel-expand and completion-at-point on C-e
+    testing
+
+C-u C-u C-c C-d
+    Invalid parameter 'Filter_Type:a-direct.ads::', expecting name:file:line[:column]]
+
 use [:alnum:] (ie "[[:alpha:][[:alnum:]_]+")
     use instead of A-Za-z in regexp
     test/ada_mode-nonascii.ads Pi
@@ -62,6 +68,10 @@ metric for comparing error correction
         done
 
     sum .diff lengths
+        sum_diff_lengths.adb
+        file_count: 55
+        correct-wisitoken:  total size: 14325
+        correct-libadalang: total size: 52040
 
     libadalang parses foo'range as IDENTIFIER TICK IDENTIFIER; wisitoken as IDENTIFIER TICK RANGE
         could have libadalang-correct, but so far this is the only difference, and it only affects recover_30.
