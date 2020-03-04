@@ -13,6 +13,7 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
@@ -31,7 +32,7 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line ("dump_wisitoken_corrected <file> [verbosity]");
+      Put_Line (Standard_Error, "dump_wisitoken_corrected <file> [verbosity]");
    end Put_Usage;
 
    Verbosity : Integer := 0;
@@ -43,81 +44,9 @@ is
    is
       use Ada_Process_Actions;
       use WisiToken.Syntax_Trees;
-      Image : constant Token_ID_Array_String (+ABS_ID .. +CHARACTER_LITERAL_ID) :=
-        (new String'("abs"),
-         new String'("accept"),
-         new String'("abort"),
-         new String'("abstract"),
-         new String'("access"),
-         new String'("aliased"),
-         new String'("all"),
-         new String'("and"),
-         new String'("array"),
-         new String'("at"),
-         new String'("begin"),
-         new String'("body"),
-         new String'("case"),
-         new String'("constant"),
-         new String'("declare"),
-         new String'("delay"),
-         new String'("delta"),
-         new String'("digits"),
-         new String'("do"),
-         new String'("else"),
-         new String'("elsif"),
-         new String'("end"),
-         new String'("entry"),
-         new String'("exception"),
-         new String'("exit"),
-         new String'("for"),
-         new String'("function"),
-         new String'("generic"),
-         new String'("goto"),
-         new String'("if"),
-         new String'("in"),
-         new String'("interface"),
-         new String'("is"),
-         new String'("limited"),
-         new String'("loop"),
-         new String'("mod"),
-         new String'("new"),
-         new String'("not"),
-         new String'("null"),
-         new String'("of"),
-         new String'("or"),
-         new String'("others"),
-         new String'("out"),
-         new String'("overriding"),
-         new String'("package"),
-         new String'("pragma"),
-         new String'("private"),
-         new String'("procedure"),
-         new String'("protected"),
-         new String'("raise"),
-         new String'("range"),
-         new String'("record"),
-         new String'("rem"),
-         new String'("renames"),
-         new String'("requeue"),
-         new String'("return"),
-         new String'("reverse"),
-         new String'("separate"),
-         new String'("select"),
-         new String'("some"),
-         new String'("subtype"),
-         new String'("synchronized"),
-         new String'("tagged"),
-         new String'("task"),
-         new String'("terminate"),
-         new String'("then"),
-         new String'("type"),
-         new String'("until"),
-         new String'("use"),
-         new String'("when"),
-         new String'("while"),
-         new String'("with"),
-         new String'("xor"),
-         new String'("("),
+
+      Punctuation_Image : constant Token_ID_Array_String (+RIGHT_PAREN_ID .. +TICK_2_ID) :=
+        (new String'("("),
          new String'(")"),
          new String'("&"),
          new String'("@"),
@@ -144,24 +73,33 @@ is
          new String'("*"),
          new String'("**"),
          new String'("'"),
-         new String'("'"),
-         new String'("NUMERIC_LITERAL"),
-         new String'("IDENTIFIER"),
-         new String'("STRING_LITERAL"),
-         new String'("CHARACTER_LITERAL"));
+         new String'("'"));
 
       Tree     : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
       ID       : constant Token_ID := Tree.ID (Node);
-      ID_Image : constant String   := Image (ID).all;
    begin
-      if -ID in IDENTIFIER_ID | CHARACTER_LITERAL_ID and Tree.Label (Node) = Shared_Terminal then
+      if Tree.Label (Node) = Shared_Terminal then
          declare
             Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
          begin
-            return ID_Image & " " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
+            if -ID = IDENTIFIER_ID then
+               return "IDENTIFIER " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
+            elsif -ID = CHARACTER_LITERAL_ID then
+               return "CHARACTER_LITERAL " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
+            else
+               return Parser.Lexer.Buffer_Text (Token.Byte_Region);
+            end if;
          end;
       else
-         return ID_Image;
+         if -ID in RIGHT_PAREN_ID .. TICK_2_ID then
+            return Punctuation_Image (ID).all;
+         elsif -ID = IDENTIFIER_ID then
+            return "IDENTIFIER";
+         elsif -ID = CHARACTER_LITERAL_ID then
+            return "CHARACTER_LITERAL";
+         else
+            return Ada.Characters.Handling.To_Lower (Ada_Process_Actions.Descriptor.Image (ID).all);
+         end if;
       end if;
    end Image;
 
@@ -177,6 +115,8 @@ begin
    declare
       use Ada.Command_Line;
    begin
+      Set_Exit_Status (Success);
+
       if Argument_Count < 1 then
          Put_Usage;
          Set_Exit_Status (Failure);
@@ -217,7 +157,8 @@ begin
 
 exception
 when E : others =>
-   Put_Line ("exception " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-   Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+   Put_Line (Standard_Error,
+             "exception " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+   Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 end Dump_WisiToken_Corrected;

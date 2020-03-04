@@ -66,7 +66,7 @@ project Ada_Mode_Wisi_Parse is
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
+           Standard_Common.Compiler.Debug_Switches & "-gnat2020";
 
          --  Generated files; lines too long, don't need debug
          for Switches ("ada_process_actions.adb") use
@@ -95,7 +95,7 @@ project Ada_Mode_Wisi_Parse is
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler.Release_Switches;
+           Standard_Common.Compiler.Release_Switches & "-gnat2020";
 
          for Switches ("ada_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &

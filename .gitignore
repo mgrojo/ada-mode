@@ -50,3 +50,4 @@ build/wisitoken-tokens/
 dump_libadalang_corrected
 dump_wisitoken_corrected
 test/debug.adb
+sum_diff_lengths

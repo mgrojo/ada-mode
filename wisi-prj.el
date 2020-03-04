@@ -296,10 +296,13 @@ user arg limits completion to current file."
               (completing-read prompt table nil nil nil 'xref--read-identifier-history)))
         (if (equal id "")
             (user-error "No identifier provided")
-          (if (consp (car table))
-	      ;; alist; return key and value.
-	      (assoc id table)
-	    id))))
+
+	  ;; The user may have forced exit from completing-read with a
+	  ;; string that is not in the table (because gpr-query is out
+	  ;; of date, for example).
+          (or (and (consp (car table)) ;; alist; return key and value.
+		   (assoc id table))
+	      id))))
      (t def))))
 
 (defun wisi-goto-spec/body (identifier)
