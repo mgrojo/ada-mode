@@ -40,6 +40,12 @@ elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*.elc
 
+ifeq ($(TEST_DIR),source)
+$(WISITOKEN_GENERATE) : force
+	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
+else
+endif
+
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
