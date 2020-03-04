@@ -209,7 +209,7 @@ Must match gpr_query.adb Version.")
 		   (cl-delete-if
 		    'null
 		    (list
-		     (concat "--project=" gpr-file)
+		     (concat "--project=" (file-name-nondirectory gpr-file))
 		     (when gpr-query--debug
 		       "--tracefile=gpr_query.trace"
 		       ;; The file gpr_query.trace should contain: gpr_query=yes

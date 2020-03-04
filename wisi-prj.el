@@ -433,7 +433,7 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
      :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (save-excursion (goto-char (nth 1 id)) (current-column)))
+     :column (save-excursion (goto-char (nth 0 id)) (current-column)))
     ))
 
 (cl-defgeneric wisi-xref-all (xref project &key identifier filename line column local-only append)
@@ -461,7 +461,7 @@ With prefix, keep previous references in output buffer."
      :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (save-excursion (goto-char (nth 1 id)) (current-column))
+     :column (save-excursion (goto-char (nth 0 id)) (current-column))
      :local-only nil
      :append append)
     ))
@@ -478,7 +478,7 @@ With prefix, keep previous references in output buffer."
      :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (save-excursion (goto-char (nth 1 id)) (current-column))
+     :column (save-excursion (goto-char (nth 0 id)) (current-column))
      :local-only t
      :append append)
     ))
@@ -503,7 +503,7 @@ COLUMN - Emacs column of the start of the identifier ")
      :identifier (nth 2 id)
      :filename (file-name-nondirectory (buffer-file-name))
      :line (line-number-at-pos)
-     :column (save-excursion (goto-char (nth 1 id)) (current-column)))
+     :column (save-excursion (goto-char (nth 0 id)) (current-column)))
     ))
 
 (cl-defgeneric wisi-xref-overridden (xref project &key identifier filename line column)
@@ -527,7 +527,7 @@ COLUMN - Emacs column of the start of the identifier")
 	   :identifier (nth 2 id)
 	   :filename (file-name-nondirectory (buffer-file-name))
 	   :line (line-number-at-pos)
-	   :column (save-excursion (goto-char (nth 1 id)) (current-column)))))
+	   :column (save-excursion (goto-char (nth 0 id)) (current-column)))))
 
     (wisi-goto-source (nth 0 target)
 		      (nth 1 target)
@@ -1288,16 +1288,16 @@ IDENTIFIER is from a user prompt with completion, or from
 
 (cl-defmethod xref-backend-identifier-at-point ((prj wisi-prj))
   (save-excursion
-    (let ((ident (nth 2 (wisi-prj-identifier-at-point prj))))
-      (when ident
+    (let ((id (wisi-prj-identifier-at-point prj)))
+      (when id
 	(put-text-property
 	 0 1
 	 'xref-identifier
 	 (list ':file (buffer-file-name)
 	       ':line (line-number-at-pos)
-	       ':column (current-column))
-	 ident)
-	ident))))
+	       ':column (save-excursion (goto-char (nth 0 id)) (current-column)))
+	 (nth 2 id))
+	(nth 2 id)))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((prj wisi-prj))
   (wisi-filter-table (wisi-xref-completion-table (wisi-prj-xref prj) prj)
