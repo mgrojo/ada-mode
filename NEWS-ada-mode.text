@@ -10,6 +10,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** gpr_query Version 3
 
+** ada-mode fully supports non-ASCII text (the few remaining
+   ASCII-only regular expressions have been fixed).
+
 ** gpr_query now starts in the background, and provides a completion
    table of all symbols in the project.
 

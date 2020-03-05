@@ -51,13 +51,7 @@ use hippie-expand to put both wisi-skel-expand and completion-at-point on C-e
 change "git clone" in https://savannah.nongnu.org/git/?group=ada-mode
     to "git clone -b org.emacs.ada-mode"
     3 Mar 2020: sent email to savannah-hackers
-
-mention git_checkout.sh in ada-mode.texi
-    also git clone -b
-
-use [:alnum:] (ie "[[:alpha:][[:alnum:]_]+")
-    use instead of A-Za-z in regexp
-    test/ada_mode-nonascii.ads Pi
+        https://lists.gnu.org/archive/html/savannah-hackers/2020-03/msg00000.html
 
 add re2c install to wisitoken user guide
     fix title

@@ -155,7 +155,7 @@ For `compilation-filter-hook'."
   "regexp to extract a file name")
 
 (defconst ada-gnat-quoted-name-regexp
-  "\"\\([a-zA-Z0-9_.']+\\)\""
+  "\"\\([[:alnum:]_.']+\\)\""
   "regexp to extract the quoted names in error messages")
 
 (defconst ada-gnat-quoted-punctuation-regexp
@@ -204,7 +204,7 @@ Prompt user if more than one."
   (save-excursion
     (forward-line 1)
     (skip-syntax-forward "^ ")
-    (looking-at " use fully qualified name starting with \\([a-zA-Z0-9_]+\\) to make")
+    (looking-at " use fully qualified name starting with \\([[:alnum:]_]+\\) to make")
     (match-string 1)
     ))
 
@@ -436,7 +436,7 @@ Prompt user if more than one."
 	     (insert " " expected-keyword))
 	   t)
 
-	  ((looking-at "\\(?:possible \\)?missing \"with \\([a-zA-Z0-9_.]+\\);")
+	  ((looking-at "\\(?:possible \\)?missing \"with \\([[:alnum:]_.]+\\);")
 	   ;; also 'possible missing "with Ada.Text_IO; use Ada.Text_IO"' - ignoring the 'use'
 	   (let ((package-name (match-string-no-properties 1)))
 	     (pop-to-buffer source-buffer)
@@ -774,7 +774,7 @@ Prompt user if more than one."
   (save-match-data
     (while (re-search-forward
 	    (concat
-	     "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
+	     "[^[:alnum:])]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
 	     "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
 	     )
 	    end t)

@@ -481,8 +481,8 @@ Runs `ada-syntax-propertize-hook'."
     (save-match-data
       (while (re-search-forward
 	      (concat
-	       "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
-	       "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
+	       "[^[:alnum:])]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	       "\\|[^[:alnum:])]\\('''\\)"; 3: character literal '''
 	       )
 	      end t)
 	;; syntax-propertize-extend-region-functions is set to
@@ -521,8 +521,7 @@ The extensions should include a `.' if needed.")
 See `ff-other-file-alist'.")
 
 (defconst ada-parent-name-regexp
-  ;; FIXME: :alnum: doesn't work here
-  "\\([a-zA-Z0-9_\\.]+\\)\\.[a-zA-Z0-9_]+"
+  "\\([[:alnum:]_\\.]+\\)\\.[[:alnum:]_]+"
   "Regexp for extracting the parent name from fully-qualified name.")
 
 (defun ada-ff-special-extract-parent ()

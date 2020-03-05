@@ -1,6 +1,6 @@
 ;; wisitoken-parse_table-mode.el --- For navigating in a parse table as output by wisitoken-bnf-generate. -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2020  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -54,7 +54,7 @@
 
      ((save-excursion
 	(back-to-indentation)
-	(looking-at "[a-zA-Z_]+ + => reduce [0-9]+ tokens to \\([a-z0-9_]+\\) \\([0-9.]+\\)"))
+	(looking-at "[[:alpha:]_]+ + => reduce [0-9]+ tokens to \\([[:alnum:]_]+\\) \\([0-9.]+\\)"))
       (concat (match-string 2) ": " (match-string 1)))
 
      (t

@@ -445,8 +445,7 @@ Uses `gpr_query'. Returns new list."
   (concat wisi-file-line-col-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-;; FIXME: use [:alnum:]
-(defconst gpr-query--symbol-char "[-+*/=<>&A-Za-z0-9_.]")
+(defconst gpr-query--symbol-char "[-+*/=<>&[:alnum:]_.]")
 
 (defconst gpr-query-completion-regexp
   ;; id<package<line>>
@@ -481,7 +480,6 @@ Uses `gpr_query'. Returns new list."
     (while (not (eobp))
       (cond
        ;; FIXME: dispatch on language
-       ;; FIXME: :alnum: doesn't work here
        ((looking-at (concat "\\(" gpr-query--symbol-char "+\\)"    ;; 1: prefix
 			    "\\.\\(" gpr-query--symbol-char "+\\)" ;; 2: simple name
 			    "\\((.*)\\)? "                         ;; 3: args,
