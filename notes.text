@@ -48,11 +48,6 @@ for ada_mode_wisi_parse.gpr:
 use hippie-expand to put both wisi-skel-expand and completion-at-point on C-e
     testing
 
-C-u C-u C-c C-d
-    Invalid parameter 'Filter_Type:a-direct.ads::', expecting name:file:line[:column]]
-
-use GPRBUILD consistently in Makefile, rules.make
-
 change "git clone" in https://savannah.nongnu.org/git/?group=ada-mode
     to "git clone -b org.emacs.ada-mode"
     3 Mar 2020: sent email to savannah-hackers

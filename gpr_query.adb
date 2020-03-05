@@ -537,10 +537,25 @@ procedure Gpr_Query is
       use Ada.Text_IO;
       use GNATCOLL.Arg_Lists;
       use GNATCOLL.Xref;
-      Prefix : constant String := Nth_Arg (Args, 1);
+      Prefix  : constant String := Nth_Arg (Args, 1);
       Matches : Entities_Cursor;
+      Count   : Integer         := 0;
    begin
       Short_File_Names := False;
+
+      --  First count all matches, so Emacs can show progress
+      Xref.From_Prefix
+        (Prefix,
+         Is_Partial => True,
+         Cursor     => Matches);
+      loop
+         exit when not Has_Element (Matches);
+         Count := @ + 1;
+         Next (Matches);
+      end loop;
+
+      Ada.Text_IO.Put_Line ("element count" & Count'Image);
+
       Xref.From_Prefix
         (Prefix,
          Is_Partial => True,

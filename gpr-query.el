@@ -71,6 +71,9 @@ Must match gpr_query.adb Version.")
 
   symbol-locs ;; alist completion table, with locations; see gpr-query--read-symbols
   symbols ;; just symbols compeltion table; see gpr-query--read-symbols
+  symbols-count-total
+  symbols-count-current
+  symbols-percent-last-update
   )
 
 ;; Starting the buffer name with a space hides it from some lists, and
@@ -136,6 +139,27 @@ Must match gpr_query.adb Version.")
 	  (gpr-query--start-process gpr-query--local-session 'symbols)
 	  )))))
 
+(defvar gpr-query--symbols-progress ""
+  ;; We assume only one gpr-query symbols process is active at a time
+  "For `mode-line-misc-info'.")
+
+(defun gpr-query--update-progress ()
+  ;; separate for debugging
+  (setf (gpr-query--session-symbols-count-current gpr-query--local-session)
+	(+ (gpr-query--session-symbols-count-current gpr-query--local-session)
+	   (count-lines (point) (point-max))))
+  (let ((percent
+	 (/
+	  (* 100 (gpr-query--session-symbols-count-current gpr-query--local-session))
+	     (gpr-query--session-symbols-count-total gpr-query--local-session))))
+    (when (< (+ 5 (gpr-query--session-symbols-percent-last-update gpr-query--local-session))
+	     percent)
+      (setf (gpr-query--session-symbols-percent-last-update gpr-query--local-session) percent)
+      (setq gpr-query--symbols-progress (format "symbols %d%%" percent))
+      (force-mode-line-update)
+      (redisplay t)
+      )))
+
 (defun gpr-query--symbols-filter (process text)
   "Process filter for symbols process."
   (when (buffer-name (process-buffer process))
@@ -147,18 +171,36 @@ Must match gpr_query.adb Version.")
           (insert text)
           (set-marker (process-mark process) (point)))
 
-	;; Wait for current command (or startup) to finish, do next
-	;; action.
+	;; Update session progress slots
+	(when (eq (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
+	  (cond
+	   ((null (gpr-query--session-symbols-count-total gpr-query--local-session))
+	    (goto-char search-start)
+	    ;; back up a line in case we got part of the line previously.
+	    (forward-line -1)
+
+	    (when (re-search-forward "element count \\([0-9]+\\)" (point-max) t)
+	      (setf (gpr-query--session-symbols-count-total gpr-query--local-session)
+		    (string-to-number (match-string 1)))
+	      (setf (gpr-query--session-symbols-count-current gpr-query--local-session) 0)
+	      (setf (gpr-query--session-symbols-percent-last-update gpr-query--local-session) 0)
+	      ))
+	   (t
+	    (gpr-query--update-progress)
+	    )
+	   ))
+
+	;; Wait for last command to finish.
 	(goto-char search-start)
-	;; back up a line in case we got part of the prompt previously.
 	(forward-line -1)
-	(when (re-search-forward gpr-query-prompt (point-max) 1)
+	(when (re-search-forward gpr-query-prompt (point-max) t)
 	  (cond
 	   ((null (gpr-query--session-symbols gpr-query--local-session))
 	    ;; startup complete; get symbols
 	     (gpr-query--check-startup)
 	     (erase-buffer)
 	     (set-marker (process-mark process) (point-min))
+	     (setf (gpr-query--session-symbols-count-total gpr-query--local-session) nil)
 	     (process-send-string process "complete \"\"\n")
 	     (setf (gpr-query--session-symbols gpr-query--local-session) 'sent-complete))
 
@@ -272,6 +314,13 @@ Must match gpr_query.adb Version.")
     (error "gpr-query process died"))
 
   (with-current-buffer (process-buffer process)
+    (when (eq command-type 'symbols)
+      ;; show progress in mode line
+      (setq gpr-query--symbols-progress "")
+      (add-to-list 'mode-line-misc-info '("" gpr-query--symbols-progress " "))
+      (force-mode-line-update)
+      (redisplay))
+
     (while (and (process-live-p process)
 		(not done))
       (message (concat "running gpr_query ..." (make-string wait-count ?.)))
@@ -284,8 +333,13 @@ Must match gpr_query.adb Version.")
 	(unless (accept-process-output process 1.0)
 	  ;; accept-process returns non-nil when we got output, so we
 	  ;; did not wait for timeout.
-	  (setq wait-count (1+ wait-count))))
+	  (setq wait-count (1+ wait-count))
+	  ))
       ))
+
+  (when (eq command-type 'symbols)
+    (setq mode-line-misc-info (delete '("" gpr-query--symbols-progress " ") mode-line-misc-info)))
+
   (if (or (eq command-type 'symbols);; symbols process is supposed to die
 	  (process-live-p process))
       (message (concat "running gpr_query ... done"))

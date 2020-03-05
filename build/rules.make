@@ -96,14 +96,11 @@ compile-ada-test : force
 # check. We don't check any other style requirements; not needed for
 # comparing indentation, and they get in the way.
 
-# override on command line for other compiler versions
-GPRBUILD := gprbuild
-
 %.ali : %.adb
-	$(GPRBUILD) -P ada_mode_compile.gpr -c $(<F)
+	gprbuild -P ada_mode_compile.gpr -c $(<F)
 
 %.ali : %.ads
-	$(GPRBUILD) -P ada_mode_compile.gpr -c $(<F)
+	gprbuild -P ada_mode_compile.gpr -c $(<F)
 
 %.info : %.texi
 	makeinfo $< -o ../$@
