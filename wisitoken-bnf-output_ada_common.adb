@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1194,6 +1194,8 @@ package body WisiToken.BNF.Output_Ada_Common is
             null;
 
          elsif Kind (I) = "keyword" and Input_Data.Language_Params.Case_Insensitive then
+            --  This assumes re2c regular expression syntax, where single quote
+            --  means case insensitive.
             Indent_Line (Name (I) & " = '" & Strip_Quotes (Value (I)) & "';");
 
          else

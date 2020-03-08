@@ -1,0 +1,158 @@
+\documentclass{article}
+\title{Robust error correction in a generalized LR parser}
+\author{Stephen Leake}
+\begin{document}
+\section{Abstract}
+
+\section{Introduction}
+Emacs Ada mode has used an LR parser to support indentation, syntax
+highlighting, and navigation since 2013 (\cite{Emacs Ada mode news}).
+However, the parser did not provide error correction, so the
+indentation was often confusing when the syntax was incorrect, as it
+usually is in an interactive editing environment. This motivated the
+search for error correction algorithms.
+
+\cite{Grune 2008} provides a thorough overview of error correction in
+LR and LL parsers. Of those algorithms presented, \cite{McKenzie 1995}
+provides the foundation for the current work.
+
+The McKenzie algorithm works by exploring the parse table (or
+Deterministic Parsing Automata (DPA) as \cite{McKenzie 1995} calls it)
+at the error point, finding tokens to insert. It also tries deleting
+tokens following the error point. Each possible solution, together
+with the parse stack at the error point, forms a
+\textit{configuration}. Each configuration also has a cost, determined
+by what tokens are inserted and deleted. At each step in the
+algorithm, new configurations are generated from the current error
+point. Then the minimum cost configuration is checked to see if it
+succeeds; if not, more configurations are generated.
+
+There are several situations where the McKenzie algorithm can take a
+long time, or is inefficient.
+
+For example, consider this Ada code:
+\begin{verbatim}
+procedure Example_1
+is begin
+   Msg : constant String;
+begin
+   Put_Line (Msg);
+end;
+\end{verbatim}
+
+There is an extra \verb|begin| immediately after \verb|is| (a common
+occurance while editing code). However, the error is not detected
+until \verb|:|, which can only occur in declarations, not statements.
+
+To fix this, the McKenzie algorithm must insert
+\verb|; end; begin <identifier>|, or delete
+\verb|constant String; begin| and then insert \verb|;|. A much better
+solution would be to ``push back'' \verb|Msg begin|, and then delete
+\verb|begin|.
+
+A harder problem is when there are several missing ``end''s, because
+the user is typing a nested statement:
+\begin{verbatim}
+begin
+   if A then
+      B;
+      if C then
+         loop
+           Do_Something;
+end;
+\end{verbatim}
+
+Here we are missing several tokens: \verb|end loop; end if; end if;|.
+McKenzie will eventually find the solution that inserts all of these,
+but along the way it will try inserting every possible statement as
+well, wasting a lot of time. Our new algorithm quickly finds the
+minimal number of tokens to insert to complete the trailing statement
+in situations like this.
+
+This article introduces several new operations for the core McKenzie
+algorithm to try at the error point, and adapt the algorithm to work
+with a generalized parser.
+
+%% copy initial parts of mckenzie to define 'config' etc?
+
+\sections{Extensions to McKenzie}
+
+The first new operation is \verb|push_back|, mentioned above; it pops
+the top parse stack item, and moves the input stream pointer back to
+the first terminal contained by that item. We call the point in the
+input stream at which insert and delete is done the ``edit point''; it
+may not be an error point. \verb|push_back| moves the edit point.
+
+A related operation is \verb|undo_reduce|; it undoes the parse of the
+top stack item (which must be a nonterminal), replacing the top stack
+item by the sequence of stack items just before the previous
+reduction, without moving the edit point. This requires a syntax tree
+that records the shifts and reductions done during the parse. The
+input pointer is not moved. This operation serves two purposes;
+
+1) it allows a subsequenct \verb|push_back| to push back fewer tokens.
+
+2) it allows token insertions that would otherwise be forbidden by the
+grammar.
+
+To illustrate the second point, consider:
+\begin{verbatim}
+procedure Example_2
+is begin
+   procedure Put_Top_10
+   is begin
+   ...
+   end Put_Top_10;
+begin
+end Example_2;
+\end{verbatim}
+As in \verb|Example_1|, there is an extra \verb|begin| after
+\verb|is|. The error is detected at \verb|procedure|; at that point,
+the parse stack looks like (top is to the left):
+\begin{verbatim}
+245 : BEGIN, 208 : declarative_part, 159 : IS, 36 : subprogram_specification, 0 :
+\end{verbatim}
+Here the numbers label the states, terminals are in uppercase,
+nonterminals in lowercase. \verb|declarative_part| is empty here; in a
+more complex case it might not be.
+
+The \verb|push_back| operation would just push back \verb|BEGIN|.
+leaving \verb|declarative_part| on top of the stack. Deleting
+\verb|BEGIN| would leave \verb|PROCEDURE| as the next token, which is
+still illegal in state 208; it starts a declaration, but we've already
+``closed'' the declaration section by reducing to
+\verb|declarative_part|. We could do
+\verb|push_back declarative_part|, and in this case that does no harm,
+since it is empty. But if it is not empty, we do not want to move the
+edit point; we just want to start parsing at \verb|PROCEDURE|.
+\verb|undo_reduce declaration_part| accomplishes this.
+
+
+
+%% String_Quote
+
+%% Minimal_Complete (add costs?)
+%% - minimal complete similar to Fischer and Mauney 1980
+%% S(A) = x such that A => x and Cost(x) is minimized = Terminal_Sequence (all cost 1)
+%% E(A,a) = x : A => xay, cost (x) minimal => superset of matching_begin?
+
+%% Matching_Begin
+
+%% Language_Fix
+
+%% interaction with generalized parsing.
+\section{Bibliography}
+\begin{thebibliography}{9}
+
+\bibitem{Emacs Ada mode news} http://www.nongnu.org/ada-mode/NEWS-ada-mode.text
+
+\bibitem{Grune 2008} ``Parsing Techniques; A Practical Guide, Second
+  Edition''. Dick Grune, Ceriel J.H. Jacobs, 2008. Springer Science.
+
+\bibitem{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
+  Vere, Lorraine.
+  \textit{Error repair in shift reduce parsers} ACM Trans. Prog.
+  Lang. Syst., 17(4):672-689, July 1995.
+  % Described in [Grune 2008] ref 321.
+\end{thebibliography}
+\end{document}

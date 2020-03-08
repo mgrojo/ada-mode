@@ -2,10 +2,10 @@
 @c Author : Stephen Leake stephen_leake@stephe-leake.org
 @c Web    : http://stephe-leake.org/ada/opentoken.html
 @setfilename wisi-generate
-@settitle wisi-generate User Guide
+@settitle WisiToken User Guide
 
 @copying
-Copyright @copyright{} 2014-2015, 2017, 2018 Stephen Leake.
+Copyright @copyright{} 2014-2015, 2017, 2018, 2020 Stephen Leake.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this
@@ -49,16 +49,15 @@ section entitled "GNU Free Documentation License".
 @chapter Overview
 
 WisiToken is a parser and parser generator toolkit, supporting
-generalized LR (both LALR and LR1) and packrat parsers. The grammar
-can be expressed as either Ada source code statements, or in an EBNF
-file. The parser generator generates either Ada or elisp source (the
-elisp source assumes the Emacs wisi Gnu ELPA package).
+generalized LR (both LALR and LR1) and packrat parsers; the LR parser
+provides robust error recovery. The grammar can be expressed as either
+Ada source code statements, or in an EBNF file. The parser generator
+generates Ada, either plain or assuming the Emacs wisi package.
 
 At one point, ``wisi'' was short for ``Wisent Indentation engine'';
 the Emacs 'wisi' package implements an indentation engine that used to
 be based on the Emacs wisent parser. However, that parser has now been
-replaced by a generalized LALR parser with error recovery, so ``wisi''
-is just a name.
+replaced by the WisiToken parser, so ``wisi'' is just a name.
 
 @menu
 * Install::
@@ -66,13 +65,16 @@ is just a name.
 
 @node Install
 @section Install
-WisiToken is available as source code only.
+WisiToken is available as source code only, although a subset is
+available in the GNU ELPA package @code{wisi}.
 
-To use the Ada runtime, you will also need to install a lexer
-generator. WisiToken supports re2c, and other lexers can be added.
+You will also need to install a lexer generator. WisiToken supports
+re2c, and other lexers can be added.
 
-re2c is available from @url{http://re2c.org/}. WisiToken uses the
-environment variable @var{RE2C_HOME} to locate re2c.
+re2c is available from @url{http://re2c.org/}; it is also packaged in
+Mingw64 and Debian. WisiToken requires at least version 1.3.
+WisiToken assumes the executable @code{re2c} is in
+@code{$PATH}.
 
 @node Common grammar problems
 @chapter Common grammar problems
@@ -212,7 +214,7 @@ with some additions and deletions (@pxref{Top,Bison,Overview,bison}).
 The top level file structure is a list of declarations and
 nonterminals.
 
-Comments are started by ``;;'' and terminated by end of line.
+Comments are started by @code{;;} and terminated by end of line.
 
 @menu
 * Declarations::
@@ -223,8 +225,8 @@ Comments are started by ``;;'' and terminated by end of line.
 @node Declarations
 @section Declarations
 
-The Declarations sections declares terminal tokens, conflicts, and
-other parser parameters.
+Declarations declare terminal tokens, conflicts, and other parser
+parameters.
 
 @menu
 * Raw Code::
@@ -241,22 +243,17 @@ other parser parameters.
 @end verbatim
 
 Raw code declarations contain arbitrary code, copied verbatim into the
-output.
-
-For Elisp output, the generator adds the necessary
-@code{require} forms for the elisp lexer, parser, and wisi actions;
-you only need to add add additional code if you use other
-actions.
-
-For Ada output, the keywords following @code{%code} determine where
+output. The keywords following @code{%code} determine where
 the section is output.
 
 @node Keywords
 @subsection Keywords
 @verbatim
 %keyword <name> <string>
+@end verbatim
 
 example:
+@verbatim
 %keyword SEMICOLON ";"
 @end verbatim
 
@@ -267,72 +264,59 @@ lexers recognize them by the given string.
 @subsection Tokens
 @verbatim
 %token < kind > name regexp
+@end verbatim
 
 example:
-%token <symbol> IDENTIFIER
+@verbatim
+%token <symbol> IDENTIFIER %[ ... ]%
 %token <punctuation> TICK "'"
 @end verbatim
 
-The meaning of @code{kind} is determined by the lexer and parser
-runtime. The syntax of the regular expression is determined by the
-lexer generator.
-
-In the Emacs wisi lexer, the token kinds are recognized by Emacs syntax
-properties:
+The syntax of the regular expression is determined by the lexer
+generator. The meaning of @code{kind} is determined by the lexer
+(@code{re2c} ignores this), with the following defined by the
+WisiToken generator. Other token kinds have no effect; they may be
+used for documentation.
 
 @table @code
-@item <punctuation>
-@verbatim
-%token <punctuation> TICK "'"
-@end verbatim
-A string of characters that have punctuation syntax, and match the
-token string.
-
-@item <symbol>
-@verbatim
-%token <symbol> IDENTIFIER
-@end verbatim
-A string of characters that have word syntax, that match no other token.
-
 @item <string-double>
 @verbatim
-%token <string-double> STRING_LITERAL
+%token <string-double> STRING_LITERAL %[ ... ]%
 @end verbatim
 A string of characters that have string syntax, with double quote delimiters.
 
 @item <string-single>
 @verbatim
-%token <string-single> CHARACTER_LITERAL
+%token <string-single> CHARACTER_LITERAL %[ ... ]%
 @end verbatim
 A string of characters that have string syntax, with single quote delimiters.
 
-@item <number>
+@item <new-line>
 @verbatim
-%token <number> NUMERIC_LITERAL ada-wisi-number-p ada-wisi
-@end verbatim
-A string of characters that have word syntax, recognized by the
-function given in the third parameter. The fourth parameter is the
-source file for the recognizer (included via @code{require}).
-
-@item <whitespace>
-@verbatim
-%token <whitespace> WHITESPACE [ \t\n]
-@end verbatim
-Not used by the wisi lexer; required by the Ada lexer.
-
-@item <comment>
-@verbatim
-%token <line_comment> COMMENT "--"[^\n]*[\n]
+%token <new-line> [\n] %[ ... ]%
 @end verbatim
 Not used by the wisi lexer; required by the Ada lexer. The third
 argument is the regular expression to recognize the entire comment.
+
+@item <non-reporting>
+@verbatim
+%token <non-reporting> WHITESPACE %[ [ \t] ]%
+@end verbatim
+A token that is recognized by the lexer, but not returned to the
+parser.
+
+@item <delimited-text>
+@verbatim
+%token <delimited-text> RAW_CODE "%{" "}%"
+@end verbatim
+A token that contains arbitrary text, delimited by the two strings.
 
 @end table
 
 @node Error recovery
 @subsection Error recovery
-The parser can use error recovery algorithms when it encounters syntax
-errors; if a solution is found, the parse continues.
+The parser uses an error recovery algorithm when it encounters a
+syntax error; if a solution is found, the parse continues.
 
 Error recovery uses multiple tasks to take advantage of multiple CPU
 cores.  Unfortunately, this means there is a race condition; the
@@ -341,15 +325,14 @@ runs. This matters because each solution results in a successful
 parse, possibly with different actions (different indentation
 computed, for example).  Which solution finally succeeds depends on
 which are terminated due to identical parser stacks, which in turn
-depends on the order they were delivered. See
-@file{ada-mode/tests/ada_mode-interactive_2.adb} for an example.
+depends on the order they were delivered.
 
-Once the syntax errors are fixed, only the ambiguities in the grammar
+Once the syntax errors are fixed, only ambiguities in the grammar
 itself can cause a similar problem.
 
-Several declarations set parameters for the error recovery. If none of
-these parameters are present in the grammar file, the generated parser
-does not do error recovery.
+Several grammar file declarations set parameters for the error
+recovery. If none of these parameters are present in the grammar file,
+the generated parser does not do error recovery.
 
 @table @code
 @item %mckenzie_check_limit <limit>
@@ -372,7 +355,8 @@ floating point numbers.
 
 ``Push back'' means undo parsing; remove tokens from the parse stack
 and put them back into the input stream. This moves the insert/delete
-point, allowing better solutions.
+point, allowing better solutions. The push back default cost is also
+the undo reduce default cost.
 
 If not specified, costs are zero. Costs can be negative; they
 all add linearly.
@@ -380,21 +364,34 @@ all add linearly.
 @item %mckenzie_cost_delete <token> <cost>
 McKenzie error recovery delete cost for a specific token.
 
+@item %mckenzie_cost_fast_forward <cost>
+McKenzie error recovery cost for parsing ahead after fixing one error,
+moving to the next error location.
+
 @item %mckenzie_cost_insert <token> <cost>
 McKenzie error recovery insert cost for a specific token.
 
-@item %mckenzie_cost_limit <integer>
-McKenzie error recovery limit on cost of solutions; default max integer.
+@item %mckenzie_cost_fast_forward <cost>
+McKenzie error recovery cost for using the @code{matching_begin}
+strategy.
 
 @item %mckenzie_cost_push_back <token> <cost>
 McKenzie error recovery push back cost for a specific token.
+
+@item %mckenzie_cost_undo_reduce <token> <cost>
+McKenzie error recovery undo reduce cost for a specific token.
 
 @item %mckenzie_enqueue_limit <integer>
 McKenzie error recovery limit on possible solutions enqueued (to be
 checked); default max integer.
 
+@item %mckenzie_minimal_complete_cost_delta <cost>
+McKenzie error recovery cost added to the cost of an inserted token
+when the insert is done by the minimal complete strategy; this cost is
+normally negative.
+
 The error recovery algorithm generates possible solutions based on the
-grammar preceding the error point, by inserting, deleting, or pushing
+parse state preceding the error point, by inserting, deleting, or pushing
 back tokens. Each possible solution is given a cost, and enqueued to
 be checked later. Solutions are checked in cost order (lowest first).
 
@@ -436,10 +433,12 @@ When generating Ada code for Emacs, the elisp indent variables used in
 @code{wisi-indent} actions must be declared, so the elisp and Ada code
 aggree on what they mean.
 
-@item embedded_quote_escape_doubled
-If present, quote characters embedded in strings are escaped by
-doubling (as in Ada); otherwise they are escaped by preceding with
-backslash (as in C). Default is backslash.
+@item %elisp_action <elisp name> <Ada name>
+Declare elisp and Ada names for a custom action subprogram written in
+Ada.
+
+The term ``elisp'' here is historical; the name is not actually used
+by elisp in the current implementation.
 
 @item end_names_optional_option <name>
 When generating Ada code for Emacs, the name of the Ada variable
@@ -459,21 +458,14 @@ These names are optional in the Ada standard. Making them required
 improves error recovery; the recovery algorithm can use matching names
 to isolate the error.
 
-@item generate <generate_algorithm> <output_language> [text_rep |
-elisp | re2c | process | module]
+@item generate <generate_algorithm> <output_language> [text_rep]
 
 @code{<generate_algorithm>} is one of @code{LALR | LR1 | Packrat_Gen | Packrat_Proc | External}
 
-@code{<output_language>} is one of @code{Ada | Ada_Emacs | elisp}
+@code{<output_language>} is one of @code{Ada | Ada_Emacs}
 
-Declare one output source set. Multiple sets can be declared; they are
-all generated together.
-
-@code{elisp | re2c} determine the lexer used by the generated code.
-
-@code{process | module} determine the style of code generated by
-@code{Ada_Emacs}; an external process executable, or an Emacs loadable
-module.
+The algorithm/output_language pair declares one output source
+set. Multiple sets can be declared; they are all generated together.
 
 @code{text_rep} determines how the parse table is represented; if
 present, it is in a text file that is loaded at parser run time. If
@@ -484,11 +476,14 @@ of statements that represent the parser table in the code. The text
 file can take a long time to read at parser startup (a few seconds for
 the Ada language).
 
-@item %no_language_runtime
-When generating Ada code for Emacs, @code{%no_language_runtime} causes
-the generated code to not include the runtime. Some grammars may need
-no runtime, particularly if they are small grammars intendend to test
-some generator feature.
+@item %language_runtime
+Specify an alternate name for the language runtime package; the
+default is @code{Wisi.<language_name>}.
+
+@item %meta_syntax [BNF | EBNF]
+Declares the syntax used by the grammar file. BNF is a minor extension
+of standard Backus Naur Form; EBNF is a large extension. The default
+is BNF.
 
 @item %no_enum
 By default, the generated Ada code includes an enumeration type
@@ -497,6 +492,19 @@ to write (without this type, tokens are identified by integers).
 
 @code{%no_enum} causes the generated code to not include the token
 enumeration type.
+
+@item %no_language_runtime
+When generating Ada code for Emacs, @code{%no_language_runtime} causes
+the generated code to not include the runtime. Some grammars may need
+no runtime, particularly if they are small grammars intendend to test
+some generator feature.
+
+@item %partial_recursion
+The error recovery algorithm requires computing the recursion present
+in the language grammar. For some grammars (such as Java), this is too
+hard; @code{%partial_recursion} tells WisiToken to use a simpler
+approximate calculation. This will affect the quality of the error
+recovery, but it will still be robust.
 
 @item %start
 The start token for the grammar.
@@ -509,32 +517,33 @@ may then occur in another re2c regular expression.
 @node Nonterminals
 @section Nonterminals
 
-The nonterminals section declares the nonterminal tokens, and the
+A nonterminal statement declares a nonterminal token, and the
 associated production rules and actions.
 
-The syntax of nonterminals is:
+The syntax of a nonterminal statement is:
 
 @verbatim
-{nonterminal} : {token} ... [ %( action code )% [| {token} ... [ %(
-action code )% ] ]... ;
+{nonterminal} : {token} ... [ %( post-parse action )% [ %( in-parse action )% ]] [| {token} ... [ %(
+action code )% ] ... ;
 @end verbatim
 
-Each nonterminal gives the expansion of a nonterminal token into a list of
-tokens (both terminal and nonterminal); optional productions are
-separated by ``|''. Each list of tokens is followed by an ``action'',
-which is output-language code (enclosed in @code{%( )%}), that will be
-executed when the production is reduced.
+Each nonterminal gives the expansion of a nonterminal token into a
+list of tokens (both terminal and nonterminal); optional productions
+are separated by ``|''. Each list of tokens is followed by zero to two
+actions, one executed after the parse is complete, one during the
+parse when the production is reduced. in-parse actions can add
+semantic checks that help during error recovery. post-parse actions
+typically build an abstract syntax tree. The actions are written in
+output-language code; for @code{Ada_Emacs} output, this is elisp (a
+hold-over from when WisiToken only output elisp code).
 
 @node Conditional code
 @section Conditional code
 
-The elisp and elisp lexers support different regular expression syntax,
-so it is sometimes necessary to include or exclude some declarations
-and portions of rules based on the lexer.
+It is sometimes necessary to include or exclude some declarations
+and portions of rules based on the choice of lexer or parser.
 
-In addition, LALR parsers can have more conflicts than LR1 parsers.
-
-Therefore the EBNF supports @code{%if ... %end if}:
+Therefore WisiToken supports @code{%if ... %end if} in the grammar file:
 @verbatim
 %if {lexer | parser} = {<lexer> | <generate_algorithm>}
 ...

@@ -12,6 +12,7 @@ VPATH += ../test
 VPATH += ../test/bnf
 
 vpath %.texinfo ../Docs
+vpath %.latex ../Docs
 
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)

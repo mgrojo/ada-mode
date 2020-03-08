@@ -12,7 +12,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -1150,7 +1150,8 @@ is
               "Recover_Active, Nonterm);";
 
          elsif Is_Present (Input_Data.Tokens.Actions, Elisp_Name) then
-            --  Language-specific action
+            --  Language-specific action (used in wisitoken grammar mode for
+            --  wisi-check-parens).
             declare
                Item   : Elisp_Action_Type renames Input_Data.Tokens.Actions
                  (Input_Data.Tokens.Actions.Find (+Elisp_Name));
