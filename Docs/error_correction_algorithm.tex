@@ -1,4 +1,6 @@
+%% compilation command: latex -file-line-error -interaction=nonstopmode <file>
 \documentclass{article}
+\usepackage{algorithm2e}[longend noline]
 \title{Robust error correction in a generalized LR parser}
 \author{Stephen Leake}
 \begin{document}
@@ -70,12 +72,12 @@ minimal number of tokens to insert to complete the trailing statement
 in situations like this.
 
 This article introduces several new operations for the core McKenzie
-algorithm to try at the error point, and adapt the algorithm to work
+algorithm to try at the error point, and adapts the algorithm to work
 with a generalized parser.
 
 %% copy initial parts of mckenzie to define 'config' etc?
 
-\sections{Extensions to McKenzie}
+\section{Extensions to McKenzie}
 
 The first new operation is \verb|push_back|, mentioned above; it pops
 the top parse stack item, and moves the input stream pointer back to
@@ -98,7 +100,9 @@ grammar.
 To illustrate the second point, consider:
 \begin{verbatim}
 procedure Example_2
-is begin
+is
+   I : Integer;
+begin
    procedure Put_Top_10
    is begin
    ...
@@ -106,30 +110,96 @@ is begin
 begin
 end Example_2;
 \end{verbatim}
-As in \verb|Example_1|, there is an extra \verb|begin| after
-\verb|is|. The error is detected at \verb|procedure|; at that point,
+There is an extra \verb|begin| after
+\verb|I : Integer|. The error is detected at \verb|procedure|; at that point,
 the parse stack looks like (top is to the left):
 \begin{verbatim}
 245 : BEGIN, 208 : declarative_part, 159 : IS, 36 : subprogram_specification, 0 :
 \end{verbatim}
 Here the numbers label the states, terminals are in uppercase,
-nonterminals in lowercase. \verb|declarative_part| is empty here; in a
-more complex case it might not be.
+nonterminals in lowercase.
 
-The \verb|push_back| operation would just push back \verb|BEGIN|.
-leaving \verb|declarative_part| on top of the stack. Deleting
-\verb|BEGIN| would leave \verb|PROCEDURE| as the next token, which is
-still illegal in state 208; it starts a declaration, but we've already
-``closed'' the declaration section by reducing to
-\verb|declarative_part|. We could do
-\verb|push_back declarative_part|, and in this case that does no harm,
-since it is empty. But if it is not empty, we do not want to move the
-edit point; we just want to start parsing at \verb|PROCEDURE|.
-\verb|undo_reduce declaration_part| accomplishes this.
+Fixing the parse error starts by \verb|push_back BEGIN, delete BEGIN|,
+leaving \verb|declarative_part| on top of the stack. \verb|PROCEDURE|
+is the next token, which is illegal in state 208; it starts a
+declaration, but we've already ``closed'' the declaration section by
+reducing to \verb|declarative_part|. We could do
+\verb|push_back declarative_part|, but that moves the edit point to
+before \verb|I|, where there is no error and nothing helpful to insert
+or delete. \verb|undo_reduce declaration_part| leaves the stack as:
 
+\begin{verbatim}
+137 : declarations, 159 : IS, 36 : subprogram_specification, 0 :
+\end{verbatim}
+and now \verb|PROCEDURE| is legal.
 
+Missing string quotes also cause problems for the McKenzie algorithm.
+Consider the Ada fragment:
+\begin{verbatim}
+A : String := Now is the time for all good men";
+\end{verbatim}
+There is a missing quote before \verb|Now|. In Ada, strings cannot
+cross newline, so the lexer inserts a virtual quote just before the
+existing one. So the parser sees a list of identifiers followed by a
+string literal. The McKenzie algorithm would have to delete all the
+identifiers one by one, with a cost for each.
 
-%% String_Quote
+Our new \verb|Try_Insert_Quote| operation attempts to find a better
+place to insert the string quote, depending on the relative placement
+of the unbalanced quote and the parse error.
+
+\begin{itemize}
+\item If the parse error is at the unbalanced quote, assume the unbalanced
+quote is the intended closing quote, and insert the opening quote one
+non-empty token before it. Example:
+\begin{verbatim}
+   A := "for all" & good ";
+\end{verbatim}
+We are in the process of splitting a string across lines; we just
+added \verb|" &|, but are missing the \verb|"| before \verb|good|.
+This solution inserts that missing quote.
+
+\item If the parse error is after the unbalanced quote, assume the unbalanced
+quote is the intended opening quote, and insert the closing quote at
+the line end. Example:
+\begin{verbatim}
+   A := "for all" & "good ;
+\end{verbatim}
+The missing \verb|"| should be after \verb|good|.
+This solution inserts that missing quote.
+
+\item If the parse error is before the unbalanced quote, assume the unbalanced
+quote is the intended closing quote, and insert the opening quote:
+
+\begin{itemize}
+\item before the error token. Example:
+\begin{verbatim}
+   A := for all good";
+\end{verbatim}
+The missing \verb|"| should be before \verb|for|. The parse error is at \verb|all|;
+this solution inserts the missing quote before \verb|all|, which is
+almost right.
+
+\item one non-empty token before the unbalanced quote. Same example,
+  but this inserts the \verb|"| before \verb|all|, which is correct.
+
+\item If there is a string literal on the parse stack,
+assume the closing quote of that string literal is new (or extra),
+and extend the string literal to the unbalanced quote. Example:
+\begin{verbatim}
+   A := "for all" good";
+\end{verbatim}
+The \verb|"| after \verb|all| is extra. The parse error is at \verb|good|;
+this solution in effect deletes the extra quote.
+\end{itemize}
+\end{itemize}
+
+Since the lexer recognizes string literals, we cannot insert an
+unbalanced string quote; we actually delete all tokens between the
+inserted quote and the unbalanced quote, which matches what the lexer
+would have returned. This is still much better than the original
+McKenzie algorithm, because we do all the deletions in one step, with
+one low cost.
 
 %% Minimal_Complete (add costs?)
 %% - minimal complete similar to Fischer and Mauney 1980

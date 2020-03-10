@@ -36,10 +36,8 @@ one :: wisitoken-bnf-generate.exe
 one :: GENERATE_ARGS := -v 3 --output_bnf debug_bnf.wy
 one :: debug.re2c
 
-two :: show_minimal_actions.exe
-	./show_minimal_actions.exe $(RUN_ARGS)
-#c:/Projects/org.emacs.java-wisi.stephe-1/source/java_ch19.wy LR1 1
-# ../Test/bnf/ada_lite.wy LR1 1
+two ::
+	./ada_lite_lalr_run.exe -v 2 -m 3 debug.ada_lite
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
@@ -63,6 +61,7 @@ trace :
 	addr2line -e test_all_harness.exe 0x6eb427 0x7728ff3f 0x7728ff11 0x7729068d
 
 include ../../org.stephe_leake.makerules/texinfo_rules.make
+include ../../org.stephe_leake.makerules/latex_rules.make
 include rules.make
 
 # Local Variables:

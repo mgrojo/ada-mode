@@ -247,6 +247,7 @@
       (forward-char 1))
      )))
 
+(require 'ada-mode)
 (define-key ada-mode-map "\C-ca" #'wisitoken-fix-ops)
 
 

@@ -15,3 +15,6 @@ build/*.diff
 Docs/dir
 Docs/wisitoken-user_guide.html
 Docs/wisitoken-user_guide.info
+build/*.aux
+build/*.dvi
+build/*.log
