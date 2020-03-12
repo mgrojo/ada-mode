@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2019 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -38,6 +38,9 @@ is
       Put_Line ("  -v <integer> : trace_parse");
       Put_Line ("  -m <integer> : trace_mckenzie");
       Put_Line ("  -t <integer> : mckenzie task count");
+      Put_Line ("  -min_cost_delta <integer> : mckenzie minimal complete delta");
+      Put_Line ("  -enqueue_limit <integer> : mckenzie enqueue limit");
+      Put_Line ("  -disable_fixes : disable language_fixes");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -51,6 +54,10 @@ is
 
    Task_Count : System.Multiprocessors.CPU_Range := System.Multiprocessors.CPU_Range'Last;
 
+   Minimal_Complete_Delta : Integer := Integer'First;
+   Enqueue_Limit          : Integer := Integer'First;
+   Disable_Fixes          : Boolean := False;
+
    procedure Parse
    is
       use all type System.Multiprocessors.CPU_Range;
@@ -58,7 +65,7 @@ is
    begin
       Create_Parser
         (Parser,
-         Language_Fixes                 => Language_Fixes,
+         Language_Fixes                 => (if Disable_Fixes then null else Language_Fixes),
          Language_Matching_Begin_Tokens => Language_Matching_Begin_Tokens,
          Language_String_ID_Set         => Language_String_ID_Set,
          Trace                          => Trace'Unchecked_Access,
@@ -66,6 +73,14 @@ is
 
       if Task_Count /= System.Multiprocessors.CPU_Range'Last then
          Parser.Table.McKenzie_Param.Task_Count := Task_Count;
+      end if;
+
+      if Minimal_Complete_Delta /= Integer'First then
+         Parser.Table.McKenzie_Param.Minimal_Complete_Cost_Delta := Minimal_Complete_Delta;
+      end if;
+
+      if Enqueue_Limit /= Integer'First then
+         Parser.Table.McKenzie_Param.Enqueue_Limit := Enqueue_Limit;
       end if;
 
       Parser.Lexer.Reset_With_File (-File_Name);
@@ -111,6 +126,20 @@ begin
             Arg_Next   := Arg_Next + 1;
             Task_Count := System.Multiprocessors.CPU_Range'Value (Argument (Arg_Next));
             Arg_Next   := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-min_cost_delta" then
+            Arg_Next               := Arg_Next + 1;
+            Minimal_Complete_Delta := Integer'Value (Argument (Arg_Next));
+            Arg_Next               := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-enqueue_limit" then
+            Arg_Next      := Arg_Next + 1;
+            Enqueue_Limit := Integer'Value (Argument (Arg_Next));
+            Arg_Next      := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-disable_fixes" then
+            Arg_Next      := Arg_Next + 1;
+            Disable_Fixes := True;
 
          else
             Set_Exit_Status (Failure);

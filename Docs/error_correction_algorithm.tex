@@ -34,7 +34,7 @@ long time, or is inefficient.
 
 For example, consider this Ada code:
 \begin{verbatim}
-procedure Example_1
+procedure Example_01
 is begin
    Msg : constant String;
 begin
@@ -79,18 +79,20 @@ with a generalized parser.
 
 \section{Extensions to McKenzie}
 
-The first new operation is \verb|push_back|, mentioned above; it pops
-the top parse stack item, and moves the input stream pointer back to
-the first terminal contained by that item. We call the point in the
-input stream at which insert and delete is done the ``edit point''; it
-may not be an error point. \verb|push_back| moves the edit point.
+\subsection{push\_back}
+\verb|push_back| pops the top parse stack item, and moves the input
+stream pointer back to the first terminal contained by that item. We
+call the point in the input stream at which insert and delete is done
+the ``edit point''; it may not be an error point. \verb|push_back|
+moves the edit point.
 
-A related operation is \verb|undo_reduce|; it undoes the parse of the
-top stack item (which must be a nonterminal), replacing the top stack
-item by the sequence of stack items just before the previous
-reduction, without moving the edit point. This requires a syntax tree
-that records the shifts and reductions done during the parse. The
-input pointer is not moved. This operation serves two purposes;
+\subsection{undo\_reduce}
+\verb|undo_reduce| undoes the reduce that produced the top stack item
+(which must be a nonterminal), replacing the top stack item by the
+sequence of stack items just before the reduction, without
+moving the edit point. This requires a syntax tree that records the
+shifts and reductions done during the parse. The input pointer is not
+moved. This operation serves two purposes;
 
 1) it allows a subsequenct \verb|push_back| to push back fewer tokens.
 
@@ -133,6 +135,7 @@ or delete. \verb|undo_reduce declaration_part| leaves the stack as:
 \end{verbatim}
 and now \verb|PROCEDURE| is legal.
 
+\subsection{Try\_Insert\_Quote}
 Missing string quotes also cause problems for the McKenzie algorithm.
 Consider the Ada fragment:
 \begin{verbatim}
@@ -144,7 +147,7 @@ existing one. So the parser sees a list of identifiers followed by a
 string literal. The McKenzie algorithm would have to delete all the
 identifiers one by one, with a cost for each.
 
-Our new \verb|Try_Insert_Quote| operation attempts to find a better
+The \verb|Try_Insert_Quote| operation attempts to find a better
 place to insert the string quote, depending on the relative placement
 of the unbalanced quote and the parse error.
 
@@ -191,26 +194,138 @@ and extend the string literal to the unbalanced quote. Example:
 \end{verbatim}
 The \verb|"| after \verb|all| is extra. The parse error is at \verb|good|;
 this solution in effect deletes the extra quote.
+
+Note that the search for a string literal on the parse stack must take
+into account nonterminals that may contain a string literal. This
+requires the syntax tree mentioned in connection with
+\verb|undo_reduce| above. The set of nonterminals that may contain a
+string literal is provided as a function call written by the grammar
+author; it is not computed from the grammar because it should not
+include higher level nonterminals that are not likely to be contained
+in a string; for Ada, it stops at expression.
 \end{itemize}
 \end{itemize}
 
-Since the lexer recognizes string literals, we cannot insert an
-unbalanced string quote; we actually delete all tokens between the
+Since the lexer recognizes string literals, we cannot actually insert
+an unbalanced string quote; we actually delete all tokens between the
 inserted quote and the unbalanced quote, which matches what the lexer
 would have returned. This is still much better than the original
 McKenzie algorithm, because we do all the deletions in one step, with
 one low cost.
 
-%% Minimal_Complete (add costs?)
-%% - minimal complete similar to Fischer and Mauney 1980
+\subsection{Minimal\_Complete}
+Consider this code (mentioned in the introduction):
+
+\begin{figure}[ht]
+\begin{verbatim}
+begin
+   if A then
+      B;
+      if C then
+         loop
+           Do_Something;
+end;
+\end{verbatim}
+\caption{}
+\label{ex:min_com_if_if_loop}
+\end{figure}
+The best error correction is to provide all of the missing ``ends''.
+We can do this quickly be augmenting the parse table with a
+\verb|Minimal_Complete_Action|, giving the terminal token to insert in
+the state that reports the error.
+
+When parsing this code, an error is detected at the final \verb|;|;
+the parser is expecting \verb|end loop;|. The production being parsed
+at that point is:
+\begin{verbatim}
+loop_statement <= LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
+\end{verbatim}
+where the carrot (\verb|^|) shows the parse point. In this
+case, it is easy to see that \verb|Minimal_Complete_Action| must be
+\verb|LOOP|. Similarly, after parsing \verb|LOOP|, \verb|Minimal_Complete_Action|
+is \verb|identifier_opt|, and then \verb|;|. After that,
+we will be completing the inner \verb|if then| statement, and then the
+outer \verb|if then| statement. At that point, the existing
+\verb|end ;| is legal.
+
+Section \ref{minimal-complete-compute} gives the algorithm for
+computing the \verb|Minimal_Complete| tokens; here we describe how
+they are used in error correction.
+
+The check to see if the original error token is now legal must be
+performed after each nonterminal is completed. Rather than trying to
+encode the notion of ``completing a nonterminal'', we do the check
+after inserting each token; this means that \verb|Minimal_Complete|
+inserts at most one token for each cycle of the underlying McKenzie
+algorithm.
+
+In order to prefer the \verb|Minimal_Complete| solution over others,
+we give it a negative cost. In all examples in this paper, the default
+insert and delete cost is 4, delete \verb|BEGIN| is cost 1, delete
+\verb|END|, \verb|;| are cost 2. With \verb|Minimal_Complete| cost 0,
+-1, or -2, no solution for figure \ref{ex:min_com_if_if_loop} is
+found, with an enqueue limit of 120,000. With \verb|Minimal_Complete|
+cost -3, the desired solution is found with cost 9, after enqueueing
+6804 configurations and checking 1051.
+
+As usual, there is a trade off here; setting the magnitude high
+encourages \verb|Minimal_Complete| over other solutions, but sometimes
+other solutions would be better. For example, consider:
+\begin{figure}[ht]
+\begin{verbatim}
+for I in 1 to Result_Length loop
+end loop;
+\end{verbatim}
+\label{ex:min_com_loop_to}
+\end{figure}
+Here \verb|to| should be \verb|..| (this is an actual error the author
+typed late one night). The error is detected at \verb|to|, so the
+desired solution is \verb|delete IDENTIFIER, insert ..|. With the
+\verb|Minimal_Complete| cost set to 0, this solution is found, along
+with 19 other solutions with the same cost; a few of these change the
+code to:
+
+\begin{verbatim}
+in to.Result_Length loop
+in 1 .. to*Result_Length loop
+in 1 .. to/Result_Length loop
+\end{verbatim}
+
+Finding these takes a relatively long time; 1273 configurations
+were enqueued and 218 checked.
+
+Setting \verb|Minimal_Complete| cost to -1 finds similar solutions,
+but more quickly (341 enqueued, 56 checked); \verb|insert ..| is done
+by \verb|Minimal_Complete|, so it is cheaper, and more expensive
+solutions are not checked.
+
+Setting \verb|Minimal_Complete| cost to -3 (as required for
+example \ref{ex:min_com_if_if_loop}) finds one cost 3 solution very
+quickly (67 enqueued, 10 checked); it changes the code to:
+\begin{figure}[ht]
+\begin{verbatim}
+for I in 1 .. to loop Result_Length; loop
+end loop;
+\end{verbatim}
+\label{ex:min_com_loop_to_3}
+\end{figure}
+which causes another syntax error later in the code (missing
+\verb|end loop;|). Here three tokens were inserted by
+\verb|Minimal_Complete|; \verb|.. loop ;|.
+
+%% - minimal complete similar to Fischer and Mauney 1992, refs Fisher,
+%% Milton, Quiring 1980 (FMQ 1980); those are for LL(1) parsers
 %% S(A) = x such that A => x and Cost(x) is minimized = Terminal_Sequence (all cost 1)
-%% E(A,a) = x : A => xay, cost (x) minimal => superset of matching_begin?
 
-%% Matching_Begin
+\subsection{Matching\_Begin}
+%% FMQ 1980) E(A,a) = x : A => xay, cost (x) minimal => superset of matching_begin?
 
-%% Language_Fix
+\subsection{Language\_Fix}
 
-%% interaction with generalized parsing.
+\section{interaction with generalized parsing}
+\section{Computing Minimal\_Complete}
+\label{minimal-complete-compute}
+
 \section{Bibliography}
 \begin{thebibliography}{9}
 
