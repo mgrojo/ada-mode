@@ -22,28 +22,27 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    doc when/why minimal_complete does too much
-        not clear it ever does!
-        lalr c:/Projects/org.emacs.ada-mode/build/wisitoken-tokens/ada_mode-recover_02.adb.tokens has 'end; end;'
-            dump with verbosity > 0:
-ada_mode-recover_02.adb:38:0: syntax error:
-    recovered: ((INSERT, RIGHT_PAREN, 75), (INSERT, SEMICOLON, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75))
-ada_mode-recover_02.adb:40:0: syntax error:
-   recovered: ((PUSH_BACK, declaration, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75)) ;; say what?
-ada_mode-recover_02.adb:45:0: syntax error:
-   recovered: ((INSERT, IDENTIFIER, 102), (INSERT, COLON, 102), (INSERT, BEGIN, 102))
-ada_mode-recover_02.adb:55:0: syntax error:
-   recovered: ((INSERT, PACKAGE, 128), (INSERT, BODY, 128), (INSERT, IDENTIFIER, 128), (INSERT, IS, 128))
-        => bug in explore
+    doc Minimal_Complete done?
 
-    enlarge minimal_complete_delta in ada_lite, see if it inserts too much
-        test_mckenzie_recover.adb Loop_Bounds
-            minimal_complete_cost_delta
-                 0 => hits enqueue limit 1000, enqueue 1007, check  175 finds desired solution, along with 15 other cost 8 solutions
-                -1 => succeed 15, enqueue 341, check  56, cost:  7, desired solution
-                -3 => enqueue 67, check  10; causes later errors
+    see comments in file
 
     redo compare using lr1 for wisitoken-tokens
+        add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
+        add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
+
+    Get Ludovic to enable --recover-log, publish real data from production environment.
+
+   - search Google scholar for partial parse
+
+   - ask for review
+     - Stefan Monnier
+     - Emmanual Briot
+     - adacore adalang people
+     - Laurent? peg/packrat expert
+
+   - publish in some ACM journal?
+     McKenzie in ACM Transactions on Programming Languages and Systems
+     Fischer/Mauney in  Acta Informatica Springer
 
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
@@ -65,8 +64,6 @@ check should check all conflicts, enqueue conflicts on success
     otherwise we are ignoring possible solutions.
 
 test_mckenzie use lr-parser-gen_aunit
-
-use First to compute String_ID_Set?
 
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1
@@ -174,6 +171,10 @@ Implement Redziejowski language hiding check
 
 add packrat to ada-mode s-4
     time, compare to langkit
+
+   - https://arxiv.org/pdf/1806.11150 error recovery for PEG
+     compares LPegLabel to ANTLR, on synthetic errors
+
 
 compare to bison times
 

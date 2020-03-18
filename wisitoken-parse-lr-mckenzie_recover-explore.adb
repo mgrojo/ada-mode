@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -839,7 +839,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Min_Length          : Count_Type := Count_Type'Last;
          Use_Recursive       : Boolean;
       begin
-         --  Enqueue non-minimal actions on Work,
          if Trace_McKenzie > Extra then
             Put_Line
               (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " & Label &
@@ -1014,7 +1013,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
    begin
       --  We don't check for insert = current token; that's either ok or a
-      --  severe bug in Language_Use_Minimal_Complete.
+      --  severe bug in Shared.Language_Matching_Begin_Tokens.
 
       if Config.Matching_Begin_Done then
          if Trace_McKenzie > Extra then
@@ -1115,7 +1114,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Insert_Matching_Begin (Super, Shared, Parser_Index, Config, Local_Config_Heap, Matching_Begin_Tokens);
       end if;
 
-      --  We always do all three Insert_Minimal_Complete (unless
+      --  We always do all three; Insert_Minimal_Complete (unless
       --  Forbid_Minimal_Insert), Insert_Matching_Begin,
       --  Insert_From_Action_List; in general it's not possible to tell when
       --  one will be better (see test_mckenzie_recover.adb
@@ -1182,8 +1181,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Matching          : in     SAL.Peek_Type;
          String_Literal_ID : in     Token_ID)
       is
-         use Parse.Parse_Item_Arrays;
-
          Saved_Shared_Token : constant WisiToken.Token_Index := New_Config.Current_Shared_Token;
 
          Tok         : Recover_Token;

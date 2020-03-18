@@ -41,6 +41,7 @@ is
       Put_Line ("  -min_cost_delta <integer> : mckenzie minimal complete delta");
       Put_Line ("  -enqueue_limit <integer> : mckenzie enqueue limit");
       Put_Line ("  -disable_fixes : disable language_fixes");
+      Put_Line ("  -disable_match_begin : disable matching_begin");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -57,6 +58,7 @@ is
    Minimal_Complete_Delta : Integer := Integer'First;
    Enqueue_Limit          : Integer := Integer'First;
    Disable_Fixes          : Boolean := False;
+   Disable_Match_Begin    : Boolean := False;
 
    procedure Parse
    is
@@ -66,7 +68,7 @@ is
       Create_Parser
         (Parser,
          Language_Fixes                 => (if Disable_Fixes then null else Language_Fixes),
-         Language_Matching_Begin_Tokens => Language_Matching_Begin_Tokens,
+         Language_Matching_Begin_Tokens => (if Disable_Match_Begin then null else Language_Matching_Begin_Tokens),
          Language_String_ID_Set         => Language_String_ID_Set,
          Trace                          => Trace'Unchecked_Access,
          User_Data                      => null);
@@ -140,6 +142,10 @@ begin
          elsif Argument (Arg_Next) = "-disable_fixes" then
             Arg_Next      := Arg_Next + 1;
             Disable_Fixes := True;
+
+         elsif Argument (Arg_Next) = "-disable_match_begin" then
+            Arg_Next            := Arg_Next + 1;
+            Disable_Match_Begin := True;
 
          else
             Set_Exit_Status (Failure);

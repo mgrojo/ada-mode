@@ -9,7 +9,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -185,9 +185,9 @@ package WisiToken.Parse.LR is
       Minimal_Complete_Actions : Minimal_Action_Arrays.Vector;
       Minimal_Complete_Actions_Recursive : Boolean := False;
       --  Parse actions that will most quickly complete a production in this
-      --  state. If more than one, resolved at runtime using Kernels. If
+      --  state. Kernel is used to reduce the number of actions. If
       --  Minimal_Complete_Actions_Recursive, at least one of the minimal
-      --  actions is recursive; this changes the algorithm.
+      --  actions is recursive.
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;

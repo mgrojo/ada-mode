@@ -2,7 +2,7 @@
 --
 --  Common utilities for LR parser table generators.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -176,8 +176,7 @@ package WisiToken.Generate.LR is
       Minimal_Terminal_First     : in     Token_Array_Token_ID);
    --  Set State.Minimal_Complete_Actions to the set of actions that will
    --  most quickly complete the productions in Kernel (which must be for
-   --  State). Useful in error correction when we know the next actual
-   --  terminal is a block ending or statement start.
+   --  State). Useful in error correction.
    --
    --  The Minimal_Complete_Actions will be empty in a state where there
    --  is nothing useful to do; the accept state, or one where all

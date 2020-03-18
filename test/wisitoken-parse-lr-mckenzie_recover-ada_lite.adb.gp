@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -736,42 +736,40 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       end Matching_Begin_For_End;
 
    begin
-      if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
-         Matching_Tokens := Matching_Begin_For_End (1);
+      case Actions.Token_Enum_ID'(-Tokens (1)) is
+      when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
 
-      else
          case Actions.Token_Enum_ID'(-Tokens (1)) is
-         when BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID =>
+         when END_ID =>
+            Matching_Tokens := Matching_Begin_For_End (2);
 
-            case Actions.Token_Enum_ID'(-Tokens (1)) is
-            when END_ID =>
-               Matching_Tokens := Matching_Begin_For_End (2);
+         when EXCEPTION_ID =>
+            Matching_Tokens := To_Vector (+BEGIN_ID);
 
-            when EXCEPTION_ID =>
-               Matching_Tokens := To_Vector (+BEGIN_ID);
+         when IS_ID =>
+            Matching_Tokens := To_Vector (+PROCEDURE_ID);
 
-            when IS_ID =>
-               Matching_Tokens := To_Vector (+PROCEDURE_ID);
-
-            when SEMICOLON_ID =>
-               Matching_Tokens := To_Vector (+IDENTIFIER_ID);
-
-            when others =>
-               null;
-            end case;
-
-         when Wisi_EOI_ID =>
-            Matching_Tokens := Empty_Vector;
+         when SEMICOLON_ID =>
+            Matching_Tokens := To_Vector (+IDENTIFIER_ID);
 
          when others =>
-            Matching_Tokens := Empty_Vector;
+            null;
          end case;
-      end if;
+
+      when Wisi_EOI_ID =>
+         Matching_Tokens := Empty_Vector;
+
+      when others =>
+         Matching_Tokens := Empty_Vector;
+      end case;
 
       if Config.Stack.Peek.Token.ID = +END_ID and
         Tokens (1) = +IDENTIFIER_ID and
-        (Tokens (2) /= Invalid_Token_ID and then
-           -Tokens (2) in DOT_ID | SEMICOLON_ID)
+            (Tokens (2) /= Invalid_Token_ID and then
+               -Tokens (2) in DOT_ID | SEMICOLON_ID)
+
+           --  We should add this here, but we don't to preserve existing tests.
+           --  (-Tokens (1) in BEGIN_ID | END_ID | EXCEPTION_ID | IS_ID | SEMICOLON_ID)
       then
          Forbid_Minimal_Complete := True;
       else
@@ -804,5 +802,5 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
 end WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE;
 --  Local Variables:
---  ada-auto-case: not-upper-case
+--  ada-case-strict: t
 --  End:

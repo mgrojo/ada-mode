@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1061,18 +1061,6 @@ package body WisiToken.Generate.LR is
             end loop;
          end;
       end if;
-
-      --  The actions computed here are used in the error recovery
-      --  algorithm, to decide what terminals to insert in the input stream
-      --  in order to correct an error. The strategy is to complete a high
-      --  level production (ie declaration or statement) as quickly as
-      --  possible, because the next real token is known to be the start of
-      --  a high level production, or the end of a containing block-style
-      --  production.
-      --
-      --  The actions are empty in a state that includes the accept
-      --  production. That tells the error recovery algorithm to stop using
-      --  the minimal complete actions strategy.
 
       if (for some Item of Working_Set =>
             Item.Prod.LHS = Descriptor.Accept_ID and

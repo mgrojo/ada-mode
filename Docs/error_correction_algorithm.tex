@@ -1,21 +1,25 @@
 %% compilation command: latex -file-line-error -interaction=nonstopmode <file>
 \documentclass{article}
 \usepackage{algorithm2e}[longend noline]
+\usepackage{float}
 \title{Robust error correction in a generalized LR parser}
 \author{Stephen Leake}
+
+\newcommand{\code}[1]{`{\tt #1}'}
+
 \begin{document}
 \section{Abstract}
 
 \section{Introduction}
 Emacs Ada mode has used an LR parser to support indentation, syntax
-highlighting, and navigation since 2013 (\cite{Emacs Ada mode news}).
+highlighting, and navigation since 2013 \cite{Emacs Ada mode news}.
 However, the parser did not provide error correction, so the
 indentation was often confusing when the syntax was incorrect, as it
 usually is in an interactive editing environment. This motivated the
 search for error correction algorithms.
 
-\cite{Grune 2008} provides a thorough overview of error correction in
-LR and LL parsers. Of those algorithms presented, \cite{McKenzie 1995}
+Grune \cite{Grune 2008} provides a thorough overview of error correction in
+LR and LL parsers. Of those algorithms presented, McKenzie \cite{McKenzie 1995}
 provides the foundation for the current work.
 
 The McKenzie algorithm works by exploring the parse table (or
@@ -33,6 +37,7 @@ There are several situations where the McKenzie algorithm can take a
 long time, or is inefficient.
 
 For example, consider this Ada code:
+\begin{figure}[H]
 \begin{verbatim}
 procedure Example_01
 is begin
@@ -41,19 +46,22 @@ begin
    Put_Line (Msg);
 end;
 \end{verbatim}
+\caption{}
+\label{ex:extra_begin_1}
+\end{figure}
 
-There is an extra \verb|begin| immediately after \verb|is| (a common
+There is an extra \code{begin} immediately after \code{is} (a common
 occurance while editing code). However, the error is not detected
-until \verb|:|, which can only occur in declarations, not statements.
+until \code{:}, which can only occur in declarations, not statements.
 
-To fix this, the McKenzie algorithm must insert
-\verb|; end; begin <identifier>|, or delete
-\verb|constant String; begin| and then insert \verb|;|. A much better
-solution would be to ``push back'' \verb|Msg begin|, and then delete
-\verb|begin|.
+To fix this, the McKenzie algorithm must insert \code{; end; begin
+  IDENTIFIER}, or delete \code{constant String; begin} and then insert
+\code{;}. A much better solution would be to ``push back'' \code{Msg
+  begin}, and then delete \code{begin}.
 
 A harder problem is when there are several missing ``end''s, because
 the user is typing a nested statement:
+\begin{figure}[H]
 \begin{verbatim}
 begin
    if A then
@@ -63,43 +71,107 @@ begin
            Do_Something;
 end;
 \end{verbatim}
+\caption{}
+\label{ex:min_com_if_if_loop}
+\end{figure}
 
-Here we are missing several tokens: \verb|end loop; end if; end if;|.
-McKenzie will eventually find the solution that inserts all of these,
-but along the way it will try inserting every possible statement as
-well, wasting a lot of time. Our new algorithm quickly finds the
-minimal number of tokens to insert to complete the trailing statement
-in situations like this.
+Here we are missing several tokens: \code{end loop; end if; end if;}.
+McKenzie will theoretically find the solution that inserts all of
+these, but along the way it will try inserting every possible
+statement as well, wasting a lot of time, and in practice hitting a
+time-out limit. This article introduces the \code{Minimal\_Complete}
+algorithm, which quickly finds the minimal number of tokens to insert
+to complete the trailing statement in situations like this.
 
-This article introduces several new operations for the core McKenzie
-algorithm to try at the error point, and adapts the algorithm to work
-with a generalized parser.
+This article also introduces several other new operations for the core
+McKenzie algorithm to try at the error point, and adapts the algorithm
+to work with a generalized parser.
 
-%% copy initial parts of mckenzie to define 'config' etc?
+%% copy initial parts of mckenzie to define 'config' etc? Also dragon
+%% to define "parse state", "kernel"
+
+\section{The parsing context}
+\subsection{Generalized parsing}
+We use a generalized LR parser \cite{Tomita 1986}, to tolerate
+conflicts in the parse table. This allows using the Ada grammar as
+given in the ISO language standard appendix P \cite{Ada 2012}, which
+is not LR(1). Using that grammar directly ensures we are implementing
+the correct language, and simplifies updating the parser to a new
+language version.
+
+This means the main parser may have several parallel parsers executing
+when an error is encountered. The McKenzie error correction algorithm
+is enhanced to maintain state information for each parser. When more
+than one solution is found with the same cost, additional parsers are
+created to use them.
+
+The parser builds a syntax tree; to handle parallel parsers, we use a
+branched tree similar to Tomita's sub-tree sharing. The syntax tree
+will contain ``virtual tokens'' that are inserted by error correction.
+
+The entire input token sequence is kept in memory, to allow arbitrary
+push back.
+
+\subsection{Partial parse}
+In order to handle very large files, the parser supports ``partial
+parse''; parsing only part of a file.
+
+Note that this is not the same as ``incremental parse'', where an
+existing syntax tree from a previous parse is modified based on a text
+edit.
+
+In order to minimize the amount of text passed, we modify the grammar
+to allow smaller chunks of code to be accepted as a complete parse. In
+Ada, this means adding \code{declaration} and \code{statement} to
+\code{compilation\_unit}.
+
+When the file length is greater than a threshold, Emacs invokes a
+partial parse whenever a parse is needed. To do this, it first uses a
+regular expression search to find a reasonable start point, then finds
+a possible matching end that includes the requested parse position, and
+passes that region to the parser.
+
+In Ada, the search for a start point finds a block begin, or the point
+after a block end. If a block begin was found, the matching end is
+looked for; otherwise, the requested parse point is the end point.
+
+This imposes a greater burden on the error correction algorithm, since
+the parsed text will often be incomplete.
 
 \section{Extensions to McKenzie}
+We define the following operations that are tried in each McKenzie
+step:
+\begin{itemize}
+\item \code{push\_back}
+\item \code{undo\_reduce}
+\item \code{Try\_Insert\_Quote}
+\item \code{Minimal\_Complete}
+\item \code{Language\_Matching\_Begin\_Tokens}
+\item \code{Language\_Fixes}
+\end{itemize}
 
 \subsection{push\_back}
-\verb|push_back| pops the top parse stack item, and moves the input
+\code{push\_back} pops the top parse stack item, and moves the input
 stream pointer back to the first terminal contained by that item. We
 call the point in the input stream at which insert and delete is done
-the ``edit point''; it may not be an error point. \verb|push_back|
+the ``edit point''; it may not be an error point. \code{push\_back}
 moves the edit point.
 
 \subsection{undo\_reduce}
-\verb|undo_reduce| undoes the reduce that produced the top stack item
+\code{undo\_reduce} undoes the reduce that produced the top stack item
 (which must be a nonterminal), replacing the top stack item by the
 sequence of stack items just before the reduction, without
 moving the edit point. This requires a syntax tree that records the
 shifts and reductions done during the parse. The input pointer is not
 moved. This operation serves two purposes;
 
-1) it allows a subsequenct \verb|push_back| to push back fewer tokens.
+1) it allows a subsequenct \code{push\_back} to push back fewer tokens.
 
 2) it allows token insertions that would otherwise be forbidden by the
 grammar.
 
 To illustrate the second point, consider:
+\begin{figure}[H]
 \begin{verbatim}
 procedure Example_2
 is
@@ -112,42 +184,62 @@ begin
 begin
 end Example_2;
 \end{verbatim}
-There is an extra \verb|begin| after
-\verb|I : Integer|. The error is detected at \verb|procedure|; at that point,
+\caption{}
+\label{ex:extra_begin_2}
+\end{figure}
+There is an extra \code{begin} after
+\code{I : Integer}. The error is detected at \code{procedure}; at that point,
 the parse stack looks like (top is to the left):
 \begin{verbatim}
-245 : BEGIN, 208 : declarative_part, 159 : IS, 36 : subprogram_specification, 0 :
+245 : BEGIN, 208 : declarative_part, 159 : IS,
+   36 : subprogram_specification, 0 :
 \end{verbatim}
 Here the numbers label the states, terminals are in uppercase,
 nonterminals in lowercase.
 
-Fixing the parse error starts by \verb|push_back BEGIN, delete BEGIN|,
-leaving \verb|declarative_part| on top of the stack. \verb|PROCEDURE|
+The grammar productions relevant to this example are:
+\begin{verbatim}
+declarative_part <= declarations |  ;
+declarations <= declarations declaration | declaration ;
+declaration <= subprogram_declaration | ... ;
+\end{verbatim}
+
+Fixing the parse error starts by \code{push\_back BEGIN, delete BEGIN},
+leaving \code{declarative\_part} on top of the stack. \code{procedure}
 is the next token, which is illegal in state 208; it starts a
-declaration, but we've already ``closed'' the declaration section by
-reducing to \verb|declarative_part|. We could do
-\verb|push_back declarative_part|, but that moves the edit point to
-before \verb|I|, where there is no error and nothing helpful to insert
-or delete. \verb|undo_reduce declaration_part| leaves the stack as:
+\code{subprogram\_declaration}, but we've already ``closed'' the
+declaration section by reducing to \code{declarative\_part}. We could
+do \code{push\_back declarative\_part}, but that moves the edit point to
+before the object declaration for \code{I}, where there is no error
+and nothing helpful to insert or delete. Instead, \code{undo\_reduce}
+leaves the stack as:
 
 \begin{verbatim}
 137 : declarations, 159 : IS, 36 : subprogram_specification, 0 :
 \end{verbatim}
-and now \verb|PROCEDURE| is legal.
+and now \code{procedure} is legal.
+
+We do not maintain a syntax tree for the parsing done during error
+correction; doing that proved to be much too slow. Therefore the
+\code{undo\_reduce} operation can only be applied to configurations
+where the top stack item was produced by the main parse, so it has a
+valid syntax tree entry. An exception is when the nonterminal is
+empty; that is easy to undo.
 
 \subsection{Try\_Insert\_Quote}
-Missing string quotes also cause problems for the McKenzie algorithm.
-Consider the Ada fragment:
+Missing string quotes cause problems for the McKenzie algorithm.
+Consider the code:
 \begin{verbatim}
 A : String := Now is the time for all good men";
 \end{verbatim}
-There is a missing quote before \verb|Now|. In Ada, strings cannot
-cross newline, so the lexer inserts a virtual quote just before the
-existing one. So the parser sees a list of identifiers followed by a
-string literal. The McKenzie algorithm would have to delete all the
-identifiers one by one, with a cost for each.
+There is a missing quote before \code{Now}. In Ada, strings cannot
+cross newline, and the lexer handles the error by inserting a virtual
+quote just before the existing one. Then the parser sees a list of
+identifiers followed by an empty string literal. The McKenzie
+algorithm would have to delete all the identifiers one by one, with a
+cost for each.
 
-The \verb|Try_Insert_Quote| operation attempts to find a better
+The \code{Try\_Insert\_Quote} operation attempts to find a better
 place to insert the string quote, depending on the relative placement
 of the unbalanced quote and the parse error.
 
@@ -159,7 +251,7 @@ non-empty token before it. Example:
    A := "for all" & good ";
 \end{verbatim}
 We are in the process of splitting a string across lines; we just
-added \verb|" &|, but are missing the \verb|"| before \verb|good|.
+added \code{" \&}, but are missing the \code{"} before \code{good}.
 This solution inserts that missing quote.
 
 \item If the parse error is after the unbalanced quote, assume the unbalanced
@@ -168,7 +260,7 @@ the line end. Example:
 \begin{verbatim}
    A := "for all" & "good ;
 \end{verbatim}
-The missing \verb|"| should be after \verb|good|.
+The missing \code{"} should be after \code{good}.
 This solution inserts that missing quote.
 
 \item If the parse error is before the unbalanced quote, assume the unbalanced
@@ -179,12 +271,12 @@ quote is the intended closing quote, and insert the opening quote:
 \begin{verbatim}
    A := for all good";
 \end{verbatim}
-The missing \verb|"| should be before \verb|for|. The parse error is at \verb|all|;
-this solution inserts the missing quote before \verb|all|, which is
+The missing \code{"} should be before \code{for}. The parse error is at \code{all};
+this solution inserts the missing quote before \code{all}, which is
 almost right.
 
 \item one non-empty token before the unbalanced quote. Same example,
-  but this inserts the \verb|"| before \verb|all|, which is correct.
+  but this inserts the \code{"} before \code{all}, which is correct.
 
 \item If there is a string literal on the parse stack,
 assume the closing quote of that string literal is new (or extra),
@@ -192,13 +284,13 @@ and extend the string literal to the unbalanced quote. Example:
 \begin{verbatim}
    A := "for all" good";
 \end{verbatim}
-The \verb|"| after \verb|all| is extra. The parse error is at \verb|good|;
+The \code{"} after \code{all} is extra. The parse error is at \code{good};
 this solution in effect deletes the extra quote.
 
 Note that the search for a string literal on the parse stack must take
 into account nonterminals that may contain a string literal. This
 requires the syntax tree mentioned in connection with
-\verb|undo_reduce| above. The set of nonterminals that may contain a
+\code{undo\_reduce} above. The set of nonterminals that may contain a
 string literal is provided as a function call written by the grammar
 author; it is not computed from the grammar because it should not
 include higher level nonterminals that are not likely to be contained
@@ -214,74 +306,59 @@ McKenzie algorithm, because we do all the deletions in one step, with
 one low cost.
 
 \subsection{Minimal\_Complete}
-Consider this code (mentioned in the introduction):
-
-\begin{figure}[ht]
-\begin{verbatim}
-begin
-   if A then
-      B;
-      if C then
-         loop
-           Do_Something;
-end;
-\end{verbatim}
-\caption{}
-\label{ex:min_com_if_if_loop}
-\end{figure}
-The best error correction is to provide all of the missing ``ends''.
-We can do this quickly be augmenting the parse table with a
-\verb|Minimal_Complete_Action|, giving the terminal token to insert in
+Consider the code in \ref{ex:min_com_if_if_loop}. The best error
+correction is to provide all of the missing ``ends''. We can do this
+quickly by augmenting the parse table with a
+\code{Minimal\_Complete\_Action}, giving the terminal token to insert in
 the state that reports the error.
 
-When parsing this code, an error is detected at the final \verb|;|;
-the parser is expecting \verb|end loop;|. The production being parsed
-at that point is:
+When parsing this code, an error is detected at the final \code{;};
+the parser is expecting \code{end loop;}. The kernel of that state has
+one production:
 \begin{verbatim}
-loop_statement <= LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
+loop_statement <= LOOP sequence_of_statements END ^ LOOP
+   identifier_opt SEMICOLON
 \end{verbatim}
 where the carrot (\verb|^|) shows the parse point. In this
-case, it is easy to see that \verb|Minimal_Complete_Action| must be
-\verb|LOOP|. Similarly, after parsing \verb|LOOP|, \verb|Minimal_Complete_Action|
-is \verb|identifier_opt|, and then \verb|;|. After that,
-we will be completing the inner \verb|if then| statement, and then the
-outer \verb|if then| statement. At that point, the existing
-\verb|end ;| is legal.
+case, it is easy to see that \code{Minimal\_Complete\_Action} must be
+\code{loop}. Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
+is \code{identifier\_opt}, and then \code{;}. After that,
+we will be completing the inner \code{if then} statement, and then the
+outer \code{if then} statement. At that point, the existing
+\code{end ;} is legal.
 
 Section \ref{minimal-complete-compute} gives the algorithm for
-computing the \verb|Minimal_Complete| tokens; here we describe how
+computing the \code{Minimal\_Complete} tokens; here we describe how
 they are used in error correction.
 
 The check to see if the original error token is now legal must be
 performed after each nonterminal is completed. Rather than trying to
 encode the notion of ``completing a nonterminal'', we do the check
-after inserting each token; this means that \verb|Minimal_Complete|
+after inserting each token; this means that \code{Minimal\_Complete}
 inserts at most one token for each cycle of the underlying McKenzie
-algorithm.
+algorithm. This also handles cases where only the leading part of
+nonterminal needs to be inserted.
 
-In order to prefer the \verb|Minimal_Complete| solution over others,
+In order to prefer the \code{Minimal\_Complete} solution over others,
 we give it a negative cost. In all examples in this paper, the default
-insert and delete cost is 4, delete \verb|BEGIN| is cost 1, delete
-\verb|END|, \verb|;| are cost 2. With \verb|Minimal_Complete| cost 0,
+insert and delete cost is 4, delete \code{begin} is cost 1, delete
+\code{END}, \code{;} are cost 2. With \code{Minimal\_Complete} cost 0,
 -1, or -2, no solution for figure \ref{ex:min_com_if_if_loop} is
-found, with an enqueue limit of 120,000. With \verb|Minimal_Complete|
+found, with an enqueue limit of 120,000. With \code{Minimal\_Complete}
 cost -3, the desired solution is found with cost 9, after enqueueing
 6804 configurations and checking 1051.
 
 As usual, there is a trade off here; setting the magnitude high
-encourages \verb|Minimal_Complete| over other solutions, but sometimes
+encourages \code{Minimal\_Complete} over other solutions, but sometimes
 other solutions would be better. For example, consider:
-\begin{figure}[ht]
 \begin{verbatim}
 for I in 1 to Result_Length loop
 end loop;
 \end{verbatim}
-\label{ex:min_com_loop_to}
-\end{figure}
-Here \verb|to| should be \verb|..| (this is an actual error the author
-typed late one night). The error is detected at \verb|to|, so the
-desired solution is \verb|delete IDENTIFIER, insert ..|. With the
-\verb|Minimal_Complete| cost set to 0, this solution is found, along
+Here \code{to} should be \code{..} (this is an actual error the author
+typed late one night). The error is detected at \code{to}, so the
+desired solution is \code{delete IDENTIFIER, insert ..}. With the
+\code{Minimal\_Complete} cost set to 0, this solution is found, along
 with 19 other solutions with the same cost; a few of these change the
 code to:
 
@@ -294,50 +371,261 @@ in 1 .. to/Result_Length loop
 Finding these takes a relatively long time; 1273 configurations
 were enqueued and 218 checked.
 
-Setting \verb|Minimal_Complete| cost to -1 finds similar solutions,
-but more quickly (341 enqueued, 56 checked); \verb|insert ..| is done
-by \verb|Minimal_Complete|, so it is cheaper, and more expensive
+Setting \code{Minimal\_Complete} cost to -1 finds similar solutions,
+but more quickly (341 enqueued, 56 checked); \code{insert ..} is done
+by \code{Minimal\_Complete}, so it is cheaper, and more expensive
 solutions are not checked.
 
-Setting \verb|Minimal_Complete| cost to -3 (as required for
+Setting \code{Minimal\_Complete} cost to -3 (as required for
 example \ref{ex:min_com_if_if_loop}) finds one cost 3 solution very
 quickly (67 enqueued, 10 checked); it changes the code to:
-\begin{figure}[ht]
 \begin{verbatim}
 for I in 1 .. to loop Result_Length; loop
 end loop;
 \end{verbatim}
-\label{ex:min_com_loop_to_3}
-\end{figure}
 which causes another syntax error later in the code (missing
-\verb|end loop;|). Here three tokens were inserted by
-\verb|Minimal_Complete|; \verb|.. loop ;|.
+\code{end loop;}). Here three tokens were inserted by
+\code{Minimal\_Complete}; \code{.. loop ;}.
 
+In the production Ada parser, -3 proves to be a good setting for
+\code{Minimal\_Complete} cost.
+
+In some cases, the action required for \code{Minimal\_Complete} is
+reduce, not shift. For example:
+\begin{verbatim}
+case Current_Token is
+= +RIGHT_PAREN_ID then
+   Matching_Begin_Token := +LEFT_PAREN_ID;
+else
+   Matching_Begin_Token := Invalid_Token_ID;
+end if;
+\end{verbatim}
+Here the user is in the middle of converting an \code{if} statement to
+a \code{case} statement. \code{Minimal\_Complete} inserts
+\code{when NUMERIC\_LITERAL =>}, then McKenzie inserts
+\code{if STRING\_LITERAL}, which makes the remaining code legal,
+terminating one error correction session. Then parsing proceeds to
+then end of the input, where an error is enountered; missing
+\code{end case;}. At that point, the parse state kernel has one
+production:
+\begin{verbatim}
+sequence_of_statements_list <= statement ^
+
+Minimal_Complete_Action => sequence_of_statements_list
+\end{verbatim}
+Since the \code{Minimal\_Complete} token is a nonterminal, the action
+is reduce, not shift. That leads to three more states where the
+\code{Minimal\_Complete} action is reduce, and finally arrives at the
+state kernel:
+\begin{verbatim}
+case_statement <= CASE expression_opt IS
+   case_statement_alternative_list ^ END CASE SEMICOLON
+case_statement_alternative_list <=
+   case_statement_alternative_list ^ case_statement_alternative
+
+Minimal_Complete_Action => END
+\end{verbatim}
+which inserts \code{end}. \code{Minimal\_Complete} does all required
+reductions, and one insertion, in one McKenzie step.
+
+If there is more than one production in the kernel for a parse state
+that gives the minimum length for that state, there is more than one
+\code{Minimal\_Complete\_Action} for that state. In that case, we look
+at the length after dot for each production in the kernel for the
+state that reduce goes to; if one of the actions results in a minimum
+length, that action is chosen. If more than one action gives the
+minimum length, all are kept. Therefore the \code{Minimal\_Complete}
+algorithm maintains a queue of configurations with an action to check.
+Each may produce a new configuration for the next McKenzie step.
+
+Since recursive productions are never minimal length,
+\code{Minimal\_Complete} drops them, unless all the productions in a
+kernel are recursive. Then the recursion is ignored; one of the later
+states will break the recursion. This requires a \code{recursive} flag
+stored in each parse state.
+
+\subsection{Matching\_Begin}
+Consider the code:
+\begin{verbatim}
+procedure ... end;
+end if;
+end Foo;
+\end{verbatim}
+This is a result of cut and paste.
+\code{procedure Foo is begin if expression then} is missing before
+\code{end if}.
+
+The error is detected at the \code{end} in \code{end if}.
+\code{Minimal\_Complete} is no help here; the parse stack looks like:
+\begin{verbatim}
+34 : subprogram_body, 0 :
+\end{verbatim}
+\code{Minimal\_Action} in state 34 is reduce to
+\code{compilation\_unit}, which is then reduced to
+\code{compilation\_unit\_list}, which is the grammar start symbol. So
+\code{Minimal\_Complete} has nothing useful to insert.
+
+To the grammar author, the solution is obvious. We capture that
+knowledge by having the grammar author provide a function
+\code{Language\_Matching\_Begin\_Tokens}, which takes the current parse
+stack and the next three input tokens as input, and returns a list of
+tokens to insert at the edit point.
+
+The \code{Language\_Matching\_Begin\_Tokens} function is similar to the
+table \code{E(A,a)} given in \cite{FMQ 1980} for an LL parser:
+\begin{verbatim}
+E(A,a) = x : A => xay, cost(x) minimal
+\end{verbatim}
+However, we are using an LR parser, so that table is not directly
+applicable. We could try to compute a table that gives the minimal
+sequence of tokens to insert starting in any state \code{s} , and
+allowing any token \code{a} as the next token:
+\begin{verbatim}
+M(s,a) = y : A => xyaz, A in kernel(s), cost(x) minimal
+\end{verbatim}
+where \code{x} is the prefix of the production in state \code{s}.
+That is the table that the McKenzie algorithm computes on the fly; it
+is not worth precomputing. It is worth providing
+\code{Language\_Matching\_Begin\_Tokens} to shortcut some common
+situations.
+
+In Ada, three tokens are required to determine the proper match for
+\code{end}; consider:
+\begin{verbatim}
+case is end case;
+loop end loop;
+block_1 : begin end Block_1;
+package Parent_1.Child_1 is begin end Parent_1.Child_1;
+\end{verbatim}
+In the case and loop statements, the three tokens starting with
+\code{end} are \code{end loop ;} and \code{end case ;}; here we only
+need two tokens to determine that the matching begin is \code{loop}.
+To distinguish between the named block statement and the package
+declaration, we need three tokens; in a named block statement the name
+must be a simple identifier, with no dots, so the third token must be
+\code{;}.
+
+In Ada, \code{Language\_Matching\_Begin\_Tokens} returns the proper
+statement start token for \code{end ... }, and for
+\code{then, else, elsif, exception}. For \code{when}, it returns
+\code{case IDENTIFIER is}, which assumes a partial case statement is
+more common than a partial exception handler. For any other error
+token, it returns an empty sequence; no guess is better than a bad
+guess.
+
+\code{Language\_Matching\_Begin\_Tokens} also returns a flag
+\code{Forbid\_Minimal\_Complete}, which is True when
+\code{Minimal\_Complete} would be harmful. In Ada, this is set True
+when the error point is after \code{end} in one of the \code{end}
+sequences above; it is better to push back \code{end}.
+
+\subsection{Language\_Fixes}
+To take advantage of the redundant block name information in Ada, we
+provide a general hook \code{Language\_Fixes}; it takes as input all of
+the current error recovery state, and enqueues new configurations to
+test.
+Consider:
+\begin{verbatim}
+procedure Proc_1
+is begin
+    Block_1:
+    begin
+end Proc_1;
+\end{verbatim}
+\caption{}
+Here \code{end Block\_1;} is missing. The grammar rules for Ada do not
+require the start and end block names to match; that is checked later
+in the compilation process. To take advantage of it for error
+correction, we add that check as a parse-time action in the grammar
+declaration:
+\begin{verbatim}
+block_statement
+  : block_label_opt BEGIN handled_sequence_of_statements END
+    identifier_opt SEMICOLON
+    %()%
+    %(return Match_Names
+        (Lexer, Descriptor, Tokens, 1, 5, End_Name_Optional);)%
+  ;
+\end{verbatim}
+Here the first `\verb|%()%|' gives the post-parse action, which is run
+after the parse is complete and the syntax tree is available; Emacs
+uses this action to compute indent, navigation, and highlight. The
+second `\verb|%()%|' gives the in-parse action, which is run when the
+production is reduced, both in the main parse and during error
+correction.
+
+Here \code{Match\_Names} will return a status of
+\code{Match\_Names\_Error} if the names do not match, with the error
+point after the final \code{;}, and the production not reduced (so it
+is possible to edit the token sequence without an
+\code{undo\_reduce}). \code{Language\_Fixes} then tries to determine
+the best fix based on the name information.
+
+In this example, the check fail is reported after \code{end Proc\_1;}.
+\code{Language\_Fixes} finds the matching \code{procedure Proc\_1} on
+the parse stack, and inserts \code{end Block\_1;} before
+\code{end Proc\_1;}.
+
+Consider:
+\begin{verbatim}
+package Parent_1.Child_1
+is begin
+    begin
+end Parent_1.Child_1;
+\end{verbatim}
+Here we might expect \code{Match\_Names} will fail with
+\code{Extra\_Name\_Error}, but instead we get a parse error on \code{.}
+in \code{Parent\_1.Child\_1}; block names must be simple identifiers.
+Since this is similar to \code{Match\_Names\_Error},
+\code{Language\_Fixes} handles it, finding the matching name; the
+fix is to insert \code{end ;} before \code{end Parent\_1.Child\_1;}.
+
+Consider:
+\begin{verbatim}
+Block_1 :
+begin
+    if A then
+       null;
+end Block_1;
+\end{verbatim}
+\caption{}
+Here we get a syntax error on the final \code{Block\_1}; \code{if} is
+expected. Again, \code{Language\_Fixes} handles it, finding the
+matching name.
+
+More complex patterns can be recognized in \code{Language\_Fixes}; see
+the production Ada code.
+
+\section{Computing Minimal\_Complete}
+\label{minimal-complete-compute}
 %% - minimal complete similar to Fischer and Mauney 1992, refs Fisher,
 %% Milton, Quiring 1980 (FMQ 1980); those are for LL(1) parsers
 %% S(A) = x such that A => x and Cost(x) is minimized = Terminal_Sequence (all cost 1)
 
-\subsection{Matching\_Begin}
-%% FMQ 1980) E(A,a) = x : A => xay, cost (x) minimal => superset of matching_begin?
-
-\subsection{Language\_Fix}
-
-\section{interaction with generalized parsing}
-\section{Computing Minimal\_Complete}
-\label{minimal-complete-compute}
+\section{Implementation}
+%% optimize data structures for speed; fixed length queue, stack;
+%% fibonacci heap
+%% multiple threads
 
 \section{Bibliography}
 \begin{thebibliography}{9}
 
+\bibitem{Ada 2012} \verb|http://ada-auth.org/standards/ada12.html|
+
 \bibitem{Emacs Ada mode news} http://www.nongnu.org/ada-mode/NEWS-ada-mode.text
 
-\bibitem{Grune 2008} ``Parsing Techniques; A Practical Guide, Second
-  Edition''. Dick Grune, Ceriel J.H. Jacobs, 2008. Springer Science.
+\bibitem{FMQ 1980}  Fischer, C.N., Milton, D.R., Quiring, S.B.:
+  Efficient LL(1) error correction and recovery using only insertions.
+  Acta Inf. 13(2), 141-154 (1980)
+
+\bibitem{Grune 2008} Dick Grune, Ceriel J.H. Jacobs: ``Parsing Techniques; A Practical Guide, Second
+  Edition''. Springer Science  2008.
 
 \bibitem{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
-  Vere, Lorraine.
-  \textit{Error repair in shift reduce parsers} ACM Trans. Prog.
-  Lang. Syst., 17(4):672-689, July 1995.
+  Vere, Lorraine. Error repair in shift reduce parsers. ACM Trans.
+  Prog. Lang. Syst., 17(4):672-689, July 1995.
   % Described in [Grune 2008] ref 321.
+
+\bibitem{Tomita 1986} Masaru Tomita. Efficient parsing for natural language. Kluwer Academic Publishers, Boston, 1986.
 \end{thebibliography}
 \end{document}
