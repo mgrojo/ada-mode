@@ -145,6 +145,9 @@ package WisiToken.Generate.LR is
 
    function Image is new RHS_Sequence_Arrays.Gen_Image_Aux (Descriptor, Trimmed_Image, Image);
 
+   function Min_Length (Item : in RHS_Sequence_Arrays.Vector) return Ada.Containers.Count_Type;
+   --  Return minimum length of elements of Item.
+
    function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence;
    --  Return element of Item with minimum length;
 

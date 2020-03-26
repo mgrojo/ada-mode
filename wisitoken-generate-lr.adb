@@ -667,6 +667,19 @@ package body WisiToken.Generate.LR is
         Image (Item.Sequence, Descriptor) & ")";
    end Image;
 
+   function Min_Length (Item : in RHS_Sequence_Arrays.Vector) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Min : Count_Type := Count_Type'Last;
+   begin
+      for RHS of Item loop
+         if RHS.Sequence.Length < Min then
+            Min := RHS.Sequence.Length;
+         end if;
+      end loop;
+      return Min;
+   end Min_Length;
+
    function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence
    is
       use all type Ada.Containers.Count_Type;
@@ -814,6 +827,8 @@ package body WisiToken.Generate.LR is
 
       function Find_Action (List : in Action_Arrays.Vector; ID : in Token_ID) return Minimal_Action
       is begin
+         --  ID is a terminal after Dot in an item in a kernel that has List as
+         --  the actions; return the appropriate action.
          for Node of List loop
             if Node.Symbol = ID then
                case Node.Actions.Item.Verb is
@@ -821,7 +836,8 @@ package body WisiToken.Generate.LR is
                   return (Shift, ID, Node.Actions.Item.State);
                when Reduce =>
                   --  Item.Dot is a nonterm that starts with a nullable nonterm; reduce
-                  --  to that first.
+                  --  to that first. After any more such reductions, the action will be
+                  --  Shift ID.
                   return (Reduce, Node.Actions.Item.Production.LHS, 0);
                when Accept_It | WisiToken.Parse.LR.Error =>
                   raise SAL.Programmer_Error;
@@ -830,19 +846,6 @@ package body WisiToken.Generate.LR is
          end loop;
          raise SAL.Programmer_Error;
       end Find_Action;
-
-      function Min_Length (Item : in RHS_Sequence_Arrays.Vector) return Ada.Containers.Count_Type
-      is
-         use Ada.Containers;
-         Min : Count_Type := Count_Type'Last;
-      begin
-         for RHS of Item loop
-            if RHS.Sequence.Length < Min then
-               Min := RHS.Sequence.Length;
-            end if;
-         end loop;
-         return Min;
-      end Min_Length;
 
       function After_Dot_Length (Item : in LR1_Items.Item) return Ada.Containers.Count_Type
       is
@@ -1033,6 +1036,8 @@ package body WisiToken.Generate.LR is
 
    begin
       if Kernel.State > 0 then
+         --  State 0 has dot before all tokens, which is never needed in the
+         --  Minimal_Action algorithm.
          declare
             use Ada.Containers;
             I : Count_Type := 1;
@@ -1091,7 +1096,7 @@ package body WisiToken.Generate.LR is
          declare
             Actions : Minimal_Action_Array (1 .. Working_Set.Length) := (others => (others => <>));
 
-            I    : Ada.Containers.Count_Type := 1;
+            I    : Ada.Containers.Count_Type := Actions'First;
             Skip : Boolean;
          begin
             for Item of Working_Set loop

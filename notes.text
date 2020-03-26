@@ -3,7 +3,7 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - speed up recover
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -24,7 +24,30 @@ update-wisitoken_grammar
 error_correction_algorithm.tex
     doc Minimal_Complete done?
 
+    example of recursion in error handling
+        notes in Immediate_Recursive
+
+        Minimal_Do_Shift always checks for actual recursion cycle; why pre-compute?
+            avoids extra configs that will be abandoned
+
+
+    why need left, right, single, middle?
+        reduced to boolean in State.Minimal_Complete_Actions_Recursive
+            excludes Middle | Single!
+            true if any items immediately recursive
+
+        only used in:
+            Net_Recursion; middle dominates
+            Worst_Recursion: Left dominates
+        Net_Recursion used in worst_recursion, when computing Full
+
+        Immediate_Recursive makes no sense for Right
+            Dot after recursion check makes some sense for Left
+            should be 'Right or (left and dot = 2)'
+            test in w.s-2
+
     see comments in file
+
 
     redo compare using lr1 for wisitoken-tokens
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git

@@ -2,10 +2,12 @@
 \documentclass{article}
 \usepackage{algorithm2e}[longend noline]
 \usepackage{float}
+\usepackage{listings}
+\lstset{escapeinside={\%*}{*)}, language=Ada}
 \title{Robust error correction in a generalized LR parser}
 \author{Stephen Leake}
 
-\newcommand{\code}[1]{`{\tt #1}'}
+\newcommand{\code}[1]{`\lstinline|#1|'}
 
 \begin{document}
 \section{Abstract}
@@ -38,14 +40,14 @@ long time, or is inefficient.
 
 For example, consider this Ada code:
 \begin{figure}[H]
-\begin{verbatim}
+\begin{lstlisting}
 procedure Example_01
 is begin
    Msg : constant String;
 begin
    Put_Line (Msg);
 end;
-\end{verbatim}
+\end{lstlisting}
 \caption{}
 \label{ex:extra_begin_1}
 \end{figure}
@@ -62,7 +64,7 @@ To fix this, the McKenzie algorithm must insert \code{; end; begin
 A harder problem is when there are several missing ``end''s, because
 the user is typing a nested statement:
 \begin{figure}[H]
-\begin{verbatim}
+\begin{lstlisting}
 begin
    if A then
       B;
@@ -70,7 +72,7 @@ begin
          loop
            Do_Something;
 end;
-\end{verbatim}
+\end{lstlisting}
 \caption{}
 \label{ex:min_com_if_if_loop}
 \end{figure}
@@ -172,7 +174,7 @@ grammar.
 
 To illustrate the second point, consider:
 \begin{figure}[H]
-\begin{verbatim}
+\begin{lstlisting}
 procedure Example_2
 is
    I : Integer;
@@ -183,7 +185,7 @@ begin
    end Put_Top_10;
 begin
 end Example_2;
-\end{verbatim}
+\end{lstlisting}
 \caption{}
 \label{ex:extra_begin_2}
 \end{figure}
@@ -229,9 +231,9 @@ empty; that is easy to undo.
 \subsection{Try\_Insert\_Quote}
 Missing string quotes cause problems for the McKenzie algorithm.
 Consider the code:
-\begin{verbatim}
+\begin{lstlisting}
 A : String := Now is the time for all good men";
-\end{verbatim}
+\end{lstlisting}
 There is a missing quote before \code{Now}. In Ada, strings cannot
 cross newline, and the lexer handles the error by inserting a virtual
 quote just before the existing one. Then the parser sees a list of
@@ -247,9 +249,9 @@ of the unbalanced quote and the parse error.
 \item If the parse error is at the unbalanced quote, assume the unbalanced
 quote is the intended closing quote, and insert the opening quote one
 non-empty token before it. Example:
-\begin{verbatim}
+\begin{lstlisting}
    A := "for all" & good ";
-\end{verbatim}
+\end{lstlisting}
 We are in the process of splitting a string across lines; we just
 added \code{" \&}, but are missing the \code{"} before \code{good}.
 This solution inserts that missing quote.
@@ -257,9 +259,9 @@ This solution inserts that missing quote.
 \item If the parse error is after the unbalanced quote, assume the unbalanced
 quote is the intended opening quote, and insert the closing quote at
 the line end. Example:
-\begin{verbatim}
+\begin{lstlisting}
    A := "for all" & "good ;
-\end{verbatim}
+\end{lstlisting}
 The missing \code{"} should be after \code{good}.
 This solution inserts that missing quote.
 
@@ -268,9 +270,9 @@ quote is the intended closing quote, and insert the opening quote:
 
 \begin{itemize}
 \item before the error token. Example:
-\begin{verbatim}
+\begin{lstlisting}
    A := for all good";
-\end{verbatim}
+\end{lstlisting}
 The missing \code{"} should be before \code{for}. The parse error is at \code{all};
 this solution inserts the missing quote before \code{all}, which is
 almost right.
@@ -281,9 +283,9 @@ almost right.
 \item If there is a string literal on the parse stack,
 assume the closing quote of that string literal is new (or extra),
 and extend the string literal to the unbalanced quote. Example:
-\begin{verbatim}
+\begin{lstlisting}
    A := "for all" good";
-\end{verbatim}
+\end{lstlisting}
 The \code{"} after \code{all} is extra. The parse error is at \code{good};
 this solution in effect deletes the extra quote.
 
@@ -351,10 +353,10 @@ cost -3, the desired solution is found with cost 9, after enqueueing
 As usual, there is a trade off here; setting the magnitude high
 encourages \code{Minimal\_Complete} over other solutions, but sometimes
 other solutions would be better. For example, consider:
-\begin{verbatim}
+\begin{lstlisting}
 for I in 1 to Result_Length loop
 end loop;
-\end{verbatim}
+\end{lstlisting}
 Here \code{to} should be \code{..} (this is an actual error the author
 typed late one night). The error is detected at \code{to}, so the
 desired solution is \code{delete IDENTIFIER, insert ..}. With the
@@ -362,11 +364,11 @@ desired solution is \code{delete IDENTIFIER, insert ..}. With the
 with 19 other solutions with the same cost; a few of these change the
 code to:
 
-\begin{verbatim}
+\begin{lstlisting}
 in to.Result_Length loop
 in 1 .. to*Result_Length loop
 in 1 .. to/Result_Length loop
-\end{verbatim}
+\end{lstlisting}
 
 Finding these takes a relatively long time; 1273 configurations
 were enqueued and 218 checked.
@@ -379,10 +381,10 @@ solutions are not checked.
 Setting \code{Minimal\_Complete} cost to -3 (as required for
 example \ref{ex:min_com_if_if_loop}) finds one cost 3 solution very
 quickly (67 enqueued, 10 checked); it changes the code to:
-\begin{verbatim}
+\begin{lstlisting}
 for I in 1 .. to loop Result_Length; loop
 end loop;
-\end{verbatim}
+\end{lstlisting}
 which causes another syntax error later in the code (missing
 \code{end loop;}). Here three tokens were inserted by
 \code{Minimal\_Complete}; \code{.. loop ;}.
@@ -392,14 +394,14 @@ In the production Ada parser, -3 proves to be a good setting for
 
 In some cases, the action required for \code{Minimal\_Complete} is
 reduce, not shift. For example:
-\begin{verbatim}
+\begin{lstlisting}
 case Current_Token is
 = +RIGHT_PAREN_ID then
    Matching_Begin_Token := +LEFT_PAREN_ID;
 else
    Matching_Begin_Token := Invalid_Token_ID;
 end if;
-\end{verbatim}
+\end{lstlisting}
 Here the user is in the middle of converting an \code{if} statement to
 a \code{case} statement. \code{Minimal\_Complete} inserts
 \code{when NUMERIC\_LITERAL =>}, then McKenzie inserts
@@ -446,11 +448,11 @@ stored in each parse state.
 
 \subsection{Matching\_Begin}
 Consider the code:
-\begin{verbatim}
+\begin{lstlisting}
 procedure ... end;
 end if;
 end Foo;
-\end{verbatim}
+\end{lstlisting}
 This is a result of cut and paste.
 \code{procedure Foo is begin if expression then} is missing before
 \code{end if}.
@@ -472,18 +474,18 @@ stack and the next three input tokens as input, and returns a list of
 tokens to insert at the edit point.
 
 The \code{Language\_Matching\_Begin\_Tokens} function is similar to the
-table \code{E(A,a)} given in \cite{FMQ 1980} for an LL parser:
-\begin{verbatim}
-E(A,a) = x : A => xay, cost(x) minimal
-\end{verbatim}
+table $E(A,a)$ given in \cite{FMQ 1980} for an LL parser:
+\begin{equation}
+E(A,a) \equiv x \, | \, A \Rightarrow^* xay, \, \mathtt{Cost(x)\; is\; minimized}
+\end{equation}
 However, we are using an LR parser, so that table is not directly
 applicable. We could try to compute a table that gives the minimal
-sequence of tokens to insert starting in any state \code{s} , and
-allowing any token \code{a} as the next token:
-\begin{verbatim}
-M(s,a) = y : A => xyaz, A in kernel(s), cost(x) minimal
-\end{verbatim}
-where \code{x} is the prefix of the production in state \code{s}.
+sequence of tokens to insert starting in any state $s$ , and
+allowing any token $a$ as the next token:
+\begin{equation}
+M(s,a) \equiv y \, | \, A \Rightarrow^* xyaz, \, A \in Kernel(s), \, \mathtt{Cost(x)\; is\; minimized}
+\end{equation}
+where $x$ is the prefix of the production $A$ in state $s$.
 That is the table that the McKenzie algorithm computes on the fly; it
 is not worth precomputing. It is worth providing
 \code{Language\_Matching\_Begin\_Tokens} to shortcut some common
@@ -491,15 +493,16 @@ situations.
 
 In Ada, three tokens are required to determine the proper match for
 \code{end}; consider:
-\begin{verbatim}
+\begin{lstlisting}
 case is end case;
 loop end loop;
 block_1 : begin end Block_1;
 package Parent_1.Child_1 is begin end Parent_1.Child_1;
-\end{verbatim}
+\end{lstlisting}
 In the case and loop statements, the three tokens starting with
 \code{end} are \code{end loop ;} and \code{end case ;}; here we only
-need two tokens to determine that the matching begin is \code{loop}.
+need two tokens to determine that the matching begin is \code|case| or
+\code{loop}.
 To distinguish between the named block statement and the package
 declaration, we need three tokens; in a named block statement the name
 must be a simple identifier, with no dots, so the third token must be
@@ -525,14 +528,13 @@ provide a general hook \code{Language\_Fixes}; it takes as input all of
 the current error recovery state, and enqueues new configurations to
 test.
 Consider:
-\begin{verbatim}
+\begin{lstlisting}
 procedure Proc_1
 is begin
     Block_1:
     begin
 end Proc_1;
-\end{verbatim}
-\caption{}
+\end{lstlisting}
 Here \code{end Block\_1;} is missing. The grammar rules for Ada do not
 require the start and end block names to match; that is checked later
 in the compilation process. To take advantage of it for error
@@ -567,12 +569,12 @@ the parse stack, and inserts \code{end Block\_1;} before
 \code{end Proc\_1;}.
 
 Consider:
-\begin{verbatim}
+\begin{lstlisting}
 package Parent_1.Child_1
 is begin
     begin
 end Parent_1.Child_1;
-\end{verbatim}
+\end{lstlisting}
 Here we might expect \code{Match\_Names} will fail with
 \code{Extra\_Name\_Error}, but instead we get a parse error on \code{.}
 in \code{Parent\_1.Child\_1}; block names must be simple identifiers.
@@ -581,14 +583,13 @@ Since this is similar to \code{Match\_Names\_Error},
 fix is to insert \code{end ;} before \code{end Parent\_1.Child\_1;}.
 
 Consider:
-\begin{verbatim}
+\begin{lstlisting}
 Block_1 :
 begin
     if A then
        null;
 end Block_1;
-\end{verbatim}
-\caption{}
+\end{lstlisting}
 Here we get a syntax error on the final \code{Block\_1}; \code{if} is
 expected. Again, \code{Language\_Fixes} handles it, finding the
 matching name.
@@ -598,15 +599,407 @@ the production Ada code.
 
 \section{Computing Minimal\_Complete}
 \label{minimal-complete-compute}
-%% - minimal complete similar to Fischer and Mauney 1992, refs Fisher,
-%% Milton, Quiring 1980 (FMQ 1980); those are for LL(1) parsers
-%% S(A) = x such that A => x and Cost(x) is minimized = Terminal_Sequence (all cost 1)
+To compute the \code{Minimal\_Complete\_Action} for each state, we
+first compute the recursions. A `{\it recursion}' is the result of a
+cycle in the grammar; for example, consider:
+\begin{verbatim}
+association_list
+  : association_list COMMA association_opt
+  | association_opt
+  ;
+\end{verbatim}
+The first right hand side (RHS) is direct left recursive; the second
+is not recursive.
+
+Recursion can also be indirect; consider:
+\begin{verbatim}
+name
+  : IDENTIFIER
+  | selected_component
+  ;
+selected_component : name DOT IDENTIFIER ;
+\end{verbatim}
+Together, \code{name, selected\_component} are indirect single recursive.
+
+There are four posibilities for recursion in an RHS: \code{none,
+single, middle, left, right}. \code{single} means there is only one
+token in the RHS, as in \code{selected\_component}. \code{left, right}
+mean the recursive token is at the left or right end of the RHS;
+\code{middle} means it is at neither end.
+
+We can form a graph representing the grammar by taking the
+nonterminals as the graph vertices, and if there is a production $A
+\Rightarrow xBy$ then there is a directed edge from the $A$ to $B$.
+Then recursion is represented by a cycle in the graph.
+
+In a useful grammar, every recursion must have a non-recursive
+RHS in one of the nonterminals, to terminate the recursion.
+
+We use Johnson's algorithm \cite{graph-cycles} to find the cycles in
+the graph. However, that algorithm does not apply to `{\it
+  multigraphs}', which have more than one edge connecting any two
+nodes. Real grammars can be multigraphs, so we first filter out all
+such edges, and add them back after we compute the cycles.
+
+Some languages have a lot of recursion, so it can be prohibitive to
+compute the exact set of cycles in the graph. For example, Java (using
+the grammar given in chapter 19 of the language reference manual
+\cite{javarm}) takes too long to compute. In that case, we only
+compute the strongly connected components (which is one of the steps
+in \cite{graph-cycles}), and use that as the recursion. This gives
+more recursion than necessary, but still gives good performance in
+error correction.
+
+Next, we compute the minimal terminal token sequence for each production.
+This is the same as $S(A)$ from FMQ \cite{FMQ 1980}:
+\begin{equation}
+S(A) \equiv x \in V_t^* \, |\, A \Rightarrow^* x, \, \mathtt{Cost(x)\; is\; minimized}
+\end{equation}
+where the cost of each token is 1.
+
+The computation is straight-forward, except that some productions are
+recursive.
+
+Next we need $MINFIRST(A)$, which is the first token in $S(A)$, or the
+invalid token $\xi$ if $S(A)$ is empty.
+
+\begin{verbatim}
+
+(from Immediate\_recursive)
+       --  Direct left recursion is never minimal; for example, consider
+         --  ada_lite LALR state 149:
+         --
+         --  61.0:association_list <= association_list ^ COMMA association_opt
+         --
+         --  If we already have an association_list, adding a COMMA to it
+         --  cannot be minimal.
+         --
+         --  Similarly, indirect left recursion is not minimal; consider
+         --  ada_lite LALR states 29 and 60:
+         --
+         --  State 29:
+         --  103.3:name <= selected_component ^,
+         --
+         --  State 60:
+         --   94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
+         --  103.0:name <= name ^ LEFT_PAREN range_list
+         --  103.1:name <= name ^ actual_parameter_part
+         --  123.0:selected_component <= name ^ DOT IDENTIFIER
+         --
+         --  If we already have a name, adding actual_parameter_part or DOT IDENTIFIER cannot be
+         --  minimal.
+
+         --  There is a trade off here between error recovery power and risk of
+         --  recursive loops. Consider ada_lite state 152:
+         --
+         --  103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
+         --  117.0:range_list <= range_list ^ COMMA range_g
+         --
+         --  Both productions are Left_Recursive, but in the first item, dot is past
+         --  the recursion, and can be usefully completed.
+         --
+         --  However, that might allow loops; see java_enum_ch19.wy.
+         --
+         --  A similar argument applies to right recursive items; from
+         --  java_expressions_ch19.wy:
+         --
+         --  State 7:
+         --  27.0:Assignment <= LeftHandSide ^ EQUAL Expression
+         --
+         --  State 22:
+         --  28.0:LeftHandSide <= Identifier ^
+         --  34.0:ClassType <= Identifier ^
+         --
+         --  State 25:
+         --  24.1:Expression <= AssignmentExpression ^
+         --
+         --  State 26:
+         --  26.1:AssignmentExpression <= Assignment ^
+         --
+         --  Choosing LeftHandSide for the minimal action in state 22 will lead
+         --  to a loop thru state 7. However, Assignment can also occur in
+         --  Statement, where it is not recursive:
+         --
+         --  State 1:
+         --  23.0:Statement <= LEFT_CURLY_BRACKET ^ Assignment RIGHT_CURLY_BRACKET
+         --
+         --  This is not easy to check for.
+         --
+         --  It is not expensive to check for loops in Minimal_Complete_Action
+         --  at run-time, so given all the above we allow items that are "past
+         --  the recursion" here.
+
+  (from Delete\_Non\_Minimal)
+        --  The absolute minimal production for an LHS may not be in this
+      --  state. For example, for an Ada aggregate, the absolute minimal
+      --  terminal sequence is:
+      --
+      --  aggregate <= LEFT_PAREN RIGHT_PAREN
+      --
+      --  but one state has only:
+      --
+      --  aggregate <= LEFT_PAREN expression_opt WITH ^ NULL RECORD RIGHT_PAREN
+      --  aggregate <= LEFT_PAREN expression_opt WITH ^ association_list RIGHT_PAREN
+      --
+      --  Find the minimum tokens after dot of the productions that are present
+
+\end{verbatim}
 
 \section{Implementation}
 %% optimize data structures for speed; fixed length queue, stack;
 %% fibonacci heap
 %% multiple threads
 
+\section{Code}
+\label{code}
+\begin{lstlisting}
+  %*\lstset{numbers=left} *)
+procedure Set_Minimal_Complete_Actions
+  (State                      : in out Parse_State;
+   Kernel                     : in     LR1_Items.Item_Set;
+   Descriptor                 : in     WisiToken.Descriptor;
+   Grammar                    : in     WisiToken.Productions.Prod_Arrays.Vector;
+   Minimal_Terminal_Sequences : in     Minimal_Sequence_Array;
+   Minimal_Terminal_First     : in     Token_Array_Token_ID)
+is
+   use all type Ada.Containers.Count_Type;
+   use LR1_Items.Item_Lists;
+   use Token_ID_Arrays;
+
+   subtype Terminals is Token_ID range
+      Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+
+   Working_Set : LR1_Items.Item_Lists.List := Kernel.Set;
+   Recursive   : Boolean := False;
+
+   function Find_Action (List : in Action_Arrays.Vector; ID : in Token_ID)
+      return Minimal_Action
+   is begin
+      --  ID is a terminal after Dot in an item in a kernel that has List as
+      --  the actions; return the appropriate action.
+      for Node of List loop
+         if Node.Symbol = ID then
+            case Node.Actions.Item.Verb is
+            when Shift =>
+               return (Shift, ID, Node.Actions.Item.State);
+            when Reduce =>
+               --  Item.Dot is a nonterm that starts with a nullable nonterm; reduce
+               --  to that first. After any more such reductions, the action will be
+               --  Shift ID.
+               return (Reduce, Node.Actions.Item.Production.LHS, 0);
+            when Accept_It | WisiToken.Parse.LR.Error =>
+               raise SAL.Programmer_Error;
+            end case;
+         end if;
+      end loop;
+      raise SAL.Programmer_Error;
+   end Find_Action;
+
+   procedure Delete_Non_Minimal
+   is
+      use Ada.Containers;
+
+      Min_Length       : Count_Type := Count_Type'Last;
+      I                : LR1_Items.Item_Lists.Cursor;
+      Recursive_Count  : Count_Type := 0;
+      Delete_Recursive : Boolean;
+
+      function Immediate_Recursive return Boolean
+      is
+         Item : LR1_Items.Item renames Constant_Ref (I).Element.all;
+         Prod : constant WisiToken.Production_ID := Item.Prod;
+         Min_Seq : RHS_Sequence renames Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS);
+      begin
+         return Min_Seq.Worst_Recursion in Right | Left and then
+           (Has_Element (Item.Dot) and then
+              Item.Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2));
+      end Immediate_Recursive;
+
+   begin
+      I := Working_Set.First;
+      loop
+         exit when not Has_Element (I);
+
+         if Immediate_Recursive then
+            Recursive_Count := Recursive_Count + 1;
+         end if;
+
+         Next (I);
+      end loop;
+
+      Delete_Recursive := Recursive_Count < Working_Set.Length;
+
+      I := Working_Set.First;
+      loop
+         exit when not Has_Element (I);
+
+         if Delete_Recursive and Immediate_Recursive then
+            declare
+               Del : LR1_Items.Item_Lists.Cursor := I;
+            begin
+               Next (I);
+               Working_Set.Delete (Del);
+            end;
+
+         else
+            Recursive := Recursive or Minimal_Terminal_Sequences
+              (Constant_Ref (I).Prod.LHS)(Constant_Ref (I).Prod.RHS).Worst_Recursion in
+              Left | Right;
+
+            declare
+               Prod_Length : constant Count_Type := After_Dot_Length (Constant_Ref (I));
+            begin
+               if Min_Length > Prod_Length then
+                  Min_Length := Prod_Length;
+               end if;
+            end;
+
+            Next (I);
+         end if;
+      end loop;
+
+      --  Now we have the minimum length; check remaining items against that
+      I := Working_Set.First;
+      loop
+         exit when not Has_Element (I);
+         if Min_Length < After_Dot_Length (Constant_Ref (I)) then
+            declare
+               Del : LR1_Items.Item_Lists.Cursor := I;
+            begin
+               Next (I);
+               Working_Set.Delete (Del);
+            end;
+         else
+            Next (I);
+         end if;
+      end loop;
+   end Delete_Non_Minimal;
+
+begin
+   if Kernel.State > 0 then
+      --  State 0 has dot before all tokens, which is never needed in the
+      --  Minimal_Action algorithm.
+      declare
+         use Ada.Containers;
+         I : Count_Type := 1;
+
+         function Before_Dot (Item : in LR1_Items.Item) return Token_ID
+         is
+            Tokens : Token_ID_Arrays.Vector renames Grammar
+               (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens;
+         begin
+            if Item.Dot = Token_ID_Arrays.No_Element then
+               return Tokens (Tokens.Last_Index);
+            else
+               return Tokens (Prev (Item.Dot));
+            end if;
+         end Before_Dot;
+      begin
+         State.Kernel.Set_First_Last (1, Kernel.Set.Length);
+         for Item of Kernel.Set loop
+            State.Kernel (I) :=
+              (LHS              => Item.Prod.LHS,
+               Before_Dot       => Before_Dot (Item),
+               Length_After_Dot => After_Dot_Length (Item),
+               Recursive        => Minimal_Terminal_Sequences
+                 (Item.Prod.LHS)(Item.Prod.RHS).Worst_Recursion in Right | Left);
+
+            I := I + 1;
+         end loop;
+      end;
+   end if;
+
+   if (for some Item of Working_Set =>
+         Item.Prod.LHS = Descriptor.Accept_ID and
+         (Has_Element (Item.Dot) and then Element (Item.Dot) = Descriptor.EOI_ID))
+   then
+      --  No actions
+      return;
+   end if;
+
+   Delete_Non_Minimal;
+
+   State.Minimal_Complete_Actions_Recursive := Recursive;
+
+   if Working_Set.Length > 0 then
+      --  There are one or more productions with equal after-dot length in
+      --  this state, all equally valid; the choice is determined by what
+      --  input error recovery inserts.
+      --
+      --  We could simply choose one arbitrarily, but that can lead to loops
+      --  (see discussion above in Immediate_Recursive). So we consider the
+      --  higher level production. However, in general we cannot precompute
+      --  what higher-level productions might be completed from each state;
+      --  we must use the parse stack during error recovery. In that case,
+      --  we store multiple minimal actions in the state (see
+      --  Insert_Minimal_Complete_Actions in
+      --  wisitoken-parse-lr-mckenzie_recover-explore.adb).
+
+      declare
+         Actions : Minimal_Action_Array (1 .. Working_Set.Length) := (others => (others => <>));
+
+         I    : Ada.Containers.Count_Type := Actions'First;
+         Skip : Boolean;
+      begin
+         for Item of Working_Set loop
+
+            if not Has_Element (Item.Dot) then
+               --  Item has no next terminal. Include a reduce action; the
+               --  Minimal_Terminal_First for the resulting state will be used.
+               Actions (I) :=
+                 (Reduce, Item.Prod.LHS,
+                  Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
+            else
+               declare
+                  ID : constant Token_ID := Element (Item.Dot);
+               begin
+                  if ID in Terminals then
+                     Actions (I) := Find_Action (State.Action_List, ID);
+
+                  else
+                     if Minimal_Terminal_First (ID) = Invalid_Token_ID then
+                        --  Item.Dot is a nullable nonterm; include a reduce to the null
+                        --  nonterm, rather than a shift of the following terminal; recover
+                        --  must do the reduce first.
+                        Actions (I) := (Reduce, ID, Token_Count => 0);
+
+                     else
+                        Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
+                     end if;
+                  end if;
+               end;
+            end if;
+            I := I + 1;
+         end loop;
+
+         if Actions'Length = 1 then
+            State.Minimal_Complete_Actions := Minimal_Action_Arrays.To_Vector (Actions (Actions'First));
+         else
+            --  Check for duplicates; see three_action_conflict_lalr.parse_table
+            --  state 3 or lalr_generator_bug_01_lalr.parse_table state 28
+            for I in Actions'Range loop
+               Skip := False;
+               for J in Actions'First .. I - 1 loop
+                  if Actions (I) = Actions (J) then
+                     Skip := True;
+                     exit;
+                  end if;
+               end loop;
+               if not Skip then
+                  State.Minimal_Complete_Actions.Append (Actions (I));
+               end if;
+            end loop;
+         end if;
+
+         if Trace_Generate > Extra then
+            Ada.Text_IO.Put_Line
+              (Image (State.Minimal_Complete_Actions, Descriptor) & (if Recursive then " recursive" else ""));
+         end if;
+      end;
+   end if;
+end Set_Minimal_Complete_Actions;
+
+\end{lstlisting}
 \section{Bibliography}
 \begin{thebibliography}{9}
 
@@ -618,8 +1011,14 @@ the production Ada code.
   Efficient LL(1) error correction and recovery using only insertions.
   Acta Inf. 13(2), 141-154 (1980)
 
+\bibitem{graph-cycles} Donald B. Johnson, Finding all the Elementary Circuits of a Directed Graph.
+SIAM J. Comput. Vol 4, No. 1, March 1975. \url{https://epubs.siam.org/doi/abs/10.1137/0204007}
+
 \bibitem{Grune 2008} Dick Grune, Ceriel J.H. Jacobs: ``Parsing Techniques; A Practical Guide, Second
   Edition''. Springer Science  2008.
+
+\bibitem{javarm}
+  \url{https://docs.oracle.com/javase/specs/jls/se12/html/index.html}
 
 \bibitem{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
   Vere, Lorraine. Error repair in shift reduce parsers. ACM Trans.

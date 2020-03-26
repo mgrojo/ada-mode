@@ -12,7 +12,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -101,10 +101,10 @@ package WisiToken.Generate is
 
    --  Recursion is the result of a cycle in the grammar. We can form a
    --  graph representing the grammar by taking the nonterminals as the
-   --  graph vertices, and the occurence of a nonterminal in a production
-   --  right hand side as a directed edge connecting two nonterminals
-   --  (the other is the left hand side of that production. Then
-   --  recursion is represented by a cycle in the graph.
+   --  graph vertices, and the occurrence of a nonterminal in a
+   --  production right hand side as a directed edge from the left hand
+   --  side of the production to that nonterminal. Then recursion is
+   --  represented by a cycle in the graph.
 
    type Recursion_Item is record
       RHS : Natural := 0;
