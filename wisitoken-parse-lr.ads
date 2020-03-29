@@ -60,16 +60,22 @@ package WisiToken.Parse.LR is
    subtype Token_ID_Array_1_3 is Token_ID_Array (1 .. 3);
    --  For Language_Matching_Begin_Tokens.
 
-   type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
+   type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is
+   record
+      Production : Production_ID;
+      --  The production that produced this action. Used to find kernel
+      --  items during error recovery.
+
       case Verb is
       when Shift =>
          State : State_Index := State_Index'Last;
 
       when Reduce | Accept_It =>
-         Production : Production_ID;
-         --  The result nonterm and production index. Most uses need only
-         --  Production.LHS; elisp code generation, and debug output, needs
-         --  Production.RHS
+         --  Production.LHS is the result nonterm
+
+         Recursive : Boolean := False;
+         --  True if this action is part of a recursion cycle in the grammar
+         --  that needs resolving during error recovery.
 
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
@@ -89,7 +95,7 @@ package WisiToken.Parse.LR is
    --  Put a line for Item in parse trace format, with no prefix.
 
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
-   --  Ignore Action, Check.
+   --  Ignore items not used by the canonical shift-reduce algorithm.
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -132,10 +138,11 @@ package WisiToken.Parse.LR is
      (Goto_Node, Token_ID, To_Key, Compare);
 
    type Kernel_Info is record
-      LHS              : Token_ID                  := Token_ID'First;
-      Before_Dot       : Token_ID                  := Token_ID'First;
-      Length_After_Dot : Ada.Containers.Count_Type := 0;
-      Recursive        : Boolean                   := False;
+      Production          : Production_ID;
+      Before_Dot          : Token_ID                  := Token_ID'First;
+      Length_After_Dot    : Ada.Containers.Count_Type := 0;
+      Reduce_Count        : Ada.Containers.Count_Type := 0;
+      Immediate_Recursive : Boolean                   := False;
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
@@ -148,14 +155,16 @@ package WisiToken.Parse.LR is
 
    function Image is new Kernel_Info_Arrays.Gen_Image (Strict_Image);
 
-   type Minimal_Action (Verb : Minimal_Verbs := Shift) is record
+   type Minimal_Action (Verb : Minimal_Verbs := Shift) is
+   record
+      Production  : Production_ID := Invalid_Production_ID;
+
       case Verb is
       when Shift =>
          ID    : Token_ID    := Invalid_Token_ID;
          State : State_Index := State_Index'Last;
 
       when Reduce =>
-         Nonterm     : Token_ID;
          Token_Count : Ada.Containers.Count_Type;
       end case;
    end record;
@@ -180,14 +189,10 @@ package WisiToken.Parse.LR is
       Goto_List   : Goto_Arrays.Vector;
 
       --  The following are used in error recovery.
-      Kernel : Kernel_Info_Arrays.Vector;
-
+      Kernel                   : Kernel_Info_Arrays.Vector;
       Minimal_Complete_Actions : Minimal_Action_Arrays.Vector;
-      Minimal_Complete_Actions_Recursive : Boolean := False;
       --  Parse actions that will most quickly complete a production in this
-      --  state. Kernel is used to reduce the number of actions. If
-      --  Minimal_Complete_Actions_Recursive, at least one of the minimal
-      --  actions is recursive.
+      --  state. Kernel is used to reduce the number of actions.
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
@@ -195,6 +200,7 @@ package WisiToken.Parse.LR is
    procedure Add_Action
      (State       : in out Parse_State;
       Symbol      : in     Token_ID;
+      Production  : in     Production_ID;
       State_Index : in     WisiToken.State_Index);
    --  Add a Shift action to tail of State action list.
 
@@ -203,6 +209,7 @@ package WisiToken.Parse.LR is
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
       Production      : in     Production_ID;
+      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
@@ -212,6 +219,7 @@ package WisiToken.Parse.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
+      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
@@ -222,6 +230,7 @@ package WisiToken.Parse.LR is
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
+      Recursive         : in     Boolean;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);

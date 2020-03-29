@@ -28,25 +28,34 @@ error_correction_algorithm.tex
         notes in Immediate_Recursive
 
         Minimal_Do_Shift always checks for actual recursion cycle; why pre-compute?
-            avoids extra configs that will be abandoned
-
+            avoids configs that will be abandoned?
+                give example
 
     why need left, right, single, middle?
         reduced to boolean in State.Minimal_Complete_Actions_Recursive
             excludes Middle | Single!
-            true if any items immediately recursive
+            only true if any items immediately recursive
 
         only used in:
             Net_Recursion; middle dominates
             Worst_Recursion: Left dominates
-        Net_Recursion used in worst_recursion, when computing Full
 
-        Immediate_Recursive makes no sense for Right
-            Dot after recursion check makes some sense for Left
-            should be 'Right or (left and dot = 2)'
-            test in w.s-2
+            Net_Recursion used in worst_recursion, when computing Full
 
-    see comments in file
+        fix/improve recursion in recover
+            more detailed example for Explore.Insert_Minimal_Complete
+                java_expressions_ch19_lr1.wy .parse_good
+                    multiple single-token reduce illustrates need for recursive length_after_dot
+
+            Immediate_Recursive does not care about worst_recursion, only recursion of this prod
+                => store Recursive in Production
+
+            fix text_rep format
+            compare size of ada_lr1.txt
+
+        explain check_reduce_to_start
+
+    see comments in .tex file
 
 
     redo compare using lr1 for wisitoken-tokens

@@ -2,7 +2,7 @@
 --
 --  Types and operatorion for LR(1) items.
 --
---  Copyright (C) 2003, 2008, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2003, 2008, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -112,6 +112,13 @@ package WisiToken.Generate.LR1_Items is
 
    function Lookahead_Image (Item : in Lookahead; Descriptor : in WisiToken.Descriptor) return String;
    --  Returns the format used in parse table output.
+
+   function Image
+     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor;
+      Item            : in LR1_Items.Item;
+      Show_Lookaheads : in Boolean)
+     return String;
 
    function Item_Compare (Left, Right : in Item) return SAL.Compare_Result;
    --  Sort Item_Lists in ascending order of Prod.Nonterm, Prod.RHS, Dot;

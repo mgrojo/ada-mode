@@ -34,7 +34,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    is
       use Parse.LR;
       Action_Node : Parse_Action_Node_Ptr;
-      First       : Boolean               := True;
+      First       : Boolean := True;
       Action      : Reduce_Action_Rec;
    begin
       for Node of State.Action_List loop
@@ -47,16 +47,21 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
 
          if First then
-            Action := Action_Node.Item;
-            First  := False;
+            Action    := Action_Node.Item;
+            First     := False;
          else
-            if not Equal (Action, Action_Node.Item) then
+            if not Equal (Action, Action_Node.Item) or
+              Action.Recursive /= Action_Node.Item.Recursive
+            then
                return False;
             end if;
          end if;
       end loop;
       return True;
    end Duplicate_Reduce;
+
+   function Image (Item : in Boolean) return String
+     is (if Item then "True" else "False");
 
    function Symbols_Image (State : in Parse.LR.Parse_State) return String
    is
@@ -563,7 +568,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Set_Col (Indent);
                   Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
                     Symbols_Image (Table.States (State_Index)) & ", " &
-                    Image (Action.Production) & "," &
+                    Image (Action.Production) & ", " &
+                    Image (Action.Recursive) & "," &
                     Count_Type'Image (Action.Token_Count) & ", ";
 
                   Append
@@ -594,8 +600,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                      case Action_Node.Item.Verb is
                      when Shift =>
                         Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
-                          Trimmed_Image (Node.Symbol);
-                        Append (", ");
+                          Trimmed_Image (Node.Symbol) & ", ";
+                        Append (Image (Action_Node.Item.Production) & ", ");
                         Append (Trimmed_Image (Action_Node.Item.State));
                         Append (");");
 
@@ -608,7 +614,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                            Append (", Accept_It");
                         end if;
                         Append (", ");
-                        Append (Image (Action_Node.Item.Production) & ",");
+                        Append (Image (Action_Node.Item.Production) & ", ");
+                        Append (Image (Action_Node.Item.Recursive) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
                           ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
@@ -644,7 +651,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                         when Reduce | Accept_It =>
                            Line := +"Add_Conflict (Table.States (" & Trimmed_Image (State_Index) & "), " &
                              Trimmed_Image (Node.Symbol) & ", ";
-                           Append (Image (Action_Node.Item.Production) & ",");
+                           Append (Image (Action_Node.Item.Production) & ", ");
+                           Append (Image (Action_Node.Item.Recursive) & ",");
                            Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                            Append
                              ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
@@ -700,10 +708,6 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Wrap
                  ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions := To_Vector (" &
                     Strict_Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
-               if Table.States (State_Index).Minimal_Complete_Actions_Recursive then
-                  Indent_Wrap
-                    ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions_Recursive := True;");
-               end if;
             end if;
          end if;
 
@@ -737,7 +741,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       for Subr in 1 .. Subr_Count loop
          Indent_Line ("Subr_" & Trimmed_Image (Subr) & ";");
       end loop;
-      Indent_Line ("Table.Error_Action := new Parse_Action_Node'((Verb => Error), null);");
+      Indent_Line ("Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);");
       Indent := Indent - 3;
       Indent_Line ("end;");
    end Create_LR_Parser_Table;

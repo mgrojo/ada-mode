@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -108,7 +108,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          Current_Parser.Set_Verb (Accept_It);
          Reduce_Stack_1
            (Current_Parser,
-            (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
+            (Reduce, Action.Production, Action.Recursive, Action.Action, Action.Check, Action.Token_Count),
             Nonterm, Trace);
 
          Parser_State.Tree.Set_Root (Nonterm);

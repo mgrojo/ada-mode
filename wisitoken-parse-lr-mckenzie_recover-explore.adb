@@ -455,7 +455,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
       is begin
-         return (Reduce, (Item.Nonterm, 0), null, null, Item.Token_Count);
+         return (Reduce, Item.Production, False, null, null, Item.Token_Count);
       end To_Reduce_Action;
 
       Local_Config_Heap : Config_Heaps.Heap_Type; -- never used, because Do_Language_Fixes is False.
@@ -467,7 +467,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          case Actions.Length is
          when 0 =>
             if (for some Item of Table.States (Config.Stack.Peek.State).Kernel =>
-                  Item.LHS = Super.Trace.Descriptor.Accept_ID)
+                  Item.Production.LHS = Super.Trace.Descriptor.Accept_ID)
             then
                return True;
             else
@@ -771,8 +771,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Minimal_Complete_Actions encountered. That is limited by compound
       --  statement nesting, and by the frequency of such actions.
 
+      procedure Safe_Add_Work (Label : in String; Item : in Work_Item)
+      is begin
+         if Is_Full (Work) then
+            Super.Config_Full ("Minimal_Complete_Actions " & Label, Parser_Index);
+            raise Bad_Config;
+         else
+            Add (Work, Item);
+         end if;
+      end Safe_Add_Work;
+
       function To_Reduce_Action (Action : in Minimal_Action) return Reduce_Action_Rec
-        is (Reduce, (Action.Nonterm, 0), null, null, Action.Token_Count);
+        is (Reduce, Action.Production, False, null, null, Action.Token_Count);
 
       procedure Minimal_Do_Shift (Action : in Minimal_Action; Config : in out Configuration)
       is
@@ -826,88 +836,133 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       procedure Enqueue_Min_Actions
         (Label       : in String;
          Actions     : in Minimal_Action_Arrays.Vector;
-         Recursive   : in Boolean;
          Config      : in Configuration;
          Reduce_Only : in Boolean)
       is
          use SAL;
          Length : array (Actions.First_Index .. Actions.Last_Index) of Count_Type := (others => Count_Type'Last);
 
-         Item_Not_Recursive  : array (Actions.First_Index .. Actions.Last_Index) of Boolean := (others => False);
-
-         Not_Recursive_Count : Count_Type := 0;
-         Min_Length          : Count_Type := Count_Type'Last;
-         Use_Recursive       : Boolean;
+         Min_Length    : Count_Type := Count_Type'Last;
+         All_Recursive : Boolean    := True;
       begin
          if Trace_McKenzie > Extra then
             Put_Line
               (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " & Label &
-                 Image (Actions, Descriptor) & (if Recursive then " recursive" else ""));
+                 Image (Actions, Descriptor));
          end if;
 
          if Actions.Length = 0 then
             return;
          elsif Actions.Length = 1 then
             if (not Reduce_Only) or Actions (Actions.First_Index).Verb = Reduce then
-               if Is_Full (Work) then
-                  Super.Config_Full ("Minimal_Complete_Actions 1", Parser_Index);
-                  raise Bad_Config;
-               else
-                  Add (Work, (Actions (Actions.First_Index), Config));
-               end if;
+               Safe_Add_Work ("1", (Actions (Actions.First_Index), Config));
             end if;
             return;
          end if;
 
+         --  More than one minimal action in State; use next states
+         Actions_Loop :
          for I in Actions.First_Index .. Actions.Last_Index loop
             declare
-               Action     : Minimal_Action renames Actions (I);
-               Next_State : constant State_Index :=
+               function Matches (Item : in Kernel_Info; Action : in Minimal_Action) return Boolean
+               is begin
+                  case Action.Verb is
+                  when Shift =>
+                     return Item.Before_Dot = Action.ID;
+                  when Reduce =>
+                     return Item.Before_Dot = Action.Production.LHS;
+                  end case;
+               end Matches;
+
+               function Length_After_Dot
+                 (Item          : in     Kernel_Info;
+                  Stack         : in     Recover_Stacks.Stack;
+                  All_Recursive : in out Boolean)
+                 return Ada.Containers.Count_Type
+               is
+                  New_Nonterm : constant Token_ID         := Item.Production.LHS;
+                  New_Stack   : Recover_Stacks.Stack      := Stack;
+                  Result      : Ada.Containers.Count_Type;
+                  Min_Result  : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
+               begin
+                  New_Stack.Pop (SAL.Base_Peek_Type (Item.Reduce_Count));
+                  declare
+                     Next_State  : constant State_Index := Goto_For
+                       (Shared.Table.all, New_Stack.Peek.State, New_Nonterm);
+                  begin
+                     for Item of Shared.Table.States (Next_State).Kernel loop
+                        if Item.Before_Dot = New_Nonterm then
+                           if Item.Length_After_Dot = 0 then
+                              New_Stack.Push
+                                ((Next_State, Syntax_Trees.Invalid_Node_Index, (ID => New_Nonterm, others => <>)));
+                              Result := Length_After_Dot (Item, New_Stack, All_Recursive);
+                           else
+                              Result := Item.Length_After_Dot;
+                           end if;
+                        end if;
+
+                        if Result < Min_Result then
+                           Min_Result := Result;
+                           if not Item.Immediate_Recursive then
+                              All_Recursive := False;
+                           end if;
+                        end if;
+                     end loop;
+                  end;
+                  return Min_Result;
+               end Length_After_Dot;
+
+               Action     : constant Minimal_Action           := Actions (I);
+               Next_State : constant State_Index              :=
                  (case Action.Verb is
-                  when Shift => Action.State,
+                  when Shift  => Action.State,
                   when Reduce => Goto_For
                     (Shared.Table.all,
                      Config.Stack.Peek (Base_Peek_Type (Action.Token_Count) + 1).State,
-                     Action.Nonterm));
-               Before_Dot : constant Token_ID :=
-                 (case Action.Verb is
-                  when Shift => Action.ID,
-                  when Reduce => Action.Nonterm);
-               Kernel     : Kernel_Info_Arrays.Vector renames Shared.Table.States (Next_State).Kernel;
+                     Action.Production.LHS));
             begin
                if (not Reduce_Only) or Action.Verb = Reduce then
-                  for Item of Kernel loop
-                     Item_Not_Recursive (I) := Item_Not_Recursive (I) or not Item.Recursive;
-                     if Item.Before_Dot = Before_Dot and
-                       Item.Length_After_Dot < Length (I)
-                     then
-                        Length (I) := Item.Length_After_Dot;
+                  Find_Kernel_Item :
+                  for Item of Shared.Table.States (Next_State).Kernel loop
+                     if Matches (Item, Action) then
+                        --  For Action.Verb = Reduce, more than one item may match
+                        if Item.Length_After_Dot = 0 then
+                           pragma Assert (Action.Verb = Reduce);
+                           --  Item.Immediate_Recursive is False in Item, but we need to set
+                           --  All_Recursive from the non-zero-length item.
+                           Length (I) := Length_After_Dot (Item, Config.Stack, All_Recursive);
+
+                        elsif Item.Length_After_Dot < Length (I) then
+                           if not Item.Immediate_Recursive then
+                              All_Recursive := False;
+                           end if;
+                           Length (I) := Item.Length_After_Dot;
+                        end if;
+
                         if Length (I) < Min_Length then
                            Min_Length := Length (I);
                         end if;
                      end if;
-                  end loop;
+                  end loop Find_Kernel_Item;
+                  if Trace_McKenzie > Extra then
+                     Put_Line
+                       (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " &
+                          Image (Action, Descriptor) & " next_state" & Next_State'Image &
+                          " length" & Length (I)'Image);
+                  end if;
                end if;
             end;
-            if Item_Not_Recursive (I) then
-               Not_Recursive_Count := Not_Recursive_Count + 1;
-            end if;
-         end loop;
-
-         Use_Recursive := Recursive and Not_Recursive_Count > 0 and Not_Recursive_Count < Actions.Length;
+         end loop Actions_Loop;
 
          for I in Length'Range loop
-            if (Use_Recursive and Item_Not_Recursive (I)) or ((not Use_Recursive) and Length (I) = Min_Length) then
-               if Is_Full (Work) then
-                  Super.Config_Full ("Minimal_Complete_Actions 2", Parser_Index);
-                  raise Bad_Config;
-               else
-                  Add (Work, (Actions (I), Config));
-               end if;
+            if All_Recursive or Length (I) = Min_Length then
+               Safe_Add_Work ("2", (Actions (I), Config));
+
             elsif Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
-                    Image (Actions (I), Descriptor));
+                    Image (Actions (I), Descriptor) &
+                    " not minimal");
             end if;
          end loop;
       end Enqueue_Min_Actions;
@@ -929,7 +984,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Enqueue_Min_Actions
         ("",
          Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions,
-         Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions_Recursive,
          Orig_Config, Reduce_Only => False);
 
       loop
@@ -951,7 +1005,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                declare
                   Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Item.Action);
                   Actions       : Minimal_Action_Arrays.Vector;
-                  Recursive     : Boolean;
                begin
                   loop
                      Do_Reduce_1
@@ -960,7 +1013,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         Do_Language_Fixes => False);
 
                      Actions   := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions;
-                     Recursive := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions_Recursive;
 
                      case Actions.Length is
                      when 0 =>
@@ -980,7 +1032,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         end case;
 
                      when others =>
-                        Enqueue_Min_Actions ("multiple actions ", Actions, Recursive, Item.Config, Reduce_Only => True);
+                        Enqueue_Min_Actions ("multiple actions ", Actions, Item.Config, Reduce_Only => True);
                         exit;
                      end case;
                   end loop;

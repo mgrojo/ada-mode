@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017, 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -156,18 +156,22 @@ package body WisiToken.Parse.LR is
 
    function Strict_Image (Item : in Kernel_Info) return String
    is begin
-      return "(" & Trimmed_Image (Item.LHS) & "," & Token_ID'Image (Item.Before_Dot) & "," &
-        Ada.Containers.Count_Type'Image (Item.Length_After_Dot) & ", " &
-        (if Item.Recursive then "True" else "False") & ")";
+      return "(" & Image (Item.Production) & ", " &
+        Item.Before_Dot'Image & ", " &
+        Item.Length_After_Dot'Image & ", " &
+        Item.Reduce_Count'Image & ", " &
+        (if Item.Immediate_Recursive then "True" else "False") & ")";
    end Strict_Image;
 
    function Strict_Image (Item : in Minimal_Action) return String
    is begin
       case Item.Verb is
       when Shift =>
-         return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
+         return "(Shift, " & Image (Item.Production) & ", " &
+           Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
+
       when Reduce =>
-         return "(Reduce," & Token_ID'Image (Item.Nonterm) & "," &
+         return "(Reduce, " & Image (Item.Production) & ", " &
            Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
       end case;
    end Strict_Image;
@@ -178,7 +182,7 @@ package body WisiToken.Parse.LR is
       when Shift =>
          return "Shift " & Image (Item.ID, Descriptor);
       when Reduce =>
-         return "Reduce to " & Image (Item.Nonterm, Descriptor);
+         return "Reduce to " & Image (Item.Production.LHS, Descriptor);
       end case;
    end Image;
 
@@ -193,11 +197,12 @@ package body WisiToken.Parse.LR is
    end To_Vector;
 
    procedure Add_Action
-     (State        : in out LR.Parse_State;
-      Symbol       : in     Token_ID;
-      State_Index  : in     WisiToken.State_Index)
+     (State       : in out LR.Parse_State;
+      Symbol      : in     Token_ID;
+      Production  : in     Production_ID;
+      State_Index : in     WisiToken.State_Index)
    is begin
-      Add (State.Action_List, Symbol, (Shift, State_Index));
+      Add (State.Action_List, Symbol, (Shift, Production, State_Index));
    end Add_Action;
 
    procedure Add_Action
@@ -205,14 +210,15 @@ package body WisiToken.Parse.LR is
       Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
       Production      : in     Production_ID;
+      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action : constant Parse_Action_Rec :=
         (case Verb is
-         when Reduce    => (Reduce, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
-         when Accept_It => (Accept_It, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Reduce    => (Reduce, Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Accept_It => (Accept_It, Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count),
          when others    => raise SAL.Programmer_Error);
    begin
       Add (State.Action_List, Symbol, Action);
@@ -222,15 +228,16 @@ package body WisiToken.Parse.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
+      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
    is begin
       --  We assume WisiToken.BNF.Output_Ada_Common.Duplicate_Reduce is True
-      --  for this state; no conflicts, all the same action.
+      --  for this state; no conflicts, all the same action, Recursive.
       for Symbol of Symbols loop
          Add_Action
-           (State, Symbol, Reduce, Production, RHS_Token_Count,
+           (State, Symbol, Reduce, Production, Recursive, RHS_Token_Count,
             Semantic_Action, Semantic_Check);
       end loop;
    end Add_Action;
@@ -239,12 +246,13 @@ package body WisiToken.Parse.LR is
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
+      Recursive         : in     Boolean;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     Semantic_Checks.Semantic_Check)
    is
       Conflict : constant Parse_Action_Rec :=
-        (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
+        (Reduce, Reduce_Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count);
 
       Ref : constant Action_Arrays.Find_Reference_Constant_Type := State.Action_List.Find_Constant (Symbol);
 
@@ -489,7 +497,7 @@ package body WisiToken.Parse.LR is
                            when Shift     => (Verb => Shift, others => <>),
                            when Reduce    => (Verb => Reduce, others => <>),
                            when Accept_It => (Verb => Accept_It, others => <>),
-                           when Error     => (Verb => Error));
+                           when Error     => (Verb => Error, others => <>));
 
                         case Verb is
                         when Shift =>
@@ -569,8 +577,8 @@ package body WisiToken.Parse.LR is
                   State.Kernel.Set_First_Last (First, Count_Type (Last));
 
                   for I in State.Kernel.First_Index .. State.Kernel.Last_Index loop
-                     State.Kernel (I).LHS := Next_Token_ID;
-                     State.Kernel (I).Before_Dot := Next_Token_ID;
+                     State.Kernel (I).Production.LHS := Next_Token_ID;
+                     State.Kernel (I).Production.RHS := Next_Integer;
                      State.Kernel (I).Length_After_Dot := Next_Count_Type;
                   end loop;
                end if;
@@ -590,19 +598,22 @@ package body WisiToken.Parse.LR is
                for I in State.Minimal_Complete_Actions.First_Index .. State.Minimal_Complete_Actions.Last_Index loop
                   declare
                      Verb         : constant Minimal_Verbs := Next_Parse_Action_Verbs;
+                     LHS          : Token_ID;
+                     RHS          : Integer;
                      ID           : Token_ID;
                      Action_State : State_Index;
                      Count        : Ada.Containers.Count_Type;
                   begin
+                     LHS := Next_Token_ID;
+                     RHS := Next_Integer;
                      case Verb is
                      when Shift =>
                         ID           := Next_Token_ID;
                         Action_State := Next_State_Index;
-                        State.Minimal_Complete_Actions.Replace_Element (I, (Shift, ID, Action_State));
+                        State.Minimal_Complete_Actions.Replace_Element (I, (Shift, (LHS, RHS), ID, Action_State));
                      when Reduce =>
-                        ID    := Next_Token_ID;
                         Count := Next_Count_Type;
-                        State.Minimal_Complete_Actions.Replace_Element (I, (Reduce, ID, Count));
+                        State.Minimal_Complete_Actions.Replace_Element (I, (Reduce, (LHS, RHS), Count));
                      end case;
                   end;
                end loop;
@@ -613,7 +624,7 @@ package body WisiToken.Parse.LR is
             exit when Check_EOI;
          end loop;
 
-         Table.Error_Action := new Parse_Action_Node'((Verb => Error), null);
+         Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
 
          return Table;
       end;

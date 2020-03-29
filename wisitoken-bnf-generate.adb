@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -50,9 +50,7 @@ is
       use Ada.Text_IO;
       First : Boolean := True;
    begin
-      --  verbosity meaning is actually determined by output choice;
-      --  they should be consistent with this description.
-      Put_Line (Standard_Error, "version 1.3.1");
+      Put_Line (Standard_Error, "version 1.3.1"); -- matches release version in Docs/wisitoken.html
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
@@ -104,6 +102,9 @@ is
       New_Line (Standard_Error);
       Put_Line (Standard_Error, "options:");
       Put_Line (Standard_Error, "  --help: show this help");
+
+      --  verbosity meaning is actually determined by output choice;
+      --  they should be consistent with this description.
       Put_Line (Standard_Error, "  -v level: sets verbosity (default 0):");
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
