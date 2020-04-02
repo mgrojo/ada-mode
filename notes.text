@@ -21,39 +21,62 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+fix text_rep so can work lr1 examples
+
 error_correction_algorithm.tex
-    doc Minimal_Complete done?
+    doc Just_Pushed_Back_Or_Deleted
+        try_delete also checks for just_inserted
 
-    example of recursion in error handling
+    fix/improve recursion in recover
         notes in Immediate_Recursive
+        more detailed examples for Explore.Insert_Minimal_Complete, generate.lr.compute_minimal_complete_actions
 
-        Minimal_Do_Shift always checks for actual recursion cycle; why pre-compute?
-            avoids configs that will be abandoned?
-                give example
+            need for Explore.Insert_Minimal_Complete cycle check
+                java_expressions_ch19_lr1.wy
+                    "abandon : cycle" in recovery from second block
+                    not anymore!
+                java_enum_ch19.wy
+                    minimal_complete_recursive.java_enum_ch19
+                    state 8 enumconstantlist should be marked recursive
+                        Immediate_Recursive does not care about worst_recursion, only recursion of this prod
+                            => store Recursive in grammar production
 
-    why need left, right, single, middle?
-        reduced to boolean in State.Minimal_Complete_Actions_Recursive
-            excludes Middle | Single!
-            only true if any items immediately recursive
+                given run-time cycle check, why pre-compute recursion?
+                    avoids configs that will be abandoned?
+                    need example; do recursive_length_after_dot.java_ch19 without pre-compute recursion
 
-        only used in:
-            Net_Recursion; middle dominates
-            Worst_Recursion: Left dominates
+            need for grammar recursion
+                java_expressions_ch19_lr1.wy second block; all_recursive
 
-            Net_Recursion used in worst_recursion, when computing Full
+        why need left, right, single, middle?
+            reduced to boolean in State.Minimal_Complete_Actions_Recursive
+                excludes Middle | Single!
+                only true if any items immediately recursive
 
-        fix/improve recursion in recover
-            more detailed example for Explore.Insert_Minimal_Complete
-                java_expressions_ch19_lr1.wy .parse_good
-                    multiple single-token reduce illustrates need for recursive length_after_dot
+            only used in:
+                Net_Recursion; middle dominates
+                Worst_Recursion: Left dominates
 
-            Immediate_Recursive does not care about worst_recursion, only recursion of this prod
-                => store Recursive in Production
-
-            fix text_rep format
-            compare size of ada_lr1.txt
+                Net_Recursion used in worst_recursion, when computing Full
 
         explain check_reduce_to_start
+
+        compare size of ada_lr1.txt
+
+        compare speed of recover
+
+        redo examples with partial recursion pre-compute
+            causes problems?
+
+    doc Minimal_Complete done?
+
+    count all_recursive kernels, report in parse_table summary?
+        ie java_expressions_ch19_lr1.parse_table state 8
+        more precisely, all items with same before_dot are immediate_recursive
+            but also if any are reduce (dot = null), need next_state
+                = "potentially all_recursive"?
+
+        all_recursive example in ada_lite.wy?
 
     see comments in .tex file
 
@@ -76,12 +99,16 @@ error_correction_algorithm.tex
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
 
+terminate duplicate_state missed one
+    convert_if_to_case.ada_lite
+task 0 3: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (25 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
+task 0 2: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (23 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
+    should have terminated one!
+
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
         only active if mmm-mode recognizes action; improve that?
     partial parse in ada.wy?
-
-alternate table rep for duplicate reduce actions?
 
 use duplicate_reduce in text_rep
 
@@ -96,6 +123,9 @@ check should check all conflicts, enqueue conflicts on success
     otherwise we are ignoring possible solutions.
 
 test_mckenzie use lr-parser-gen_aunit
+
+change to incremental parse
+    integrate with tree-sitter?
 
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1

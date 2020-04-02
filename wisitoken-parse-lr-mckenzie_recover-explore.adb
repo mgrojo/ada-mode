@@ -38,7 +38,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       use Config_Op_Arrays;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
-      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token, State, Config.Stack.Depth);
+      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
       Config.Strategy_Counts (Strategy) := Config.Strategy_Counts (Strategy) + 1;
 
@@ -785,35 +785,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         is (Reduce, Action.Production, False, null, null, Action.Token_Count);
 
       procedure Minimal_Do_Shift (Action : in Minimal_Action; Config : in out Configuration)
-      is
-         use Config_Op_Arrays, Config_Op_Array_Refs;
-      begin
-         --  Check for a cycle. We compare stack depth as well as state, so
-         --  nested compound statements don't look like a cycle; see
-         --  test_mckenzie_recover Push_Back_1. We don't check for cycles in
-         --  Insert_From_Action_List because we assume cost eliminates cycles
-         --  there; Minimal_Complete_Delta is usually negative, so cost does
-         --  not necessarily increase here.
-         for I in reverse First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
-            declare
-               Op : Config_Op renames Constant_Ref (Config.Ops, I);
-            begin
-               if Op.Op = Insert and then
-                 (Op.Ins_ID = Action.ID and Op.State = Action.State and Op.Stack_Depth = Config.Stack.Depth)
-               then
-                  if Trace_McKenzie > Extra then
-                     Put_Line
-                       (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: abandon " &
-                          Image (Action.ID, Descriptor) & Action.State'Image & ": cycle");
-                  end if;
-                  return;
-               end if;
-            end;
-         end loop;
-
-         --  We don't check Action.ID = Current_Token; the error is at the
-         --  explore point, so ID is valid.
-
+      is begin
          if Just_Pushed_Back_Or_Deleted (Config, Action.ID) then
             if Trace_McKenzie > Extra then
                Put_Line
@@ -877,47 +849,57 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                function Length_After_Dot
                  (Item          : in     Kernel_Info;
+                  Action        : in     Minimal_Action;
                   Stack         : in     Recover_Stacks.Stack;
                   All_Recursive : in out Boolean)
                  return Ada.Containers.Count_Type
                is
-                  New_Nonterm : constant Token_ID         := Item.Production.LHS;
-                  New_Stack   : Recover_Stacks.Stack      := Stack;
-                  Result      : Ada.Containers.Count_Type;
-                  Min_Result  : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
+                  Match_ID   : Token_ID;
+                  New_Stack  : Recover_Stacks.Stack      := Stack;
+                  Next_State : State_Index;
+                  Result     : Ada.Containers.Count_Type;
+                  Min_Result : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
                begin
-                  New_Stack.Pop (SAL.Base_Peek_Type (Item.Reduce_Count));
-                  declare
-                     Next_State  : constant State_Index := Goto_For
-                       (Shared.Table.all, New_Stack.Peek.State, New_Nonterm);
-                  begin
-                     if Trace_McKenzie > Extra then
-                        Super.Trace.Put (Next_State'Image);
-                     end if;
-                     for Item of Shared.Table.States (Next_State).Kernel loop
-                        if Item.Before_Dot = New_Nonterm then
-                           if Item.Length_After_Dot = 0 then
-                              New_Stack.Push
-                                ((Next_State, Syntax_Trees.Invalid_Node_Index, (ID => New_Nonterm, others => <>)));
-                              Result := Length_After_Dot (Item, New_Stack, All_Recursive);
-                           else
-                              Result := Item.Length_After_Dot;
-                           end if;
-                        end if;
+                  case Action.Verb is
+                  when Shift =>
+                     New_Stack.Push
+                       ((Action.State, Syntax_Trees.Invalid_Node_Index, (ID => Action.ID, others => <>)));
+                     Next_State := Action.State;
+                     Match_ID   := Action.ID;
 
-                        if Result < Min_Result then
-                           Min_Result := Result;
-                           if not Item.Immediate_Recursive then
-                              All_Recursive := False;
-                           end if;
+                  when Reduce =>
+                     New_Stack.Pop (SAL.Base_Peek_Type (Item.Reduce_Count));
+                     Next_State := Goto_For (Shared.Table.all, New_Stack.Peek.State, Action.Production.LHS);
+                     New_Stack.Push
+                       ((Next_State, Syntax_Trees.Invalid_Node_Index, (ID => Action.Production.LHS, others => <>)));
+                     Match_ID   := Action.Production.LHS;
+                  end case;
+
+                  if Trace_McKenzie > Extra then
+                     Super.Trace.Put (Next_State'Image);
+                  end if;
+                  for Item of Shared.Table.States (Next_State).Kernel loop
+                     if Item.Before_Dot = Match_ID then
+                        if Item.Length_After_Dot = 0 then
+                           Result := Length_After_Dot
+                             (Item, (Reduce, Item.Production, Item.Reduce_Count), New_Stack, All_Recursive);
+                        else
+                           Result := Item.Length_After_Dot;
                         end if;
-                     end loop;
-                  end;
+                     end if;
+
+                     if Result < Min_Result then
+                        Min_Result := Result;
+                        if not Item.Immediate_Recursive then
+                           All_Recursive := False;
+                        end if;
+                     end if;
+                  end loop;
                   return Min_Result;
                end Length_After_Dot;
 
-               Action     : constant Minimal_Action           := Actions (I);
-               Next_State : constant State_Index              :=
+               Action     : constant Minimal_Action := Actions (I);
+               Next_State : constant State_Index    :=
                  (case Action.Verb is
                   when Shift  => Action.State,
                   when Reduce => Goto_For
@@ -928,18 +910,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                if (not Reduce_Only) or Action.Verb = Reduce then
                   if Trace_McKenzie > Extra then
                      Super.Trace.Put
-                       ("task" & Task_Attributes.Value'Image & " " &
-                          Super.Label (Parser_Index)'Image & "Minimal_Complete_Actions: " &
-                          Image (Action, Descriptor) & " next_state" & Next_State'Image);
+                       ("task" & Task_Attributes.Value'Image &
+                          Super.Label (Parser_Index)'Image & ": Minimal_Complete_Actions: " &
+                          Image (Action, Descriptor) & " next_state");
                   end if;
                   for Item of Shared.Table.States (Next_State).Kernel loop
                      if Matches (Item, Action) then
                         --  For Action.Verb = Reduce, more than one item may match
                         if Item.Length_After_Dot = 0 then
-                           pragma Assert (Action.Verb = Reduce);
                            --  Item.Immediate_Recursive is False; set Length and All_Recursive
                            --  from a non-zero-length item.
-                           Length (I) := Length_After_Dot (Item, Config.Stack, All_Recursive);
+                           Length (I) := Length_After_Dot (Item, Action, Config.Stack, All_Recursive);
 
                         elsif Item.Length_After_Dot < Length (I) then
                            if not Item.Immediate_Recursive then
@@ -1560,7 +1541,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          (Length (Config.Ops) = 0 or else
            --  Don't delete an ID we just inserted; waste of time
            (not Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)),
-                       (Insert, ID, Config.Current_Shared_Token, 1, 0))))
+                       (Insert, ID, Config.Current_Shared_Token))))
       then
          declare
             New_Config : Configuration := Config;

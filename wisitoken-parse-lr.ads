@@ -428,11 +428,6 @@ package WisiToken.Parse.LR is
          Ins_Token_Index : WisiToken.Base_Token_Index;
          --  Ins_ID is inserted before Token_Index.
 
-         State       : Unknown_State_Index;
-         Stack_Depth : SAL.Base_Peek_Type;
-         --  Used in Minimal_Completion_Actions to detect cycles; only set for
-         --  Insert by Minimal_Completion_Actions.
-
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
@@ -484,10 +479,7 @@ package WisiToken.Parse.LR is
             when Push_Back => Image (Item.PB_ID, Descriptor) & "," &
                  WisiToken.Token_Index'Image (Item.PB_Token_Index),
             when Insert => Image (Item.Ins_ID, Descriptor) & "," &
-                 WisiToken.Token_Index'Image (Item.Ins_Token_Index) &
-                (if Item.State = Unknown_State or Trace_McKenzie <= Detail then ""
-                 else "," & State_Index'Image (Item.State) &
-                    SAL.Base_Peek_Type'Image (Item.Stack_Depth)),
+                 WisiToken.Token_Index'Image (Item.Ins_Token_Index),
             when Delete => Image (Item.Del_ID, Descriptor) & "," &
                  WisiToken.Token_Index'Image (Item.Del_Token_Index))
            & ")");

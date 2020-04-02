@@ -1082,7 +1082,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use Config_Op_Arrays;
       use Sorted_Insert_Delete_Arrays;
-      Op : constant Config_Op := (Insert, ID, Index, Unknown_State, 0);
+      Op : constant Config_Op := (Insert, ID, Index);
    begin
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;

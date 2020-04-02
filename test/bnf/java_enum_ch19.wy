@@ -21,14 +21,14 @@
 %token <punctuation> LEFT_CURLY_BRACKET "{"
 %token <punctuation> RIGHT_CURLY_BRACKET "}"
 
-%token <symbol> Identifier %[ [a-zA-Z]+ ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z]+ ]%
 %non_grammar <comment> EndOfLine_COMMENT %[ "//"[^\n\x04]* ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 EnumConstantList: EnumConstant {',' EnumConstant} ;
 
-EnumConstant: Identifier ;
+EnumConstant: IDENTIFIER ;
 
 EnumBody
   : '{' [T2=EnumConstantList] ',' '}'

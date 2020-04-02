@@ -880,69 +880,6 @@ package body WisiToken.Generate.LR is
 
       function Immediate_Recursive (Item : in LR1_Items.Item) return Boolean
       is
-         --  Direct left recursion is never minimal; for example, consider
-         --  ada_lite LALR state 149:
-         --
-         --  61.0:association_list <= association_list ^ COMMA association_opt
-         --
-         --  If we already have an association_list, adding a COMMA to it
-         --  cannot be minimal.
-         --
-         --  Similarly, indirect left recursion is not minimal; consider
-         --  ada_lite LALR states 29 and 60:
-         --
-         --  State 29:
-         --  103.3:name <= selected_component ^,
-         --
-         --  State 60:
-         --   94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
-         --  103.0:name <= name ^ LEFT_PAREN range_list
-         --  103.1:name <= name ^ actual_parameter_part
-         --  123.0:selected_component <= name ^ DOT IDENTIFIER
-         --
-         --  If we already have a name, adding actual_parameter_part or DOT IDENTIFIER cannot be
-         --  minimal.
-
-         --  There is a trade off here between error recovery power and risk of
-         --  recursive loops. Consider ada_lite state 152:
-         --
-         --  103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
-         --  117.0:range_list <= range_list ^ COMMA range_g
-         --
-         --  Both productions are Left_Recursive, but in the first item, dot is past
-         --  the recursion, and can be usefully completed.
-         --
-         --  However, that might allow loops; see java_enum_ch19.wy.
-         --
-         --  A similar argument applies to right recursive items; from
-         --  java_expressions_ch19.wy:
-         --
-         --  State 7:
-         --  27.0:Assignment <= LeftHandSide ^ EQUAL Expression
-         --
-         --  State 22:
-         --  28.0:LeftHandSide <= Identifier ^
-         --  34.0:ClassType <= Identifier ^
-         --
-         --  State 25:
-         --  24.1:Expression <= AssignmentExpression ^
-         --
-         --  State 26:
-         --  26.1:AssignmentExpression <= Assignment ^
-         --
-         --  Choosing LeftHandSide for the minimal action in state 22 will lead
-         --  to a loop thru state 7. However, Assignment can also occur in
-         --  Statement, where it is not recursive:
-         --
-         --  State 1:
-         --  23.0:Statement <= LEFT_CURLY_BRACKET ^ Assignment RIGHT_CURLY_BRACKET
-         --
-         --  This is not easy to check for.
-         --
-         --  It is not expensive to check for loops in Minimal_Complete_Action
-         --  at run-time, so given all the above we allow items that are "past
-         --  the recursion" here.
-
          Prod : constant WisiToken.Production_ID := Item.Prod;
          Min_Seq : RHS_Sequence renames Minimal_Terminal_Sequences (Prod.LHS).Sequence (Prod.RHS);
       begin

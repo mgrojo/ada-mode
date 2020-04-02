@@ -406,7 +406,7 @@ else
    Matching_Begin_Token := Invalid_Token_ID;
 end if;
 \end{lstlisting}
-%% convert_if_to_case.ada_lite
+%% minimal_complete_convert_if_to_case.ada_lite
 Here the user is in the middle of converting an \code{if} statement to
 a \code{case} statement. The relevant grammar productions (for
 \code{if\_statement} and \code{case\_statement}) are:
@@ -481,7 +481,7 @@ Consider the Java code fragment:
 \caption{}
 \label{ex:recursive_length_after_dot}
 \end{figure}
-% recursive_length_after_dot.java_ch19
+% minimal_complete_recursive_length_after_dot.java_exp_ch19
 This is missing \code{);} after \code{A}. The error is detected at
 `\lstinline|}|'. At that point, the kernel is:
 %% java_expressions_ch19_lr1.parse_table state 22
@@ -528,9 +528,10 @@ ClassType <= ClassType ^ DOT Identifier ; recursive
 Minimal_Complete_Action => PostfixExpression 31.0
 \end{verbatim}
 Here \code{PostfixExpression} is not recursive, so that is chosen. We
-cannot compute a length from this production; we have to follow the
-reduce to the next state, and the next, until we find a shift.
-Several more single-token reductions are done, ending with:
+cannot compute a length from this production because there are no
+tokens after the parse point; we have to follow the reduce to the next
+state, and the next, until we find a shift. Several more single-token
+reductions are done, ending with:
 %% states 30 29 28 25 23 84
 \begin{verbatim}
 MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
@@ -541,6 +542,77 @@ Minimal_Complete_Action => RIGHT_PAREN
 which shifts \code{)}. All of these reductions, and the final shift,
 are done in one McKenzie step. The function that computes the length
 after parse point is recursive.
+
+Consider the following code:
+\begin{figure}[H]
+\begin{lstlisting}
+{ UpdateText (A) }
+\end{lstlisting}
+\caption{}
+\label{ex:minimal_complete_all_recursive}
+\end{figure}
+% minimal_complete_all_recursive.java_exp_ch19
+In the subset of Java we are using for this examples, this is not a
+complete statement. The relevant productions are:
+\begin{verbatim}
+StatementExpression     <= PostIncrementExpression | PostDecrementExpression ;
+PostIncrementExpression <= PostfixExpression '++' ;
+PostDecrementExpression <= PostfixExpression '--' ;
+PostfixExpression       <= ClassType | MethodInvocation |
+                           PostIncrementExpression | PostDecrementExpression ;
+ClassType               <= Identifier | ClassType '.' Identifier ;
+\end{verbatim}
+To complete the code fragment in figure \ref{ex:cycle_check}, we have
+to insert either \code{++} or \code{--}. The error is detected at the
+closing brace; the parse state kernel is:
+% java_expressions_ch19_lr1.parse_table state 62
+\begin{verbatim}
+MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^
+Minimal_Complete_Action => MethodInvocation
+\end{verbatim}
+Then we reduce to \code{PostfixExpression}, and arrive at this state:
+% state 8
+\begin{verbatim}
+PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS ; recursive
+PostDecrementExpression <= PostfixExpression ^ MINUS_MINUS ; recursive
+Minimal_Complete_Action => (PLUS_PLUS, MINUS_MINUS)
+\end{verbatim}
+There are two actions; because both states are labeled recursive, we
+don't look at the next states - we enqueue two configs, one with each
+shift. The next McKenzie step inserts \code{;} in each, completing the
+error recovery session with two solutions. In the main parser, both
+solutions parse to end of input; then one is chosen arbitrarily to be
+the final parse. Note that in the absence of error correction multiple
+parallel parsers getting to end of input is an error, but since error
+correction often produces multiple solutions, we don't report an
+error.
+
+Consider the following code:
+\begin{figure}[H]
+\begin{lstlisting}
+{ A, B,
+\end{lstlisting}
+\caption{}
+\label{ex:minimal_complete_cycle_check}
+\end{figure}
+% minimal_complete_all_recursive.java_enum_ch19
+Here we are using a different subset of Java; there are only three
+productions in the grammar:
+\begin{verbatim}
+EnumConstantList <= EnumConstant | EnumConstantList COMMA EnumConstant ;
+EnumConstant     <= IDENTIFIER ;
+EnumBody         <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET |
+                    LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET ;
+\end{verbatim}
+The input is missing '\lstlisting|}|'; the error is detected at end of
+input. The parse state kernel is:
+\begin{verbatim}
+EnumConstantList <= EnumConstantList COMMA ^ EnumConstant
+EnumBody         <= LEFT_CURLY_BRACKET EnumConstantList COMMA ^ RIGHT_CURLY_BRACKET
+
+Minimal_Complete_Action => (IDENTIFIER, RIGHT_CURLY_BRACKET)
+\end{verbatim}
+
 
 \subsection{Matching\_Begin}
 Consider the code:
