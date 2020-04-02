@@ -110,6 +110,16 @@ package body WisiToken.Generate.LR is
       return Result;
    end Worst_Recursion;
 
+   function Image
+     (Nonterm    : in Token_ID;
+      Sequences  : in Minimal_Sequence_Array;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is begin
+      return Trimmed_Image (Nonterm) & " " & Image (Nonterm, Descriptor) & " ==> (" &
+        Sequences (Nonterm).Min_RHS'Image & ", " & Image (Sequences (Nonterm).Sequence, Descriptor) & ")";
+   end Image;
+
    procedure Terminal_Sequence
      (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor    : in     WisiToken.Descriptor;
@@ -132,8 +142,8 @@ package body WisiToken.Generate.LR is
       is
          Prod : Productions.Instance renames Grammar (LHS);
       begin
-         if All_Sequences (LHS).Length = 0 then
-            All_Sequences (LHS).Set_First_Last (Prod.RHSs.First_Index, Prod.RHSs.Last_Index);
+         if All_Sequences (LHS).Sequence.Length = 0 then
+            All_Sequences (LHS).Sequence.Set_First_Last (Prod.RHSs.First_Index, Prod.RHSs.Last_Index);
          end if;
          if RHS_Seq_Set (LHS).Length = 0 then
             RHS_Seq_Set (LHS).Set_First_Last (Prod.RHSs.First_Index, Prod.RHSs.Last_Index);
@@ -170,7 +180,7 @@ package body WisiToken.Generate.LR is
                      ID : Token_ID renames Prod.RHSs (RHS).Tokens (I);
                   begin
                      if ID in Terminals then
-                        All_Sequences (Nonterm) (RHS).Sequence.Append (ID);
+                        All_Sequences (Nonterm).Sequence (RHS).Sequence.Append (ID);
 
                      else
                         if (for some RHS of RHS_Seq_Set (ID) => RHS) then
@@ -179,7 +189,7 @@ package body WisiToken.Generate.LR is
                         else
                            if ID = Nonterm or Recursing (ID) then
                               --  Clear partial minimal sequence; we are starting over.
-                              All_Sequences (Nonterm)(RHS).Sequence.Clear;
+                              All_Sequences (Nonterm).Sequence (RHS).Sequence.Clear;
                               goto Skip;
 
                            else
@@ -192,15 +202,18 @@ package body WisiToken.Generate.LR is
                                  --  Found a minimal sequence for ID; use it
                                  null;
                               else
-                                 All_Sequences (Nonterm)(RHS).Sequence.Clear;
+                                 All_Sequences (Nonterm).Sequence (RHS).Sequence.Clear;
                                  goto Skip;
                               end if;
                            end if;
                         end if;
                         declare
-                           Min_RHS : constant Integer := Min (All_Sequences (ID), RHS_Seq_Set (ID));
+                           Min_RHS : constant Integer := Min (All_Sequences (ID).Sequence, RHS_Seq_Set (ID));
                         begin
-                           All_Sequences (Nonterm)(RHS).Sequence.Append (All_Sequences (ID)(Min_RHS).Sequence);
+                           All_Sequences (ID).Min_RHS := Min_RHS;
+
+                           All_Sequences (Nonterm).Sequence (RHS).Sequence.Append
+                             (All_Sequences (ID).Sequence (Min_RHS).Sequence);
                         end;
                      end if;
                   end;
@@ -209,7 +222,7 @@ package body WisiToken.Generate.LR is
                if Trace_Generate > Extra then
                   Ada.Text_IO.Put_Line
                     (Trimmed_Image (Production_ID'(Nonterm, RHS)) & " => " &
-                       Image (All_Sequences (Nonterm)(RHS), Descriptor));
+                       Image (All_Sequences (Nonterm).Sequence (RHS), Descriptor));
                end if;
             end if;
          end if;
@@ -232,9 +245,7 @@ package body WisiToken.Generate.LR is
       All_Seq_Set (Nonterm) := True;
 
       if Trace_Generate > Extra then
-         Ada.Text_IO.Put_Line
-           (Trimmed_Image (Nonterm) & " " & Image (Nonterm, Descriptor) & " ==> " &
-              Image (All_Sequences (Nonterm), Descriptor));
+         Ada.Text_IO.Put_Line (Image (Nonterm, All_Sequences, Descriptor));
       end if;
    end Terminal_Sequence;
 
@@ -757,7 +768,7 @@ package body WisiToken.Generate.LR is
                         else Cycle (I).Edges);
                   begin
                      for E of Edges loop
-                        Result (Cycle (I).Vertex)(E.Data.RHS).Recursion.Append (Recursion_ID);
+                        Result (Cycle (I).Vertex).Sequence (E.Data.RHS).Recursion.Append (Recursion_ID);
                      end loop;
                   end;
                end loop;
@@ -766,9 +777,9 @@ package body WisiToken.Generate.LR is
 
          --  Set Result.Worst_Recursions
          for Nonterm in Result'Range loop
-            for RHS in Result (Nonterm).First_Index .. Result (Nonterm).Last_Index loop
+            for RHS in Result (Nonterm).Sequence.First_Index .. Result (Nonterm).Sequence.Last_Index loop
                declare
-                  RHS_Seq : RHS_Sequence renames Result (Nonterm)(RHS);
+                  RHS_Seq : RHS_Sequence renames Result (Nonterm).Sequence (RHS);
                begin
                   RHS_Seq.Worst_Recursion := Worst_Recursion (RHS_Seq.Recursion, Recursions, RHS);
                end;
@@ -778,9 +789,7 @@ package body WisiToken.Generate.LR is
          if Trace_Generate > Detail then
             Ada.Text_IO.Put_Line ("Minimal_Terminal_Sequences:");
             for LHS in Result'Range loop
-               Ada.Text_IO.Put_Line
-                 (Trimmed_Image (LHS) & " " & Image (LHS, Descriptor) & " ==> " &
-                    Image (Result (LHS), Descriptor));
+               Ada.Text_IO.Put_Line (Image (LHS, Result, Descriptor));
             end loop;
          end if;
       end return;
@@ -797,7 +806,7 @@ package body WisiToken.Generate.LR is
       return Result : Token_Array_Token_ID (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) do
          for ID in Result'Range loop
             declare
-               Min_Seq : Token_ID_Arrays.Vector renames Min (Minimal_Terminal_Sequences (ID)).Sequence;
+               Min_Seq : Token_ID_Arrays.Vector renames Min (Minimal_Terminal_Sequences (ID).Sequence).Sequence;
             begin
                if Min_Seq.Length = 0 then
                   Result (ID) := Invalid_Token_ID;
@@ -862,7 +871,7 @@ package body WisiToken.Generate.LR is
             if Tokens (I) in Terminals then
                Result := Result + 1;
             else
-               Result := Result + Min_Length (Minimal_Terminal_Sequences (Tokens (I)));
+               Result := Result + Min_Length (Minimal_Terminal_Sequences (Tokens (I)).Sequence);
             end if;
             Next (I);
          end loop;
@@ -935,7 +944,7 @@ package body WisiToken.Generate.LR is
          --  the recursion" here.
 
          Prod : constant WisiToken.Production_ID := Item.Prod;
-         Min_Seq : RHS_Sequence renames Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS);
+         Min_Seq : RHS_Sequence renames Minimal_Terminal_Sequences (Prod.LHS).Sequence (Prod.RHS);
       begin
          return
            (case Min_Seq.Worst_Recursion is
@@ -1002,7 +1011,7 @@ package body WisiToken.Generate.LR is
 
             else
                Recursive := Recursive or Minimal_Terminal_Sequences
-                 (Constant_Ref (I).Prod.LHS)(Constant_Ref (I).Prod.RHS).Worst_Recursion in
+                 (Constant_Ref (I).Prod.LHS).Sequence (Constant_Ref (I).Prod.RHS).Worst_Recursion in
                  Left | Right | Single;
 
                declare
@@ -1138,7 +1147,6 @@ package body WisiToken.Generate.LR is
                      Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
                else
                   declare
-                     use WisiToken.Productions;
                      ID : constant Token_ID := Element (Item.Dot);
                   begin
                      if ID in Terminals then
@@ -1149,7 +1157,7 @@ package body WisiToken.Generate.LR is
                            --  Item.Dot is a nullable nonterm; include a reduce to the null
                            --  nonterm, rather than a shift of the following terminal; recover
                            --  must do the reduce first.
-                           Actions (I) := (Reduce, (ID, Empty_RHS (Grammar (ID).RHSs)), Token_Count => 0);
+                           Actions (I) := (Reduce, (ID, Minimal_Terminal_Sequences (ID).Min_RHS), Token_Count => 0);
 
                         else
                            Actions (I) := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
@@ -1224,15 +1232,19 @@ package body WisiToken.Generate.LR is
                Node_J : Parse_Action_Node_Ptr := Node_I.Actions;
             begin
                loop
-                  Put (File, Parse_Action_Verbs'Image (Node_J.Item.Verb));
+                  Put (File, Node_J.Item.Verb'Image);
+                  Put (File, Node_J.Item.Production.LHS'Image & Node_J.Item.Production.RHS'Image);
 
                   case Node_J.Item.Verb is
                   when Shift =>
                      Put (File, State_Index'Image (Node_J.Item.State));
 
                   when Reduce | Accept_It =>
-                     Put (File, Token_ID'Image (Node_J.Item.Production.LHS) &
-                            Integer'Image (Node_J.Item.Production.RHS));
+                     if Node_J.Item.Recursive then
+                        Put (File, " true");
+                     else
+                        Put (File, " false");
+                     end if;
 
                      if Action_Names (Node_J.Item.Production.LHS) /= null and then
                        Action_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
@@ -1279,7 +1291,7 @@ package body WisiToken.Generate.LR is
          New_Line (File);
 
          if State.Kernel.Length = 0 then
-            --  Not set for state 0
+            --  Kernel not set for state 0
             Put_Line (File, "0 -1");
 
          else
@@ -1299,14 +1311,13 @@ package body WisiToken.Generate.LR is
             Put (File, Count_Type'Image (State.Minimal_Complete_Actions.Last_Index));
             for Action of State.Minimal_Complete_Actions loop
                Put (File, " ");
+               Put (File, Action.Verb'Image);
+               Put (File, Action.Production.LHS'Image & Action.Production.RHS'Image);
                case Action.Verb is
                when Shift =>
-                  Put (File, Minimal_Verbs'Image (Action.Verb));
                   Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
                when Reduce =>
-                  Put (File, Minimal_Verbs'Image (Action.Verb));
-                  Put (File, Token_ID'Image (Action.Production.LHS) & Action.Production.RHS'Image &
-                         Ada.Containers.Count_Type'Image (Action.Token_Count));
+                  Put (File, Action.Token_Count'Image);
                end case;
             end loop;
          end if;
@@ -1520,12 +1531,12 @@ package body WisiToken.Generate.LR is
          begin
             for RHS in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                Put (WisiToken.Productions.Image (Prod.LHS, RHS, Prod.RHSs (RHS).Tokens, Descriptor));
-               if not Include_Extra or Minimal_Terminal_Sequences (LHS)(RHS).Recursion.Length = 0 then
+               if not Include_Extra or Minimal_Terminal_Sequences (LHS).Sequence (RHS).Recursion.Length = 0 then
                   New_Line;
                else
                   Put_Line
-                    (" ; " & Image (Minimal_Terminal_Sequences (LHS)(RHS).Recursion) & " " &
-                       Recursion'Image (Minimal_Terminal_Sequences (LHS)(RHS).Worst_Recursion));
+                    (" ; " & Image (Minimal_Terminal_Sequences (LHS).Sequence (RHS).Recursion) & " " &
+                       Recursion'Image (Minimal_Terminal_Sequences (LHS).Sequence (RHS).Worst_Recursion));
                end if;
             end loop;
          end;

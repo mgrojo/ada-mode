@@ -308,11 +308,20 @@ McKenzie algorithm, because we do all the deletions in one step, with
 one low cost.
 
 \subsection{Minimal\_Complete}
-Consider the code in \ref{ex:min_com_if_if_loop}. The best error
-correction is to provide all of the missing ``ends''. We can do this
-quickly by augmenting the parse table with a
-\code{Minimal\_Complete\_Action}, giving the terminal token to insert in
-the state that reports the error.
+The \code{Minimal\_Complete} strategy is to insert the minimum number
+of tokens to finish the current grammar production. This is supported
+by precomputing a \code{Minimal\_Complete\_Action} (or set of actions)
+for each parser state.
+
+Section \ref{minimal-complete-compute} gives the algorithm for
+computing the \code{Minimal\_Complete\_Actions}; here we describe how
+they are used in error correction.
+
+Each \code{Minimal\_Complete\_Action} is either ``insert this terminal
+token'' or ``reduce to this nonterminal token''.
+
+Consider the code in figure \ref{ex:min_com_if_if_loop}. The best error
+correction is to provide all of the missing ``ends''.
 
 When parsing this code, an error is detected at the final \code{;};
 the parser is expecting \code{end loop;}. The kernel of that state has
@@ -321,34 +330,29 @@ one production:
 loop_statement <= LOOP sequence_of_statements END ^ LOOP
    identifier_opt SEMICOLON
 \end{verbatim}
-where the carrot (\verb|^|) shows the parse point. In this
-case, it is easy to see that \code{Minimal\_Complete\_Action} must be
-\code{loop}. Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
-is \code{identifier\_opt}, and then \code{;}. After that,
-we will be completing the inner \code{if then} statement, and then the
-outer \code{if then} statement. At that point, the existing
-\code{end ;} is legal.
+where the carrot (\verb|^|) shows the parse point. In this case, it is
+easy to see that \code{Minimal\_Complete\_Action} must be \code{loop}.
+Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
+is \code{identifier\_opt}, and then \code{;}. After that, we will be
+completing the inner \code{if then} statement, and then the outer
+\code{if then} statement. At that point, the existing \code{end ;} is
+legal.
 
-Section \ref{minimal-complete-compute} gives the algorithm for
-computing the \code{Minimal\_Complete} tokens; here we describe how
-they are used in error correction.
-
-The check to see if the original error token is now legal must be
-performed after each nonterminal is completed. Rather than trying to
-encode the notion of ``completing a nonterminal'', we do the check
-after inserting each token; this means that \code{Minimal\_Complete}
-inserts at most one token for each cycle of the underlying McKenzie
-algorithm. This also handles cases where only the leading part of
-nonterminal needs to be inserted.
+To handle cases where only the leading part of a nonterminal
+production needs to be inserted, the check to see if the original
+error token is now legal must be performed after each token is
+inserted; this means that \code{Minimal\_Complete} inserts at most one
+token for each cycle of the underlying McKenzie algorithm.
 
 In order to prefer the \code{Minimal\_Complete} solution over others,
-we give it a negative cost. In all examples in this paper, the default
-insert and delete cost is 4, delete \code{begin} is cost 1, delete
-\code{END}, \code{;} are cost 2. With \code{Minimal\_Complete} cost 0,
--1, or -2, no solution for figure \ref{ex:min_com_if_if_loop} is
-found, with an enqueue limit of 120,000. With \code{Minimal\_Complete}
-cost -3, the desired solution is found with cost 9, after enqueueing
-6804 configurations and checking 1051.
+we give it a negative cost. In figure \ref{ex:min_com_if_if_loop}, the
+grammar is a small subset of Ada, the
+default insert and delete cost is 4, delete \code{begin} is cost 1,
+delete \code{END}, \code{;} are cost 2. With \code{Minimal\_Complete}
+cost 0, -1, or -2, no solution for figure \ref{ex:min_com_if_if_loop}
+is found, with an enqueue limit of 120,000. With
+\code{Minimal\_Complete} cost -3, the desired solution is found with
+cost 9, after enqueueing 6804 configurations and checking 1051.
 
 As usual, there is a trade off here; setting the magnitude high
 encourages \code{Minimal\_Complete} over other solutions, but sometimes
@@ -379,7 +383,7 @@ by \code{Minimal\_Complete}, so it is cheaper, and more expensive
 solutions are not checked.
 
 Setting \code{Minimal\_Complete} cost to -3 (as required for
-example \ref{ex:min_com_if_if_loop}) finds one cost 3 solution very
+figure \ref{ex:min_com_if_if_loop}) finds one cost 3 solution very
 quickly (67 enqueued, 10 checked); it changes the code to:
 \begin{lstlisting}
 for I in 1 .. to loop Result_Length; loop
@@ -402,23 +406,51 @@ else
    Matching_Begin_Token := Invalid_Token_ID;
 end if;
 \end{lstlisting}
+%% convert_if_to_case.ada_lite
 Here the user is in the middle of converting an \code{if} statement to
-a \code{case} statement. \code{Minimal\_Complete} inserts
-\code{when NUMERIC\_LITERAL =>}, then McKenzie inserts
-\code{if STRING\_LITERAL}, which makes the remaining code legal,
-terminating one error correction session. Then parsing proceeds to
-then end of the input, where an error is enountered; missing
+a \code{case} statement. The relevant grammar productions (for
+\code{if\_statement} and \code{case\_statement}) are:
+\begin{verbatim}
+if_statement
+  : IF expression_opt THEN sequence_of_statements elsif_statement_list
+    ELSE sequence_of_statements END IF SEMICOLON ;
+case_statement
+  : CASE expression_opt IS case_statement_alternative_list
+    END CASE SEMICOLON ;
+\end{verbatim}
+An error is detected at \code{=}; \code{Minimal\_Complete} inserts
+\code{when NUMERIC\_LITERAL =>}, then the original McKenzie algorithm
+inserts \code{if NUMERIC\_LITERAL}, which makes the remaining code
+legal, terminating one error correction session. Then parsing proceeds
+to then end of the input, where another error is enountered; missing
 \code{end case;}. At that point, the parse state kernel has one
 production:
+%% ada_lite_lr1.parse_table, state 2891
+%% 98.1:
+%% reduces to
 \begin{verbatim}
-sequence_of_statements_list <= statement ^
+if_statement <= IF expression_opt THEN sequence_of_statements
+   ELSE sequence_of_statements END IF SEMICOLON ^;
 
-Minimal_Complete_Action => sequence_of_statements_list
+Minimal_Complete_Action => if_statement
 \end{verbatim}
-Since the \code{Minimal\_Complete} token is a nonterminal, the action
-is reduce, not shift. That leads to three more states where the
-\code{Minimal\_Complete} action is reduce, and finally arrives at the
+Since the \code{Minimal\_Complete\_Action} token is a nonterminal, the action
+is reduce, not shift. That leads to several more states where the
+\code{Minimal\_Complete\_Action} is reduce:
+%% states 1711, 1708
+\begin{verbatim}
+compound_statement <= if_statement ^
+Minimal_Complete_Action => compound_statement
+
+statement <= compound_statement ^
+Minimal_Complete_Action => statement
+
+  ...
+\end{verbatim}
+
+and finally arrives at the
 state kernel:
+%% state 370
 \begin{verbatim}
 case_statement <= CASE expression_opt IS
    case_statement_alternative_list ^ END CASE SEMICOLON
@@ -433,18 +465,82 @@ reductions, and one insertion, in one McKenzie step.
 If there is more than one production in the kernel for a parse state
 that gives the minimum length for that state, there is more than one
 \code{Minimal\_Complete\_Action} for that state. In that case, we look
-at the length after dot for each production in the kernel for the
-state that reduce goes to; if one of the actions results in a minimum
-length, that action is chosen. If more than one action gives the
-minimum length, all are kept. Therefore the \code{Minimal\_Complete}
-algorithm maintains a queue of configurations with an action to check.
-Each may produce a new configuration for the next McKenzie step.
+at the length after the parse point for each production in the kernel
+for the state that the shift or reduce goes to; if one of the actions
+results in a minimum length, that action is chosen. If more than one
+action gives the minimum length, all are kept. Therefore
+\code{Minimal\_Complete} maintains a queue of configurations with an
+action to check. Each may produce a new configuration for the next
+McKenzie step.
 
-Since recursive productions are never minimal length,
+Consider the Java code fragment:
+\begin{figure}[H]
+\begin{lstlisting}
+{ B = UpdateText (A }
+\end{lstlisting}
+\caption{}
+\label{ex:recursive_length_after_dot}
+\end{figure}
+% recursive_length_after_dot.java_ch19
+This is missing \code{);} after \code{A}. The error is detected at
+`\lstinline|}|'. At that point, the kernel is:
+%% java_expressions_ch19_lr1.parse_table state 22
+\begin{verbatim}
+LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
+LeftHandSide <= Identifier ^
+ClassType <= Identifier ^
+MethodInvocation <= Identifier ^ LEFT_PAREN ArgumentList RIGHT_PAREN
+
+Minimal_Complete_Action => (LeftHandSide, ClassType)
+\end{verbatim}
+Here both actions are reduce, so we have to look at the next state.
+Reducing to \code{LeftHandSide} goes to state 27:
+\begin{verbatim}
+Assignment <= LeftHandSide ^ EQUAL Expression ; recursive
+Minimal_Complete_Action => EQUAL
+\end{verbatim}
+Here the production is labeled \code{recursive}, because it is part of
+a recursion cycle in the grammar. The grammar is a subset of Java; the
+productions involved in this recursion cycle are:
+\begin{verbatim}
+Assignment           <= LeftHandSide ^ EQUAL Expression
+Expression           <= LambdaExpression  | AssignmentExpression
+AssignmentExpression <= AdditiveExpression | Assignment
+\end{verbatim}
+This says that an \code{Expression} in this grammar can be \code{A :=
+  B := C := 1}. Thus it makes no sense for \code{Minimal\_Complete} to
+insert \code{:=}; that will never result in a minimal length. In
+general, recursive productions are never minimal length, so
 \code{Minimal\_Complete} drops them, unless all the productions in a
-kernel are recursive. Then the recursion is ignored; one of the later
-states will break the recursion. This requires a \code{recursive} flag
-stored in each parse state.
+kernel are recursive. Then the recursion is ignored, and all the
+actions are queued; one of the later states will break the recursion.
+This requires a \code{recursive} flag stored for each kernel item in
+each parse state. Note that since we normally set the cost of a
+\code{Minimal\_Complete} step negative, we cannot rely on cost to
+eliminate recursive productions.
+
+Getting back to figure \ref{ex:recursive_length_after_dot}, reducing
+to \code{ClassType} goes to state 33:
+\begin{verbatim}
+PostfixExpression <= ClassType ^
+ClassType <= ClassType ^ DOT Identifier ; recursive
+
+Minimal_Complete_Action => PostfixExpression 31.0
+\end{verbatim}
+Here \code{PostfixExpression} is not recursive, so that is chosen. We
+cannot compute a length from this production; we have to follow the
+reduce to the next state, and the next, until we find a shift.
+Several more single-token reductions are done, ending with:
+%% states 30 29 28 25 23 84
+\begin{verbatim}
+MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
+ArgumentList <= ArgumentList ^ COMMA Expression ; recursive
+
+Minimal_Complete_Action => RIGHT_PAREN
+\end{verbatim}
+which shifts \code{)}. All of these reductions, and the final shift,
+are done in one McKenzie step. The function that computes the length
+after parse point is recursive.
 
 \subsection{Matching\_Begin}
 Consider the code:
@@ -749,6 +845,7 @@ invalid token $\xi$ if $S(A)$ is empty.
 %% optimize data structures for speed; fixed length queue, stack;
 %% fibonacci heap
 %% multiple threads
+%% LR1 vs LALR
 
 \section{Code}
 \label{code}

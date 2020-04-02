@@ -9,7 +9,8 @@
 
 VPATH := ..
 VPATH += ../test
-VPATH += ../test/bnf
+
+vpath %.wy ../test/bnf ../Docs/error_correction_examples
 
 vpath %.texinfo ../Docs
 vpath %.tex ../Docs

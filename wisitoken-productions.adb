@@ -39,18 +39,6 @@ package body WisiToken.Productions is
       return To_String (Result);
    end Image;
 
-   function Empty_RHS (Item : in RHS_Arrays.Vector) return Natural
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         if Item (I).Tokens.Length = 0 then
-            return I;
-         end if;
-      end loop;
-      raise SAL.Programmer_Error with "no empty production found";
-   end Empty_RHS;
-
    procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor)
    is begin
       for P of Grammar loop

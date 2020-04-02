@@ -860,7 +860,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return;
          end if;
 
-         --  More than one minimal action in State; use next states
+         --  More than one minimal action in State; try to use next states and
+         --  recursion to pick one.
          Actions_Loop :
          for I in Actions.First_Index .. Actions.Last_Index loop
             declare
@@ -890,6 +891,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Next_State  : constant State_Index := Goto_For
                        (Shared.Table.all, New_Stack.Peek.State, New_Nonterm);
                   begin
+                     if Trace_McKenzie > Extra then
+                        Super.Trace.Put (Next_State'Image);
+                     end if;
                      for Item of Shared.Table.States (Next_State).Kernel loop
                         if Item.Before_Dot = New_Nonterm then
                            if Item.Length_After_Dot = 0 then
@@ -922,37 +926,45 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Action.Production.LHS));
             begin
                if (not Reduce_Only) or Action.Verb = Reduce then
-                  Find_Kernel_Item :
+                  if Trace_McKenzie > Extra then
+                     Super.Trace.Put
+                       ("task" & Task_Attributes.Value'Image & " " &
+                          Super.Label (Parser_Index)'Image & "Minimal_Complete_Actions: " &
+                          Image (Action, Descriptor) & " next_state" & Next_State'Image);
+                  end if;
                   for Item of Shared.Table.States (Next_State).Kernel loop
                      if Matches (Item, Action) then
                         --  For Action.Verb = Reduce, more than one item may match
                         if Item.Length_After_Dot = 0 then
                            pragma Assert (Action.Verb = Reduce);
-                           --  Item.Immediate_Recursive is False in Item, but we need to set
-                           --  All_Recursive from the non-zero-length item.
+                           --  Item.Immediate_Recursive is False; set Length and All_Recursive
+                           --  from a non-zero-length item.
                            Length (I) := Length_After_Dot (Item, Config.Stack, All_Recursive);
 
                         elsif Item.Length_After_Dot < Length (I) then
                            if not Item.Immediate_Recursive then
                               All_Recursive := False;
+                              Length (I) := Item.Length_After_Dot;
+                              --  else leave length = 'last ~ infinite.
                            end if;
-                           Length (I) := Item.Length_After_Dot;
                         end if;
 
                         if Length (I) < Min_Length then
                            Min_Length := Length (I);
                         end if;
                      end if;
-                  end loop Find_Kernel_Item;
+                  end loop;
                   if Trace_McKenzie > Extra then
-                     Put_Line
-                       (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: " &
-                          Image (Action, Descriptor) & " next_state" & Next_State'Image &
-                          " length" & Length (I)'Image);
+                     Super.Trace.Put_Line (" length" & Length (I)'Image);
                   end if;
                end if;
             end;
          end loop Actions_Loop;
+
+         if Trace_McKenzie > Extra and All_Recursive then
+            Put_Line
+              (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: all recursive");
+         end if;
 
          for I in Length'Range loop
             if All_Recursive or Length (I) = Min_Length then
@@ -962,7 +974,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
                     Image (Actions (I), Descriptor) &
-                    " not minimal");
+                    (if Length (I) = Count_Type'Last
+                     then " recursive"
+                     else " not minimal"));
             end if;
          end loop;
       end Enqueue_Min_Actions;
@@ -1045,6 +1059,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end loop;
 
       if Inserted_Last = Inserted'First - 1 then
+         --  Nothing inserted this round.
          if Orig_Config.Minimal_Complete_State = Active then
             Orig_Config.Minimal_Complete_State := Done;
          end if;

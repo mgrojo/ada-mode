@@ -1,14 +1,14 @@
-// Missing right paren; recover encountered cycle on LeftHandSide
+// Missing right paren; illustrates need for recursive Insert_Minimal_Complete_Actions.Length_After_Dot
 { B = UpdateText (A }
 
-// Missing trailing '++ ;'; recover encountered cycle on
-// PostIncrementExpression if state 8 has minimal action.
+// Missing trailing '++ ;'; illustrates need for cycle check, multiple actions, grammar recursion in
+// Insert_Minimal_Complete_Actions
 { UpdateText (A) }
 
 // No errors; get out of resume_active from previous error
 { A++;}
 
-// Missing assignment value; should use minimal_complete_actions
+// Missing assignment value; uses minimal_complete_actions
 { B = }
 
 // end of file

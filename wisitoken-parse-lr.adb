@@ -499,13 +499,16 @@ package body WisiToken.Parse.LR is
                            when Accept_It => (Verb => Accept_It, others => <>),
                            when Error     => (Verb => Error, others => <>));
 
+                        Node_J.Item.Production.LHS := Next_Token_ID;
+                        Node_J.Item.Production.RHS := Next_Integer;
+
                         case Verb is
                         when Shift =>
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>
-                           Node_J.Item.Production.LHS := Next_Token_ID;
-                           Node_J.Item.Production.RHS := Next_Integer;
+                           Node_J.Item.Recursive := Next_Boolean;
+
                            if Next_Boolean then
                               Node_J.Item.Action := Actions
                                 (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Action;

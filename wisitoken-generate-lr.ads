@@ -151,7 +151,12 @@ package WisiToken.Generate.LR is
    function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence;
    --  Return element of Item with minimum length;
 
-   type Minimal_Sequence_Array is array (Token_ID range <>) of RHS_Sequence_Arrays.Vector;
+   type Minimal_Sequence_Item is record
+      Min_RHS  : Natural := Natural'Last;
+      Sequence : RHS_Sequence_Arrays.Vector;
+   end record;
+
+   type Minimal_Sequence_Array is array (Token_ID range <>) of Minimal_Sequence_Item;
 
    function Compute_Minimal_Terminal_Sequences
      (Descriptor : in WisiToken.Descriptor;

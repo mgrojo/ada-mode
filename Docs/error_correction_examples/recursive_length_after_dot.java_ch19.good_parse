@@ -1,0 +1,110 @@
+ 8 tokens lexed
+ 0: 22: expecting: COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR
+
+ McKenzie error recovery
+
+parser 0: State 22 Current_Token 7:(RIGHT_CURLY_BRACKET, (21 . 21)) Resume_Token_Goal 11
+Action
+task 0 0: (22 : 6:(Identifier, (19 . 19)), 63 : 5:(LEFT_PAREN, (18 . 18)), 36 : 4:(Identifier, (7 . 16)), 17 : 3:(EQUAL, (5 . 5)), 7 :(LeftHandSide, (3 . 3)), 1 : 1:(LEFT_CURLY_BRACKET, (1 . 1)), 0 :)
+ 0: enqueue: 0, ( 0 0 0 0 0 0 0 0), Error (RIGHT_CURLY_BRACKET, (21 . 21)) (22 : (Identifier, (19 . 19)))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|()
+
+ 1 parallel tasks
+task 1 0: dequeue: 0, ( 0 0 0 0 0 0 0 0), Error (RIGHT_CURLY_BRACKET, (21 . 21)) (22 : (Identifier, (19 . 19)))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|()
+task 1 0: stack: (22 : (Identifier, (19 . 19)), 63 : (LEFT_PAREN, (18 . 18)), 36 : (Identifier, (7 . 16)), 17 : (EQUAL, (5 . 5)), 7 : (LeftHandSide, (3 . 3)), 1 : (LEFT_CURLY_BRACKET, (1 . 1)), 0 : (-))
+task 1 0: check: (RIGHT_CURLY_BRACKET, (21 . 21)): 0, ( 0 0 0 0 0 0 0 0), (22 : (Identifier, (19 . 19)))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|()
+task 1 0: check: Shared_Token_Goal : 11
+task 1 0: check: 22 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Error)
+task 1 0: check result: CONTINUE
+task 1 0: continuing: 0, ( 0 0 0 0 0 0 0 0), Error (RIGHT_CURLY_BRACKET, (21 . 21)) (22 : (Identifier, (19 . 19)))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|()
+task 1 0: stack: (22 : (Identifier, (19 . 19)), 63 : (LEFT_PAREN, (18 . 18)), 36 : (Identifier, (7 . 16)), 17 : (EQUAL, (5 . 5)), 7 : (LeftHandSide, (3 . 3)), 1 : (LEFT_CURLY_BRACKET, (1 . 1)), 0 : (-))
+task 1 0: Minimal_Complete_Actions: (Reduce to LeftHandSide, Reduce to ClassType)
+task 1  0Minimal_Complete_Actions: Reduce to LeftHandSide next_state 27 length 2147483647
+task 1  0Minimal_Complete_Actions: Reduce to ClassType next_state 33 30 29 28 25 23 84 length 1
+task 1 0: Minimal_Complete_Actions: drop Reduce to LeftHandSide recursive
+task 1 0: Minimal_Complete_Actions: dequeue work item Reduce to ClassType
+task 1 0: Minimal_Complete_Actions: state 22 reduce 1 to ClassType, goto 33 via 63
+task 1 0: Minimal_Complete_Actions: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Minimal_Complete_Actions: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Minimal_Complete_Actions: state 29 reduce 1 to AdditiveExpression, goto 28 via 63
+task 1 0: Minimal_Complete_Actions: state 28 reduce 1 to AssignmentExpression, goto 25 via 63
+task 1 0: Minimal_Complete_Actions: state 25 reduce 1 to Expression, goto 23 via 63
+task 1 0: Minimal_Complete_Actions: state 23 reduce 1 to ArgumentList, goto 84 via 63
+task 1 0: Minimal_Complete_Actions: insert RIGHT_PAREN: 1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, RIGHT_PAREN, 7, 94 7)) minimal_complete ACTIVE
+task 1 0: parse Matching_Begin: Insert_Delete: ((INSERT, LEFT_CURLY_BRACKET, 7))
+task 1 0: parse Matching_Begin: (LEFT_CURLY_BRACKET): 0, ( 0 0 0 0 0 0 0 0), (22 : (Identifier, (19 . 19)))/1:(INSERT, LEFT_CURLY_BRACKET, 7)/((INSERT, LEFT_CURLY_BRACKET, 7))
+task 1 0: parse Matching_Begin: 22 : 6:(LEFT_CURLY_BRACKET) : (Error)
+task 1 0: Matching_Begin: abandon (LEFT_CURLY_BRACKET): parse fail: 0, ( 0 0 0 0 0 0 0 0), Error (LEFT_CURLY_BRACKET) (22 : (Identifier, (19 . 19)))/1:(INSERT, LEFT_CURLY_BRACKET, 7)/((INSERT, LEFT_CURLY_BRACKET, 7))
+task 1 0: Insert: state 22 reduce 1 to ClassType, goto 33 via 63
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: state 29 reduce 1 to AdditiveExpression, goto 28 via 63
+task 1 0: Insert: state 28 reduce 1 to AssignmentExpression, goto 25 via 63
+task 1 0: Insert: state 25 reduce 1 to Expression, goto 23 via 63
+task 1 0: Insert: state 23 reduce 1 to ArgumentList, goto 84 via 63
+task 1 0: Insert: insert COMMA: 3, ( 0 0 0 0 0 1 0 0), (61 : (COMMA))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, COMMA, 7, 61 7))
+task 1 0: Insert: insert DOT: 3, ( 0 0 0 0 0 1 0 0), (60 : (DOT))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, DOT, 7, 60 7))
+task 1 0: Insert: state 22 reduce 1 to LeftHandSide, goto 27 via 63
+task 1 0: Insert: insert EQUAL: 3, ( 0 0 0 0 0 1 0 0), (52 : (EQUAL))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, EQUAL, 7, 52 7))
+task 1 0: Insert: insert LEFT_PAREN: 3, ( 0 0 0 0 0 1 0 0), (50 : (LEFT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, LEFT_PAREN, 7, 50 7))
+task 1 0: Insert: state 22 reduce 1 to ClassType, goto 33 via 63
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: state 29 reduce 1 to AdditiveExpression, goto 28 via 63
+task 1 0: Insert: insert MINUS: 3, ( 0 0 0 0 0 1 0 0), (53 : (MINUS))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, MINUS, 7, 53 7))
+task 1 0: Insert: insert MINUS_GREATER: 3, ( 0 0 0 0 0 1 0 0), (51 : (MINUS_GREATER))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, MINUS_GREATER, 7, 51 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: insert MINUS_MINUS: 3, ( 0 0 0 0 0 1 0 0), (58 : (MINUS_MINUS))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, MINUS_MINUS, 7, 58 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: insert PERCENT: 3, ( 0 0 0 0 0 1 0 0), (55 : (PERCENT))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, PERCENT, 7, 55 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: state 29 reduce 1 to AdditiveExpression, goto 28 via 63
+task 1 0: Insert: insert PLUS: 3, ( 0 0 0 0 0 1 0 0), (54 : (PLUS))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, PLUS, 7, 54 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: insert PLUS_PLUS: 3, ( 0 0 0 0 0 1 0 0), (59 : (PLUS_PLUS))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, PLUS_PLUS, 7, 59 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: insert SLASH: 3, ( 0 0 0 0 0 1 0 0), (56 : (SLASH))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, SLASH, 7, 56 7))
+task 1 0: Insert: state 33 reduce 1 to PostfixExpression, goto 30 via 63
+task 1 0: Insert: state 30 reduce 1 to MultiplicativeExpression, goto 29 via 63
+task 1 0: Insert: insert STAR: 3, ( 0 0 0 0 0 1 0 0), (57 : (STAR))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, STAR, 7, 57 7))
+task 1 0: push_back Identifier: 2, ( 0 0 0 1 0 0 0 0), (63 : (LEFT_PAREN, (18 . 18)))| 6:(Identifier, (19 . 19))|((PUSH_BACK, Identifier, 6))
+task 1 0: delete RIGHT_CURLY_BRACKET: 3, ( 0 0 0 0 0 0 1 0), (22 : (Identifier, (19 . 19)))| 8:(Wisi_EOI, (22 . 21))|((DELETE, RIGHT_CURLY_BRACKET, 7))
+task 1 0: enqueue: 15/ 15/15/1, min cost: 1, active workers: 0
+task 1 0: dequeue: 1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, RIGHT_PAREN, 7, 94 7)) minimal_complete ACTIVE
+task 1 0: stack: (94 : (RIGHT_PAREN), 84 : (ArgumentList, (19 . 19)), 63 : (LEFT_PAREN, (18 . 18)), 36 : (Identifier, (7 . 16)), 17 : (EQUAL, (5 . 5)), 7 : (LeftHandSide, (3 . 3)), 1 : (LEFT_CURLY_BRACKET, (1 . 1)), 0 : (-))
+task 1 0: check: (RIGHT_CURLY_BRACKET, (21 . 21)): 1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, RIGHT_PAREN, 7, 94 7)) minimal_complete ACTIVE
+task 1 0: check: Shared_Token_Goal : 11
+task 1 0: check: 94 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 4, MethodInvocation,0) via 17
+task 1 0: check: 47 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 1, PostfixExpression,1) via 17
+task 1 0: check: 43 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 1, MultiplicativeExpression,0) via 17
+task 1 0: check: 42 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 1, AdditiveExpression,0) via 17
+task 1 0: check: 41 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 1, AssignmentExpression,0) via 17
+task 1 0: check: 39 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 1, Expression,1) via 17
+task 1 0: check: 37 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Reduce, 3, Assignment,0) via 1
+task 1 0: check: 6 : 7:(RIGHT_CURLY_BRACKET, (21 . 21)) : (Shift, 16)
+task 1 0: check: 16 : 8:(Wisi_EOI, (22 . 21)) : (Reduce, 3, Statement,0) via 0
+task 1 0: check: 3 : 8:(Wisi_EOI, (22 . 21)) : (Reduce, 1, nonterminal_004_list,0) via 0
+task 1 0: check: 4 : 8:(Wisi_EOI, (22 . 21)) : (Reduce, 1, CompilationUnit,0) via 0
+task 1 0: check: 2 : 8:(Wisi_EOI, (22 . 21)) : (Accept It)
+task 1 0: enqueue: 0/ 14/15/2, min cost: 2, active workers: 0
+task 1 0: succeed: enqueue 16, check  2: 1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, RIGHT_PAREN, 7, 94 7)) minimal_complete ACTIVE
+Supervisor: done, succeed
+
+Supervisor: Done
+ 0: succeed 1, enqueue 16, check  2, cost:  1
+ 0:  1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (21 . 21))|((INSERT, RIGHT_PAREN, 7, 94 7)) minimal_complete ACTIVE
+ 0: before Ops applied:
+ 0: stack (22 : 6:(Identifier, (19 . 19)), 63 : 5:(LEFT_PAREN, (18 . 18)), 36 : 4:(Identifier, (7 . 16)), 17 : 3:(EQUAL, (5 . 5)), 7 :(LeftHandSide, (3 . 3)), 1 : 1:(LEFT_CURLY_BRACKET, (1 . 1)), 0 :)
+ 0: Shared_Token   7:(RIGHT_CURLY_BRACKET, (21 . 21))
+ 0: Current_Token  7:(RIGHT_CURLY_BRACKET, (21 . 21))
+ 0: after Ops applied:
+ 0: stack (22 : 6:(Identifier, (19 . 19)), 63 : 5:(LEFT_PAREN, (18 . 18)), 36 : 4:(Identifier, (7 . 16)), 17 : 3:(EQUAL, (5 . 5)), 7 :(LeftHandSide, (3 . 3)), 1 : 1:(LEFT_CURLY_BRACKET, (1 . 1)), 0 :)
+ 0: Shared_Token   7:(RIGHT_CURLY_BRACKET, (21 . 21))
+ 0: Current_Token (RIGHT_PAREN)
+ 0: recover_insert_delete ()
+ 0: inc_shared_token FALSE parser verb SHIFT
+recover: succeed, parser count 1
+ 0: Current_Token (RIGHT_PAREN) Shared_Token  7:(RIGHT_CURLY_BRACKET, (21 . 21))
+ 0: succeed

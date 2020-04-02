@@ -53,9 +53,6 @@ package WisiToken.Productions is
    procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor);
    --  Put Image of each production to Ada.Text_IO.Current_Output.
 
-   function Empty_RHS (Item : in RHS_Arrays.Vector) return Natural;
-   --  Return index in Item that is an empty production.
-
    package Line_Number_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Natural, Line_Number_Type, Default_Element => Invalid_Line_Number);
 
