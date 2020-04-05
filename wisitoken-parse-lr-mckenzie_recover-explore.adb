@@ -196,7 +196,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          raise SAL.Programmer_Error with "found test case for Do_Reduce Accept_It";
 
       when Error =>
-         null;
+         if Trace_McKenzie > Extra and Label'Length > 0 then
+            Put_Line
+              (Super.Trace.all, Super.Label (Parser_Index), Label & ": error on " &
+                 Image (Inserted_ID, Super.Trace.Descriptor.all) &
+                 " in state" & State_Index'Image (Config.Stack.Peek.State));
+         end if;
       end case;
 
       loop
@@ -673,8 +678,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                              ": undo push_back");
                      end if;
                   elsif ID = Current_Token then
-                     --  This needed because we allow explore when the error is not at the
-                     --  explore point; it prevents inserting useless tokens (ie
+                     --  This is needed because we allow explore when the error is not at
+                     --  the explore point; it prevents inserting useless tokens (ie
                      --  'identifier ;' in ada_lite).
                      if Trace_McKenzie > Extra then
                         Put_Line
@@ -806,16 +811,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Minimal_Do_Shift;
 
       procedure Enqueue_Min_Actions
-        (Label       : in String;
-         Actions     : in Minimal_Action_Arrays.Vector;
-         Config      : in Configuration;
-         Reduce_Only : in Boolean)
+        (Label   : in String;
+         Actions : in Minimal_Action_Arrays.Vector;
+         Config  : in Configuration)
       is
          use SAL;
          Length : array (Actions.First_Index .. Actions.Last_Index) of Count_Type := (others => Count_Type'Last);
 
-         Min_Length    : Count_Type := Count_Type'Last;
-         All_Recursive : Boolean    := True;
+         Start_State : State_Index;
+         Min_Length  : Count_Type := Count_Type'Last;
       begin
          if Trace_McKenzie > Extra then
             Put_Line
@@ -826,9 +830,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Actions.Length = 0 then
             return;
          elsif Actions.Length = 1 then
-            if (not Reduce_Only) or Actions (Actions.First_Index).Verb = Reduce then
-               Safe_Add_Work ("1", (Actions (Actions.First_Index), Config));
-            end if;
+            Safe_Add_Work ("1", (Actions (Actions.First_Index), Config));
             return;
          end if;
 
@@ -848,10 +850,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                end Matches;
 
                function Length_After_Dot
-                 (Item          : in     Kernel_Info;
-                  Action        : in     Minimal_Action;
-                  Stack         : in     Recover_Stacks.Stack;
-                  All_Recursive : in out Boolean)
+                 (Item   : in Kernel_Info;
+                  Action : in Minimal_Action;
+                  Stack  : in Recover_Stacks.Stack)
                  return Ada.Containers.Count_Type
                is
                   Match_ID   : Token_ID;
@@ -868,7 +869,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Match_ID   := Action.ID;
 
                   when Reduce =>
-                     New_Stack.Pop (SAL.Base_Peek_Type (Item.Reduce_Count));
+                     New_Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
                      Next_State := Goto_For (Shared.Table.all, New_Stack.Peek.State, Action.Production.LHS);
                      New_Stack.Push
                        ((Next_State, Syntax_Trees.Invalid_Node_Index, (ID => Action.Production.LHS, others => <>)));
@@ -876,13 +877,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end case;
 
                   if Trace_McKenzie > Extra then
-                     Super.Trace.Put (Next_State'Image);
+                     Super.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
                   end if;
+
+                  if Start_State = State_Index'Last then
+                     Start_State := Next_State;
+
+                  elsif Next_State = Start_State then
+                     --  We have gone all the way around a recursion cycle without finding
+                     --  a shift. There must be another minimal action that does not go all
+                     --  the way around a cycle. Leave Length (I) at 'last ~ infinite.
+                     if Trace_McKenzie > Extra then
+                        Super.Trace.Put_Line (" abandon cycle");
+                     end if;
+                     return Ada.Containers.Count_Type'Last;
+                  end if;
+
                   for Item of Shared.Table.States (Next_State).Kernel loop
                      if Item.Before_Dot = Match_ID then
                         if Item.Length_After_Dot = 0 then
                            Result := Length_After_Dot
-                             (Item, (Reduce, Item.Production, Item.Reduce_Count), New_Stack, All_Recursive);
+                             (Item, (Reduce, Item.Reduce_Production, Item.Reduce_Count), New_Stack);
                         else
                            Result := Item.Length_After_Dot;
                         end if;
@@ -890,9 +905,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                      if Result < Min_Result then
                         Min_Result := Result;
-                        if not Item.Immediate_Recursive then
-                           All_Recursive := False;
-                        end if;
                      end if;
                   end loop;
                   return Min_Result;
@@ -907,57 +919,65 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Config.Stack.Peek (Base_Peek_Type (Action.Token_Count) + 1).State,
                      Action.Production.LHS));
             begin
-               if (not Reduce_Only) or Action.Verb = Reduce then
-                  if Trace_McKenzie > Extra then
-                     Super.Trace.Put
-                       ("task" & Task_Attributes.Value'Image &
-                          Super.Label (Parser_Index)'Image & ": Minimal_Complete_Actions: " &
-                          Image (Action, Descriptor) & " next_state");
-                  end if;
-                  for Item of Shared.Table.States (Next_State).Kernel loop
-                     if Matches (Item, Action) then
-                        --  For Action.Verb = Reduce, more than one item may match
-                        if Item.Length_After_Dot = 0 then
-                           --  Item.Immediate_Recursive is False; set Length and All_Recursive
-                           --  from a non-zero-length item.
-                           Length (I) := Length_After_Dot (Item, Action, Config.Stack, All_Recursive);
+               if Trace_McKenzie > Extra then
+                  Super.Trace.Put
+                    ("task" & Task_Attributes.Value'Image &
+                       Super.Label (Parser_Index)'Image & ": Minimal_Complete_Actions: " &
+                       Image (Action, Descriptor));
+               end if;
 
-                        elsif Item.Length_After_Dot < Length (I) then
-                           if not Item.Immediate_Recursive then
-                              All_Recursive := False;
-                              Length (I) := Item.Length_After_Dot;
-                              --  else leave length = 'last ~ infinite.
-                           end if;
+               for Item of Shared.Table.States (Next_State).Kernel loop
+                  Start_State := State_Index'Last;
+                  if Matches (Item, Action) then
+                     --  For Action.Verb = Reduce, more than one item may match
+                     if Item.Length_After_Dot = 0 or Item.Immediate_Recursive then
+                        --  Set Length from a non-zero-length non-recursive item.
+                        if Trace_McKenzie > Extra then
+                           Super.Trace.Put (" next_state");
                         end if;
+                        Length (I) := Length_After_Dot (Item, Action, Config.Stack);
 
-                        if Length (I) < Min_Length then
-                           Min_Length := Length (I);
-                        end if;
+                     elsif Item.Length_After_Dot < Length (I) then
+                        Length (I) := Item.Length_After_Dot;
+
                      end if;
-                  end loop;
-                  if Trace_McKenzie > Extra then
-                     Super.Trace.Put_Line (" length" & Length (I)'Image);
+
+                     if Trace_McKenzie > Extra then
+                        Super.Trace.Put (" length" & Length (I)'Image);
+                     end if;
+                     if Length (I) < Min_Length then
+                        Min_Length := Length (I);
+                     end if;
                   end if;
+               end loop;
+               if Trace_McKenzie > Extra then
+                  Super.Trace.New_Line;
                end if;
             end;
          end loop Actions_Loop;
 
-         if Trace_McKenzie > Extra and All_Recursive then
-            Put_Line
-              (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: all recursive");
+         if Min_Length = Count_Type'Last then
+            --  A useful grammar has an exit from all recursions; Actions_Loop
+            --  is supposed to find the exit and set Min_Length. So this
+            --  is nominally a bug in the grammar.
+            if Debug_Mode then
+               raise Programmer_Error with "Minimal_Complete_Actions: all recursive";
+            else
+               if Trace_McKenzie > Extra then
+                  Put_Line (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: all recursive");
+               end if;
+               raise Bad_Config;
+            end if;
          end if;
 
          for I in Length'Range loop
-            if All_Recursive or Length (I) = Min_Length then
+            if Length (I) = Min_Length then
                Safe_Add_Work ("2", (Actions (I), Config));
 
             elsif Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
-                    Image (Actions (I), Descriptor) &
-                    (if Length (I) = Count_Type'Last
-                     then " recursive"
-                     else " not minimal"));
+                    Image (Actions (I), Descriptor) & " not minimal");
             end if;
          end loop;
       end Enqueue_Min_Actions;
@@ -976,10 +996,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          return Token_ID_Arrays.Empty_Vector;
       end if;
 
-      Enqueue_Min_Actions
-        ("",
-         Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions,
-         Orig_Config, Reduce_Only => False);
+      Enqueue_Min_Actions ("", Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions, Orig_Config);
 
       loop
          exit when Is_Empty (Work);
@@ -1007,7 +1024,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         Reduce_Action,
                         Do_Language_Fixes => False);
 
-                     Actions   := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions;
+                     Actions := Table.States (Item.Config.Stack.Peek.State).Minimal_Complete_Actions;
 
                      case Actions.Length is
                      when 0 =>
@@ -1027,7 +1044,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         end case;
 
                      when others =>
-                        Enqueue_Min_Actions ("multiple actions ", Actions, Item.Config, Reduce_Only => True);
+                        Enqueue_Min_Actions ("multiple actions ", Actions, Item.Config);
                         exit;
                      end case;
                   end loop;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -72,7 +72,7 @@ package body Test_Accept_State is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+   Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and

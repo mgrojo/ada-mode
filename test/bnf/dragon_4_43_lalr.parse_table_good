@@ -11,18 +11,18 @@ Tokens:
 Productions:
 5.0: wisitoken_accept <= upper_s Wisi_EOI
 6.0: upper_s <= upper_c upper_c
-7.0: upper_c <= LOWER_C upper_c ; (1) RIGHT
+7.0: upper_c <= LOWER_C upper_c ; recursive
 7.1: upper_c <= LOWER_D
 
 Recursions:
-1 => (7 (0 RIGHT) -> )
+1 => (7 (0) -> )
 
 LALR Parse Table:
 State 0:
-      5.0:wisitoken_accept <= ^ upper_s Wisi_EOI, 
+      5.0:wisitoken_accept <= ^ upper_s Wisi_EOI
 
-   LOWER_C          => shift and goto state 1
-   LOWER_D          => shift and goto state 2
+   LOWER_C          => shift and goto state 1 7.0
+   LOWER_D          => shift and goto state 2 7.1
    default          => ERROR
 
    upper_s          goto state 3
@@ -31,28 +31,28 @@ State 0:
    Minimal_Complete_Action => LOWER_D
 
 State 1:
-      7.0:upper_c <= LOWER_C ^ upper_c, LOWER_C/LOWER_D/Wisi_EOI
+      7.0:upper_c <= LOWER_C ^ upper_c ; recursive
 
-   LOWER_C          => shift and goto state 1
-   LOWER_D          => shift and goto state 2
+   LOWER_C          => shift and goto state 1 7.0
+   LOWER_D          => shift and goto state 2 7.1
    default          => ERROR
 
    upper_c          goto state 5
 
-   Minimal_Complete_Action => LOWER_D recursive
+   Minimal_Complete_Action => LOWER_D
 
 State 2:
-      7.1:upper_c <= LOWER_D ^, LOWER_C/LOWER_D/Wisi_EOI
+      7.1:upper_c <= LOWER_D ^
 
    LOWER_C          => reduce 1 tokens to upper_c 7.1
    LOWER_D          => reduce 1 tokens to upper_c 7.1
    Wisi_EOI         => reduce 1 tokens to upper_c 7.1
    default          => ERROR
 
-   Minimal_Complete_Action => upper_c
+   Minimal_Complete_Action => upper_c 7.1
 
 State 3:
-      5.0:wisitoken_accept <= upper_s ^ Wisi_EOI, 
+      5.0:wisitoken_accept <= upper_s ^ Wisi_EOI
 
    Wisi_EOI         => accept it 5.0
    default          => ERROR
@@ -60,10 +60,10 @@ State 3:
    Minimal_Complete_Action => 
 
 State 4:
-      6.0:upper_s <= upper_c ^ upper_c, Wisi_EOI
+      6.0:upper_s <= upper_c ^ upper_c
 
-   LOWER_C          => shift and goto state 1
-   LOWER_D          => shift and goto state 2
+   LOWER_C          => shift and goto state 1 7.0
+   LOWER_D          => shift and goto state 2 7.1
    default          => ERROR
 
    upper_c          goto state 6
@@ -71,22 +71,22 @@ State 4:
    Minimal_Complete_Action => LOWER_D
 
 State 5:
-      7.0:upper_c <= LOWER_C upper_c ^, LOWER_C/LOWER_D/Wisi_EOI
+      7.0:upper_c <= LOWER_C upper_c ^ ; recursive
 
    LOWER_C          => reduce 2 tokens to upper_c 7.0
    LOWER_D          => reduce 2 tokens to upper_c 7.0
    Wisi_EOI         => reduce 2 tokens to upper_c 7.0
    default          => ERROR
 
-   Minimal_Complete_Action => upper_c recursive
+   Minimal_Complete_Action => upper_c 7.0
 
 State 6:
-      6.0:upper_s <= upper_c upper_c ^, Wisi_EOI
+      6.0:upper_s <= upper_c upper_c ^
 
    Wisi_EOI         => reduce 2 tokens to upper_s 6.0
    default          => ERROR
 
-   Minimal_Complete_Action => upper_s
+   Minimal_Complete_Action => upper_s 6.0
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

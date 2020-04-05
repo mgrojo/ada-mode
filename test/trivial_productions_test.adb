@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2019 Stephen Leake
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2020 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -74,7 +74,7 @@ package body Trivial_Productions_Test is
 
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+         Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
            E_ID <= T_ID & EOF_ID + Null_Action and
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
@@ -160,7 +160,7 @@ package body Trivial_Productions_Test is
 
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+         Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
            (Declarations_ID    <= Declaration_ID + Null_Action or
                                   Declarations_ID & Declaration_ID + Null_Action) and

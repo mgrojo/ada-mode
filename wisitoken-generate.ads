@@ -61,6 +61,12 @@ package WisiToken.Generate is
    --  Raises Grammar_Error if there is a non-grammar token used in the
    --  grammar.
 
+   function Nullable (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_Array_Production_ID;
+   --  If ID is nullable, Result (ID) is the production that should be
+   --  reduced to produce the null. Otherwise Result (ID) is
+   --  Invalid_Production_ID.
+
+   function Has_Empty_Production (Nullable : in Token_Array_Production_ID) return Token_ID_Set;
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set;
    --  Result (ID) is True if any production for ID can be an empty
    --  production, recursively.
@@ -111,12 +117,11 @@ package WisiToken.Generate is
       --  The edge leading to this node. We don't need the actual token
       --  number.
 
-      Recursive : Recursion := None;
-      --  Position of the token in the RHS.
+      --  There used to be more components here. We keep the record type,
+      --  since it has a much better name than "Natural".
    end record;
 
-   function Edge_Image (Edge : in Recursion_Item) return String is
-     (Trimmed_Image (Edge.RHS) & " " & Recursion'Image (Edge.Recursive));
+   function Edge_Image (Edge : in Recursion_Item) return String is (Trimmed_Image (Edge.RHS));
 
    type Base_Recursion_Index is range 0 .. Integer'Last;
    subtype Recursion_Index is Base_Recursion_Index range 1 .. Base_Recursion_Index'Last;
@@ -152,14 +157,17 @@ package WisiToken.Generate is
 
    function To_Graph (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Grammar_Graphs.Graph;
 
-   function Compute_Full_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
-   --  Each element of result is a cycle in the grammar.
+   function Compute_Full_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
+   --  Each element of result is a cycle in the grammar. Also sets
+   --  Recursive components in Grammar.
 
-   function Compute_Partial_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
+   function Compute_Partial_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions;
    --  Each element of the result contains all members of a non-trivial
    --  strongly connected component in the grammar, in arbitrary order.
    --  This is an approximation to the full recursion, when that is too
    --  hard to compute (ie for Java).
+   --
+   --  Also sets Recursive components in Grammar.
 
    ----------
    --  Indented text output. Mostly used for code generation in wisi,

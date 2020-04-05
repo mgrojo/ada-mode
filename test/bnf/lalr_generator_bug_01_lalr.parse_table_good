@@ -36,27 +36,27 @@ Tokens:
 
 Productions:
 17.0: wisitoken_accept <= compilation_unit Wisi_EOI
-18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; (1) MIDDLE
-19.0: association <= IDENTIFIER EQUAL_GREATER expression ; (1) MIDDLE
-19.1: association <= expression ; (1) MIDDLE
-20.0: association_list <= association ; (1) MIDDLE
+18.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; recursive
+19.0: association <= IDENTIFIER EQUAL_GREATER expression ; recursive
+19.1: association <= expression ; recursive
+20.0: association_list <= association ; recursive
 21.0: compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON
 21.1: compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON
 21.2: compilation_unit <= TYPE IDENTIFIER IS SEMICOLON
-22.0: expression <= relation ; (1) MIDDLE
-23.0: name <= name actual_parameter_part ; (1, 2) LEFT
+22.0: expression <= relation ; recursive
+23.0: name <= name actual_parameter_part ; recursive
 23.1: name <= IDENTIFIER
 24.0: name_opt <= name
 24.1: name_opt <=
-25.0: primary <= name ; (1) MIDDLE
+25.0: primary <= name ; recursive
 26.0: procedure_call_statement <= name SEMICOLON
-27.0: relation <= simple_expression ; (1) MIDDLE
+27.0: relation <= simple_expression ; recursive
 28.0: sequence_of_statements_list <= procedure_call_statement
-28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ; (3) LEFT
+28.1: sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ; recursive
 29.0: sequence_of_statements <=
 29.1: sequence_of_statements <= sequence_of_statements_list
-30.0: simple_expression <= unary_adding_operator_opt primary ; (1) MIDDLE
-31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ; (4) MIDDLE
+30.0: simple_expression <= unary_adding_operator_opt primary ; recursive
+31.0: subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ; recursive
 31.1: subtype_indication <= name
 32.0: unary_adding_operator <= PLUS
 32.1: unary_adding_operator <= MINUS
@@ -64,18 +64,18 @@ Productions:
 33.1: unary_adding_operator_opt <=
 
 Recursions:
-1 => (18 (0 MIDDLE) -> 20 (0 SINGLE) -> 19 (0 RIGHT, 1 SINGLE) -> 22 (0 SINGLE) -> 27 (0 SINGLE) -> 30 (0 RIGHT) -> 25 (0 SINGLE) -> 23 (0 RIGHT) -> )
-2 => (23 (0 LEFT) -> )
-3 => (28 (1 LEFT) -> )
-4 => (31 (0 MIDDLE) -> )
+1 => (18 (0) -> 20 (0) -> 19 (0, 1) -> 22 (0) -> 27 (0) -> 30 (0) -> 25 (0) -> 23 (0) -> )
+2 => (23 (0) -> )
+3 => (28 (1) -> )
+4 => (31 (0) -> )
 
 LALR Parse Table:
 State 0:
-     17.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+     17.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI
 
-   PROCEDURE                   => shift and goto state 1
-   TYPE                        => shift and goto state 2
-   IDENTIFIER                  => shift and goto state 3
+   PROCEDURE                   => shift and goto state 1 21.0
+   TYPE                        => shift and goto state 2 21.2
+   IDENTIFIER                  => shift and goto state 3 21.1
    default                     => ERROR
 
    compilation_unit            goto state 4
@@ -83,9 +83,9 @@ State 0:
    Minimal_Complete_Action => IDENTIFIER
 
 State 1:
-     21.0:compilation_unit <= PROCEDURE ^ name IS BEGIN sequence_of_statements END name_opt SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE ^ name IS BEGIN sequence_of_statements END name_opt SEMICOLON
 
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 6
@@ -93,23 +93,23 @@ State 1:
    Minimal_Complete_Action => IDENTIFIER
 
 State 2:
-     21.2:compilation_unit <= TYPE ^ IDENTIFIER IS SEMICOLON, Wisi_EOI
+     21.2:compilation_unit <= TYPE ^ IDENTIFIER IS SEMICOLON
 
-   IDENTIFIER                  => shift and goto state 7
+   IDENTIFIER                  => shift and goto state 7 21.2
    default                     => ERROR
 
    Minimal_Complete_Action => IDENTIFIER
 
 State 3:
-     21.1:compilation_unit <= IDENTIFIER ^ COLON subtype_indication SEMICOLON, Wisi_EOI
+     21.1:compilation_unit <= IDENTIFIER ^ COLON subtype_indication SEMICOLON
 
-   COLON                       => shift and goto state 8
+   COLON                       => shift and goto state 8 21.1
    default                     => ERROR
 
    Minimal_Complete_Action => COLON
 
 State 4:
-     17.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+     17.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
 
    Wisi_EOI                    => accept it 17.0
    default                     => ERROR
@@ -117,7 +117,7 @@ State 4:
    Minimal_Complete_Action => 
 
 State 5:
-     23.1:name <= IDENTIFIER ^, IS/LEFT_PAREN/RIGHT_PAREN/SEMICOLON
+     23.1:name <= IDENTIFIER ^
 
    IS                          => reduce 1 tokens to name 23.1
    LEFT_PAREN                  => reduce 1 tokens to name 23.1
@@ -125,14 +125,14 @@ State 5:
    SEMICOLON                   => reduce 1 tokens to name 23.1
    default                     => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name 23.1
 
 State 6:
-     21.0:compilation_unit <= PROCEDURE name ^ IS BEGIN sequence_of_statements END name_opt SEMICOLON, Wisi_EOI
-     23.0:name <= name ^ actual_parameter_part, IS/LEFT_PAREN
+     21.0:compilation_unit <= PROCEDURE name ^ IS BEGIN sequence_of_statements END name_opt SEMICOLON
+     23.0:name <= name ^ actual_parameter_part ; recursive
 
-   IS                          => shift and goto state 9
-   LEFT_PAREN                  => shift and goto state 10
+   IS                          => shift and goto state 9 21.0
+   LEFT_PAREN                  => shift and goto state 10 18.0
    default                     => ERROR
 
    actual_parameter_part       goto state 11
@@ -140,17 +140,17 @@ State 6:
    Minimal_Complete_Action => IS
 
 State 7:
-     21.2:compilation_unit <= TYPE IDENTIFIER ^ IS SEMICOLON, Wisi_EOI
+     21.2:compilation_unit <= TYPE IDENTIFIER ^ IS SEMICOLON
 
-   IS                          => shift and goto state 12
+   IS                          => shift and goto state 12 21.2
    default                     => ERROR
 
    Minimal_Complete_Action => IS
 
 State 8:
-     21.1:compilation_unit <= IDENTIFIER COLON ^ subtype_indication SEMICOLON, Wisi_EOI
+     21.1:compilation_unit <= IDENTIFIER COLON ^ subtype_indication SEMICOLON
 
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 13
@@ -159,19 +159,19 @@ State 8:
    Minimal_Complete_Action => IDENTIFIER
 
 State 9:
-     21.0:compilation_unit <= PROCEDURE name IS ^ BEGIN sequence_of_statements END name_opt SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS ^ BEGIN sequence_of_statements END name_opt SEMICOLON
 
-   BEGIN                       => shift and goto state 15
+   BEGIN                       => shift and goto state 15 21.0
    default                     => ERROR
 
    Minimal_Complete_Action => BEGIN
 
 State 10:
-     18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, IS/LEFT_PAREN/RIGHT_PAREN/SEMICOLON
+     18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN ; recursive
 
-   MINUS                       => shift and goto state 16
-   PLUS                        => shift and goto state 17
-   IDENTIFIER                  => shift and goto state 18,
+   MINUS                       => shift and goto state 16 32.1
+   PLUS                        => shift and goto state 17 32.0
+   IDENTIFIER                  => shift and goto state 18 19.0,
                                   reduce 0 tokens to unary_adding_operator_opt 33.1
    default                     => ERROR
 
@@ -187,7 +187,7 @@ State 10:
    Minimal_Complete_Action => IDENTIFIER
 
 State 11:
-     23.0:name <= name actual_parameter_part ^, IS/LEFT_PAREN/RIGHT_PAREN/SEMICOLON
+     23.0:name <= name actual_parameter_part ^ ; recursive
 
    IS                          => reduce 2 tokens to name 23.0
    LEFT_PAREN                  => reduce 2 tokens to name 23.0
@@ -195,42 +195,42 @@ State 11:
    SEMICOLON                   => reduce 2 tokens to name 23.0
    default                     => ERROR
 
-   Minimal_Complete_Action => name recursive
+   Minimal_Complete_Action => name 23.0
 
 State 12:
-     21.2:compilation_unit <= TYPE IDENTIFIER IS ^ SEMICOLON, Wisi_EOI
+     21.2:compilation_unit <= TYPE IDENTIFIER IS ^ SEMICOLON
 
-   SEMICOLON                   => shift and goto state 27
+   SEMICOLON                   => shift and goto state 27 21.2
    default                     => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 13:
-     23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/SEMICOLON
-     31.0:subtype_indication <= name ^ LEFT_PAREN subtype_indication RIGHT_PAREN, SEMICOLON
-     31.1:subtype_indication <= name ^, SEMICOLON
+     23.0:name <= name ^ actual_parameter_part ; recursive
+     31.0:subtype_indication <= name ^ LEFT_PAREN subtype_indication RIGHT_PAREN ; recursive
+     31.1:subtype_indication <= name ^
 
-   LEFT_PAREN                  => shift and goto state 28
+   LEFT_PAREN                  => shift and goto state 28 18.0
    SEMICOLON                   => reduce 1 tokens to subtype_indication 31.1
    default                     => ERROR
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => subtype_indication
+   Minimal_Complete_Action => subtype_indication 31.1
 
 State 14:
-     21.1:compilation_unit <= IDENTIFIER COLON subtype_indication ^ SEMICOLON, Wisi_EOI
+     21.1:compilation_unit <= IDENTIFIER COLON subtype_indication ^ SEMICOLON
 
-   SEMICOLON                   => shift and goto state 29
+   SEMICOLON                   => shift and goto state 29 21.1
    default                     => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 15:
-     21.0:compilation_unit <= PROCEDURE name IS BEGIN ^ sequence_of_statements END name_opt SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS BEGIN ^ sequence_of_statements END name_opt SEMICOLON
 
    END                         => reduce 0 tokens to sequence_of_statements 29.0
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 30
@@ -238,99 +238,99 @@ State 15:
    sequence_of_statements_list goto state 32
    sequence_of_statements      goto state 33
 
-   Minimal_Complete_Action => sequence_of_statements
+   Minimal_Complete_Action => sequence_of_statements 29.0
 
 State 16:
-     32.1:unary_adding_operator <= MINUS ^, IDENTIFIER
+     32.1:unary_adding_operator <= MINUS ^
 
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator 32.1
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator
+   Minimal_Complete_Action => unary_adding_operator 32.1
 
 State 17:
-     32.0:unary_adding_operator <= PLUS ^, IDENTIFIER
+     32.0:unary_adding_operator <= PLUS ^
 
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator 32.0
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator
+   Minimal_Complete_Action => unary_adding_operator 32.0
 
 State 18:
-     19.0:association <= IDENTIFIER ^ EQUAL_GREATER expression, RIGHT_PAREN
-     23.1:name <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN
+     19.0:association <= IDENTIFIER ^ EQUAL_GREATER expression ; recursive
+     23.1:name <= IDENTIFIER ^
 
    LEFT_PAREN                  => reduce 1 tokens to name 23.1
    RIGHT_PAREN                 => reduce 1 tokens to name 23.1
-   EQUAL_GREATER               => shift and goto state 34
+   EQUAL_GREATER               => shift and goto state 34 19.0
    default                     => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name 23.1
 
 State 19:
-     20.0:association_list <= association ^, RIGHT_PAREN
+     20.0:association_list <= association ^ ; recursive
 
    RIGHT_PAREN                 => reduce 1 tokens to association_list 20.0
    default                     => ERROR
 
-   Minimal_Complete_Action => association_list
+   Minimal_Complete_Action => association_list 20.0
 
 State 20:
-     18.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN, IS/LEFT_PAREN/RIGHT_PAREN/SEMICOLON
+     18.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN ; recursive
 
-   RIGHT_PAREN                 => shift and goto state 35
+   RIGHT_PAREN                 => shift and goto state 35 18.0
    default                     => ERROR
 
    Minimal_Complete_Action => RIGHT_PAREN
 
 State 21:
-     19.1:association <= expression ^, RIGHT_PAREN
+     19.1:association <= expression ^ ; recursive
 
    RIGHT_PAREN                 => reduce 1 tokens to association 19.1
    default                     => ERROR
 
-   Minimal_Complete_Action => association
+   Minimal_Complete_Action => association 19.1
 
 State 22:
-     23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/RIGHT_PAREN
-     25.0:primary <= name ^, RIGHT_PAREN
+     23.0:name <= name ^ actual_parameter_part ; recursive
+     25.0:primary <= name ^ ; recursive
 
-   LEFT_PAREN                  => shift and goto state 10
+   LEFT_PAREN                  => shift and goto state 10 18.0
    RIGHT_PAREN                 => reduce 1 tokens to primary 25.0
    default                     => ERROR
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => primary
+   Minimal_Complete_Action => primary 25.0
 
 State 23:
-     22.0:expression <= relation ^, RIGHT_PAREN
+     22.0:expression <= relation ^ ; recursive
 
    RIGHT_PAREN                 => reduce 1 tokens to expression 22.0
    default                     => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression 22.0
 
 State 24:
-     27.0:relation <= simple_expression ^, RIGHT_PAREN
+     27.0:relation <= simple_expression ^ ; recursive
 
    RIGHT_PAREN                 => reduce 1 tokens to relation 27.0
    default                     => ERROR
 
-   Minimal_Complete_Action => relation
+   Minimal_Complete_Action => relation 27.0
 
 State 25:
-     33.0:unary_adding_operator_opt <= unary_adding_operator ^, IDENTIFIER
+     33.0:unary_adding_operator_opt <= unary_adding_operator ^
 
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator_opt 33.0
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator_opt
+   Minimal_Complete_Action => unary_adding_operator_opt 33.0
 
 State 26:
-     30.0:simple_expression <= unary_adding_operator_opt ^ primary, RIGHT_PAREN
+     30.0:simple_expression <= unary_adding_operator_opt ^ primary ; recursive
 
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 22
@@ -339,20 +339,20 @@ State 26:
    Minimal_Complete_Action => IDENTIFIER
 
 State 27:
-     21.2:compilation_unit <= TYPE IDENTIFIER IS SEMICOLON ^, Wisi_EOI
+     21.2:compilation_unit <= TYPE IDENTIFIER IS SEMICOLON ^
 
    Wisi_EOI                    => reduce 4 tokens to compilation_unit 21.2
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit
+   Minimal_Complete_Action => compilation_unit 21.2
 
 State 28:
-     18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/SEMICOLON
-     31.0:subtype_indication <= name LEFT_PAREN ^ subtype_indication RIGHT_PAREN, RIGHT_PAREN/SEMICOLON
+     18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN ; recursive
+     31.0:subtype_indication <= name LEFT_PAREN ^ subtype_indication RIGHT_PAREN ; recursive
 
-   MINUS                       => shift and goto state 16
-   PLUS                        => shift and goto state 17
-   IDENTIFIER                  => shift and goto state 18,
+   MINUS                       => shift and goto state 16 32.1
+   PLUS                        => shift and goto state 17 32.0
+   IDENTIFIER                  => shift and goto state 18 19.0,
                                   reduce 0 tokens to unary_adding_operator_opt 33.1
    default                     => ERROR
 
@@ -369,19 +369,19 @@ State 28:
    Minimal_Complete_Action => IDENTIFIER
 
 State 29:
-     21.1:compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON ^, Wisi_EOI
+     21.1:compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON ^
 
    Wisi_EOI                    => reduce 4 tokens to compilation_unit 21.1
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit
+   Minimal_Complete_Action => compilation_unit 21.1
 
 State 30:
-     23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/SEMICOLON
-     26.0:procedure_call_statement <= name ^ SEMICOLON, END/IDENTIFIER
+     23.0:name <= name ^ actual_parameter_part ; recursive
+     26.0:procedure_call_statement <= name ^ SEMICOLON
 
-   LEFT_PAREN                  => shift and goto state 10
-   SEMICOLON                   => shift and goto state 39
+   LEFT_PAREN                  => shift and goto state 10 18.0
+   SEMICOLON                   => shift and goto state 39 26.0
    default                     => ERROR
 
    actual_parameter_part       goto state 11
@@ -389,40 +389,40 @@ State 30:
    Minimal_Complete_Action => SEMICOLON
 
 State 31:
-     28.0:sequence_of_statements_list <= procedure_call_statement ^, END/IDENTIFIER
+     28.0:sequence_of_statements_list <= procedure_call_statement ^
 
    END                         => reduce 1 tokens to sequence_of_statements_list 28.0
    IDENTIFIER                  => reduce 1 tokens to sequence_of_statements_list 28.0
    default                     => ERROR
 
-   Minimal_Complete_Action => sequence_of_statements_list
+   Minimal_Complete_Action => sequence_of_statements_list 28.0
 
 State 32:
-     28.1:sequence_of_statements_list <= sequence_of_statements_list ^ procedure_call_statement, END/IDENTIFIER
-     29.1:sequence_of_statements <= sequence_of_statements_list ^, END
+     28.1:sequence_of_statements_list <= sequence_of_statements_list ^ procedure_call_statement ; recursive
+     29.1:sequence_of_statements <= sequence_of_statements_list ^
 
    END                         => reduce 1 tokens to sequence_of_statements 29.1
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 30
    procedure_call_statement    goto state 40
 
-   Minimal_Complete_Action => sequence_of_statements
+   Minimal_Complete_Action => sequence_of_statements 29.1
 
 State 33:
-     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements ^ END name_opt SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements ^ END name_opt SEMICOLON
 
-   END                         => shift and goto state 41
+   END                         => shift and goto state 41 21.0
    default                     => ERROR
 
    Minimal_Complete_Action => END
 
 State 34:
-     19.0:association <= IDENTIFIER EQUAL_GREATER ^ expression, RIGHT_PAREN
+     19.0:association <= IDENTIFIER EQUAL_GREATER ^ expression ; recursive
 
-   MINUS                       => shift and goto state 16
-   PLUS                        => shift and goto state 17
+   MINUS                       => shift and goto state 16 32.1
+   PLUS                        => shift and goto state 17 32.0
    IDENTIFIER                  => reduce 0 tokens to unary_adding_operator_opt 33.1
    default                     => ERROR
 
@@ -433,10 +433,10 @@ State 34:
    unary_adding_operator       goto state 25
    unary_adding_operator_opt   goto state 26
 
-   Minimal_Complete_Action => unary_adding_operator_opt
+   Minimal_Complete_Action => unary_adding_operator_opt 33.1
 
 State 35:
-     18.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^, IS/LEFT_PAREN/RIGHT_PAREN/SEMICOLON
+     18.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^ ; recursive
 
    IS                          => reduce 3 tokens to actual_parameter_part 18.0
    LEFT_PAREN                  => reduce 3 tokens to actual_parameter_part 18.0
@@ -444,112 +444,112 @@ State 35:
    SEMICOLON                   => reduce 3 tokens to actual_parameter_part 18.0
    default                     => ERROR
 
-   Minimal_Complete_Action => actual_parameter_part
+   Minimal_Complete_Action => actual_parameter_part 18.0
 
 State 36:
-     30.0:simple_expression <= unary_adding_operator_opt primary ^, RIGHT_PAREN
+     30.0:simple_expression <= unary_adding_operator_opt primary ^ ; recursive
 
    RIGHT_PAREN                 => reduce 2 tokens to simple_expression 30.0
    default                     => ERROR
 
-   Minimal_Complete_Action => simple_expression
+   Minimal_Complete_Action => simple_expression 30.0
 
 State 37:
-     23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/RIGHT_PAREN
-     25.0:primary <= name ^, 
-     31.0:subtype_indication <= name ^ LEFT_PAREN subtype_indication RIGHT_PAREN, RIGHT_PAREN
-     31.1:subtype_indication <= name ^, RIGHT_PAREN
+     23.0:name <= name ^ actual_parameter_part ; recursive
+     25.0:primary <= name ^ ; recursive
+     31.0:subtype_indication <= name ^ LEFT_PAREN subtype_indication RIGHT_PAREN ; recursive
+     31.1:subtype_indication <= name ^
 
-   LEFT_PAREN                  => shift and goto state 28
+   LEFT_PAREN                  => shift and goto state 28 18.0
    RIGHT_PAREN                 => reduce 1 tokens to subtype_indication 31.1
    default                     => ERROR
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => (primary, subtype_indication)
+   Minimal_Complete_Action => subtype_indication 31.1
 
 State 38:
-     31.0:subtype_indication <= name LEFT_PAREN subtype_indication ^ RIGHT_PAREN, RIGHT_PAREN/SEMICOLON
+     31.0:subtype_indication <= name LEFT_PAREN subtype_indication ^ RIGHT_PAREN ; recursive
 
-   RIGHT_PAREN                 => shift and goto state 43
+   RIGHT_PAREN                 => shift and goto state 43 31.0
    default                     => ERROR
 
    Minimal_Complete_Action => RIGHT_PAREN
 
 State 39:
-     26.0:procedure_call_statement <= name SEMICOLON ^, END/IDENTIFIER
+     26.0:procedure_call_statement <= name SEMICOLON ^
 
    END                         => reduce 2 tokens to procedure_call_statement 26.0
    IDENTIFIER                  => reduce 2 tokens to procedure_call_statement 26.0
    default                     => ERROR
 
-   Minimal_Complete_Action => procedure_call_statement
+   Minimal_Complete_Action => procedure_call_statement 26.0
 
 State 40:
-     28.1:sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ^, END/IDENTIFIER
+     28.1:sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ^ ; recursive
 
    END                         => reduce 2 tokens to sequence_of_statements_list 28.1
    IDENTIFIER                  => reduce 2 tokens to sequence_of_statements_list 28.1
    default                     => ERROR
 
-   Minimal_Complete_Action => sequence_of_statements_list recursive
+   Minimal_Complete_Action => sequence_of_statements_list 28.1
 
 State 41:
-     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END ^ name_opt SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END ^ name_opt SEMICOLON
 
    SEMICOLON                   => reduce 0 tokens to name_opt 24.1
-   IDENTIFIER                  => shift and goto state 5
+   IDENTIFIER                  => shift and goto state 5 23.1
    default                     => ERROR
 
    name                        goto state 44
    name_opt                    goto state 45
 
-   Minimal_Complete_Action => name_opt
+   Minimal_Complete_Action => name_opt 24.1
 
 State 42:
-     19.0:association <= IDENTIFIER EQUAL_GREATER expression ^, RIGHT_PAREN
+     19.0:association <= IDENTIFIER EQUAL_GREATER expression ^ ; recursive
 
    RIGHT_PAREN                 => reduce 3 tokens to association 19.0
    default                     => ERROR
 
-   Minimal_Complete_Action => association
+   Minimal_Complete_Action => association 19.0
 
 State 43:
-     31.0:subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ^, RIGHT_PAREN/SEMICOLON
+     31.0:subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ^ ; recursive
 
    RIGHT_PAREN                 => reduce 4 tokens to subtype_indication 31.0
    SEMICOLON                   => reduce 4 tokens to subtype_indication 31.0
    default                     => ERROR
 
-   Minimal_Complete_Action => subtype_indication
+   Minimal_Complete_Action => subtype_indication 31.0
 
 State 44:
-     23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/SEMICOLON
-     24.0:name_opt <= name ^, SEMICOLON
+     23.0:name <= name ^ actual_parameter_part ; recursive
+     24.0:name_opt <= name ^
 
-   LEFT_PAREN                  => shift and goto state 10
+   LEFT_PAREN                  => shift and goto state 10 18.0
    SEMICOLON                   => reduce 1 tokens to name_opt 24.0
    default                     => ERROR
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => name_opt
+   Minimal_Complete_Action => name_opt 24.0
 
 State 45:
-     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt ^ SEMICOLON, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt ^ SEMICOLON
 
-   SEMICOLON                   => shift and goto state 46
+   SEMICOLON                   => shift and goto state 46 21.0
    default                     => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 46:
-     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON ^, Wisi_EOI
+     21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON ^
 
    Wisi_EOI                    => reduce 8 tokens to compilation_unit 21.0
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit
+   Minimal_Complete_Action => compilation_unit 21.0
 
 States with conflicts: 10 28
 

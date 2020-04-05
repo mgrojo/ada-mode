@@ -42,6 +42,7 @@ is
       Put_Line ("  -enqueue_limit <integer> : mckenzie enqueue limit");
       Put_Line ("  -disable_fixes : disable language_fixes");
       Put_Line ("  -disable_match_begin : disable matching_begin");
+      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -146,6 +147,10 @@ begin
          elsif Argument (Arg_Next) = "-disable_match_begin" then
             Arg_Next            := Arg_Next + 1;
             Disable_Match_Begin := True;
+
+         elsif Argument (Arg_Next) = "-debug" then
+            Arg_Next             := Arg_Next + 1;
+            WisiToken.Debug_Mode := True;
 
          else
             Set_Exit_Status (Failure);

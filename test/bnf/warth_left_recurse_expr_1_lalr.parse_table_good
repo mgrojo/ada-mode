@@ -9,17 +9,17 @@ Tokens:
 
 Productions:
 5.0: wisitoken_accept <= expr Wisi_EOI
-6.0: expr <= expr MINUS NUMERIC_LITERAL ; (1) LEFT
+6.0: expr <= expr MINUS NUMERIC_LITERAL ; recursive
 6.1: expr <= NUMERIC_LITERAL
 
 Recursions:
-1 => (6 (0 LEFT) -> )
+1 => (6 (0) -> )
 
 LALR Parse Table:
 State 0:
-      5.0:wisitoken_accept <= ^ expr Wisi_EOI, 
+      5.0:wisitoken_accept <= ^ expr Wisi_EOI
 
-   NUMERIC_LITERAL  => shift and goto state 1
+   NUMERIC_LITERAL  => shift and goto state 1 6.1
    default          => ERROR
 
    expr             goto state 2
@@ -27,40 +27,40 @@ State 0:
    Minimal_Complete_Action => NUMERIC_LITERAL
 
 State 1:
-      6.1:expr <= NUMERIC_LITERAL ^, MINUS/Wisi_EOI
+      6.1:expr <= NUMERIC_LITERAL ^
 
    MINUS            => reduce 1 tokens to expr 6.1
    Wisi_EOI         => reduce 1 tokens to expr 6.1
    default          => ERROR
 
-   Minimal_Complete_Action => expr
+   Minimal_Complete_Action => expr 6.1
 
 State 2:
-      5.0:wisitoken_accept <= expr ^ Wisi_EOI, 
-      6.0:expr <= expr ^ MINUS NUMERIC_LITERAL, MINUS/Wisi_EOI
+      5.0:wisitoken_accept <= expr ^ Wisi_EOI
+      6.0:expr <= expr ^ MINUS NUMERIC_LITERAL ; recursive
 
-   MINUS            => shift and goto state 3
+   MINUS            => shift and goto state 3 6.0
    Wisi_EOI         => accept it 5.0
    default          => ERROR
 
    Minimal_Complete_Action => 
 
 State 3:
-      6.0:expr <= expr MINUS ^ NUMERIC_LITERAL, MINUS/Wisi_EOI
+      6.0:expr <= expr MINUS ^ NUMERIC_LITERAL ; recursive
 
-   NUMERIC_LITERAL  => shift and goto state 4
+   NUMERIC_LITERAL  => shift and goto state 4 6.0
    default          => ERROR
 
-   Minimal_Complete_Action => NUMERIC_LITERAL recursive
+   Minimal_Complete_Action => NUMERIC_LITERAL
 
 State 4:
-      6.0:expr <= expr MINUS NUMERIC_LITERAL ^, MINUS/Wisi_EOI
+      6.0:expr <= expr MINUS NUMERIC_LITERAL ^ ; recursive
 
    MINUS            => reduce 3 tokens to expr 6.0
    Wisi_EOI         => reduce 3 tokens to expr 6.0
    default          => ERROR
 
-   Minimal_Complete_Action => expr recursive
+   Minimal_Complete_Action => expr 6.0
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

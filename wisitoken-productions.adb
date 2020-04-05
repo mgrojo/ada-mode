@@ -23,6 +23,14 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 package body WisiToken.Productions is
 
+   function Constant_Ref_RHS
+     (Grammar : in Prod_Arrays.Vector;
+      ID      : in Production_ID)
+     return RHS_Arrays.Constant_Reference_Type
+   is begin
+      return RHS_Arrays.Constant_Ref (Grammar (ID.LHS).RHSs, ID.RHS);
+   end Constant_Ref_RHS;
+
    function Image
      (LHS        : in Token_ID;
       RHS_Index  : in Natural;

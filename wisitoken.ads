@@ -16,7 +16,7 @@
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book" due to the dragon
 --  on the cover).
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -160,6 +160,9 @@ package WisiToken is
      (Positive, Token_ID, Default_Element => Invalid_Token_ID);
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (Descriptor, Trimmed_Image, Image);
+   function Image_No_Assoc (Item : in Token_ID_Arrays.Vector; Aux : in Descriptor) return String
+     is (Image (Item, Aux, Association => False));
+
    function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
@@ -247,21 +250,7 @@ package WisiToken is
    function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
    function "+" (Item : in Production_ID) return Production_ID_Arrays.Vector is (To_Vector ((1 => Item)));
 
-   type Recursion is
-     (None,
-      Single, --  Single token in right hand side is recursive.
-      Middle, --  Multiple tokens in right hand side, recursive token not at either end.
-      Right,  --  Multiple tokens in right hand side, recursive token not at right end.
-      Left    --  Multiple tokens in right hand side, recursive token not at left end.
-     );
-   --  In worst-case order; Left recursion causes the most
-   --  problems in LR error recovery, and in Packrat.
-
-   function Worst_Recursion (A, B : in Recursion) return Recursion
-   is (Recursion'Max (A, B));
-
-   function Net_Recursion (A, B : in Recursion) return Recursion;
-   --  For finding the net recursion of a chain; Middle dominates.
+   type Token_Array_Production_ID is array (Token_ID range <>) of Production_ID;
 
    ----------
    --  Tokens
@@ -419,7 +408,9 @@ package WisiToken is
    Trace_Action : Integer := 0;
    --  Output during Execute_Action, and unit tests.
 
-   Trace_Generate : Integer := 0;
+   Trace_Generate_EBNF             : Integer := 0;
+   Trace_Generate_Table            : Integer := 0;
+   Trace_Generate_Minimal_Complete : Integer := 0;
    --  Output during grammar generation.
 
    Debug_Mode : Boolean := False;

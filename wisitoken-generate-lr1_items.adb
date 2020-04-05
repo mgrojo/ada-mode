@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -450,7 +450,7 @@ package body WisiToken.Generate.LR1_Items is
             Item_I := I.Set.First;
             Added_Item := False;
 
-            if Trace_Generate > Extra then
+            if Trace_Generate_Table > Extra then
                Ada.Text_IO.Put_Line ("  closure:");
                Put (Grammar, Descriptor, I);
             end if;

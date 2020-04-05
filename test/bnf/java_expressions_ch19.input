@@ -1,7 +1,7 @@
 // Missing right paren; illustrates need for recursive Insert_Minimal_Complete_Actions.Length_After_Dot
 { B = UpdateText (A }
 
-// Missing trailing '++ ;'; illustrates need for cycle check, multiple actions, grammar recursion in
+// Missing trailing '++ ;'; illustrates need for multiple actions all, all kernel items recursive in
 // Insert_Minimal_Complete_Actions
 { UpdateText (A) }
 

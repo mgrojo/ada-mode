@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -37,7 +37,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Enum_Ch19 is
 
       if Config.Stack.Depth = 1 and Tokens (1) = Descriptor.EOI_ID then
          --  Empty input buffer
-         Matching_Begin_Tokens := To_Vector (+Identifier_ID);
+         Matching_Begin_Tokens := To_Vector (+IDENTIFIER_ID);
 
       else
          case To_Token_Enum (Tokens (1)) is

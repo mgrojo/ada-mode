@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -62,7 +62,7 @@ package body Grune_9_30 is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+   Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
@@ -126,7 +126,7 @@ package body Grune_9_30 is
       --  no gotos from state 3
       Add_Gotos (Expected, 4, +(+Lower_C_ID, 5));
 
-      if WisiToken.Trace_Generate > 0 then
+      if WisiToken.Trace_Generate_Table > 0 then
          Put_Line ("computed:");
          Put (Grammar, LR1_Descriptor, Computed);
          Put_Line ("expected:");

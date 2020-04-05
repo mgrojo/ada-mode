@@ -82,7 +82,7 @@ package body Name_Grammar_Test is
    --  Module.Symbol.Component
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
-   Full_Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+   Full_Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      Statement_ID      <= Name_ID & EOF_ID + Null_Action and
      (Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action or
                            Symbol_Name_ID + Null_Action) and

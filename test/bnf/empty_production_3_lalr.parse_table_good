@@ -21,9 +21,9 @@ Recursions:
 
 LALR Parse Table:
 State 0:
-      4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+      4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 1
+   IDENTIFIER              => shift and goto state 1 8.0
    default                 => ERROR
 
    compilation_unit        goto state 2
@@ -32,18 +32,18 @@ State 0:
    Minimal_Complete_Action => IDENTIFIER
 
 State 1:
-      8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER ^ mode name
 
-   IN                      => shift and goto state 4
+   IN                      => shift and goto state 4 6.0
    IDENTIFIER              => reduce 0 tokens to mode 6.1
    default                 => ERROR
 
    mode                    goto state 5
 
-   Minimal_Complete_Action => mode
+   Minimal_Complete_Action => mode 6.1
 
 State 2:
-      4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+      4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
 
    Wisi_EOI                => accept it 4.0
    default                 => ERROR
@@ -51,9 +51,9 @@ State 2:
    Minimal_Complete_Action => 
 
 State 3:
-      5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification ^ parameter_specification
 
-   IDENTIFIER              => shift and goto state 1
+   IDENTIFIER              => shift and goto state 1 8.0
    default                 => ERROR
 
    parameter_specification goto state 6
@@ -61,17 +61,17 @@ State 3:
    Minimal_Complete_Action => IDENTIFIER
 
 State 4:
-      6.0:mode <= IN ^, IDENTIFIER
+      6.0:mode <= IN ^
 
    IDENTIFIER              => reduce 1 tokens to mode 6.0
    default                 => ERROR
 
-   Minimal_Complete_Action => mode
+   Minimal_Complete_Action => mode 6.0
 
 State 5:
-      8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode ^ name
 
-   IDENTIFIER              => shift and goto state 7
+   IDENTIFIER              => shift and goto state 7 7.0
    default                 => ERROR
 
    name                    goto state 8
@@ -79,30 +79,30 @@ State 5:
    Minimal_Complete_Action => IDENTIFIER
 
 State 6:
-      5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification parameter_specification ^
 
    Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
 
-   Minimal_Complete_Action => compilation_unit
+   Minimal_Complete_Action => compilation_unit 5.0
 
 State 7:
-      7.0:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
+      7.0:name <= IDENTIFIER ^
 
    IDENTIFIER              => reduce 1 tokens to name 7.0
    Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
-   Minimal_Complete_Action => name
+   Minimal_Complete_Action => name 7.0
 
 State 8:
-      8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode name ^
 
    IDENTIFIER              => reduce 3 tokens to parameter_specification 8.0
    Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
-   Minimal_Complete_Action => parameter_specification
+   Minimal_Complete_Action => parameter_specification 8.0
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

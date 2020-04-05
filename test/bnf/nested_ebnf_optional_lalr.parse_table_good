@@ -32,9 +32,9 @@ Recursions:
 
 LALR Parse Table:
 State 0:
-     11.0:wisitoken_accept <= ^ if_statement Wisi_EOI, 
+     11.0:wisitoken_accept <= ^ if_statement Wisi_EOI
 
-   IF               => shift and goto state 1
+   IF               => shift and goto state 1 12.0
    default          => ERROR
 
    if_statement     goto state 2
@@ -42,10 +42,10 @@ State 0:
    Minimal_Complete_Action => IF
 
 State 1:
-     12.0:if_statement <= IF ^ expression THEN statement nonterminal_015 END IF SEMICOLON, Wisi_EOI
-     12.1:if_statement <= IF ^ expression THEN statement END IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF ^ expression THEN statement nonterminal_015 END IF SEMICOLON
+     12.1:if_statement <= IF ^ expression THEN statement END IF SEMICOLON
 
-   TRUE             => shift and goto state 3
+   TRUE             => shift and goto state 3 14.0
    default          => ERROR
 
    expression       goto state 4
@@ -53,7 +53,7 @@ State 1:
    Minimal_Complete_Action => TRUE
 
 State 2:
-     11.0:wisitoken_accept <= if_statement ^ Wisi_EOI, 
+     11.0:wisitoken_accept <= if_statement ^ Wisi_EOI
 
    Wisi_EOI         => accept it 11.0
    default          => ERROR
@@ -61,27 +61,27 @@ State 2:
    Minimal_Complete_Action => 
 
 State 3:
-     14.0:expression <= TRUE ^, THEN
+     14.0:expression <= TRUE ^
 
    THEN             => reduce 1 tokens to expression 14.0
    default          => ERROR
 
-   Minimal_Complete_Action => expression
+   Minimal_Complete_Action => expression 14.0
 
 State 4:
-     12.0:if_statement <= IF expression ^ THEN statement nonterminal_015 END IF SEMICOLON, Wisi_EOI
-     12.1:if_statement <= IF expression ^ THEN statement END IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression ^ THEN statement nonterminal_015 END IF SEMICOLON
+     12.1:if_statement <= IF expression ^ THEN statement END IF SEMICOLON
 
-   THEN             => shift and goto state 5
+   THEN             => shift and goto state 5 12.0
    default          => ERROR
 
    Minimal_Complete_Action => THEN
 
 State 5:
-     12.0:if_statement <= IF expression THEN ^ statement nonterminal_015 END IF SEMICOLON, Wisi_EOI
-     12.1:if_statement <= IF expression THEN ^ statement END IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression THEN ^ statement nonterminal_015 END IF SEMICOLON
+     12.1:if_statement <= IF expression THEN ^ statement END IF SEMICOLON
 
-   GOTO             => shift and goto state 6
+   GOTO             => shift and goto state 6 13.0
    default          => ERROR
 
    statement        goto state 7
@@ -89,19 +89,19 @@ State 5:
    Minimal_Complete_Action => GOTO
 
 State 6:
-     13.0:statement <= GOTO ^ SEMICOLON, END/ELSE/ELSIF
+     13.0:statement <= GOTO ^ SEMICOLON
 
-   SEMICOLON        => shift and goto state 8
+   SEMICOLON        => shift and goto state 8 13.0
    default          => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 7:
-     12.0:if_statement <= IF expression THEN statement ^ nonterminal_015 END IF SEMICOLON, Wisi_EOI
-     12.1:if_statement <= IF expression THEN statement ^ END IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression THEN statement ^ nonterminal_015 END IF SEMICOLON
+     12.1:if_statement <= IF expression THEN statement ^ END IF SEMICOLON
 
-   END              => shift and goto state 9
-   ELSIF            => shift and goto state 10
+   END              => shift and goto state 9 12.1
+   ELSIF            => shift and goto state 10 16.0
    default          => ERROR
 
    nonterminal_015  goto state 11
@@ -109,28 +109,28 @@ State 7:
    Minimal_Complete_Action => END
 
 State 8:
-     13.0:statement <= GOTO SEMICOLON ^, END/ELSE/ELSIF
+     13.0:statement <= GOTO SEMICOLON ^
 
    END              => reduce 2 tokens to statement 13.0
    ELSE             => reduce 2 tokens to statement 13.0
    ELSIF            => reduce 2 tokens to statement 13.0
    default          => ERROR
 
-   Minimal_Complete_Action => statement
+   Minimal_Complete_Action => statement 13.0
 
 State 9:
-     12.1:if_statement <= IF expression THEN statement END ^ IF SEMICOLON, Wisi_EOI
+     12.1:if_statement <= IF expression THEN statement END ^ IF SEMICOLON
 
-   IF               => shift and goto state 12
+   IF               => shift and goto state 12 12.1
    default          => ERROR
 
    Minimal_Complete_Action => IF
 
 State 10:
-     16.0:nonterminal_015 <= ELSIF ^ statement nonterminal_012, END
-     16.1:nonterminal_015 <= ELSIF ^ statement, END
+     16.0:nonterminal_015 <= ELSIF ^ statement nonterminal_012
+     16.1:nonterminal_015 <= ELSIF ^ statement
 
-   GOTO             => shift and goto state 6
+   GOTO             => shift and goto state 6 13.0
    default          => ERROR
 
    statement        goto state 13
@@ -138,54 +138,54 @@ State 10:
    Minimal_Complete_Action => GOTO
 
 State 11:
-     12.0:if_statement <= IF expression THEN statement nonterminal_015 ^ END IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression THEN statement nonterminal_015 ^ END IF SEMICOLON
 
-   END              => shift and goto state 14
+   END              => shift and goto state 14 12.0
    default          => ERROR
 
    Minimal_Complete_Action => END
 
 State 12:
-     12.1:if_statement <= IF expression THEN statement END IF ^ SEMICOLON, Wisi_EOI
+     12.1:if_statement <= IF expression THEN statement END IF ^ SEMICOLON
 
-   SEMICOLON        => shift and goto state 15
+   SEMICOLON        => shift and goto state 15 12.1
    default          => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 13:
-     16.0:nonterminal_015 <= ELSIF statement ^ nonterminal_012, END
-     16.1:nonterminal_015 <= ELSIF statement ^, END
+     16.0:nonterminal_015 <= ELSIF statement ^ nonterminal_012
+     16.1:nonterminal_015 <= ELSIF statement ^
 
    END              => reduce 2 tokens to nonterminal_015 16.1
-   ELSIF            => shift and goto state 16
+   ELSIF            => shift and goto state 16 15.0
    default          => ERROR
 
    nonterminal_012  goto state 17
 
-   Minimal_Complete_Action => nonterminal_015
+   Minimal_Complete_Action => nonterminal_015 16.1
 
 State 14:
-     12.0:if_statement <= IF expression THEN statement nonterminal_015 END ^ IF SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression THEN statement nonterminal_015 END ^ IF SEMICOLON
 
-   IF               => shift and goto state 18
+   IF               => shift and goto state 18 12.0
    default          => ERROR
 
    Minimal_Complete_Action => IF
 
 State 15:
-     12.1:if_statement <= IF expression THEN statement END IF SEMICOLON ^, Wisi_EOI
+     12.1:if_statement <= IF expression THEN statement END IF SEMICOLON ^
 
    Wisi_EOI         => reduce 7 tokens to if_statement 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement
+   Minimal_Complete_Action => if_statement 12.1
 
 State 16:
-     15.0:nonterminal_012 <= ELSIF ^ statement ELSE statement, END
-     15.1:nonterminal_012 <= ELSIF ^ statement, END
+     15.0:nonterminal_012 <= ELSIF ^ statement ELSE statement
+     15.1:nonterminal_012 <= ELSIF ^ statement
 
-   GOTO             => shift and goto state 6
+   GOTO             => shift and goto state 6 13.0
    default          => ERROR
 
    statement        goto state 19
@@ -193,43 +193,43 @@ State 16:
    Minimal_Complete_Action => GOTO
 
 State 17:
-     16.0:nonterminal_015 <= ELSIF statement nonterminal_012 ^, END
+     16.0:nonterminal_015 <= ELSIF statement nonterminal_012 ^
 
    END              => reduce 3 tokens to nonterminal_015 16.0
    default          => ERROR
 
-   Minimal_Complete_Action => nonterminal_015
+   Minimal_Complete_Action => nonterminal_015 16.0
 
 State 18:
-     12.0:if_statement <= IF expression THEN statement nonterminal_015 END IF ^ SEMICOLON, Wisi_EOI
+     12.0:if_statement <= IF expression THEN statement nonterminal_015 END IF ^ SEMICOLON
 
-   SEMICOLON        => shift and goto state 20
+   SEMICOLON        => shift and goto state 20 12.0
    default          => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 19:
-     15.0:nonterminal_012 <= ELSIF statement ^ ELSE statement, END
-     15.1:nonterminal_012 <= ELSIF statement ^, END
+     15.0:nonterminal_012 <= ELSIF statement ^ ELSE statement
+     15.1:nonterminal_012 <= ELSIF statement ^
 
    END              => reduce 2 tokens to nonterminal_012 15.1
-   ELSE             => shift and goto state 21
+   ELSE             => shift and goto state 21 15.0
    default          => ERROR
 
-   Minimal_Complete_Action => nonterminal_012
+   Minimal_Complete_Action => nonterminal_012 15.1
 
 State 20:
-     12.0:if_statement <= IF expression THEN statement nonterminal_015 END IF SEMICOLON ^, Wisi_EOI
+     12.0:if_statement <= IF expression THEN statement nonterminal_015 END IF SEMICOLON ^
 
    Wisi_EOI         => reduce 8 tokens to if_statement 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement
+   Minimal_Complete_Action => if_statement 12.0
 
 State 21:
-     15.0:nonterminal_012 <= ELSIF statement ELSE ^ statement, END
+     15.0:nonterminal_012 <= ELSIF statement ELSE ^ statement
 
-   GOTO             => shift and goto state 6
+   GOTO             => shift and goto state 6 13.0
    default          => ERROR
 
    statement        goto state 22
@@ -237,12 +237,12 @@ State 21:
    Minimal_Complete_Action => GOTO
 
 State 22:
-     15.0:nonterminal_012 <= ELSIF statement ELSE statement ^, END
+     15.0:nonterminal_012 <= ELSIF statement ELSE statement ^
 
    END              => reduce 4 tokens to nonterminal_012 15.0
    default          => ERROR
 
-   Minimal_Complete_Action => nonterminal_012
+   Minimal_Complete_Action => nonterminal_012 15.0
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

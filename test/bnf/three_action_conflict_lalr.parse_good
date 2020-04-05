@@ -161,11 +161,11 @@ parser 1: State 15 Current_Token 22:(IDENTIFIER, (150 . 152)) Resume_Token_Goal 
 Action
 
  1 parallel tasks
- 6: succeed 2, enqueue 61, check  31, cost:  11
+ 6: succeed 2, enqueue 56, check  30, cost:  11
 spawn parser 7 from 6 (4 active)
- 7:  11, ( 0 1 0 2 0 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (PUSH_BACK, expression, 19), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
- 6:  11, ( 0 1 0 1 1 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (UNDO_REDUCE, expression, 1), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
- 5: succeed 2, enqueue 70, check  37, cost:  11
+ 7:  11, ( 0 1 0 1 1 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (UNDO_REDUCE, expression, 1), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
+ 6:  11, ( 0 1 0 2 0 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (PUSH_BACK, expression, 19), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
+ 5: succeed 2, enqueue 59, check  33, cost:  11
 spawn parser 8 from 5 (5 active)
  8:  11, ( 0 1 0 1 1 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (UNDO_REDUCE, classOrInterfaceType, 1), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
  5:  11, ( 0 1 0 2 0 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((PUSH_BACK, RPAREN, 20), (PUSH_BACK, classOrInterfaceType, 19), (FAST_FORWARD,  22), (INSERT, LBRACE, 22)) minimal_complete ACTIVE
@@ -174,9 +174,9 @@ spawn parser 8 from 5 (5 active)
 recover: succeed, parser count 5
  8: Current_Token  20:(RPAREN, (146 . 146)) Shared_Token  20:(RPAREN, (146 . 146))
  8: resume_active: True, token goal 24
- 7: Current_Token  19:(IDENTIFIER, (143 . 145)) Shared_Token  19:(IDENTIFIER, (143 . 145))
+ 7: Current_Token  20:(RPAREN, (146 . 146)) Shared_Token  20:(RPAREN, (146 . 146))
  7: resume_active: True, token goal 24
- 6: Current_Token  20:(RPAREN, (146 . 146)) Shared_Token  20:(RPAREN, (146 . 146))
+ 6: Current_Token  19:(IDENTIFIER, (143 . 145)) Shared_Token  19:(IDENTIFIER, (143 . 145))
  6: resume_active: True, token goal 24
  5: Current_Token  19:(IDENTIFIER, (143 . 145)) Shared_Token  19:(IDENTIFIER, (143 . 145))
  5: resume_active: True, token goal 24
@@ -191,16 +191,16 @@ classOrInterfaceType_0: (classOrInterfaceType, (143 . 145)) <= ( 19:(IDENTIFIER,
 expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  ... goto state 13
  8: 11:  20:(RPAREN, (146 . 146)) : shift and goto state 18
- 7: 3:  19:(IDENTIFIER, (143 . 145)) : shift and goto state 11
- 6: 11:  20:(RPAREN, (146 . 146)) : spawn 11, (8 active)
+ 7: 11:  20:(RPAREN, (146 . 146)) : spawn 11, (8 active)
  11: 11:  20:(RPAREN, (146 . 146)) : reduce 1 tokens to classOrInterfaceType
 classOrInterfaceType_0: (classOrInterfaceType, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  ... goto state 12
- 6: 11:  20:(RPAREN, (146 . 146)) : spawn 12, (9 active)
+ 7: 11:  20:(RPAREN, (146 . 146)) : spawn 12, (9 active)
  12: 11:  20:(RPAREN, (146 . 146)) : reduce 1 tokens to expression
 expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  ... goto state 13
- 6: 11:  20:(RPAREN, (146 . 146)) : shift and goto state 18
+ 7: 11:  20:(RPAREN, (146 . 146)) : shift and goto state 18
+ 6: 3:  19:(IDENTIFIER, (143 . 145)) : shift and goto state 11
  5: 3:  19:(IDENTIFIER, (143 . 145)) : shift and goto state 11
  1: 15: (LBRACE) : shift and goto state 1
  12: 13:  20:(RPAREN, (146 . 146)) : shift and goto state 20
@@ -222,18 +222,18 @@ expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  8: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
 lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)),  19:(IDENTIFIER, (143 . 145)),  20:(RPAREN, (146 . 146)))
  ... goto state 9
- 7: 11:  20:(RPAREN, (146 . 146)) : spawn 13, (6 active)
+ 7: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
+lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)),  19:(IDENTIFIER, (143 . 145)),  20:(RPAREN, (146 . 146)))
+ ... goto state 9
+ 6: 11:  20:(RPAREN, (146 . 146)) : spawn 13, (6 active)
  13: 11:  20:(RPAREN, (146 . 146)) : reduce 1 tokens to classOrInterfaceType
 classOrInterfaceType_0: (classOrInterfaceType, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  ... goto state 12
- 7: 11:  20:(RPAREN, (146 . 146)) : spawn 14, (7 active)
+ 6: 11:  20:(RPAREN, (146 . 146)) : spawn 14, (7 active)
  14: 11:  20:(RPAREN, (146 . 146)) : reduce 1 tokens to expression
 expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  ... goto state 13
- 7: 11:  20:(RPAREN, (146 . 146)) : shift and goto state 18
- 6: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
-lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)),  19:(IDENTIFIER, (143 . 145)),  20:(RPAREN, (146 . 146)))
- ... goto state 9
+ 6: 11:  20:(RPAREN, (146 . 146)) : shift and goto state 18
  5: 11:  20:(RPAREN, (146 . 146)) : spawn 15, (8 active)
  15: 11:  20:(RPAREN, (146 . 146)) : reduce 1 tokens to classOrInterfaceType
 classOrInterfaceType_0: (classOrInterfaceType, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
@@ -249,7 +249,7 @@ expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  14: 13:  20:(RPAREN, (146 . 146)) : shift and goto state 20
  13: 12:  20:(RPAREN, (146 . 146)) : shift and goto state 19
  8: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
- 6: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
+ 7: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
  16: 20:  21:(ARROW, (147 . 148)) : ERROR
  16: 20: expecting: RPAREN, SEMI
  16: terminate (8 active): error in conflict during resume 21:(ARROW, (147 . 148))
@@ -263,22 +263,22 @@ expression_1: (expression, (143 . 145)) <= ( 19:(IDENTIFIER, (143 . 145)))
  13: 19: expecting: LPAREN, IDENTIFIER
  13: terminate (5 active): error in conflict during resume 21:(ARROW, (147 . 148))
  8: 15: (LBRACE) : shift and goto state 1
- 7: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
+ 7: 15: (LBRACE) : shift and goto state 1
+ 6: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
 lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)),  19:(IDENTIFIER, (143 . 145)),  20:(RPAREN, (146 . 146)))
  ... goto state 9
- 6: 15: (LBRACE) : shift and goto state 1
  5: 18:  21:(ARROW, (147 . 148)) : reduce 3 tokens to lambdaParameters
 lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)),  19:(IDENTIFIER, (143 . 145)),  20:(RPAREN, (146 . 146)))
  ... goto state 9
  1: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
 expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
  ... goto state 7
- 7: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
+ 6: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
  5: 9:  21:(ARROW, (147 . 148)) : shift and goto state 15
  1: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
  8: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
- 7: 15: (LBRACE) : shift and goto state 1
- 6: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
+ 7: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
+ 6: 15: (LBRACE) : shift and goto state 1
  5: 15: (LBRACE) : shift and goto state 1
  1: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
 statement_0: (statement, (150 . 153)) <= ((expression, (150 . 152)),  23:(SEMI, (153 . 153)))
@@ -290,16 +290,16 @@ nonterminal_006_list_0: (nonterminal_006_list, (150 . 153)) <= ((statement, (150
  8: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
 expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
  ... goto state 7
- 7: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
- 6: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
+ 7: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
 expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
  ... goto state 7
+ 6: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
  5: 1:  22:(IDENTIFIER, (150 . 152)) : shift and goto state 5
  1: 16:  25:(SEMI, (155 . 155)) : reduce 3 tokens to block
 block_0: (block, (150 . 154)) <= ((LBRACE), (nonterminal_006_list, (150 . 153)),  24:(RBRACE, (154 . 154)))
  ... goto state 21
  8: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
- 6: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
+ 7: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
  1: 21:  25:(SEMI, (155 . 155)) : reduce 3 tokens to lambdaExpression
 lambdaExpression_0: (lambdaExpression, (142 . 154)) <= ((lambdaParameters, (142 . 146)),  21:(ARROW, (147 . 148)), (block, (150 . 154)))
  ... goto state 8
@@ -311,45 +311,45 @@ expression_3: (expression, (142 . 154)) <= ((lambdaExpression, (142 . 154)))
  8: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
 statement_0: (statement, (150 . 153)) <= ((expression, (150 . 152)),  23:(SEMI, (153 . 153)))
  ... goto state 6
- 7: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
-expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
- ... goto state 7
- 6: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
+ 7: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
 statement_0: (statement, (150 . 153)) <= ((expression, (150 . 152)),  23:(SEMI, (153 . 153)))
  ... goto state 6
+ 6: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
+expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
+ ... goto state 7
  5: 5:  23:(SEMI, (153 . 153)) : reduce 1 tokens to expression
 expression_1: (expression, (150 . 152)) <= ( 22:(IDENTIFIER, (150 . 152)))
  ... goto state 7
  8: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
 nonterminal_006_list_0: (nonterminal_006_list, (150 . 153)) <= ((statement, (150 . 153)))
  ... goto state 10
- 7: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
- 6: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
+ 7: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
 nonterminal_006_list_0: (nonterminal_006_list, (150 . 153)) <= ((statement, (150 . 153)))
  ... goto state 10
+ 6: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
  5: 7:  23:(SEMI, (153 . 153)) : shift and goto state 14
  8: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
- 6: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
+ 7: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
  8: resume_active: False
- 6: resume_active: False
- 6: terminate (4 active): duplicate state: random 24:(RBRACE, (154 . 154))
- 7: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
+ 7: resume_active: False
+ 7: terminate (4 active): duplicate state: random 24:(RBRACE, (154 . 154))
+ 6: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
 statement_0: (statement, (150 . 153)) <= ((expression, (150 . 152)),  23:(SEMI, (153 . 153)))
  ... goto state 6
  5: 14:  24:(RBRACE, (154 . 154)) : reduce 2 tokens to statement
 statement_0: (statement, (150 . 153)) <= ((expression, (150 . 152)),  23:(SEMI, (153 . 153)))
  ... goto state 6
- 7: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
+ 6: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
 nonterminal_006_list_0: (nonterminal_006_list, (150 . 153)) <= ((statement, (150 . 153)))
  ... goto state 10
  5: 6:  24:(RBRACE, (154 . 154)) : reduce 1 tokens to nonterminal_006_list
 nonterminal_006_list_0: (nonterminal_006_list, (150 . 153)) <= ((statement, (150 . 153)))
  ... goto state 10
- 7: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
+ 6: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
  5: 10:  24:(RBRACE, (154 . 154)) : shift and goto state 16
- 7: resume_active: False
+ 6: resume_active: False
  5: resume_active: False
- 7: terminate (3 active): duplicate state: random 25:(SEMI, (155 . 155))
+ 6: terminate (3 active): duplicate state: random 25:(SEMI, (155 . 155))
  8: 16:  25:(SEMI, (155 . 155)) : reduce 3 tokens to block
 block_0: (block, (150 . 154)) <= ((LBRACE), (nonterminal_006_list, (150 . 153)),  24:(RBRACE, (154 . 154)))
  ... goto state 21

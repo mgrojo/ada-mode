@@ -26,9 +26,10 @@ with WisiToken.Syntax_Trees;
 package WisiToken.Productions is
 
    type Right_Hand_Side is record
-      Tokens : Token_ID_Arrays.Vector;
-      Action : WisiToken.Syntax_Trees.Semantic_Action;
-      Check  : WisiToken.Semantic_Checks.Semantic_Check;
+      Tokens    : Token_ID_Arrays.Vector;
+      Recursive : Boolean := False; --  True if this production is part of a recursion
+      Action    : WisiToken.Syntax_Trees.Semantic_Action;
+      Check     : WisiToken.Semantic_Checks.Semantic_Check;
    end record;
 
    package RHS_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
@@ -41,6 +42,11 @@ package WisiToken.Productions is
 
    package Prod_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Token_ID, Instance, Default_Element => (others => <>));
+
+   function Constant_Ref_RHS
+     (Grammar : in Prod_Arrays.Vector;
+      ID      : in Production_ID)
+     return RHS_Arrays.Constant_Reference_Type;
 
    function Image
      (LHS        : in Token_ID;

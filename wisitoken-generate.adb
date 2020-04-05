@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -151,6 +151,50 @@ package body WisiToken.Generate is
 
       return Unused_Tokens;
    end Check_Unused_Tokens;
+
+   function Nullable (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_Array_Production_ID
+   is
+      use all type Ada.Containers.Count_Type;
+
+      subtype Nonterminal is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
+
+      Result  : Token_Array_Production_ID := (Nonterminal => Invalid_Production_ID);
+      Changed : Boolean                   := True;
+   begin
+      loop
+         exit when not Changed;
+         Changed := False;
+
+         for Prod of Grammar loop
+            if Result (Prod.LHS) = Invalid_Production_ID then
+               for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                  declare
+                     RHS : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (RHS_Index);
+                  begin
+                     if RHS.Tokens.Length = 0 then
+                        Result (Prod.LHS) := (Prod.LHS, RHS_Index);
+                        Changed := True;
+
+                     elsif RHS.Tokens (1) in Nonterminal and then Result (RHS.Tokens (1)) /= Invalid_Production_ID then
+                        Result (Prod.LHS) := Result (RHS.Tokens (1));
+                        Changed := True;
+                     end if;
+                  end;
+               end loop;
+            end if;
+         end loop;
+      end loop;
+      return Result;
+   end Nullable;
+
+   function Has_Empty_Production (Nullable : in Token_Array_Production_ID) return Token_ID_Set
+   is begin
+      return Result : Token_ID_Set := (Nullable'First .. Nullable'Last => False) do
+         for I in Result'Range loop
+            Result (I) := Nullable (I) /= Invalid_Production_ID;
+         end loop;
+      end return;
+   end Has_Empty_Production;
 
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set
    is
@@ -360,12 +404,11 @@ package body WisiToken.Generate is
 
    function To_Graph (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Grammar_Graphs.Graph
    is
-      use all type Ada.Containers.Count_Type;
       subtype Nonterminals is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
       Graph : Grammar_Graphs.Graph;
       J     : Integer := 1;
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.Put_Line ("grammar graph:");
       end if;
 
@@ -379,19 +422,12 @@ package body WisiToken.Generate is
                begin
                   for I in Tokens.First_Index .. Tokens.Last_Index loop
                      if Tokens (I) in Nonterminals then
-                        if Trace_Generate > Detail then
+                        if Trace_Generate_Minimal_Complete > Detail then
                            Ada.Text_IO.Put_Line
                              ("(" & Trimmed_Image (LHS) & ", " & Trimmed_Image (Tokens (I)) & ","  & J'Image & ")");
                            J := J + 1;
                         end if;
-                        Graph.Add_Edge
-                          (LHS, Tokens (I),
-                           (RHS,
-                            Recursive =>
-                              (if Tokens.Length = 1 then Single
-                               elsif I = Tokens.First_Index then Left
-                               elsif I = Tokens.Last_Index then Right
-                               else Middle)));
+                        Graph.Add_Edge (LHS, Tokens (I), (RHS => RHS));
                      end if;
                   end loop;
                end;
@@ -399,13 +435,13 @@ package body WisiToken.Generate is
          end;
       end loop;
 
-      if Trace_Generate > Outline then
+      if Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.Put_Line ("..." & Graph.Count_Nodes'Image & " nodes" & Graph.Count_Edges'Image & " edges.");
       end if;
       return Graph;
    end To_Graph;
 
-   function Compute_Full_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions
+   function Compute_Full_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions
    is
       Graph : constant Grammar_Graphs.Graph := To_Graph (Grammar);
    begin
@@ -414,7 +450,23 @@ package body WisiToken.Generate is
          Recursions => Graph.Find_Cycles)
       do
          Grammar_Graphs.Sort_Paths.Sort (Result.Recursions);
-         if Trace_Generate > Extra then
+
+         --  Set Recursion components in Grammar
+         for Path of Result.Recursions loop
+            declare
+               Previous_Item_LHS : Token_ID := Path (Path'Last).Vertex;
+            begin
+               for Item of Path loop
+                  for Edge of Item.Edges loop
+                     --  LHS = Previous_Item_LHS, RHS = Edge.Data.RHS
+                     Grammar (Previous_Item_LHS).RHSs (Edge.Data.RHS).Recursive := True;
+                  end loop;
+                  Previous_Item_LHS := Item.Vertex;
+               end loop;
+            end;
+         end loop;
+
+         if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.Put_Line ("full recursions:");
             for I in Result.Recursions.First_Index .. Result.Recursions.Last_Index loop
                Ada.Text_IO.Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Result.Recursions (I)));
@@ -423,7 +475,7 @@ package body WisiToken.Generate is
       end return;
    end Compute_Full_Recursion;
 
-   function Compute_Partial_Recursion (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Recursions
+   function Compute_Partial_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions
    is
       use Grammar_Graphs;
       Graph      : constant Grammar_Graphs.Graph := To_Graph (Grammar);
@@ -457,7 +509,17 @@ package body WisiToken.Generate is
             Result.Recursions.Append (Path);
          end;
 
-         if Trace_Generate > Extra then
+         --  Set Recursion components in Grammar
+         for Path of Result.Recursions loop
+            for Item of Path loop
+               for Edge of Item.Edges loop
+                  --  LHS = Item.Vertex, RHS = Edge.Data.RHS
+                  Grammar (Item.Vertex).RHSs (Edge.Data.RHS).Recursive := True;
+               end loop;
+            end loop;
+         end loop;
+
+         if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.Put_Line ("partial recursions:");
             for I in Result.Recursions.First_Index .. Result.Recursions.Last_Index loop
                Ada.Text_IO.Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Result.Recursions (I)));
@@ -504,7 +566,7 @@ package body WisiToken.Generate is
                exit when I - First + Integer (Indent) <= Max_Line_Length;
                I := I - 1;
             end loop;
-            Indent_Line (Text (First .. I - 1));
+            Indent_Line (Trim (Text (First .. I - 1), Right));
             First := I + 1;
             exit when Text'Last - First + Integer (Indent) <= Max_Line_Length;
          end loop;

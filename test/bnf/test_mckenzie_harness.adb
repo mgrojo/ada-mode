@@ -2,7 +2,7 @@
 --
 --  Run Test_McKenzie_Recover
 --
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -84,6 +84,7 @@ begin
 
    WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+   WisiToken.Debug_Mode     := WisiToken.Trace_McKenzie > 0;
    WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
    if Alg in None | LALR then

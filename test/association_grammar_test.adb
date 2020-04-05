@@ -87,7 +87,7 @@ package body Association_Grammar_Test is
    --  (identifier => identifier)
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
-   Full_Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+   Full_Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
      Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
      (Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action or

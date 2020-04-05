@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -63,14 +63,14 @@ package body Dragon_4_45_LALR_Test is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action
+   Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
+     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
-     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action
+     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
      and
-     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action
+     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3.0
       or
-                    Lower_D_ID + Null_Action)
+                    Lower_D_ID + Null_Action)             -- 3.1
      ;
 
    --  See comment in Test_LALR_Kernels about state numbering
@@ -169,7 +169,7 @@ package body Dragon_4_45_LALR_Test is
            (+Lower_D_ID, S47) &
            (+Upper_C_ID, S89));
 
-      if WisiToken.Trace_Generate > WisiToken.Detail then
+      if WisiToken.Trace_Generate_Table > WisiToken.Detail then
          Ada.Text_IO.Put_Line ("computed:");
          Put (Grammar, LALR_Descriptor, Computed);
          Ada.Text_IO.New_Line;
@@ -181,6 +181,7 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use WisiToken;
       use WisiToken.Parse.LR;
       use WisiToken.Parse.LR.AUnit;
 
@@ -200,30 +201,30 @@ package body Dragon_4_45_LALR_Test is
       --  figure 4.41 pg 239
       WisiToken.Parse.LR.AUnit.Strict := False;
 
-      Add_Action (Expected.States (S0), +Lower_C_ID, S36);
-      Add_Action (Expected.States (S0), +Lower_D_ID, S47);
+      Add_Action (Expected.States (S0), +Lower_C_ID, (3, 0), S36);
+      Add_Action (Expected.States (S0), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
+      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), False, 1, Null_Action, null);
 
-      Add_Action (Expected.States (S2), +Lower_C_ID, S36);
-      Add_Action (Expected.States (S2), +Lower_D_ID, S47);
+      Add_Action (Expected.States (S2), +Lower_C_ID, (3, 0), S36);
+      Add_Action (Expected.States (S2), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S2), +Upper_C_ID, S5);
 
-      Add_Action (Expected.States (S36), +Lower_C_ID, S36);
-      Add_Action (Expected.States (S36), +Lower_D_ID, S47);
+      Add_Action (Expected.States (S36), +Lower_C_ID, (3, 0), S36);
+      Add_Action (Expected.States (S36), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
 
-      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), False, 2, Null_Action, null);
 
-      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;

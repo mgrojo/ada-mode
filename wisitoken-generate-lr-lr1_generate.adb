@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -109,7 +109,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          exit when States_To_Check.Is_Empty;
          I := States_To_Check.Get;
 
-         if Trace_Generate > Outline then
+         if Trace_Generate_Table > Outline then
             Ada.Text_IO.Put ("Checking ");
             Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
          end if;
@@ -136,7 +136,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                   Add (New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
-                  if Trace_Generate > Outline then
+                  if Trace_Generate_Table > Outline then
                      Ada.Text_IO.Put_Line
                        ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
                           Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
@@ -148,7 +148,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                   --  If there's not already a goto entry between these two sets, create one.
                   if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                     if Trace_Generate > Outline then
+                     if Trace_Generate_Table > Outline then
                         Ada.Text_IO.Put_Line
                           ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
                              Unknown_State_Index'Image (Found_State));
@@ -162,7 +162,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end loop;
       end loop;
 
-      if Trace_Generate > Outline then
+      if Trace_Generate_Table > Outline then
          Ada.Text_IO.New_Line;
       end if;
 
@@ -186,38 +186,39 @@ package body WisiToken.Generate.LR.LR1_Generate is
            (Item_Set, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
       end loop;
 
-      if Trace_Generate > Outline then
+      if Trace_Generate_Table > Outline then
          Ada.Text_IO.New_Line;
       end if;
    end Add_Actions;
 
    function Generate
-     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor        : in WisiToken.Descriptor;
-      Known_Conflicts   : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param    : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Put_Parse_Table   : in Boolean             := False;
-      Include_Extra     : in Boolean             := False;
-      Ignore_Conflicts  : in Boolean             := False;
-      Partial_Recursion : in Boolean             := True)
+     (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor            : in     WisiToken.Descriptor;
+      Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
+      McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
+      Parse_Table_File_Name : in     String              := "";
+      Include_Extra         : in     Boolean             := False;
+      Ignore_Conflicts      : in     Boolean             := False;
+      Partial_Recursion     : in     Boolean             := True)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
 
-      Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > Detail;
-      Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate > Detail;
+      Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
+      Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
+      Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Grammar);
+      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
 
       Recursions : constant WisiToken.Generate.Recursions :=
         (if Partial_Recursion
          then WisiToken.Generate.Compute_Partial_Recursion (Grammar)
          else WisiToken.Generate.Compute_Full_Recursion (Grammar));
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Recursions);
+        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
 
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
@@ -235,7 +236,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate_Table > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Item_Sets:");
          LR1_Items.Put (Grammar, Descriptor, Item_Sets);
@@ -277,22 +278,22 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Conflict_Counts, Unknown_Conflicts, Table.all, Descriptor);
 
       for State in Table.States'Range loop
-         if Trace_Generate > Extra then
+         if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
          end if;
          WisiToken.Generate.LR.Set_Minimal_Complete_Actions
            (Table.States (State),
             LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access),
-            Descriptor, Grammar, Minimal_Terminal_Sequences, Minimal_Terminal_First);
+            Descriptor, Grammar, Nullable, Minimal_Terminal_Sequences, Minimal_Terminal_First);
       end loop;
 
-      if Put_Parse_Table then
+      if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, "LR1", Grammar, Recursions, Minimal_Terminal_Sequences, Item_Sets, Conflict_Counts, Descriptor,
+           (Table, Parse_Table_File_Name, "LR1", Grammar, Recursions, Item_Sets, Conflict_Counts, Descriptor,
             Include_Extra);
       end if;
 
-      if Trace_Generate > Outline then
+      if Trace_Generate_Table > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Has_Empty_Production: " & Image (Has_Empty_Production, Descriptor));
 

@@ -21,52 +21,40 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-fix text_rep so can work lr1 examples
-
 error_correction_algorithm.tex
+    fix/improve recursion in recover
+        after_dot_length state 77 103.0:name is infinite
+            should be 4
+
+        ada_lite state 151 clearly RIGHT_PAREN is minimal because 61.0 COMMA is direct left recursive
+            use that in generate?
+
+        minimal_token_sequence 118.1 range_list = 117.0 range_g should be 3
+        update all tests
+            updating test_mckenzie
+                fix exception got TRUE first
+                Extra_Name_2
+
+
+        fix get_text_rep
+        commit
+
+    java_enum_ch19 wisi_eoi now detects cycle
+
+    include java_expressions_antlr_lr1 in minimal_complete examples; run time cycle check
+        inc, rparen both length 1
+        inc starts in and goes back to 32; we detect that cycle
+
+        inc is only shift in cycle, so could exclude inc in generate
+            but can't due to partial_recursion
+
     doc Just_Pushed_Back_Or_Deleted
         try_delete also checks for just_inserted
 
-    fix/improve recursion in recover
-        notes in Immediate_Recursive
-        more detailed examples for Explore.Insert_Minimal_Complete, generate.lr.compute_minimal_complete_actions
+    explain check_reduce_to_start
 
-            need for Explore.Insert_Minimal_Complete cycle check
-                java_expressions_ch19_lr1.wy
-                    "abandon : cycle" in recovery from second block
-                    not anymore!
-                java_enum_ch19.wy
-                    minimal_complete_recursive.java_enum_ch19
-                    state 8 enumconstantlist should be marked recursive
-                        Immediate_Recursive does not care about worst_recursion, only recursion of this prod
-                            => store Recursive in grammar production
-
-                given run-time cycle check, why pre-compute recursion?
-                    avoids configs that will be abandoned?
-                    need example; do recursive_length_after_dot.java_ch19 without pre-compute recursion
-
-            need for grammar recursion
-                java_expressions_ch19_lr1.wy second block; all_recursive
-
-        why need left, right, single, middle?
-            reduced to boolean in State.Minimal_Complete_Actions_Recursive
-                excludes Middle | Single!
-                only true if any items immediately recursive
-
-            only used in:
-                Net_Recursion; middle dominates
-                Worst_Recursion: Left dominates
-
-                Net_Recursion used in worst_recursion, when computing Full
-
-        explain check_reduce_to_start
-
-        compare size of ada_lr1.txt
-
-        compare speed of recover
-
-        redo examples with partial recursion pre-compute
-            causes problems?
+    redo examples with partial recursion pre-compute
+        causes problems?
 
     doc Minimal_Complete done?
 
@@ -84,6 +72,10 @@ error_correction_algorithm.tex
     redo compare using lr1 for wisitoken-tokens
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
         add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
+
+    compare size of ada_lr1.txt
+
+    compare speed of recover
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
 

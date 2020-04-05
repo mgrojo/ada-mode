@@ -138,11 +138,17 @@ package WisiToken.Parse.LR is
      (Goto_Node, Token_ID, To_Key, Compare);
 
    type Kernel_Info is record
-      Production          : Production_ID;
-      Before_Dot          : Token_ID                  := Token_ID'First;
-      Length_After_Dot    : Ada.Containers.Count_Type := 0;
-      Reduce_Count        : Ada.Containers.Count_Type := 0;
-      Immediate_Recursive : Boolean                   := False;
+      Production       : Production_ID; -- FIXME: only used in Check_Reduce_To_Start; still needed?
+      Before_Dot       : Token_ID                  := Token_ID'First;
+      Length_After_Dot : Ada.Containers.Count_Type := 0;
+
+      Reduce_Production : Production_ID;
+      Reduce_Count      : Ada.Containers.Count_Type := 0;
+      --  The reduction that error recovery should do for this item if
+      --  Length_After_Dot = 0. Reduce_Production /= Production when item
+      --  after dot is nullable.
+
+      Immediate_Recursive : Boolean := False;
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;

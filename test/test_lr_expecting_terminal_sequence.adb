@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -110,7 +110,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       package Top_Level is
          use WisiToken.Wisi_Ada;
 
-         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+         Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
            +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
            Set_Statement.Grammar and
            Verify_Statement.Grammar;

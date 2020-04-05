@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1227,7 +1227,7 @@ package body WisiToken_Grammar_Runtime is
               (Last => Orig_RHS_Element_A_Head,
                Root => Orig_RHS_Item_List_A_Root);
 
-            if Trace_Generate > Extra then
+            if Trace_Generate_EBNF > Extra then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("new a:");
                Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_Item_List_A);
@@ -1240,7 +1240,7 @@ package body WisiToken_Grammar_Runtime is
               (Last => Orig_RHS_Element_C_Head,
                Root => Orig_RHS_Item_List_C_Root);
 
-            if Trace_Generate > Extra then
+            if Trace_Generate_EBNF > Extra then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("new c:");
                Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_Item_List_C);
@@ -1293,7 +1293,7 @@ package body WisiToken_Grammar_Runtime is
             end if;
          end if;
 
-         if Trace_Generate > Extra then
+         if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("new ac:");
             Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
@@ -1338,7 +1338,7 @@ package body WisiToken_Grammar_Runtime is
             Append_Element (Compilation_Unit_List_Tail, Comp_Unit);
          end if;
 
-         if Trace_Generate > Extra then
+         if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("new comp_unit:");
             Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Unit);
@@ -1542,7 +1542,7 @@ package body WisiToken_Grammar_Runtime is
 
       procedure Process_Node (Node : in Valid_Node_Index)
       is begin
-         if Trace_Generate > Detail then
+         if Trace_Generate_EBNF > Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (Node));
          end if;
@@ -1902,7 +1902,7 @@ package body WisiToken_Grammar_Runtime is
 
                   Clear_EBNF_Node (Node);
 
-                  if Trace_Generate > Extra then
+                  if Trace_Generate_EBNF > Extra then
                      Ada.Text_IO.New_Line;
                      Ada.Text_IO.Put_Line ("edited rhs_list:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (RHS_2));
@@ -2089,7 +2089,7 @@ package body WisiToken_Grammar_Runtime is
 
                Clear_EBNF_Node (Node);
 
-               if Trace_Generate > Extra then
+               if Trace_Generate_EBNF > Extra then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("edited rhs_item:");
                   Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Parent_RHS_Item);
@@ -2308,7 +2308,7 @@ package body WisiToken_Grammar_Runtime is
                               end;
                            end if;
 
-                           if Trace_Generate > Extra then
+                           if Trace_Generate_EBNF > Extra then
                               Ada.Text_IO.New_Line;
                               Ada.Text_IO.Put_Line ("edited rhs:");
                               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, RHS);
@@ -2484,7 +2484,7 @@ package body WisiToken_Grammar_Runtime is
 
       Data.Meta_Syntax := BNF_Syntax;
 
-      if Trace_Generate > Detail then
+      if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Identifiers:");
          for I in Data.Tokens.Virtual_Identifiers.First_Index .. Data.Tokens.Virtual_Identifiers.Last_Index loop

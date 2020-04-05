@@ -2,7 +2,7 @@
 --
 --  Run all WisiToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -48,7 +48,7 @@ with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action
+   --  <verbose> test_name routine_name trace_generate_table trace_parse trace_mckenzie trace_action
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
@@ -94,10 +94,11 @@ begin
          end;
       end case;
 
-      WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-      WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-      WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
-      WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
+      WisiToken.Trace_Generate_Table := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+      WisiToken.Trace_Parse          := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+      WisiToken.Trace_McKenzie       := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
+      WisiToken.Debug_Mode           := WisiToken.Trace_McKenzie > 0;
+      WisiToken.Trace_Action         := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
    end;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.

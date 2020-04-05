@@ -143,7 +143,7 @@ State 3:
    lambdaExpression     goto state 8
    lambdaParameters     goto state 9
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER recursive
 
 State 4:
      13.1:block <= LBRACE RBRACE ^, RPAREN/SEMI/Wisi_EOI

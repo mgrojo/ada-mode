@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009, 2014-2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2014-2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -223,26 +223,6 @@ package body WisiToken is
          end loop;
       end return;
    end To_Vector;
-
-   function Net_Recursion (A, B : in Recursion) return Recursion
-   is begin
-      return
-        (case A is
-         when None => B,
-         when Single =>
-           (case B is
-            when None => Single,
-            when others => B),
-         when Right =>
-           (case B is
-            when None | Single => Right,
-            when others => B),
-         when Left =>
-           (case B is
-            when None | Single | Left => Left,
-            when others => B),
-         when Middle => Middle);
-   end Net_Recursion;
 
    function Slice (Item : in Token_Array_Token_Set; I : in Token_ID) return Token_ID_Set
    is

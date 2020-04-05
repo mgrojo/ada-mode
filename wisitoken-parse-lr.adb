@@ -159,6 +159,7 @@ package body WisiToken.Parse.LR is
       return "(" & Image (Item.Production) & ", " &
         Item.Before_Dot'Image & ", " &
         Item.Length_After_Dot'Image & ", " &
+        Image (Item.Reduce_Production) & ", " &
         Item.Reduce_Count'Image & ", " &
         (if Item.Immediate_Recursive then "True" else "False") & ")";
    end Strict_Image;
@@ -583,6 +584,7 @@ package body WisiToken.Parse.LR is
                      State.Kernel (I).Production.LHS := Next_Token_ID;
                      State.Kernel (I).Production.RHS := Next_Integer;
                      State.Kernel (I).Length_After_Dot := Next_Count_Type;
+                     --  FIXME: more components
                   end loop;
                end if;
             end;

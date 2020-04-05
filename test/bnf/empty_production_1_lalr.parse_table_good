@@ -12,21 +12,21 @@ Tokens:
 
 Productions:
 6.0: wisitoken_accept <= declarative_part Wisi_EOI
-7.0: declarations <= declarations body ; (1, 2) LEFT
-7.1: declarations <= body ; (2) MIDDLE
-8.0: declarative_part <= declarations ; (2) MIDDLE
+7.0: declarations <= declarations body ; recursive
+7.1: declarations <= body ; recursive
+8.0: declarative_part <= declarations ; recursive
 8.1: declarative_part <=
-9.0: body <= IS declarative_part BEGIN SEMICOLON ; (2) MIDDLE
+9.0: body <= IS declarative_part BEGIN SEMICOLON ; recursive
 
 Recursions:
-1 => (7 (0 LEFT) -> )
-2 => (7 (0 RIGHT, 1 SINGLE) -> 9 (0 MIDDLE) -> 8 (0 SINGLE) -> )
+1 => (7 (0) -> )
+2 => (7 (0, 1) -> 9 (0) -> 8 (0) -> )
 
 LALR Parse Table:
 State 0:
-      6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI, 
+      6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI
 
-   IS               => shift and goto state 1
+   IS               => shift and goto state 1 9.0
    Wisi_EOI         => reduce 0 tokens to declarative_part 8.1
    default          => ERROR
 
@@ -34,36 +34,36 @@ State 0:
    declarative_part goto state 3
    body             goto state 4
 
-   Minimal_Complete_Action => declarative_part
+   Minimal_Complete_Action => declarative_part 8.1
 
 State 1:
-      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON ; recursive
 
    BEGIN            => reduce 0 tokens to declarative_part 8.1
-   IS               => shift and goto state 1
+   IS               => shift and goto state 1 9.0
    default          => ERROR
 
    declarations     goto state 2
    declarative_part goto state 5
    body             goto state 4
 
-   Minimal_Complete_Action => declarative_part
+   Minimal_Complete_Action => declarative_part 8.1
 
 State 2:
-      7.0:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
-      8.0:declarative_part <= declarations ^, BEGIN/Wisi_EOI
+      7.0:declarations <= declarations ^ body ; recursive
+      8.0:declarative_part <= declarations ^ ; recursive
 
    BEGIN            => reduce 1 tokens to declarative_part 8.0
-   IS               => shift and goto state 1
+   IS               => shift and goto state 1 9.0
    Wisi_EOI         => reduce 1 tokens to declarative_part 8.0
    default          => ERROR
 
    body             goto state 6
 
-   Minimal_Complete_Action => declarative_part
+   Minimal_Complete_Action => declarative_part 8.0
 
 State 3:
-      6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, 
+      6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI
 
    Wisi_EOI         => accept it 6.0
    default          => ERROR
@@ -71,50 +71,50 @@ State 3:
    Minimal_Complete_Action => 
 
 State 4:
-      7.1:declarations <= body ^, BEGIN/IS/Wisi_EOI
+      7.1:declarations <= body ^ ; recursive
 
    BEGIN            => reduce 1 tokens to declarations 7.1
    IS               => reduce 1 tokens to declarations 7.1
    Wisi_EOI         => reduce 1 tokens to declarations 7.1
    default          => ERROR
 
-   Minimal_Complete_Action => declarations
+   Minimal_Complete_Action => declarations 7.1
 
 State 5:
-      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON ; recursive
 
-   BEGIN            => shift and goto state 7
+   BEGIN            => shift and goto state 7 9.0
    default          => ERROR
 
    Minimal_Complete_Action => BEGIN
 
 State 6:
-      7.0:declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
+      7.0:declarations <= declarations body ^ ; recursive
 
    BEGIN            => reduce 2 tokens to declarations 7.0
    IS               => reduce 2 tokens to declarations 7.0
    Wisi_EOI         => reduce 2 tokens to declarations 7.0
    default          => ERROR
 
-   Minimal_Complete_Action => declarations recursive
+   Minimal_Complete_Action => declarations 7.0
 
 State 7:
-      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON ; recursive
 
-   SEMICOLON        => shift and goto state 8
+   SEMICOLON        => shift and goto state 8 9.0
    default          => ERROR
 
    Minimal_Complete_Action => SEMICOLON
 
 State 8:
-      9.0:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN SEMICOLON ^ ; recursive
 
    BEGIN            => reduce 4 tokens to body 9.0
    IS               => reduce 4 tokens to body 9.0
    Wisi_EOI         => reduce 4 tokens to body 9.0
    default          => ERROR
 
-   Minimal_Complete_Action => body
+   Minimal_Complete_Action => body 9.0
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

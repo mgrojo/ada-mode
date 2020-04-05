@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,6 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
-with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.AUnit;
@@ -64,14 +63,14 @@ package body Dragon_4_43_LR1_Test is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
+   Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
+     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1.0
      and
-     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
+     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2.0
      and
-     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3
+     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3.0
       or
-        Lower_D_ID + Null_Action) -- 4
+        Lower_D_ID + Null_Action) -- 3.1
      ;
 
    Map : constant array (WisiToken.State_Index range 0 .. 9) of WisiToken.Unknown_State_Index :=
@@ -224,6 +223,7 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
+      use WisiToken;
       use WisiToken.Parse.LR;
       use WisiToken.Parse.LR.AUnit;
 
@@ -237,53 +237,42 @@ package body Dragon_4_43_LR1_Test is
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
 
-      procedure Add_Action
-        (State           : in out Parse_State;
-         Symbol          : in     WisiToken.Token_ID;
-         Verb            : in     Parse_Action_Verbs;
-         LHS_ID          : in     WisiToken.Token_ID;
-         RHS_Index       : in     Natural;
-         RHS_Token_Count : in     Ada.Containers.Count_Type)
-      is begin
-         Add_Action (State, Symbol, Verb, (LHS_ID, RHS_Index), RHS_Token_Count, null, null);
-      end Add_Action;
-
    begin
-      --  figure 4.41 pg 239
+      --  figure 4.40 pg 236
       --  'r1' means reduce by production 1, 0 indexed; our production 2
       --  'acc' = reduce by our production 1
       --  We don't have an explicit error action; Symbol not found => error.
 
-      Add_Action (Expected.States (Map (0)), +Lower_C_ID, Map (3));
-      Add_Action (Expected.States (Map (0)), +Lower_D_ID, Map (4));
+      Add_Action (Expected.States (Map (0)), +Lower_C_ID, (3, 0), Map (3));
+      Add_Action (Expected.States (Map (0)), +Lower_D_ID, (3, 1), Map (4));
       Add_Goto (Expected.States (Map (0)), +Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), +Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, +Accept_ID, 0, 1);
+      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, (+Accept_ID, 0), False, 1, Null_Action, null);
 
-      Add_Action (Expected.States (Map (2)), +Lower_C_ID, Map (6));
-      Add_Action (Expected.States (Map (2)), +Lower_D_ID, Map (7));
+      Add_Action (Expected.States (Map (2)), +Lower_C_ID, (3, 0), Map (6));
+      Add_Action (Expected.States (Map (2)), +Lower_D_ID, (3, 1), Map (7));
       Add_Goto (Expected.States (Map (2)), +Upper_C_ID, Map (5));
 
-      Add_Action (Expected.States (Map (3)), +Lower_C_ID, Map (3));
-      Add_Action (Expected.States (Map (3)), +Lower_D_ID, Map (4));
+      Add_Action (Expected.States (Map (3)), +Lower_C_ID, (3, 0), Map (3));
+      Add_Action (Expected.States (Map (3)), +Lower_D_ID, (3, 1), Map (4));
       Add_Goto (Expected.States (Map (3)), +Upper_C_ID, Map (8));
 
-      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
+      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
 
-      Add_Action (Expected.States (Map (5)), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (5)), +EOF_ID, Reduce, (+Upper_S_ID, 0), False, 2, Null_Action, null);
 
-      Add_Action (Expected.States (Map (6)), +Lower_C_ID, Map (6));
-      Add_Action (Expected.States (Map (6)), +Lower_D_ID, Map (7));
+      Add_Action (Expected.States (Map (6)), +Lower_C_ID, (3, 0), Map (6));
+      Add_Action (Expected.States (Map (6)), +Lower_D_ID, (3, 1), Map (7));
       Add_Goto (Expected.States (Map (6)), +Upper_C_ID, Map (9));
 
-      Add_Action (Expected.States (Map (7)), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (7)), +EOF_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
 
-      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
+      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
 
-      Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;
