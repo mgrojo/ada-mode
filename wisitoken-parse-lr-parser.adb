@@ -178,7 +178,7 @@ package body WisiToken.Parse.LR.Parser is
       when Accept_It =>
          case Reduce_Stack_1
            (Current_Parser,
-            (Reduce, Action.Production, Action.Recursive, Action.Action, Action.Check, Action.Token_Count),
+            (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
             Nonterm, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
@@ -632,7 +632,11 @@ package body WisiToken.Parse.LR.Parser is
                               Temp := Current_Parser;
                               Current_Parser.Next;
                               Shared_Parser.Parsers.Terminate_Parser
-                                (Temp, "recover cost/length", Shared_Parser.Trace.all, Shared_Parser.Terminals);
+                                (Temp,
+                                 (if Recover_Cost = Min_Recover_Cost and Recover_Ops_Length = Max_Recover_Ops_Length
+                                  then "random"
+                                  else "recover cost/length"),
+                                 Shared_Parser.Trace.all, Shared_Parser.Terminals);
                            end if;
                            exit when Current_Parser.Is_Done;
                         end loop;

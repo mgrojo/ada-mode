@@ -50,9 +50,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             Action    := Action_Node.Item;
             First     := False;
          else
-            if not Equal (Action, Action_Node.Item) or
-              Action.Recursive /= Action_Node.Item.Recursive
-            then
+            if not Equal (Action, Action_Node.Item) then
                return False;
             end if;
          end if;
@@ -458,6 +456,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
       Indent_Line
         ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
+      Indent_Line
+        ("Minimal_Complete_Recursive_Cost_Delta => " &
+           Table.McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta'Image & ",");
       Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
       Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
       Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
@@ -569,7 +570,6 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
                     Symbols_Image (Table.States (State_Index)) & ", " &
                     Image (Action.Production) & ", " &
-                    Image (Action.Recursive) & "," &
                     Count_Type'Image (Action.Token_Count) & ", ";
 
                   Append
@@ -615,7 +615,6 @@ package body WisiToken.BNF.Output_Ada_Common is
                         end if;
                         Append (", ");
                         Append (Image (Action_Node.Item.Production) & ", ");
-                        Append (Image (Action_Node.Item.Recursive) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
                           ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
@@ -652,7 +651,6 @@ package body WisiToken.BNF.Output_Ada_Common is
                            Line := +"Add_Conflict (Table.States (" & Trimmed_Image (State_Index) & "), " &
                              Trimmed_Image (Node.Symbol) & ", ";
                            Append (Image (Action_Node.Item.Production) & ", ");
-                           Append (Image (Action_Node.Item.Recursive) & ",");
                            Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                            Append
                              ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
@@ -797,6 +795,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       else
          if Input_Data.Language_Params.Error_Recover then
+            Indent_Line ("use all type WisiToken.Recursion_Class;");
             Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
          end if;
 

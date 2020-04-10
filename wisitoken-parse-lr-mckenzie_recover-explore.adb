@@ -460,7 +460,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
       is begin
-         return (Reduce, Item.Production, False, null, null, Item.Token_Count);
+         return (Reduce, Item.Production, null, null, Item.Token_Count);
       end To_Reduce_Action;
 
       Local_Config_Heap : Config_Heaps.Heap_Type; -- never used, because Do_Language_Fixes is False.
@@ -764,8 +764,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Inserted_Last : Integer                  := Inserted'First - 1;
 
       type Work_Item is record
-         Action : Minimal_Action;
-         Config : Configuration;
+         Action     : Minimal_Action;
+         Cost_Delta : Integer;
+         Config     : Configuration;
       end record;
 
       package Item_Queues is new SAL.Gen_Bounded_Definite_Queues (Work_Item);
@@ -787,9 +788,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Safe_Add_Work;
 
       function To_Reduce_Action (Action : in Minimal_Action) return Reduce_Action_Rec
-        is (Reduce, Action.Production, False, null, null, Action.Token_Count);
+        is (Reduce, Action.Production, null, null, Action.Token_Count);
 
-      procedure Minimal_Do_Shift (Action : in Minimal_Action; Config : in out Configuration)
+      procedure Minimal_Do_Shift
+        (Action     : in     Minimal_Action;
+         Cost_Delta : in     Integer;
+         Config     : in out Configuration)
       is begin
          if Just_Pushed_Back_Or_Deleted (Config, Action.ID) then
             if Trace_McKenzie > Extra then
@@ -801,11 +805,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Config.Check_Status           := (Label => WisiToken.Semantic_Checks.Ok);
             Config.Minimal_Complete_State := Active;
             Inserted_Last                 := Inserted_Last + 1;
-            Inserted (Inserted_Last)      := Action.ID;
+            if Inserted_Last <= Inserted'Last then
+               Inserted (Inserted_Last)      := Action.ID;
+            else
+               Super.Config_Full ("minimal_do_shift Inserted", Parser_Index);
+               raise Bad_Config;
+            end if;
 
             Do_Shift
               ("Minimal_Complete_Actions", Super, Shared, Parser_Index, Local_Config_Heap, Config,
-               Action.State, Action.ID, Table.McKenzie_Param.Minimal_Complete_Cost_Delta,
+               Action.State, Action.ID, Cost_Delta,
                Strategy => Minimal_Complete);
          end if;
       end Minimal_Do_Shift;
@@ -818,8 +827,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          use SAL;
          Length : array (Actions.First_Index .. Actions.Last_Index) of Count_Type := (others => Count_Type'Last);
 
-         Start_State : State_Index;
-         Min_Length  : Count_Type := Count_Type'Last;
+         Min_Length : Count_Type := Count_Type'Last;
       begin
          if Trace_McKenzie > Extra then
             Put_Line
@@ -830,7 +838,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Actions.Length = 0 then
             return;
          elsif Actions.Length = 1 then
-            Safe_Add_Work ("1", (Actions (Actions.First_Index), Config));
+            Safe_Add_Work
+              ("1", (Actions (Actions.First_Index), Table.McKenzie_Param.Minimal_Complete_Cost_Delta, Config));
             return;
          end if;
 
@@ -848,6 +857,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      return Item.Before_Dot = Action.Production.LHS;
                   end case;
                end Matches;
+
+               Start_State : State_Index;
 
                function Length_After_Dot
                  (Item   : in Kernel_Info;
@@ -899,7 +910,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                            Result := Length_After_Dot
                              (Item, (Reduce, Item.Reduce_Production, Item.Reduce_Count), New_Stack);
                         else
-                           Result := Item.Length_After_Dot;
+                           if Item.Recursion /= None then
+                              Result := Ada.Containers.Count_Type'Last;
+                           else
+                              Result := Item.Length_After_Dot;
+                           end if;
                         end if;
                      end if;
 
@@ -930,14 +945,23 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   Start_State := State_Index'Last;
                   if Matches (Item, Action) then
                      --  For Action.Verb = Reduce, more than one item may match
-                     if Item.Length_After_Dot = 0 or Item.Immediate_Recursive then
-                        --  Set Length from a non-zero-length non-recursive item.
+                     if Item.Recursion /= None then
+                        null; -- we don't have a good algorithm for this; leave length infinite
+
                         if Trace_McKenzie > Extra then
-                           Super.Trace.Put (" next_state");
+                           --  Length_After_Dot outputs this in other branch
+                           Super.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
                         end if;
+
+                     elsif Item.Length_After_Dot = 0 then
+                        --  Set Length from a non-zero-length non-recursive item.
                         Length (I) := Length_After_Dot (Item, Action, Config.Stack);
 
                      elsif Item.Length_After_Dot < Length (I) then
+                        if Trace_McKenzie > Extra then
+                           --  Length_After_Dot outputs this in other branch
+                           Super.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
+                        end if;
                         Length (I) := Item.Length_After_Dot;
 
                      end if;
@@ -956,28 +980,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end;
          end loop Actions_Loop;
 
-         if Min_Length = Count_Type'Last then
-            --  A useful grammar has an exit from all recursions; Actions_Loop
-            --  is supposed to find the exit and set Min_Length. So this
-            --  is nominally a bug in the grammar.
-            if Debug_Mode then
-               raise Programmer_Error with "Minimal_Complete_Actions: all recursive";
-            else
-               if Trace_McKenzie > Extra then
-                  Put_Line (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: all recursive");
-               end if;
-               raise Bad_Config;
-            end if;
-         end if;
-
          for I in Length'Range loop
-            if Length (I) = Min_Length then
-               Safe_Add_Work ("2", (Actions (I), Config));
+            if Length (I) = Count_Type'Last then
+               --  Enqueue recursive with different (nominally higher) cost
+               Safe_Add_Work ("2", (Actions (I), Table.McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta, Config));
+
+            elsif Length (I) = Min_Length then
+               Safe_Add_Work ("3", (Actions (I), Table.McKenzie_Param.Minimal_Complete_Cost_Delta, Config));
 
             elsif Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions: drop " &
-                    Image (Actions (I), Descriptor) & " not minimal");
+                    Image (Actions (I), Descriptor) & " not minimal or recursive");
             end if;
          end loop;
       end Enqueue_Min_Actions;
@@ -1037,7 +1051,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      when 1 =>
                         case Actions (Actions.First_Index).Verb is
                         when Shift =>
-                           Minimal_Do_Shift (Actions (Actions.First_Index), Item.Config);
+                           Minimal_Do_Shift (Actions (Actions.First_Index), Item.Cost_Delta, Item.Config);
                            exit;
                         when Reduce =>
                            Reduce_Action := To_Reduce_Action (Actions (Actions.First_Index));
@@ -1051,7 +1065,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                end;
 
             when Shift =>
-               Minimal_Do_Shift (Item.Action, Item.Config);
+               Minimal_Do_Shift (Item.Action, Item.Cost_Delta, Item.Config);
             end case;
          end;
       end loop;

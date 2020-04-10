@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2019 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -38,6 +38,7 @@ is
       Put_Line ("  -v <integer> : trace_parse");
       Put_Line ("  -m <integer> : trace_mckenzie");
       Put_Line ("  -t <integer> : mckenzie task count");
+      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -112,6 +113,10 @@ begin
             Arg_Next   := Arg_Next + 1;
             Task_Count := System.Multiprocessors.CPU_Range'Value (Argument (Arg_Next));
             Arg_Next   := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-debug" then
+            Arg_Next             := Arg_Next + 1;
+            WisiToken.Debug_Mode := True;
 
          else
             Set_Exit_Status (Failure);

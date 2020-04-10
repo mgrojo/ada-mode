@@ -14,8 +14,8 @@ Tokens:
 
 Productions:
 8.0: wisitoken_accept <= EnumBody Wisi_EOI
-9.0: EnumConstantList <= EnumConstant ; recursive
-9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; recursive
+9.0: EnumConstantList <= EnumConstant ; (1 => Other_Left)
+9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left, 3 => Other)
 10.0: EnumConstant <= IDENTIFIER
 11.0: EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET
 11.1: EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET
@@ -52,6 +52,7 @@ McKenzie:
  EnumConstant        => 2,
  EnumBody            => 2)
 Minimal_Complete_Cost_Delta => -3
+Minimal_Complete_Recursive_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
 Ignore_Check_Fail => 0
@@ -69,7 +70,7 @@ State 0:
 
    EnumBody            goto state 2
 
-   Minimal_Complete_Action => LEFT_CURLY_BRACKET
+   Minimal_Complete_Action => 
 
 State 1:
      11.0:EnumBody <= LEFT_CURLY_BRACKET ^ EnumConstantList COMMA RIGHT_CURLY_BRACKET
@@ -82,7 +83,7 @@ State 1:
    EnumConstantList    goto state 5
    EnumConstant        goto state 6
 
-   Minimal_Complete_Action => COMMA
+   Minimal_Complete_Action => COMMA 11.1
 
 State 2:
       8.0:wisitoken_accept <= EnumBody ^ Wisi_EOI
@@ -98,7 +99,7 @@ State 3:
    RIGHT_CURLY_BRACKET => shift and goto state 7 11.1
    default             => ERROR
 
-   Minimal_Complete_Action => RIGHT_CURLY_BRACKET
+   Minimal_Complete_Action => RIGHT_CURLY_BRACKET 11.1
 
 State 4:
      10.0:EnumConstant <= IDENTIFIER ^
@@ -109,16 +110,16 @@ State 4:
    Minimal_Complete_Action => EnumConstant 10.0
 
 State 5:
-      9.1:EnumConstantList <= EnumConstantList ^ COMMA EnumConstant ; recursive
+      9.1:EnumConstantList <= EnumConstantList ^ COMMA EnumConstant
      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList ^ COMMA RIGHT_CURLY_BRACKET
 
    COMMA               => shift and goto state 8 9.1
    default             => ERROR
 
-   Minimal_Complete_Action => COMMA
+   Minimal_Complete_Action => COMMA 9.1
 
 State 6:
-      9.0:EnumConstantList <= EnumConstant ^ ; recursive
+      9.0:EnumConstantList <= EnumConstant ^
 
    COMMA               => reduce 1 tokens to EnumConstantList 9.0
    default             => ERROR
@@ -134,7 +135,7 @@ State 7:
    Minimal_Complete_Action => EnumBody 11.1
 
 State 8:
-      9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant ; recursive
+      9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant
      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA ^ RIGHT_CURLY_BRACKET
 
    RIGHT_CURLY_BRACKET => shift and goto state 9 11.0
@@ -143,7 +144,7 @@ State 8:
 
    EnumConstant        goto state 10
 
-   Minimal_Complete_Action => RIGHT_CURLY_BRACKET
+   Minimal_Complete_Action => RIGHT_CURLY_BRACKET 11.0
 
 State 9:
      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET ^
@@ -154,7 +155,7 @@ State 9:
    Minimal_Complete_Action => EnumBody 11.0
 
 State 10:
-      9.1:EnumConstantList <= EnumConstantList COMMA EnumConstant ^ ; recursive
+      9.1:EnumConstantList <= EnumConstantList COMMA EnumConstant ^
 
    COMMA               => reduce 3 tokens to EnumConstantList 9.1
    default             => ERROR

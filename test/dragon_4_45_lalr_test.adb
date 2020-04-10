@@ -206,7 +206,7 @@ package body Dragon_4_45_LALR_Test is
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), False, 1, Null_Action, null);
+      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
 
       Add_Action (Expected.States (S2), +Lower_C_ID, (3, 0), S36);
       Add_Action (Expected.States (S2), +Lower_D_ID, (3, 1), S47);
@@ -216,15 +216,15 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected.States (S36), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), False, 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
 
-      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), False, 2, Null_Action, null);
+      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
 
-      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), False, 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;

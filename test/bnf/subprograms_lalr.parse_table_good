@@ -38,15 +38,15 @@ Productions:
 22.0: block <= BEGIN loop_statement EXCEPTION WHEN name END
 22.1: block <= BEGIN loop_statement END
 23.0: compilation_unit <= declarations
-24.0: declarations <= declarations declaration ; recursive
+24.0: declarations <= declarations declaration ; (1 => Direct_Left)
 24.1: declarations <= declaration
 25.0: declaration <= subprogram
 25.1: declaration <= use_clause
 26.0: loop_statement <= FOR SYMBOL IN subtype LOOP SEMICOLON
-27.0: name <= name DOT SYMBOL ; recursive
+27.0: name <= name DOT SYMBOL ; (1 => Direct_Left)
 27.1: name <= SYMBOL
 28.0: name_list <= name
-28.1: name_list <= name_list COMMA name ; recursive
+28.1: name_list <= name_list COMMA name ; (1 => Direct_Left)
 29.0: parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN
 29.1: parameter_list <= LEFT_PAREN RIGHT_PAREN
 30.0: subprogram <= FUNCTION name parameter_list block SEMICOLON
@@ -146,7 +146,8 @@ McKenzie:
  subprogram       => 4,
  subtype          => 4,
  use_clause       => 4)
-Minimal_Complete_Cost_Delta => -1
+Minimal_Complete_Cost_Delta => -2
+Minimal_Complete_Recursive_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
 Ignore_Check_Fail => 4
@@ -170,7 +171,7 @@ State 0:
    subprogram       goto state 7
    use_clause       goto state 8
 
-   Minimal_Complete_Action => FUNCTION
+   Minimal_Complete_Action => 
 
 State 1:
      30.0:subprogram <= FUNCTION ^ name parameter_list block SEMICOLON
@@ -192,7 +193,7 @@ State 1:
    name             goto state 14
    parameter_list   goto state 15
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.7
 
 State 2:
      30.8:subprogram <= PROCEDURE ^ name parameter_list END name SEMICOLON
@@ -202,7 +203,7 @@ State 2:
 
    name             goto state 16
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 3:
      32.0:use_clause <= USE ^ name_list SEMICOLON
@@ -213,7 +214,7 @@ State 3:
    name             goto state 17
    name_list        goto state 18
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 4:
      21.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
@@ -225,7 +226,7 @@ State 4:
 
 State 5:
      23.0:compilation_unit <= declarations ^
-     24.0:declarations <= declarations ^ declaration ; recursive
+     24.0:declarations <= declarations ^ declaration
 
    FUNCTION         => shift and goto state 1 30.0
    PROCEDURE        => shift and goto state 2 30.8
@@ -281,7 +282,7 @@ State 9:
 
    loop_statement   goto state 21
 
-   Minimal_Complete_Action => FOR
+   Minimal_Complete_Action => FOR 26.0
 
 State 10:
      29.0:parameter_list <= LEFT_PAREN ^ SYMBOL RIGHT_PAREN
@@ -291,7 +292,7 @@ State 10:
    SYMBOL           => shift and goto state 23 29.0
    default          => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN
+   Minimal_Complete_Action => RIGHT_PAREN 29.1
 
 State 11:
      30.7:subprogram <= FUNCTION SEMICOLON ^
@@ -324,10 +325,10 @@ State 13:
    SEMICOLON        => shift and goto state 24 30.6
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.6
 
 State 14:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
      30.0:subprogram <= FUNCTION name ^ parameter_list block SEMICOLON
      30.1:subprogram <= FUNCTION name ^ parameter_list SEMICOLON
      30.2:subprogram <= FUNCTION name ^ block SEMICOLON
@@ -342,7 +343,7 @@ State 14:
    block            goto state 27
    parameter_list   goto state 28
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.3
 
 State 15:
      30.4:subprogram <= FUNCTION parameter_list ^ block SEMICOLON
@@ -354,10 +355,10 @@ State 15:
 
    block            goto state 30
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.5
 
 State 16:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
      30.8:subprogram <= PROCEDURE name ^ parameter_list END name SEMICOLON
 
    LEFT_PAREN       => shift and goto state 10 29.0
@@ -366,10 +367,10 @@ State 16:
 
    parameter_list   goto state 31
 
-   Minimal_Complete_Action => LEFT_PAREN
+   Minimal_Complete_Action => LEFT_PAREN 29.0
 
 State 17:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
      28.0:name_list <= name ^
 
    COMMA            => reduce 1 tokens to name_list 28.0
@@ -380,17 +381,17 @@ State 17:
    Minimal_Complete_Action => name_list 28.0
 
 State 18:
-     28.1:name_list <= name_list ^ COMMA name ; recursive
+     28.1:name_list <= name_list ^ COMMA name
      32.0:use_clause <= USE name_list ^ SEMICOLON
 
    COMMA            => shift and goto state 32 28.1
    SEMICOLON        => shift and goto state 33 32.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 32.0
 
 State 19:
-     24.0:declarations <= declarations declaration ^ ; recursive
+     24.0:declarations <= declarations declaration ^
 
    FUNCTION         => reduce 2 tokens to declarations 24.0
    PROCEDURE        => reduce 2 tokens to declarations 24.0
@@ -406,7 +407,7 @@ State 20:
    SYMBOL           => shift and goto state 34 26.0
    default          => ERROR
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 26.0
 
 State 21:
      22.0:block <= BEGIN loop_statement ^ EXCEPTION WHEN name END
@@ -416,7 +417,7 @@ State 21:
    EXCEPTION        => shift and goto state 36 22.0
    default          => ERROR
 
-   Minimal_Complete_Action => END
+   Minimal_Complete_Action => END 22.1
 
 State 22:
      29.1:parameter_list <= LEFT_PAREN RIGHT_PAREN ^
@@ -434,7 +435,7 @@ State 23:
    RIGHT_PAREN      => shift and goto state 37 29.0
    default          => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN
+   Minimal_Complete_Action => RIGHT_PAREN 29.0
 
 State 24:
      30.6:subprogram <= FUNCTION block SEMICOLON ^
@@ -448,12 +449,12 @@ State 24:
    Minimal_Complete_Action => subprogram 30.6
 
 State 25:
-     27.0:name <= name DOT ^ SYMBOL ; recursive
+     27.0:name <= name DOT ^ SYMBOL
 
    SYMBOL           => shift and goto state 38 27.0
    default          => ERROR
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.0
 
 State 26:
      30.3:subprogram <= FUNCTION name SEMICOLON ^
@@ -472,7 +473,7 @@ State 27:
    SEMICOLON        => shift and goto state 39 30.2
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.2
 
 State 28:
      30.0:subprogram <= FUNCTION name parameter_list ^ block SEMICOLON
@@ -484,7 +485,7 @@ State 28:
 
    block            goto state 41
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.1
 
 State 29:
      30.5:subprogram <= FUNCTION parameter_list SEMICOLON ^
@@ -503,7 +504,7 @@ State 30:
    SEMICOLON        => shift and goto state 42 30.4
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.4
 
 State 31:
      30.8:subprogram <= PROCEDURE name parameter_list ^ END name SEMICOLON
@@ -511,17 +512,17 @@ State 31:
    END              => shift and goto state 43 30.8
    default          => ERROR
 
-   Minimal_Complete_Action => END
+   Minimal_Complete_Action => END 30.8
 
 State 32:
-     28.1:name_list <= name_list COMMA ^ name ; recursive
+     28.1:name_list <= name_list COMMA ^ name
 
    SYMBOL           => shift and goto state 12 27.1
    default          => ERROR
 
    name             goto state 44
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 33:
      32.0:use_clause <= USE name_list SEMICOLON ^
@@ -540,7 +541,7 @@ State 34:
    IN               => shift and goto state 45 26.0
    default          => ERROR
 
-   Minimal_Complete_Action => IN
+   Minimal_Complete_Action => IN 26.0
 
 State 35:
      22.1:block <= BEGIN loop_statement END ^
@@ -556,7 +557,7 @@ State 36:
    WHEN             => shift and goto state 46 22.0
    default          => ERROR
 
-   Minimal_Complete_Action => WHEN
+   Minimal_Complete_Action => WHEN 22.0
 
 State 37:
      29.0:parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN ^
@@ -569,7 +570,7 @@ State 37:
    Minimal_Complete_Action => parameter_list 29.0
 
 State 38:
-     27.0:name <= name DOT SYMBOL ^ ; recursive
+     27.0:name <= name DOT SYMBOL ^
 
    BEGIN            => reduce 3 tokens to name 27.0
    END              => reduce 3 tokens to name 27.0
@@ -610,7 +611,7 @@ State 41:
    SEMICOLON        => shift and goto state 47 30.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.0
 
 State 42:
      30.4:subprogram <= FUNCTION parameter_list block SEMICOLON ^
@@ -631,11 +632,11 @@ State 43:
 
    name             goto state 48
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 44:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
-     28.1:name_list <= name_list COMMA name ^ ; recursive
+     27.0:name <= name ^ DOT SYMBOL
+     28.1:name_list <= name_list COMMA name ^
 
    COMMA            => reduce 3 tokens to name_list 28.1
    DOT              => shift and goto state 25 27.0
@@ -653,7 +654,7 @@ State 45:
    name             goto state 49
    subtype          goto state 50
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 46:
      22.0:block <= BEGIN loop_statement EXCEPTION WHEN ^ name END
@@ -663,7 +664,7 @@ State 46:
 
    name             goto state 51
 
-   Minimal_Complete_Action => SYMBOL
+   Minimal_Complete_Action => SYMBOL 27.1
 
 State 47:
      30.0:subprogram <= FUNCTION name parameter_list block SEMICOLON ^
@@ -677,17 +678,17 @@ State 47:
    Minimal_Complete_Action => subprogram 30.0
 
 State 48:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
      30.8:subprogram <= PROCEDURE name parameter_list END name ^ SEMICOLON
 
    DOT              => shift and goto state 25 27.0
    SEMICOLON        => shift and goto state 52 30.8
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 30.8
 
 State 49:
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
      31.0:subtype <= name ^
 
    LOOP             => reduce 1 tokens to subtype 31.0
@@ -702,17 +703,17 @@ State 50:
    LOOP             => shift and goto state 53 26.0
    default          => ERROR
 
-   Minimal_Complete_Action => LOOP
+   Minimal_Complete_Action => LOOP 26.0
 
 State 51:
      22.0:block <= BEGIN loop_statement EXCEPTION WHEN name ^ END
-     27.0:name <= name ^ DOT SYMBOL ; recursive
+     27.0:name <= name ^ DOT SYMBOL
 
    END              => shift and goto state 54 22.0
    DOT              => shift and goto state 25 27.0
    default          => ERROR
 
-   Minimal_Complete_Action => END
+   Minimal_Complete_Action => END 22.0
 
 State 52:
      30.8:subprogram <= PROCEDURE name parameter_list END name SEMICOLON ^
@@ -731,7 +732,7 @@ State 53:
    SEMICOLON        => shift and goto state 55 26.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 26.0
 
 State 54:
      22.0:block <= BEGIN loop_statement EXCEPTION WHEN name END ^

@@ -36,7 +36,7 @@ State 0:
    subprogram_declaration goto state 4
    overriding_indicator   goto state 5
 
-   Minimal_Complete_Action => overriding_indicator 10.1
+   Minimal_Complete_Action => 
 
 State 1:
      10.0:overriding_indicator <= OVERRIDING ^
@@ -106,7 +106,7 @@ State 7:
    PROCEDURE              => shift and goto state 9 9.0
    default                => ERROR
 
-   Minimal_Complete_Action => PROCEDURE
+   Minimal_Complete_Action => PROCEDURE 9.0
 
 State 8:
       8.0:compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^
@@ -122,7 +122,7 @@ State 9:
    IDENTIFIER             => shift and goto state 10 9.0
    default                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 9.0
 
 State 10:
       9.0:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON
@@ -130,7 +130,7 @@ State 10:
    SEMICOLON              => shift and goto state 11 9.0
    default                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 9.0
 
 State 11:
       9.0:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^

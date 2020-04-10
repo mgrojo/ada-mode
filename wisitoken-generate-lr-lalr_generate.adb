@@ -504,8 +504,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Recursions : constant WisiToken.Generate.Recursions :=
         (if Partial_Recursion
-         then WisiToken.Generate.Compute_Partial_Recursion (Grammar)
-         else WisiToken.Generate.Compute_Full_Recursion (Grammar));
+         then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
+         else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
         Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
 
@@ -526,6 +526,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
    begin
       WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
+
+      if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("LALR_Generate");
+      end if;
 
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First_Terminal_Sequence, Kernels, Descriptor);
 
@@ -560,6 +565,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Push_Back                   => (others => 0),
             Undo_Reduce                 => (others => 0),
             Minimal_Complete_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Cost_Delta,
+            Minimal_Complete_Recursive_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta,
             Fast_Forward                => Default_McKenzie_Param.Fast_Forward,
             Matching_Begin              => Default_McKenzie_Param.Matching_Begin,
             Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,

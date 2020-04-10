@@ -134,7 +134,8 @@ package body WisiToken.BNF.Generate_Utils is
                         I := I + 1;
                      end loop;
                   end if;
-                  RHSs (RHS_Index) := (Tokens => Tokens, Action => null, Check => null, Recursive => False);
+                  RHSs (RHS_Index) :=
+                    (Tokens => Tokens, Action => null, Check => null, Recursion => <>);
                   if Length (Right_Hand_Side.Action) > 0 then
                      Action_All_Empty := False;
                      Action_Names (RHS_Index) := new String'
@@ -678,6 +679,7 @@ package body WisiToken.BNF.Generate_Utils is
          Push_Back                   => (others => Item.Default_Push_Back),
          Undo_Reduce                 => (others => Item.Default_Push_Back), -- no separate default for undo_reduce
          Minimal_Complete_Cost_Delta => Item.Minimal_Complete_Cost_Delta,
+         Minimal_Complete_Recursive_Cost_Delta => Item.Minimal_Complete_Recursive_Cost_Delta,
          Fast_Forward                => Item.Fast_Forward,
          Matching_Begin              => Item.Matching_Begin,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,

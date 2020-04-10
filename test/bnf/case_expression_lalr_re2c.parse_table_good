@@ -42,7 +42,7 @@ State 0:
 
    case_expression   goto state 2
 
-   Minimal_Complete_Action => WHEN
+   Minimal_Complete_Action => 
 
 State 1:
      11.0:case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor
@@ -58,7 +58,7 @@ State 1:
    factor_list       goto state 9
    range_nt          goto state 10
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 15.0
 
 State 2:
      10.0:wisitoken_accept <= case_expression ^ Wisi_EOI
@@ -87,7 +87,7 @@ State 4:
    TICK              => shift and goto state 11 17.0
    default           => ERROR
 
-   Minimal_Complete_Action => factor 15.0
+   Minimal_Complete_Action => (factor 15.0, TICK 17.0)
 
 State 5:
      14.0:discrete_choice <= choice_expression ^
@@ -111,7 +111,7 @@ State 7:
    EQUAL_GREATER     => shift and goto state 12 11.0
    default           => ERROR
 
-   Minimal_Complete_Action => EQUAL_GREATER
+   Minimal_Complete_Action => EQUAL_GREATER 11.0
 
 State 8:
      16.0:factor_list <= factor ^
@@ -130,7 +130,7 @@ State 9:
    EQUAL_GREATER     => reduce 1 tokens to choice_relation 13.0
    default           => ERROR
 
-   Minimal_Complete_Action => choice_relation 13.0
+   Minimal_Complete_Action => (choice_relation 13.0, DOT_DOT 17.1)
 
 State 10:
      14.1:discrete_choice <= range_nt ^
@@ -146,7 +146,7 @@ State 11:
    RANGE             => shift and goto state 14 17.0
    default           => ERROR
 
-   Minimal_Complete_Action => RANGE
+   Minimal_Complete_Action => RANGE 17.0
 
 State 12:
      11.0:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor
@@ -157,7 +157,7 @@ State 12:
 
    factor            goto state 16
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 15.0
 
 State 13:
      17.1:range_nt <= factor_list DOT_DOT ^ factor_list
@@ -169,7 +169,7 @@ State 13:
    factor            goto state 8
    factor_list       goto state 17
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 15.0
 
 State 14:
      17.0:range_nt <= IDENTIFIER TICK RANGE ^

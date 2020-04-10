@@ -29,7 +29,7 @@ State 0:
    compilation_unit        goto state 2
    parameter_specification goto state 3
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => 
 
 State 1:
       8.0:parameter_specification <= IDENTIFIER ^ mode name
@@ -58,7 +58,7 @@ State 3:
 
    parameter_specification goto state 6
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 8.0
 
 State 4:
       6.0:mode <= IN ^
@@ -76,7 +76,7 @@ State 5:
 
    name                    goto state 8
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 7.0
 
 State 6:
       5.0:compilation_unit <= parameter_specification parameter_specification ^

@@ -142,7 +142,7 @@ package WisiToken is
    --  is a terminal) or to Image_Width.
 
    function Image (Item : in Token_ID; Desc : in Descriptor) return String;
-   --  Return Desc.Image (Item), or empty string for Invalid_Token_ID.
+   --  Return Desc.Image (Item), or "-" for Invalid_Token_ID.
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Token_ID);
 
@@ -251,6 +251,16 @@ package WisiToken is
    function "+" (Item : in Production_ID) return Production_ID_Arrays.Vector is (To_Vector ((1 => Item)));
 
    type Token_Array_Production_ID is array (Token_ID range <>) of Production_ID;
+
+   type Recursion_Class is (None, Direct_Left, Other_Left, Other, Other_Right, Direct_Right);
+   function Image (Item : in Recursion_Class) return String
+     is (case Item is
+         when None         => "None",
+         when Direct_Left  => "Direct_Left",
+         when Other_Left   => "Other_Left",
+         when Other        => "Other",
+         when Other_Right  => "Other_Right",
+         when Direct_Right => "Direct_Right");
 
    ----------
    --  Tokens

@@ -39,7 +39,7 @@ State 0:
 
    if_statement     goto state 2
 
-   Minimal_Complete_Action => IF
+   Minimal_Complete_Action => 
 
 State 1:
      12.0:if_statement <= IF ^ expression THEN statement nonterminal_015 END IF SEMICOLON
@@ -50,7 +50,7 @@ State 1:
 
    expression       goto state 4
 
-   Minimal_Complete_Action => TRUE
+   Minimal_Complete_Action => TRUE 14.0
 
 State 2:
      11.0:wisitoken_accept <= if_statement ^ Wisi_EOI
@@ -75,7 +75,7 @@ State 4:
    THEN             => shift and goto state 5 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => THEN
+   Minimal_Complete_Action => THEN 12.0
 
 State 5:
      12.0:if_statement <= IF expression THEN ^ statement nonterminal_015 END IF SEMICOLON
@@ -86,7 +86,7 @@ State 5:
 
    statement        goto state 7
 
-   Minimal_Complete_Action => GOTO
+   Minimal_Complete_Action => GOTO 13.0
 
 State 6:
      13.0:statement <= GOTO ^ SEMICOLON
@@ -94,7 +94,7 @@ State 6:
    SEMICOLON        => shift and goto state 8 13.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 13.0
 
 State 7:
      12.0:if_statement <= IF expression THEN statement ^ nonterminal_015 END IF SEMICOLON
@@ -106,7 +106,7 @@ State 7:
 
    nonterminal_015  goto state 11
 
-   Minimal_Complete_Action => END
+   Minimal_Complete_Action => END 12.1
 
 State 8:
      13.0:statement <= GOTO SEMICOLON ^
@@ -124,7 +124,7 @@ State 9:
    IF               => shift and goto state 12 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => IF
+   Minimal_Complete_Action => IF 12.1
 
 State 10:
      16.0:nonterminal_015 <= ELSIF ^ statement nonterminal_012
@@ -135,7 +135,7 @@ State 10:
 
    statement        goto state 13
 
-   Minimal_Complete_Action => GOTO
+   Minimal_Complete_Action => GOTO 13.0
 
 State 11:
      12.0:if_statement <= IF expression THEN statement nonterminal_015 ^ END IF SEMICOLON
@@ -143,7 +143,7 @@ State 11:
    END              => shift and goto state 14 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => END
+   Minimal_Complete_Action => END 12.0
 
 State 12:
      12.1:if_statement <= IF expression THEN statement END IF ^ SEMICOLON
@@ -151,7 +151,7 @@ State 12:
    SEMICOLON        => shift and goto state 15 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 12.1
 
 State 13:
      16.0:nonterminal_015 <= ELSIF statement ^ nonterminal_012
@@ -163,7 +163,7 @@ State 13:
 
    nonterminal_012  goto state 17
 
-   Minimal_Complete_Action => nonterminal_015 16.1
+   Minimal_Complete_Action => (ELSIF 15.0, nonterminal_015 16.1)
 
 State 14:
      12.0:if_statement <= IF expression THEN statement nonterminal_015 END ^ IF SEMICOLON
@@ -171,7 +171,7 @@ State 14:
    IF               => shift and goto state 18 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => IF
+   Minimal_Complete_Action => IF 12.0
 
 State 15:
      12.1:if_statement <= IF expression THEN statement END IF SEMICOLON ^
@@ -190,7 +190,7 @@ State 16:
 
    statement        goto state 19
 
-   Minimal_Complete_Action => GOTO
+   Minimal_Complete_Action => GOTO 13.0
 
 State 17:
      16.0:nonterminal_015 <= ELSIF statement nonterminal_012 ^
@@ -206,7 +206,7 @@ State 18:
    SEMICOLON        => shift and goto state 20 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 12.0
 
 State 19:
      15.0:nonterminal_012 <= ELSIF statement ^ ELSE statement
@@ -216,7 +216,7 @@ State 19:
    ELSE             => shift and goto state 21 15.0
    default          => ERROR
 
-   Minimal_Complete_Action => nonterminal_012 15.1
+   Minimal_Complete_Action => (ELSE 15.0, nonterminal_012 15.1)
 
 State 20:
      12.0:if_statement <= IF expression THEN statement nonterminal_015 END IF SEMICOLON ^
@@ -234,7 +234,7 @@ State 21:
 
    statement        goto state 22
 
-   Minimal_Complete_Action => GOTO
+   Minimal_Complete_Action => GOTO 13.0
 
 State 22:
      15.0:nonterminal_012 <= ELSIF statement ELSE statement ^

@@ -32,7 +32,7 @@ State 0:
    compilation_unit  goto state 2
    accept_statement  goto state 3
 
-   Minimal_Complete_Action => ACCEPT
+   Minimal_Complete_Action => 
 
 State 1:
       9.0:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON
@@ -42,7 +42,7 @@ State 1:
 
    name              goto state 5
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 10.0
 
 State 2:
       7.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
@@ -60,7 +60,7 @@ State 3:
 
    accept_statement  goto state 6
 
-   Minimal_Complete_Action => ACCEPT
+   Minimal_Complete_Action => ACCEPT 9.0
 
 State 4:
      10.0:name <= IDENTIFIER ^
@@ -96,7 +96,7 @@ State 7:
    IDENTIFIER        => shift and goto state 9 11.0
    default           => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => IDENTIFIER 11.0
 
 State 8:
       9.0:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON
@@ -104,7 +104,7 @@ State 8:
    SEMICOLON         => shift and goto state 10 9.0
    default           => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 9.0
 
 State 9:
      11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN
@@ -112,7 +112,7 @@ State 9:
    RIGHT_PAREN       => shift and goto state 11 11.0
    default           => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN
+   Minimal_Complete_Action => RIGHT_PAREN 11.0
 
 State 10:
       9.0:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^

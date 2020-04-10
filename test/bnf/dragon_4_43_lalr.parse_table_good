@@ -11,7 +11,7 @@ Tokens:
 Productions:
 5.0: wisitoken_accept <= upper_s Wisi_EOI
 6.0: upper_s <= upper_c upper_c
-7.0: upper_c <= LOWER_C upper_c ; recursive
+7.0: upper_c <= LOWER_C upper_c ; (2 => Direct_Right)
 7.1: upper_c <= LOWER_D
 
 Recursions:
@@ -28,10 +28,10 @@ State 0:
    upper_s          goto state 3
    upper_c          goto state 4
 
-   Minimal_Complete_Action => LOWER_D
+   Minimal_Complete_Action => 
 
 State 1:
-      7.0:upper_c <= LOWER_C ^ upper_c ; recursive
+      7.0:upper_c <= LOWER_C ^ upper_c
 
    LOWER_C          => shift and goto state 1 7.0
    LOWER_D          => shift and goto state 2 7.1
@@ -39,7 +39,7 @@ State 1:
 
    upper_c          goto state 5
 
-   Minimal_Complete_Action => LOWER_D
+   Minimal_Complete_Action => LOWER_D 7.1
 
 State 2:
       7.1:upper_c <= LOWER_D ^
@@ -68,10 +68,10 @@ State 4:
 
    upper_c          goto state 6
 
-   Minimal_Complete_Action => LOWER_D
+   Minimal_Complete_Action => LOWER_D 7.1
 
 State 5:
-      7.0:upper_c <= LOWER_C upper_c ^ ; recursive
+      7.0:upper_c <= LOWER_C upper_c ^
 
    LOWER_C          => reduce 2 tokens to upper_c 7.0
    LOWER_D          => reduce 2 tokens to upper_c 7.0

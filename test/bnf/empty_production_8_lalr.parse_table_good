@@ -14,7 +14,7 @@ Tokens:
 
 Productions:
 7.0: wisitoken_accept <= object_declaration_list Wisi_EOI
-8.0: object_declaration_list <= object_declaration_list object_declaration ; recursive
+8.0: object_declaration_list <= object_declaration_list object_declaration ; (1 => Direct_Left)
 8.1: object_declaration_list <= object_declaration
 9.0: object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON
 9.1: object_declaration <= IDENTIFIER constant_opt COLON_EQUAL SEMICOLON
@@ -36,7 +36,7 @@ State 0:
    object_declaration_list goto state 2
    object_declaration      goto state 3
 
-   Minimal_Complete_Action => IDENTIFIER
+   Minimal_Complete_Action => 
 
 State 1:
       9.0:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON
@@ -56,7 +56,7 @@ State 1:
 
 State 2:
       7.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI
-      8.0:object_declaration_list <= object_declaration_list ^ object_declaration ; recursive
+      8.0:object_declaration_list <= object_declaration_list ^ object_declaration
 
    IDENTIFIER              => shift and goto state 1 9.0
    Wisi_EOI                => accept it 7.0
@@ -110,10 +110,10 @@ State 7:
    COLON_EQUAL             => shift and goto state 10 9.1
    default                 => ERROR
 
-   Minimal_Complete_Action => COLON_EQUAL
+   Minimal_Complete_Action => COLON_EQUAL 9.1
 
 State 8:
-      8.0:object_declaration_list <= object_declaration_list object_declaration ^ ; recursive
+      8.0:object_declaration_list <= object_declaration_list object_declaration ^
 
    IDENTIFIER              => reduce 2 tokens to object_declaration_list 8.0
    Wisi_EOI                => reduce 2 tokens to object_declaration_list 8.0
@@ -127,7 +127,7 @@ State 9:
    SEMICOLON               => shift and goto state 11 9.0
    default                 => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 9.0
 
 State 10:
       9.1:object_declaration <= IDENTIFIER constant_opt COLON_EQUAL ^ SEMICOLON
@@ -135,7 +135,7 @@ State 10:
    SEMICOLON               => shift and goto state 12 9.1
    default                 => ERROR
 
-   Minimal_Complete_Action => SEMICOLON
+   Minimal_Complete_Action => SEMICOLON 9.1
 
 State 11:
       9.0:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^

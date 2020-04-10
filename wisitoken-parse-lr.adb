@@ -161,7 +161,7 @@ package body WisiToken.Parse.LR is
         Item.Length_After_Dot'Image & ", " &
         Image (Item.Reduce_Production) & ", " &
         Item.Reduce_Count'Image & ", " &
-        (if Item.Immediate_Recursive then "True" else "False") & ")";
+        Image (Item.Recursion) & ")";
    end Strict_Image;
 
    function Strict_Image (Item : in Minimal_Action) return String
@@ -211,15 +211,14 @@ package body WisiToken.Parse.LR is
       Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
       Production      : in     Production_ID;
-      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action : constant Parse_Action_Rec :=
         (case Verb is
-         when Reduce    => (Reduce, Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count),
-         when Accept_It => (Accept_It, Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Reduce    => (Reduce, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Accept_It => (Accept_It, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
          when others    => raise SAL.Programmer_Error);
    begin
       Add (State.Action_List, Symbol, Action);
@@ -229,7 +228,6 @@ package body WisiToken.Parse.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
-      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
@@ -238,7 +236,7 @@ package body WisiToken.Parse.LR is
       --  for this state; no conflicts, all the same action, Recursive.
       for Symbol of Symbols loop
          Add_Action
-           (State, Symbol, Reduce, Production, Recursive, RHS_Token_Count,
+           (State, Symbol, Reduce, Production, RHS_Token_Count,
             Semantic_Action, Semantic_Check);
       end loop;
    end Add_Action;
@@ -247,13 +245,12 @@ package body WisiToken.Parse.LR is
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
-      Recursive         : in     Boolean;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     Semantic_Checks.Semantic_Check)
    is
       Conflict : constant Parse_Action_Rec :=
-        (Reduce, Reduce_Production, Recursive, Semantic_Action, Semantic_Check, RHS_Token_Count);
+        (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
 
       Ref : constant Action_Arrays.Find_Reference_Constant_Type := State.Action_List.Find_Constant (Symbol);
 
@@ -508,8 +505,6 @@ package body WisiToken.Parse.LR is
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>
-                           Node_J.Item.Recursive := Next_Boolean;
-
                            if Next_Boolean then
                               Node_J.Item.Action := Actions
                                 (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Action;

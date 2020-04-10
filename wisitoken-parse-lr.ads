@@ -72,11 +72,6 @@ package WisiToken.Parse.LR is
 
       when Reduce | Accept_It =>
          --  Production.LHS is the result nonterm
-
-         Recursive : Boolean := False;
-         --  True if this action is part of a recursion cycle in the grammar
-         --  that needs resolving during error recovery.
-
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
          Token_Count : Ada.Containers.Count_Type                := 0;
@@ -148,7 +143,7 @@ package WisiToken.Parse.LR is
       --  Length_After_Dot = 0. Reduce_Production /= Production when item
       --  after dot is nullable.
 
-      Immediate_Recursive : Boolean := False;
+      Recursion : Recursion_Class := None;
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
@@ -215,7 +210,6 @@ package WisiToken.Parse.LR is
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
       Production      : in     Production_ID;
-      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
@@ -225,7 +219,6 @@ package WisiToken.Parse.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
-      Recursive       : in     Boolean;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
@@ -236,7 +229,6 @@ package WisiToken.Parse.LR is
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
-      Recursive         : in     Boolean;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
@@ -260,7 +252,8 @@ package WisiToken.Parse.LR is
       Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
 
-      Minimal_Complete_Cost_Delta : Integer;
+      Minimal_Complete_Cost_Delta           : Integer;
+      Minimal_Complete_Recursive_Cost_Delta : Integer;
       --  Reduction in cost due to using Minimal_Complete_Action.
 
       Matching_Begin : Integer;
@@ -284,22 +277,23 @@ package WisiToken.Parse.LR is
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
-     (First_Terminal              => Token_ID'Last,
-      Last_Terminal               => Token_ID'First,
-      First_Nonterminal           => Token_ID'Last,
-      Last_Nonterminal            => Token_ID'First,
-      Insert                      => (others => 0),
-      Delete                      => (others => 0),
-      Push_Back                   => (others => 0),
-      Undo_Reduce                 => (others => 0),
-      Minimal_Complete_Cost_Delta => -1,
-      Fast_Forward                => 0,
-      Matching_Begin              => 0,
-      Ignore_Check_Fail           => 0,
-      Task_Count                  => System.Multiprocessors.CPU_Range'Last,
-      Check_Limit                 => 4,
-      Check_Delta_Limit           => Natural'Last,
-      Enqueue_Limit               => Natural'Last);
+     (First_Terminal                        => Token_ID'Last,
+      Last_Terminal                         => Token_ID'First,
+      First_Nonterminal                     => Token_ID'Last,
+      Last_Nonterminal                      => Token_ID'First,
+      Insert                                => (others => 0),
+      Delete                                => (others => 0),
+      Push_Back                             => (others => 0),
+      Undo_Reduce                           => (others => 0),
+      Minimal_Complete_Cost_Delta           => -2,
+      Minimal_Complete_Recursive_Cost_Delta => -1,
+      Fast_Forward                          => 0,
+      Matching_Begin                        => 0,
+      Ignore_Check_Fail                     => 0,
+      Task_Count                            => System.Multiprocessors.CPU_Range'Last,
+      Check_Limit                           => 4,
+      Check_Delta_Limit                     => Natural'Last,
+      Enqueue_Limit                         => Natural'Last);
 
    type Parse_Table
      (State_First       : State_Index;

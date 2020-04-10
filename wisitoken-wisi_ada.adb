@@ -47,17 +47,17 @@ package body WisiToken.Wisi_Ada is
 
    function "+" (Tokens : in Token_ID_Arrays.Vector; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Tokens, Recursive => False, Action => Action, Check => null);
+      return (Tokens, Recursion => <>, Action => Action, Check => null);
    end "+";
 
    function "+" (Tokens : in Token_ID; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Only (Tokens), False, Action, null);
+      return (Only (Tokens), Recursion => <>, Action => Action, Check => null);
    end "+";
 
    function "+" (Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Token_ID_Arrays.Empty_Vector, False, Action, null);
+      return (Tokens => <>, Recursion => <>, Action => Action, Check => null);
    end "+";
 
    function Only (Item : in WisiToken.Productions.Right_Hand_Side) return WisiToken.Productions.RHS_Arrays.Vector

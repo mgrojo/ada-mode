@@ -171,12 +171,10 @@ package body WisiToken.Generate is
                   declare
                      RHS : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (RHS_Index);
                   begin
-                     if RHS.Tokens.Length = 0 then
+                     if RHS.Tokens.Length = 0 or else
+                       (RHS.Tokens (1) in Nonterminal and then Result (RHS.Tokens (1)) /= Invalid_Production_ID)
+                     then
                         Result (Prod.LHS) := (Prod.LHS, RHS_Index);
-                        Changed := True;
-
-                     elsif RHS.Tokens (1) in Nonterminal and then Result (RHS.Tokens (1)) /= Invalid_Production_ID then
-                        Result (Prod.LHS) := Result (RHS.Tokens (1));
                         Changed := True;
                      end if;
                   end;
@@ -427,7 +425,7 @@ package body WisiToken.Generate is
                              ("(" & Trimmed_Image (LHS) & ", " & Trimmed_Image (Tokens (I)) & ","  & J'Image & ")");
                            J := J + 1;
                         end if;
-                        Graph.Add_Edge (LHS, Tokens (I), (RHS => RHS));
+                        Graph.Add_Edge (LHS, Tokens (I), (RHS, I));
                      end if;
                   end loop;
                end;
@@ -441,7 +439,10 @@ package body WisiToken.Generate is
       return Graph;
    end To_Graph;
 
-   function Compute_Full_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions
+   function Compute_Full_Recursion
+     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
+     return Recursions
    is
       Graph : constant Grammar_Graphs.Graph := To_Graph (Grammar);
    begin
@@ -452,14 +453,34 @@ package body WisiToken.Generate is
          Grammar_Graphs.Sort_Paths.Sort (Result.Recursions);
 
          --  Set Recursion components in Grammar
+         for LHS of Grammar loop
+            for RHS of LHS.RHSs loop
+               RHS.Recursion.Set_First_Last (RHS.Tokens.First_Index, RHS.Tokens.Last_Index);
+            end loop;
+         end loop;
+
          for Path of Result.Recursions loop
             declare
+               use WisiToken.Productions;
                Previous_Item_LHS : Token_ID := Path (Path'Last).Vertex;
             begin
                for Item of Path loop
                   for Edge of Item.Edges loop
-                     --  LHS = Previous_Item_LHS, RHS = Edge.Data.RHS
-                     Grammar (Previous_Item_LHS).RHSs (Edge.Data.RHS).Recursive := True;
+                     declare
+                        LHS : Token_ID renames Previous_Item_LHS;
+                        RHS : Right_Hand_Side renames Grammar (LHS).RHSs (Edge.Data.RHS);
+                     begin
+                        RHS.Recursion (Edge.Data.Token_Index) :=
+                          (if Edge.Data.Token_Index = RHS.Tokens.First_Index then
+                             (if LHS = RHS.Tokens (RHS.Tokens.First_Index)
+                              then Direct_Left
+                              else Other_Left)
+                           elsif Edge.Data.Token_Index = RHS.Tokens.Last_Index then
+                             (if LHS = RHS.Tokens (RHS.Tokens.Last_Index)
+                              then Direct_Right
+                              else Other_Right)
+                           else Other);
+                     end;
                   end loop;
                   Previous_Item_LHS := Item.Vertex;
                end loop;
@@ -467,6 +488,10 @@ package body WisiToken.Generate is
          end loop;
 
          if Trace_Generate_Minimal_Complete > Extra then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("Productions:");
+            WisiToken.Productions.Put (Grammar, Descriptor);
+            Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("full recursions:");
             for I in Result.Recursions.First_Index .. Result.Recursions.Last_Index loop
                Ada.Text_IO.Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Result.Recursions (I)));
@@ -475,7 +500,10 @@ package body WisiToken.Generate is
       end return;
    end Compute_Full_Recursion;
 
-   function Compute_Partial_Recursion (Grammar : in out WisiToken.Productions.Prod_Arrays.Vector) return Recursions
+   function Compute_Partial_Recursion
+     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
+     return Recursions
    is
       use Grammar_Graphs;
       Graph      : constant Grammar_Graphs.Graph := To_Graph (Grammar);
@@ -510,16 +538,35 @@ package body WisiToken.Generate is
          end;
 
          --  Set Recursion components in Grammar
+         for LHS of Grammar loop
+            for RHS of LHS.RHSs loop
+               RHS.Recursion.Set_First_Last (RHS.Tokens.First_Index, RHS.Tokens.Last_Index);
+            end loop;
+         end loop;
+
          for Path of Result.Recursions loop
             for Item of Path loop
                for Edge of Item.Edges loop
-                  --  LHS = Item.Vertex, RHS = Edge.Data.RHS
-                  Grammar (Item.Vertex).RHSs (Edge.Data.RHS).Recursive := True;
+                  declare
+                     LHS : Token_ID renames Item.Vertex;
+                     RHS : WisiToken.Productions.Right_Hand_Side renames Grammar (LHS).RHSs (Edge.Data.RHS);
+                  begin
+                     RHS.Recursion (Edge.Data.Token_Index) :=
+                       (if Edge.Data.Token_Index = RHS.Tokens.First_Index
+                        then (if LHS = RHS.Tokens (RHS.Tokens.First_Index)
+                              then Direct_Left
+                              else Other_Left)
+                        else Other);
+                  end;
                end loop;
             end loop;
          end loop;
 
          if Trace_Generate_Minimal_Complete > Extra then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("Productions:");
+            WisiToken.Productions.Put (Grammar, Descriptor);
+            Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("partial recursions:");
             for I in Result.Recursions.First_Index .. Result.Recursions.Last_Index loop
                Ada.Text_IO.Put_Line (Trimmed_Image (I) & " => " & Grammar_Graphs.Image (Result.Recursions (I)));
