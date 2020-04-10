@@ -19,6 +19,7 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Process_Actions;
+with Ada_Process_LR1_Main;
 with Ada_Process_LALR_Main;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada;
@@ -32,7 +33,8 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line (Standard_Error, "dump_wisitoken_corrected <file> [verbosity]");
+      Put_Line (Standard_Error, "dump_wisitoken_corrected <alg> <file> [verbosity]");
+      Put_Line ("alg = 1 for LR1, 0 for LALR");
    end Put_Usage;
 
    Verbosity : Integer := 0;
@@ -45,9 +47,11 @@ is
       use Ada_Process_Actions;
       use WisiToken.Syntax_Trees;
 
-      Punctuation_Image : constant Token_ID_Array_String (+RIGHT_PAREN_ID .. +TICK_2_ID) :=
+      Punctuation_Image : constant Token_ID_Array_String (+LEFT_PAREN_ID .. +TICK_2_ID) :=
         (new String'("("),
+         new String'("["),
          new String'(")"),
+         new String'("]"),
          new String'("&"),
          new String'("@"),
          new String'("|"),
@@ -104,27 +108,37 @@ is
    end Image;
 
 begin
-   Ada_Process_LALR_Main.Create_Parser
-     (Parser,
-      WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-      WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
-      WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-      Trace'Unrestricted_Access,
-      User_Data => null);
-
    declare
       use Ada.Command_Line;
    begin
       Set_Exit_Status (Success);
-
-      if Argument_Count < 1 then
+      if Argument_Count < 2 then
          Put_Usage;
          Set_Exit_Status (Failure);
          return;
       end if;
 
+      if Argument (1) = "1" then
+         Ada_Process_LR1_Main.Create_Parser
+           (Parser,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
+            Trace'Unrestricted_Access,
+            User_Data => null,
+            Text_Rep_File_Name => "../ada_lr1_parse_table.txt");
+      else
+         Ada_Process_LALR_Main.Create_Parser
+           (Parser,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
+            Trace'Unrestricted_Access,
+            User_Data => null);
+      end if;
+
       declare
-         File_Name : constant String := Argument (1);
+         File_Name : constant String := Argument (2);
       begin
          Parser.Lexer.Reset_With_File (File_Name);
       exception
@@ -134,8 +148,8 @@ begin
          return;
       end;
 
-      if Argument_Count > 1 then
-         Verbosity := Integer'Value (Argument (2));
+      if Argument_Count > 2 then
+         Verbosity := Integer'Value (Argument (3));
       end if;
    end;
 

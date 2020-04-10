@@ -116,7 +116,8 @@ before that as the token."
 	       (skip-syntax-forward " ")
 	       (skip-syntax-forward "w_."))
 	     (point)))
-	  (funcall (cdr skel) name)
+	  (let ((skeleton-end-newline nil))
+	    (funcall (cdr skel) name))
 	  (setq handled t))
 
       ;; word in point .. end is not a token; assume it is a name
@@ -130,10 +131,17 @@ before that as the token."
 	  ;; on tokens and placeholders.
 	  (save-excursion (wisi-case-adjust-region (point) end)))
 
-	(wisi-skel-expand (buffer-substring-no-properties (point) end))
-	(setq handled t)))
+	(condition-case-unless-debug nil
+	    (wisi-skel-expand (buffer-substring-no-properties (point) end))
+	  (setq handled t)
+	  (user-error ;; leave handled nil
+	   ))
+	))
 
     (when (not handled)
+      (setq name (buffer-substring-no-properties (point) end))
+      ;; restore point
+      (goto-char end)
       (user-error "'%s' is not a skeleton token" name))
     ))
 

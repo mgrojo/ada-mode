@@ -219,11 +219,36 @@ wisitoken-libadalang-diff : wisitoken-tokens libadalang-tokens
 	rm -f *.diff
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u wisitoken-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
 
+ifeq ($(shell uname),Linux)
+EXE_EXT :=
+
+GNAT_EXE    := $(shell which gnat)
+INSTALL_BIN := $(dir $(GNAT_EXE))
+
+else ifeq ($(shell uname),Darwin)
+EXE_EXT :=
+
+GNAT_EXE    := $(shell which gnat)
+INSTALL_BIN := $(dir $(GNAT_EXE))
+
+else
+# windows
+EXE_EXT := .exe
+
+# make can't see 'type', so we use 'which'
+GNAT_EXE    := $(shell cygpath --mixed $(shell which gnat))
+INSTALL_BIN := $(dir $(GNAT_EXE))
+
+endif
+
+# default to LR1 for error correction
+DUMP_ALG ?= 1
+
 wisitoken-tokens/%.tokens : dump_wisitoken_corrected$(EXE_EXT)
-	../dump_wisitoken_corrected  ../test/$* $(VERBOSE) > wisitoken-tokens/$*.tokens
+	../dump_wisitoken_corrected $(DUMP_ALG) ../test/$* $(DUMP_VERBOSE) > wisitoken-tokens/$*.tokens
 
 libadalang-tokens/%.tokens : dump_libadalang_corrected$(EXE_EXT)
-	../dump_libadalang_corrected  ../test/$* $(VERBOSE) > libadalang-tokens/$*.tokens
+	../dump_libadalang_corrected  ../test/$* $(DUMP_VERBOSE) > libadalang-tokens/$*.tokens
 
 %.tokens.diff : wisitoken-tokens/%.tokens libadalang-tokens/%.tokens
 	diff -u wisitoken-tokens/$*.tokens libadalang-tokens/$*.tokens > $*.tokens.diff
@@ -396,28 +421,6 @@ uninstall-elpa :
 # We don't kill emacs here, so we can check for compilation errors/warnings
 install-elpa :
 	emacs -Q --eval '(load-file "install-elpa.el")'
-
-ifeq ($(shell uname),Linux)
-EXE_EXT :=
-
-GNAT_EXE    := $(shell which gnat)
-INSTALL_BIN := $(dir $(GNAT_EXE))
-
-else ifeq ($(shell uname),Darwin)
-EXE_EXT :=
-
-GNAT_EXE    := $(shell which gnat)
-INSTALL_BIN := $(dir $(GNAT_EXE))
-
-else
-# windows
-EXE_EXT := .exe
-
-# make can't see 'type', so we use 'which'
-GNAT_EXE    := $(shell cygpath --mixed $(shell which gnat))
-INSTALL_BIN := $(dir $(GNAT_EXE))
-
-endif
 
 # In December 2016, GNATCOLL changed its Xref interface. First, the
 # GPR was split out; and second, one of the subprogram

@@ -916,7 +916,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  1) There is a missing 'end;' before the <variable_name>. See
          --  test/ada_mode-recover_25.adb. Minimal_Complete now handles this
          --  case, but we enqueue the same solution here at lower cost, so it
-         --  can compete with the solution for case 2..
+         --  can compete with the solution for case 2.
          --
          --  2) There is an extra 'begin' before the <variable_name>. See
          --  test/ada_mode-recover_27.adb.
@@ -1102,29 +1102,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       end Matching_Begin_For_End;
 
    begin
-      if Config.Stack.Depth > 0 and then Config.Stack.Peek.Token.ID = +END_ID then
-         Matching_Tokens := Matching_Begin_For_End (1);
+      case To_Token_Enum (Tokens (1)) is
+      when END_ID =>
+         Matching_Tokens := Matching_Begin_For_End (2);
 
-      else
-         case To_Token_Enum (Tokens (1)) is
-         when END_ID =>
-            Matching_Tokens := Matching_Begin_For_End (2);
+      when ELSE_ID | ELSIF_ID | THEN_ID =>
+         Matching_Tokens := To_Vector (+IF_ID);
 
-         when ELSE_ID | ELSIF_ID | THEN_ID =>
-            Matching_Tokens := To_Vector (+IF_ID);
+      when EXCEPTION_ID =>
+         Matching_Tokens := To_Vector (+BEGIN_ID);
 
-         when EXCEPTION_ID =>
-            Matching_Tokens := To_Vector (+BEGIN_ID);
+         --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
 
-            --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
+      when WHEN_ID =>
+         Matching_Tokens := To_Vector ((+CASE_ID, +IDENTIFIER_ID, +IS_ID));
 
-         when WHEN_ID =>
-            Matching_Tokens := To_Vector ((+CASE_ID, +IDENTIFIER_ID, +IS_ID));
-
-         when others =>
-            null;
-         end case;
-      end if;
+      when others =>
+         null;
+      end case;
 
       if Config.Stack.Peek.Token.ID = +END_ID and
         ((Tokens (1) = +IDENTIFIER_ID and

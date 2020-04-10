@@ -45,35 +45,94 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-use hippie-expand to put both wisi-skel-expand and completion-at-point on C-e
-    testing
+error in resume:   test/ada_mode-recover_35.adb
+recover timed out: test/ada_mode-recover_34.adb
+
+build.sh:
+    handle user already set GPR_PROJECT_PATH
+        just use -aP $WISI_DIR?
+
+    Recent GNATPro releases do not need 'with gnat_util;' anymore.
+        See: ' [T403-009 <https://gt3-prod-2.adacore.com/#/tn/T403-009>] #422 gnat_util for GNAT-Pro'
+        on Eurocontrol's AdaCore-account
+
+        add to .gpr.gp
+
+add to user guide:
+    C-u C-u C-c C-d will not find bodies of public items; they are defined in the spec file, not the body
+
+
+add "don't trust parser-provided text positions if buffer is modified" to wisi manual
+
+try jit-lock-stealth-time instead of -defer-time
+
+indent bugs:
+    State.Kernel (I) :=
+      (Production        => Item.Prod,
+       Recursion         =>
+       --  Item.Recursion is used by at generate time by Delete_Non_Minimal
+         ((case To_Index (Item.Dot) is
+
+        comment should align with expression, not discrete_choice
+
+
+    (if Recursion (1) /= None
+      --  case 2
+    then RHS.Recursion (1)),
+
+        comment should align with 'then'
+
+align bug:
+   function Image (Item : in Recursion_Class) return String
+     is (case Item is
+         when None        => "None",
+         when Direct_Left => "Direct_Left",
+         when Other_Left  => "Other_Left",
+         when Other => "Other",
+         when Other_Right => "Other_Right",
+         when Direct_Right => "Direct_Right",
+         when Other_Last => "Other_Last");
+
+    use parser
+
+fix "string not terminated by end of line" bug
+    use parser to fontify strings
+
+try adding elisp access to BEG_UNCHANGED, END_UNCHANGED
+    allows moving wisi-after-change actions into wisi--post-change?
+
+recover hits enqueue_limit
+    parse 1 "wisitoken-generate-lr.adb" 43571 44808 44077 43571 1085 1116
+    can't reproduce with smaller file
+    copied full file to test/debug.adb
+    no error on full file parse
+
+
+move EXE_EXT, GNAT_EXE, INSTALL_BIN into makefile.conf
+
+fix blinking fringe mark when type "--"
+    delay the display of the fringe mark (using a timer), without delaying font-lock itself
 
 change "git clone" in https://savannah.nongnu.org/git/?group=ada-mode
     to "git clone -b org.emacs.ada-mode"
     3 Mar 2020: sent email to savannah-hackers
         https://lists.gnu.org/archive/html/savannah-hackers/2020-03/msg00000.html
 
-add re2c install to wisitoken user guide
-    fix title
-    remove from ada-mode home page; move to stephe-leake.org
+wisitoken user guide
+    c:/Projects/org.wisitoken/Docs/wisitoken-user_guide.texinfo
+    add EBNF
     mention in wisi.html; add section on changing ada grammar
 
-option to disable gpr_query.symbols
-    too slow at startup
+paper_2019.latex
+    ada-mode use of wisitoken parser
+    metric for comparing error correction
+        argh. redo using lr1 for wisitoken-tokens
+            really slow loading lr1 table for each file; loop on files in dump_wisitoken_corrected
 
-metric for comparing error correction
-    make -r wisitoken-libadalang-diff
-        done
-
-    sum .diff lengths
         sum_diff_lengths.adb
         file_count: 55
         correct-wisitoken:  total size: 14325
         correct-libadalang: total size: 52040
-
-    libadalang parses foo'range as IDENTIFIER TICK IDENTIFIER; wisitoken as IDENTIFIER TICK RANGE
-        could have libadalang-correct, but so far this is the only difference, and it only affects recover_30.
-        also foo'access
 
     excellent examples:
         recover_02: wisitoken inserts "end; end;" prematurely
@@ -88,9 +147,24 @@ metric for comparing error correction
         recover_end_1: libadalang deletes 'procedure'
         recover_string_quote_1, 2, 3: libadalang does better
 
-    libadalang github issue
-             retrieving error correction tokens #455
-             https://github.com/AdaCore/libadalang/issues/455
+error recover bug:
+        lalr c:/Projects/org.emacs.ada-mode/build/wisitoken-tokens/ada_mode-recover_02.adb.tokens has 'end; end;'
+            dump with verbosity > 0:
+ada_mode-recover_02.adb:38:0: syntax error:
+    recovered: ((INSERT, RIGHT_PAREN, 75), (INSERT, SEMICOLON, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75))
+ada_mode-recover_02.adb:40:0: syntax error:
+   recovered: ((PUSH_BACK, declaration, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75)) ;; say what?
+ada_mode-recover_02.adb:45:0: syntax error:
+   recovered: ((INSERT, IDENTIFIER, 102), (INSERT, COLON, 102), (INSERT, BEGIN, 102))
+ada_mode-recover_02.adb:55:0: syntax error:
+   recovered: ((INSERT, PACKAGE, 128), (INSERT, BODY, 128), (INSERT, IDENTIFIER, 128), (INSERT, IS, 128))
+        => bug in explore
+
+eliminate dependence on manual gnatcoll install to simplify wisi use for other languages.
+    copy the code into wisi, if all else fails
+
+Do spark on mckenzie-base
+
 other ada 202x syntax
     http://www.ada-auth.org/standards/ada2x.html /5
     http://www.ada-auth.org/standards/2xrm/html/RM-0-2.html Language Changes
@@ -193,6 +267,8 @@ align region too large:
     ada-align groups preceding comment lines with declarations
 
     lsp language server can do align as part of "format"
+
+    add wisi refactor case (similar to format_param_list)
 
 libadalang/lsp backend
     o.e.a.stephe-4 on Debian, for gnatpro 20
@@ -401,6 +477,9 @@ move gnatcoll install instructions to wisi elpa package, for reference
 
 do module interface
     see if it's faster
+    add re2c_emacs lexer, that handles emacs raw buffer text
+        that lets the emacs buffer be the text buffer, avoiding copy/encode
+
 
 packrat
     need to override wisitoken.parse.put_errors for emacs process interface

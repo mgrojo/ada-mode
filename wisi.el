@@ -1446,9 +1446,9 @@ If non-nil, only repair errors in BEG END region."
       (put-text-property
        0 1
        'xref-identifier
-       (list ':file (buffer-file-name)
-	     ':line (line-number-at-pos)
-	     ':column (current-column))
+       (list :file (buffer-file-name)
+	     :line (line-number-at-pos)
+	     :column (current-column))
        ident)
       ident)))
 
@@ -1480,7 +1480,7 @@ If non-nil, only repair errors in BEG END region."
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
-(defconst wisi-names-regexp "\\([^<]*\\)\\(<\\([0-9]+\\)>\\)"
+(defconst wisi-names-regexp "\\([^<]*\\)<\\([0-9]+\\)>"
   "Match line number encoded into identifier by `wisi-names'.")
 
 (defun wisi-names (append-lines alist)

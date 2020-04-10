@@ -1,4 +1,4 @@
-;;; wisi-prj.el --- project definition files -*- lexical-binding:t -*-
+;;; wisi-prj.el --- project integration -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2019 - 2020  Free Software Foundation, Inc.
 ;;
@@ -1248,9 +1248,9 @@ IDENTIFIER is from a user prompt with completion, or from
      (t-prop
       ;; IDENTIFIER is from wisi-xref-identifier-at-point.
       (setq ident (substring-no-properties identifier 0 nil))
-      (setq file (plist-get t-prop ':file))
-      (setq line (plist-get t-prop ':line))
-      (setq column (plist-get t-prop ':column))
+      (setq file (plist-get t-prop :file))
+      (setq line (plist-get t-prop :line))
+      (setq column (plist-get t-prop :column))
       )
 
      ((string-match (wisi-xref-completion-regexp (wisi-prj-xref prj)) identifier)

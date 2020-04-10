@@ -25,6 +25,10 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    symbols in the project are used; with two C-u, only
    symbols defined in the current file are used.
 
+** ada-in-paramlist-p (used by ada-align and other things) no longer
+   parses the full buffer; it only parses if in parens, and only a
+   small region containing the parens.
+
 * Ada Mode 7.0.1
 30 Jan 2020
 
