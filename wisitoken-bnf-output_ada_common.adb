@@ -456,9 +456,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
       Indent_Line
         ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
-      Indent_Line
-        ("Minimal_Complete_Recursive_Cost_Delta => " &
-           Table.McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta'Image & ",");
       Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
       Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
       Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
@@ -795,7 +792,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       else
          if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("use all type WisiToken.Recursion_Class;");
             Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
          end if;
 

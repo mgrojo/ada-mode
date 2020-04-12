@@ -133,7 +133,7 @@ package WisiToken.Parse.LR is
      (Goto_Node, Token_ID, To_Key, Compare);
 
    type Kernel_Info is record
-      Production       : Production_ID; -- FIXME: only used in Check_Reduce_To_Start; still needed?
+      Production       : Production_ID;
       Before_Dot       : Token_ID                  := Token_ID'First;
       Length_After_Dot : Ada.Containers.Count_Type := 0;
 
@@ -142,8 +142,10 @@ package WisiToken.Parse.LR is
       --  The reduction that error recovery should do for this item if
       --  Length_After_Dot = 0. Reduce_Production /= Production when item
       --  after dot is nullable.
-
-      Recursion : Recursion_Class := None;
+      --
+      --  It is tempting to make Length_After_Dot a discriminant to
+      --  eliminate Reduce_* when they are not needed, but we don't have a
+      --  static value of Length_After_Dot when it is non-zero.
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
@@ -252,8 +254,7 @@ package WisiToken.Parse.LR is
       Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
 
-      Minimal_Complete_Cost_Delta           : Integer;
-      Minimal_Complete_Recursive_Cost_Delta : Integer;
+      Minimal_Complete_Cost_Delta : Integer;
       --  Reduction in cost due to using Minimal_Complete_Action.
 
       Matching_Begin : Integer;
@@ -277,23 +278,22 @@ package WisiToken.Parse.LR is
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
-     (First_Terminal                        => Token_ID'Last,
-      Last_Terminal                         => Token_ID'First,
-      First_Nonterminal                     => Token_ID'Last,
-      Last_Nonterminal                      => Token_ID'First,
-      Insert                                => (others => 0),
-      Delete                                => (others => 0),
-      Push_Back                             => (others => 0),
-      Undo_Reduce                           => (others => 0),
-      Minimal_Complete_Cost_Delta           => -2,
-      Minimal_Complete_Recursive_Cost_Delta => -1,
-      Fast_Forward                          => 0,
-      Matching_Begin                        => 0,
-      Ignore_Check_Fail                     => 0,
-      Task_Count                            => System.Multiprocessors.CPU_Range'Last,
-      Check_Limit                           => 4,
-      Check_Delta_Limit                     => Natural'Last,
-      Enqueue_Limit                         => Natural'Last);
+     (First_Terminal              => Token_ID'Last,
+      Last_Terminal               => Token_ID'First,
+      First_Nonterminal           => Token_ID'Last,
+      Last_Nonterminal            => Token_ID'First,
+      Insert                      => (others => 0),
+      Delete                      => (others => 0),
+      Push_Back                   => (others => 0),
+      Undo_Reduce                 => (others => 0),
+      Minimal_Complete_Cost_Delta => -1,
+      Fast_Forward                => 0,
+      Matching_Begin              => 0,
+      Ignore_Check_Fail           => 0,
+      Task_Count                  => System.Multiprocessors.CPU_Range'Last,
+      Check_Limit                 => 4,
+      Check_Delta_Limit           => Natural'Last,
+      Enqueue_Limit               => Natural'Last);
 
    type Parse_Table
      (State_First       : State_Index;

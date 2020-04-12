@@ -208,6 +208,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
 
       Current_Parser : Parser_Lists.Cursor;
+      Skip_Next : Boolean := False;
 
       Super : aliased Base.Supervisor
         (Trace'Access,
@@ -703,9 +704,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   return Fail_Programmer_Error;
                end if;
                Parsers.Terminate_Parser (Current_Parser, "bad config in recover", Trace, Shared_Parser.Terminals);
+               --  Terminate advances Current_Parser
+               Skip_Next := True;
             end;
          end if;
-         Current_Parser.Next;
+         if Skip_Next then
+            Skip_Next := False;
+         else
+            Current_Parser.Next;
+         end if;
       end loop;
 
       if Shared_Parser.Post_Recover /= null then

@@ -334,6 +334,11 @@ Several grammar file declarations set parameters for the error
 recovery. If none of these parameters are present in the grammar file,
 the generated parser does not do error recovery.
 
+The error recovery algorithm generates possible solutions based on the
+parse state preceding the error point, by inserting, deleting, or pushing
+back tokens. Each possible solution is given a cost, and enqueued to
+be checked later. Solutions are checked in cost order (lowest first).
+
 @table @code
 @item %mckenzie_check_limit <limit>
 The number of tokens past the error point that must be parsed
@@ -389,11 +394,6 @@ checked); default max integer.
 McKenzie error recovery cost added to the cost of an inserted token
 when the insert is done by the minimal complete strategy; this cost is
 normally negative.
-
-The error recovery algorithm generates possible solutions based on the
-parse state preceding the error point, by inserting, deleting, or pushing
-back tokens. Each possible solution is given a cost, and enqueued to
-be checked later. Solutions are checked in cost order (lowest first).
 
 @end table
 

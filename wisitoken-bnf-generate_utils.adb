@@ -679,7 +679,6 @@ package body WisiToken.BNF.Generate_Utils is
          Push_Back                   => (others => Item.Default_Push_Back),
          Undo_Reduce                 => (others => Item.Default_Push_Back), -- no separate default for undo_reduce
          Minimal_Complete_Cost_Delta => Item.Minimal_Complete_Cost_Delta,
-         Minimal_Complete_Recursive_Cost_Delta => Item.Minimal_Complete_Recursive_Cost_Delta,
          Fast_Forward                => Item.Fast_Forward,
          Matching_Begin              => Item.Matching_Begin,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,

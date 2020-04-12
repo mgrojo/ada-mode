@@ -910,11 +910,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                            Result := Length_After_Dot
                              (Item, (Reduce, Item.Reduce_Production, Item.Reduce_Count), New_Stack);
                         else
-                           if Item.Recursion /= None then
-                              Result := Ada.Containers.Count_Type'Last;
-                           else
-                              Result := Item.Length_After_Dot;
-                           end if;
+                           Result := Item.Length_After_Dot;
                         end if;
                      end if;
 
@@ -945,15 +941,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   Start_State := State_Index'Last;
                   if Matches (Item, Action) then
                      --  For Action.Verb = Reduce, more than one item may match
-                     if Item.Recursion /= None then
-                        null; -- we don't have a good algorithm for this; leave length infinite
-
-                        if Trace_McKenzie > Extra then
-                           --  Length_After_Dot outputs this in other branch
-                           Super.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
-                        end if;
-
-                     elsif Item.Length_After_Dot = 0 then
+                     if Item.Length_After_Dot = 0 then
                         --  Set Length from a non-zero-length non-recursive item.
                         Length (I) := Length_After_Dot (Item, Action, Config.Stack);
 
@@ -981,12 +969,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end loop Actions_Loop;
 
          for I in Length'Range loop
-            if Length (I) = Count_Type'Last then
-               --  Enqueue recursive with different (nominally higher) cost
-               Safe_Add_Work ("2", (Actions (I), Table.McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta, Config));
-
-            elsif Length (I) = Min_Length then
-               Safe_Add_Work ("3", (Actions (I), Table.McKenzie_Param.Minimal_Complete_Cost_Delta, Config));
+            if Length (I) = Min_Length then
+               Safe_Add_Work ("2", (Actions (I), Table.McKenzie_Param.Minimal_Complete_Cost_Delta, Config));
 
             elsif Trace_McKenzie > Extra then
                Put_Line

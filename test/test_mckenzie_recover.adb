@@ -237,10 +237,10 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            (case Test.Alg is
             when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +EXIT_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 117),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 24),
+         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
+         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
          Cost                    => 5);
 
       Parse_Text ("   ");
@@ -252,10 +252,10 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            (case Test.Alg is
             when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +EXIT_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 117),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 24),
+         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
+         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
          Cost                    => 5);
 
       Parse_Text ("--  a comment");
@@ -267,10 +267,10 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            (case Test.Alg is
             when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +EXIT_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 117),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 24),
+         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
+         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
          Cost                    => 5);
    end Empty_Comments;
 
@@ -531,7 +531,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 16),
          Strategy_Counts         => (Minimal_Complete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 7, when LR1 => 4),
+         Enqueue_Low             => (case Test.Alg is when LALR => 7, when LR1 => 7),
          Check_Low               => 2,
          Cost                    => 1);
    end Conflict_2;
@@ -588,7 +588,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +DOT_DOT_ID, 9) & (Fast_Forward, 10) &
            (Insert, +LOOP_ID, 10) & (Fast_Forward, 11) & (Insert, +SEMICOLON_ID, 11),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Cost                    => (case Test.Alg is when LALR => 3, when LR1 => 4));
+         Cost                    => (case Test.Alg is when LALR => 3, when LR1 => 3));
 
       Check_Recover
         (Errors_Length           => 2,
@@ -623,8 +623,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +CASE_ID, 14) & (Fast_Forward, 15) &
            (Insert, +END_ID, 15) & (Insert, +SEMICOLON_ID, 15),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 69, when LR1 => 60),
-         Check_Low               => (case Test.Alg is when LALR => 15, when LR1 => 14),
+         Enqueue_Low             => (case Test.Alg is when LALR => 69, when LR1 => 71),
+         Check_Low               => (case Test.Alg is when LALR => 15, when LR1 => 15),
          Cost                    => 3);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
@@ -666,8 +666,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IF_ID, 11) & (Fast_Forward, 12) & (Insert, +END_ID, 12) &
            (Insert, +SEMICOLON_ID, 12),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 85, when LR1 => 76),
-         Check_Low               => (case Test.Alg is when LALR => 17, when LR1 => 16),
+         Enqueue_Low             => (case Test.Alg is when LALR => 85, when LR1 => 87),
+         Check_Low               => (case Test.Alg is when LALR => 17, when LR1 => 17),
          Cost                    => 3);
 
       Parse_Text
@@ -686,8 +686,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +LOOP_ID, 13) & (Insert, +IDENTIFIER_ID, 13) &
            (Fast_Forward, 14) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 108, when LR1 => 100),
-         Check_Low               => (case Test.Alg is when LALR => 23, when LR1 => 22),
+         Enqueue_Low             => (case Test.Alg is when LALR => 108, when LR1 => 111),
+         Check_Low               => (case Test.Alg is when LALR => 23, when LR1 => 23),
          Cost                    => 3);
    end Pattern_1;
 
@@ -1494,7 +1494,7 @@ package body Test_McKenzie_Recover is
       Strategy_Counts            => (Language_Fix => 1, Minimal_Complete => 2, others => 0),
       Enqueue_Low                => (case Test.Alg is when LALR => 115, when LR1 => 116),
       Check_Low                  => 10,
-      Cost                       => (case Test.Alg is when LALR => 2, when LR1 => 3));
+      Cost                       => (case Test.Alg is when LALR => 2, when LR1 => 2));
    end Actual_Parameter_Part_1;
 
    procedure Unfinished_Subprogram_Type_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1678,8 +1678,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 84, when LR1 => 47),
-         Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 3),
+         Enqueue_Low             => (case Test.Alg is when LALR => 84, when LR1 => 84),
+         Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 6),
          Cost                    => 1);
    end String_Quote_4;
 
@@ -1928,7 +1928,7 @@ package body Test_McKenzie_Recover is
 
    procedure Always_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
    begin
       --  This test case provided the motivation for always doing
       --  Insert_Minimal_Complete. The user is converting an 'if then'
@@ -1953,32 +1953,16 @@ package body Test_McKenzie_Recover is
       --  That leads to a second error at EOI; minimal complete finishes the
       --  case statement.
 
-      declare
-         Strategy_Result : WisiToken.Parse.LR.Strategy_Counts;
-      begin
-         case Test.Alg is
-         --  Can't use 'others' in a case expression.
-         when LR1 =>
-            Strategy_Result := (Minimal_Complete => 3, Insert => 2, others => 0);
-         when LALR =>
-            Strategy_Result := (Minimal_Complete => 3, Insert => 1, Delete => 1, others => 0);
-         end case;
-
-         Check_Recover
-           (Errors_Length           => 2,
-            Checking_Error          => 1,
-            Error_Token_ID          => +EQUAL_ID,
-            Error_Token_Byte_Region => (23, 23),
-            Ops                     =>
-              (case Test.Alg is
-               when LR1 => +(Insert, +WHEN_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4) &
-                   (Insert, +EQUAL_GREATER_ID, 4) & (Insert, +IF_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4),
-               when LALR => +(Delete, +EQUAL_ID, 4) & (Insert, +WHEN_ID, 5) &
-                   (Insert, +NUMERIC_LITERAL_ID, 5) & (Insert, +EQUAL_GREATER_ID, 5) &
-                   (Insert, +IF_ID, 5)),
-            Strategy_Counts         => Strategy_Result,
-            Cost                    => 11);
-      end;
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +EQUAL_ID,
+         Error_Token_Byte_Region => (23, 23),
+         Ops                     => +(Delete, +EQUAL_ID, 4) & (Insert, +WHEN_ID, 5) &
+           (Insert, +NUMERIC_LITERAL_ID, 5) & (Insert, +EQUAL_GREATER_ID, 5) &
+           (Insert, +IF_ID, 5),
+         Strategy_Counts         => (Minimal_Complete => 3, Insert => 1, Delete => 1, others => 0),
+         Cost                    => 11);
 
       Check_Recover
         (Errors_Length           => 2,
@@ -2015,7 +1999,7 @@ package body Test_McKenzie_Recover is
            (Insert, +END_ID, 18) & (Insert, +LOOP_ID, 18) & (Fast_Forward, 19) &
            (Insert, +IDENTIFIER_ID, 19) & (Insert, +COLON_ID, 19) & (Insert, +BEGIN_ID, 19),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 172, when LR1 => 176),
+         Enqueue_Low             => (case Test.Alg is when LALR => 172, when LR1 => 175),
          Check_Low               => 30,
          Cost                    => 3);
    end Always_Matching_Begin;

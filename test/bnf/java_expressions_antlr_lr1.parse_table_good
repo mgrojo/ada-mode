@@ -195,7 +195,6 @@ McKenzie:
  nonterminal_034      => 2,
  nonterminal_033_list => 2)
 Minimal_Complete_Cost_Delta => -3
-Minimal_Complete_Recursive_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
 Ignore_Check_Fail => 0

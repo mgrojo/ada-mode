@@ -146,8 +146,7 @@ McKenzie:
  subprogram       => 4,
  subtype          => 4,
  use_clause       => 4)
-Minimal_Complete_Cost_Delta => -2
-Minimal_Complete_Recursive_Cost_Delta => -1
+Minimal_Complete_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
 Ignore_Check_Fail => 4

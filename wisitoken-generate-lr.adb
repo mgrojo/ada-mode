@@ -868,28 +868,23 @@ package body WisiToken.Generate.LR is
                  (if Reduce_Production = Invalid_Production_ID
                   then 0
                   else Grammar (Reduce_Production.LHS).RHSs (Reduce_Production.RHS).Tokens.Length);
-               Recursion    : Recursion_Class     := None;
             begin
-               --  Here we must compute Item_State (I).Label, .Minimal_Action and
-               --  Recursion.
+               --  Here we must compute Item_State (I).Label and .Minimal_Action,
+               --  considering recursion.
                --
-               --  State.Kernel (I).Recursion is used at runtime by
-               --  Insert_Minimal_Complete_Actions to help determine what token to insert,
-               --  when when there is more than one choice and State.Kernel
-               --  (I).Length_After_Dot = 0 or recursion must be considered.
+               --  Insert_Minimal_Complete_Actions does not need any recursion
+               --  information at runtim, because we elminate all cases where it
+               --  might here.
                --
                --  The strategy in Insert_Minimal_Complete_Actions when
                --  Item.Length_After_Dot = 0 is to compute Length_After_Dot by doing
                --  Reduce until a Shift is encountered, and using Length_After_Dot
-               --  for that item. However, if Recursion /= None for the shift item,
-               --  Length_After_Dot returns Count_Type'Last, meaning infinity.
-               --
+               --  for that item.               --
                --
                --  Consider these kernel items with possible recursion (from
                --  ada_lite_lalr.parse_table - not listed in state order here, to
                --  group related productions). The recursion of each production is
-               --  shown after ';', if not all None (note that this is _not_
-               --  State.Kernel (I).Recursion).
+               --  shown after ';', if not all None.
                --
                --  State 2:
                --       86.0:exit_statement <= EXIT ^ identifier_opt WHEN expression_opt SEMICOLON
@@ -944,48 +939,47 @@ package body WisiToken.Generate.LR is
                --        9.0:body <= IS declarations ^ BEGIN SEMICOLON
 
                --  case 0: In states 43 and 30, there is only one possible action, so
-               --  recursion is not considered. We set it to None. Minimal_Action is
+               --  recursion is not considered. Minimal_Action is
                --  computed by Compute_Minimal_Action, Label is Keep_Always.
                --
                --  In the following, we only consider kernels where there is more
                --  than one item.
                --
                --  case 1: In state 47 production 113.2, Length_After_Dot is 0, so
-               --  recursion is not considered; we set it to None, and Label to
-               --  Keep_Always, since the true Length_After_Dot must be computed at
-               --  runtime. Minimal_Action is Reduce_Production.
+               --  recursion is not considered. We set Label to Keep_Always, since
+               --  the true Length_After_Dot must be computed at runtime.
+               --  Minimal_Action is Reduce_Production.
                --
                --  Similarly in state 68 production 115.0, Length_After_Dot is 0
-               --  because parameter_profile_opt is nullable, and we set Recursion to
-               --  None, Label to Keep_Always, Minimal_Action to Reduce_Production.
+               --  because parameter_profile_opt is nullable, and we set Label to
+               --  Keep_Always, Minimal_Action to Reduce_Production.
                --
                --  case 2: In state 47, if LEFT_PAREN or First
                --  (actual_parameter_part) is inserted, a recursion cycle is followed
-               --  via 103.0 or 103.1; these have Direct_Left recursion at the parse
-               --  point, can never be minimal, and we set Label to Drop. 113.2
-               --  breaks the recursion; it has Length_After_Dot = 0 and is covered
-               --  by case 1. 124.0 has Other_Left; since Length_After_Dot is > 0, it
-               --  follows the recursion cycle and is never minimal, so it is the
-               --  same as Direct_Left. Similarly, in java_enum_ch19_lr1.parse_table
-               --  state 8 production 9.1, inserting EnumConstant continues the
-               --  recursion cycle; left recursion applies even when it is not just
-               --  before the parse point. On the other hand, in ada_lite state 154,
-               --  both productions are left recursive; 103.0 should be preserved. In
-               --  the current algorithm, both are dropped.
+               --  via 103.0 or 103.1; these have Direct_Left recursion, can never be
+               --  minimal, and we set Label to Drop. 113.2 breaks the recursion; it
+               --  has Length_After_Dot = 0 and is covered by case 1. 124.0 has
+               --  Other_Left; since Length_After_Dot is > 0, it follows the
+               --  recursion cycle and is never minimal, so it is the same as
+               --  Direct_Left. Similarly, in java_enum_ch19_lr1.parse_table state 8
+               --  production 9.1, inserting EnumConstant continues the recursion
+               --  cycle; left recursion applies even when it is not just before the
+               --  parse point. On the other hand, in ada_lite state 154, both
+               --  productions are left recursive; 103.0 could be preserved. In the
+               --  current algorithm, both are dropped.
                --
                --  It is possible for both case 1 and case 2 to apply; see
                --  empty_production_2_lalar.parse_table State 5 above and
                --  ada_lite_ebnf_lalr.parse_table state 46. case 1 has precedence if
                --  Dot = No_Element.
                --
-               --  case 3: In state 251, there is no recursion, Length_After_Dot is
-               --  correct; Recursion is set to None, Label to Keep_If_Minimal,
-               --  Minimal_Action to Compute_Minimal_Action. In State 77, Dot_ID is
-               --  association_list which has Other recursion; we say "there is
-               --  recursion at the parse point". However, Length_After_Dot is
-               --  correct; it assumes the recursion-breaking case for the expansion
-               --  of association_list. So this is the same as no recursion at the
-               --  parse point
+               --  case 3: In state 251, there is no recursion, and Length_After_Dot
+               --  is correct; Label is set to Keep_If_Minimal, Minimal_Action to
+               --  Compute_Minimal_Action. In State 77, Dot_ID is association_list
+               --  which has Other recursion; we say "there is recursion at the parse
+               --  point". However, Length_After_Dot is correct; it assumes the
+               --  recursion-breaking case for the expansion of association_list. So
+               --  this is the same as no recursion at the parse point
                --
                --  It is possible for both case 2 and 3 to be true; see
                --  empty_production_2_lalr.parse_table state 5. Case 2 has
@@ -993,7 +987,6 @@ package body WisiToken.Generate.LR is
 
                if Item_States'Length = 1 then
                   --  case 0
-                  Recursion       := None;
                   Item_States (I) :=
                     (Keep_Always,
                      (if Length_After_Dot = 0
@@ -1006,7 +999,6 @@ package body WisiToken.Generate.LR is
                      Item_States (I) := (Label => Drop);
                   else
                      --  case 1
-                     Recursion := None;
                      Item_States (I) :=
                        (Label          => Keep_Always,
                         Minimal_Action => (Reduce, Reduce_Production, Reduce_Count));
@@ -1018,7 +1010,6 @@ package body WisiToken.Generate.LR is
 
                else
                   --  case 3
-                  Recursion       := None;
                   Item_States (I) := (Keep_If_Minimal, Compute_Action (Dot_ID));
                end if;
 
@@ -1027,8 +1018,7 @@ package body WisiToken.Generate.LR is
                   Before_Dot        => Before_Dot (Item),
                   Length_After_Dot  => Length_After_Dot,
                   Reduce_Production => Reduce_Production,
-                  Reduce_Count      => Reduce_Count,
-                  Recursion         => Recursion);
+                  Reduce_Count      => Reduce_Count);
 
                if Item_States (I).Label = Keep_If_Minimal then
                   if Length_After_Dot < Min_Length then
@@ -1198,8 +1188,11 @@ package body WisiToken.Generate.LR is
             Put (File, Count_Type'Image (State.Kernel.First_Index));
             Put (File, Count_Type'Image (State.Kernel.Last_Index));
             for Item of State.Kernel loop
-               Put (File, Token_ID'Image (Item.Production.LHS) & Item.Production.RHS'Image &
-                      Count_Type'Image (Item.Length_After_Dot));
+               Put (File, Token_ID'Image (Item.Production.LHS) & Item.Production.RHS'Image);
+               Put (File, Item.Before_Dot'Image);
+               Put (File, Count_Type'Image (Item.Length_After_Dot));
+               Put (File, Token_ID'Image (Item.Reduce_Production.LHS) & Item.Reduce_Production.RHS'Image);
+               Put (File, Item.Reduce_Count'Image);
             end loop;
             New_Line (File);
          end if;
@@ -1287,8 +1280,6 @@ package body WisiToken.Generate.LR is
          end if;
       end loop;
       Put_Line ("Minimal_Complete_Cost_Delta => " & Integer'Image (Item.Minimal_Complete_Cost_Delta));
-      Put_Line ("Minimal_Complete_Recursive_Cost_Delta => " &
-                  Integer'Image (Item.Minimal_Complete_Recursive_Cost_Delta));
       Put_Line ("Fast_Forward      => " & Integer'Image (Item.Fast_Forward));
       Put_Line ("Matching_Begin    => " & Integer'Image (Item.Matching_Begin));
       Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
@@ -1456,23 +1447,10 @@ package body WisiToken.Generate.LR is
 
          declare
             use WisiToken.Generate.LR1_Items;
-            Item_Index : Ada.Containers.Count_Type := 1;
          begin
             for Item of Kernels (State_Index).Set loop
                if In_Kernel (Grammar, Descriptor, Item) then
                   Put ("  " & Image (Grammar, Descriptor, Item, Show_Lookaheads => False));
-                  if Table.States (State_Index).Kernel.Length > 0 then
-                     --  State.Kernel not set for state 0 and for accepting state (see
-                     --  Set_Minimal_Complete_Actions)
-                     declare
-                        Kernel_Item : Kernel_Info renames Table.States (State_Index).Kernel (Item_Index);
-                     begin
-                        if Kernel_Item.Recursion /= None then
-                           Put (" ; " & Image (Kernel_Item.Recursion));
-                        end if;
-                     end;
-                  end if;
-                  Item_Index := Item_Index + 1;
                   New_Line;
                end if;
             end loop;

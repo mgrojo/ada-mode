@@ -160,8 +160,7 @@ package body WisiToken.Parse.LR is
         Item.Before_Dot'Image & ", " &
         Item.Length_After_Dot'Image & ", " &
         Image (Item.Reduce_Production) & ", " &
-        Item.Reduce_Count'Image & ", " &
-        Image (Item.Recursion) & ")";
+        Item.Reduce_Count'Image & ")";
    end Strict_Image;
 
    function Strict_Image (Item : in Minimal_Action) return String
@@ -576,10 +575,13 @@ package body WisiToken.Parse.LR is
                   State.Kernel.Set_First_Last (First, Count_Type (Last));
 
                   for I in State.Kernel.First_Index .. State.Kernel.Last_Index loop
-                     State.Kernel (I).Production.LHS := Next_Token_ID;
-                     State.Kernel (I).Production.RHS := Next_Integer;
-                     State.Kernel (I).Length_After_Dot := Next_Count_Type;
-                     --  FIXME: more components
+                     State.Kernel (I).Production.LHS        := Next_Token_ID;
+                     State.Kernel (I).Production.RHS        := Next_Integer;
+                     State.Kernel (I).Before_Dot            := Next_Token_ID;
+                     State.Kernel (I).Length_After_Dot      := Next_Count_Type;
+                     State.Kernel (I).Reduce_Production.LHS := Next_Token_ID;
+                     State.Kernel (I).Reduce_Production.RHS := Next_Integer;
+                     State.Kernel (I).Reduce_Count          := Next_Count_Type;
                   end loop;
                end if;
             end;

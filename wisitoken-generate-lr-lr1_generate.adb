@@ -265,7 +265,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Push_Back                   => (others => 0),
             Undo_Reduce                 => (others => 0),
             Minimal_Complete_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Cost_Delta,
-            Minimal_Complete_Recursive_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta,
             Fast_Forward                => Default_McKenzie_Param.Fast_Forward,
             Matching_Begin              => Default_McKenzie_Param.Matching_Begin,
             Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,

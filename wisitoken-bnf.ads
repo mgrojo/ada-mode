@@ -220,8 +220,6 @@ package WisiToken.BNF is
       Undo_Reduce                           : String_Pair_Lists.List;
       Minimal_Complete_Cost_Delta           : Integer               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Minimal_Complete_Cost_Delta;
-      Minimal_Complete_Recursive_Cost_Delta : Integer               :=
-        WisiToken.Parse.LR.Default_McKenzie_Param.Minimal_Complete_Recursive_Cost_Delta;
       Fast_Forward                          : Integer               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Fast_Forward;
       Matching_Begin                        : Integer               :=

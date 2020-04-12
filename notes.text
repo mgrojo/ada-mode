@@ -23,94 +23,16 @@ update-wisitoken_grammar
  current work
 error_correction_algorithm.tex
     fix/improve recursion in recover
-        _no_ Kernel_Info.Recursion other than None!
-            yep, Set_Minimal_Complete always sets it to none
-            which means recursive_cost_delta is never used
-            finish tests, then delete?
+        java_enum_ch19 wisi_eoi still detects cycle in Minimal_Complete?
 
-        run t_all
-            ignoring text_rep for now, *_main.adb
+        include java_expressions_antlr_lr1 in minimal_complete examples; run time cycle check
+            inc, rparen both length 1
+            inc starts in and goes back to 32; we detect that cycle
 
-        put back higher level cycle detection?
-            nope conservative treatment of recursion in minimal_complete
+            inc is only shift in cycle, so could exclude inc in generate
+                but can't due to partial_recursion
 
-        commit
-
-        run ada-mode tests
-
-
-        commit
-
-
-        shift/reduce does not follow recursion cycle, can't count steps to limit recursion cycle check:
-        35 =>
-           (103.3 name <= selected_component ->
-            124.0 selected_component <= name DOT IDENTIFIER ->)
-
-            reduce 1 to name
-            shift DOT
-            shift IDENTIFIER
-            reduce 3 to selected_component
-            reduce 1 to name
-
-        17 =>
-           ( 65.0 body_g           <= proper_body ->
-            116.1 proper_body      <= subprogram_body ->
-            131.0 subprogram_body  <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ->
-             76.0 declarative_part <= declarations ->
-             75.0 declarations     <= declarations declaration,
-             75.1 declarations     <= declaration ->
-             74.0 declaration      <= body_g -> )
-
-            134: 74.0:declaration <= body_g ^
-                reduce 1 to declaration
-            136: 75.1:declarations <= declaration ^
-                reduce 1 to declarations
-            137: 75.0:declarations <= declarations ^ declaration
-                shift PROCEDURE
-            131: 115.0:procedure_specification <= PROCEDURE ^ name parameter_profile_opt
-                shift IDENTIFIER
-             43: 103.2:name <= IDENTIFIER ^
-                reduce 1 to name
-             68: 115.0:procedure_specification <= PROCEDURE name ^ parameter_profile_opt
-                reduce 0 to parameter_profile_opt
-            124: 115.0:procedure_specification <= PROCEDURE name parameter_profile_opt ^
-                reduce 3 to procedure_specification
-             29: 134.0:subprogram_specification <= procedure_specification ^
-                reduce 1 to subprogram_specification
-             36: 131.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-                reduce 0 to aspect_specification_opt
-             84: subprogram_body <= subprogram_specification aspect_specification_opt ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-                shift IS
-            159: subprogram_body <= subprogram_specification aspect_specification_opt IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-                reduce 0 to declarative_part
-            208: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-                shift BEGIN
-            245: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
-                reduce 0 to handled_sequence_of_statements
-            277: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
-                shift END
-            298: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
-                reduce 0 to name_opt
-            312: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
-                shift SEMICOLON
-            318: 131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
-                reduce 9 to subprogram_body
-            143: proper_body <= subprogram_body ^
-                reduce 1 to proper_body
-            142: body_g <= proper_body ^
-                reduce 1 to body_g
-                    => cycle
-
-
-    java_enum_ch19 wisi_eoi now detects cycle
-
-    include java_expressions_antlr_lr1 in minimal_complete examples; run time cycle check
-        inc, rparen both length 1
-        inc starts in and goes back to 32; we detect that cycle
-
-        inc is only shift in cycle, so could exclude inc in generate
-            but can't due to partial_recursion
+        delete cycle check
 
     doc Just_Pushed_Back_Or_Deleted
         try_delete also checks for just_inserted
@@ -121,7 +43,6 @@ error_correction_algorithm.tex
         causes problems?
 
     doc Minimal_Complete done?
-
 
     see comments in .tex file
 

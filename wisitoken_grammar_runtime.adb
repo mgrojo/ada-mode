@@ -755,11 +755,6 @@ package body WisiToken_Grammar_Runtime is
                   Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
                     Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
-               elsif Kind = "mckenzie_minimal_complete_recursive_cost_delta" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Minimal_Complete_Recursive_Cost_Delta :=
-                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
-
                elsif Kind = "meta_syntax" then
                   --  not in Other phase
                   null;

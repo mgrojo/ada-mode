@@ -1,4 +1,4 @@
---  Copyright (c) 2009, 2010, 2018, 2019 Stephen Leake <stephen_leake@stephe-leake.org>
+--  Copyright (c) 2009, 2010, 2018 - 2020 Stephen Leake <stephen_leake@stephe-leake.org>
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -107,8 +107,10 @@ project WisiToken_Test is
 
       --  User actions are not properly indented; leave out style 'il' layout
       --  redundant with clauses; add -gnatwR
-      Generated_Debug_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Debug_Switches & ("-gnatwR");
-      Generated_Release_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Release_Switches & ("-gnatwR");
+      Generated_Debug_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Debug_Switches &
+        ("-gnatwR", "-fno-var-tracking-assignments");
+      Generated_Release_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Release_Switches &
+        ("-gnatwR");
 
       case Standard_Common.Build is
       when "Debug" =>
@@ -117,7 +119,11 @@ project WisiToken_Test is
          for Switches ("character_literal_actions.adb") use Generated_Debug_Switches;
          for Switches ("character_literal_main.adb") use Generated_Debug_Switches;
 
-         for Switches ("ada_lite_main.adb") use Generated_Debug_Switches;
+         for Switches ("ada_lite_ebnf_lalr_main.adb") use Generated_Debug_Switches;
+         for Switches ("ada_lite_lalr_main.adb") use Generated_Debug_Switches;
+         for Switches ("java_expressions_antlr_lr1_main.adb") use Generated_Debug_Switches;
+         for Switches ("java_expressions_ch19_lr1_main.adb") use Generated_Debug_Switches;
+         for Switches ("java_types_ch19_lr1_main.adb") use Generated_Debug_Switches;
 
       when "Normal" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C_Non_Pedantic;

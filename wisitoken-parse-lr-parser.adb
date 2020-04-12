@@ -633,7 +633,8 @@ package body WisiToken.Parse.LR.Parser is
                               Current_Parser.Next;
                               Shared_Parser.Parsers.Terminate_Parser
                                 (Temp,
-                                 (if Recover_Cost = Min_Recover_Cost and Recover_Ops_Length = Max_Recover_Ops_Length
+                                 (if Recover_Cost = Min_Recover_Cost and then
+                                    Recover_Ops_Length = Max_Recover_Ops_Length
                                   then "random"
                                   else "recover cost/length"),
                                  Shared_Parser.Trace.all, Shared_Parser.Terminals);
@@ -1072,6 +1073,7 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Action > Outline then
                if Trace_Action > Extra then
                   Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root);
+                  Parser.Trace.New_Line;
                end if;
                Parser.Trace.Put_Line
                  (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
