@@ -30,7 +30,7 @@ is begin
                   return
                     (Header, To_String_List (
                                                 when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
-                                                   raise SAL.Not_Implemented with "UTF-16 string";
+            raise SAL.Not_Implemented with "UTF-16 string";
 
          when others =>
             raise SAL.Invalid_Format;

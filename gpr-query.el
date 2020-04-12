@@ -301,51 +301,59 @@ Must match gpr_query.adb Version.")
 
 (defun gpr-query-session-wait (session command-type)
   "Wait for the current COMMAND-TYPE (one of 'xref or 'symbols) command to complete."
-    (let ((process
-	   (cl-ecase command-type
-	     (xref (gpr-query--session-xref-process session))
-	     (symbols (gpr-query--session-symbols-process session))))
-	  (search-start (point-min))
-	  (done nil)
-	  (wait-count 0))
+  (when (and
+	 (eq command-type 'symbols)
+	 (null (gpr-query--session-symbols-process session)))
+    ;; The symbols process is not started until the xref process
+    ;; returns its first prompt.
+    (gpr-query-session-wait session 'xref))
 
-  (unless (process-live-p process)
-    (gpr-query--show-buffer session command-type)
-    (error "gpr-query process died"))
+  (let ((process
+	 (cl-ecase command-type
+	   (xref (gpr-query--session-xref-process session))
+	   (symbols (gpr-query--session-symbols-process session))))
+	search-start
+	(done nil)
+	(wait-count 0))
 
-  (with-current-buffer (process-buffer process)
+    (unless (process-live-p process)
+      (gpr-query--show-buffer session command-type)
+      (error "gpr-query process died"))
+
+    (with-current-buffer (process-buffer process)
+      (setq search-start (point-min))
+      (when (eq command-type 'symbols)
+	;; show progress in mode line
+	(setq gpr-query--symbols-progress "")
+	(add-to-list 'mode-line-misc-info '("" gpr-query--symbols-progress " "))
+	(force-mode-line-update)
+	(redisplay))
+
+      (while (and (process-live-p process)
+		  (not done))
+	(message (concat "running gpr_query ..." (make-string wait-count ?.)))
+
+	;; process output is inserted before point, so move back over it to search it
+	(goto-char search-start)
+	(if (re-search-forward gpr-query-prompt (point-max) 1)
+	    (setq done t)
+	  ;; else wait for more input
+	  (unless (accept-process-output process 1.0)
+	    ;; accept-process returns non-nil when we got output, so we
+	    ;; did not wait for timeout.
+	    (setq wait-count (1+ wait-count))
+	    ))
+	))
+
     (when (eq command-type 'symbols)
-      ;; show progress in mode line
-      (setq gpr-query--symbols-progress "")
-      (add-to-list 'mode-line-misc-info '("" gpr-query--symbols-progress " "))
-      (force-mode-line-update)
-      (redisplay))
+      (setq mode-line-misc-info (delete '("" gpr-query--symbols-progress " ") mode-line-misc-info)))
 
-    (while (and (process-live-p process)
-		(not done))
-      (message (concat "running gpr_query ..." (make-string wait-count ?.)))
-
-      ;; process output is inserted before point, so move back over it to search it
-      (goto-char search-start)
-      (if (re-search-forward gpr-query-prompt (point-max) 1)
-	  (setq done t)
-	;; else wait for more input
-	(unless (accept-process-output process 1.0)
-	  ;; accept-process returns non-nil when we got output, so we
-	  ;; did not wait for timeout.
-	  (setq wait-count (1+ wait-count))
-	  ))
-      ))
-
-  (when (eq command-type 'symbols)
-    (setq mode-line-misc-info (delete '("" gpr-query--symbols-progress " ") mode-line-misc-info)))
-
-  (if (or (eq command-type 'symbols);; symbols process is supposed to die
-	  (process-live-p process))
-      (message (concat "running gpr_query ... done"))
-    (gpr-query--show-buffer session command-type)
-    (error "gpr_query process died"))
-  ))
+    (if (or (eq command-type 'symbols);; symbols process is supposed to die
+	    (process-live-p process))
+	(message (concat "running gpr_query ... done"))
+      (gpr-query--show-buffer session command-type)
+      (error "gpr_query process died"))
+    ))
 
 (defun gpr-query--session-send (session cmd wait)
   "Send CMD to SESSION gpr_query xref process.

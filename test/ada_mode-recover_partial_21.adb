@@ -15,4 +15,4 @@ begin
          if (I = Positive'First and (ID = Nonterm or Recursing_Index (ID) = Positive'First)) or
 
            --  Nonterm is mutually recursive with itself or some other.
-All_Sequences (Nonterm)(RHS).Recursive := True;
+           All_Sequences (Nonterm)(RHS).Recursive := True;

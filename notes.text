@@ -45,6 +45,15 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+test/ada_mode-recover_string_quote_1.adb
+    undo_reduce after push-back or insert
+
+test/ada_mode-recover_20.adb
+    anchored can't anchor to virtual token
+        because we don't know (line, column)
+            set it to following token, grammar or non-grammar
+            after finish error correction algorithm paper
+
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
 

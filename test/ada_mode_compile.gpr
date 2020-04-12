@@ -16,6 +16,8 @@ project Ada_Mode_Compile is
       "ada_mode-ada2005.ads", -- font-lock only
       "ada_mode-ada2012.ads", -- font-lock only
 
+      "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
+
       "ada_mode-conditional_expressions-more_1.adb",
 
       "ada_mode-debbugs_35124.ads", -- spec
@@ -68,6 +70,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_30.adb",
       "ada_mode-recover_31.adb",
       "ada_mode-recover_32.adb",
+      "ada_mode-recover_33.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

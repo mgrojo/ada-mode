@@ -132,8 +132,9 @@ before that as the token."
 	  (save-excursion (wisi-case-adjust-region (point) end)))
 
 	(condition-case-unless-debug nil
-	    (wisi-skel-expand (buffer-substring-no-properties (point) end))
-	  (setq handled t)
+	    (progn
+	      (wisi-skel-expand (buffer-substring-no-properties (point) end))
+	      (setq handled t))
 	  (user-error ;; leave handled nil
 	   ))
 	))

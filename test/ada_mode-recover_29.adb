@@ -22,11 +22,11 @@ begin
       Use_Complete := True;
 
       case To_Token_Enum (Current_Token) is
-        = +RIGHT_PAREN_ID then
-         Matching_Begin_Token := +LEFT_PAREN_ID;
-      else
-         Matching_Begin_Token := Invalid_Token_ID;
-      end if;
+              = +RIGHT_PAREN_ID then
+               Matching_Begin_Token := +LEFT_PAREN_ID;
+            else
+               Matching_Begin_Token := Invalid_Token_ID;
+            end if;
    else
       Use_Complete := False;
       Matching_Begin_Token := Invalid_Token_ID;

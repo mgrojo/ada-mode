@@ -30,17 +30,17 @@ package body Ada_Mode.Nested_Packages is
    --EMACSCMD:(try-completion (cl-ecase ada-xref-tool (gpr_query "<=")(gnat "\"<=\"")) (wisi-xref-completion-table (wisi-prj-xref (xref-find-backend)) (project-current)))
    --EMACSRESULT:(cl-ecase ada-xref-tool (gpr_query "<=<Ada_Mode.Nested_Packages<41>>")(gnat "\"<=\"<41>"))
 
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
      --EMACSRESULT:"\"*\""
-     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
      renames Ada_Mode.Nominal."*";
    --EMACSRESULT:"\"*\""
 
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 4)(wisi-prj-identifier-at-point (project-current)))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
    function "<=" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Boolean
      --EMACSRESULT:"\"<=\""
-     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(wisi-prj-identifier-at-point (project-current)))
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(nth 2 (wisi-prj-identifier-at-point (project-current))))
      renames Ada_Mode.Nominal."<=";
    --EMACSRESULT:"\"<=\""
 
