@@ -3,9 +3,6 @@
 %.dvi : %.texinfo
 	latex $(TEXI_INCLUDE) $(TEXI_DVI_OPTS) '\nonstopmode\input{$<}'
 
-%.view : %.dvi
-	cygstart $<
-
 %.pdf : %.texinfo %.out %.aux
 	pdflatex  $(TEXI_INCLUDE) $(TEXI_PDF_OPTS) '\nonstopmode\input{$<}'
 
