@@ -858,8 +858,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end case;
                end Matches;
 
-               Start_State : State_Index;
-
                function Length_After_Dot
                  (Item   : in Kernel_Info;
                   Action : in Minimal_Action;
@@ -889,19 +887,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                   if Trace_McKenzie > Extra then
                      Super.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
-                  end if;
-
-                  if Start_State = State_Index'Last then
-                     Start_State := Next_State;
-
-                  elsif Next_State = Start_State then
-                     --  We have gone all the way around a recursion cycle without finding
-                     --  a shift. There must be another minimal action that does not go all
-                     --  the way around a cycle. Leave Length (I) at 'last ~ infinite.
-                     if Trace_McKenzie > Extra then
-                        Super.Trace.Put_Line (" abandon cycle");
-                     end if;
-                     return Ada.Containers.Count_Type'Last;
                   end if;
 
                   for Item of Shared.Table.States (Next_State).Kernel loop
@@ -938,7 +923,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                end if;
 
                for Item of Shared.Table.States (Next_State).Kernel loop
-                  Start_State := State_Index'Last;
+
                   if Matches (Item, Action) then
                      --  For Action.Verb = Reduce, more than one item may match
                      if Item.Length_After_Dot = 0 then

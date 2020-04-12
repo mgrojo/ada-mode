@@ -2,7 +2,7 @@
 --
 --  Run Test_BNF_Suite
 --
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -60,8 +60,8 @@ begin
       end;
    end case;
 
-   WisiToken.Trace_Generate := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
-   WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+   WisiToken.Trace_Generate_Table := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
+   WisiToken.Trace_Parse          := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
 
    Run (Suite, Options, Result, Status);
 

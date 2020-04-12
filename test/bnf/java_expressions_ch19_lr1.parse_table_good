@@ -49,15 +49,15 @@ Productions:
 25.0: LambdaExpression <= Identifier MINUS_GREATER Identifier
 26.0: AssignmentExpression <= AdditiveExpression ; (1 => Other_Left)
 26.1: AssignmentExpression <= Assignment ; (1 => Other_Left)
-27.0: Assignment <= LeftHandSide EQUAL Expression ; (1 => Other_Left, 3 => Other)
+27.0: Assignment <= LeftHandSide EQUAL Expression ; (1 => Other_Left, 3 => Other_Right)
 28.0: LeftHandSide <= Identifier
 29.0: AdditiveExpression <= MultiplicativeExpression ; (1 => Other_Left)
-29.1: AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ; (1 => Direct_Left, 3 => Other)
-29.2: AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression ; (1 => Direct_Left, 3 => Other)
+29.1: AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ; (1 => Direct_Left, 3 => Other_Right)
+29.2: AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression ; (1 => Direct_Left, 3 => Other_Right)
 30.0: MultiplicativeExpression <= PostfixExpression ; (1 => Other_Left)
-30.1: MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ; (1 => Direct_Left, 3 => Other)
-30.2: MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ; (1 => Direct_Left, 3 => Other)
-30.3: MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ; (1 => Direct_Left, 3 => Other)
+30.1: MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ; (1 => Direct_Left, 3 => Other_Right)
+30.2: MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ; (1 => Direct_Left, 3 => Other_Right)
+30.3: MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ; (1 => Direct_Left, 3 => Other_Right)
 31.0: PostfixExpression <= ClassType ; (1 => Other_Left)
 31.1: PostfixExpression <= MethodInvocation ; (1 => Other_Left)
 31.2: PostfixExpression <= PostIncrementExpression ; (1 => Other_Left)
@@ -68,11 +68,11 @@ Productions:
 34.1: ClassType <= ClassType DOT Identifier ; (1 => Direct_Left)
 35.0: MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ; (3 => Other)
 36.0: ArgumentList <= Expression ; (1 => Other_Left)
-36.1: ArgumentList <= ArgumentList COMMA Expression ; (1 => Direct_Left, 3 => Other)
+36.1: ArgumentList <= ArgumentList COMMA Expression ; (1 => Direct_Left, 3 => Other_Right)
 37.0: StatementExpression <= PostIncrementExpression
 37.1: StatementExpression <= PostDecrementExpression
 38.0: nonterminal_004_list <= Statement ; (1 => Other_Left)
-38.1: nonterminal_004_list <= nonterminal_004_list Statement ; (1 => Direct_Left, 2 => Other)
+38.1: nonterminal_004_list <= nonterminal_004_list Statement ; (1 => Direct_Left, 2 => Other_Right)
 
 Partial recursions:
 1 => (33 (0) -> 32 (0, 1, 1) -> 36 (0) -> 35 (0, 1, 2, 3) -> 31 (0, 1, 1, 2, 2, 3, 3) -> 30 (0, 1, 1, 2, 2) -> 29 (0, 1) -> 26 (0, 1) -> 24 (0, 0) -> 27 (0) -> )

@@ -22,17 +22,15 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    fix/improve recursion in recover
-        java_enum_ch19 wisi_eoi still detects cycle in Minimal_Complete?
-
-        include java_expressions_antlr_lr1 in minimal_complete examples; run time cycle check
-            inc, rparen both length 1
-            inc starts in and goes back to 32; we detect that cycle
-
-            inc is only shift in cycle, so could exclude inc in generate
-                but can't due to partial_recursion
-
-        delete cycle check
+    full vs partial_recursion
+        java_expressions_antlr_lr1
+        full:
+            state 34 mca => RPAREN 30.4
+            state 56, 126, 140 Minimal_Complete_Action => (RPAREN 30.4, DOT 31.4)
+        partial
+            state 34 mca => (RPAREN 30.4, DOT 31.4)
+            state 56, 126140    Minimal_Complete_Action => RPAREN 30.4
+                31.4 appears to be other_left
 
     doc Just_Pushed_Back_Or_Deleted
         try_delete also checks for just_inserted

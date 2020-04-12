@@ -48,18 +48,18 @@ Productions:
 27.0: literal <= DECIMAL_LITERAL
 27.1: literal <= BOOL_LITERAL
 28.0: expressionList <= expression ; (1 => Other_Left)
-28.1: expressionList <= expressionList COMMA expression ; (1 => Direct_Left, 3 => Other)
+28.1: expressionList <= expressionList COMMA expression ; (1 => Direct_Left, 3 => Other_Right)
 29.0: methodCall <= IDENTIFIER LPAREN expressionList RPAREN ; (3 => Other)
 29.1: methodCall <= IDENTIFIER LPAREN RPAREN
 30.0: expression <= primary ; (1 => Other_Left)
-30.1: expression <= expression DOT nonterminal_008 ; (1 => Direct_Left, 3 => Other)
+30.1: expression <= expression DOT nonterminal_008 ; (1 => Direct_Left, 3 => Other_Right)
 30.2: expression <= expression LBRACK expression RBRACK ; (1 => Direct_Left, 3 => Other)
 30.3: expression <= methodCall ; (1 => Other_Left)
-30.4: expression <= LPAREN typeType RPAREN expression ; (2 => Other, 4 => Other)
-30.5: expression <= expression nonterminal_015 ; (1 => Direct_Left, 2 => Other)
-30.6: expression <= nonterminal_020 expression ; (1 => Other_Left, 2 => Other)
-30.7: expression <= expression nonterminal_024 expression ; (1 => Direct_Left, 2 => Other, 3 => Other)
-30.8: expression <= expression nonterminal_027 expression ; (1 => Direct_Left, 2 => Other, 3 => Other)
+30.4: expression <= LPAREN typeType RPAREN expression ; (2 => Other, 4 => Direct_Right)
+30.5: expression <= expression nonterminal_015 ; (1 => Direct_Left, 2 => Other_Right)
+30.6: expression <= nonterminal_020 expression ; (1 => Other_Left, 2 => Direct_Right)
+30.7: expression <= expression nonterminal_024 expression ; (1 => Direct_Left, 2 => Other, 3 => Direct_Right)
+30.8: expression <= expression nonterminal_027 expression ; (1 => Direct_Left, 2 => Other, 3 => Direct_Right)
 31.0: primary <= LPAREN expression RPAREN ; (2 => Other)
 31.1: primary <= THIS
 31.2: primary <= literal ; (1 => Other_Left)
@@ -85,7 +85,7 @@ Productions:
 38.1: nonterminal_027 <= SUB
 39.0: nonterminal_034 <= LBRACK RBRACK
 40.0: nonterminal_033_list <= nonterminal_034 ; (1 => Other_Left)
-40.1: nonterminal_033_list <= nonterminal_033_list nonterminal_034 ; (1 => Direct_Left, 2 => Other)
+40.1: nonterminal_033_list <= nonterminal_033_list nonterminal_034 ; (1 => Direct_Left, 2 => Other_Right)
 
 Partial recursions:
 1 => (28 (0) -> 29 (1) -> 34 (0, 2, 4) -> 31 (0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8) -> 30 (0, 1, 1) -> )

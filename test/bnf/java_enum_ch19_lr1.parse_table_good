@@ -15,7 +15,7 @@ Tokens:
 Productions:
 8.0: wisitoken_accept <= EnumBody Wisi_EOI
 9.0: EnumConstantList <= EnumConstant ; (1 => Other_Left)
-9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left, 3 => Other)
+9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left, 3 => Other_Right)
 10.0: EnumConstant <= IDENTIFIER
 11.0: EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET
 11.1: EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET

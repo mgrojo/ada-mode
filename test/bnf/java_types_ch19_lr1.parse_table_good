@@ -36,24 +36,24 @@ Productions:
 16.0: wisitoken_accept <= CompilationUnit Wisi_EOI
 17.0: CompilationUnit <= ClassType
 18.0: AnnotationList <= Annotation ; (1 => Other_Left)
-18.1: AnnotationList <= AnnotationList Annotation ; (1 => Direct_Left, 2 => Other)
-19.0: Annotation <= AT ClassType ; (2 => Other)
-20.0: ClassType <= AnnotationList Identifier TypeArguments ; (1 => Other_Left, 3 => Other)
+18.1: AnnotationList <= AnnotationList Annotation ; (1 => Direct_Left, 2 => Other_Right)
+19.0: Annotation <= AT ClassType ; (2 => Other_Right)
+20.0: ClassType <= AnnotationList Identifier TypeArguments ; (1 => Other_Left, 3 => Other_Right)
 20.1: ClassType <= AnnotationList Identifier ; (1 => Other_Left)
-20.2: ClassType <= Identifier TypeArguments ; (2 => Other)
+20.2: ClassType <= Identifier TypeArguments ; (2 => Other_Right)
 20.3: ClassType <= Identifier
 21.0: TypeArguments <= LESS TypeArgumentList GREATER ; (2 => Other)
 22.0: TypeArgumentList <= TypeArgument ; (1 => Other_Left)
-22.1: TypeArgumentList <= TypeArgumentList COMMA TypeArgument ; (1 => Direct_Left, 3 => Other)
+22.1: TypeArgumentList <= TypeArgumentList COMMA TypeArgument ; (1 => Direct_Left, 3 => Other_Right)
 23.0: TypeArgument <= ClassType ; (1 => Other_Left)
 23.1: TypeArgument <= ArrayType ; (1 => Other_Left)
-24.0: ArrayType <= PrimitiveType Dims ; (1 => Other_Left, 2 => Other)
-24.1: ArrayType <= ClassType Dims ; (1 => Other_Left, 2 => Other)
-25.0: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list ; (1 => Other_Left, 4 => Other)
+24.0: ArrayType <= PrimitiveType Dims ; (1 => Other_Left, 2 => Other_Right)
+24.1: ArrayType <= ClassType Dims ; (1 => Other_Left, 2 => Other_Right)
+25.0: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list ; (1 => Other_Left, 4 => Other_Right)
 25.1: Dims <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (1 => Other_Left)
-25.2: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list ; (3 => Other)
+25.2: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list ; (3 => Other_Right)
 25.3: Dims <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-26.0: PrimitiveType <= AnnotationList NumericType ; (1 => Other_Left, 2 => Other)
+26.0: PrimitiveType <= AnnotationList NumericType ; (1 => Other_Left, 2 => Other_Right)
 26.1: PrimitiveType <= NumericType ; (1 => Other_Left)
 27.0: NumericType <= BYTE
 27.1: NumericType <= SHORT
@@ -63,11 +63,11 @@ Productions:
 28.0: nonterminal_013 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (1 => Other_Left)
 28.1: nonterminal_013 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
 29.0: nonterminal_012_list <= nonterminal_013 ; (1 => Other_Left)
-29.1: nonterminal_012_list <= nonterminal_012_list nonterminal_013 ; (1 => Direct_Left, 2 => Other)
+29.1: nonterminal_012_list <= nonterminal_012_list nonterminal_013 ; (1 => Direct_Left, 2 => Other_Right)
 30.0: nonterminal_028 <= AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET ; (1 => Other_Left)
 30.1: nonterminal_028 <= LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
 31.0: nonterminal_027_list <= nonterminal_028 ; (1 => Other_Left)
-31.1: nonterminal_027_list <= nonterminal_027_list nonterminal_028 ; (1 => Direct_Left, 2 => Other)
+31.1: nonterminal_027_list <= nonterminal_027_list nonterminal_028 ; (1 => Direct_Left, 2 => Other_Right)
 
 Partial recursions:
 1 => (30 (0, 1, 1) -> 31 (0) -> 28 (0, 1, 1) -> 29 (0, 0, 1, 2) -> 25 (0, 0, 1) -> 26 (0, 0, 1, 1) -> 24 (0, 1) -> 23 (0, 1, 1) -> 22 (0) -> 21 (0) -> 19 (0, 1, 1) -> 18 (0, 0, 1, 2) -> 20 (0) -> )
