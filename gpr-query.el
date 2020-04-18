@@ -456,8 +456,7 @@ Uses `gpr_query'. Returns new list."
 (defconst gpr-query--symbol-char "[-+*/=<>&[:alnum:]_.]")
 
 (defconst gpr-query-completion-regexp
-  ;; id<package<line>>
-  (concat "\\(" gpr-query--symbol-char "+\\)<.*<[0-9]+>>")
+  (concat "\\(" gpr-query--symbol-char "+\\)\\((.*)\\)?<.*<[0-9]+>>")
   "Regexp matching completion item from gpr-query--read-symbols.")
 
 (defun gpr-query--read-symbols (session)

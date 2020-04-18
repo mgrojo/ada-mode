@@ -4,11 +4,11 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (from o.e.a): work;
-o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser (very old)
-o.e.a.stephe-4 (from o.e.a): eglot/ada_language_server
-o.e.a.stephe-5 (from o.e.a): libadalang backend
-o.e.a.stephe-6 (from ): available
+o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
+o.e.a.stephe-3 (?): emacs module parser (very old)
+o.e.a.stephe-4 (?): eglot/ada_language_server
+o.e.a.stephe-5 (?): libadalang backend
+o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -45,6 +45,8 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+hide wisi syntax errors window when clear it
+
 test/ada_mode-recover_string_quote_1.adb
     undo_reduce after push-back or insert
 

@@ -1304,7 +1304,7 @@ IDENTIFIER is from a user prompt with completion, or from
 
 (cl-defmethod xref-backend-identifier-completion-table ((prj wisi-prj))
   (wisi-filter-table (wisi-xref-completion-table (wisi-prj-xref prj) prj)
-		     (when (equal '(4) current-prefix-arg) (buffer-file-name))))
+		     (when (equal '(16) current-prefix-arg) (buffer-file-name))))
 
 (cl-defmethod xref-backend-references  ((prj wisi-prj) identifier)
   (wisi-xref-references (wisi-prj-xref prj) prj (wisi-xref-item identifier prj)))
