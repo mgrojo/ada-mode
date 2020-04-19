@@ -675,7 +675,7 @@ package body WisiToken.Parse.LR is
       use Config_Op_Arrays, Config_Op_Array_Refs;
    begin
       for I in First_Index (Ops) .. Last_Index (Ops) loop
-         if Constant_Ref (Ops, I).Op /= Op then
+         if Constant_Ref (Ops, I).Op = Op then
             return False;
          end if;
       end loop;

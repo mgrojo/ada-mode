@@ -514,6 +514,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       Trace          : WisiToken.Trace'Class renames Super.Trace.all;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
+      Prev_Recover   : constant WisiToken.Base_Token_Index := Super.Parser_State (Parser_Index).Resume_Token_Goal;
 
       Token : constant Recover_Token := Config.Stack.Peek.Token;
    begin
@@ -524,10 +525,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  to give this operation zero cost. But then we keep doing push_back
       --  forever, making no progress. So we give it a cost.
 
-      if not Token.Virtual then
+      if not Token.Virtual and
          --  If Virtual, this is from earlier in this recover session; no point
          --  in trying to redo it.
-
+        (Prev_Recover = Invalid_Token_Index or else
+           Token.Min_Terminal_Index = Invalid_Token_Index or else
+           Prev_Recover < Token.Min_Terminal_Index)
+        --  Don't push back past previous error recover (that would require
+        --  keeping track of previous inserts/deletes, and would not be useful
+        --  in most cases).
+      then
          declare
             use Config_Op_Arrays;
             New_Config : Configuration := Config;
@@ -588,45 +595,40 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
-      Trace : WisiToken.Trace'Class renames Super.Trace.all;
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
+      use Config_Op_Arrays;
 
-      Token : constant Recover_Token := Config.Stack.Peek.Token;
+      Trace          : WisiToken.Trace'Class renames Super.Trace.all;
+      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
+      Token          : constant Recover_Token := Config.Stack.Peek.Token;
+      New_Config     : Configuration          := Config;
+      Token_Count    : Ada.Containers.Count_Type;
    begin
       --  Try expanding the nonterm on the stack top, to allow pushing_back
       --  its components, or insert and other operations at that point.
 
-      if Undo_Reduce_Valid (Config.Stack, Super.Parser_State (Parser_Index).Tree) then
-         declare
-            use Config_Op_Arrays;
-            New_Config  : Configuration := Config;
-            Token_Count : Ada.Containers.Count_Type;
-         begin
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-            New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+      New_Config.Error_Token.ID := Invalid_Token_ID;
+      New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-            Token_Count := Undo_Reduce (New_Config.Stack, Super.Parser_State (Parser_Index).Tree);
+      Token_Count := Undo_Reduce (New_Config.Stack, Super.Parser_State (Parser_Index).Tree);
 
-            if Token.Min_Terminal_Index /= Invalid_Token_Index  then
-               --  If Token is empty no cost increase.
-               New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Token.ID);
-            end if;
+      if Token.Min_Terminal_Index /= Invalid_Token_Index  then
+         --  If Token is empty no cost increase.
+         New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Token.ID);
+      end if;
 
-            if Is_Full (New_Config.Ops) then
-               Super.Config_Full ("undo_reduce 1", Parser_Index);
-               raise Bad_Config;
-            else
-               Append (New_Config.Ops, (Undo_Reduce, Token.ID, Token_Count));
-            end if;
-            New_Config.Strategy_Counts (Undo_Reduce) := New_Config.Strategy_Counts (Undo_Reduce) + 1;
+      if Is_Full (New_Config.Ops) then
+         Super.Config_Full ("undo_reduce 1", Parser_Index);
+         raise Bad_Config;
+      else
+         Append (New_Config.Ops, (Undo_Reduce, Token.ID, Token_Count));
+      end if;
+      New_Config.Strategy_Counts (Undo_Reduce) := New_Config.Strategy_Counts (Undo_Reduce) + 1;
 
-            Local_Config_Heap.Add (New_Config);
+      Local_Config_Heap.Add (New_Config);
 
-            if Trace_McKenzie > Detail then
-               Base.Put ("undo_reduce " & Image (Token.ID, Trace.Descriptor.all), Super, Shared,
-                         Parser_Index, New_Config);
-            end if;
-         end;
+      if Trace_McKenzie > Detail then
+         Base.Put ("undo_reduce " & Image (Token.ID, Trace.Descriptor.all), Super, Shared,
+                   Parser_Index, New_Config);
       end if;
    end Try_Undo_Reduce;
 
@@ -1147,7 +1149,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Shared.Language_Matching_Begin_Tokens /= null then
          Current_Token_ID_Peek_3
            (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete,
-            Super.Parser_State (Parser_Index).Prev_Deleted, Tokens);
+            Tokens);
 
          Shared.Language_Matching_Begin_Tokens (Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
       end if;
@@ -1580,10 +1582,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Append (New_Config.Ops, (Delete, ID, Config.Current_Shared_Token));
             end if;
             New_Config.Current_Shared_Token := New_Config.Current_Shared_Token + 1;
-            loop
-               exit when not Super.Parser_State (Parser_Index).Prev_Deleted.Contains (New_Config.Current_Shared_Token);
-               New_Config.Current_Shared_Token := New_Config.Current_Shared_Token + 1;
-            end loop;
 
             if New_Config.Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
                New_Config.Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
@@ -1607,9 +1605,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Get one config from Super, check to see if it is a viable
       --  solution. If not, enqueue variations to check.
 
+      use all type Ada.Containers.Count_Type;
       use all type Base.Config_Status;
       use all type Parser.Language_Fixes_Access;
       use all type Semantic_Checks.Check_Status_Label;
+      use Config_Op_Arrays; -- not a tagged type to allow Spark
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
@@ -1756,14 +1756,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
 
-      if None_Since_FF (Config.Ops, Delete) and then
-        None_Since_FF (Config.Ops, Insert) and then
-        Config.Stack.Depth > 1 and then -- can't delete the first state
-        (not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))
-        --  If Config reduces to the start nonterm, there's no point in push_back.
+      if Config.Stack.Depth > 1 and then
+        (Length (Config.Ops) = 0 or else
+           Push_Back_Valid (Config.Stack.Peek.Token.Min_Terminal_Index, Config.Ops, Last_Index (Config.Ops)))
+        and then (not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))
+        --  If Config reduces to the start nonterm, there's no point in Push_Back or Undo_Reduce.
       then
          Try_Push_Back (Super, Shared, Parser_Index, Config, Local_Config_Heap);
-         Try_Undo_Reduce (Super, Shared, Parser_Index, Config, Local_Config_Heap);
+
+         if Undo_Reduce_Valid (Config.Stack, Super.Parser_State (Parser_Index).Tree) then
+            Try_Undo_Reduce (Super, Shared, Parser_Index, Config, Local_Config_Heap);
+         end if;
       end if;
 
       if None_Since_FF (Config.Ops, Insert) then

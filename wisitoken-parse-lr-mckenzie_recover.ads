@@ -11,7 +11,7 @@
 --  [Grune 2008] Parsing Techniques, A Practical Guide, Second
 --  Edition. Dick Grune, Ceriel J.H. Jacobs.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -66,8 +66,7 @@ private
       Terminals_Current         :         in out Base_Token_Index;
       Restore_Terminals_Current :            out WisiToken.Base_Token_Index;
       Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete     :         in out SAL.Base_Peek_Type;
-      Prev_Deleted              :         in     Recover_Token_Index_Arrays.Vector)
+      Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token;
    --  Return the current token, from either Terminals or Insert_Delete;
    --  set up for Next_Token.
@@ -88,7 +87,6 @@ private
       Terminals_Current     :         in     Base_Token_Index;
       Insert_Delete         : aliased in     Sorted_Insert_Delete_Arrays.Vector;
       Current_Insert_Delete :         in     SAL.Base_Peek_Type;
-      Prev_Deleted          :         in     Recover_Token_Index_Arrays.Vector;
       Tokens                :            out Token_ID_Array_1_3);
    --  Return the current token (in Tokens (1)) from either Terminals or
    --  Insert_Delete, without setting up for Next_Token. Return the two
@@ -190,8 +188,7 @@ private
       Terminals_Current         :         in out Base_Token_Index;
       Restore_Terminals_Current :         in out Base_Token_Index;
       Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete     :         in out SAL.Base_Peek_Type;
-      Prev_Deleted              :         in     Recover_Token_Index_Arrays.Vector)
+      Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token;
    --  Return the next token, from either Terminals or Insert_Delete;
    --  update Terminals_Current or Current_Insert_Delete.
@@ -206,9 +203,12 @@ private
    --  Insert_Delete contains only Insert and Delete ops, in token_index
    --  order. Those ops are applied when Terminals_Current =
    --  op.token_index.
-   --
-   --  Prev_Deleted contains tokens deleted in previous recover
-   --  operations; those are skipped.
+
+   function Push_Back_Valid
+     (Target_Token_Index : in WisiToken.Base_Token_Index;
+      Ops             : in Config_Op_Arrays.Vector;
+      Prev_Op         : in Positive_Index_Type)
+     return Boolean;
 
    procedure Push_Back (Config : in out Configuration);
    --  Pop the top Config.Stack item, set Config.Current_Shared_Token to
@@ -243,19 +243,29 @@ private
    --  Put message to Trace, with parser and task info.
 
    function Undo_Reduce_Valid
-     (Stack : in Recover_Stacks.Stack;
-      Tree  : in Syntax_Trees.Tree)
+     (Stack   : in Recover_Stacks.Stack;
+      Tree    : in Syntax_Trees.Tree)
      return Boolean
+     --  Check if Undo_Reduce is valid when there is no previous Config_Op.
+     --
+     --  Undo_Reduce needs to know what tokens the nonterm contains, to
+     --  push them on the stack. Thus we need either a valid Tree index, or
+     --  an empty nonterm. If Token.Virtual, we can't trust
+     --  Token.Byte_Region to determine empty.
      is (Stack.Depth > 1 and then
            ((Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index and then
                Tree.Is_Nonterm (Stack.Peek.Tree_Index)) or
               (Stack.Peek.Tree_Index = WisiToken.Syntax_Trees.Invalid_Node_Index and
                  (not Stack.Peek.Token.Virtual and
                     Stack.Peek.Token.Byte_Region = Null_Buffer_Region))));
-   --  Undo_Reduce needs to know what tokens the nonterm contains, to
-   --  push them on the stack. Thus we need either a valid Tree index, or
-   --  an empty nonterm. If Token.Virtual, we can't trust
-   --  Token.Byte_Region to determine empty.
+
+   function Undo_Reduce_Valid
+     (Stack   : in Recover_Stacks.Stack;
+      Tree    : in Syntax_Trees.Tree;
+      Ops     : in Config_Op_Arrays.Vector;
+      Prev_Op : in Positive_Index_Type)
+     return Boolean
+   is (Undo_Reduce_Valid (Stack, Tree) and then Push_Back_Valid (Stack.Peek.Token.Min_Terminal_Index, Ops, Prev_Op));
 
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;

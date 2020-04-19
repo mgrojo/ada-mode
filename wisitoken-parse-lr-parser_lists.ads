@@ -2,7 +2,7 @@
 --
 --  Generalized LR parser state.
 --
---  Copyright (C) 2014-2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2014-2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -59,13 +59,8 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Last token read from Shared_Parser.Terminals.
 
       Recover_Insert_Delete : Config_Op_Queues.Queue;
-      --  Tokens in that were inserted during error recovery, or should be
-      --  deleted/skipped when read. Contains only Insert and Delete ops.
-      --  Used/emptied by main parse.
-
-      Prev_Deleted : Recover_Token_Index_Arrays.Vector;
-      --  Tokens deleted by previous error recovery; don't process in new
-      --  error recovery.
+      --  Tokens in that were inserted or deleted during error recovery.
+      --  Contains only Insert and Delete ops. Used/emptied by main parse.
 
       Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Current terminal, in Tree

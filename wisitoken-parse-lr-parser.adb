@@ -241,18 +241,10 @@ package body WisiToken.Parse.LR.Parser is
             then Parser_State.Shared_Token + 1
             else Parser_State.Shared_Token)
          then
-            Parser_State.Shared_Token     := Parser_State.Shared_Token + 1;
+            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
             --  We don't reset Inc_Shared_Token here; only after the next token is
             --  actually used.
-            Parser_State.Prev_Deleted.Append (Parser_State.Recover_Insert_Delete.Peek.Del_Token_Index);
             Parser_State.Recover_Insert_Delete.Drop;
-
-         elsif Parser_State.Prev_Deleted.Contains
-           ((if Parser_State.Inc_Shared_Token
-             then Parser_State.Shared_Token + 1
-             else Parser_State.Shared_Token))
-         then
-            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
 
          else
             exit;
@@ -574,7 +566,7 @@ package body WisiToken.Parse.LR.Parser is
                      Recover_Cost           : Integer;
                      Min_Recover_Cost       : Integer                   := Integer'Last;
                      Recover_Ops_Length     : Ada.Containers.Count_Type;
-                     Max_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'First;
+                     Min_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
                      Recover_Cur            : Parser_Lists.Cursor;
                   begin
                      Current_Parser := Shared_Parser.Parsers.First;
@@ -595,12 +587,10 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Error_Parser_Count > 0 then
                         --  There was at least one error. We assume that caused the ambiguous
-                        --  parse, and we pick the parser with the minimum cost and maximum
-                        --  recover ops length to allow the parse to succeed. We terminate the
-                        --  other parsers so the remaining parser executes actions. Among
-                        --  equal costs, we pick the maximum recover ops length because it's
-                        --  probably due to Minimal_Complete_Actions finishing a
-                        --  statement/declaration.
+                        --  parse, and we pick the parser with the minimum cost and minimum
+                        --  recover ops length (consistent with Duplicate_State) to allow the
+                        --  parse to succeed. We terminate the other parsers so the remaining
+                        --  parser can do Execute_Actions.
                         --
                         --  If there are multiple errors, this metric is not very meaningful.
                         --
@@ -610,13 +600,13 @@ package body WisiToken.Parse.LR.Parser is
                            Recover_Cost := Current_Parser.Min_Recover_Cost;
                            if Recover_Cost < Min_Recover_Cost then
                               Min_Recover_Cost       := Recover_Cost;
-                              Max_Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
+                              Min_Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
                               Recover_Cur            := Current_Parser;
 
                            elsif Recover_Cost = Min_Recover_Cost then
                               Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
-                              if Recover_Ops_Length > Max_Recover_Ops_Length then
-                                 Max_Recover_Ops_Length := Recover_Ops_Length;
+                              if Recover_Ops_Length < Min_Recover_Ops_Length then
+                                 Min_Recover_Ops_Length := Recover_Ops_Length;
                                  Recover_Cur    := Current_Parser;
                               end if;
                            end if;
@@ -634,7 +624,7 @@ package body WisiToken.Parse.LR.Parser is
                               Shared_Parser.Parsers.Terminate_Parser
                                 (Temp,
                                  (if Recover_Cost = Min_Recover_Cost and then
-                                    Recover_Ops_Length = Max_Recover_Ops_Length
+                                    Recover_Ops_Length = Min_Recover_Ops_Length
                                   then "random"
                                   else "recover cost/length"),
                                  Shared_Parser.Trace.all, Shared_Parser.Terminals);

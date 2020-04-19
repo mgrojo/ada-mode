@@ -1,9 +1,9 @@
 build/Makefile
 
 branches:
-org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
+org.wisitoken/o.s_l.sal          - main, used by o.e.a
+org.wisitoken.stephe-1/o.s_l.sal - misc devel for o.w, o.e.a.s-*
+org.wisitoken.stephe-2/o.s_l.sal - available
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -21,6 +21,21 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+forbid out-of-order-ops
+     test_mckenzie_recover.adb Out_Of_Order_Ops
+        used to demonstrate push_back over previous error, not previous ops in current session.
+
+        major simplification if eliminate both!
+            forbid push_back over previous error => can replace Parser_State.Prev_Deleted with simpler detection
+            forbid push_back over previous ops => don't need sorted_del_ins, apply to parser simpler
+
+        change sorted_insert_delete to plain array
+            t_mck
+
+            t_all
+
+    ada-mode tests
+
 error_correction_algorithm.tex
     full vs partial_recursion
         java_expressions_antlr_lr1
@@ -31,6 +46,15 @@ error_correction_algorithm.tex
             state 34 mca => (RPAREN 30.4, DOT 31.4)
             state 56, 126140    Minimal_Complete_Action => RPAREN 30.4
                 31.4 appears to be other_left
+
+    forbid push_back:
+        if push_back over insert/delete, get duplicate results
+        can push_back into fast-forward:
+            1 do large push_back, insert/delete there
+            2 fast forward to orig error point
+            3 do small push_back, insert/delete there
+                useful for fixing 'end *;' errors in Ada.
+                t_mck Error_3.
 
     doc Just_Pushed_Back_Or_Deleted
         try_delete also checks for just_inserted
@@ -55,7 +79,13 @@ error_correction_algorithm.tex
     compare speed of recover
 
     LALR vs LR1
-        test_mckenzie_recover String_Quote_5 enqueue 84 vs 47
+        test_mckenzie_recover
+            String_Quote_2
+            String_Quote_5
+            Two_Missing_Ends enqueue 50 vs 101
+            Do_Delete_First 280 vs 202
+            Two_Parsers 18 vs 55
+            Match_Selected_Component_1
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
 

@@ -88,7 +88,7 @@ OK test_mckenzie_recover.adb LALR : Enqueue_Limit
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_1
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_2
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_3
-OK test_mckenzie_recover.adb LALR : Out_Of_Order_Ops
+OK test_mckenzie_recover.adb LALR : No_Push_Back_Prev_Error
 OK test_mckenzie_recover.adb LALR : Error_During_Resume_1
 OK test_mckenzie_recover.adb LALR : Error_During_Resume_2
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Finish_1
@@ -141,7 +141,7 @@ OK test_mckenzie_recover.adb LR1 : Enqueue_Limit
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_1
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_2
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_3
-OK test_mckenzie_recover.adb LR1 : Out_Of_Order_Ops
+OK test_mckenzie_recover.adb LR1 : No_Push_Back_Prev_Error
 OK test_mckenzie_recover.adb LR1 : Error_During_Resume_1
 OK test_mckenzie_recover.adb LR1 : Error_During_Resume_2
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Finish_1

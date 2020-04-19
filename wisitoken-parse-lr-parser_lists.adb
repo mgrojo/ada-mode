@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014 - 2019  All Rights Reserved.
+--  Copyright (C) 2014 - 2020  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -244,6 +244,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             if Other.Max_Recover_Ops_Length = Current.Max_Recover_Ops_Length then
                Parsers.Terminate_Parser (Other, "duplicate state: random", Trace, Terminals);
             else
+               --  Keep the minimum ops length
                if Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
                   null;
                else
@@ -307,7 +308,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
          New_Item :=
            (Shared_Token           => Item.Shared_Token,
             Recover_Insert_Delete  => Item.Recover_Insert_Delete,
-            Prev_Deleted           => Item.Prev_Deleted,
             Current_Token          => Item.Current_Token,
             Inc_Shared_Token       => Item.Inc_Shared_Token,
             Stack                  => Item.Stack,
