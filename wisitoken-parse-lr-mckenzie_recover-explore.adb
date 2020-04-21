@@ -267,7 +267,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          All_Conflicts     => True,
          Trace_Prefix      => "fast_forward");
    begin
-      --  This solution is from Language_Fixes; any cost increase is done there.
+      --  This solution is from Language_Fixes (see gate on call site
+      --  below); any cost increase is done there.
 
       if Length (Parse_Items) = 1 then
          declare
@@ -329,6 +330,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
       use Parse.Parse_Item_Arrays;
+      use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
@@ -357,6 +359,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Max_Push_Back_Token_Index;
 
    begin
+      if Length (Config.Ops) > 0 and then Constant_Ref (Config.Ops, Last_Index (Config.Ops)).Op = Push_Back then
+         --  Check would undo the Push_Back, leading to duplicate results.
+         --  Allow other ops to be added at the current edit point. See
+         --  test_mckenzie_recover.adb Do_Delete_First and
+         --  three_action_conflict_lalr.parse_good for examples.
+         return Continue;
+      end if;
+
       if Parse.Parse
         (Super, Shared, Parser_Index, Parse_Items, Config, Config.Resume_Token_Goal,
          All_Conflicts => False,
@@ -526,11 +536,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  forever, making no progress. So we give it a cost.
 
       if not Token.Virtual and
-         --  If Virtual, this is from earlier in this recover session; no point
-         --  in trying to redo it.
-        (Prev_Recover = Invalid_Token_Index or else
-           Token.Min_Terminal_Index = Invalid_Token_Index or else
-           Prev_Recover < Token.Min_Terminal_Index)
+        --  If Virtual, this is from earlier in this recover session; no point
+        --  in trying to redo it.
+
+        Token.Min_Terminal_Index /= Invalid_Token_Index and
+        --  No point in pushing back an empty nonterm; that leads to duplicate
+        --  solutions with Undo_Reduce; see test_mckenzie_recover.adb Error_2.
+
+        (Prev_Recover = Invalid_Token_Index or else Prev_Recover < Token.Min_Terminal_Index)
         --  Don't push back past previous error recover (that would require
         --  keeping track of previous inserts/deletes, and would not be useful
         --  in most cases).
@@ -573,19 +586,55 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    function Just_Pushed_Back_Or_Deleted (Config : in Configuration; ID : in Token_ID) return Boolean
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
-      use all type Ada.Containers.Count_Type;
+      Last_Token_Index : WisiToken.Token_Index := Config.Current_Shared_Token;
+      --  Index of last op checked.
    begin
-      if Length (Config.Ops) = 0 then
-         return False;
-      else
+      --  We need to consider more than one recent op here; see test_mckenzie_recover.adb
+      --  Check_Multiple_Delete_For_Insert. Checking only one op allows this config there:
+      --
+      --  ...  (DELETE, END, 10), (DELETE, SEMICOLON, 11), (INSERT, END, 12), (INSERT, SEMICOLON, 12)
+      --
+      --  This function is called when considering whether to insert END before
+      --  12 = Config.Current_Shared_Token.
+      --
+      for I in reverse First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
          declare
-            Last_Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
+            Op : Config_Op renames Constant_Ref (Config.Ops, I);
          begin
-            return
-              (Last_Op.Op = Push_Back and then Last_Op.PB_ID = ID) or
-              (Last_Op.Op = Delete and then Last_Op.Del_ID = ID);
+            case Op.Op is
+            when Push_Back =>
+               --  The case we are preventing for Push_Back is typically:
+               --  (PUSH_BACK, Identifier, 2), (INSERT, Identifier, 2)
+               --  (PUSH_BACK, Identifier, 2), (PUSH_BACK, END, 3), (INSERT, Identifier, 3), (INSERT, END, 3),
+               if Op.PB_Token_Index = Last_Token_Index then
+                  if Op.PB_ID = ID then
+                     return True;
+                  else
+                     Last_Token_Index := Op.PB_Token_Index - 1;
+                  end if;
+               else
+                  --  Op is at a different edit point.
+                  return False;
+               end if;
+
+            when Delete =>
+               if Op.Del_Token_Index = Last_Token_Index - 1 then
+                  if Op.Del_ID = ID then
+                     return True;
+                  else
+                     Last_Token_Index := Op.Del_Token_Index;
+                  end if;
+               else
+                  --  Op is at a different edit point.
+                  return False;
+               end if;
+
+            when others =>
+               return False;
+            end case;
          end;
-      end if;
+      end loop;
+      return False; -- handles Config.Ops.Length = 0.
    end Just_Pushed_Back_Or_Deleted;
 
    procedure Try_Undo_Reduce
@@ -1169,7 +1218,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Insert_From_Action_List; in general it's not possible to tell when
       --  one will be better (see test_mckenzie_recover.adb
       --  Always_Minimal_Complete, Always_Matching_Begin).
-      --  Insert_From_Action does not insert the Minimal_Inserted tokens,
+      --  Insert_From_Action_List does not insert the Minimal_Inserted tokens,
       --  and it will never insert the Matching_Begin_Tokens, so there is no
       --  duplication. Insert_From_Action_List will normally be more
       --  expensive.
@@ -1277,8 +1326,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             raise SAL.Programmer_Error;
          end;
 
-         if not Has_Space
-           (New_Config.Ops, Ada.Containers.Count_Type (Saved_Shared_Token - 1 - New_Config.Current_Shared_Token))
+         if New_Config.Current_Shared_Token < Saved_Shared_Token - 1 and then
+           (not Has_Space
+              (New_Config.Ops, Ada.Containers.Count_Type (Saved_Shared_Token - 1 - New_Config.Current_Shared_Token)))
          then
             Super.Config_Full ("insert quote 2 " & Label, Parser_Index);
             raise Bad_Config;
@@ -1688,6 +1738,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   New_State : Unknown_State_Index;
                begin
                   Config.Cost := Config.Cost + Table.McKenzie_Param.Ignore_Check_Fail;
+                  Config.Strategy_Counts (Ignore_Error) := Config.Strategy_Counts (Ignore_Error) + 1;
 
                   --  finish reduce.
                   Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));

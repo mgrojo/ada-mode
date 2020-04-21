@@ -168,6 +168,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          if Shared_Parser.Language_Fixes = null then
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
+               Config.Strategy_Counts (Ignore_Error) := 1;
                Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
                     Task_ID => False);
             end if;
@@ -386,7 +387,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                declare
                   use Parser_Lists;
                   use Config_Op_Arrays, Config_Op_Array_Refs;
-                  use Sorted_Insert_Delete_Arrays;
 
                   Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
 
@@ -399,8 +399,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Stack_Matches_Ops     : Boolean := True;
                   Shared_Token_Changed  : Boolean := False;
                   Current_Token_Virtual : Boolean := False;
-
-                  Sorted_Insert_Delete : aliased Sorted_Insert_Delete_Arrays.Vector;
+                  First_Insert          : Boolean := True;
                begin
                   --  The verb will be reset by the main parser; just indicate the
                   --  parser recovered from the error.
@@ -521,7 +520,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            end if;
 
                         when Insert =>
-                           if Stack_Matches_Ops and Op.Ins_Token_Index = Parser_State.Shared_Token then
+                           if First_Insert and Op.Ins_Token_Index = Parser_State.Shared_Token then
+                              --  We need First_Insert here, not just Stack_Matches_Ops, when the
+                              --  first insert is preceeded only by Push_Back and Undo_Reduce, with
+                              --  at least one Undo_Reduce (so Stack_Matches_Ops is False when we
+                              --  get here). See test_mckenzie_recover.adb Missing_Name_3
+
+                              First_Insert := False;
+
                               --  Normally Insert is completed by Stack.Push; we let the main parser
                               --  do that.
                               Stack_Matches_Ops := False;
@@ -531,11 +537,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Current_Token_Virtual      := True;
                            else
                               --  Let main parser handle it
-                              if Is_Full (Sorted_Insert_Delete) then
-                                 raise Bad_Config;
-                              else
-                                 Insert (Sorted_Insert_Delete, Op);
-                              end if;
+                              Parser_State.Recover_Insert_Delete.Put (Op);
                            end if;
 
                         when Delete =>
@@ -544,39 +546,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Parser_State.Shared_Token := Op.Del_Token_Index + 1;
                               Shared_Token_Changed      := True;
                            else
-                              if Is_Full (Sorted_Insert_Delete) then
-                                 raise Bad_Config;
-                              else
-                                 Insert (Sorted_Insert_Delete, Op);
-                              end if;
+                              Parser_State.Recover_Insert_Delete.Put (Op);
                            end if;
                         end case;
-                     end;
-                  end loop;
-
-                  --  Set Parser_State.Recover_Insert_Delete
-                  for I in First_Index (Sorted_Insert_Delete) .. Last_Index (Sorted_Insert_Delete) loop
-                     declare
-                        Op : Insert_Delete_Op renames Insert_Delete_Array_Refs.Constant_Ref (Sorted_Insert_Delete, I);
-                     begin
-                        if Token_Index (Op) = Parser_State.Shared_Token and not Current_Token_Virtual then
-                           --  We did not process this above, because it was preceeded only by
-                           --  Push_Back and Undo_Reduce, with at least one Undo_Reduce (so
-                           --  Stack_Matches_Ops was False when we got to this Op). See
-                           --  test_mckenzie_recover.adb Missing_Name_3
-
-                           case Insert_Delete_Op_Label'(Op.Op) is
-                           when Insert =>
-                              Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (ID (Op));
-                              Current_Token_Virtual      := True;
-
-                           when Delete =>
-                              Parser_State.Shared_Token := Op.Del_Token_Index + 1;
-                              Shared_Token_Changed      := True;
-                           end case;
-                        else
-                           Parser_State.Recover_Insert_Delete.Put (Op);
-                        end if;
                      end;
                   end loop;
 
@@ -616,8 +588,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                        (Trace, Parser_State.Label, "recover_insert_delete " & Image
                           (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
                      Put_Line
-                       (Trace, Parser_State.Label, "inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token) &
-                          " parser verb " & All_Parse_Action_Verbs'Image (Parser_State.Verb),
+                       (Trace, Parser_State.Label, "inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token),
                         Task_ID => False);
                   end if;
                end;
@@ -668,12 +639,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Terminals                 :         in     Base_Token_Arrays.Vector;
       Terminals_Current         :         in out WisiToken.Base_Token_Index;
       Restore_Terminals_Current :            out WisiToken.Base_Token_Index;
-      Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token
    is
-      use Sorted_Insert_Delete_Arrays;
-      use Insert_Delete_Array_Refs;
+      use Config_Op_Arrays;
+      use Config_Op_Array_Refs;
 
       procedure Inc_I_D
       is begin
@@ -722,11 +693,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    function Current_Token_ID_Peek
      (Terminals             :         in Base_Token_Arrays.Vector;
       Terminals_Current     :         in Base_Token_Index;
-      Insert_Delete         : aliased in Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete         : aliased in Config_Op_Arrays.Vector;
       Current_Insert_Delete :         in SAL.Base_Peek_Type)
      return Token_ID
    is
-      use Insert_Delete_Array_Refs;
+      use Config_Op_Array_Refs;
 
       Result : Token_ID;
    begin
@@ -762,7 +733,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Current_Token_ID_Peek_3
      (Terminals             :         in     Base_Token_Arrays.Vector;
       Terminals_Current     :         in     Base_Token_Index;
-      Insert_Delete         : aliased in     Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete         : aliased in     Config_Op_Arrays.Vector;
       Current_Insert_Delete :         in     SAL.Base_Peek_Type;
       Tokens                :            out Token_ID_Array_1_3)
    is
@@ -794,7 +765,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       else
          for I in Tokens'Range loop
             declare
-               use Sorted_Insert_Delete_Arrays, Insert_Delete_Array_Refs;
+               use Config_Op_Arrays, Config_Op_Array_Refs;
                J : constant SAL.Base_Peek_Type := Current_Insert_Delete + SAL.Peek_Type (I) - 1;
             begin
                if (J in First_Index (Insert_Delete) .. Last_Index (Insert_Delete)) and then
@@ -824,7 +795,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       ID        : in     Token_ID)
    is
       use Config_Op_Arrays;
-      use Sorted_Insert_Delete_Arrays;
       Op : constant Config_Op := (Delete, ID, Config.Current_Shared_Token);
    begin
       Check (Terminals (Config.Current_Shared_Token).ID, ID);
@@ -832,7 +802,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          raise Bad_Config;
       end if;
       Append (Config.Ops, Op);
-      Insert (Config.Insert_Delete, Op);
+      Append (Config.Insert_Delete, Op);
       Config.Current_Insert_Delete := 1;
    end Delete_Check;
 
@@ -852,14 +822,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Index     : in out WisiToken.Token_Index)
    is
       use Config_Op_Arrays;
-      use Sorted_Insert_Delete_Arrays;
       Op : constant Config_Op := (Delete, Terminals (Index).ID, Index);
    begin
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
       end if;
       Append (Config.Ops, Op);
-      Insert (Config.Insert_Delete, Op);
+      Append (Config.Insert_Delete, Op);
       Config.Current_Insert_Delete := 1;
       Index := Index + 1;
    end Delete;
@@ -999,14 +968,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Insert (Config : in out Configuration; Index : in WisiToken.Token_Index; ID : in Token_ID)
    is
       use Config_Op_Arrays;
-      use Sorted_Insert_Delete_Arrays;
       Op : constant Config_Op := (Insert, ID, Index);
    begin
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
       end if;
       Append (Config.Ops, Op);
-      Insert (Config.Insert_Delete, Op);
+      Append (Config.Insert_Delete, Op);
       Config.Current_Insert_Delete := 1;
    end Insert;
 
@@ -1014,11 +982,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Terminals                 :         in     Base_Token_Arrays.Vector;
       Terminals_Current         :         in out Base_Token_Index;
       Restore_Terminals_Current :         in out WisiToken.Base_Token_Index;
-      Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token
    is
-      use Sorted_Insert_Delete_Arrays, Insert_Delete_Array_Refs;
+      use Config_Op_Arrays, Config_Op_Array_Refs;
 
       function Next_Terminal return Base_Token
       is begin
@@ -1095,11 +1063,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                --  successive Push_Backs have decreasing targets; see
                --  test_mckenzie_recover.adb Missing_Name_0.
                --
+               --  However, if there is a Fast_Forward between two Push_Backs,
+               --  Target_Token_Index must be >= Op.PB_Token_Index. See
+               --  ada-mode-recover_27.adb.
+               --
                --  If called from Undo_Reduce_Valid where the Undo_Reduce token is
                --  empty, we get Target_Token_Index = Op.PB_Token_Index.
                return Target_Token_Index = Invalid_Token_Index or else
                  Op.PB_Token_Index = Invalid_Token_Index or else
-                 Target_Token_Index <= Op.PB_Token_Index;
+                 (if Fast_Forward_Seen
+                  then Target_Token_Index > Op.PB_Token_Index
+                  else Target_Token_Index <= Op.PB_Token_Index);
 
             when Insert =>
                --  If Target_Token_Index = Op.Ins_Token_Index, we want the edit
@@ -1128,7 +1102,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Push_Back (Config : in out Configuration)
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
-      use Sorted_Insert_Delete_Arrays;
 
       Item        : constant Recover_Stack_Item := Config.Stack.Pop;
       Token_Index : constant Base_Token_Index   := Item.Token.Min_Terminal_Index;
@@ -1150,7 +1123,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Is_Full (Config.Insert_Delete) then
                   raise Bad_Config;
                end if;
-               Insert (Config.Insert_Delete, Constant_Ref (Config.Ops, I), Ignore_If_Equal => True);
+               Append (Config.Insert_Delete, Constant_Ref (Config.Ops, I));
             end if;
          end loop;
       end if;
@@ -1188,7 +1161,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
-      use Insert_Delete_Array_Refs;
+      use Config_Op_Array_Refs;
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
 

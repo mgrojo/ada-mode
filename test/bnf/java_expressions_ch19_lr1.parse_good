@@ -20,8 +20,8 @@ Action
  1 parallel tasks
  0: succeed 2, enqueue 19, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
- 1:  1, ( 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
- 0:  1, ( 0 3 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
+ 1:  1, ( 0 0 1 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
+ 0:  1, ( 0 0 3 0 0 0 0 0 0), (94 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
 recover: succeed, parser count 2
  1: Current_Token (RIGHT_PAREN) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125))
  1: resume_active: True, token goal 11
@@ -160,10 +160,10 @@ parser 1: State 62 Current_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) Resume_To
 Action
 
  1 parallel tasks
- 1: succeed 2, enqueue 141, check  42, cost:  6
+ 1: succeed 2, enqueue 138, check  41, cost:  6
 spawn parser 2 from 1 (2 active)
- 2:  6, ( 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
- 1:  6, ( 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
+ 2:  6, ( 0 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
+ 1:  6, ( 0 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
 recover: succeed, parser count 2
  2: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281))
  2: resume_active: True, token goal 17
@@ -270,7 +270,7 @@ Action
 
  1 parallel tasks
  2: succeed 1, enqueue 4, check  2, cost:  1
- 2:  1, ( 0 1 0 0 0 0 0 0), (36 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (417 . 417))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
+ 2:  1, ( 0 0 1 0 0 0 0 0 0), (36 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (417 . 417))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
 recover: succeed, parser count 1
  2: Current_Token (Identifier) Shared_Token  22:(RIGHT_CURLY_BRACKET, (417 . 417))
  2: resume_active: True, token goal 26

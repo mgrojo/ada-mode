@@ -40,8 +40,6 @@ with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
-with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Image_Aux;
-with SAL.Gen_Bounded_Definite_Vectors_Sorted.Gen_Refs;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
@@ -506,13 +504,6 @@ package WisiToken.Parse.LR is
    function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains at least one Op.
 
-   package Sorted_Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors_Sorted
-     (Insert_Delete_Op, Compare, Capacity => 80);
-
-   package Insert_Delete_Array_Refs is new Sorted_Insert_Delete_Arrays.Gen_Refs;
-
-   function Image is new Sorted_Insert_Delete_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
-
    type Recover_Stack_Item is record
       State : Unknown_State_Index;
 
@@ -548,7 +539,8 @@ package WisiToken.Parse.LR is
    --  pushed by recover.
 
    type Strategies is
-     (Language_Fix, Minimal_Complete, Matching_Begin, Push_Back, Undo_Reduce, Insert, Delete, String_Quote);
+     (Ignore_Error, Language_Fix, Minimal_Complete, Matching_Begin,
+      Push_Back, Undo_Reduce, Insert, Delete, String_Quote);
 
    type Strategy_Counts is array (Strategies) of Natural;
    function Image is new SAL.Gen_Array_Image (Strategies, Natural, Strategy_Counts, Trimmed_Image);
@@ -578,7 +570,7 @@ package WisiToken.Parse.LR is
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Insert_Delete : aliased Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete : aliased Config_Op_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only
       --  Insert and Delete ops, in token_index order.
 

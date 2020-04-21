@@ -97,6 +97,7 @@ OK test_mckenzie_recover.adb LALR : Always_Matching_Begin
 OK test_mckenzie_recover.adb LALR : Do_Delete_First
 OK test_mckenzie_recover.adb LALR : Forbid_Minimal_Complete
 OK test_mckenzie_recover.adb LALR : Matching_Begin_Parse_All_Conflicts
+OK test_mckenzie_recover.adb LALR : Check_Multiple_Delete_For_Insert
 OK test_mckenzie_recover.adb LR1 : No_Error
 OK test_mckenzie_recover.adb LR1 : Empty_Comments
 OK test_mckenzie_recover.adb LR1 : Error_1
@@ -150,6 +151,7 @@ OK test_mckenzie_recover.adb LR1 : Always_Matching_Begin
 OK test_mckenzie_recover.adb LR1 : Do_Delete_First
 OK test_mckenzie_recover.adb LR1 : Forbid_Minimal_Complete
 OK test_mckenzie_recover.adb LR1 : Matching_Begin_Parse_All_Conflicts
+OK test_mckenzie_recover.adb LR1 : Check_Multiple_Delete_For_Insert
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
@@ -160,7 +162,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   160
-Successful Tests:  160
+Total Tests Run:   162
+Successful Tests:  162
 Failed Assertions: 0
 Unexpected Errors: 0

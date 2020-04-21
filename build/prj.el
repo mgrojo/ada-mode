@@ -51,11 +51,10 @@
 (add-hook 'ada-gnat-fix-error-hook 'wisitoken-gnat-fix-error)
 
 (defun wisitoken-ediff-good ()
-  (interactive)
-  ;; point is on a file in a diff test fail message:
+  ;; point is on the file name (from `wisitoken-dtrt') in a diff test fail message:
   ;;
   ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
-  ;;     empty_production_2_lalr.parse_table:91
+  ;;     ^empty_production_2_lalr.parse_table:91
   ;;
   ;; ediff that file against the corresponding _good file.
   ;;
@@ -63,18 +62,23 @@
   ;; we need to strip it off.
 
   (let* ((filename-line (thing-at-point 'filename))
-     (end (string-match ":[0-9]+$" filename-line))
-     (filename (if end (substring filename-line 0 end) filename-line))
-     (filename-good (concat filename "_good")))
-    (ediff (locate-file filename-good compilation-search-path)
-       (locate-file filename compilation-search-path))))
+	 (end (string-match ":[0-9]+$" filename-line))
+	 (filename (if end (substring filename-line 0 end) filename-line))
+	 (filename-good (concat filename "_good"))
+	 (loc-filename (locate-file filename compilation-search-path))
+	 (loc-filename-good (locate-file filename-good compilation-search-path)))
+    (unless filename
+      (user-error "'%s' not found; wrong project?" filename))
+    (unless filename-good
+      (user-error "'%s' not found; wrong project?" filename-good))
+    (ediff loc-filename-good loc-filename)))
 
 (defun wisitoken-update-good ()
   (interactive)
   ;; point is on a file in a diff test fail message:
   ;;
   ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
-  ;;     empty_production_2_lalr.parse_table:91
+  ;;     ^empty_production_2_lalr.parse_table:91
   ;;
   ;; replace the corresponding _good file with the new file.
   ;;
@@ -91,20 +95,18 @@
     (message "%s updated" filename-good)))
 
 (defun wisitoken-goto-aunit-fail ()
-  (interactive)
-  ;; point is on the first line in an AUnit test failure message:
+  ;; point is on aunit test file name (from `wisitoken-dtrt') in an AUnit test failure message:
   ;;
-  ;; FAIL test_mckenzie_recover.adb : Empty_Comments
+  ;; FAIL ^test_mckenzie_recover.adb : Empty_Comments
   ;;     1. 1.recover.ops. 1.id got  26 expecting  54
   ;;
   ;; goto that file and procedure
-  (let (filename
+  (let ((case-fold-search nil)
+	filename
 	subprogram-name
 	alg test-label error-number field
 	(large-case-alg-present nil)
 	(small-case-alg-present nil))
-    (beginning-of-line)
-    (forward-word 2)
     (setq filename (thing-at-point 'filename))
     (end-of-line)
     (backward-word 1)
@@ -114,10 +116,10 @@
       (setq alg (thing-at-point 'symbol))
       (forward-line 1)
       (back-to-indentation)
-      (looking-at "\\([0-9]+\\)?\\. \\([0-9]+\\)\\.\\([^ .']+\\)")
-      (setq test-label (match-string 1))
-      (setq error-number (match-string 2))
-      (setq field (match-string 3))
+      (when (looking-at "\\([0-9]+\\)?\\. \\([0-9]+\\)\\.\\([^ .']+\\)")
+	(setq test-label (match-string 1))
+	(setq error-number (match-string 2))
+	(setq field (match-string 3)))
       ;; leave cursor on 'got' value
       (search-forward "got")
       (forward-char 2))
@@ -129,85 +131,96 @@
       (when (not (stringp abs-file))
 	(setq abs-file (car abs-file)))
       (find-file abs-file)
-      (let ((idents (xref-backend-identifier-completion-table (xref-find-backend))))
-	(xref-find-definitions (car (all-completions subprogram-name idents))))
-      (when (string-equal filename "test_mckenzie_recover.adb")
-	(let ((begin (point))
-	      end)
-	  (save-excursion
-	    (wisi-goto-statement-end)
-	    (setq end (point))
-	    (goto-char begin)
-	    (when (search-forward "case Test.Alg" end t)
-	      (if (looking-back "(case Test.Alg")
-		  (setq small-case-alg-present t)
-		(setq large-case-alg-present t))
-	      ))
+      (let ((case-fold-search nil)) ;; buffer-local
+	(when (string-equal filename "test_mckenzie_recover.adb")
+	  (goto-char (point-min)) ;; for testing repeatedly :)
+	  (search-forward subprogram-name)
+	  (let ((begin (point))
+		end)
+	    (save-excursion
+	      (wisi-goto-statement-end)
+	      (setq end (point)) ;; end of subprogram
+	      (goto-char begin)
+	      (when (search-forward "case Test.Alg" end t)
+		(if (looking-back "(case Test.Alg")
+		    (setq small-case-alg-present t)
+		  (setq large-case-alg-present t))
+		))
 
-	  (when test-label (search-forward (concat "\"" test-label "\"")))
+	    (when test-label (search-forward (concat "\"" test-label "\"")))
 
-	  (cond
-	   (large-case-alg-present
-	    (search-forward (concat "when " alg))
-	    (unless test-label (search-forward "Check_Recover"))
-	    (when (not (string-equal error-number "1"))
-	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
-	    (search-forward field)
-	    (end-of-line)
-	    (forward-char -1))
+	    (cond
+	     (large-case-alg-present
+	      (search-forward (concat "when " alg))
+	      (unless test-label (search-forward "Check_Recover"))
+	      (when (and error-number
+			 (not (string-equal error-number "1")))
+		(search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	      (when field
+		(search-forward field)
+		(end-of-line)
+		(forward-char -1)))
 
-	   (small-case-alg-present
-	    (if (string-equal error-number "1")
-		(unless test-label
-		  (search-forward "Check_Recover"))
-	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
-	    (search-forward field)
-	    (if (search-forward "(case Test.Alg" (line-end-position) t)
-		(progn (search-forward (concat "when " alg))
-		       (forward-word 3))
-	      (end-of-line)
-	      (forward-char -1)))
+	     (small-case-alg-present
+	      (if (or (null error-number)
+		      (string-equal error-number "1"))
+		  (unless test-label
+		    (search-forward "Check_Recover"))
+		(search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	      (when field
+		(search-forward field)
+		(if (search-forward "(case Test.Alg" (line-end-position) t)
+		    (progn (search-forward (concat "when " alg))
+			   (forward-word 1))
+		  (end-of-line)
+		  (forward-char -1))))
 
-	   (t
-	    (unless test-label (search-forward "Check_Recover"))
-	    (when (not (string-equal error-number "1"))
-	      (search-forward-regexp (concat "Checking_Error +=> " error-number)))
-	    (search-forward field)
-	    (end-of-line)
-	    (forward-char -1))
-	   )))
-      )))
-
-(defun wisitoken-compilation-finish ()
-  (forward-line)
-  (back-to-indentation)
-  (unless (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+") ;; a file diff failed
-    ;; an AUnit test failed
-    (forward-line -1)
-    (forward-word 1)
-    (forward-char 1)
-  ))
+	     (t
+	      (unless test-label (search-forward "Check_Recover"))
+	      (when (and error-number
+			 (not (string-equal error-number "1")))
+		(search-forward-regexp (concat "Checking_Error +=> " error-number)))
+	      (when field
+		(search-forward field)
+		(end-of-line)
+		(forward-char -1)))
+	     )))
+	))))
 
 (defun wisitoken-compilation-prev ()
   (interactive)
   (forward-line -2)
   (let ((case-fold-search nil))
     (search-backward "FAIL"))
-  (wisitoken-compilation-finish)
   )
 
 (defun wisitoken-compilation-next ()
   (interactive)
   (let ((case-fold-search nil))
-    (search-forward "FAIL"))
-  (wisitoken-compilation-finish)
+    (unless (search-forward "FAIL" nil t)
+      (goto-char (point-min))
+      (search-forward "FAIL" nil t)))
   )
 
-(define-key compilation-mode-map "e" #'wisitoken-ediff-good)
+(defun wisitoken-dtrt ()
+  "Either ediff or goto-aunit-fail"
+  (interactive)
+  ;; point is after FAIL. Distinguish between aunit and ediff:
+  (forward-line)
+  (back-to-indentation)
+
+  (if (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+")
+      (wisitoken-ediff-good)
+    (forward-line -1)
+    (forward-word 1)
+    (forward-char 1)
+    (wisitoken-goto-aunit-fail)
+    ))
+
+(define-key compilation-mode-map "d" #'wisitoken-dtrt)
 (define-key compilation-mode-map "u" #'wisitoken-update-good)
 (define-key compilation-mode-map "n" #'wisitoken-compilation-next)
 (define-key compilation-mode-map "p" #'wisitoken-compilation-prev)
-(define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)
 
 (defun wisitoken-fix-ops ()
   (interactive)
@@ -218,7 +231,8 @@
   (let ((insertp (looking-at "INSERT"))
 	(ffp (looking-at "FAST_FORWARD")))
     (forward-word 1)
-    (ada-case-adjust-at-point)
+    (let ((wisi-case-strict t))
+      (wisi-case-adjust-at-point))
     (cond
      ((not ffp)
       (forward-char 2)
@@ -226,12 +240,6 @@
       (forward-word)
       (insert "_ID")
       (forward-word 1)
-      (when (= ?, (char-after))
-	;; extra insert state
-	(delete-char 1)
-	(kill-word 2))
-      (when insertp
-	(insert ", 1, 0"))
       (forward-char 1); ')'
       (delete-char 1)
       (insert " &")

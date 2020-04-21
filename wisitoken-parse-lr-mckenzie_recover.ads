@@ -65,7 +65,7 @@ private
      (Terminals                 :         in     Base_Token_Arrays.Vector;
       Terminals_Current         :         in out Base_Token_Index;
       Restore_Terminals_Current :            out WisiToken.Base_Token_Index;
-      Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token;
    --  Return the current token, from either Terminals or Insert_Delete;
@@ -76,7 +76,7 @@ private
    function Current_Token_ID_Peek
      (Terminals             :         in Base_Token_Arrays.Vector;
       Terminals_Current     :         in Base_Token_Index;
-      Insert_Delete         : aliased in Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete         : aliased in Config_Op_Arrays.Vector;
       Current_Insert_Delete :         in SAL.Base_Peek_Type)
      return Token_ID;
    --  Return the current token from either Terminals or
@@ -85,7 +85,7 @@ private
    procedure Current_Token_ID_Peek_3
      (Terminals             :         in     Base_Token_Arrays.Vector;
       Terminals_Current     :         in     Base_Token_Index;
-      Insert_Delete         : aliased in     Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete         : aliased in     Config_Op_Arrays.Vector;
       Current_Insert_Delete :         in     SAL.Base_Peek_Type;
       Tokens                :            out Token_ID_Array_1_3);
    --  Return the current token (in Tokens (1)) from either Terminals or
@@ -187,7 +187,7 @@ private
      (Terminals                 :         in     Base_Token_Arrays.Vector;
       Terminals_Current         :         in out Base_Token_Index;
       Restore_Terminals_Current :         in out Base_Token_Index;
-      Insert_Delete             : aliased in out Sorted_Insert_Delete_Arrays.Vector;
+      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token;
    --  Return the next token, from either Terminals or Insert_Delete;

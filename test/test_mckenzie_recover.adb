@@ -327,8 +327,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 15) & (Undo_Reduce, +sequence_of_statements_ID, 0) &
            (Delete, +END_ID, 15),
          Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
-         Enqueue_Low             => 42,
-         Check_Low               => 9,
+         Enqueue_Low             => 26,
+         Check_Low               => 6,
          Cost                    => 2);
    end Error_2;
 
@@ -454,8 +454,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +BEGIN_ID, 4) & (Undo_Reduce, +declarative_part_ID, 0) &
            (Delete, +BEGIN_ID, 4),
          Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
-         Enqueue_Low             => 36,
-         Check_Low               => 8,
+         Enqueue_Low             => 27,
+         Check_Low               => 6,
          Cost                    => 1);
    end Extra_Begin;
 
@@ -624,7 +624,7 @@ package body Test_McKenzie_Recover is
            (Insert, +END_ID, 14),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
          Enqueue_Low             => (case Test.Alg is when LALR => 69, when LR1 => 71),
-         Check_Low               => (case Test.Alg is when LALR => 15, when LR1 => 15),
+         Check_Low               => 15,
          Cost                    => 3);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
@@ -666,7 +666,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IF_ID, 11) & (Insert, +SEMICOLON_ID, 11) & (Insert, +END_ID, 11),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
          Enqueue_Low             => (case Test.Alg is when LALR => 85, when LR1 => 87),
-         Check_Low               => (case Test.Alg is when LALR => 17, when LR1 => 17),
+         Check_Low               => 17,
          Cost                    => 3);
 
       Parse_Text
@@ -685,7 +685,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +LOOP_ID, 13) & (Insert, +SEMICOLON_ID, 13) & (Insert, +END_ID, 13),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
          Enqueue_Low             => (case Test.Alg is when LALR => 108, when LR1 => 111),
-         Check_Low               => (case Test.Alg is when LALR => 23, when LR1 => 23),
+         Check_Low               => 23,
          Cost                    => 3);
    end Pattern_1;
 
@@ -1084,7 +1084,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +name_ID,
          Error_Token_Byte_Region => (32, 37),
          Ops                     => +(Undo_Reduce, +package_body_ID, 9),
-         Strategy_Counts         => (others => 0), -- ignore error.
+         Strategy_Counts         => (Ignore_Error => 1, others => 0),
          Enqueue_Low             => 1,
          Check_Low               => 1,
          Cost                    => 2,
@@ -1950,7 +1950,8 @@ package body Test_McKenzie_Recover is
       --  case statement, explore_table inserts 'if' and one of
       --  STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER, or deletes '=', all
       --  of which pass check. Which one survives during parse is random,
-      --  which is why LR1 result is different from LALR.
+      --  which is why this result can change with minor changes to the
+      --  code, and between LALR and LR1.
       --
       --  That leads to a second error at EOI; minimal complete finishes the
       --  case statement.
@@ -1960,10 +1961,9 @@ package body Test_McKenzie_Recover is
          Checking_Error          => 1,
          Error_Token_ID          => +EQUAL_ID,
          Error_Token_Byte_Region => (23, 23),
-         Ops                     => +(Delete, +EQUAL_ID, 4) & (Insert, +WHEN_ID, 5) &
-           (Insert, +NUMERIC_LITERAL_ID, 5) & (Insert, +EQUAL_GREATER_ID, 5) &
-           (Insert, +IF_ID, 5),
-         Strategy_Counts         => (Minimal_Complete => 3, Insert => 1, Delete => 1, others => 0),
+         Ops                     => +(Insert, +WHEN_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4) &
+           (Insert, +EQUAL_GREATER_ID, 4) & (Insert, +IF_ID, 4) & (Insert, +IDENTIFIER_ID, 4),
+         Strategy_Counts         => (Minimal_Complete => 3, Insert => 2, others => 0),
          Cost                    => 11);
 
       Check_Recover
@@ -1971,8 +1971,7 @@ package body Test_McKenzie_Recover is
          Checking_Error          => 2,
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (139, 138),
-         Ops                     => +(Insert, +END_ID, 21) & (Insert, +CASE_ID, 21) &
-           (Insert, +SEMICOLON_ID, 21),
+         Ops                     => +(Insert, +END_ID, 21) & (Insert, +CASE_ID, 21) & (Insert, +SEMICOLON_ID, 21),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
          Enqueue_Low             => 15,
          Check_Low               => 4,
@@ -2001,8 +2000,8 @@ package body Test_McKenzie_Recover is
            (Insert, +END_ID, 18) & (Insert, +LOOP_ID, 18) & (Fast_Forward, 19) &
            (Insert, +IDENTIFIER_ID, 19) & (Insert, +COLON_ID, 19) & (Insert, +BEGIN_ID, 19),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 172, when LR1 => 175),
-         Check_Low               => 30,
+         Enqueue_Low             => (case Test.Alg is when LALR => 158, when LR1 => 161),
+         Check_Low               => 28,
          Cost                    => 3);
    end Always_Matching_Begin;
 
@@ -2038,9 +2037,9 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 12) & (Insert, +SEMICOLON_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +THEN_ID, 13),
          Strategy_Counts         => (Minimal_Complete => 1, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low  => (case Test.Alg is when LALR => 282, when LR1 => 207),
-         Check_Low    => (case Test.Alg is when LALR => 44, when LR1 => 34),
-         Cost         => 5);
+         Enqueue_Low             => (case Test.Alg is when LALR => 238, when LR1 => 207),
+         Check_Low               => (case Test.Alg is when LALR => 38, when LR1 => 34),
+         Cost                    => 5);
    end Do_Delete_First;
 
    procedure Forbid_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -2111,6 +2110,29 @@ package body Test_McKenzie_Recover is
          Cost                    => 0);
    end Matching_Begin_Parse_All_Conflicts;
 
+   procedure Check_Multiple_Delete_For_Insert (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This test case provided the motivation for
+      --  Just_Pushed_Back_Or_Deleted to check multiple previous ops.
+      Ada_Lite_Actions.End_Name_Optional := False;
+
+      Parse_Text ("procedure A is begin null; end;");
+      --           1         2 3  4     5   6 7  8
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Code                    => Missing_Name_Error,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (1, 11),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9),
+         Strategy_Counts         => (Ignore_Error => 1, others => 0),
+         Enqueue_Low             => 12,
+         Check_Low               => 2,
+         Cost                    => 2);
+   end Check_Multiple_Delete_For_Insert;
+
    ----------
    --  Public subprograms
 
@@ -2171,6 +2193,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Do_Delete_First'Access, "Do_Delete_First");
       Register_Routine (T, Forbid_Minimal_Complete'Access, "Forbid_Minimal_Complete");
       Register_Routine (T, Matching_Begin_Parse_All_Conflicts'Access, "Matching_Begin_Parse_All_Conflicts");
+      Register_Routine (T, Check_Multiple_Delete_For_Insert'Access, "Check_Multiple_Delete_For_Insert");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -2208,6 +2231,14 @@ package body Test_McKenzie_Recover is
 
       Orig_End_Name_Optional := End_Name_Optional;
    end Set_Up_Case;
+
+   overriding procedure Tear_Down_Case (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Run after all tests in register; ie, after LALR, before LR1
+      End_Name_Optional := Orig_End_Name_Optional;
+   end Tear_Down_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin

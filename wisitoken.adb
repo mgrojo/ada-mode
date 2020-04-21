@@ -356,7 +356,11 @@ package body WisiToken is
       Descriptor : in WisiToken.Descriptor)
      return String
    is begin
-      return "(" & Image (Item.ID, Descriptor) &
+      return
+        (if Item.Min_Terminal_Index = Invalid_Token_Index
+         then ""
+         else Trimmed_Image (Item.Min_Terminal_Index) & ":") &
+        "(" & Image (Item.ID, Descriptor) &
         (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
    end Image;
 

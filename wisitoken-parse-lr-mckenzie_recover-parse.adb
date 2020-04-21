@@ -110,7 +110,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  Parse_Items.
 
       use Parse_Item_Arrays;
-      use Sorted_Insert_Delete_Arrays;
+      use Config_Op_Arrays;
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 

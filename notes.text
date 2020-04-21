@@ -21,21 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-forbid out-of-order-ops
-     test_mckenzie_recover.adb Out_Of_Order_Ops
-        used to demonstrate push_back over previous error, not previous ops in current session.
-
-        major simplification if eliminate both!
-            forbid push_back over previous error => can replace Parser_State.Prev_Deleted with simpler detection
-            forbid push_back over previous ops => don't need sorted_del_ins, apply to parser simpler
-
-        change sorted_insert_delete to plain array
-            t_mck
-
-            t_all
-
-    ada-mode tests
-
 error_correction_algorithm.tex
     full vs partial_recursion
         java_expressions_antlr_lr1

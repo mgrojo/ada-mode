@@ -13,8 +13,8 @@ Action
  1 parallel tasks
  0: succeed 2, enqueue 36, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
- 1:  1, ( 0 1 0 0 0 0 0 0), (58 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, RPAREN, 3)) minimal_complete ACTIVE
- 0:  1, ( 0 3 0 0 0 0 0 0), (58 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, LPAREN, 3), (INSERT, RPAREN, 3), (INSERT, RPAREN, 3)) minimal_complete ACTIVE
+ 1:  1, ( 0 0 1 0 0 0 0 0 0), (58 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, RPAREN, 3)) minimal_complete ACTIVE
+ 0:  1, ( 0 0 3 0 0 0 0 0 0), (58 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, LPAREN, 3), (INSERT, RPAREN, 3), (INSERT, RPAREN, 3)) minimal_complete ACTIVE
 recover: succeed, parser count 2
  1: Current_Token (RPAREN) Shared_Token  3:(Wisi_EOI, (58 . 57))
  1: resume_active: True, token goal 7
