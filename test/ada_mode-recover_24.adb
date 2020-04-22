@@ -27,7 +27,7 @@ package body Ada_Mode.Recover_24 is
    end;
 end loop;
 return Abandon;
-   end Fast_Forward;
+end Fast_Forward;
 
 end Ada_Mode.Recover_24;
 -- Local Variables:

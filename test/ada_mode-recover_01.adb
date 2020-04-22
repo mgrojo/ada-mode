@@ -23,8 +23,8 @@ is begin
 
    --  This used to give "error during resume"; fixed now.
    if File_Head.Version_Msb = 4 and
-     then -- recover sees 'and then', part of the boolean expression.
-     null;
+   then
+      null;
    end if;
 
 end Ada_Mode.Recover_1;

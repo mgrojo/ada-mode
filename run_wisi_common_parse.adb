@@ -134,6 +134,8 @@ package body Run_Wisi_Common_Parse is
                   Arg                      := Arg + 3;
                end case;
 
+               WisiToken.Debug_Mode := WisiToken.Trace_Parse > Outline or WisiToken.Trace_McKenzie > Outline;
+
             elsif Argument (Arg) = "--check_limit" then
                Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
                Arg := Arg + 2;

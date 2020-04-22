@@ -687,7 +687,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    with Pre => Config.Check_Status.Label = Ok
    is
       use Config_Op_Arrays;
-      use Sorted_Insert_Delete_Arrays, Insert_Delete_Array_Refs;
+      use Config_Op_Array_Refs;
       use all type Standard.Ada.Containers.Count_Type;
 
       procedure Put (Message : in String; Config : in Configuration)

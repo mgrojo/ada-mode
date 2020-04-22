@@ -4,8 +4,8 @@
 --  even though it's badly formatted.
 procedure Bad_If_Format
 is
-   procedure A is begin null; end;
-   procedure B is begin null; end;
+   procedure A is begin null; end A;
+   procedure B is begin null; end B;
 begin
 
    -- bad format:

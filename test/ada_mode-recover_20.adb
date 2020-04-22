@@ -15,7 +15,7 @@ begin
    then
       --  missing 'end if;'
 
-end Ada_Mode.Recover_20;
+   end Ada_Mode.Recover_20;
 -- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

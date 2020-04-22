@@ -12,7 +12,7 @@ package body Ada_Mode.Recover_Partial_10 is
       end if;
 
       --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-      --EMACSRESULT:6
+      --EMACSRESULT:3
    end Is_Reduce;
 
 

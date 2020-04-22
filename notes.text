@@ -324,6 +324,8 @@ libadalang/lsp backend
     pp-command_lines.ads Name_Casing Name_Case_As_Declared - requires name resolution
         too slow?
 
+    compute reverse parse lr table, use that to extend parse backwards to find reasonable start point
+
 improve test/ada_mode-recover_32.adb
     recover gets CONSTRAINT_ERROR, config ops full
 

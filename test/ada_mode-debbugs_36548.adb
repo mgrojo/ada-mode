@@ -21,7 +21,7 @@ procedure Field_parent is
    type Child_Disc_T is (Cdisc1, Cdisc2, Cdisc3);
 
    type Child_T (Child_Disc : Child_Disc_T := Child_Disc_T'First) is new
-     Root_T (Rdisc2) with record --  Error here; extra 'is record'
+     Root_T (Rdisc2) with record --  Error here; extra 'with record'
      is new Root_T  with record
      Child_Field : Integer;
      case Child_Disc is

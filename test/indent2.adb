@@ -10,7 +10,7 @@ procedure Indent2 is
 
    procedure F (G : in out Integer); -- <<<<<< wrongly indented
 
-   procedure F (G : in out Integer) is begin null; end;
+   procedure F (G : in out Integer) is begin null; end F;
 begin
    null;
 end Indent2;
