@@ -134,7 +134,7 @@
       (let ((case-fold-search nil)) ;; buffer-local
 	(when (string-equal filename "test_mckenzie_recover.adb")
 	  (goto-char (point-min)) ;; for testing repeatedly :)
-	  (search-forward subprogram-name)
+	  (search-forward (concat "procedure " subprogram-name))
 	  (let ((begin (point))
 		end)
 	    (save-excursion
@@ -230,33 +230,31 @@
   (forward-char 1)
   (let ((insertp (looking-at "INSERT"))
 	(ffp (looking-at "FAST_FORWARD")))
-    (forward-word 1)
+    (forward-symbol 1)
     (let ((wisi-case-strict t))
       (wisi-case-adjust-at-point))
     (cond
      ((not ffp)
       (forward-char 2)
       (insert "+")
-      (forward-word)
+      (forward-symbol 1)
       (insert "_ID")
-      (forward-word 1)
-      (forward-char 1); ')'
-      (delete-char 1)
-      (insert " &")
-      (forward-char 1))
+      (forward-symbol 1))
 
      (ffp
       (forward-char 2)
       (delete-char 1)
-      (forward-word)
-      (forward-char 1); ')'
+      (forward-symbol 1))
+     )
+
+    (forward-char 1); ')'
+    (unless (eolp)
       (delete-char 1)
       (insert " &")
       (forward-char 1))
-     )))
+     ))
 
 (require 'ada-mode)
 (define-key ada-mode-map "\C-ca" #'wisitoken-fix-ops)
-
 
 ;; End of file

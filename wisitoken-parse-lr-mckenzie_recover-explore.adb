@@ -240,24 +240,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
    end Do_Reduce_2;
 
-   function Fast_Forward
+   function Edit_Point_Matches_Ops (Config : in Configuration) return Boolean
+   is
+      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use all type Ada.Containers.Count_Type;
+      pragma Assert (Length (Config.Ops) > 0);
+      Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
+   begin
+      return Config.Current_Shared_Token =
+        (case Op.Op is
+         when Fast_Forward => Op.FF_Token_Index,
+         when Undo_Reduce  => Invalid_Token_Index, -- ie, "we don't know", so return False.
+         when Push_Back    => Op.PB_Token_Index,
+         when Insert       => Op.Ins_Token_Index,
+         when Delete       => Op.Del_Token_Index + 1);
+   end Edit_Point_Matches_Ops;
+
+   procedure Fast_Forward
      (Super             : not null access Base.Supervisor;
       Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
-      Config            : in out          Configuration)
-     return Non_Success_Status
+      Config            : in              Configuration)
    is
       --  Apply the ops in Config; they were inserted by some fix.
-      --  Return Abandon if Config should be abandoned, otherwise Continue.
       --  Leaves Config.Error_Token, Config.Check_Status set.
-      --
-      --  If there are conflicts, all are parsed; if more than one succeed,
-      --  all are enqueued in Local_Config_Heap, and this returns Abandon.
+      --  If there are conflicts, all are parsed; if more than one succeed.
+      --  All configs are enqueued in Local_Config_Heap.
 
       use Parse.Parse_Item_Arrays;
       use Config_Op_Arrays;
-      use all type Ada.Containers.Count_Type;
 
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
 
@@ -269,55 +281,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    begin
       --  This solution is from Language_Fixes (see gate on call site
       --  below); any cost increase is done there.
+      --
+      --  We used to handle the Parse_Items.Length = 1 case specially, and
+      --  return Continue. Maintaining that requires too much code
+      --  duplication.
 
-      if Length (Parse_Items) = 1 then
+      for I in First_Index (Parse_Items) .. Last_Index (Parse_Items) loop
          declare
-            Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Constant_Ref (Parse_Items, 1);
+            Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref (Parse_Items, I);
          begin
             if Item.Parsed and Item.Config.Current_Insert_Delete = No_Insert_Delete then
                --  Item.Config.Error_Token.ID, Check_Status are correct.
-               Config := Item.Config;
 
-               if Is_Full (Config.Ops) then
-                  Super.Config_Full ("fast_forward 1", Parser_Index);
-                  return Abandon;
-               else
-                  Append (Config.Ops, (Fast_Forward, Config.Current_Shared_Token));
-               end if;
-               Config.Minimal_Complete_State := None;
-               Config.Matching_Begin_Done    := False;
-               return Continue;
-            else
-               return Abandon;
-            end if;
-         end;
-      else
-         for I in First_Index (Parse_Items) .. Last_Index (Parse_Items) loop
-            declare
-               Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref (Parse_Items, I);
-            begin
-               if Item.Parsed and Item.Config.Current_Insert_Delete = No_Insert_Delete then
-                  if Is_Full (Config.Ops) then
-                     Super.Config_Full ("fast_forward 2", Parser_Index);
-                     return Abandon;
+               if not Edit_Point_Matches_Ops (Item.Config) then
+
+                  if Is_Full (Item.Config.Ops) then
+                     Super.Config_Full ("fast_forward 1", Parser_Index);
+                     raise Bad_Config;
                   else
                      Append (Item.Config.Ops, (Fast_Forward, Item.Config.Current_Shared_Token));
                   end if;
-                  Item.Config.Minimal_Complete_State := None;
-                  Item.Config.Matching_Begin_Done    := False;
-                  Local_Config_Heap.Add (Item.Config);
-
-                  if Trace_McKenzie > Detail then
-                     Base.Put ("fast forward enqueue", Super, Shared, Parser_Index, Item.Config);
-                  end if;
                end if;
-            end;
-         end loop;
-         return Abandon;
-      end if;
-   exception
-   when Bad_Config =>
-      return Abandon;
+
+               Item.Config.Minimal_Complete_State := None;
+               Item.Config.Matching_Begin_Done    := False;
+               Local_Config_Heap.Add (Item.Config);
+
+               if Trace_McKenzie > Detail then
+                  Base.Put ("fast forward enqueue", Super, Shared, Parser_Index, Item.Config);
+               end if;
+            end if;
+         exception
+         when Bad_Config =>
+            null;
+         end;
+      end loop;
    end Fast_Forward;
 
    function Check
@@ -333,38 +331,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
-
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
       Result      : Check_Status := Continue;
-
-      function Max_Push_Back_Token_Index (Ops : aliased in Config_Op_Arrays.Vector) return WisiToken.Base_Token_Index
-      is
-         Result : WisiToken.Base_Token_Index := WisiToken.Base_Token_Index'First;
-      begin
-         --  For Ops since last Fast_Forward, return maximum Token_Index in a
-         --  Push_Back. If there are no such ops, return a value that will be
-         --  less than the current token index.
-         for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
-            declare
-               Op : Config_Op renames Constant_Ref (Ops, I);
-            begin
-               exit when Op.Op = Fast_Forward;
-               if Op.Op = Push_Back and then Op.PB_Token_Index > Result then
-                  Result := Op.PB_Token_Index;
-               end if;
-            end;
-         end loop;
-         return Result;
-      end Max_Push_Back_Token_Index;
-
    begin
-      if Length (Config.Ops) > 0 and then Constant_Ref (Config.Ops, Last_Index (Config.Ops)).Op = Push_Back then
-         --  Check would undo the Push_Back, leading to duplicate results.
-         --  Allow other ops to be added at the current edit point. See
-         --  test_mckenzie_recover.adb Do_Delete_First and
-         --  three_action_conflict_lalr.parse_good for examples.
-         return Continue;
+      if Length (Config.Ops) > 0 then
+         declare
+            Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
+         begin
+            case Op.Op is
+            when Push_Back =>
+               --  Check would undo the Push_Back, leading to
+               --  duplicate results. See test_mckenzie_recover.adb Do_Delete_First and
+               --  three_action_conflict_lalr.parse_good for examples.
+               return Continue;
+
+            when Undo_Reduce =>
+               if Config.Check_Status.Label /= Ok then
+                  --  This is the "ignore error" solution for a check fail; check it.
+                  Config.Check_Status   := (Label => Ok);
+                  Config.Error_Token.ID := Invalid_Token_ID;
+
+               else
+                  --  Check would undo the Undo_Reduce, leading to
+                  --  duplicate results.
+                  return Continue;
+               end if;
+            when others =>
+               --  Check it
+               null;
+            end case;
+         end;
       end if;
 
       if Parse.Parse
@@ -410,37 +406,33 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end;
 
       --  All Parse_Items either failed or were not parsed; if they failed
-      --  and made progress, enqueue them so Language_Fixes can try to fix
-      --  them.
+      --  and made progress, enqueue them.
       for I in First_Index (Parse_Items) .. Last_Index (Parse_Items) loop
          declare
             Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref (Parse_Items, I);
          begin
-            if Item.Config.Error_Token.ID /= Invalid_Token_ID and then
-              Item.Shift_Count > 0 and then
-              Max_Push_Back_Token_Index (Item.Config.Ops) < Item.Config.Current_Shared_Token - 1
+            --  When Parse starts above, Config.Current_Shared_Token matches
+            --  Config.Ops. So if Item.Config.Current_Shared_Token >
+            --  Config.Current_Shared_Token, it made some progress. Append or
+            --  update a Fast_Forward to indicate the changed edit point.
+            if Item.Config.Error_Token.ID /= Invalid_Token_ID and
+              Item.Config.Current_Shared_Token > Config.Current_Shared_Token
             then
-               --  Some progress was made; explore at the new error point. It is
-               --  likely that there is only one actual error point, and this moves
-               --  away from it, so we give it a cost.
-               begin
-                  Item.Config.Minimal_Complete_State := None;
-                  Item.Config.Matching_Begin_Done    := False;
-                  if Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward then
-                     Item.Config.Cost := Item.Config.Cost + McKenzie_Param.Fast_Forward;
-                     Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Token_Index :=
-                       Item.Config.Current_Shared_Token;
-                  else
-                     Item.Config.Cost := Item.Config.Cost + McKenzie_Param.Fast_Forward;
+               Item.Config.Minimal_Complete_State := None;
+               Item.Config.Matching_Begin_Done    := False;
 
-                     if Is_Full (Item.Config.Ops) then
-                        Super.Config_Full ("check 1", Parser_Index);
-                        raise Bad_Config;
-                     else
-                        Append (Item.Config.Ops, (Fast_Forward, Item.Config.Current_Shared_Token));
-                     end if;
+               if Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward then
+                  --  Update the trailing Fast_Forward.
+                  Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Token_Index :=
+                    Item.Config.Current_Shared_Token;
+               else
+                  if Is_Full (Item.Config.Ops) then
+                     Super.Config_Full ("check 1", Parser_Index);
+                     raise Bad_Config;
+                  else
+                     Append (Item.Config.Ops, (Fast_Forward, Item.Config.Current_Shared_Token));
                   end if;
-               end;
+               end if;
                Local_Config_Heap.Add (Item.Config);
                if Trace_McKenzie > Detail then
                   Base.Put ("new error point ", Super, Shared, Parser_Index, Item.Config);
@@ -589,13 +581,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Last_Token_Index : WisiToken.Token_Index := Config.Current_Shared_Token;
       --  Index of last op checked.
    begin
+      --  This function is called when considering whether to insert ID before
+      --  Config.Current_Shared_Token.
+      --
       --  We need to consider more than one recent op here; see test_mckenzie_recover.adb
-      --  Check_Multiple_Delete_For_Insert. Checking only one op allows this config there:
+      --  Check_Multiple_Delete_For_Insert. Checking only one op allows this solution there:
       --
-      --  ...  (DELETE, END, 10), (DELETE, SEMICOLON, 11), (INSERT, END, 12), (INSERT, SEMICOLON, 12)
-      --
-      --  This function is called when considering whether to insert END before
-      --  12 = Config.Current_Shared_Token.
+      --  ...  (DELETE, END, 7), (DELETE, SEMICOLON, 8), (INSERT, END, 9), (INSERT, SEMICOLON, 9)
       --
       for I in reverse First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
          declare
@@ -603,7 +595,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          begin
             case Op.Op is
             when Push_Back =>
-               --  The case we are preventing for Push_Back is typically:
+               --  The case we are preventing for Push_Back is typically one of:
                --  (PUSH_BACK, Identifier, 2), (INSERT, Identifier, 2)
                --  (PUSH_BACK, Identifier, 2), (PUSH_BACK, END, 3), (INSERT, Identifier, 3), (INSERT, END, 3),
                if Op.PB_Token_Index = Last_Token_Index then
@@ -629,12 +621,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   return False;
                end if;
 
-            when others =>
+            when Fast_Forward | Insert | Undo_Reduce =>
                return False;
             end case;
          end;
       end loop;
-      return False; -- handles Config.Ops.Length = 0.
+      return False;
    end Just_Pushed_Back_Or_Deleted;
 
    procedure Try_Undo_Reduce
@@ -1691,24 +1683,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  adding ops to Config (except as noted); Language_Fixes should use
       --  McKenzie_Recover.Insert, Delete instead.
       if Config.Current_Insert_Delete = 1 then
-         --  Config.Current_Insert_Delete > 1 is a programming error.
+         --  Config is from Language_Fixes.
 
-         case Fast_Forward (Super, Shared, Parser_Index, Local_Config_Heap, Config) is
-         when Abandon =>
-            --  We know Local_Config_Heap is empty; just tell
-            --  Super we are done working.
-            Super.Put (Parser_Index, Local_Config_Heap);
-            return;
-         when Continue =>
-            --  We don't increase cost for this Fast_Forward, since it is due to a
-            --  Language_Fixes.
-            null;
-         end case;
+         Fast_Forward (Super, Shared, Parser_Index, Local_Config_Heap, Config);
+         Super.Put (Parser_Index, Local_Config_Heap);
+         return;
       end if;
 
       pragma Assert (Config.Current_Insert_Delete = 0);
+      --  Config.Current_Insert_Delete > 1 is a programming error.
 
-      --  Language_Fixes: let it enqueue configs.
       if Config.Error_Token.ID /= Invalid_Token_ID then
          if Shared.Language_Fixes = null then
             null;
@@ -1720,59 +1704,55 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             --  The solutions enqueued by Language_Fixes should be lower cost than
             --  others (typically 0), so they will be checked first.
+         end if;
 
-            if Config.Check_Status.Label = Ok then
-               --  Parse table Error action.
-               --
-               --  We don't clear Config.Error_Token here, because
-               --  Language_Use_Minimal_Complete_Actions needs it. We only clear it
-               --  when a parse results in no error (or a different error), or a
-               --  push_back moves the Current_Token.
-               null;
+         if Config.Check_Status.Label = Ok then
+            --  Parse table Error action.
+            --
+            --  We don't clear Config.Error_Token here, because
+            --  Language_Use_Minimal_Complete_Actions needs it. We only clear it
+            --  when a parse results in no error (or a different error), or a
+            --  push_back moves the Current_Token.
+            null;
 
-            else
-               --  Assume "ignore check error" is a viable solution. But give it a
-               --  cost, so a solution provided by Language_Fixes is preferred.
+         else
+            --  Assume "ignore check error" is a viable solution. But give it a
+            --  cost, so a solution provided by Language_Fixes is preferred.
 
-               declare
-                  New_State : Unknown_State_Index;
-               begin
-                  Config.Cost := Config.Cost + Table.McKenzie_Param.Ignore_Check_Fail;
-                  Config.Strategy_Counts (Ignore_Error) := Config.Strategy_Counts (Ignore_Error) + 1;
+            declare
+               New_State : Unknown_State_Index;
+            begin
+               Config.Cost := Config.Cost + Table.McKenzie_Param.Ignore_Check_Fail;
+               Config.Strategy_Counts (Ignore_Error) := Config.Strategy_Counts (Ignore_Error) + 1;
 
-                  --  finish reduce.
-                  Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+               --  finish reduce.
+               Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
 
-                  New_State := Goto_For (Table, Config.Stack.Peek.State, Config.Error_Token.ID);
+               New_State := Goto_For (Table, Config.Stack.Peek.State, Config.Error_Token.ID);
 
-                  if New_State = Unknown_State then
-                     if Config.Stack.Depth = 1 then
-                        --  Stack is empty, and we did not get Accept; really bad syntax got
-                        --  us here; abandon this config. See ada_mode-recover_bad_char.adb.
-                        Super.Put (Parser_Index, Local_Config_Heap);
-                        return;
-                     else
-                        raise SAL.Programmer_Error with
-                          "process_one found test case for new_state = Unknown; old state " &
-                          Trimmed_Image (Config.Stack.Peek.State) & " nonterm " & Image
-                            (Config.Error_Token.ID, Trace.Descriptor.all);
-                     end if;
+               if New_State = Unknown_State then
+                  if Config.Stack.Depth = 1 then
+                     --  Stack is empty, and we did not get Accept; really bad syntax got
+                     --  us here; abandon this config. See ada_mode-recover_bad_char.adb.
+                     Super.Put (Parser_Index, Local_Config_Heap);
+                     return;
+                  else
+                     raise SAL.Programmer_Error with
+                       "process_one found test case for new_state = Unknown; old state " &
+                       Trimmed_Image (Config.Stack.Peek.State) & " nonterm " & Image
+                         (Config.Error_Token.ID, Trace.Descriptor.all);
                   end if;
+               end if;
 
-                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
+               Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
 
-                  --  We clear Check_Status and Error_Token so the check error is ignored.
-                  Config.Check_Status := (Label => Ok);
-
-                  Config.Error_Token.ID := Invalid_Token_ID;
-               end;
-            end if;
+               --  We _don't_ clear Check_Status and Error_Token here; Check needs
+               --  them, and sets them as appropriate.
+            end;
          end if;
       end if;
 
-      --  Call Check to see if this config succeeds. Note that Check does
-      --  more than Fast_Forward, so the fact that Fast_Forward succeeds
-      --  does not mean we don't need to call Check.
+      --  Call Check to see if this config succeeds.
       case Check (Super, Shared, Parser_Index, Config, Local_Config_Heap) is
       when Success =>
          Super.Success (Parser_Index, Config, Local_Config_Heap);

@@ -160,7 +160,7 @@ parser 1: State 62 Current_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) Resume_To
 Action
 
  1 parallel tasks
- 1: succeed 2, enqueue 138, check  41, cost:  6
+ 1: succeed 2, enqueue 186, check  49, cost:  6
 spawn parser 2 from 1 (2 active)
  2:  6, ( 0 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
  1:  6, ( 0 0 0 0 0 0 2 0 0), (21 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))

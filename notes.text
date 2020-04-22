@@ -21,6 +21,15 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+-explore.check
+         --  FIXME: if there were conflicts, enqueue them; they might yield a
+         --  cheaper or same cost solution?
+         same code as fast_forward; just use that?
+
+        see if parsing all affects any tests
+
+        item.shift_count not used
+
 error_correction_algorithm.tex
     full vs partial_recursion
         java_expressions_antlr_lr1
@@ -42,9 +51,21 @@ error_correction_algorithm.tex
                 t_mck Error_3.
 
     doc Just_Pushed_Back_Or_Deleted
+        required because do insert last
         try_delete also checks for just_inserted
+        check multiple ops
+        duplicate_state does not eliminate these because '(delete
+            end)(insert end)' replaces a real token with a virtual
+            token, which changes the buffer region on the nonterms.
 
     explain check_reduce_to_start
+
+    In Check, "made some progress" does _not_ mean "closer to
+    Resume_Token_Goal than _original_ config"; it means "moved away
+    from the edit point".
+        if the "progress" is only shifting tokens that were previously
+        pushed_back, that's a waste. Which is why we don't check
+        configs that would lead to that.
 
     redo examples with partial recursion
         causes problems?
