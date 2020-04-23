@@ -295,7 +295,7 @@ nil, only the file name."
      )
     ("Misc"
      ["Show last parse error"         wisi-show-parse-error       t]
-     ["Refresh cross reference cache" wisi-prj-refresh-cache      t]
+     ["Refresh cross reference cache" wisi-refresh-prj-cache      t]
      ["Restart parser"                wisi-kill-parser            t]
      )))
 

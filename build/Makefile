@@ -33,6 +33,8 @@ TEST_DIR ?= source
 # environment variable.
 ifeq ($(shell uname),Linux)
 EMACS_EXE ?= emacs
+else ifeq ($(shell uname),Darwin)
+EMACS_EXE ?= "/Applications/Emacs.app/Contents/MacOS/Emacs"
 else
 # windows
 # specify uniscribe to workaround weird Windows harfbuzz bug
@@ -422,11 +424,6 @@ uninstall-elpa :
 install-elpa :
 	emacs -Q --eval '(load-file "install-elpa.el")'
 
-# In December 2016, GNATCOLL changed its Xref interface. First, the
-# GPR was split out; and second, one of the subprogram
-# interfaces.changed.
-
-# Determine whether the split-out gnatcoll_xref.gpr is available.
 # We specify $(SHELL) here to work around a Mingw64 'make' problem.
 Makefile.conf : create_makefile_conf.sh
 	$(SHELL) -c ./create_makefile_conf.sh

@@ -19,9 +19,10 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
   (xmtn . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
+ '(
+ ;; ("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -31,9 +32,10 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+ '(
+ ;; ("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -45,6 +47,9 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+lsp-mode has mechanism to download and install servers
+    adapt that for compiled wisi exes?
+
 hide wisi syntax errors window when clear it
 
 test/ada_mode-recover_string_quote_1.adb
@@ -60,6 +65,8 @@ error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
 
 build.sh:
+    debbug 40403
+
     handle user already set GPR_PROJECT_PATH
         just use -aP $WISI_DIR?
 
@@ -103,6 +110,8 @@ align bug:
          when Other_Right => "Other_Right",
          when Direct_Right => "Direct_Right",
          when Other_Last => "Other_Last");
+
+    similar in test/ada_mode-conditional_expressions.adb
 
     use parser
 
