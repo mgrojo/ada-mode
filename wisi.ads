@@ -67,6 +67,12 @@ package Wisi is
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
+   procedure Insert_Token
+     (Data  : in out Parse_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree'Class;
+      Token : in     WisiToken.Syntax_Trees.Valid_Node_Index);
+
+   overriding
    procedure Delete_Token
      (Data                : in out Parse_Data_Type;
       Deleted_Token_Index : in     WisiToken.Token_Index);
@@ -377,8 +383,8 @@ private
       Paren_State : Integer := 0;
       --  Parenthesis nesting count, before token.
 
-      First_Terminals_Index : WisiToken.Base_Token_Index := WisiToken.Base_Token_Arrays.No_Index;
-      --  For virtual tokens, No_Index.
+      First_Terminals_Index : WisiToken.Base_Token_Index := WisiToken.Invalid_Token_Index;
+      --  For virtual tokens, Invalid_Token_Index
       --
       --  For terminal tokens, index of this token in Parser.Terminals.
       --
@@ -410,14 +416,24 @@ private
       --  For terminals, non-grammar tokens immediately following. For
       --  nonterminals, empty.
 
+      Inserted_Before : WisiToken.Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+      --  Tokens inserted before this token by error recovery.
+
    end record;
    type Augmented_Token_Access is access all Augmented_Token;
    type Augmented_Token_Access_Constant is access constant Augmented_Token;
-   type Aug_Token_Ref (Element : access constant Augmented_Token) is null record with
+
+   type Aug_Token_Const_Ref (Element : not null access constant Augmented_Token) is null record with
      Implicit_Dereference => Element;
 
-   function To_Aug_Token_Ref (Item : in WisiToken.Base_Token_Class_Access) return Aug_Token_Ref
+   function To_Aug_Token_Const_Ref (Item : in WisiToken.Base_Token_Class_Access) return Aug_Token_Const_Ref
      is (Element => Augmented_Token_Access_Constant (Item));
+
+   type Aug_Token_Var_Ref (Element : not null access Augmented_Token) is null record with
+     Implicit_Dereference => Element;
+
+   function To_Aug_Token_Var_Ref (Item : in WisiToken.Base_Token_Class_Access) return Aug_Token_Var_Ref
+     is (Element => Augmented_Token_Access (Item));
 
    overriding
    function Image
@@ -440,8 +456,11 @@ private
      (WisiToken.Token_Index, Augmented_Token, Default_Element => (others => <>));
    --  Index matches Base_Token_Arrays.
 
-   function To_Aug_Token_Ref (Item : in Augmented_Token_Arrays.Constant_Reference_Type) return Aug_Token_Ref
+   function To_Aug_Token_Const_Ref (Item : in Augmented_Token_Arrays.Constant_Reference_Type) return Aug_Token_Const_Ref
      is (Element => Augmented_Token_Access_Constant'(Item.Element.all'Unchecked_Access));
+
+   function To_Aug_Token_Var_Ref (Item : in Augmented_Token_Arrays.Variable_Reference_Type) return Aug_Token_Var_Ref
+     is (Element => Augmented_Token_Access'(Item.Element.all'Unchecked_Access));
 
    package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
@@ -523,7 +542,7 @@ private
 
       when Anchor_Int =>
          Anchor_Int_IDs    : Anchor_ID_Vectors.Vector; --  Largest ID first.
-         Anchor_Int_Indent : Integer;
+         Anchor_Int_Indent : Integer; --  Indent for this token.
 
       when Anchored =>
          Anchored_ID    : Positive;
@@ -558,8 +577,8 @@ private
 
       Terminals : Augmented_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Each contains any
-      --  immediately following non-grammar tokens. Does not contain
-      --  nonterminal or virtual tokens.
+      --  immediately following non-grammar tokens. Nonterminal
+      --  Augmented_Tokens are stored in the syntax tree.
 
       Leading_Non_Grammar : Non_Grammar_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.
@@ -674,11 +693,17 @@ private
    --  Token.Char_Region with ID. If not found, return
    --  No_Index.
 
-   function Get_Aug_Token
+   function Get_Aug_Token_Const
      (Data       : in Parse_Data_Type'Class;
       Tree       : in WisiToken.Syntax_Trees.Tree'Class;
       Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
-     return Aug_Token_Ref;
+     return Aug_Token_Const_Ref;
+
+   function Get_Aug_Token_Var
+     (Data       : in Parse_Data_Type'Class;
+      Tree       : in WisiToken.Syntax_Trees.Tree'Class;
+      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     return Aug_Token_Var_Ref;
 
    function Get_Text
      (Data       : in Parse_Data_Type;

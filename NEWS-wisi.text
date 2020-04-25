@@ -6,6 +6,12 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 3.1
+
+** Add Wisitoken.Syntax_Trees.Insert_Token, to allow using inserted
+   virtual terminals tokens in indent. Several related changes to
+   allow treating virtual terminals on par with actual terminals.
+
 * wisi 3.0.1
 30 Jan 2020
 

@@ -41,6 +41,7 @@ package body Wisi is
 
    function Paren_In_Anchor_Line
      (Data         : in out Parse_Data_Type'Class;
+      Tree         : in     Syntax_Trees.Tree'Class;
       Anchor_Token : in     Augmented_Token;
       Offset       : in     Integer)
      return Integer;
@@ -243,10 +244,14 @@ package body Wisi is
 
    function Paren_In_Anchor_Line
      (Data         : in out Parse_Data_Type'Class;
+      Tree         : in     Syntax_Trees.Tree'Class;
       Anchor_Token : in     Augmented_Token;
       Offset       : in     Integer)
      return Integer
    is
+      use Syntax_Trees.Valid_Node_Index_Arrays;
+      use all type Ada.Containers.Count_Type;
+
       Left_Paren_ID  : Token_ID renames Data.Left_Paren_ID;
       Right_Paren_ID : Token_ID renames Data.Right_Paren_ID;
 
@@ -255,11 +260,15 @@ package body Wisi is
       Paren_Char_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
       Text_Begin_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
    begin
+      Find_First :
       loop
          declare
             Tok : Augmented_Token renames Data.Terminals (I);
          begin
-            if Tok.ID = Left_Paren_ID then
+            if Tok.Deleted then
+               null;
+
+            elsif Tok.ID = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
                if Paren_Count = 1 then
                   Paren_Char_Pos := Tok.Char_Region.First;
@@ -272,11 +281,35 @@ package body Wisi is
 
             if Tok.First then
                Text_Begin_Pos := Tok.Char_Region.First;
-               exit;
+               exit Find_First;
+            else
+               if Length (Tok.Inserted_Before) > 0 then
+                  for Node of Tok.Inserted_Before loop
+                     declare
+                        Ins_Tok : Augmented_Token renames Augmented_Token (Tree.Augmented (Node).all);
+                     begin
+                        if Ins_Tok.ID = Left_Paren_ID then
+                           Paren_Count := Paren_Count + 1;
+                           if Paren_Count = 1 then
+                              Paren_Char_Pos := Tok.Char_Region.First;
+                           end if;
+
+                        elsif Ins_Tok.ID = Right_Paren_ID then
+                           Paren_Count := Paren_Count - 1;
+
+                        end if;
+
+                        if Ins_Tok.First then
+                           Text_Begin_Pos := Tok.Char_Region.First;
+                           exit Find_First;
+                        end if;
+                     end;
+                  end loop;
+               end if;
             end if;
          end;
          I := I - 1;
-      end loop;
+      end loop Find_First;
 
       if Paren_Char_Pos /= Invalid_Buffer_Pos and Text_Begin_Pos /= Invalid_Buffer_Pos then
          return 1 + Offset + Integer (Paren_Char_Pos - Text_Begin_Pos);
@@ -743,7 +776,7 @@ package body Wisi is
          --  grammar token
          declare
             Temp : constant Augmented_Token :=
-              (Token.ID,
+              (ID                          => Token.ID,
                Byte_Region                 => Token.Byte_Region,
                Line                        => Token.Line,
                Column                      => Token.Column,
@@ -757,7 +790,8 @@ package body Wisi is
                Last_Indent_Line            => (if Lexer.First then Token.Line else Invalid_Line_Number),
                First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by Reduce
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
-               Non_Grammar                 => <>);
+               Non_Grammar                 => Non_Grammar_Token_Arrays.Empty_Vector,
+               Inserted_Before             => Syntax_Trees.Valid_Node_Index_Arrays.Empty_Vector);
          begin
             if Token.ID = Data.Left_Paren_ID then
                Data.Current_Paren_State := Data.Current_Paren_State + 1;
@@ -770,6 +804,62 @@ package body Wisi is
          end;
       end if;
    end Lexer_To_Augmented;
+
+   overriding
+   procedure Insert_Token
+     (Data  : in out Parse_Data_Type;
+      Tree  : in out Syntax_Trees.Tree'Class;
+      Token : in     Syntax_Trees.Valid_Node_Index)
+   is
+      use Syntax_Trees.Valid_Node_Index_Arrays;
+
+      Before_Index : constant Token_Index := Tree.Before (Token);
+      Before_Aug : Augmented_Token renames Data.Terminals (Before_Index);
+
+      New_Aug : constant Augmented_Token_Access := new Augmented_Token'
+        (ID                          => Tree.ID (Token),
+         Byte_Region                 => Null_Buffer_Region,
+         Line                        => Before_Aug.Line,
+         Column                      => Before_Aug.Column,
+         Char_Region                 => Null_Buffer_Region,
+         Deleted                     => False,
+         First                       => Before_Aug.First,
+         Paren_State                 => Before_Aug.Paren_State,
+         First_Terminals_Index       => Before_Aug.First_Terminals_Index,
+         Last_Terminals_Index        => Before_Aug.First_Terminals_Index,
+         First_Indent_Line           => WisiToken.Invalid_Line_Number,
+         Last_Indent_Line            => WisiToken.Invalid_Line_Number,
+         First_Trailing_Comment_Line => WisiToken.Invalid_Line_Number,
+         Last_Trailing_Comment_Line  => WisiToken.Invalid_Line_Number,
+         Non_Grammar                 => Non_Grammar_Token_Arrays.Empty_Vector,
+         Inserted_Before             => Syntax_Trees.Valid_Node_Index_Arrays.Empty_Vector);
+
+   begin
+      Tree.Set_Augmented (Token, Base_Token_Class_Access (New_Aug));
+
+      Before_Aug.First := False;
+      Append (Before_Aug.Inserted_Before, Token);
+
+      if New_Aug.ID = Data.Left_Paren_ID then
+         for I in Before_Index .. Data.Terminals.Last_Index loop
+            declare
+               Aug : Augmented_Token renames Data.Terminals (I);
+            begin
+               Aug.Paren_State := Aug.Paren_State + 1;
+            end;
+         end loop;
+
+      elsif New_Aug.ID = Data.Right_Paren_ID then
+         for I in Before_Index .. Data.Terminals.Last_Index loop
+            declare
+               Aug : Augmented_Token renames Data.Terminals (I);
+            begin
+               Aug.Paren_State := Aug.Paren_State - 1;
+            end;
+         end loop;
+
+      end if;
+   end Insert_Token;
 
    overriding
    procedure Delete_Token
@@ -865,6 +955,26 @@ package body Wisi is
             end;
          end if;
       end if;
+
+      if Deleted_Token.ID = Data.Left_Paren_ID then
+         for I in Deleted_Token_Index + 1 .. Data.Terminals.Last_Index loop
+            declare
+               Aug : Augmented_Token renames Data.Terminals (I);
+            begin
+               Aug.Paren_State := Aug.Paren_State - 1;
+            end;
+         end loop;
+
+      elsif Deleted_Token.ID = Data.Right_Paren_ID then
+         for I in Deleted_Token_Index + 1 .. Data.Terminals.Last_Index loop
+            declare
+               Aug : Augmented_Token renames Data.Terminals (I);
+            begin
+               Aug.Paren_State := Aug.Paren_State + 1;
+            end;
+         end loop;
+
+      end if;
    end Delete_Token;
 
    overriding
@@ -889,7 +999,7 @@ package body Wisi is
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
             --  Token not entirely virtual
             declare
-               Aug_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (I));
+               Aug_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (I));
             begin
 
                if Data.Post_Parse_Action = Indent then
@@ -951,7 +1061,7 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array)
    is
-      Nonterm_Tok        : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Nonterm);
+      Nonterm_Tok        : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Nonterm);
       First_Item         : Boolean                := True;
       Start_Set          : Boolean                := False;
       Override_Start_Set : Boolean                := False;
@@ -971,11 +1081,11 @@ package body Wisi is
          elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
             declare
                use all type WisiToken.Syntax_Trees.Node_Label;
-               Token  : constant Aug_Token_Ref :=
+               Token  : constant Aug_Token_Const_Ref :=
                  (if Pair.Class = Statement_End and then
                     Tree.Label (Tokens (Pair.Index)) = WisiToken.Syntax_Trees.Nonterm
-                  then To_Aug_Token_Ref (Data.Terminals (Tree.Max_Terminal_Index (Tokens (Pair.Index))))
-                  else Get_Aug_Token (Data, Tree, Tokens (Pair.Index)));
+                  then To_Aug_Token_Const_Ref (Data.Terminals (Tree.Max_Terminal_Index (Tokens (Pair.Index))))
+                  else Get_Aug_Token_Const (Data, Tree, Tokens (Pair.Index)));
 
                Cache_Pos : constant Buffer_Pos         := Token.Char_Region.First;
                Cursor    : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
@@ -1070,7 +1180,7 @@ package body Wisi is
    begin
       if not (Name in Tokens'Range) then
          declare
-            Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Tokens'First));
+            Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (Tokens'First));
          begin
             raise Fatal_Error with Error_Message
               (File_Name => Data.Lexer.File_Name,
@@ -1078,7 +1188,7 @@ package body Wisi is
                Column    => Token.Column,
                Message   => "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
                  Trimmed_Image (Name) & ") not in Tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
-                    SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
+                 SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
          end;
       end if;
 
@@ -1088,7 +1198,7 @@ package body Wisi is
 
       declare
          use Name_Cache_Trees;
-         Name_Token : constant Aug_Token_Ref           := Get_Aug_Token (Data, Tree, Tokens (Name));
+         Name_Token : constant Aug_Token_Const_Ref     := Get_Aug_Token_Const (Data, Tree, Tokens (Name));
          Cursor     : constant Name_Cache_Trees.Cursor := Find
            (Data.Name_Caches.Iterate, Name_Token.Char_Region.First,
             Direction => Name_Cache_Trees.Unknown);
@@ -1130,7 +1240,7 @@ package body Wisi is
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
                use all type WisiToken.Syntax_Trees.Node_Label;
-               Token  : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Param.Index));
+               Token  : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (Param.Index));
                Region : constant Buffer_Region := Token.Char_Region;
                Skip   : Boolean                := False;
             begin
@@ -1236,7 +1346,7 @@ package body Wisi is
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
-               Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Param.Index));
+               Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (Param.Index));
             begin
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
@@ -1289,7 +1399,7 @@ package body Wisi is
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
-               Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Param.Index));
+               Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (Param.Index));
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
@@ -1330,7 +1440,7 @@ package body Wisi is
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
-               Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Param.Index));
+               Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (Param.Index));
             begin
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
@@ -1376,7 +1486,7 @@ package body Wisi is
       for I of Params loop
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
             declare
-               Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (I));
+               Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tokens (I));
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
@@ -1453,14 +1563,16 @@ package body Wisi is
       end if;
 
       for I in Tokens'Range loop
-         if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region and
+         if (Tree.Is_Virtual_Terminal (Tokens (I)) or
+               Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region) and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
          then
             declare
                use all type WisiToken.Syntax_Trees.Node_Index;
                use all type SAL.Base_Peek_Type;
                Tree_Token        : constant Syntax_Trees.Valid_Node_Index := Tokens (I);
-               Token             : constant Aug_Token_Ref                 := Get_Aug_Token (Data, Tree, Tree_Token);
+               Token             : constant Aug_Token_Const_Ref           :=
+                 Get_Aug_Token_Const (Data, Tree, Tree_Token);
                Pair              : Indent_Pair renames Params (I);
                Code_Delta        : Delta_Type;
                Comment_Param     : Indent_Param;
@@ -1514,7 +1626,7 @@ package body Wisi is
    begin
       for I in Tokens'First .. N loop
          if Tree.Label (Tokens (I)) /= Virtual_Terminal and then
-           Get_Aug_Token (Data, Tree, Tokens (I)).First
+           Get_Aug_Token_Const (Data, Tree, Tokens (I)).First
          then
             Indent_Action_0 (Data, Tree, Nonterm, Tokens, Params);
             return;
@@ -1534,7 +1646,7 @@ package body Wisi is
       Accumulate        : in     Boolean)
      return Delta_Type
    is
-      Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      Indenting_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
    begin
       if Indenting_Comment then
          return Indent_Compute_Delta
@@ -1712,7 +1824,7 @@ package body Wisi is
          loop
             if Tree.Label (N) /= Virtual_Terminal then
                declare
-                  Ref : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, N);
+                  Ref : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, N);
                begin
                   if Ref.Char_Region /= Null_Buffer_Region then
                      return Ref.Element.Char_Region.First;
@@ -1844,21 +1956,33 @@ package body Wisi is
             else Token.First_Indent_Line));
    end First_Line;
 
-   function Get_Aug_Token
+   function Get_Aug_Token_Const
      (Data       : in Parse_Data_Type'Class;
       Tree       : in Syntax_Trees.Tree'Class;
       Tree_Index : in Syntax_Trees.Valid_Node_Index)
-     return Aug_Token_Ref
+     return Aug_Token_Const_Ref
    is
       use all type Syntax_Trees.Node_Label;
    begin
       return
         (case Tree.Label (Tree_Index) is
-         when Shared_Terminal => To_Aug_Token_Ref (Data.Terminals (Tree.Terminal (Tree_Index))),
-         when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
-         when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
-         when Nonterm => To_Aug_Token_Ref (Tree.Augmented (Tree_Index)));
-   end Get_Aug_Token;
+         when Shared_Terminal => To_Aug_Token_Const_Ref (Data.Terminals (Tree.Terminal (Tree_Index))),
+         when Virtual_Terminal | Virtual_Identifier | Nonterm => To_Aug_Token_Const_Ref (Tree.Augmented (Tree_Index)));
+   end Get_Aug_Token_Const;
+
+   function Get_Aug_Token_Var
+     (Data       : in Parse_Data_Type'Class;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Tree_Index : in Syntax_Trees.Valid_Node_Index)
+     return Aug_Token_Var_Ref
+   is
+      use all type Syntax_Trees.Node_Label;
+   begin
+      return
+        (case Tree.Label (Tree_Index) is
+         when Shared_Terminal => To_Aug_Token_Var_Ref (Data.Terminals.Variable_Ref (Tree.Terminal (Tree_Index))),
+         when Virtual_Terminal | Virtual_Identifier | Nonterm => To_Aug_Token_Var_Ref (Tree.Augmented (Tree_Index)));
+   end Get_Aug_Token_Var;
 
    function Get_Text
      (Data       : in Parse_Data_Type;
@@ -1976,7 +2100,7 @@ package body Wisi is
       Indenting_Comment : in     Boolean)
      return Delta_Type
    is
-      Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      Indenting_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
    begin
       --  Evaluate wisi-anchored*, wisi-hanging*.
       case Param.Label is
@@ -1996,7 +2120,7 @@ package body Wisi is
                return Null_Delta;
             else
                declare
-                  Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token
+                  Anchor_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const
                     (Data, Tree, Tokens (Param.Param.Anchored_Index));
                begin
                   case Anchored_Label'(Param.Param.Label) is
@@ -2015,7 +2139,7 @@ package body Wisi is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Paren_In_Anchor_Line (Data, Tree, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
                   when Anchored_2 =>
@@ -2024,7 +2148,7 @@ package body Wisi is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Paren_In_Anchor_Line (Data, Tree, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
                   when Anchored_3 =>

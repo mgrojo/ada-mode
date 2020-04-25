@@ -104,8 +104,8 @@ package body Wisi.Ada is
    --  Refactor body subprograms
 
    function Find_ID_At
-     (Tree       : in WisiToken.Syntax_Trees.Tree;
-      Terminals  : in Augmented_Token_Arrays.Vector;
+     (Data       : in Parse_Data_Type'Class;
+      Tree       : in WisiToken.Syntax_Trees.Tree;
       ID         : in Token_ID;
       Edit_Begin : in WisiToken.Buffer_Pos)
      return WisiToken.Syntax_Trees.Node_Index
@@ -115,7 +115,7 @@ package body Wisi.Ada is
       function Match (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
       is begin
          return Tree.ID (Node) = ID and then
-           Terminals (Tree.Min_Terminal_Index (Node)).Byte_Region.First = Edit_Begin;
+           Get_Aug_Token_Const (Data, Tree, Node).Byte_Region.First = Edit_Begin;
       end Match;
    begin
       return Tree.Find_Descendant (Tree.Root, Predicate => Match'Access);
@@ -145,7 +145,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Data, Tree, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Method           : Valid_Node_Index;
       Temp             : Node_Index;
@@ -245,7 +245,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call          : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
+      Call          : Node_Index := Find_ID_At (Data, Tree, +name_ID, Edit_Begin);
       Edit_End      : WisiToken.Buffer_Pos;
       Object_Method : Valid_Node_Index;
       Method        : Unbounded_String;
@@ -309,7 +309,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Data, Tree, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Index;
       Association_List : Node_Index;
@@ -379,7 +379,7 @@ package body Wisi.Ada is
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Index := Find_ID_At (Tree, Data.Terminals, +name_ID, Edit_Begin);
+      Call             : Node_Index := Find_ID_At (Data, Tree, +name_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Index;
       Association_List : Node_Index;
@@ -576,7 +576,7 @@ package body Wisi.Ada is
      return Delta_Type
    is
       use all type Syntax_Trees.Node_Index;
-      Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      Indenting_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
 
       function Result (Delta_1 : in Simple_Indent_Param; Delta_2 : in Simple_Delta_Type) return Delta_Type
       is begin
@@ -751,9 +751,9 @@ package body Wisi.Ada is
       Args              : in     Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
-      Subp_Tok    : constant Aug_Token_Ref := Get_Aug_Token
+      Subp_Tok    : constant Aug_Token_Const_Ref := Get_Aug_Token_Const
         (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (1)))));
-      Renames_Tok : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      Renames_Tok : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
       Paren_I     : Base_Token_Index;
    begin
       if Subp_Tok.Char_Region = Null_Buffer_Region then
@@ -814,12 +814,12 @@ package body Wisi.Ada is
 
       Parameter_And_Result_Profile : constant Syntax_Trees.Valid_Node_Index := Tree.Parent (Tree_Indenting);
 
-      Indenting : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+      Indenting : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
    begin
       if Indenting.Line = Indenting.First_Indent_Line then
          if Ada_Indent_Return <= 0 then
             declare
-               Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token
+               Anchor_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const
                  (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (1)))));
             begin
                return Indent_Anchored_2
@@ -833,7 +833,7 @@ package body Wisi.Ada is
             declare
                Function_N   : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Sibling
                  (Parameter_And_Result_Profile, +FUNCTION_ID);
-               Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Function_N);
+               Anchor_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Function_N);
             begin
                return Indent_Anchored_2
                  (Data,
@@ -860,10 +860,10 @@ package body Wisi.Ada is
    is begin
       return Indent_Record
         (Parse_Data_Type (Data),
-         Anchor_Token      => Get_Aug_Token (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (1))))),
-         Record_Token      => Get_Aug_Token (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (2))))),
+         Anchor_Token      => Get_Aug_Token_Const (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (1))))),
+         Record_Token      => Get_Aug_Token_Const (Data, Tree, Tokens (Positive_Index_Type (Integer'(Args (2))))),
          Offset            => Args (3),
-         Indenting_Token   => Get_Aug_Token (Data, Tree, Tree_Indenting),
+         Indenting_Token   => Get_Aug_Token_Const (Data, Tree, Tree_Indenting),
          Indenting_Comment => Indenting_Comment);
    end Ada_Indent_Record_0;
 
@@ -905,19 +905,20 @@ package body Wisi.Ada is
       end if;
 
       declare
-         Anchor_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Anchor);
+         Anchor_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Anchor);
 
          --  Args (2) is the index of RECORD (or a nonterminal possibly
          --  starting with RECORD) in Tokens
          Record_Token_Tree_Index : constant Syntax_Trees.Node_Index :=
            Tokens (Positive_Index_Type (Integer'(Args (2))));
-         Record_Token : constant Aug_Token_Ref :=
+         Record_Token : constant Aug_Token_Const_Ref :=
            (case Tree.Label (Record_Token_Tree_Index) is
-            when Shared_Terminal | Virtual_Terminal | Virtual_Identifier => Get_Aug_Token
+            when Shared_Terminal | Virtual_Terminal | Virtual_Identifier => Get_Aug_Token_Const
               (Data, Tree, Record_Token_Tree_Index),
-            when Nonterm => To_Aug_Token_Ref (Data.Terminals (Tree.Min_Terminal_Index (Record_Token_Tree_Index))));
+            when Nonterm => To_Aug_Token_Const_Ref
+              (Data.Terminals (Tree.Min_Terminal_Index (Record_Token_Tree_Index))));
 
-         Indenting_Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Indenting);
+         Indenting_Token : constant Aug_Token_Const_Ref := Get_Aug_Token_Const (Data, Tree, Tree_Indenting);
       begin
          --  Args (3) is the offset
          return Indent_Record

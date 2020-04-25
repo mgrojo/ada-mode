@@ -23,7 +23,6 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Text_IO;
-with GNAT.Traceback.Symbolic;
 with SAL;
 with System.Multiprocessors;
 package body Run_Wisi_Common_Parse is
@@ -202,6 +201,8 @@ package body Run_Wisi_Common_Parse is
       Start     : Ada.Real_Time.Time;
       End_Line  : WisiToken.Line_Number_Type;
    begin
+      Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
+
       declare
          Cl_Params : constant Command_Line_Params := Get_CL_Params (Parser);
       begin
@@ -341,7 +342,6 @@ package body Run_Wisi_Common_Parse is
       Put_Line
         ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
            Ada.Exceptions.Exception_Message (E) & """)");
-      Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
    end Parse_File;
 
 end Run_Wisi_Common_Parse;

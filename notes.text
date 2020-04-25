@@ -4,11 +4,11 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
+o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work; use virtual tokens in indent
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
+o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -20,9 +20,9 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
 
 (dvc-propagate-multiple
  '(
- ;; ("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
+ ;;("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -34,8 +34,8 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
 (dvc-propagate-multiple
  '(
  ;; ("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -47,19 +47,22 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-lsp-mode has mechanism to download and install servers
-    adapt that for compiled wisi exes?
+use virtual terminals in indent
+    all ada-mode tests
 
-hide wisi syntax errors window when clear it
+Nonterm.Min/Max_terminal could be a virtual_terminal - must return valid_node_index, not Token_Index!
+    lexer_to_augmented store shared_terminal aug_token in tree
+    add tree_node to base_token; parser use that to set current_token node
 
-test/ada_mode-recover_string_quote_1.adb
-    undo_reduce after push-back or insert
+    similar routines that should handle Inserted_Before, or virtuals
+        wisi-ada.adb Indent_Hanging_1 First_Terminal; use get_aug_Token
+        wisi-ada.adb Ada_Indent_Renames_0 Paren_Tok; use get_aug_Token
+        wisi.adb Statement_Action Token
 
-test/ada_mode-recover_20.adb
-    anchored can't anchor to virtual token
-        because we don't know (line, column)
-            set it to following token, grammar or non-grammar
-            after finish error correction algorithm paper
+        wisi.adb Find?
+
+
+propagate
 
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
@@ -81,8 +84,6 @@ add to user guide:
 
 
 add "don't trust parser-provided text positions if buffer is modified" to wisi manual
-
-try jit-lock-stealth-time instead of -defer-time
 
 indent bugs:
     State.Kernel (I) :=
@@ -115,6 +116,14 @@ align bug:
 
     use parser
 
+hide wisi syntax errors window when clear it
+
+test/ada_mode-recover_string_quote_1.adb
+    undo_reduce after push-back or insert
+
+lsp-mode has mechanism to download and install servers
+    adapt that for compiled wisi exes?
+
 fix "string not terminated by end of line" bug
     use parser to fontify strings
 
@@ -132,11 +141,6 @@ move EXE_EXT, GNAT_EXE, INSTALL_BIN into makefile.conf
 
 fix blinking fringe mark when type "--"
     delay the display of the fringe mark (using a timer), without delaying font-lock itself
-
-change "git clone" in https://savannah.nongnu.org/git/?group=ada-mode
-    to "git clone -b org.emacs.ada-mode"
-    3 Mar 2020: sent email to savannah-hackers
-        https://lists.gnu.org/archive/html/savannah-hackers/2020-03/msg00000.html
 
 wisitoken user guide
     c:/Projects/org.wisitoken/Docs/wisitoken-user_guide.texinfo
@@ -814,13 +818,7 @@ to change process executable for all current and future buffers:
 Edebug displays
 
 in wisi-process-parse--Reduce_Stack:
-(setq edebug-eval-list
- '(tokens-1
-   tok
-   (aref token-table (aref tokens-1 i))
-   (queue-head (wisi-process--parser-parse-stack wisi--parser))
-   sexp
-   ))
+
 
 in wisi-parse-reduce:
 (setq edebug-eval-list

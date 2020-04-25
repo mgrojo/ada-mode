@@ -372,11 +372,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                        else +name_opt_ID),
                       +END_ID));
 
-                  if New_Config.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID then
+                  if Undo_Reduce_Valid (New_Config.Stack, Tree) and then
+                    New_Config.Stack.Peek.Token.ID = +handled_sequence_of_statements_ID
+                  then
                      Undo_Reduce_Check
                        (New_Config, Tree,
                         (+handled_sequence_of_statements_ID,
                          +sequence_of_statements_opt_ID));
+                  else
+                     if Trace_McKenzie > Outline then
+                        Put ("Language_Fixes unimplemented nonterm for Missing_Name_Error.", New_Config);
+                     end if;
+                     raise Bad_Config;
                   end if;
 
                when package_specification_ID =>
@@ -394,7 +401,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Push_Back_Check
                     (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
 
-                  if New_Config.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID then
+                  if Undo_Reduce_Valid (New_Config.Stack, Tree) and then
+                    New_Config.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID
+                  then
                      Undo_Reduce_Check
                        (New_Config, Tree,
                         (+handled_sequence_of_statements_ID,
@@ -795,7 +804,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
-               if New_Config_1.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID then
+               if Undo_Reduce_Valid (New_Config_1.Stack, Tree) and then
+                 New_Config_1.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID
+               then
                   Undo_Reduce_Check
                     (New_Config_1, Tree,
                      (+handled_sequence_of_statements_ID,
@@ -919,7 +930,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  can compete with the solution for case 2.
          --
          --  2) There is an extra 'begin' before the <variable_name>. See
-         --  test/ada_mode-recover_27.adb.
+         --  test/ada_mode-recover_27.adb. Delete the 'begin'.
          --
          --  FIXME: if there is a sequence_of_statements between the 'begin'
          --  and the error point, or declarations before the 'begin', this is
@@ -938,7 +949,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config_2 := New_Config_1;
 
             Insert (New_Config_1, +END_ID);
-            --  Let Minimal_Complete finish insert; that will add cost, so no cost here.
+            --  This is a guess, so add a cost.
+            New_Config_1.Cost := New_Config_1.Cost + 1;
             Local_Config_Heap.Add (New_Config_1);
 
             if Trace_McKenzie > Detail then
@@ -946,20 +958,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             end if;
 
             --  Case 2.
-            Push_Back_Check (New_Config_2, +BEGIN_ID);
-            if Undo_Reduce_Valid (New_Config_2.Stack, Tree) then
-               Undo_Reduce_Check (New_Config_2, Tree, +declarative_part_opt_ID);
-            else
-               return;
-            end if;
-            Delete_Check (Terminals, New_Config_2, +BEGIN_ID);
+            if -New_Config_2.Stack.Peek.Token.ID = BEGIN_ID then
+               Push_Back_Check (New_Config_2, +BEGIN_ID);
+               if Undo_Reduce_Valid (New_Config_2.Stack, Tree) and then
+                 -New_Config_2.Stack.Peek.Token.ID in declarative_part_opt_ID | block_label_opt_ID
+               then
+                  Undo_Reduce_Check (New_Config_2, Tree, New_Config_2.Stack.Peek.Token.ID);
+               else
+                  if Trace_McKenzie > Detail then
+                     Put ("Language_Fixes extra begin unimplemented case", New_Config_2);
+                  end if;
+                  raise Bad_Config;
+               end if;
+               Delete_Check (Terminals, New_Config_2, +BEGIN_ID);
 
-            --  This is a guess, so add a cost.
-            New_Config_2.Cost := New_Config_2.Cost + 1;
-            Local_Config_Heap.Add (New_Config_2);
+               --  This is a guess, so add a cost.
+               New_Config_2.Cost := New_Config_2.Cost + 1;
+               Local_Config_Heap.Add (New_Config_2);
 
-            if Trace_McKenzie > Detail then
-               Put ("Language_Fixes extra begin", New_Config_2);
+               if Trace_McKenzie > Detail then
+                  Put ("Language_Fixes extra begin", New_Config_2);
+               end if;
             end if;
          end;
 
@@ -992,8 +1011,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             end if;
          end;
 
-      elsif Config.Error_Token.ID = +TICK_1_ID then
+      elsif Config.Error_Token.ID = +TICK_1_ID and Config.Error_Token.Virtual = False then
          --  Editing "Put ('|');" => "Put ('|-');"; need to change ' to ".
+         --
+         --  We can get here with Virtual = False if this Error_Token comes
+         --  from McKenzie_Recover.Parse.Parse rather than the main parser.
 
          declare
             New_Config : Configuration := Config;

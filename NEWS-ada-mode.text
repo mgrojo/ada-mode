@@ -29,6 +29,8 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    parses the full buffer; it only parses if in parens, and only a
    small region containing the parens.
 
+** Virtual tokens are used in indent, improving indent computation.
+
 * Ada Mode 7.0.1
 30 Jan 2020
 
