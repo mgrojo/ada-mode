@@ -22,7 +22,7 @@ begin
             for I in reverse Rhs.Tokens.First_Index + 1 .. Rhs.Tokens.Last_Index loop
                declare
 
-                  if Id = Prod.Lhs then
+               if Id = Prod.Lhs then
                      Result (Id) := True;
                      exit Rhs_Loop;
                   elsif not (Id in Nonterminal) then
@@ -30,7 +30,7 @@ begin
                   elsif not Empty (Id) then
                      exit Id_Loop;
                   end if;
-            end loop Id_Loop;
+               end loop Id_Loop;
          end loop Rhs_Loop;
       end loop;
    end return;

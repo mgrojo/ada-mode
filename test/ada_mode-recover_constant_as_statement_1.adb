@@ -1,20 +1,12 @@
---  From a real editing session.
-
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
 procedure Ada_Mode.Recover_Constant_As_Statement_1
-is begin
-   loop
+is
+begin
+   Push_Back_Check (New_Config, +IDENTIFIER_ID);
 
-      if Next_Marker = Sof0 or
-          Sof5  : constant Stream_Element := 16#C5#;
-      --  Copied a list of constant declarations to construct a boolean
-      -- expression. Desired solution: delete ': constant Stream_Element'.
+   --  Copied next line, intending to make it an assignment
+   Delete_Index : WisiToken.Token_Index := Config.Current_Shared_Token;
 
-   end loop;
-exception
-   when  Sal.Invalid_Format =>
-      raise;
+   Delete_Check (Terminals, New_Config, Delete_Index, +COLON_ID);
+
 end Ada_Mode.Recover_Constant_As_Statement_1;
---  Local Variables:
---  wisi-mckenzie-task-count: 1
---  End:

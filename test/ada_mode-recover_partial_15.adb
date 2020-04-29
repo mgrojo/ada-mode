@@ -3,14 +3,15 @@
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
 declare
-   Min_Rhs := Min ();
+   Min_Rhs := Min (); -- copied assignment to create initialized declaration; recover inserts 'begin'
    begin
+      --  Deleted Foo :=. recover inserts 'case' and 'if', then finishes each at ';'
         Possible_Left_Recursive and
           All_Sequences (Id)(Min_Rhs).Left_Recursive;
 
       All_Sequences (Nonterm)(Rhs).Sequence.Append (Min (All_Sequences (Id), Rhs_Set (Id)).Sequence);
-      end if;
-   end;
+   end if; -- expecting 'end'. recover has various solutions, can change with small code changes.
+end;
 end loop;
 Rhs_Set (Nonterm)(Rhs) := True;
 if Trace_Generate > Extra then

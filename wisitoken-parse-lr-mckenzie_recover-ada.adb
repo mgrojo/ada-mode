@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
 with Ada.Exceptions;
 with Ada_Process_Actions;
 with System.Assertions;
@@ -339,7 +338,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             return;
          end if;
 
-         if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID) then
+         if Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID) then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
                use Config_Op_Arrays;
@@ -533,7 +532,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                   --  Push_Back the failed reduce tokens.
                   for I in 1 .. New_Config.Check_Token_Count loop
-                     Push_Back (New_Config);
+                     if Push_Back_Valid (New_Config) then
+                        Push_Back (New_Config);
+                     else
+                        raise Bad_Config;
+                     end if;
                   end loop;
 
                   Insert (New_Config, +END_ID);
@@ -624,7 +627,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                      --  Delete the second begin
                      for I in 1 .. Second_Begin_I loop
-                        Push_Back (New_Config);
+                        if Push_Back_Valid (New_Config) then
+                           Push_Back (New_Config);
+                        else
+                           raise Bad_Config;
+                        end if;
                      end loop;
                      pragma Assert (New_Config.Stack.Peek.Token.ID = +block_label_opt_ID);
 
@@ -659,7 +666,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      --  Delete the first begin. We assume it is in a subprogram body, so
                      --  we don't need to adjust anything else.
                      for I in 1 .. First_Begin_I loop
-                        Push_Back (New_Config);
+                        if Push_Back_Valid (New_Config) then
+                           Push_Back (New_Config);
+                        else
+                           --  Probably trying to push back thru an earlier error recovery; see
+                           --  test/ada_mode-recover_10.adb
+                           raise Bad_Config;
+                        end if;
                      end loop;
 
                      Delete_Check (Terminals, New_Config, +BEGIN_ID);
@@ -670,6 +683,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                                Image (Config.Error_Token.ID, Descriptor), New_Config);
                      end if;
                   end if;
+               exception
+               when Bad_Config =>
+                  null;
+
                end;
             end if;
          end;
@@ -678,8 +695,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    when Bad_Config =>
       null;
 
-   when System.Assertions.Assert_Failure =>
-      if Trace_McKenzie > Outline then
+   when E : System.Assertions.Assert_Failure =>
+      if Debug_Mode then
+         Trace.Put
+           ("Language_Fixes Handle_Check_Fail assert fail: " &
+              Standard.Ada.Exceptions.Exception_Message (E),
+            Prefix => True);
+         Trace.New_Line;
+         raise;
+      elsif Trace_McKenzie > Outline then
          Trace.Put_Line ("Language_Fixes Handle_Check_Fail Assert fail");
       end if;
    end Handle_Check_Fail;
@@ -696,8 +720,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    with Pre => Config.Check_Status.Label = Ok
    is
       use Config_Op_Arrays;
-      use Config_Op_Array_Refs;
-      use all type Standard.Ada.Containers.Count_Type;
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
@@ -707,32 +729,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if Config.Error_Token.ID = +COLON_ID and
         Config.Stack.Peek.Token.ID = +IDENTIFIER_ID
       then
-         --  Code looks like:
+         --  1) Code looks like:
          --
-         --  begin ... <variable_identifier> : [aliased constant] <subtype_indication> ...
-         --
-         --  compare to "missing begin"/"extra begin" case below.
+         --  <name> ( ... <variable_identifier> : [aliased constant] <subtype_indication> ...
          --
          --  Assume the user copied a declaration with an initializer, and is
          --  converting it to a subprogram parameter; see
          --  ada_mode-recover_02.adb). Delete the ': [aliased constant]
          --  <subtype_indication>'.
          --
-         --  Note that if the user was converting to an assignment, the error
-         --  would be on 'constant', not ':'.
-
-         if Length (Config.Insert_Delete) > 0 and then
-           Token_Index (Constant_Ref (Config.Insert_Delete, Last_Index (Config.Insert_Delete))) >=
-           Config.Current_Shared_Token
-         then
-            --  Can't delete tokens from here
-            return;
-         end if;
+         --  2) Code looks like:
+         --
+         --  <operator> ... <variable_identifier> : [aliased constant] <subtype_indication> := <expression> ...
+         --
+         --  This is a copied variable declaration that the user is converting
+         --  to an expression. See
+         --  test/ada_mode-recover_constant_as_expression_1.adb. Delete
+         --  '<variable_identifier> : [aliased constant] <subtype_indication>
+         --  := '
+         --
+         --  We cannot reliably search ahead in the unparsed tokens for ':=";
+         --  <subtype_indication> can include a constraint with an arbitrarily
+         --  complex expression. So we only handle the common case where the
+         --  <subtype_indication> is a simple identifier or selected_component.
+         --
+         --
+         --  Note that if the user was converting to an assignment, there would
+         --  not be a partial statement in progress before the <variable
+         --  identifier>, and the error would be on 'constant', not ':'.
+         --
+         --  compare to "decl as statement"/"missing end"/"extra begin" case below.
 
          declare
             New_Config : Configuration := Config;
             Delete_Index : WisiToken.Token_Index := Config.Current_Shared_Token;
          begin
+            --  case 1)
             Delete_Check (Terminals, New_Config, Delete_Index, +COLON_ID);
             if Terminals (Delete_Index).ID = +ALIASED_ID then
                Delete_Check (Terminals, New_Config, Delete_Index, +ALIASED_ID);
@@ -756,9 +788,133 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                end if;
             else
                --  Something else is going on, abandon this
-               return;
+               null;
             end if;
          end;
+
+         if Push_Back_Valid (Config) then
+            --  maybe case 2)
+            declare
+               New_Config : Configuration         := Config;
+               I          : WisiToken.Token_Index;
+            begin
+               Push_Back_Check (New_Config, +IDENTIFIER_ID);
+
+               I := New_Config.Current_Shared_Token;
+               Delete_Check (Terminals, New_Config, I, +IDENTIFIER_ID);
+               Delete_Check (Terminals, New_Config, I, +COLON_ID);
+               if Terminals (I).ID = +ALIASED_ID then
+                  Delete_Check (Terminals, New_Config, I, +ALIASED_ID);
+               end if;
+               if Terminals (I).ID = +CONSTANT_ID then
+                  Delete_Check (Terminals, New_Config, I, +CONSTANT_ID);
+               end if;
+               if Terminals (I).ID = +NOT_ID then
+                  Delete_Check (Terminals, New_Config, I, +NOT_ID);
+               end if;
+               if Terminals (I).ID = +NULL_ID then
+                  Delete_Check (Terminals, New_Config, I, +NULL_ID);
+               end if;
+
+               --  look for ':='
+               loop
+                  exit when I = Terminals.Last_Index; --  last is EOI
+                  case To_Token_Enum (Terminals (I).ID) is
+                  when IDENTIFIER_ID =>
+                     Delete_Check (Terminals, New_Config, I, +IDENTIFIER_ID);
+
+                  when DOT_ID =>
+                     Delete_Check (Terminals, New_Config, I, +DOT_ID);
+
+                  when COLON_EQUAL_ID =>
+                     Delete_Check (Terminals, New_Config, I, +COLON_EQUAL_ID);
+                     exit;
+
+                  when others =>
+                     raise Bad_Config;
+
+                  end case;
+               end loop;
+
+                  Local_Config_Heap.Add (New_Config);
+               if Trace_McKenzie > Detail then
+                  Put ("Language_Fixes variable decl as expression", New_Config);
+               end if;
+            exception
+            when Bad_Config =>
+               null;
+            end;
+         end if;
+
+      elsif Config.Error_Token.ID = +IDENTIFIER_ID and
+        Config.Stack.Peek.Token.ID = +COLON_ID
+      then
+         --  1) Code looks like:
+         --
+         --  <statement> <variable_identifier> : [aliased constant] <subtype_indication> <expression> ...
+         --
+         --  This is a copied variable declaration that the user is converting
+         --  to an assignment. See
+         --  test/ada_mode-recover_constant_as_statement_1.adb. Delete
+         --  ': [aliased constant] <subtype_indication>'
+         --
+         --  We cannot reliably search ahead in the unparsed tokens for ':=";
+         --  <subtype_indication> can include a constraint with an arbitrarily
+         --  complex expression. So we only handle the common case where the
+         --  <subtype_indication> is a simple identifier or selected_component.
+         --
+         --  compare to "decl as expression" above, "missing end"/"extra begin" case below.
+
+         if Push_Back_Valid (Config) then
+            declare
+               New_Config : Configuration := Config;
+               I          : WisiToken.Token_Index;
+            begin
+               Push_Back_Check (New_Config, +COLON_ID);
+               I := New_Config.Current_Shared_Token;
+               Delete_Check (Terminals, New_Config, I, +COLON_ID);
+               if Terminals (I).ID = +ALIASED_ID then
+                  Delete_Check (Terminals, New_Config, I, +ALIASED_ID);
+               end if;
+               if Terminals (I).ID = +CONSTANT_ID then
+                  Delete_Check (Terminals, New_Config, I, +CONSTANT_ID);
+               end if;
+               if Terminals (I).ID = +NOT_ID then
+                  Delete_Check (Terminals, New_Config, I, +NOT_ID);
+               end if;
+               if Terminals (I).ID = +NULL_ID then
+                  Delete_Check (Terminals, New_Config, I, +NULL_ID);
+               end if;
+
+               --  look for ':='
+               loop
+                  exit when I = Terminals.Last_Index; --  last is EOI
+                  case To_Token_Enum (Terminals (I).ID) is
+                  when IDENTIFIER_ID =>
+                     Delete_Check (Terminals, New_Config, I, +IDENTIFIER_ID);
+
+                  when DOT_ID =>
+                     Delete_Check (Terminals, New_Config, I, +DOT_ID);
+
+                  when COLON_EQUAL_ID =>
+                     Delete_Check (Terminals, New_Config, I, +COLON_EQUAL_ID);
+                     exit;
+
+                  when others =>
+                     raise Bad_Config;
+
+                  end case;
+               end loop;
+
+               Local_Config_Heap.Add (New_Config);
+               if Trace_McKenzie > Detail then
+                  Put ("Language_Fixes variable decl as statement", New_Config);
+               end if;
+            exception
+            when Bad_Config =>
+               null;
+            end;
+         end if;
 
       elsif Config.Error_Token.ID = +DOT_ID then
          --  We've encountered a Selected_Component when we were expecting a
@@ -779,7 +935,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             --  'begin's, so parsing expects <end_name_token_1> to match the
             --  second 'begin', which looks like an unnamed block. See
             --  test_mckenzie_recover Match_Selected_Component_1. 'declare ...'
-            --  may _not_ be present on the second begin. The solution is to
+            --  is _not_ present on the second begin. The solution is to
             --  insert 'end ;' before the second 'begin'.
             --
             --  Case 2) is missing 'end;' after the second 'begin'. See
@@ -797,62 +953,77 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             declare
                Label        : constant String := "selected_component 1";
                New_Config_1 : Configuration   := Config;
-               New_Config_2 : Configuration;
             begin
                New_Config_1.Error_Token.ID := Invalid_Token_ID;
 
                New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
-               if Undo_Reduce_Valid (New_Config_1.Stack, Tree) and then
-                 New_Config_1.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID
-               then
-                  Undo_Reduce_Check
-                    (New_Config_1, Tree,
-                     (+handled_sequence_of_statements_ID,
-                      +sequence_of_statements_opt_ID));
-               end if;
 
                case To_Token_Enum (New_Config_1.Stack.Peek (3).Token.ID) is
                when block_label_opt_ID =>
-                  --  no 'declare'; either case 1 or 2
+                  --  no 'declare'; either case 1 or 2, so enqueue both
 
-                  New_Config_2 := New_Config_1;
-                  New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
+                  declare
+                     New_Config_2 : Configuration := New_Config_1;
+                  begin
+                     case To_Token_Enum (New_Config_2.Stack.Peek.Token.ID) is
+                     when handled_sequence_of_statements_ID =>
+                        Push_Back_Check
+                          (New_Config_2,
+                           (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
 
-                  Insert (New_Config_2, +END_ID);
-                  --  Let Minimal_Complete_Actions finish insert.
+                     when sequence_of_statements_ID =>
+                        --  see test/ada_mode-recover_partial_24.adb
+                        Push_Back_Check
+                          (New_Config_2,
+                           (+sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
 
-                  Push_Back_Check
-                    (New_Config_1,
-                     (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
+                     when others =>
+                        if Trace_McKenzie > Outline then
+                           Put ("Language_Fixes " & Label & " missing case 1 " & Image
+                                  (New_Config_2.Stack.Peek.Token.ID, Descriptor), Config);
+                        end if;
+                        raise Bad_Config;
+                     end case;
+
+                     Insert (New_Config_2, +END_ID);
+                     --  for case 1; let Minimal_Complete_Actions finish insert.
+
+                     Local_Config_Heap.Add (New_Config_2);
+                     if Length (New_Config_2.Ops) > 0 then
+                        Put ("Language_Fixes " & Label, New_Config_2);
+                     end if;
+                  exception
+                  when Bad_Config =>
+                     --  We don't check Debug_Mode here, because the failure is probably
+                     --  due to pushing back a virtual token, which is not a programming
+                     --  error.
+                     null;
+                  end;
 
                   Insert (New_Config_1, +END_ID);
-                  --  Let Minimal_Complete_Actions finish insert.
+                  --  for case 2; let Minimal_Complete_Actions finish insert.
 
                   Local_Config_Heap.Add (New_Config_1);
-                  Local_Config_Heap.Add (New_Config_2);
 
                when declarative_part_opt_ID =>
-                  --  case 2
+                  --  'declare' is present; case 2
                   Insert (New_Config_1, +END_ID);
                   Local_Config_Heap.Add (New_Config_1);
 
                when others =>
                   if Trace_McKenzie > Outline then
-                     Put ("Language_Fixes " & Label & " missing case " & Image
+                     Put ("Language_Fixes " & Label & " missing case 2 " & Image
                             (New_Config_1.Stack.Peek (3).Token.ID, Descriptor), Config);
                      Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
                   end if;
-                  return;
+                     raise Bad_Config;
                end case;
 
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label, New_Config_1);
 
-                  if Length (New_Config_2.Ops) > 0 then
-                     Put ("Language_Fixes " & Label, New_Config_2);
-                  end if;
                end if;
             exception
             when Bad_Config =>
@@ -925,19 +1096,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  param" case above.
          --
          --  1) There is a missing 'end;' before the <variable_name>. See
-         --  test/ada_mode-recover_25.adb. Minimal_Complete now handles this
-         --  case, but we enqueue the same solution here at lower cost, so it
-         --  can compete with the solution for case 2.
+         --  test/ada_mode-recover_25.adb. Push_Back + Minimal_Complete also
+         --  handles this case, but we enqueue the same solution here at lower
+         --  cost, so it can compete with the solution for case 2.
          --
          --  2) There is an extra 'begin' before the <variable_name>. See
          --  test/ada_mode-recover_27.adb. Delete the 'begin'.
          --
-         --  FIXME: if there is a sequence_of_statements between the 'begin'
-         --  and the error point, or declarations before the 'begin', this is
-         --  either a copied variable declaration that the user is converting
-         --  to an assignment (solution: delete ': type'), or a subprogram
-         --  begin split in two (solution: insert 'declare' or 'end; procedure
-         --  name'). Need test cases.
+         --  IMPROVEME: or constant copied to become assignment, or a subprogram
+         --  being split in two (solution: insert 'declare' or 'end; procedure
+         --  name').
 
          declare
             New_Config_1 : Configuration := Config;
@@ -949,12 +1117,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config_2 := New_Config_1;
 
             Insert (New_Config_1, +END_ID);
-            --  This is a guess, so add a cost.
+            --  This is a guess, so add a cost. It will require at least one
+            --  Minimal_Complete step to insert a semicolon, that will add cost 1.
             New_Config_1.Cost := New_Config_1.Cost + 1;
             Local_Config_Heap.Add (New_Config_1);
 
             if Trace_McKenzie > Detail then
-               Put ("Language_Fixes missing begin", New_Config_1);
+               Put ("Language_Fixes missing end", New_Config_1);
             end if;
 
             --  Case 2.
@@ -972,8 +1141,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                end if;
                Delete_Check (Terminals, New_Config_2, +BEGIN_ID);
 
-               --  This is a guess, so add a cost.
-               New_Config_2.Cost := New_Config_2.Cost + 1;
+               --  This is a guess, so add a cost, equal to case 1.
+               New_Config_2.Cost := New_Config_2.Cost + 2;
                Local_Config_Heap.Add (New_Config_2);
 
                if Trace_McKenzie > Detail then
@@ -1001,7 +1170,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-            Push_Back_Check (New_Config, +expression_opt_ID);
+            if Push_Back_Valid (New_Config) then
+               Push_Back_Check (New_Config, +expression_opt_ID);
+            else
+               raise Bad_Config;
+            end if;
+
             Insert (New_Config, +LEFT_PAREN_ID);
             --  Minimal_Complete will add the matching right paren.
 
@@ -1051,8 +1225,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    when Bad_Config =>
       null;
 
-   when System.Assertions.Assert_Failure =>
-      if Trace_McKenzie > Outline then
+   when E : System.Assertions.Assert_Failure =>
+      if Debug_Mode then
+         Trace.Put
+           ("Language_Fixes Handle_Parse_Error assert fail: " &
+              Standard.Ada.Exceptions.Exception_Message (E),
+            Prefix => True);
+         Trace.New_Line;
+         raise;
+      elsif Trace_McKenzie > Outline then
          Trace.Put_Line ("Language_Fixes Handle_Parse_Error assert fail");
       end if;
    end Handle_Parse_Error;

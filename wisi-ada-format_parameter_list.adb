@@ -45,7 +45,7 @@ is
       Default_Exp : Buffer_Region := Null_Buffer_Region;
    end record;
 
-   Formal_Part : constant Node_Index := Find_ID_At (Data, Tree, +formal_part_ID, Edit_Begin);
+   Formal_Part : constant Node_Index := Find_ID_At (Tree, +formal_part_ID, Edit_Begin);
    Param_Iter  : Iterator;
    Edit_End    : Buffer_Pos;
    Param_Count : Count_Type := 0;

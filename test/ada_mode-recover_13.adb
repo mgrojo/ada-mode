@@ -14,7 +14,7 @@ package body Ada_Mode.Recover_13 is
      return Memo_Entry
    is
       M : Memo_Entry -- missing ';' here.
-   begin
+      begin
 
    end Apply_Rule;
 

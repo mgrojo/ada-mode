@@ -49,20 +49,45 @@ for ada_mode_wisi_parse.gpr:
  current work
 use virtual terminals in indent
     all ada-mode tests
+        test-ada-lalr-process-gpr_query
+wisi: parsing indent ada_mode-recover_partial_12.adb:1 869 1 ...
+wisi--run-parse: wisi parse error: "SAL.PROGRAMMER_ERROR: wisitoken-parse-lr-mckenzie_recover-explore.adb:1320"
+    string_literal_in_stack parse fail
+        not in command line
+        not when repeat in Emacs test
+        yes when repeat run Emacs test. sigh.
 
-Nonterm.Min/Max_terminal could be a virtual_terminal - must return valid_node_index, not Token_Index!
-    lexer_to_augmented store shared_terminal aug_token in tree
-    add tree_node to base_token; parser use that to set current_token node
 
-    similar routines that should handle Inserted_Before, or virtuals
-        wisi-ada.adb Indent_Hanging_1 First_Terminal; use get_aug_Token
-        wisi-ada.adb Ada_Indent_Renames_0 Paren_Tok; use get_aug_Token
-        wisi.adb Statement_Action Token
+    wisi-ada.adb Indent_record FIXME: virtual tokens
 
-        wisi.adb Find?
+    language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
+        selected_component 1
 
+    association_opt is wisi-hanging, if_statement is wisi-hanging%
+
+    search for other occurences of "foo is virtual; return null_indent"
+        add test cases
+
+    replace line_begin_pos, line_paren_state by line_begin_token?
+        fetch aug to get data
 
 propagate
+
+distinguish between "insert before", "insert after"?
+    test/ada_mode-recover_20.adb
+        comment line 13 indented wrong
+        supposed to be outside inserted parens
+        right_paren should be 'insert after'
+    test/ada_mode-recover_13.adb
+        ';' inserted before 'begin'
+
+    many others
+
+    move prev token non_grammar to inserted right_paren?
+    same for 'end', ';' - ada-specific.
+
+    add newlines?
+
 
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
@@ -82,6 +107,11 @@ build.sh:
 add to user guide:
     C-u C-u C-c C-d will not find bodies of public items; they are defined in the spec file, not the body
 
+    ada-indent-record, other functions in ada.wy
+        or doc those in ada.wy with comments
+        see comments in wisi-ada.adb Ada_Indent_Record_1
+
+    wisi-hanging checks for parens
 
 add "don't trust parser-provided text positions if buffer is modified" to wisi manual
 
@@ -118,8 +148,10 @@ align bug:
 
 hide wisi syntax errors window when clear it
 
-test/ada_mode-recover_string_quote_1.adb
-    undo_reduce after push-back or insert
+could elminate wisi.parse_data_type.terminals
+    always search syntax tree
+    search is less efficient
+    more portable to other parsers
 
 lsp-mode has mechanism to download and install servers
     adapt that for compiled wisi exes?

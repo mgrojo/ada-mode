@@ -38,7 +38,8 @@ package Wisi is
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
    type Parse_Data_Type
-     (Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
+     (Terminals        : not null access constant WisiToken.Base_Token_Arrays.Vector;
+      Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
    procedure Initialize
@@ -63,6 +64,7 @@ package Wisi is
    overriding
    procedure Lexer_To_Augmented
      (Data  : in out          Parse_Data_Type;
+      Tree  : in out          WisiToken.Syntax_Trees.Tree'Class;
       Token : in              WisiToken.Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
@@ -70,19 +72,20 @@ package Wisi is
    procedure Insert_Token
      (Data  : in out Parse_Data_Type;
       Tree  : in out WisiToken.Syntax_Trees.Tree'Class;
-      Token : in     WisiToken.Syntax_Trees.Valid_Node_Index);
+      Token : in     WisiToken.Valid_Node_Index);
 
    overriding
    procedure Delete_Token
      (Data                : in out Parse_Data_Type;
+      Tree                : in out WisiToken.Syntax_Trees.Tree'Class;
       Deleted_Token_Index : in     WisiToken.Token_Index);
 
    overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
       Tree    : in out WisiToken.Syntax_Trees.Tree'Class;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
@@ -97,16 +100,16 @@ package Wisi is
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array);
    --  Implements [2] wisi-statement-action.
 
    procedure Name_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Name    : in     WisiToken.Positive_Index_Type);
    --  Implements [2] wisi-name-action.
 
@@ -133,8 +136,8 @@ package Wisi is
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array);
    --  Implements [2] wisi-motion-action.
 
@@ -149,16 +152,16 @@ package Wisi is
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-action.
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-list-action.
 
@@ -174,8 +177,8 @@ package Wisi is
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Face_Mark_Param_Array);
    --  Implements [2] wisi-face-mark-action.
 
@@ -184,8 +187,8 @@ package Wisi is
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Face_Remove_Param_Array);
    --  Implements [2] wisi-face-remove-action.
 
@@ -221,8 +224,8 @@ package Wisi is
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tree_Tokens       : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tree_Tokens       : in     WisiToken.Valid_Node_Index_Array;
+      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Args              : in     Indent_Arg_Arrays.Vector)
      return Delta_Type;
@@ -292,16 +295,16 @@ package Wisi is
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Nonterm : in     WisiToken.Valid_Node_Index;
+      Tokens  : in     WisiToken.Valid_Node_Index_Array;
       N       : in     WisiToken.Positive_Index_Type;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action*.
@@ -309,8 +312,8 @@ package Wisi is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tokens            : in     WisiToken.Valid_Node_Index_Array;
+      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -416,7 +419,7 @@ private
       --  For terminals, non-grammar tokens immediately following. For
       --  nonterminals, empty.
 
-      Inserted_Before : WisiToken.Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+      Inserted_Before : WisiToken.Valid_Node_Index_Arrays.Vector;
       --  Tokens inserted before this token by error recovery.
 
    end record;
@@ -562,7 +565,8 @@ private
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
    type Parse_Data_Type
-     (Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
+     (Terminals        : not null access constant WisiToken.Base_Token_Arrays.Vector;
+      Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       --  Aux token info
@@ -575,10 +579,8 @@ private
 
       --  Data from parsing
 
-      Terminals : Augmented_Token_Arrays.Vector;
-      --  All terminal grammar tokens, in lexical order. Each contains any
-      --  immediately following non-grammar tokens. Nonterminal
-      --  Augmented_Tokens are stored in the syntax tree.
+      --  All Augmented_Tokens are stored in the syntax tree.
+      Last_Terminal_Node : WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
 
       Leading_Non_Grammar : Non_Grammar_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.
@@ -588,7 +590,8 @@ private
 
       Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
-      --  Indent. Set by Lexer_To_Augmented on New_Line_ID.
+      --  Indent. Set by Lexer_To_Augmented on New_Line_ID, updated by
+      --  Insert_Token, Delete_Token.
 
       Current_Paren_State : Integer;
       --  Current parenthesis nesting state; used by Indent. Set by
@@ -684,31 +687,43 @@ private
    --  Return offset from beginning of first token on line containing
    --  Anchor_Token, to beginning of Anchor_Token, plus Offset.
 
-   function Find
-     (Data  : in Parse_Data_Type;
-      ID    : in WisiToken.Token_ID;
-      Token : in Augmented_Token'Class)
-     return WisiToken.Base_Token_Index;
-   --  Return index in Parser.Terminals of first token in
-   --  Token.Char_Region with ID. If not found, return
-   --  No_Index.
+   function Get_Aug_Token_Const_1
+     (Tree       : in WisiToken.Syntax_Trees.Tree'Class;
+      Tree_Index : in WisiToken.Valid_Node_Index)
+     return Aug_Token_Const_Ref;
+   --  WORKAROUND: GNAT Community 2019 can't do the overload resolution
+   --  between the two Get_Aug_Token_Const without an explicit renames,
+   --  so we add _1 to this one.
 
    function Get_Aug_Token_Const
-     (Data       : in Parse_Data_Type'Class;
-      Tree       : in WisiToken.Syntax_Trees.Tree'Class;
-      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     (Data  : in Parse_Data_Type;
+      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+      Token : in WisiToken.Token_Index)
      return Aug_Token_Const_Ref;
 
    function Get_Aug_Token_Var
-     (Data       : in Parse_Data_Type'Class;
-      Tree       : in WisiToken.Syntax_Trees.Tree'Class;
-      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     (Tree       : in WisiToken.Syntax_Trees.Tree'Class;
+      Tree_Index : in WisiToken.Valid_Node_Index)
      return Aug_Token_Var_Ref;
+
+   function Get_Aug_Token_Var
+     (Data  : in Parse_Data_Type;
+      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+      Token : in WisiToken.Token_Index)
+     return Aug_Token_Var_Ref;
+
+   --  function Get_First_Terminal
+   --    (Data  : in Parse_Data_Type;
+   --     Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+   --     Token : in WisiToken.Token_Index)
+   --    return Aug_Token_Const_Ref;
+   --  Return Augmented for first Token.Inserted_Before, or if that is
+   --  empty, for Token.
 
    function Get_Text
      (Data       : in Parse_Data_Type;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Tree_Index : in WisiToken.Syntax_Trees.Valid_Node_Index)
+      Tree_Index : in WisiToken.Valid_Node_Index)
      return String;
    --  Return text contained by Tree_Index token in source file
    --  (lexer.buffer).
@@ -727,14 +742,15 @@ private
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Tokens            : in     WisiToken.Valid_Node_Index_Array;
       Param             : in     Indent_Param;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
       Indenting_Comment : in     Boolean)
      return Delta_Type;
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
+      Tree              : in     WisiToken.Syntax_Trees.Tree;
       Indenting_Token   : in     Augmented_Token'Class;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean);

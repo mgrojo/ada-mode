@@ -15,6 +15,6 @@ package Ada_Mode.Recover_5 is
             null;
          --  Missing 'end case; end record;' here.
 
-   function Additive (Input : String) return Result;
+      function Additive (Input : String) return Result;
 
 end Ada_Mode.Recover_5;
