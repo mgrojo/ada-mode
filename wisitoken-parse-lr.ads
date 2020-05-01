@@ -41,7 +41,6 @@ with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
-with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
 with WisiToken.Semantic_Checks;
@@ -454,8 +453,6 @@ package WisiToken.Parse.LR is
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean;
    --  Ignore state, stack_depth
 
-   package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
-
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Capacity => 80);
    --  Using a fixed size vector significantly speeds up
@@ -485,7 +482,6 @@ package WisiToken.Parse.LR is
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      renames Config_Op_Image;
 
-   function Image is new Config_Op_Queues.Gen_Image_Aux (WisiToken.Descriptor, Image);
    function Config_Op_Array_Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
    function Image (Item : in Config_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
      renames Config_Op_Array_Image;
@@ -504,10 +500,51 @@ package WisiToken.Parse.LR is
    function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
    --  True if Ops contains at least one Op.
 
+   type Recover_Op (Op : Insert_Delete_Op_Label := Insert) is record
+      --  Add Ins_Tree_Node to Config_Op info, set when item is
+      --  parsed; used to create user augmented token.
+
+      case Op is
+      when Insert =>
+         Ins_ID : Token_ID := Invalid_Token_ID;
+         --  The token ID inserted.
+
+         Ins_Token_Index : Base_Token_Index := Invalid_Token_Index;
+         --  Ins_ID is inserted before Token_Index.
+
+         Ins_Tree_Node : Node_Index := Invalid_Node_Index;
+
+      when Delete =>
+         Del_ID : Token_ID;
+         --  The token ID deleted.
+
+         Del_Token_Index : Base_Token_Index;
+         --  Token at Token_Index is deleted.
+
+      end case;
+   end record;
+
+   package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op, Capacity => 80);
+
+   package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
+
+   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
+     is ("(" & Item.Op'Image & ", " &
+           (case Item.Op is
+            when Insert => Image (Item.Ins_ID, Descriptor) & "," &
+                 Item.Ins_Token_Index'Image & "," &
+                 Item.Ins_Tree_Node'Image,
+            when Delete => Image (Item.Del_ID, Descriptor) & "," &
+                 Item.Del_Token_Index'Image)
+           & ")");
+
+   function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+
    type Recover_Stack_Item is record
       State : Unknown_State_Index;
 
-      Tree_Index : Syntax_Trees.Node_Index;
+      Tree_Index : Node_Index;
       --  Valid if copied at recover initialize, Invalid if pushed during
       --  recover.
 
@@ -645,7 +682,7 @@ package WisiToken.Parse.LR is
 
       case Label is
       when Action =>
-         Error_Token : Syntax_Trees.Valid_Node_Index; -- index into Parser.Tree
+         Error_Token : Valid_Node_Index; -- index into Parser.Tree
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>

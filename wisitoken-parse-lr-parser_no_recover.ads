@@ -6,7 +6,7 @@
 --  to not depend on wisitoken-lr-mckenzie_recover, so editing that
 --  does not cause everything to be regenerated/compiled.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -72,6 +72,11 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  message.
 
    overriding function Tree (Parser : in LR.Parser_No_Recover.Parser) return Syntax_Trees.Tree;
+
+   overriding
+   function Tree_Var_Ref
+     (Parser : aliased in out LR.Parser_No_Recover.Parser)
+     return Syntax_Trees.Tree_Variable_Reference;
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 - 2019 Stephen Leake
+--  Copyright (C) 2018 - 2020 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -29,9 +29,12 @@ package body WisiToken.Syntax_Trees.Test is
 
    type Token_Enum_ID is
      (
-      PROCEDURE_ID,
       IDENTIFIER_ID,
-      name_ID
+      LEFT_PAREN_ID,
+      PROCEDURE_ID,
+      RIGHT_PAREN_ID,
+      name_ID,
+      param_list_ID
      );
 
    function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
@@ -65,13 +68,13 @@ package body WisiToken.Syntax_Trees.Test is
 
       Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
 
-      Terminals.Append ((+PROCEDURE_ID, (1, 9), others => <>));
+      Terminals.Append ((+PROCEDURE_ID, Invalid_Node_Index, (1, 9), others => <>));
       Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 1
 
-      Terminals.Append ((+IDENTIFIER_ID, (11, 16), others => <>));
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (11, 16), others => <>));
       Node_Ident_1 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 2
 
-      Terminals.Append ((+IDENTIFIER_ID, (18, 19), others => <>));
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (18, 19), others => <>));
       Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 3
 
       Branched_Tree.Set_Flush_False;
@@ -82,7 +85,7 @@ package body WisiToken.Syntax_Trees.Test is
 
       Check ("node 4", Node_Name, 4);
 
-      Terminals.Append ((+IDENTIFIER_ID, (21, 22), others => <>));
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (21, 22), others => <>));
       Node_Ident_2 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 5
 
       Check ("node 5", Node_Ident_2, 5);
@@ -131,6 +134,64 @@ package body WisiToken.Syntax_Trees.Test is
 
    end Test_Move_Branch_Point;
 
+   procedure Test_Prev_Next_Terminal (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use WisiToken.Syntax_Trees.AUnit_Public;
+
+      Terminals   : aliased Base_Token_Arrays.Vector;
+      Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
+      Tree        : WisiToken.Syntax_Trees.Tree;
+      Param_List  : Node_Index;
+      Name        : Node_Index;
+      pragma Unreferenced (Name);
+   begin
+      --  Create a tree representing the parse of:
+      --
+      --  procedure Proc_1 (  arg_1 )
+      --  1         11     17 20    26
+      --  1         2      3  4     5
+
+      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
+
+      Terminals.Append ((+PROCEDURE_ID, Invalid_Node_Index, (1, 9), others => <>));
+      Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (11, 16), others => <>));
+      Terminals (2).Tree_Index := Tree.Add_Terminal (2, Terminals);
+
+      Terminals.Append ((+LEFT_PAREN_ID, Invalid_Node_Index, (17, 17), others => <>));
+      Terminals (3).Tree_Index := Tree.Add_Terminal (3, Terminals);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (20, 24), others => <>));
+      Terminals (4).Tree_Index := Tree.Add_Terminal (4, Terminals);
+
+      Terminals.Append ((+RIGHT_PAREN_ID, Invalid_Node_Index, (26, 26), others => <>));
+      Terminals (5).Tree_Index := Tree.Add_Terminal (5, Terminals);
+
+      Param_List := Tree.Add_Nonterm -- 6
+        ((+param_list_ID, 0),
+         (1 => Terminals (3).Tree_Index,
+          2 => Terminals (4).Tree_Index,
+          3 => Terminals (5).Tree_Index));
+
+      Name := Tree.Add_Nonterm -- 7
+        ((+name_ID, 0),
+         (1 => Terminals (1).Tree_Index,
+          2 => Terminals (2).Tree_Index,
+          3 => Param_List));
+
+      Check ("prev right_paren", Tree.Prev_Terminal (5), 4);
+      Check ("prev procedure", Tree.Prev_Terminal (1), Invalid_Node_Index);
+      Check ("prev left_paren", Tree.Prev_Terminal (3), 2);
+
+      Check ("next right_paren", Tree.Next_Terminal (5), Invalid_Node_Index);
+      Check ("next procedure", Tree.Next_Terminal (1), 2);
+      Check ("next left_paren", Tree.Next_Terminal (2), 3);
+
+   end Test_Prev_Next_Terminal;
+
    ----------
    --  Public subprograms
 
@@ -139,6 +200,7 @@ package body WisiToken.Syntax_Trees.Test is
       use Standard.AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Move_Branch_Point'Access, "Test_Move_Branch_Point");
+      Register_Routine (T, Test_Prev_Next_Terminal'Access, "Test_Prev_Next_Terminal");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return Standard.AUnit.Message_String
@@ -149,3 +211,6 @@ package body WisiToken.Syntax_Trees.Test is
    end Name;
 
 end WisiToken.Syntax_Trees.Test;
+--  Local Variables:
+--  ada-case-strict: nil
+--  End:

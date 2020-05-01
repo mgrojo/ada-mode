@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -25,7 +25,7 @@ package body WisiToken.Parse.Packrat is
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Index)
+         Node : in     Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;
       begin
@@ -35,7 +35,7 @@ package body WisiToken.Parse.Packrat is
 
          declare
             use all type Syntax_Trees.Semantic_Action;
-            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
+            Tree_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 

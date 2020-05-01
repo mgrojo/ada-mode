@@ -5,7 +5,7 @@
 --  In a child package of Parser.LR partly for historical reasons,
 --  partly to allow McKenzie_Recover to be in a sibling package.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -141,6 +141,7 @@ package WisiToken.Parse.LR.Parser is
    --  an appropriate error message.
 
    overriding function Tree (Shared_Parser : in Parser) return Syntax_Trees.Tree;
+   overriding function Tree_Var_Ref (Shared_Parser : aliased in out Parser) return Syntax_Trees.Tree_Variable_Reference;
    --  If there is one parser in Parsers, return its tree. Otherwise,
    --  raise Parse_Error for an ambiguous parse.
 
