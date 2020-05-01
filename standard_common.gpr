@@ -61,7 +61,7 @@ project Standard_Common is
       --  suppress that warning with -gnatwP.
       Debug_Switches := Common_Switches &
         (
-         "-Og",
+         "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
          "-gnata",  -- assertions, pre/post-conditions
          "-gnatVa", -- validity checks
          "-gnateE", -- extra info in exceptions

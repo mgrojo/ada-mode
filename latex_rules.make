@@ -5,7 +5,7 @@
 export TEX_OPTIONS :=
 
 # The include search path for latex is specified in TEX_INPUTS, not on the command line
-%.dvi : %.tex
+%.dvi : %.tex %.aux
 	latex $() -interaction nonstopmode -file-line-error $(TEX_OPTIONS) $<
 
 # putting & here does not leave yap running; start it separately
