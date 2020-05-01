@@ -524,40 +524,21 @@ package body Wisi.Ada is
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
    end Initialize;
 
-   overriding
-   procedure Refactor
-     (Data       : in out Parse_Data_Type;
-      Tree       : in     WisiToken.Syntax_Trees.Tree;
-      Action     : in     Positive;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
+   overriding function Insert_After (User_Data : in out Parse_Data_Type; ID : in WisiToken.Token_ID) return Boolean
    is
-      --  Must match "ada-refactor-*" in ada-wisi.el
-      Method_Object_To_Object_Method : constant Positive := 1;
-      Object_Method_To_Method_Object : constant Positive := 2;
-      Element_Object_To_Object_Index : constant Positive := 3;
-      Object_Index_To_Element_Object : constant Positive := 4;
-      Format_Parameter_List          : constant Positive := 5;
+      pragma Unreferenced (User_Data);
+      use Ada_Process_Actions;
 
+      Result : constant array (Ada_Process_Actions.Token_Enum_ID) of Boolean :=
+        (
+         --  End_ID | -- need test case
+           RIGHT_PAREN_ID | -- test/ada_mode-recover_20.adb
+           SEMICOLON_ID     -- test/ada_mode-recover_13.adb
+                => True,
+         others => False);
    begin
-      if WisiToken.Trace_Action > Detail then
-         Tree.Print_Tree (Data.Descriptor.all);
-      end if;
-      case Action is
-      when Method_Object_To_Object_Method =>
-         Wisi.Ada.Method_Object_To_Object_Method (Tree, Data, Edit_Begin);
-      when Object_Method_To_Method_Object =>
-         Wisi.Ada.Object_Method_To_Method_Object (Tree, Data, Edit_Begin);
-      when Element_Object_To_Object_Index =>
-         Wisi.Ada.Element_Object_To_Object_Index (Tree, Data, Edit_Begin);
-      when Object_Index_To_Element_Object =>
-         Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
-      when Format_Parameter_List =>
-         Wisi.Ada.Format_Parameter_List (Tree, Data, Edit_Begin);
-
-      when others =>
-         Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
-      end case;
-   end Refactor;
+      return Result (-ID);
+   end Insert_After;
 
    overriding
    function Indent_Hanging_1
@@ -691,6 +672,41 @@ package body Wisi.Ada is
               (Data, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta);
       end if;
    end Indent_Hanging_1;
+
+   overriding
+   procedure Refactor
+     (Data       : in out Parse_Data_Type;
+      Tree       : in     WisiToken.Syntax_Trees.Tree;
+      Action     : in     Positive;
+      Edit_Begin : in     WisiToken.Buffer_Pos)
+   is
+      --  Must match "ada-refactor-*" in ada-wisi.el
+      Method_Object_To_Object_Method : constant Positive := 1;
+      Object_Method_To_Method_Object : constant Positive := 2;
+      Element_Object_To_Object_Index : constant Positive := 3;
+      Object_Index_To_Element_Object : constant Positive := 4;
+      Format_Parameter_List          : constant Positive := 5;
+
+   begin
+      if WisiToken.Trace_Action > Detail then
+         Tree.Print_Tree (Data.Descriptor.all);
+      end if;
+      case Action is
+      when Method_Object_To_Object_Method =>
+         Wisi.Ada.Method_Object_To_Object_Method (Tree, Data, Edit_Begin);
+      when Object_Method_To_Method_Object =>
+         Wisi.Ada.Object_Method_To_Method_Object (Tree, Data, Edit_Begin);
+      when Element_Object_To_Object_Index =>
+         Wisi.Ada.Element_Object_To_Object_Index (Tree, Data, Edit_Begin);
+      when Object_Index_To_Element_Object =>
+         Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
+      when Format_Parameter_List =>
+         Wisi.Ada.Format_Parameter_List (Tree, Data, Edit_Begin);
+
+      when others =>
+         Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
+      end case;
+   end Refactor;
 
    function Ada_Indent_Aggregate
      (Data              : in out Wisi.Parse_Data_Type'Class;

@@ -585,8 +585,9 @@ private
       Leading_Non_Grammar : Non_Grammar_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.
 
-      Line_Begin_Pos : Line_Begin_Pos_Vectors.Vector;
+      Line_Begin_Char_Pos : Line_Begin_Pos_Vectors.Vector;
       --  Character position at the start of the first token on each line.
+      --  Cached from Line_Begin_Token to simplify indent computations.
 
       Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by

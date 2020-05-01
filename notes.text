@@ -11,12 +11,12 @@ o.e.a.stephe-5 (?): libadalang backend
 o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-state-multiple
-'((xmtn . "/Projects/org.stephe_leake.makerules")
-  (xmtn . "/Projects/org.stephe_leake.sal")
-  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "/Projects/org.wisitoken")
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.wisitoken")
   (xgit . "/Projects/elpa") ;; for uniquify-files
-  (xmtn . "/Projects/org.emacs.ada-mode/")))
+  (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(
@@ -25,11 +25,11 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2")))
+'((xgit . "c:/Projects/org.stephe_leake.makerules")
+  (xgit . "c:/Projects/org.stephe_leake.sal")
+  (xgit . "c:/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "c:/Projects/org.wisitoken.stephe-2")
+  (xgit . "c:/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(
@@ -48,6 +48,21 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 use virtual terminals in indent
+    distinguish between "insert before", "insert after"
+        in Insert_Token
+        test/ada_mode-recover_20.adb
+            'end if;' should _all_ be inserted after 'then'
+
+        test/ada_mode-recover_13.adb
+            ';' inserted before 'begin'
+
+        many others
+
+        move prev token non_grammar to inserted right_paren?
+        same for 'end', ';' - ada-specific.
+
+
+
     all ada-mode tests
         test-ada-lalr-process-gpr_query
 wisi: parsing indent ada_mode-recover_partial_12.adb:1 869 1 ...
@@ -72,22 +87,6 @@ wisi--run-parse: wisi parse error: "SAL.PROGRAMMER_ERROR: wisitoken-parse-lr-mck
         fetch aug to get data
 
 propagate
-
-distinguish between "insert before", "insert after"?
-    test/ada_mode-recover_20.adb
-        comment line 13 indented wrong
-        supposed to be outside inserted parens
-        right_paren should be 'insert after'
-    test/ada_mode-recover_13.adb
-        ';' inserted before 'begin'
-
-    many others
-
-    move prev token non_grammar to inserted right_paren?
-    same for 'end', ';' - ada-specific.
-
-    add newlines?
-
 
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
@@ -131,6 +130,14 @@ indent bugs:
 
         comment should align with 'then'
 
+   function Get_Node_Ref
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Valid_Node_Index_Arrays.Variable_Reference
+   is (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node)
+         else Tree.Branched_Nodes (Node));
+
 align bug:
    function Image (Item : in Recursion_Class) return String
      is (case Item is
@@ -150,6 +157,8 @@ hide wisi syntax errors window when clear it
 
 could elminate wisi.parse_data_type.terminals
     always search syntax tree
+        provide iterator that returns all_terminals
+
     search is less efficient
     more portable to other parsers
 

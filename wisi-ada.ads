@@ -69,6 +69,8 @@ package Wisi.Ada is
    --
    --  Also do any other initialization that Data needs.
 
+   overriding function Insert_After (User_Data : in out Parse_Data_Type; ID : in WisiToken.Token_ID) return Boolean;
+
    overriding
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;

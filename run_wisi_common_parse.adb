@@ -313,11 +313,13 @@ package body Run_Wisi_Common_Parse is
 
             when E : WisiToken.Parse_Error =>
                Clean_Up;
-               Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
+                           Ada.Exceptions.Exception_Message (E) & """)");
 
             when E : others => -- includes Fatal_Error
                Clean_Up;
-               Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               Put_Line ("(error """ & Ada.Exceptions.Exception_Name (E) & " " &
+                           Ada.Exceptions.Exception_Message (E) & """)");
             end;
          end loop;
 

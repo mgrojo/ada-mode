@@ -660,7 +660,7 @@ package body Wisi is
    is
       pragma Unreferenced (Params);
    begin
-      Data.Line_Begin_Pos.Set_First_Last
+      Data.Line_Begin_Char_Pos.Set_First_Last
         (First   => Begin_Line,
          Last    => End_Line);
 
@@ -698,7 +698,7 @@ package body Wisi is
 
       Data.Leading_Non_Grammar.Clear;
 
-      --  Data.Line_Begin_Pos  set in Initialize, overwritten in Lexer_To_Augmented
+      --  Data.Line_Begin_Char_Pos  set in Initialize, overwritten in Lexer_To_Augmented
 
       for S of Data.Line_Paren_State loop
          S := 0;
@@ -742,23 +742,23 @@ package body Wisi is
       use all type Ada.Containers.Count_Type;
    begin
       if Lexer.First then
-         Data.Line_Begin_Pos (Token.Line) := Token.Char_Region.First;
+         Data.Line_Begin_Char_Pos (Token.Line) := Token.Char_Region.First;
 
-         if Token.Line > Data.Line_Begin_Pos.First_Index and then
-           Data.Line_Begin_Pos (Token.Line - 1) = Invalid_Buffer_Pos
+         if Token.Line > Data.Line_Begin_Char_Pos.First_Index and then
+           Data.Line_Begin_Char_Pos (Token.Line - 1) = Invalid_Buffer_Pos
          then
             --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
             declare
                First_Set_Line : Line_Number_Type;
             begin
-               for Line in reverse Data.Line_Begin_Pos.First_Index .. Token.Line - 1 loop
-                  if Data.Line_Begin_Pos (Line) /= Invalid_Buffer_Pos then
+               for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Token.Line - 1 loop
+                  if Data.Line_Begin_Char_Pos (Line) /= Invalid_Buffer_Pos then
                      First_Set_Line := Line;
                      exit;
                   end if;
                end loop;
                for Line in First_Set_Line + 1 .. Token.Line - 1 loop
-                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Set_Line); -- good enough
+                  Data.Line_Begin_Char_Pos (Line) := Data.Line_Begin_Char_Pos (First_Set_Line); -- good enough
                end loop;
             end;
          end if;
@@ -839,24 +839,51 @@ package body Wisi is
       Before_Index : constant Token_Index := Tree.Before (Token);
       Before_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Data, Tree, Before_Index);
 
-      --  Set data that allows using this token when computing indent.
+      --  Set data that allows using Token when computing indent.
+
+      ID            : constant Token_ID   := Tree.ID (Token);
+      Prev_Terminal : constant Node_Index := Tree.Prev_Terminal (Token);
+      --  Invalid_Token_Index if Token is inserted before first grammar token
+
+      Insert_After : constant Boolean := (Before_Aug.First and Prev_Terminal /= Invalid_Node_Index) and then
+        Parse_Data_Type'Class (Data).Insert_After (ID);
+
+      Line : constant Line_Number_Type :=
+        (if Insert_After then Get_Aug_Token_Const_1 (Tree, Prev_Terminal).Line else Before_Aug.Line);
+
+      Indent_Line : constant Line_Number_Type :=
+        (if Insert_After
+         then Invalid_Line_Number
+         elsif Before_Aug.First
+         then Before_Aug.Line
+         else Invalid_Line_Number);
 
       New_Aug : constant Augmented_Token_Access := new Augmented_Token'
         (ID                          => Tree.ID (Token),
          Tree_Index                  => Token,
-         Byte_Region                 => (Before_Aug.Byte_Region.First, Before_Aug.Byte_Region.First),
-         Line                        => Before_Aug.Line,
-         Column                      => Before_Aug.Column,
-         Char_Region                 => (Before_Aug.Char_Region.First, Before_Aug.Char_Region.First),
+         Byte_Region                 =>
+           (if Insert_After
+            then (First | Last => Data.Terminals.all
+                    (Data.Line_Begin_Token.all (Before_Aug.Line)).Byte_Region.First - 2)
+            --  Line_Begin - 1 is newline.
+
+            else (First | Last => Before_Aug.Byte_Region.First)),
+
+         Line                  => Line,
+         Column                => Before_Aug.Column,
+         Char_Region           =>
+           (if Insert_After
+            then (First | Last => Data.Line_Begin_Char_Pos (Before_Aug.Line) - 2)
+            else (First | Last => Before_Aug.Char_Region.First)),
          Deleted                     => False,
-         First                       => Before_Aug.First,
+         First                       => (if Insert_After then False else Before_Aug.First),
          Paren_State                 => Before_Aug.Paren_State,
          First_Terminals_Index       => Invalid_Token_Index,
          Last_Terminals_Index        => Invalid_Token_Index,
-         First_Indent_Line           => (if Before_Aug.First then Before_Aug.Line else Invalid_Line_Number),
-         Last_Indent_Line            => (if Before_Aug.First then Before_Aug.Line else Invalid_Line_Number),
-         First_Trailing_Comment_Line => WisiToken.Invalid_Line_Number,
-         Last_Trailing_Comment_Line  => WisiToken.Invalid_Line_Number,
+         First_Indent_Line           => Indent_Line,
+         Last_Indent_Line            => Indent_Line,
+         First_Trailing_Comment_Line => Invalid_Line_Number, -- updated for Insert_After below
+         Last_Trailing_Comment_Line  => Invalid_Line_Number,
          Non_Grammar                 => Non_Grammar_Token_Arrays.Empty_Vector,
          Inserted_Before             => Valid_Node_Index_Arrays.Empty_Vector);
 
@@ -865,30 +892,34 @@ package body Wisi is
 
       Append (Before_Aug.Inserted_Before, Token);
 
-      if Before_Aug.First then
+      if Before_Aug.First and not Insert_After then
          Before_Aug.First             := False;
          Before_Aug.First_Indent_Line := Invalid_Line_Number;
          Before_Aug.Last_Indent_Line  := Invalid_Line_Number;
       end if;
 
+      if Insert_After then
+         --  Move non_grammar from previous token to this one. See comment
+         --  after inserted right_paren in test/ada_mode-recover_20.adb.
+         declare
+            Prev_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Tree, Prev_Terminal);
+         begin
+            New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
+            Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
+
+            New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
+            New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;
+
+            Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
+            Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
+         end;
+      end if;
+
       if New_Aug.ID = Data.Left_Paren_ID then
-         Adjust_Paren_State (Data, Tree, Before_Index, Before_Aug.Line + 1, +1);
+         Adjust_Paren_State (Data, Tree, Before_Index, New_Aug.Line + 1, +1);
 
       elsif New_Aug.ID = Data.Right_Paren_ID then
-         if New_Aug.First then
-            --  Right_Paren ')' inserted before the first token on a line; it
-            --  really belongs at the end of the previous line. See
-            --  ada_mode-recover_20.adb
-            New_Aug.First    := False;
-            Before_Aug.First := True;
-            New_Aug.Line     := New_Aug.Line - 1;
-            New_Aug.Byte_Region := (Before_Aug.Byte_Region.First - 1, Before_Aug.Byte_Region.First - 1);
-            New_Aug.Char_Region := (Before_Aug.Char_Region.First - 1, Before_Aug.Char_Region.First - 1);
-
-            Adjust_Paren_State (Data, Tree, Before_Index, Before_Aug.Line, -1);
-         else
-            Adjust_Paren_State (Data, Tree, Before_Index, Before_Aug.Line + 1, -1);
-         end if;
+         Adjust_Paren_State (Data, Tree, Before_Index, New_Aug.Line + 1, -1);
       end if;
    end Insert_Token;
 
@@ -1015,17 +1046,17 @@ package body Wisi is
 
       for I in reverse Tokens'Range loop
          --  'reverse' to find token containing trailing comments; last
-         --  non-virtual and non-empty token.
+         --  non-empty token.
          declare
             Aug_Token : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Tree, Tokens (I));
          begin
 
             if Data.Post_Parse_Action = Indent then
-               if Aug_Token.First_Terminals_Index /= Augmented_Token_Arrays.No_Index then
+               if Aug_Token.First_Terminals_Index /= Invalid_Token_Index then
                   Aug_Nonterm.First_Terminals_Index := Aug_Token.First_Terminals_Index;
                end if;
 
-               if Aug_Nonterm.Last_Terminals_Index = Augmented_Token_Arrays.No_Index then
+               if Aug_Nonterm.Last_Terminals_Index = Invalid_Token_Index then
                   Aug_Nonterm.Last_Terminals_Index := Aug_Token.Last_Terminals_Index;
                end if;
 
@@ -1729,11 +1760,11 @@ package body Wisi is
 
       function Get_Last_Line return Line_Number_Type
       is begin
-         for I in Data.Line_Begin_Pos.First_Index .. Data.Line_Begin_Pos.Last_Index loop
-            if Data.Line_Begin_Pos (I) = Invalid_Buffer_Pos then
+         for I in Data.Line_Begin_Char_Pos.First_Index .. Data.Line_Begin_Char_Pos.Last_Index loop
+            if Data.Line_Begin_Char_Pos (I) = Invalid_Buffer_Pos then
                raise SAL.Programmer_Error with "line_begin_pos" & Line_Number_Type'Image (I) & " invalid";
             end if;
-            if Data.Line_Begin_Pos (I) > Last_Char_Pos then
+            if Data.Line_Begin_Char_Pos (I) > Last_Char_Pos then
                if I > Line_Number_Type'First then
                   return I - 1;
                else
@@ -1741,7 +1772,7 @@ package body Wisi is
                end if;
             end if;
          end loop;
-         return Data.Line_Begin_Pos.Last_Index;
+         return Data.Line_Begin_Char_Pos.Last_Index;
       end Get_Last_Line;
 
    begin
@@ -1935,7 +1966,7 @@ package body Wisi is
       Offset       : in Integer)
      return Integer
    is begin
-      return Offset + Integer (Anchor_Token.Char_Region.First - Data.Line_Begin_Pos (Anchor_Token.Line));
+      return Offset + Integer (Anchor_Token.Char_Region.First - Data.Line_Begin_Char_Pos (Anchor_Token.Line));
    end Current_Indent_Offset;
 
    function First_Line
