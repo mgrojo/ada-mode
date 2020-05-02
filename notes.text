@@ -1,9 +1,9 @@
 build/Makefile
 
 branches:
-org.wisitoken/o.s_l.sal          - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2/o.s_l.sal - available
+org.wisitoken/o.s_l.sal                   - main, used by o.e.a
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-* ; delete support for out_of_order_ops
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - implement syntax_trees.Insert_Token
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -29,6 +29,9 @@ update-wisitoken_grammar
         see if parsing all affects any tests
 
         item.shift_count not used
+
+String_literal, numeric_literal, identifier are equivalent - only insert one
+    minimal_complete does this for expression
 
 error_correction_algorithm.tex
     full vs partial_recursion
@@ -79,6 +82,9 @@ error_correction_algorithm.tex
     redo compare using lr1 for wisitoken-tokens
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
         add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
+            has python parser
+            java?
+            add ada parser
 
     compare size of ada_lr1.txt
 
@@ -107,18 +113,16 @@ error_correction_algorithm.tex
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
 
-don't fast_forward after push_back; it just undoes the push_back
-    same for undo_reduce
-
-parser terminate_duplicate_state checks both resume_active and Parser.Recover_Insert_Delete.count = 0
-    that should be redundant
-    move count check into parse_verb where resume_active is set false
+wisitoken user guide mention concrete syntax tree
 
 terminate duplicate_state missed one
     convert_if_to_case.ada_lite
 task 0 3: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (25 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
 task 0 2: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (23 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
     should have terminated one!
+
+If state has multiple identicle reduce, just reduce - don't try all reduce, shift; most waste of time.
+    Use different action representation?
 
 Parse for font wants a faster error correction algorithm
     do push back & delete nonterm

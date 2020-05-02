@@ -18,3 +18,4 @@ Docs/wisitoken-user_guide.info
 build/*.aux
 build/*.dvi
 build/*.log
+build/*.bz2

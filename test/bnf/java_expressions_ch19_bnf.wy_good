@@ -27,6 +27,7 @@
 %meta_syntax BNF
 %partial_recursion
 
+;; Default cost for insert, delete, push back/undo_reduce, ignore check fail.
 %mckenzie_cost_default 3 3 2 0
 %mckenzie_enqueue_limit 10_000
 %mckenzie_minimal_complete_cost_delta -3
