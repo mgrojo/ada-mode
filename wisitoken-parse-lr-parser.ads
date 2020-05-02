@@ -145,7 +145,9 @@ package WisiToken.Parse.LR.Parser is
    --  If there is one parser in Parsers, return its tree. Otherwise,
    --  raise Parse_Error for an ambiguous parse.
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
+   overriding procedure Execute_Actions
+     (Parser          : in out LR.Parser.Parser;
+      Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
    --  Call User_Data.Delete_Token on any tokens deleted by error
    --  recovery, then User_Data.Reduce and the grammar semantic actions
    --  on all nonterms in the syntax tree.

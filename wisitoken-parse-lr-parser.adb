@@ -1069,7 +1069,9 @@ package body WisiToken.Parse.LR.Parser is
    end Tree_Var_Ref;
 
    overriding
-   procedure Execute_Actions (Parser : in out LR.Parser.Parser)
+   procedure Execute_Actions
+     (Parser          : in out LR.Parser.Parser;
+      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
    is
       use all type Syntax_Trees.User_Data_Access;
       use all type WisiToken.Syntax_Trees.Semantic_Action;
@@ -1122,7 +1124,7 @@ package body WisiToken.Parse.LR.Parser is
 
             if Trace_Action > Outline then
                if Trace_Action > Extra then
-                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root);
+                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root, Image_Augmented);
                   Parser.Trace.New_Line;
                end if;
                Parser.Trace.Put_Line

@@ -67,6 +67,9 @@ package WisiToken.Parse.Packrat is
 
    end record;
 
-   overriding procedure Execute_Actions (Parser : in out Packrat.Parser);
+   overriding
+   procedure Execute_Actions
+     (Parser          : in out Packrat.Parser;
+      Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
 
 end WisiToken.Parse.Packrat;

@@ -147,7 +147,18 @@ package body BNF_WY_Test is
             Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
             BNF_Name : constant String := BNF_File_Name (Root_Name);
          begin
+            if WisiToken.Trace_Generate_EBNF > WisiToken.Outline then
+               Tree.Print_Tree
+                 (Wisitoken_Grammar_Actions.Descriptor,
+                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
+            end if;
             WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
+            if WisiToken.Trace_Generate_EBNF > WisiToken.Outline then
+               Ada.Text_IO.New_Line;
+               Tree.Print_Tree
+                 (Wisitoken_Grammar_Actions.Descriptor,
+                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
+            end if;
             WisiToken_Grammar_Runtime.Print_Source (BNF_Name, Tree, Input_Data);
             Dos2unix (BNF_Name);
          end;

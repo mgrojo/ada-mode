@@ -519,9 +519,13 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Finalize;
 
-   function Insert_After (User_Data : in out User_Data_Type; ID : in Token_ID) return Boolean
+   function Insert_After
+     (User_Data : in out User_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      Token     : in     Valid_Node_Index)
+     return Boolean
    is
-      pragma Unreferenced (User_Data, ID);
+      pragma Unreferenced (User_Data, Tree, Token);
    begin
       return False;
    end Insert_After;
@@ -1201,30 +1205,23 @@ package body WisiToken.Syntax_Trees is
 
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
    is
-      function Compute (Index : in Valid_Node_Index; N : in Syntax_Trees.Node) return Node_Index
-      is begin
-         case N.Label is
-         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-            return Index;
-         when Nonterm =>
-            for C of reverse N.Children loop
-               declare
-                  Term : constant Node_Index := Last_Terminal (Tree, C);
-               begin
-                  if Term /= Invalid_Node_Index then
-                     return Term;
-                  end if;
-               end;
-            end loop;
-            return Invalid_Node_Index;
-         end case;
-      end Compute;
+      N : constant Node_Const_Ref := Tree.Get_Node_Const_Ref (Node);
    begin
-      return Compute
-        (Node,
-         (if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
+      case N.Label is
+      when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+         return Node;
+      when Nonterm =>
+         for C of reverse N.Children loop
+            declare
+               Term : constant Node_Index := Last_Terminal (Tree, C);
+            begin
+               if Term /= Invalid_Node_Index then
+                  return Term;
+               end if;
+            end;
+         end loop;
+         return Invalid_Node_Index;
+      end case;
    end Last_Terminal;
 
    function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index
@@ -1271,29 +1268,30 @@ package body WisiToken.Syntax_Trees is
       use Valid_Node_Index_Arrays;
       use all type SAL.Base_Peek_Type;
 
-      function First_Child (Node : in Node_Index) return Node_Index
-      is begin
-         if Node = Invalid_Node_Index then
-            return Invalid_Node_Index;
-         else
-            declare
-               N : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Node);
-            begin
-               case N.Label is
-               when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-                  return Node;
-               when Nonterm =>
-                  if N.Children.Length = 0 then
-                     return Invalid_Node_Index;
-                  else
-                     return First_Child (N.Children (N.Children.First_Index));
+      function First_Child (Node : in Valid_Node_Index) return Node_Index
+      is
+         N : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Node);
+      begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+            return Node;
+         when Nonterm =>
+            --  Use first non-empty
+            for J in N.Children.First_Index .. N.Children.Last_Index loop
+               declare
+                  Result : constant Node_Index := First_Child (N.Children (J));
+               begin
+                  if Result /= Invalid_Node_Index then
+                     return Result;
                   end if;
-               end case;
-            end;
-         end if;
+               end;
+            end loop;
+            --  All Children are empty
+            return Invalid_Node_Index;
+         end case;
       end First_Child;
 
-      function Next_Child (Child, Node : in Node_Index) return Node_Index
+      function Next_Child (Child : in Valid_Node_Index; Node : in Node_Index) return Node_Index
       is begin
          --  Node is Parent of Child; return node immediately after Child.
          if Node = Invalid_Node_Index then
@@ -1305,11 +1303,18 @@ package body WisiToken.Syntax_Trees is
                pragma Assert (N.Label = Nonterm);
                for I in N.Children.First_Index .. N.Children.Last_Index loop
                   if N.Children (I) = Child then
-                     if I = N.Children.Last_Index then
-                        return Next_Child (Node, N.Parent);
-                     else
-                        return First_Child (Element (N.Children, I + 1));
-                     end if;
+                     --  Use first non-empty next from I + 1.
+                     for J in I + 1 .. N.Children.Last_Index loop
+                        declare
+                           Result : constant Node_Index := First_Child (N.Children (J));
+                        begin
+                           if Result /= Invalid_Node_Index then
+                              return Result;
+                           end if;
+                        end;
+                     end loop;
+                     --  All next Children are empty
+                     return Next_Child (Node, N.Parent);
                   end if;
                end loop;
                raise SAL.Programmer_Error;
@@ -1348,29 +1353,30 @@ package body WisiToken.Syntax_Trees is
       use Valid_Node_Index_Arrays;
       use all type SAL.Base_Peek_Type;
 
-      function Last_Child (Node : in Node_Index) return Node_Index
-      is begin
-         if Node = Invalid_Node_Index then
-            return Invalid_Node_Index;
-         else
-            declare
-               N : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Node);
-            begin
-               case N.Label is
-               when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-                  return Node;
-               when Nonterm =>
-                  if N.Children.Length = 0 then
-                     return Invalid_Node_Index;
-                  else
-                     return Last_Child (N.Children (N.Children.Last_Index));
+      function Last_Child (Node : in Valid_Node_Index) return Node_Index
+      is
+         N : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Node);
+      begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+            return Node;
+         when Nonterm =>
+            --  Use first non-empty from end.
+            for J in reverse N.Children.First_Index .. N.Children.Last_Index loop
+               declare
+                  Result : constant Node_Index := Last_Child (N.Children (J));
+               begin
+                  if Result /= Invalid_Node_Index then
+                     return Result;
                   end if;
-               end case;
-            end;
-         end if;
+               end;
+            end loop;
+            --  All Children are empty
+            return Invalid_Node_Index;
+         end case;
       end Last_Child;
 
-      function Prev_Child (Child, Node : in Node_Index) return Node_Index
+      function Prev_Child (Child : in Valid_Node_Index; Node : in Node_Index) return Node_Index
       is begin
          --  Node is Parent of Child; return node immediately previous to Child.
          if Node = Invalid_Node_Index then
@@ -1380,13 +1386,20 @@ package body WisiToken.Syntax_Trees is
                N : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Node);
             begin
                pragma Assert (N.Label = Nonterm);
-               for I in N.Children.First_Index .. N.Children.Last_Index loop
+               for I in reverse N.Children.First_Index .. N.Children.Last_Index loop
                   if N.Children (I) = Child then
-                     if I = N.Children.First_Index then
-                        return Prev_Child (Node, N.Parent);
-                     else
-                        return Last_Child (Element (N.Children, I - 1));
-                     end if;
+                     --  Use first non-empty from I - 1.
+                     for J in reverse N.Children.First_Index .. I - 1 loop
+                        declare
+                           Result : constant Node_Index := Last_Child (N.Children (J));
+                        begin
+                           if Result /= Invalid_Node_Index then
+                              return Result;
+                           end if;
+                        end;
+                     end loop;
+                     --  All previous Children are empty
+                     return Prev_Child (Node, N.Parent);
                   end if;
                end loop;
                raise SAL.Programmer_Error;
@@ -1400,10 +1413,10 @@ package body WisiToken.Syntax_Trees is
    end Prev_Terminal;
 
    procedure Print_Tree
-     (Tree            : in     Syntax_Trees.Tree;
-      Descriptor      : in     WisiToken.Descriptor;
-      Root            : in     Node_Index := Invalid_Node_Index;
-      Image_Augmented : access function (Aug : in Base_Token_Class_Access) return String := null)
+     (Tree            : in Syntax_Trees.Tree;
+      Descriptor      : in WisiToken.Descriptor;
+      Root            : in Node_Index                   := Invalid_Node_Index;
+      Image_Augmented : in Syntax_Trees.Image_Augmented := null)
    is
       use Ada.Text_IO;
 

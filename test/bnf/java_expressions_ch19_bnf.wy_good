@@ -54,7 +54,7 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 CompilationUnit
-  : nonterminal_004_list
+  : nonterminal_022_list
   ;
 
 Statement
@@ -63,7 +63,8 @@ Statement
   ;
 
 Expression
-  : LambdaExpression  | AssignmentExpression
+  : LambdaExpression
+  | AssignmentExpression
   ;
 
 LambdaExpression
@@ -104,10 +105,12 @@ PostfixExpression
   ;
 
 PostIncrementExpression
-  : PostfixExpression PLUS_PLUS  ;
+  : PostfixExpression PLUS_PLUS
+  ;
 
 PostDecrementExpression
-  : PostfixExpression MINUS_MINUS  ;
+  : PostfixExpression MINUS_MINUS
+  ;
 
 ClassType
   : Identifier
@@ -130,7 +133,7 @@ StatementExpression
 
 
 ;; end of file
-nonterminal_004_list
+nonterminal_022_list
   : Statement
-  | nonterminal_004_list Statement
+  | nonterminal_022_list Statement
   ;

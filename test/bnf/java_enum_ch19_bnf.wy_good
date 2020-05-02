@@ -30,10 +30,12 @@
 
 EnumConstantList
   : EnumConstant
-  | EnumConstantList COMMA EnumConstant  ;
+  | EnumConstantList COMMA EnumConstant
+  ;
 
 EnumConstant
-  : IDENTIFIER  ;
+  : IDENTIFIER
+  ;
 
 EnumBody
   : LEFT_CURLY_BRACKET T2=EnumConstantList COMMA RIGHT_CURLY_BRACKET

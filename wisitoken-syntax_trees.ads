@@ -92,7 +92,11 @@ package WisiToken.Syntax_Trees is
    --  Token is a grammar token, client can use Tree.Set_Augmented
    --  (Token.Tree_Node).
 
-   function Insert_After (User_Data : in out User_Data_Type; ID : in Token_ID) return Boolean;
+   function Insert_After
+     (User_Data : in out User_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      Token     : in     Valid_Node_Index)
+     return Boolean;
    --  Return True if ID should be treated as if inserted after the
    --  previous shared terminal, rather than before the next (which is
    --  the default). This can affect which line it appears on, which
@@ -495,12 +499,13 @@ package WisiToken.Syntax_Trees is
      return String;
    --  Simple list of numbers, for debugging
 
+   type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
+
    procedure Print_Tree
-     (Tree            : in     Syntax_Trees.Tree;
-      Descriptor      : in     WisiToken.Descriptor;
-      Root            : in     Node_Index := Invalid_Node_Index;
-      Image_Augmented : access function
-        (Aug : in Base_Token_Class_Access) return String := null)
+     (Tree            : in Syntax_Trees.Tree;
+      Descriptor      : in WisiToken.Descriptor;
+      Root            : in Node_Index                   := Invalid_Node_Index;
+      Image_Augmented : in Syntax_Trees.Image_Augmented := null)
    with Pre => Tree.Flushed;
    --  Print tree rooted at Root (default Tree.Root) to
    --  Text_IO.Current_Output, for debugging. For each node,

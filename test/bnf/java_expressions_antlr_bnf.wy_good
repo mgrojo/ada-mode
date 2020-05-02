@@ -125,14 +125,14 @@ methodCall
 
 expression
   : primary
-  | expression bop=DOT nonterminal_008
+  | expression bop=DOT nonterminal_028
   | expression LBRACK expression RBRACK
   | methodCall
   | LPAREN typeType RPAREN expression
-  | expression postfix=nonterminal_015
-  | prefix=nonterminal_020 expression
-  | expression bop=nonterminal_024 expression
-  | expression bop=nonterminal_027 expression
+  | expression postfix=nonterminal_029
+  | prefix=nonterminal_030 expression
+  | expression bop=nonterminal_031 expression
+  | expression bop=nonterminal_032 expression
   ;
 
 primary
@@ -153,27 +153,27 @@ primitiveType
   | INT
   ;
 ;;; end of file
-nonterminal_008
+nonterminal_028
   : IDENTIFIER
   | methodCall
   | THIS
   ;
-nonterminal_015
+nonterminal_029
   : INC
   | DEC
   ;
-nonterminal_020
+nonterminal_030
   : ADD
   | SUB
   | INC
   | DEC
   ;
-nonterminal_024
+nonterminal_031
   : MUL
   | DIV
   | MOD
   ;
-nonterminal_027
+nonterminal_032
   : ADD
   | SUB
   ;

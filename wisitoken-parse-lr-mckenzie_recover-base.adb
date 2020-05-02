@@ -108,7 +108,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Error_ID                := Ada.Exceptions.Null_Id;
 
          for I in Parsers.Iterate loop
-            if Parsers.Reference (I).Recover_Insert_Delete.Length > 0 then
+            if Parsers.Reference (I).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
                --  Previous error recovery resume not finished; this is supposed to
                --  be checked in Parser.
                raise SAL.Programmer_Error;
@@ -409,7 +409,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Error_Message  := +Exception_Message (E);
          if Debug_Mode then
             Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-            Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+            Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          end if;
       end Fatal;
 

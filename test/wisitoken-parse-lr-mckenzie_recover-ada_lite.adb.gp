@@ -283,7 +283,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          end if;
 
          if Config.Stack.Depth >= 4 and then
-           Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID)
+           Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID)
          then
             --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
@@ -625,7 +625,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  Minimal_Complete_Actions does not handle this case well; it
          --  ignores the name.
          declare
-            use all type Ada.Containers.Count_Type;
             End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
               (Config.Stack.Peek.State).Minimal_Complete_Actions;
             End_Name       : constant String := Lexer.Buffer_Text (Config.Error_Token.Byte_Region);
