@@ -598,7 +598,7 @@ complete."
 		(set-buffer source-buffer) ;; for put-text-property in actions
 		(cond
 		 ((listp response)
-		  ;; error of some sort
+		  ;; non-syntax error of some sort
 		  (cond
 		   ((equal '(parse_error) response)
 		    ;; Parser detected a syntax error, and recovery failed, so signal it.
@@ -654,7 +654,7 @@ complete."
 		     (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
 		     (signal (car err) (cdr err)))
 
-		    (error ;; ie from [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
+		    (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
 		     (set-buffer response-buffer)
 		     (let ((content (buffer-substring-no-properties (point-min) (point-max)))
 			   (buf-name (concat (buffer-name) "-save-error")))

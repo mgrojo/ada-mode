@@ -543,9 +543,18 @@ Prompt user if more than one."
 	   t)
 
 	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
-	   (let ((param (match-string 1)))
+	   (let ((param (match-string 1))
+		 cache)
 	     (pop-to-buffer source-buffer)
-	     (ada-goto-declarative-region-start)
+	     ;; Point is in a subprogram parameter list;
+	     ;; ada-goto-declarative-region-start goes to the package,
+	     ;; not the subprogram declarative_part (this is a change
+	     ;; from previous wisi versions).
+	     (setq cache (wisi-goto-statement-start))
+	     (while (not (eq 'IS (wisi-cache-token cache)))
+	       (forward-sexp)
+	       (setq cache (wisi-get-cache (point))))
+	     (forward-word)
 	     (newline-and-indent)
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)

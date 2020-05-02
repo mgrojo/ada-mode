@@ -47,6 +47,9 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+debbug #40964 compile with GNAT Pro 21.0w 20200426
+    Eurocontrol wavefront
+
 lsp-mode has mechanism to download and install servers
     adapt that for compiled wisi exes?
 
@@ -60,6 +63,9 @@ test/ada_mode-recover_20.adb
         because we don't know (line, column)
             set it to following token, grammar or non-grammar
             after finish error correction algorithm paper
+
+convert char literal to string literal: test/ada_mode-recover_31.adb
+    just fix comment; handled in language_fixes
 
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
@@ -75,6 +81,9 @@ build.sh:
         on Eurocontrol's AdaCore-account
 
         add to .gpr.gp
+
+use (eval-when-compile (call-process "build.sh")) to automate compile?
+    and install.sh
 
 add to user guide:
     C-u C-u C-c C-d will not find bodies of public items; they are defined in the spec file, not the body
@@ -100,6 +109,11 @@ indent bugs:
 
         comment should align with 'then'
 
+    Recover_Op_Arrays.Variable_Ref
+       (Parser_State.Recover_Insert_Delete,
+        Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete))
+    .Ins_Tree_Node := Parser_State.Current_Token;
+
 align bug:
    function Image (Item : in Recursion_Class) return String
      is (case Item is
@@ -117,6 +131,9 @@ align bug:
 
 fix "string not terminated by end of line" bug
     use parser to fontify strings
+
+    same for unterminated placeholder; use parser to fontify comments
+        ada_mode-placeholders.adb
 
 try adding elisp access to BEG_UNCHANGED, END_UNCHANGED
     allows moving wisi-after-change actions into wisi--post-change?
@@ -1034,15 +1051,21 @@ bump versions
     Gnu ELPA requires single digits between dots in versions
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
-        bump third digit for bug fixes, minor features
+        bump third digit for bug fixes, minor features, no user-incompatible changes
         bump second digit for major features
             - GPS indentation engine add/delete
             - partial parse
             - delete elisp lexer
-        bump first digit for really major or user-incompatible changes
+            - wisi use virtual tokens in indent
+
+        bump first digit for really major changes
+            ada-mode:
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
+
+            wisi:
+            - 3 project.el integration
 
     emacs_wisi_common_parse.ads
         (should have been changed already, but verify)

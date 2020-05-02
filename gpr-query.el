@@ -98,7 +98,9 @@ Must match gpr_query.adb Version.")
 	(user-error "gpr-query version mismatch: elisp %s process %s"
 		    gpr-query-protocol-version
 		    (match-string 1)))
-    (user-error "gpr-query is an old version; expecting %s" gpr-query-protocol-version))
+    (user-error "'%s' is an old version (did not output version); expecting %s"
+		gpr-query-exec
+		gpr-query-protocol-version))
 
   ;; Check for warnings about invalid directories etc. But some
   ;; warnings are tolerable, so only abort if process actually
@@ -387,10 +389,11 @@ Returns t if the process was live."
 Return t if the process was live."
   (setf (gpr-query--session-symbol-locs session) nil)
   (setf (gpr-query--session-symbols session) nil)
-
-  (or
-   (gpr-query--kill-process (gpr-query--session-xref-process session))
-   (gpr-query--kill-process (gpr-query--session-symbols-process session))))
+  (let (result)
+    (setq result (gpr-query--kill-process (gpr-query--session-xref-process session)))
+    (setq result (or result
+		     (gpr-query--kill-process (gpr-query--session-symbols-process session))))
+    result))
 
 (defun gpr-query-kill-all-sessions ()
   (interactive)
