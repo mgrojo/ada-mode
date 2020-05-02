@@ -31,13 +31,17 @@ t_mck :: test_mckenzie_harness.run
 one-clean :
 	rm -rf debug*
 
-one :: one-clean
+#one :: one-clean
 one :: wisitoken-bnf-generate.exe
-one :: GENERATE_ARGS := -v 3 --output_bnf debug_bnf.wy
-one :: debug.re2c
+one :: java_expressions_ch19_re2c.c
+one :: RUN_ARGS := -v 1 -m 3 -t 1 ../Test/bnf/java_expressions_ch19.input > debug.log
+one :: java_expressions_ch19_lr1_run.run
 
-two ::
-	./ada_lite_lalr_run.exe -v 2 -m 3 debug.ada_lite
+two :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb ada_lite_lalr_run.exe
+	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite
+
+three :: ada_lite_lalr_run.exe
+	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite > debug.log
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
@@ -50,6 +54,7 @@ gmon.out : exec_pro/wisitoken-bnf-generate.exe
 generate_ada_lite_lr1.gprof : gmon.out
 	gprof exec_pro/wisitoken-bnf-generate.exe > generate_ada_lite_lr1.gprof
 
+doc :: error_correction_algorithm.pdf
 doc :: ../Docs/wisitoken-user_guide.info
 doc :: ../Docs/wisitoken-user_guide.html
 doc :: create-dir
