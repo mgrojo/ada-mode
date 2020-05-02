@@ -33,6 +33,17 @@ update-wisitoken_grammar
 String_literal, numeric_literal, identifier are equivalent - only insert one
     minimal_complete does this for expression
 
+test/ada_mode-recover_31.adb
+    language_fixes changes char_literal '|-' to string_literal; ok for first call on real error
+
+    but later, it gets a config where Error_Token is set by Parse.Parse
+        with min_terminal_index = invalid_token_index, virtual = true
+
+    because in Parse.Parse_One_Item, Current_Token is a Base_Token, which does not have Token_Index
+        use parser_state.current_shared_token?
+        or change Current_Token to Recover_Token?
+
+
 error_correction_algorithm.tex
     full vs partial_recursion
         java_expressions_antlr_lr1

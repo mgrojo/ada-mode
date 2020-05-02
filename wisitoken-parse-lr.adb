@@ -738,11 +738,9 @@ package body WisiToken.Parse.LR is
    end Any;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
-   is
-      use all type WisiToken.Syntax_Trees.Node_Index;
-   begin
+   is begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then
+         if Stack.Peek (I).Tree_Index = Invalid_Node_Index then
             return False;
          end if;
       end loop;

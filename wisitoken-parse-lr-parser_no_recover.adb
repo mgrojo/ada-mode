@@ -33,11 +33,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    procedure Reduce_Stack_1
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Nonterm        :    out WisiToken.Syntax_Trees.Valid_Node_Index;
+      Nonterm        :    out Valid_Node_Index;
       Trace          : in out WisiToken.Trace'Class)
    is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+      Children_Tree : Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
       --  for Set_Children.
    begin
       for I in reverse Children_Tree'Range loop
@@ -60,7 +60,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    is
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-      Nonterm      : WisiToken.Syntax_Trees.Valid_Node_Index;
+      Nonterm      : Valid_Node_Index;
    begin
       if Trace_Parse > Detail then
          Trace.Put
@@ -260,12 +260,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          Shared_Parser.User_Data.Reset;
       end if;
 
-      Shared_Parser.Lex_All;
-
       Shared_Parser.Shared_Tree.Clear;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
         (Shared_Tree => Shared_Parser.Shared_Tree'Unchecked_Access);
+
+      Shared_Parser.Lex_All;
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
@@ -281,8 +281,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
             for Parser_State of Shared_Parser.Parsers loop
                Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
-               Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                 (Parser_State.Shared_Token, Shared_Parser.Terminals);
+               Parser_State.Current_Token := Shared_Parser.Terminals
+                          (Parser_State.Shared_Token).Tree_Index;
             end loop;
 
          when Accept_It =>
@@ -427,13 +427,16 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       --  character.
    end Parse;
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
+   overriding procedure Execute_Actions
+     (Parser          : in out LR.Parser_No_Recover.Parser;
+      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
    is
+      pragma Unreferenced (Image_Augmented);
       use all type Syntax_Trees.User_Data_Access;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Index)
+         Node : in     Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;
       begin
@@ -443,7 +446,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          declare
             use all type Syntax_Trees.Semantic_Action;
-            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
+            Tree_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 
@@ -453,7 +456,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                exception
                when E : others =>
                   declare
-                     Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
+                     Token : Base_Token renames Parser.Terminals (Tree.First_Shared_Terminal (Node));
                   begin
                      raise WisiToken.Parse_Error with Error_Message
                        (Parser.Lexer.File_Name, Token.Line, Token.Column,
@@ -489,6 +492,18 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end if;
    end Tree;
 
+   overriding
+   function Tree_Var_Ref
+     (Parser : aliased in out LR.Parser_No_Recover.Parser)
+     return Syntax_Trees.Tree_Variable_Reference
+   is begin
+      if Parser.Parsers.Count > 1 then
+         raise WisiToken.Parse_Error with "ambigous parse";
+      else
+         return (Element => Parser.Parsers.First_State_Ref.Tree'Access);
+      end if;
+   end Tree_Var_Ref;
+
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean
    is
       use all type Ada.Containers.Count_Type;
@@ -515,7 +530,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          case Item.Label is
          when Action =>
             declare
-               Token : Base_Token renames Parser.Terminals (Parser_State.Tree.Min_Terminal_Index (Item.Error_Token));
+               Token : Base_Token renames Parser.Terminals (Parser_State.Tree.First_Shared_Terminal (Item.Error_Token));
             begin
                Put_Line
                  (Current_Error,

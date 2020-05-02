@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -22,12 +22,12 @@ package body Test_Skip_To_Aux is
 
    Decl_Count : Integer := 0;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index)
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Valid_Node_Index)
    is begin
       if Enable then
          declare
             Chars : constant WisiToken.Buffer_Region := Parser.Terminals
-              (Parser.Tree.Max_Terminal_Index (Nonterm)).Char_Region;
+              (Parser.Tree.First_Shared_Terminal (Parser.Tree.Last_Terminal (Nonterm))).Char_Region;
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
          begin
             if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -35,9 +35,6 @@ package body Test_Skip_To_Aux is
             end if;
 
             --  File has DOS line endings and non-ASCII chars.
-            --
-            --  Nonterm does not have Char_Region set; that must be done by
-            --  User_Data.Reduce, which is a noop here.
             --
             --  Char_Region from wisi-show-region in .input file (with point _before_ last char)
             --
@@ -67,7 +64,7 @@ package body Test_Skip_To_Aux is
       end if;
    end Test_Declaration_0;
 
-   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index)
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Valid_Node_Index)
    is begin
       if Enable then
          if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -77,7 +74,7 @@ package body Test_Skip_To_Aux is
          --  See comment in Test_Declaration_0 for source of expected values.
 
          Check ("compilation_unit_0 PREAMBLE char region",
-                Parser.Terminals (Parser.Tree.Max_Terminal_Index (Nonterm)).Char_Region,
+                Parser.Terminals (Parser.Tree.First_Shared_Terminal (Nonterm)).Char_Region,
                 (1, 5));
          declare
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);

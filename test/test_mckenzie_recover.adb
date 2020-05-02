@@ -887,7 +887,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
            (Fast_Forward, 14),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 33,
+         Enqueue_Low             => 32,
          Check_Low               => 3,
          Cost                    => 1);
    end String_Quote_0;
@@ -998,8 +998,11 @@ package body Test_McKenzie_Recover is
       --  Language_Fixes returns two solutions, 'ignore error' and
       --  'push_back, delete end;'.
       --
-      --  In this case, only 'push_back, delete end;' is returned from
-      --  Recover; it then parses to EOI.
+      --  In this case, only 'push_back, delete end;' leads to a valid
+      --  solution in Recover; it then parses to EOI.
+      --
+      --  This is also an example of multiple Push_Back and Undo_Reduce in a
+      --  solution.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1556,7 +1559,7 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 46,
+         Enqueue_Low             => 42,
          Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_1;
@@ -1594,8 +1597,8 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) &
            (Insert, +SEMICOLON_ID, 28),
          Strategy_Counts => (Minimal_Complete => 1, String_Quote => 1, others => 0),
-         Enqueue_Low     => (case Test.Alg is when LALR => 95, when LR1 => 103),
-         Check_Low       => 9,
+         Enqueue_Low     => (case Test.Alg is when LALR => 61, when LR1 => 69),
+         Check_Low       => 7,
          Cost            => 2);
    end String_Quote_2;
 
@@ -1626,7 +1629,7 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 19) & (Delete, +LESS_ID, 20) & (Delete, +SLASH_ID, 21) &
            (Delete, +IDENTIFIER_ID, 22) & (Delete, +GREATER_ID, 23) & (Fast_Forward,  24),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 54,
+         Enqueue_Low             => 51,
          Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_3;
@@ -1661,7 +1664,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 83,
+         Enqueue_Low             => 79,
          Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 6),
          Cost                    => 1);
    end String_Quote_4;
@@ -1695,10 +1698,48 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 7) & (Delete, +IDENTIFIER_ID, 7) &
            (Fast_Forward, 10) & (Insert, +END_ID, 10) & (Insert, +SEMICOLON_ID, 10),
          Strategy_Counts         => (Minimal_Complete => 2, String_Quote => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 292, when LR1 => 300),
-         Check_Low               => 29,
+         Enqueue_Low             => (case Test.Alg is when LALR => 244, when LR1 => 251),
+         Check_Low               => 24,
          Cost                    => 3);
    end String_Quote_5;
+
+   procedure String_Quote_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+   begin
+      --  Recover used to delete the same tokens more than once for this.
+
+      Parse_Text
+        ("for ID loop" & ASCII.LF & " Recursive"") ;");
+      --  1   2  3       4            5        6 7 8
+
+      --  Missing "in foo" before loop, and missing terminating string quote
+      --  at EOI. Try_Insert_Quote is called with an error on 5:'Recursive',
+      --  which is _not_ due to the string quote; it must take care not
+      --  cross a line boundary. In the end, the solutions enqueued by
+      --  Try_Insert_Quote are not the least expensive.
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +LOOP_ID,
+         Error_Token_Byte_Region => (8, 11),
+         Ops                     => +(Insert, +IN_ID, 3) & (Insert, +IDENTIFIER_ID, 3) & (Fast_Forward, 5) &
+           (Insert, +LEFT_PAREN_ID, 5),
+         Strategy_Counts         => (Minimal_Complete => 2, Insert => 1, others => 0),
+         Cost                    => 6);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +Wisi_EOI_ID,
+         Error_Token_Byte_Region => (26, 25),
+         Ops                     => +(Insert, +END_ID, 8) & (Insert, +LOOP_ID, 8) & (Insert, +SEMICOLON_ID, 8),
+         Strategy_Counts         => (Minimal_Complete => 3, others => 0),
+         Enqueue_Low             => (case Test.Alg is when LALR => 14, when LR1 => 15),
+         Check_Low               => 4,
+         Cost                    => 3);
+   end String_Quote_6;
 
    procedure Enqueue_Limit (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1916,7 +1957,7 @@ package body Test_McKenzie_Recover is
 
    procedure Always_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
    begin
       --  This test case provided the motivation for always doing
       --  Insert_Minimal_Complete. The user is converting an 'if then'
@@ -1959,7 +2000,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (139, 138),
          Ops                     => +(Insert, +END_ID, 21) & (Insert, +CASE_ID, 21) & (Insert, +SEMICOLON_ID, 21),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => 15,
+         Enqueue_Low             => (case Test.Alg is when LALR => 14, when LR1 => 15),
          Check_Low               => 4,
          Cost                    => 3);
    end Always_Minimal_Complete;
@@ -2232,6 +2273,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
       Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
       Register_Routine (T, String_Quote_5'Access, "String_Quote_5");
+      Register_Routine (T, String_Quote_6'Access, "String_Quote_6");
       Register_Routine (T, Enqueue_Limit'Access, "Enqueue_Limit");
       Register_Routine (T, Minimal_Complete_Full_Reduce_1'Access, "Minimal_Complete_Full_Reduce_1");
       Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");

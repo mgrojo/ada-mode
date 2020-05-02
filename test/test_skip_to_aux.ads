@@ -2,7 +2,7 @@
 --
 --  Stuff needed by Skip_To_Grammar and Test_Skip_To.
 --
---  Copyright (C) 2017, 2018, 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2019, 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -22,7 +22,7 @@ package Test_Skip_To_Aux is
 
    Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index);
-   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Index);
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Valid_Node_Index);
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Valid_Node_Index);
 
 end Test_Skip_To_Aux;

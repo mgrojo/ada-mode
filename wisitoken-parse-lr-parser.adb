@@ -36,7 +36,7 @@ package body WisiToken.Parse.LR.Parser is
    function Reduce_Stack_1
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Nonterm        :    out WisiToken.Syntax_Trees.Valid_Node_Index;
+      Nonterm        :    out WisiToken.Valid_Node_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
       Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
@@ -49,7 +49,7 @@ package body WisiToken.Parse.LR.Parser is
       use all type Semantic_Checks.Semantic_Check;
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+      Children_Tree : Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
    begin
       for I in reverse Children_Tree'Range loop
          Children_Tree (I) := Parser_State.Stack.Pop.Token;
@@ -118,7 +118,7 @@ package body WisiToken.Parse.LR.Parser is
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-      Nonterm      : WisiToken.Syntax_Trees.Valid_Node_Index;
+      Nonterm      : WisiToken.Valid_Node_Index;
       Status       : Semantic_Checks.Check_Status_Label;
    begin
       if Trace_Parse > Detail then
@@ -223,32 +223,47 @@ package body WisiToken.Parse.LR.Parser is
    procedure Do_Deletes
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
-   is begin
+   is
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
+      Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
+      Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
+   begin
       if Trace_Parse > Extra then
          Shared_Parser.Trace.Put_Line
            (Integer'Image (Parser_State.Label) & ": shared_token:" &
               WisiToken.Token_Index'Image (Parser_State.Shared_Token) &
               " inc_shared_token: " & Boolean'Image (Parser_State.Inc_Shared_Token) &
-              " recover_insert_delete: " &
-              Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all));
+              " recover_insert_delete:" &
+              (if Parser_State.Recover_Insert_Delete_Current = No_Index
+               then ""
+               else Parser_State.Recover_Insert_Delete_Current'Image & " " &
+                  Image
+                    (Constant_Ref (Parser_State.Recover_Insert_Delete, Parser_State.Recover_Insert_Delete_Current),
+                     Shared_Parser.Trace.Descriptor.all)));
       end if;
 
       loop
-         if Parser_State.Recover_Insert_Delete.Length > 0 and then
-           Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-           Parser_State.Recover_Insert_Delete.Peek.Del_Token_Index =
-           (if Parser_State.Inc_Shared_Token
-            then Parser_State.Shared_Token + 1
-            else Parser_State.Shared_Token)
-         then
-            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-            --  We don't reset Inc_Shared_Token here; only after the next token is
-            --  actually used.
-            Parser_State.Recover_Insert_Delete.Drop;
-
-         else
-            exit;
-         end if;
+         exit when Ins_Del_Cur = Recover_Op_Arrays.No_Index;
+         declare
+            Op : Recover_Op renames Constant_Ref (Ins_Del, Ins_Del_Cur);
+         begin
+            if Op.Op = Delete and then
+              Op.Del_Token_Index =
+              (if Parser_State.Inc_Shared_Token
+               then Parser_State.Shared_Token + 1
+               else Parser_State.Shared_Token)
+            then
+               Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+               --  We don't reset Inc_Shared_Token here; only after the next token is
+               --  actually used.
+               Ins_Del_Cur := Ins_Del_Cur + 1;
+               if Ins_Del_Cur > Last_Index (Ins_Del)  then
+                  Ins_Del_Cur := No_Index;
+               end if;
+            else
+               exit;
+            end if;
+         end;
       end loop;
    end Do_Deletes;
 
@@ -289,7 +304,7 @@ package body WisiToken.Parse.LR.Parser is
 
             if Parser_State.Resume_Active then
                if Parser_State.Resume_Token_Goal <= Parser_State.Shared_Token then
-                  pragma Assert (Parser_State.Recover_Insert_Delete.Count = 0);
+                  pragma Assert (Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index);
                   Parser_State.Resume_Active := False;
                   if Trace_Parse > Detail then
                      Shared_Parser.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": resume_active: False");
@@ -460,12 +475,12 @@ package body WisiToken.Parse.LR.Parser is
          Shared_Parser.User_Data.Reset;
       end if;
 
-      Shared_Parser.Lex_All;
-
       Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
       Shared_Parser.Shared_Tree.Clear;
       Shared_Parser.Parsers              := Parser_Lists.New_List
         (Shared_Tree => Shared_Parser.Shared_Tree'Unchecked_Access);
+
+      Shared_Parser.Lex_All;
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
@@ -501,33 +516,62 @@ package body WisiToken.Parse.LR.Parser is
                   end if;
 
                elsif Parser_State.Verb = Shift then
-                  if Parser_State.Recover_Insert_Delete.Length > 0 and then
-                    Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
-                    Parser_State.Recover_Insert_Delete.Peek.Ins_Token_Index =
-                    (if Parser_State.Inc_Shared_Token
-                     then Parser_State.Shared_Token + 1
-                     else Parser_State.Shared_Token)
-                  then
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Recover_Insert_Delete.Get.Ins_ID);
+                  declare
+                     function Insert_Virtual return Boolean
+                     is
+                        use Recover_Op_Arrays, Recover_Op_Array_Refs;
+                        Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
+                        Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
+                        Result : Boolean := False;
+                     begin
+                        if Ins_Del_Cur /= No_Index then
+                           declare
+                              Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
+                           begin
+                              if Op.Op = Insert and then
+                                Op.Ins_Token_Index =
+                                (if Parser_State.Inc_Shared_Token
+                                 then Parser_State.Shared_Token + 1
+                                 else Parser_State.Shared_Token)
+                              then
+                                 Result := True;
 
-                  elsif (if Parser_State.Inc_Shared_Token
-                         then Parser_State.Shared_Token + 1
-                         else Parser_State.Shared_Token) <= Shared_Parser.Terminals.Last_Index
-                  then
-                     if Parser_State.Inc_Shared_Token then
-                        --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
-                        --  for when/why. Don't increment past wisi_eoi (happens when input
-                        --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
-                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                     else
-                        Parser_State.Inc_Shared_Token := True;
+                                 Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                                   (Op.Ins_ID, Before => Op.Ins_Token_Index);
+
+                                 Op.Ins_Tree_Node := Parser_State.Current_Token;
+
+                                 Ins_Del_Cur := Ins_Del_Cur + 1;
+                                 if Ins_Del_Cur > Last_Index (Ins_Del) then
+                                    Ins_Del_Cur := No_Index;
+                                 end if;
+                              end if;
+                           end;
+                        end if;
+                        return Result;
+                     end Insert_Virtual;
+                  begin
+                     if Insert_Virtual then
+                        null;
+
+                     elsif (if Parser_State.Inc_Shared_Token
+                            then Parser_State.Shared_Token + 1
+                            else Parser_State.Shared_Token) <= Shared_Parser.Terminals.Last_Index
+                     then
+                        if Parser_State.Inc_Shared_Token then
+                           --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
+                           --  for when/why. Don't increment past wisi_eoi (happens when input
+                           --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
+                           Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                        else
+                           Parser_State.Inc_Shared_Token := True;
+                        end if;
+
+                        Parser_State.Current_Token := Shared_Parser.Terminals
+                          (Parser_State.Shared_Token).Tree_Index;
+
                      end if;
-
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Shared_Token, Shared_Parser.Terminals);
-
-                  end if;
+                  end;
 
                   if Trace_Parse > Extra then
                      Trace.Put_Line
@@ -997,7 +1041,8 @@ package body WisiToken.Parse.LR.Parser is
          end if;
 
          if Debug_Mode then
-            Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+            Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+            Trace.New_Line;
          end if;
 
          --  Emacs displays the exception message in the echo area; easy to miss
@@ -1014,8 +1059,19 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Tree;
 
+   overriding function Tree_Var_Ref (Shared_Parser : aliased in out Parser) return Syntax_Trees.Tree_Variable_Reference
+   is begin
+      if Shared_Parser.Parsers.Count > 1 then
+         raise WisiToken.Parse_Error with "ambigous parse";
+      else
+         return (Element => Shared_Parser.Parsers.First_State_Ref.Tree'Access);
+      end if;
+   end Tree_Var_Ref;
+
    overriding
-   procedure Execute_Actions (Parser : in out LR.Parser.Parser)
+   procedure Execute_Actions
+     (Parser          : in out LR.Parser.Parser;
+      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
    is
       use all type Syntax_Trees.User_Data_Access;
       use all type WisiToken.Syntax_Trees.Semantic_Action;
@@ -1024,7 +1080,7 @@ package body WisiToken.Parse.LR.Parser is
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Index)
+         Node : in     Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;
       begin
@@ -1033,7 +1089,7 @@ package body WisiToken.Parse.LR.Parser is
          end if;
 
          declare
-            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
+            Tree_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
             if Tree.Action (Node) /= null then
@@ -1042,7 +1098,7 @@ package body WisiToken.Parse.LR.Parser is
                exception
                when E : others =>
                   declare
-                     Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
+                     Token : Base_Token renames Parser.Terminals (Tree.First_Shared_Terminal (Node));
                   begin
                      raise WisiToken.Parse_Error with Error_Message
                        (Parser.Lexer.File_Name, Token.Line, Token.Column,
@@ -1061,12 +1117,14 @@ package body WisiToken.Parse.LR.Parser is
          end if;
 
          declare
-            use Config_Op_Arrays, Config_Op_Array_Refs;
+            use Recover_Op_Arrays, Recover_Op_Array_Refs;
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
          begin
+            pragma Assert (Parser_State.Tree.Flushed);
+
             if Trace_Action > Outline then
                if Trace_Action > Extra then
-                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root);
+                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root, Image_Augmented);
                   Parser.Trace.New_Line;
                end if;
                Parser.Trace.Put_Line
@@ -1074,19 +1132,19 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser_State.Tree.Root, Descriptor));
             end if;
 
-            for Err of Parser_State.Errors loop
-               for I in First_Index (Err.Recover.Ops) .. Last_Index (Err.Recover.Ops) loop
-                  declare
-                     Op : Config_Op renames Constant_Ref (Err.Recover.Ops, I);
-                  begin
-                     case Op.Op is
-                     when Delete =>
-                        Parser.User_Data.Delete_Token (Op.Del_Token_Index);
-                     when others =>
-                        null;
-                     end case;
-                  end;
-               end loop;
+            for I in First_Index (Parser_State.Recover_Insert_Delete) ..
+              Last_Index (Parser_State.Recover_Insert_Delete)
+            loop
+               declare
+                  Op : Recover_Op renames Constant_Ref (Parser_State.Recover_Insert_Delete, I);
+               begin
+                  case Op.Op is
+                  when Insert =>
+                     Parser.User_Data.Insert_Token (Parser_State.Tree, Op.Ins_Tree_Node);
+                  when Delete =>
+                     Parser.User_Data.Delete_Token (Parser_State.Tree, Op.Del_Token_Index);
+                  end case;
+               end;
             end loop;
 
             Parser.User_Data.Initialize_Actions (Parser_State.Tree);
@@ -1121,7 +1179,7 @@ package body WisiToken.Parse.LR.Parser is
          case Item.Label is
          when Action =>
             declare
-               Index : constant Base_Token_Index := Parser_State.Tree.Min_Terminal_Index (Item.Error_Token);
+               Index : constant Base_Token_Index := Parser_State.Tree.First_Shared_Terminal (Item.Error_Token);
             begin
                if Index = Invalid_Token_Index then
                   --  Error_Token is virtual

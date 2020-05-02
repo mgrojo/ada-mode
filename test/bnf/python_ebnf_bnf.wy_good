@@ -28,101 +28,104 @@ star_expr
 expr
   : atom
 atom
-  : NAME  | NUMBER
+  : NAME
+  | NUMBER
 
 ;; This nonterminal matches part of dictorsetmaker
 testlist_comp
-  : nonterminal_005 nonterminal_010
+  : nonterminal_023 nonterminal_026
 dictorsetmaker
-  : nonterminal_025
+  : nonterminal_033
 
 comp_for
   : FOR expr IN test
 
 expr_stmt
-  : testlist_star_expr nonterminal_035
+  : testlist_star_expr nonterminal_038
   ;
 
 ;; Simplified has a similar problem
 expr_stmt_2
-  : testlist_star_expr nonterminal_037  ;
+  : testlist_star_expr nonterminal_040
+  ;
 
 ;; This was recognized as a canonical list, and 'nonlocal' left out.
 nonlocal_stmt
-  : NONLOCAL NAME nonterminal_041_list  | NONLOCAL NAME
+  : NONLOCAL NAME nonterminal_041_list
+  | NONLOCAL NAME
   ;
 
 ;; end of file
-nonterminal_005
+nonterminal_023
   : test
   | star_expr
   ;
-nonterminal_008
-  : COMMA nonterminal_005
+nonterminal_025
+  : COMMA nonterminal_023
   ;
-nonterminal_007_list
-  : nonterminal_008
-  | nonterminal_007_list nonterminal_008
+nonterminal_024_list
+  : nonterminal_025
+  | nonterminal_024_list nonterminal_025
   ;
-nonterminal_010
+nonterminal_026
   : comp_for
-  | nonterminal_007_list COMMA
-  | nonterminal_007_list
+  | nonterminal_024_list COMMA
+  | nonterminal_024_list
   | COMMA
   | ;; empty
   ;
-nonterminal_013
+nonterminal_027
   : test COLON test
   | STAR_STAR expr
   ;
-nonterminal_018
-  : COMMA nonterminal_013
+nonterminal_029
+  : COMMA nonterminal_027
   ;
-nonterminal_017_list
-  : nonterminal_018
-  | nonterminal_017_list nonterminal_018
+nonterminal_028_list
+  : nonterminal_029
+  | nonterminal_028_list nonterminal_029
   ;
-nonterminal_020
+nonterminal_030
   : comp_for
-  | nonterminal_017_list COMMA
-  | nonterminal_017_list
+  | nonterminal_028_list COMMA
+  | nonterminal_028_list
   | COMMA
   | ;; empty
   ;
-nonterminal_021
-  : nonterminal_013 nonterminal_020
+nonterminal_031
+  : nonterminal_027 nonterminal_030
   ;
-nonterminal_025
-  : nonterminal_021
+nonterminal_033
+  : nonterminal_031
   | testlist_comp
   ;
-nonterminal_030
+nonterminal_034
   : yield_expr
   | testlist
   ;
-nonterminal_032
+nonterminal_035
   : yield_expr
   | testlist_star_expr
   ;
-nonterminal_034
-  : EQUAL nonterminal_032
-  ;
-nonterminal_033_list
-  : nonterminal_034
-  | nonterminal_033_list nonterminal_034
-  ;
-nonterminal_035
-  : annassign
-  | augassign nonterminal_030
-  | nonterminal_033_list
-  | ;; empty
+nonterminal_037
+  : EQUAL nonterminal_035
   ;
 nonterminal_036_list
-  : yield_expr
-  | nonterminal_036_list yield_expr
+  : nonterminal_037
+  | nonterminal_036_list nonterminal_037
   ;
-nonterminal_037
-  : nonterminal_036_list
+nonterminal_038
+  : annassign
+  | augassign nonterminal_034
+  | nonterminal_036_list
+  | ;; empty
+  ;
+nonterminal_039_list
+  : yield_expr
+  | nonterminal_039_list yield_expr
+  ;
+nonterminal_040
+  : nonterminal_039_list
   | ;; empty
   ;
 nonterminal_042

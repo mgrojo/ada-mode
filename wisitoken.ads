@@ -290,11 +290,26 @@ package WisiToken is
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
+   --  Syntax tree nodes.
+   type Node_Index is range 0 .. Integer'Last;
+   subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
+
+   Invalid_Node_Index : constant Node_Index := Node_Index'First;
+
+   type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
+   --  Index matches Base_Token_Array, Augmented_Token_Array
+
+   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
+   --  Index matches Valid_Node_Index_Array.
+
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser. The parser only needs ID;
+      --  Base_Token is used in the core parser. The parser only needs ID and Tree_Node;
       --  semantic checks need Byte_Region to compare names. Line, Col, and
       --  Char_Region are included for error messages.
-      ID : Token_ID := Invalid_Token_ID;
+
+      ID         : Token_ID   := Invalid_Token_ID;
+      Tree_Index : Node_Index := Invalid_Node_Index;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
@@ -351,8 +366,8 @@ package WisiToken is
      (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);
 
    type Recover_Token is record
-      --  Maintaining a syntax tree during recover is too slow, so we store
-      --  enough information in the recover stack to perform
+      --  Maintaining a syntax tree during error recovery is too slow, so we
+      --  store enough information in the recover stack to perform
       --  Semantic_Checks, Language_Fixes, and Push_Back operations. and to
       --  apply the solution to the main parser state. We make thousands of
       --  copies of the parse stack during recover, so minimizing size and

@@ -38,7 +38,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
    begin
       for I in 1 .. Last loop
          declare
-            use all type WisiToken.Syntax_Trees.Node_Index;
             Item : Parser_Stack_Item renames Stack.Peek (I);
          begin
             Result := Result &
@@ -46,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                  (if I = Stack.Depth
                   then ""
                   else
-                    (if Item.Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
+                    (if Item.Token = Invalid_Node_Index -- From recover fast-forward
                      then ""
                      else Tree.Image (Item.Token, Descriptor) & ", ")));
          end;
@@ -168,7 +167,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
            (Integer'Image (Current.Label) & ": terminate (" &
               Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
               ": " & Message & Image
-                (State.Tree.Min_Terminal_Index (State.Current_Token),
+                (State.Tree.First_Shared_Terminal (State.Current_Token),
                  Terminals, Trace.Descriptor.all));
       end if;
 
@@ -306,24 +305,25 @@ package body WisiToken.Parse.LR.Parser_Lists is
          --  override a few, to avoid copying large items like Recover.
          --  We copy Recover.Enqueue_Count .. Check_Count for unit tests.
          New_Item :=
-           (Shared_Token           => Item.Shared_Token,
-            Recover_Insert_Delete  => Item.Recover_Insert_Delete,
-            Current_Token          => Item.Current_Token,
-            Inc_Shared_Token       => Item.Inc_Shared_Token,
-            Stack                  => Item.Stack,
-            Tree                   => Item.Tree,
-            Recover                =>
-              (Enqueue_Count       => Item.Recover.Enqueue_Count,
-               Config_Full_Count   => Item.Recover.Config_Full_Count,
-               Check_Count         => Item.Recover.Check_Count,
-               others              => <>),
-            Resume_Active          => Item.Resume_Active,
-            Resume_Token_Goal      => Item.Resume_Token_Goal,
-            Conflict_During_Resume => Item.Conflict_During_Resume,
-            Zombie_Token_Count     => 0,
-            Errors                 => Item.Errors,
-            Label                  => List.Parser_Label,
-            Verb                   => Item.Verb);
+           (Shared_Token                  => Item.Shared_Token,
+            Recover_Insert_Delete         => Item.Recover_Insert_Delete,
+            Recover_Insert_Delete_Current => Item.Recover_Insert_Delete_Current,
+            Current_Token                 => Item.Current_Token,
+            Inc_Shared_Token              => Item.Inc_Shared_Token,
+            Stack                         => Item.Stack,
+            Tree                          => Item.Tree,
+            Recover                       =>
+              (Enqueue_Count              => Item.Recover.Enqueue_Count,
+               Config_Full_Count          => Item.Recover.Config_Full_Count,
+               Check_Count                => Item.Recover.Check_Count,
+               others                     => <>),
+            Resume_Active                 => Item.Resume_Active,
+            Resume_Token_Goal             => Item.Resume_Token_Goal,
+            Conflict_During_Resume        => Item.Conflict_During_Resume,
+            Zombie_Token_Count            => 0,
+            Errors                        => Item.Errors,
+            Label                         => List.Parser_Label,
+            Verb                          => Item.Verb);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;

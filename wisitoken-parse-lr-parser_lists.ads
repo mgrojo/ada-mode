@@ -28,7 +28,7 @@ package WisiToken.Parse.LR.Parser_Lists is
 
    type Parser_Stack_Item is record
       State : Unknown_State_Index     := Unknown_State;
-      Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Token : Node_Index := Invalid_Node_Index;
    end record;
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
@@ -58,11 +58,19 @@ package WisiToken.Parse.LR.Parser_Lists is
       Shared_Token : Base_Token_Index := Invalid_Token_Index;
       --  Last token read from Shared_Parser.Terminals.
 
-      Recover_Insert_Delete : Config_Op_Queues.Queue;
-      --  Tokens in that were inserted or deleted during error recovery.
-      --  Contains only Insert and Delete ops. Used/emptied by main parse.
+      Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
+      --  Tokens that were inserted or deleted during error recovery.
+      --  Contains only Insert and Delete ops. Filled by error recover, used
+      --  by main parse and Execute_Actions.
+      --
+      --  Not emptied between error recovery sessions, so Execute_Actions
+      --  knows about all insert/delete.
 
-      Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Recover_Insert_Delete_Current : Recover_Op_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
+      --  Next item in Recover_Insert_Delete to be processed by main parse;
+      --  No_Index if all done.
+
+      Current_Token : Node_Index := Invalid_Node_Index;
       --  Current terminal, in Tree
 
       Inc_Shared_Token : Boolean := True;
@@ -71,7 +79,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  There is no need to use a branched stack; max stack length is
       --  proportional to source text nesting depth, not source text length.
 
-      Tree : Syntax_Trees.Tree;
+      Tree : aliased Syntax_Trees.Tree;
       --  We use a branched tree to avoid copying large trees for each
       --  spawned parser; tree size is proportional to source text size. In
       --  normal parsing, parallel parsers are short-lived; they each process
@@ -156,16 +164,19 @@ package WisiToken.Parse.LR.Parser_Lists is
    type State_Reference (Element : not null access Parser_State) is null record
    with Implicit_Dereference => Element;
 
-   function State_Ref (Position : in Cursor) return State_Reference;
+   function State_Ref (Position : in Cursor) return State_Reference
+   with Pre => Has_Element (Position);
    --  Direct access to visible components of Parser_State
 
-   function First_State_Ref (List : in Parser_Lists.List'Class) return State_Reference;
+   function First_State_Ref (List : in Parser_Lists.List'Class) return State_Reference
+   with Pre => List.Count > 0;
    --  Direct access to visible components of first parser's Parser_State
 
    type Constant_State_Reference (Element : not null access constant Parser_State) is null record
    with Implicit_Dereference => Element;
 
-   function First_Constant_State_Ref (List : in Parser_Lists.List'Class) return Constant_State_Reference;
+   function First_Constant_State_Ref (List : in Parser_Lists.List'Class) return Constant_State_Reference
+   with Pre => List.Count > 0;
    --  Direct access to visible components of first parser's Parser_State
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);

@@ -44,7 +44,7 @@
 
 %code actions body pre %{
    procedure Handle_Aspect
-      (Tokens : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      (Tokens : in WisiToken.Valid_Node_Index_Array;
        Aspect : in SAL.Base_Peek_Type)
    is
       pragma Unreferenced (Tokens, Aspect);
@@ -453,7 +453,8 @@ parameter_profile
   ;
 
 parameter_specification
-  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression  | IDENTIFIER COLON IDENTIFIER
+  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression
+  | IDENTIFIER COLON IDENTIFIER
   ;
 
 paren_expression
@@ -492,11 +493,17 @@ range_list
   ;
 
 relation
-  : simple_expression relational_operator simple_expression  | simple_expression
+  : simple_expression relational_operator simple_expression
+  | simple_expression
   ;
 
 relational_operator
-  : EQUAL  | SLASH_EQUAL  | LESS  | LESS_EQUAL  | GREATER  | GREATER_EQUAL
+  : EQUAL
+  | SLASH_EQUAL
+  | LESS
+  | LESS_EQUAL
+  | GREATER
+  | GREATER_EQUAL
 ;;  =   | /=          | <    |  <=        | >       | >=
   ;
 

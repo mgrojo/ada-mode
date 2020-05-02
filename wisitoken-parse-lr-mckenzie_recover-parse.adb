@@ -111,7 +111,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       use Parse_Item_Arrays;
       use Config_Op_Arrays;
-      use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
@@ -201,7 +200,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
             Config.Stack.Push
               ((Action.Item.State,
-                Syntax_Trees.Invalid_Node_Index,
+                Invalid_Node_Index,
                 (Current_Token.ID,
                  Byte_Region        => Current_Token.Byte_Region,
                  Min_Terminal_Index =>
@@ -242,7 +241,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      raise Bad_Config;
                   end if;
 
-                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
+                  Config.Stack.Push ((New_State, Invalid_Node_Index, Nonterm));
 
                when Semantic_Checks.Error =>
                   Config.Error_Token       := Nonterm;

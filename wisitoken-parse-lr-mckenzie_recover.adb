@@ -464,7 +464,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               if not (Tree.Is_Nonterm (Stack.Peek.Token) and
                                         (I = First_Index (Result.Ops) or else
                                            Push_Back_Valid
-                                             (Tree.Min_Terminal_Index (Stack.Peek.Token), Result.Ops, I - 1)))
+                                             (Tree.First_Shared_Terminal (Stack.Peek.Token), Result.Ops, I - 1)))
                               then
                                  pragma Assert (False);
                                  if Trace_McKenzie > Outline then
@@ -495,7 +495,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                 Push_Back_Valid
                                   (Target_Token_Index =>
                                      (if Stack_Matches_Ops
-                                      then Tree.Min_Terminal_Index (Stack.Peek.Token)
+                                      then Tree.First_Shared_Terminal (Stack.Peek.Token)
                                       else Op.PB_Token_Index),
                                    Ops     => Result.Ops,
                                    Prev_Op => I - 1))
@@ -520,6 +520,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            end if;
 
                         when Insert =>
+                           Recover_Op_Arrays.Append
+                             (Parser_State.Recover_Insert_Delete,
+                              (Op              => Insert,
+                               Ins_ID          => Op.Ins_ID,
+                               Ins_Token_Index => Op.Ins_Token_Index,
+                               Ins_Tree_Node   => Invalid_Node_Index));
+
+                           if Parser_State.Recover_Insert_Delete_Current = No_Index then
+                              Parser_State.Recover_Insert_Delete_Current :=
+                                Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
+                           end if;
+
                            if First_Insert and Op.Ins_Token_Index = Parser_State.Shared_Token then
                               --  We need First_Insert here, not just Stack_Matches_Ops, when the
                               --  first insert is preceeded only by Push_Back and Undo_Reduce, with
@@ -533,21 +545,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Stack_Matches_Ops := False;
 
                               --  Add_Terminal is normally done in the lexer phase, so we do this here.
-                              Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Op.Ins_ID);
-                              Current_Token_Virtual      := True;
+                              Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                                (Op.Ins_ID, Op.Ins_Token_Index);
+                              Recover_Op_Array_Refs.Variable_Ref
+                                (Parser_State.Recover_Insert_Delete,
+                                 Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete)).Ins_Tree_Node :=
+                                   Parser_State.Current_Token;
+
+                              Current_Token_Virtual                      := True;
+                              Parser_State.Recover_Insert_Delete_Current := No_Index;
                            else
                               --  Let main parser handle it
-                              Parser_State.Recover_Insert_Delete.Put (Op);
+                              null;
                            end if;
 
                         when Delete =>
+                           Recover_Op_Arrays.Append
+                             (Parser_State.Recover_Insert_Delete,
+                              (Op              => Delete,
+                               Del_ID          => Op.Del_ID,
+                               Del_Token_Index => Op.Del_Token_Index));
+
                            if Stack_Matches_Ops and Op.Del_Token_Index = Parser_State.Shared_Token then
                               --  Delete has no effect on Stack, so we can apply multiple deletes.
                               Parser_State.Shared_Token := Op.Del_Token_Index + 1;
                               Shared_Token_Changed      := True;
+
+                              Parser_State.Recover_Insert_Delete_Current := No_Index;
                            else
-                              Parser_State.Recover_Insert_Delete.Put (Op);
+                              if Parser_State.Recover_Insert_Delete_Current = No_Index then
+                                 Parser_State.Recover_Insert_Delete_Current :=
+                                   Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
+                              end if;
+
                            end if;
+
                         end case;
                      end;
                   end loop;
@@ -568,8 +600,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --  tokens where handled above).
 
                   if (not Current_Token_Virtual) and Shared_Token_Changed then
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Shared_Token, Shared_Parser.Terminals);
+                     Parser_State.Current_Token := Shared_Parser.Terminals
+                          (Parser_State.Shared_Token).Tree_Index;
                   end if;
 
                   if Trace_McKenzie > Extra then
@@ -585,8 +617,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                        (Trace, Parser_State.Label, "Current_Token " & Parser_State.Tree.Image
                           (Parser_State.Current_Token, Descriptor), Task_ID => False);
                      Put_Line
-                       (Trace, Parser_State.Label, "recover_insert_delete " & Image
-                          (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
+                       (Trace, Parser_State.Label, "recover_insert_delete" &
+                          Parser_State.Recover_Insert_Delete_Current'Image & ":" &
+                          Image (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
                      Put_Line
                        (Trace, Parser_State.Label, "inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token),
                         Task_ID => False);
@@ -619,7 +652,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    exception
    when E : others =>
       if Debug_Mode then
-         Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+         Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E), Prefix => True);
+         Trace.New_Line;
          raise;
       else
          return Fail_Programmer_Error;
@@ -1136,7 +1170,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID)
    is begin
-      pragma Assert (Config.Stack.Depth > 1);
       Check (Config.Stack.Peek (1).Token.ID, Expected_ID);
       Push_Back (Config);
    end Push_Back_Check;
@@ -1144,7 +1177,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Push_Back_Check (Config : in out Configuration; Expected : in Token_ID_Array)
    is begin
       for ID of Expected loop
-         Push_Back_Check (Config, ID);
+         if Push_Back_Valid (Config) then
+            Push_Back_Check (Config, ID);
+         else
+            raise Bad_Config;
+         end if;
       end loop;
    end Push_Back_Check;
 
@@ -1225,7 +1262,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          return 0;
       end if;
       declare
-         Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
+         Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
       begin
          for C of Children loop
             Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));

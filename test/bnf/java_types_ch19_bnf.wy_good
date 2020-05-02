@@ -45,20 +45,24 @@ AnnotationList
   ;
 
 Annotation
-  : AT ClassType  ;
+  : AT ClassType
+  ;
 
 ClassType
-  : AnnotationList Identifier TypeArguments  | AnnotationList Identifier
+  : AnnotationList Identifier TypeArguments
+  | AnnotationList Identifier
   | Identifier TypeArguments
   | Identifier
   ;
 
 TypeArguments
-  : LESS TypeArgumentList GREATER  ;
+  : LESS TypeArgumentList GREATER
+  ;
 
 TypeArgumentList
   : TypeArgument
-  | TypeArgumentList COMMA TypeArgument  ;
+  | TypeArgumentList COMMA TypeArgument
+  ;
 
 TypeArgument
   : ClassType
@@ -71,8 +75,9 @@ ArrayType
   ;
 
 Dims
-  : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_012_list  | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_027_list
+  : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
+  | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
   ;
 
@@ -82,22 +87,19 @@ PrimitiveType
   ;
 
 NumericType
-  : BYTE  | SHORT  | INT  | LONG  | CHAR  ;
+  : BYTE
+  | SHORT
+  | INT
+  | LONG
+  | CHAR
+  ;
 
 ;; end of file
-nonterminal_013
+nonterminal_023
   : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
   ;
-nonterminal_012_list
-  : nonterminal_013
-  | nonterminal_012_list nonterminal_013
-  ;
-nonterminal_028
-  : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  ;
-nonterminal_027_list
-  : nonterminal_028
-  | nonterminal_027_list nonterminal_028
+nonterminal_022_list
+  : nonterminal_023
+  | nonterminal_022_list nonterminal_023
   ;

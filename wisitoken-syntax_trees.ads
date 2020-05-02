@@ -7,7 +7,7 @@
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 
 --  There is one syntax tree for each parser. There is one shared
 --  Terminals array, matching the actual input text.
@@ -41,6 +41,9 @@ package WisiToken.Syntax_Trees is
 
    type Tree is new Ada.Finalization.Controlled with private;
 
+   type Tree_Variable_Reference (Element : access Tree) is null record with
+     Implicit_Dereference => Element;
+
    procedure Initialize
      (Branched_Tree : in out Tree;
       Shared_Tree   : in     Base_Tree_Access;
@@ -49,18 +52,6 @@ package WisiToken.Syntax_Trees is
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
-
-   type Node_Index is range 0 .. Integer'Last;
-   subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
-
-   Invalid_Node_Index : constant Node_Index := Node_Index'First;
-
-   type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
-   --  Index matches Base_Token_Array, Augmented_Token_Array
-
-   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
-   --  Index matches Valid_Node_Index_Array.
 
    type Node_Label is
      (Shared_Terminal,    -- text is user input, accessed via Parser.Terminals
@@ -92,19 +83,44 @@ package WisiToken.Syntax_Trees is
 
    procedure Lexer_To_Augmented
      (User_Data : in out          User_Data_Type;
+      Tree      : in out          Syntax_Trees.Tree'Class;
       Token     : in              Base_Token;
       Lexer     : not null access WisiToken.Lexer.Instance'Class)
      is null;
    --  Read auxiliary data from Lexer, do something useful with it.
-   --  Called before parsing, once for each token in the input stream.
+   --  Called before parsing, once for each token in the input stream. If
+   --  Token is a grammar token, client can use Tree.Set_Augmented
+   --  (Token.Tree_Node).
+
+   function Insert_After
+     (User_Data : in out User_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      Token     : in     Valid_Node_Index)
+     return Boolean;
+   --  Return True if ID should be treated as if inserted after the
+   --  previous shared terminal, rather than before the next (which is
+   --  the default). This can affect which line it appears on, which
+   --  affects indentation. Called from Insert_Token.
+   --
+   --  The default implementation always returns False.
+
+   procedure Insert_Token
+     (User_Data : in out User_Data_Type;
+      Tree      : in out Syntax_Trees.Tree'Class;
+      Token     : in     Valid_Node_Index)
+   is null;
+   --  Token was inserted in error recovery; update other tokens and Tree
+   --  as needed. Called from Execute_Actions for each inserted token,
+   --  before processing the syntax tree.
 
    procedure Delete_Token
      (User_Data   : in out User_Data_Type;
+      Tree        : in out Syntax_Trees.Tree'Class;
       Token_Index : in     WisiToken.Token_Index)
    is null;
    --  Token at Token_Index was deleted in error recovery; update
-   --  remaining tokens and Tree as needed. Called from Execute_Actions
-   --  for each deleted token, before processing the syntax tree.
+   --  remaining tokens as needed. Called from Execute_Actions for each
+   --  deleted token, before processing the syntax tree.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -150,7 +166,7 @@ package WisiToken.Syntax_Trees is
    --  after children of Last are copied. Return root of new subtree.
    --
    --  Node index order is preserved. References to objects external to
-   --  tree are shallow copied.
+   --  tree are shallow copied (Terminals, Augmented).
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
@@ -175,11 +191,21 @@ package WisiToken.Syntax_Trees is
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Token_ID)
+      Terminal : in     Token_ID;
+      Before   : in     Base_Token_Index := Invalid_Token_Index)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new Virtual_Terminal node with no parent. Result points to
-   --  the added node.
+   --  Add a new Virtual_Terminal node with no parent. Before is the
+   --  index of the terminal in Terminals that this virtual is inserted
+   --  before during error correction; if Invalid_Token_Index, it is
+   --  inserted during EBNF translation, and there is no such terminal in
+   --  Terminals. Result points to the added node.
+
+   function Before
+     (Tree             : in Syntax_Trees.Tree;
+      Virtual_Terminal : in Valid_Node_Index)
+     return Base_Token_Index
+   with Pre => Tree.Is_Virtual_Terminal (Virtual_Terminal);
 
    function Add_Identifier
      (Tree        : in out Syntax_Trees.Tree;
@@ -251,8 +277,12 @@ package WisiToken.Syntax_Trees is
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   --  Virtual_Terminal, Virtual_Identifier, or Nonterm that contains some Virtual tokens.
+
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
@@ -308,22 +338,23 @@ package WisiToken.Syntax_Trees is
      (Tree  : in Syntax_Trees.Tree;
       Nodes : in Valid_Node_Index_Array)
      return WisiToken.Recover_Token_Array;
-   --  For non-virtual terminals, copied from Tree.Terminals. For others,
-   --  constructed from Tree data.
 
    procedure Set_Augmented
      (Tree  : in out Syntax_Trees.Tree;
       Node  : in     Valid_Node_Index;
-      Value : in     Base_Token_Class_Access)
-   with Pre => Tree.Is_Nonterm (Node);
+      Value : in     Base_Token_Class_Access);
    --  Value will be deallocated when Tree is finalized.
 
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
-     return Base_Token_Class_Access
-   with Pre => Tree.Is_Nonterm (Node);
+     return Base_Token_Class_Access;
    --  Returns result of Set_Augmented.
+
+   function Augmented_Const
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Base_Token_Class_Access_Constant;
 
    function Action
      (Tree : in Syntax_Trees.Tree;
@@ -378,24 +409,6 @@ package WisiToken.Syntax_Trees is
    --  Return the descendant of Node (may be Node) for which Predicate
    --  returns True, or Invalid_Node_Index if none do.
 
-   function Find_Min_Terminal_Index
-     (Tree  : in Syntax_Trees.Tree;
-      Index : in Token_Index)
-     return Node_Index
-   with Post => Find_Min_Terminal_Index'Result = Invalid_Node_Index or else
-                Tree.Is_Nonterm (Find_Min_Terminal_Index'Result);
-   --  Return the first node whose Min_Terminal_Index is Index, or
-   --  Invalid_Node_Index if none match.
-
-   function Find_Max_Terminal_Index
-     (Tree  : in Syntax_Trees.Tree;
-      Index : in Token_Index)
-     return Node_Index
-   with Post => Find_Max_Terminal_Index'Result = Invalid_Node_Index or else
-                Tree.Is_Nonterm (Find_Max_Terminal_Index'Result);
-   --  Return the first node whose Max_Terminal_Index is Index, or
-   --  Invalid_Node_Index if none match.
-
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
@@ -415,13 +428,17 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Virtual_Identifier (Node);
 
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
-   with Pre => Tree.Is_Terminal (Node);
+   with Pre => Tree.Is_Shared_Terminal (Node);
 
-   function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
-   function Max_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
-   --  Returns lowest/highest index of shared terminal in subtree under
-   --  Node. If result is Invalid_Token_Index, all terminals are virtual,
-   --  or a nonterm is empty.
+   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
+   --  Returns first shared terminal in subtree under Node
+   --  (ignoring virtual terminals). If result is Invalid_Token_Index,
+   --  all terminals are virtual, or a nonterm is empty.
+
+   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
+   --  Returns last shared terminal in subtree under Node (ignoring
+   --  virtual terminals). If result is Invalid_Token_Index, all
+   --  terminals are virtual, or a nonterm is empty.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
    --  Return sequence of terminals in Node.
@@ -429,11 +446,27 @@ package WisiToken.Syntax_Trees is
    --  "Terminals" can be Shared_Terminal, Virtual_Terminal,
    --  Virtual_Identifier.
 
+   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   --  First of Get_Terminals. Invalid_Node_Index if Node is an empty nonterminal.
+
+   function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   --  Last of Get_Terminals. Invalid_Node_Index if Node is an empty nonterminal.
+
+   function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   with Pre => Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+   --  Return the terminal that is immediately before Node in Tree;
+   --  Invalid_Node_Index if Node is the first terminal in Tree.
+
+   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   with Pre => Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+   --  Return the terminal that is immediately after Node in Tree;
+   --  Invalid_Node_Index if Node is the last terminal in Tree.
+
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
    --  Same as Get_Terminals, but return the IDs.
 
    function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID;
-   --  First of Get_Terminal_IDs
+   --  First of Get_Terminal_IDs; Invalid_Token_ID if Node is empty.
 
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;
@@ -466,13 +499,18 @@ package WisiToken.Syntax_Trees is
      return String;
    --  Simple list of numbers, for debugging
 
+   type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
+
    procedure Print_Tree
-     (Tree       : in Syntax_Trees.Tree;
-      Descriptor : in WisiToken.Descriptor;
-      Root       : in Node_Index := Invalid_Node_Index)
+     (Tree            : in Syntax_Trees.Tree;
+      Descriptor      : in WisiToken.Descriptor;
+      Root            : in Node_Index                   := Invalid_Node_Index;
+      Image_Augmented : in Syntax_Trees.Image_Augmented := null)
    with Pre => Tree.Flushed;
    --  Print tree rooted at Root (default Tree.Root) to
-   --  Text_IO.Current_Output, for debugging.
+   --  Text_IO.Current_Output, for debugging. For each node,
+   --  Image_Augmented is called if it is not null and node.augmented is
+   --  not null.
 
 private
    use all type Ada.Containers.Count_Type;
@@ -492,12 +530,14 @@ private
       --  Parse state that was on stack with this token, to allow undoing a
       --  reduce.
 
+      Augmented : Base_Token_Class_Access := null;
+
       case Label is
       when Shared_Terminal =>
          Terminal : Token_Index; -- into Parser.Terminals
 
       when Virtual_Terminal =>
-         null;
+         Before : Base_Token_Index := Invalid_Token_Index; -- into Parser.Terminals
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
@@ -520,11 +560,6 @@ private
 
          Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
          --  Cached for push_back of nonterminals during recovery
-
-         Max_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
-         --  Cached for building a WisiToken tree from a libadalang tree.
-
-         Augmented : Base_Token_Class_Access := null;
       end case;
    end record;
 
@@ -578,5 +613,24 @@ private
             Branched_Nodes.Length = 0
          else Last_Shared_Node <= Shared_Tree.Nodes.Last_Index and
             Last_Shared_Node < Branched_Nodes.First_Index));
+
+   subtype Node_Const_Ref is Node_Arrays.Constant_Reference_Type;
+   subtype Node_Var_Ref is Node_Arrays.Variable_Reference_Type;
+
+   function Get_Node_Const_Ref
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Node_Const_Ref
+   is (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes.Constant_Ref (Node)
+         else Tree.Branched_Nodes.Constant_Ref (Node));
+
+   function Get_Node_Var_Ref
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Node_Var_Ref
+   is (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes.Variable_Ref (Node)
+         else Tree.Branched_Nodes.Variable_Ref (Node));
 
 end WisiToken.Syntax_Trees;

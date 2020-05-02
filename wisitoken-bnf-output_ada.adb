@@ -187,8 +187,8 @@ is
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                      Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
-                     Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
-                     Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+                     Indent_Line ("  Nonterm   : in     WisiToken.Valid_Node_Index;");
+                     Indent_Line ("  Tokens    : in     WisiToken.Valid_Node_Index_Array)");
                      Indent_Line ("is");
 
                      Indent := Indent + 3;

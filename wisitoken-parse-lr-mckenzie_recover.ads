@@ -30,6 +30,7 @@ with Ada.Task_Attributes;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
 package WisiToken.Parse.LR.McKenzie_Recover is
+   use all type Ada.Containers.Count_Type;
 
    Bad_Config : exception;
    --  Raised when a config is determined to violate some programming
@@ -51,7 +52,6 @@ package WisiToken.Parse.LR.McKenzie_Recover is
    --  and forces at least three.
 
 private
-   use all type WisiToken.Syntax_Trees.Node_Index;
 
    ----------
    --  Visible for language-specific child packages. Alphabetical.
@@ -210,20 +210,31 @@ private
       Prev_Op         : in Positive_Index_Type)
      return Boolean;
 
-   procedure Push_Back (Config : in out Configuration);
+   function Push_Back_Valid (Config : in Configuration) return Boolean
+     is (Config.Stack.Depth > 1 and then
+           (not Config.Stack.Peek.Token.Virtual and
+              --  If Virtual, this is from earlier in this recover session; no point
+              --  in trying to redo it.
+              (Config_Op_Arrays.Length (Config.Ops) = 0 or else
+                 Push_Back_Valid
+                   (Config.Stack.Peek.Token.Min_Terminal_Index,
+                    Config.Ops,
+                    Config_Op_Arrays.Last_Index (Config.Ops)))));
+
+   procedure Push_Back (Config : in out Configuration)
+   with Pre => Push_Back_Valid (Config);
    --  Pop the top Config.Stack item, set Config.Current_Shared_Token to
    --  the first terminal in that item. If the item is empty,
    --  Config.Current_Shared_Token is unchanged.
-   --
-   --  If any earlier Insert or Delete items in Config.Ops are for a
-   --  token_index after that first terminal, they are added to
-   --  Config.Insert_Delete in token_index order.
 
-   procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID);
+   procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID)
+   with Pre => Push_Back_Valid (Config);
    --  In effect, call Check and Push_Back.
 
    procedure Push_Back_Check (Config : in out Configuration; Expected : in Token_ID_Array);
    --  Call Push_Back_Check for each item in Expected.
+   --
+   --  Raises Bad_Config if any of the push_backs is invalid.
 
    procedure Put
      (Message      : in     String;
@@ -253,9 +264,9 @@ private
      --  an empty nonterm. If Token.Virtual, we can't trust
      --  Token.Byte_Region to determine empty.
      is (Stack.Depth > 1 and then
-           ((Stack.Peek.Tree_Index /= WisiToken.Syntax_Trees.Invalid_Node_Index and then
+           ((Stack.Peek.Tree_Index /= Invalid_Node_Index and then
                Tree.Is_Nonterm (Stack.Peek.Tree_Index)) or
-              (Stack.Peek.Tree_Index = WisiToken.Syntax_Trees.Invalid_Node_Index and
+              (Stack.Peek.Tree_Index = Invalid_Node_Index and
                  (not Stack.Peek.Token.Virtual and
                     Stack.Peek.Token.Byte_Region = Null_Buffer_Region))));
 

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -37,7 +37,7 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    procedure Push
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Tokens    : in     WisiToken.Valid_Node_Index_Array;
       Arg_Index : in     WisiToken.Positive_Index_Type)
    is
       Data   : User_Data_Type renames User_Data_Type (User_Data);
@@ -49,7 +49,7 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    procedure Subtract
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+      Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
       pragma Unreferenced (Tree, Tokens);
 
