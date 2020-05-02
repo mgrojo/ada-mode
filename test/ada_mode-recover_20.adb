@@ -10,13 +10,13 @@ begin
          (Prev_1 = -With_ID and
             (Prev_3 = Invalid_Token_ID or
                Prev_3 /= Left_Paren_ID))
-         -- missing paren around this; mixed boolean operators.
+     -- missing paren around this; mixed boolean operators.
      or
      ()
    then
-      --  missing 'end if;'
+   --  missing 'end if;' - all inserted after 'then'.
 
-   end Ada_Mode.Recover_20;
+end Ada_Mode.Recover_20;
 -- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

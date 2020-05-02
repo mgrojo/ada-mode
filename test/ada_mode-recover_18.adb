@@ -8,5 +8,5 @@ is begin
    return Result : String := Item do
       for I in Result'Range loop
          if Result (I) = '+' then
-            --  missing 'end if; end loop; end return;'
+   --  missing 'end if; end loop; end return;'
 end Ada_Mode.Recover_18;

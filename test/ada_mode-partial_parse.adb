@@ -46,7 +46,7 @@ is
 
       if A then
          I := I + 1 -- missing semicolon
-         end if;
+      end if;
    end Nested;
 
    --  There can be several compilation_units in a requested parse region.

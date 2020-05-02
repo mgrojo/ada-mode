@@ -19,8 +19,8 @@ package body Wisi.Libadalang is
 
                procedure Find_Production
                is begin
-               --  extra 'begin'. The cheapest solution inserts 'begin' after 'Prod
-               -- :', turning that into a block label.
+                  --  extra 'begin'. The cheapest solution inserts 'begin' after 'Prod
+                  -- :', turning that into a block label.
                Prod : WisiToken.Productions.Instance renames Grammar
                  (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
                      begin

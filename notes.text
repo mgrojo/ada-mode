@@ -47,46 +47,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-use virtual terminals in indent
-    distinguish between "insert before", "insert after"
-        in Insert_Token
-        test/ada_mode-recover_20.adb
-            'end if;' should _all_ be inserted after 'then'
+test/ada_mode-recover_partial_02_lr1.adb
+    add language_fix to push_back to before '('
+    add paren to descriptor, add this in -explore?
 
-        test/ada_mode-recover_13.adb
-            ';' inserted before 'begin'
-
-        many others
-
-        move prev token non_grammar to inserted right_paren?
-        same for 'end', ';' - ada-specific.
-
-
-
-    all ada-mode tests
-        test-ada-lalr-process-gpr_query
-wisi: parsing indent ada_mode-recover_partial_12.adb:1 869 1 ...
-wisi--run-parse: wisi parse error: "SAL.PROGRAMMER_ERROR: wisitoken-parse-lr-mckenzie_recover-explore.adb:1320"
-    string_literal_in_stack parse fail
-        not in command line
-        not when repeat in Emacs test
-        yes when repeat run Emacs test. sigh.
-
-
-    wisi-ada.adb Indent_record FIXME: virtual tokens
-
-    language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
-        selected_component 1
-
-    association_opt is wisi-hanging, if_statement is wisi-hanging%
-
-    search for other occurences of "foo is virtual; return null_indent"
-        add test cases
-
-    replace line_begin_pos, line_paren_state by line_begin_token?
-        fetch aug to get data
-
-propagate
+language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
+    selected_component 1
 
 error in resume:   test/ada_mode-recover_35.adb
 recover timed out: test/ada_mode-recover_34.adb
@@ -161,6 +127,9 @@ could elminate wisi.parse_data_type.terminals
 
     search is less efficient
     more portable to other parsers
+
+    replace line_begin_pos, line_paren_state by line_begin_token?
+        fetch aug to get data
 
 lsp-mode has mechanism to download and install servers
     adapt that for compiled wisi exes?
@@ -816,6 +785,9 @@ support for "Adadoc"?
 https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
+
+wisi.adb insert_token
+    p data.descriptor.image (tree.shared_tree.nodes.elements (token).id).all
 
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:

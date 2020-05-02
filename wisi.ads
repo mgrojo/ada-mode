@@ -35,6 +35,9 @@ with WisiToken.Syntax_Trees;
 package Wisi is
    use all type WisiToken.Base_Buffer_Pos;
 
+   function Image (Aug : in WisiToken.Base_Token_Class_Access; Descriptor : in WisiToken.Descriptor) return String;
+   --  For Syntax_Trees.Print_Tree
+
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
    type Parse_Data_Type

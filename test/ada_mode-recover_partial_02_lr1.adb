@@ -19,8 +19,10 @@ begin
 		  if Op.Token_Index = Data.Terminals.Last_Index then
 
 		     -- Editing condition left next line exposed, with extra right paren.
+		     --
 		     -- Desired solution: insert <if> before '(' to match final 'then',
-		     -- delete last ')', after 'then' insert 'end if; ...'.
+		     -- delete last ')', after 'then' insert 'end if; ...', but recover
+		     -- does not find that.
 
-		       (not Data.Terminals (Op.Token_Index + 1).First))
+		     (not Data.Terminals (Op.Token_Index + 1).First))
 		     then

@@ -30,7 +30,7 @@ package body Ada_Mode.Recover_22 is
                   end if;
                end if;
 
-               --  Error detected here; 'end if;' inserted here.
+            --  Error detected here; 'end if;' inserted after previous 'end if;'.
          exception
             when Bad_Config =>
                null;

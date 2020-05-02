@@ -200,6 +200,13 @@ package body Run_Wisi_Common_Parse is
 
       Start     : Ada.Real_Time.Time;
       End_Line  : WisiToken.Line_Number_Type;
+
+      function Image_Augmented (Aug : in Base_Token_Class_Access) return String
+      is begin
+         --  For Syntax_Trees.Print_Tree
+         return Wisi.Image (Aug, Descriptor);
+      end Image_Augmented;
+
    begin
       Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
 
@@ -289,7 +296,7 @@ package body Run_Wisi_Common_Parse is
                   null;
                end;
 
-               Parser.Execute_Actions;
+               Parser.Execute_Actions (Image_Augmented'Unrestricted_Access);
 
                case Cl_Params.Command is
                when Parse =>

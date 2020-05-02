@@ -17,11 +17,11 @@ package body Ada_Mode.Recover_8 is
          for B in Prod.Rhss.First_Index .. Prod.Rhss.Last_Index loop
             declare
 
-            if Prod.Lhs = Rhs.Tokens (Item.Dot) then
+               if Prod.Lhs = Rhs.Tokens (Item.Dot) then
 
                   Beta := Next (Item.Dot);
                end if;
-            end loop For_Each_Rhs;
+         end loop For_Each_Rhs;
       end loop For_Each_Production;
 
    end Closure;

@@ -113,6 +113,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_partial_21.adb",
       "ada_mode-recover_partial_22.adb",
       "ada_mode-recover_partial_23.adb",
+      "ada_mode-recover_partial_24.adb",
       "ada_mode-recover_renaming_1.adb",
       "ada_mode-recover_repair_1.adb",
       "ada_mode-recover_string_quote_1.adb",

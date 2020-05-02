@@ -69,6 +69,11 @@ package body Wisi is
       end loop;
    end Adjust_Paren_State;
 
+   function Image (Aug : in WisiToken.Base_Token_Class_Access; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      return Image (Augmented_Token_Access (Aug).all, Descriptor);
+   end Image;
+
    function Image (Anchor_IDs : in Anchor_ID_Vectors.Vector) return String
    is
       use Ada.Strings.Unbounded;
@@ -464,7 +469,7 @@ package body Wisi is
          Deleted_Region := Null_Buffer_Region;
       end Terminate_Edit_Region;
    begin
-      if Trace_Action > Detail then
+      if Trace_Action > Outline then
          Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item.Ops, Data.Descriptor.all));
       end if;
 
@@ -841,12 +846,11 @@ package body Wisi is
 
       --  Set data that allows using Token when computing indent.
 
-      ID            : constant Token_ID   := Tree.ID (Token);
       Prev_Terminal : constant Node_Index := Tree.Prev_Terminal (Token);
       --  Invalid_Token_Index if Token is inserted before first grammar token
 
       Insert_After : constant Boolean := (Before_Aug.First and Prev_Terminal /= Invalid_Node_Index) and then
-        Parse_Data_Type'Class (Data).Insert_After (ID);
+        Parse_Data_Type'Class (Data).Insert_After (Tree, Token);
 
       Line : constant Line_Number_Type :=
         (if Insert_After then Get_Aug_Token_Const_1 (Tree, Prev_Terminal).Line else Before_Aug.Line);
@@ -861,20 +865,10 @@ package body Wisi is
       New_Aug : constant Augmented_Token_Access := new Augmented_Token'
         (ID                          => Tree.ID (Token),
          Tree_Index                  => Token,
-         Byte_Region                 =>
-           (if Insert_After
-            then (First | Last => Data.Terminals.all
-                    (Data.Line_Begin_Token.all (Before_Aug.Line)).Byte_Region.First - 2)
-            --  Line_Begin - 1 is newline.
-
-            else (First | Last => Before_Aug.Byte_Region.First)),
-
-         Line                  => Line,
-         Column                => Before_Aug.Column,
-         Char_Region           =>
-           (if Insert_After
-            then (First | Last => Data.Line_Begin_Char_Pos (Before_Aug.Line) - 2)
-            else (First | Last => Before_Aug.Char_Region.First)),
+         Byte_Region                 => (First | Last => Before_Aug.Byte_Region.First), -- reset for Insert_After below
+         Line                        => Line,
+         Column                      => Before_Aug.Column,
+         Char_Region                 => (First | Last => Before_Aug.Char_Region.First),
          Deleted                     => False,
          First                       => (if Insert_After then False else Before_Aug.First),
          Paren_State                 => Before_Aug.Paren_State,
@@ -899,11 +893,16 @@ package body Wisi is
       end if;
 
       if Insert_After then
-         --  Move non_grammar from previous token to this one. See comment
-         --  after inserted right_paren in test/ada_mode-recover_20.adb.
          declare
+            use all type Ada.Text_IO.Count;
             Prev_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Tree, Prev_Terminal);
          begin
+            New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
+            New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
+            New_Aug.Column      := Prev_Aug.Column + Ada.Text_IO.Count (Length (New_Aug.Char_Region)) - 1;
+
+         --  Move non_grammar from previous token to this one. See comment
+         --  after inserted right_paren in test/ada_mode-recover_20.adb.
             New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
             Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
 
@@ -1731,12 +1730,12 @@ package body Wisi is
    is
       use all type Ada.Containers.Count_Type;
 
-      Last_Term : constant Base_Token_Index := Parser.Tree.Last_Shared_Terminal (Parser.Tree.Root);
+      Last_Term : constant Node_Index := Parser.Tree.Last_Terminal (Parser.Tree.Root);
 
       function Get_Last_Char_Pos return Buffer_Pos
       is begin
 
-         if Last_Term = Invalid_Token_Index then
+         if Last_Term = Invalid_Node_Index then
             --  All comments, or empty
             if Data.Leading_Non_Grammar.Length > 0 then
                return Data.Leading_Non_Grammar (Data.Leading_Non_Grammar.Last_Index).Char_Region.Last;
@@ -1745,7 +1744,7 @@ package body Wisi is
             end if;
          else
             declare
-               Aug : Aug_Token_Const_Ref renames Get_Aug_Token_Const (Data, Parser.Tree, Last_Term);
+               Aug : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Parser.Tree, Last_Term);
             begin
                if Aug.Non_Grammar.Length = 0 then
                   return Aug.Char_Region.Last;
@@ -1914,7 +1913,7 @@ package body Wisi is
                   when Ok => "",
                   when Error =>
                      Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name)) &
-                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
+                       Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
                        " ""block name error""]"));
 
          when Parse.LR.Message =>
@@ -2061,7 +2060,7 @@ package body Wisi is
    is
       ID_Image : constant String := Image (Item.ID, Descriptor);
    begin
-      if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
+      if Item.Line /= Invalid_Line_Number then
          return "(" & ID_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Trimmed_Image (Integer (Item.Column)) & ")";
 

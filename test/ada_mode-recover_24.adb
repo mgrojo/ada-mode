@@ -23,10 +23,11 @@ package body Ada_Mode.Recover_24 is
 
       Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
       Local_Config_Heap.Add (Parsed_Config);
-      end if;
-      -- now this is an extra 'end if;', expecting 'end loop;'
-      -- recover deletes 'if', matching this with 'fuction fast_forward'
-   end;
+   end if;
+   -- now this is an extra 'end if;'.
+   -- recover deletes 'if', matching this with 'function fast_forward'
+
+end;
 end loop;
 return Abandon;
 end Fast_Forward;

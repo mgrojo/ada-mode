@@ -35,14 +35,6 @@ package body Wisi.Ada is
    is
       use Ada_Process_Actions;
    begin
-      if Anchor_Token.Byte_Region = Null_Buffer_Region or
-        Record_Token.Byte_Region = Null_Buffer_Region or
-        Indenting_Token.Byte_Region = Null_Buffer_Region
-      then
-         --  FIXME: handle virtual tokens
-         return Null_Delta;
-      end if;
-
       if not Indenting_Comment and Indenting_Token.ID = +RECORD_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
@@ -524,20 +516,51 @@ package body Wisi.Ada is
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
    end Initialize;
 
-   overriding function Insert_After (User_Data : in out Parse_Data_Type; ID : in WisiToken.Token_ID) return Boolean
+   overriding function Insert_After
+     (User_Data : in out Parse_Data_Type;
+      Tree      : in     WisiToken.Syntax_Trees.Tree'Class;
+      Token     : in     WisiToken.Valid_Node_Index)
+     return Boolean
    is
       pragma Unreferenced (User_Data);
       use Ada_Process_Actions;
 
+      --  We return True if Token affects indent (ie it is a block boundary)
+      --  and normally has no code following it on the same line.
+      --
+      --  'end' is
+      --  not really an exception, it is normally followed by <name> and
+      --  ';', but no more code.
+      --
+      --  RIGHT_PAREN is an exception; it is often followed by more code,
+      --  but clearly belongs on the same line as the preceding token (often
+      --  other ')').
+      --
+      --  COLON is similar to RIGHT_PAREN.
+
+      ID : constant Token_ID := Tree.ID (Token);
+
       Result : constant array (Ada_Process_Actions.Token_Enum_ID) of Boolean :=
-        (
-         --  End_ID | -- need test case
+        (BEGIN_ID |         -- test/ada_mode-recover_exception_1.adb, test/ada_mode-recover_extra_declare.adb
+           COLON_ID |       -- test/ada_mode-recover_partial_22.adb
+           DECLARE_ID |
+           END_ID |         -- test/ada_mode-recover_20.adb
            RIGHT_PAREN_ID | -- test/ada_mode-recover_20.adb
-           SEMICOLON_ID     -- test/ada_mode-recover_13.adb
+           SEMICOLON_ID |   -- test/ada_mode-recover_13.adb
+           THEN_ID          -- test/ada_mode-recover_19
                 => True,
          others => False);
    begin
-      return Result (-ID);
+      case To_Token_Enum (ID) is
+      when CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID =>
+         return -Tree.ID (Tree.Prev_Terminal (Token)) = END_ID;
+
+      when IDENTIFIER_ID =>
+         return -Tree.ID (Tree.Prev_Terminal (Token)) in END_ID | COLON_ID;
+
+      when others =>
+         return Result (-ID);
+      end case;
    end Insert_After;
 
    overriding
@@ -766,11 +789,6 @@ package body Wisi.Ada is
       Renames_Tok : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Tree, Tree_Indenting);
       Paren_I     : Node_Index;
    begin
-      if Subp_Tok.Char_Region = Null_Buffer_Region then
-         --  built from entirely virtual tokens
-         return Null_Delta;
-      end if;
-
       Paren_I := Tree.Find_Descendant (Subp_Node, Data.Left_Paren_ID);
 
       if Paren_I /= Invalid_Node_Index then
@@ -925,3 +943,6 @@ package body Wisi.Ada is
    end Ada_Indent_Record_1;
 
 end Wisi.Ada;
+--  Local Variables:
+--  ada-case-strict: nil
+--  End:

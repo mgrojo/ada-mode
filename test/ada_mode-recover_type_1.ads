@@ -8,7 +8,7 @@ package Ada_Mode.Recover_Type_1 is
    type Derivs (Label : Derivs_Label) is record
       case Label is
          when Dvdecimal=>
-            --  missing 'end case; end record;' recover inserts that before 'procedure'
+   --  missing 'end case; end record;' recover inserts that at end of previous line.
 
    procedure Parse (Input : in String)
    is begin
