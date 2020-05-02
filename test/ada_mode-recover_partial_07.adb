@@ -12,6 +12,6 @@ begin
       Cost_Delta,
       Strategy   => Minimal_Complete);
 end;
--- recover inserts 'case when => if then', indents 'end if;'.
-      end if;
+-- recover inserts 'case when => if then', indents 'case'.
+end if;
 end case;

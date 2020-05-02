@@ -21,20 +21,18 @@ is begin
                if (for some C of Content => C = Ascii.Nul) then
                   raise SAL.Not_Supported with "multiple strings";
 
-                  --  error on 'when'; missing stuff. Desired solution is:
-                  --
-                  --  (insert ')); end if; end;)
-                  --
-                  --  but error recovery finds a cheaper solution that turns the
-                  -- following lines into an arg list for 'To_String_List'.
+                  -- error on 'when'; missing stuff. Error recover finds the desired
+                  -- solution:
+                  --  (insert 'case is'), then later (insert ')); end if; end;')
                   return
                     (Header, To_String_List (
-                                                when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
-                                                   raise SAL.Not_Implemented with "UTF-16 string";
+                                             when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
+                                                raise SAL.Not_Implemented with "UTF-16 string";
 
          when others =>
             raise SAL.Invalid_Format;
       end case;
+   --  Another error here; missing 'end if;'
 end Slow_Recover_4;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

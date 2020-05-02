@@ -814,6 +814,8 @@ Usefull if the parser appears to be hung."
 	    nil))
 	 (setq wisi-parse-failed t)
 	 ;; parser should have stored this error message in parser-error-msgs
+	 (when (> wisi-debug 0)
+	   (signal (car err) (cdr err)))
 	 )
 	(error
 	 ;; parser failed for other reason

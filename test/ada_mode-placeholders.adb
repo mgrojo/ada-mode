@@ -2,7 +2,7 @@
 
 --EMACSCMD:(setq skip-recase-test t)
 
---  Missing '}'
+--  Missing '}'; lexer terminates placeholder at end of line, as specified in COMMENT regexp.
 {hea
 procedure Ada_Mode.Placeholders
 is begin

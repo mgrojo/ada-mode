@@ -2,7 +2,10 @@
 --
 -- We only test the face of one keyword from each of the
 -- ada-*-casing-versions; enough to tell that the choice via file
--- local variable works.
+-- local variable works. The face is set by font-lock-keywords, not
+-- the parser. The parser fails, since this is really bad syntax;
+-- don't abort for that.
+--EMACSCMD:(setq wisi-debug 0)
 
 --EMACSCMD:(setq skip-reindent-test t)
 --EMACSCMD:(setq case-fold-search nil)

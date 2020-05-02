@@ -8,9 +8,6 @@
 
 -- We don't disable the casing test; that is important during interactive editing.
 
--- Since we are editing, the syntax will be illegal at times; don't fail for that.
---EMACSCMD:(setq wisi-debug 0)
-
 -- Test the buffer does parse
 --EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-parse-errors wisi--parser)))
 --EMACSRESULT:0

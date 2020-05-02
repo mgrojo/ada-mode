@@ -2,7 +2,7 @@
 --
 --  Test partial parser
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,7 +30,7 @@ is
    --  test-face will invoke the parser on Nested, not the full file.
    procedure Nested
      (Arg_1 : Integer;
-      Arg_2 : Integer);
+      Arg_2 : Integer)
    is
       --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
       use Ada.Strings; -- target 1

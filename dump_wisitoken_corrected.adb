@@ -42,7 +42,7 @@ is
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Ada_Process_Actions.Descriptor'Unrestricted_Access);
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
-   function Image (Node : in WisiToken.Syntax_Trees.Valid_Node_Index) return String
+   function Image (Node : in WisiToken.Valid_Node_Index) return String
    is
       use Ada_Process_Actions;
       use WisiToken.Syntax_Trees;
@@ -84,7 +84,7 @@ is
    begin
       if Tree.Label (Node) = Shared_Terminal then
          declare
-            Token : Base_Token renames Parser.Terminals (Tree.Min_Terminal_Index (Node));
+            Token : Base_Token renames Parser.Terminals (Tree.First_Shared_Terminal (Node));
          begin
             if -ID = IDENTIFIER_ID then
                return "IDENTIFIER " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
@@ -162,7 +162,7 @@ begin
    end if;
 
    declare
-      Terminals : constant Syntax_Trees.Valid_Node_Index_Array := Parser.Tree.Get_Terminals (Parser.Tree.Root);
+      Terminals : constant Valid_Node_Index_Array := Parser.Tree.Get_Terminals (Parser.Tree.Root);
    begin
       for T of Terminals loop
          Put_Line (Image (T));

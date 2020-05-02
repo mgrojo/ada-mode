@@ -6,7 +6,6 @@
 -- there is no code begin point between point and bob.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
---EMACSCMD:(setq wisi-debug 1) ;; abort on parse fail
 --EMACSCMD:(wisi-fontify-region (progn (search-forward "pragma")(point)) (point-max))
 
 pragma License (Modified_Gpl);
@@ -27,6 +26,6 @@ package Wisitoken.Syntax_Trees is
    --  Copy any allocated storage.
 
    type Tree is tagged private;
-   -- Local Variables:
-   -- wisi-partial-parse-threshold: 0
-   -- End:
+-- Local Variables:
+-- wisi-partial-parse-threshold: 0
+-- End:

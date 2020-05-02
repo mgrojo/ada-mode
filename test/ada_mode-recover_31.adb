@@ -1,4 +1,4 @@
---  Add a character to a character_literal need to convert to a string.
+-- Adding a character to a character_literal; Language_Fixes converts it to a string.
 
 procedure Ada_Mode.Recover_31
 is begin

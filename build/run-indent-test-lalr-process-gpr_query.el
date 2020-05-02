@@ -13,8 +13,7 @@
 
 (require 'run-indent-test)
 
-;; don’t report parse errors; recover from them!
 (setq debug-on-error nil)
-(setq wisi-debug 0)
+(setq wisi-debug 1);; enable wisitoken.debug_mode, abort on non-syntax errors
 
 ;;; end of file

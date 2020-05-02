@@ -8,34 +8,34 @@ o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): forbid push_back after any ops
+o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-state-multiple
-'((xmtn . "/Projects/org.stephe_leake.makerules")
-  (xmtn . "/Projects/org.stephe_leake.sal")
-  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "/Projects/org.wisitoken")
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.wisitoken")
   (xgit . "/Projects/elpa") ;; for uniquify-files
-  (xmtn . "/Projects/org.emacs.ada-mode/")))
+  (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(
- ;; ("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
+ ;;("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2")))
+'((xgit . "c:/Projects/org.stephe_leake.makerules")
+  (xgit . "c:/Projects/org.stephe_leake.sal")
+  (xgit . "c:/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "c:/Projects/org.wisitoken.stephe-2")
+  (xgit . "c:/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(
  ;; ("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -58,11 +58,12 @@ hide wisi syntax errors window when clear it
 test/ada_mode-recover_string_quote_1.adb
     undo_reduce after push-back or insert
 
-test/ada_mode-recover_20.adb
-    anchored can't anchor to virtual token
-        because we don't know (line, column)
-            set it to following token, grammar or non-grammar
-            after finish error correction algorithm paper
+test/ada_mode-recover_partial_02_lr1.adb
+    add language_fix to push_back to before '('
+    add paren to descriptor, add this in -explore?
+
+language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
+    selected_component 1
 
 convert char literal to string literal: test/ada_mode-recover_31.adb
     just fix comment; handled in language_fixes
@@ -88,10 +89,13 @@ use (eval-when-compile (call-process "build.sh")) to automate compile?
 add to user guide:
     C-u C-u C-c C-d will not find bodies of public items; they are defined in the spec file, not the body
 
+    ada-indent-record, other functions in ada.wy
+        or doc those in ada.wy with comments
+        see comments in wisi-ada.adb Ada_Indent_Record_1
+
+    wisi-hanging checks for parens
 
 add "don't trust parser-provided text positions if buffer is modified" to wisi manual
-
-try jit-lock-stealth-time instead of -defer-time
 
 indent bugs:
     State.Kernel (I) :=
@@ -109,10 +113,19 @@ indent bugs:
 
         comment should align with 'then'
 
+
     Recover_Op_Arrays.Variable_Ref
        (Parser_State.Recover_Insert_Delete,
         Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete))
     .Ins_Tree_Node := Parser_State.Current_Token;
+
+   function Get_Node_Ref
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Valid_Node_Index_Arrays.Variable_Reference
+   is (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node)
+         else Tree.Branched_Nodes (Node));
 
 align bug:
    function Image (Item : in Recursion_Class) return String
@@ -128,6 +141,21 @@ align bug:
     similar in test/ada_mode-conditional_expressions.adb
 
     use parser
+
+hide wisi syntax errors window when clear it
+
+could elminate wisi.parse_data_type.terminals
+    always search syntax tree
+        provide iterator that returns all_terminals
+
+    search is less efficient
+    more portable to other parsers
+
+    replace line_begin_pos, line_paren_state by line_begin_token?
+        fetch aug to get data
+
+lsp-mode has mechanism to download and install servers
+    adapt that for compiled wisi exes?
 
 fix "string not terminated by end of line" bug
     use parser to fontify strings
@@ -149,11 +177,6 @@ move EXE_EXT, GNAT_EXE, INSTALL_BIN into makefile.conf
 
 fix blinking fringe mark when type "--"
     delay the display of the fringe mark (using a timer), without delaying font-lock itself
-
-change "git clone" in https://savannah.nongnu.org/git/?group=ada-mode
-    to "git clone -b org.emacs.ada-mode"
-    3 Mar 2020: sent email to savannah-hackers
-        https://lists.gnu.org/archive/html/savannah-hackers/2020-03/msg00000.html
 
 wisitoken user guide
     c:/Projects/org.wisitoken/Docs/wisitoken-user_guide.texinfo
@@ -789,6 +812,9 @@ https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
 
+wisi.adb insert_token
+    p data.descriptor.image (tree.shared_tree.nodes.elements (token).id).all
+
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
         break on 'if token.first_indent_line then' line 1050
@@ -831,13 +857,7 @@ to change process executable for all current and future buffers:
 Edebug displays
 
 in wisi-process-parse--Reduce_Stack:
-(setq edebug-eval-list
- '(tokens-1
-   tok
-   (aref token-table (aref tokens-1 i))
-   (queue-head (wisi-process--parser-parse-stack wisi--parser))
-   sexp
-   ))
+
 
 in wisi-parse-reduce:
 (setq edebug-eval-list
