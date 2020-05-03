@@ -245,7 +245,7 @@ int ada_next_token
 	case '[':	goto yy71;
 	case ']':	goto yy73;
 	case '{':	goto yy75;
-	case '|':	goto yy76;
+	case '|':	goto yy78;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -275,8 +275,8 @@ int ada_next_token
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:	goto yy78;
-	case 0xE0:	goto yy79;
+	case 0xDF:	goto yy80;
+	case 0xE0:	goto yy81;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -291,12 +291,12 @@ int ada_next_token
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:	goto yy80;
-	case 0xF0:	goto yy81;
+	case 0xEF:	goto yy82;
+	case 0xF0:	goto yy83;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:	goto yy82;
-	case 0xF4:	goto yy83;
+	case 0xF3:	goto yy84;
+	case 0xF4:	goto yy85;
 	default:	goto yy2;
 	}
 yy2:
@@ -503,7 +503,7 @@ yy12:
 	case 0xF1:
 	case 0xF2:
 	case 0xF3:
-	case 0xF4:	goto yy85;
+	case 0xF4:	goto yy87;
 	default:	goto yy3;
 	}
 yy13:
@@ -513,8 +513,8 @@ yy13:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'e':	goto yy97;
-	case 'i':	goto yy98;
+	case 'e':	goto yy99;
+	case 'i':	goto yy100;
 	default:	goto yy3;
 	}
 yy14:
@@ -589,7 +589,7 @@ yy15:
 	case 'x':
 	case 'y':
 	case 'z':	goto yy14;
-	case '[':	goto yy99;
+	case '[':	goto yy101;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -619,8 +619,8 @@ yy15:
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:	goto yy100;
-	case 0xE0:	goto yy101;
+	case 0xDF:	goto yy102;
+	case 0xE0:	goto yy103;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -635,12 +635,12 @@ yy15:
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:	goto yy102;
-	case 0xF0:	goto yy103;
+	case 0xEF:	goto yy104;
+	case 0xF0:	goto yy105;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:	goto yy104;
-	case 0xF4:	goto yy105;
+	case 0xF3:	goto yy106;
+	case 0xF4:	goto yy107;
 	default:	goto yy16;
 	}
 yy16:
@@ -755,11 +755,11 @@ yy19:
 	case '|':
 	case '}':
 	case '~':
-	case 0x7F:	goto yy106;
+	case 0x7F:	goto yy108;
 	case '(':
 		YYBACKUPCTX ();
-		goto yy107;
-	case '[':	goto yy108;
+		goto yy109;
+	case '[':	goto yy110;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -789,8 +789,8 @@ yy19:
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:	goto yy109;
-	case 0xE0:	goto yy110;
+	case 0xDF:	goto yy111;
+	case 0xE0:	goto yy112;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -805,12 +805,12 @@ yy19:
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:	goto yy111;
-	case 0xF0:	goto yy112;
+	case 0xEF:	goto yy113;
+	case 0xF0:	goto yy114;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:	goto yy113;
-	case 0xF4:	goto yy114;
+	case 0xF3:	goto yy115;
+	case 0xF4:	goto yy116;
 	default:	goto yy20;
 	}
 yy20:
@@ -837,7 +837,7 @@ yy25:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '*':	goto yy115;
+	case '*':	goto yy117;
 	default:	goto yy26;
 	}
 yy26:
@@ -864,7 +864,7 @@ yy31:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '-':	goto yy117;
+	case '-':	goto yy119;
 	default:	goto yy32;
 	}
 yy32:
@@ -877,7 +877,7 @@ yy33:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '.':	goto yy120;
+	case '.':	goto yy121;
 	default:	goto yy34;
 	}
 yy34:
@@ -890,7 +890,7 @@ yy35:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '=':	goto yy122;
+	case '=':	goto yy123;
 	default:	goto yy36;
 	}
 yy36:
@@ -906,12 +906,12 @@ yy37:
 	yych = YYPEEK ();
 	YYDEBUG(38, YYPEEK ());
 	switch (yych) {
-	case '#':	goto yy124;
+	case '#':	goto yy125;
 	case '-':
 	case '.':
 	case 'E':
 	case '_':
-	case 'e':	goto yy125;
+	case 'e':	goto yy126;
 	case '0':
 	case '1':
 	case '2':
@@ -934,7 +934,7 @@ yy40:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '=':	goto yy127;
+	case '=':	goto yy128;
 	default:	goto yy41;
 	}
 yy41:
@@ -954,9 +954,9 @@ yy44:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '<':	goto yy129;
-	case '=':	goto yy131;
-	case '>':	goto yy133;
+	case '<':	goto yy130;
+	case '=':	goto yy132;
+	case '>':	goto yy134;
 	default:	goto yy45;
 	}
 yy45:
@@ -969,7 +969,7 @@ yy46:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '>':	goto yy135;
+	case '>':	goto yy136;
 	default:	goto yy47;
 	}
 yy47:
@@ -982,8 +982,8 @@ yy48:
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '=':	goto yy137;
-	case '>':	goto yy139;
+	case '=':	goto yy138;
+	case '>':	goto yy140;
 	default:	goto yy49;
 	}
 yy49:
@@ -1006,17 +1006,17 @@ yy52:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'B':
-	case 'b':	goto yy141;
+	case 'b':	goto yy142;
 	case 'C':
-	case 'c':	goto yy142;
+	case 'c':	goto yy143;
 	case 'L':
-	case 'l':	goto yy143;
+	case 'l':	goto yy144;
 	case 'N':
-	case 'n':	goto yy144;
+	case 'n':	goto yy145;
 	case 'R':
-	case 'r':	goto yy145;
+	case 'r':	goto yy146;
 	case 'T':
-	case 't':	goto yy146;
+	case 't':	goto yy147;
 	default:	goto yy15;
 	}
 yy53:
@@ -1027,9 +1027,9 @@ yy53:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy148;
+	case 'e':	goto yy149;
 	case 'O':
-	case 'o':	goto yy149;
+	case 'o':	goto yy150;
 	default:	goto yy15;
 	}
 yy54:
@@ -1040,9 +1040,9 @@ yy54:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy150;
+	case 'a':	goto yy151;
 	case 'O':
-	case 'o':	goto yy151;
+	case 'o':	goto yy152;
 	default:	goto yy15;
 	}
 yy55:
@@ -1053,11 +1053,11 @@ yy55:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy152;
+	case 'e':	goto yy153;
 	case 'I':
-	case 'i':	goto yy153;
+	case 'i':	goto yy154;
 	case 'O':
-	case 'o':	goto yy154;
+	case 'o':	goto yy155;
 	default:	goto yy15;
 	}
 yy56:
@@ -1068,11 +1068,11 @@ yy56:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'L':
-	case 'l':	goto yy156;
+	case 'l':	goto yy157;
 	case 'N':
-	case 'n':	goto yy157;
+	case 'n':	goto yy158;
 	case 'X':
-	case 'x':	goto yy158;
+	case 'x':	goto yy159;
 	default:	goto yy15;
 	}
 yy57:
@@ -1083,9 +1083,9 @@ yy57:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'O':
-	case 'o':	goto yy159;
+	case 'o':	goto yy160;
 	case 'U':
-	case 'u':	goto yy160;
+	case 'u':	goto yy161;
 	default:	goto yy15;
 	}
 yy58:
@@ -1096,9 +1096,9 @@ yy58:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy161;
+	case 'e':	goto yy162;
 	case 'O':
-	case 'o':	goto yy162;
+	case 'o':	goto yy163;
 	default:	goto yy15;
 	}
 yy59:
@@ -1109,11 +1109,11 @@ yy59:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'F':
-	case 'f':	goto yy163;
+	case 'f':	goto yy164;
 	case 'N':
-	case 'n':	goto yy165;
+	case 'n':	goto yy166;
 	case 'S':
-	case 's':	goto yy167;
+	case 's':	goto yy168;
 	default:	goto yy15;
 	}
 yy60:
@@ -1124,9 +1124,9 @@ yy60:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'I':
-	case 'i':	goto yy169;
+	case 'i':	goto yy170;
 	case 'O':
-	case 'o':	goto yy170;
+	case 'o':	goto yy171;
 	default:	goto yy15;
 	}
 yy61:
@@ -1137,7 +1137,7 @@ yy61:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'O':
-	case 'o':	goto yy171;
+	case 'o':	goto yy172;
 	default:	goto yy15;
 	}
 yy62:
@@ -1148,11 +1148,11 @@ yy62:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy172;
+	case 'e':	goto yy173;
 	case 'O':
-	case 'o':	goto yy173;
+	case 'o':	goto yy174;
 	case 'U':
-	case 'u':	goto yy174;
+	case 'u':	goto yy175;
 	default:	goto yy15;
 	}
 yy63:
@@ -1163,15 +1163,15 @@ yy63:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'F':
-	case 'f':	goto yy175;
+	case 'f':	goto yy176;
 	case 'R':
-	case 'r':	goto yy177;
+	case 'r':	goto yy178;
 	case 'T':
-	case 't':	goto yy179;
+	case 't':	goto yy180;
 	case 'U':
-	case 'u':	goto yy180;
+	case 'u':	goto yy181;
 	case 'V':
-	case 'v':	goto yy181;
+	case 'v':	goto yy182;
 	default:	goto yy15;
 	}
 yy64:
@@ -1182,9 +1182,9 @@ yy64:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy182;
+	case 'a':	goto yy183;
 	case 'R':
-	case 'r':	goto yy183;
+	case 'r':	goto yy184;
 	default:	goto yy15;
 	}
 yy65:
@@ -1195,9 +1195,9 @@ yy65:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy184;
+	case 'a':	goto yy185;
 	case 'E':
-	case 'e':	goto yy185;
+	case 'e':	goto yy186;
 	default:	goto yy15;
 	}
 yy66:
@@ -1208,13 +1208,13 @@ yy66:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy186;
+	case 'e':	goto yy187;
 	case 'O':
-	case 'o':	goto yy187;
+	case 'o':	goto yy188;
 	case 'U':
-	case 'u':	goto yy188;
+	case 'u':	goto yy189;
 	case 'Y':
-	case 'y':	goto yy189;
+	case 'y':	goto yy190;
 	default:	goto yy15;
 	}
 yy67:
@@ -1225,13 +1225,13 @@ yy67:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy190;
+	case 'a':	goto yy191;
 	case 'E':
-	case 'e':	goto yy191;
+	case 'e':	goto yy192;
 	case 'H':
-	case 'h':	goto yy192;
+	case 'h':	goto yy193;
 	case 'Y':
-	case 'y':	goto yy193;
+	case 'y':	goto yy194;
 	default:	goto yy15;
 	}
 yy68:
@@ -1242,9 +1242,9 @@ yy68:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'N':
-	case 'n':	goto yy194;
+	case 'n':	goto yy195;
 	case 'S':
-	case 's':	goto yy195;
+	case 's':	goto yy196;
 	default:	goto yy15;
 	}
 yy69:
@@ -1255,9 +1255,9 @@ yy69:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'H':
-	case 'h':	goto yy196;
+	case 'h':	goto yy197;
 	case 'I':
-	case 'i':	goto yy197;
+	case 'i':	goto yy198;
 	default:	goto yy15;
 	}
 yy70:
@@ -1268,7 +1268,7 @@ yy70:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'O':
-	case 'o':	goto yy198;
+	case 'o':	goto yy199;
 	default:	goto yy15;
 	}
 yy71:
@@ -1278,7 +1278,7 @@ yy71:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '"':	goto yy199;
+	case '"':	goto yy200;
 	default:	goto yy72;
 	}
 yy72:
@@ -1295,22 +1295,21 @@ yy73:
 #line 1296 "../ada_re2c.c"
 yy75:
 	YYDEBUG(75, YYPEEK ());
-	yyaccept = 0;
+	yyaccept = 5;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
+	YYDEBUG(76, YYPEEK ());
 	switch (yych) {
 	case 0x00:
 	case 0x01:
 	case 0x02:
 	case 0x03:
-	case 0x04:
 	case 0x05:
 	case 0x06:
 	case 0x07:
 	case 0x08:
 	case '\t':
-	case '\n':
 	case '\v':
 	case '\f':
 	case '\r':
@@ -1425,9 +1424,8 @@ yy75:
 	case 'z':
 	case '{':
 	case '|':
-	case '}':
 	case '~':
-	case 0x7F:
+	case 0x7F:	goto yy75;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -1457,8 +1455,8 @@ yy75:
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:
-	case 0xE0:
+	case 0xDF:	goto yy201;
+	case 0xE0:	goto yy202;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -1473,23 +1471,28 @@ yy75:
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:
-	case 0xF0:
+	case 0xEF:	goto yy203;
+	case 0xF0:	goto yy204;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy201;
-	default:	goto yy3;
+	case 0xF3:	goto yy205;
+	case 0xF4:	goto yy206;
+	default:	goto yy77;
 	}
-yy76:
-	YYDEBUG(76, YYPEEK ());
-	YYSKIP ();
+yy77:
 	YYDEBUG(77, YYPEEK ());
-#line 352 "../ada.re2c"
-	{*id =  82; continue;}
-#line 1491 "../ada_re2c.c"
+#line 272 "../ada.re2c"
+	{*id =  2; continue;}
+#line 1487 "../ada_re2c.c"
 yy78:
 	YYDEBUG(78, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(79, YYPEEK ());
+#line 352 "../ada.re2c"
+	{*id =  82; continue;}
+#line 1494 "../ada_re2c.c"
+yy80:
+	YYDEBUG(80, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
@@ -1559,120 +1562,6 @@ yy78:
 	case 0xBF:	goto yy14;
 	default:	goto yy3;
 	}
-yy79:
-	YYDEBUG(79, YYPEEK ());
-	yyaccept = 0;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy100;
-	default:	goto yy3;
-	}
-yy80:
-	YYDEBUG(80, YYPEEK ());
-	yyaccept = 0;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy100;
-	default:	goto yy3;
-	}
 yy81:
 	YYDEBUG(81, YYPEEK ());
 	yyaccept = 0;
@@ -1680,22 +1569,6 @@ yy81:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -1810,439 +1683,61 @@ yy83:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy102;
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy104;
 	default:	goto yy3;
 	}
 yy84:
 	YYDEBUG(84, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-yy85:
-	YYDEBUG(85, YYPEEK ());
-	switch (yych) {
-	case ' ':
-	case '!':
-	case '#':
-	case '$':
-	case '%':
-	case '&':
-	case '\'':
-	case '(':
-	case ')':
-	case '*':
-	case '+':
-	case ',':
-	case '-':
-	case '.':
-	case '/':
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case ':':
-	case ';':
-	case '<':
-	case '=':
-	case '>':
-	case '?':
-	case '@':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '\\':
-	case ']':
-	case '^':
-	case '_':
-	case '`':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case '{':
-	case '|':
-	case '}':
-	case '~':
-	case 0x7F:	goto yy84;
-	case '"':	goto yy87;
-	case '[':	goto yy89;
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:	goto yy91;
-	case 0xE0:	goto yy92;
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:	goto yy93;
-	case 0xF0:	goto yy94;
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:	goto yy95;
-	case 0xF4:	goto yy96;
-	default:	goto yy86;
-	}
-yy86:
-	YYDEBUG(86, YYPEEK ());
-	YYRESTORE ();
-	switch (yyaccept) {
-	case 0: 	goto yy3;
-	case 1: 	goto yy16;
-	case 2: 	goto yy20;
-	case 3: 	goto yy39;
-	case 4: 	goto yy72;
-	case 5: 	goto yy88;
-	case 6: 	goto yy119;
-	case 7: 	goto yy147;
-	case 8: 	goto yy155;
-	case 9: 	goto yy164;
-	case 10: 	goto yy166;
-	case 11: 	goto yy168;
-	case 12: 	goto yy176;
-	case 13: 	goto yy178;
-	case 14: 	goto yy213;
-	case 15: 	goto yy228;
-	case 16: 	goto yy232;
-	case 17: 	goto yy234;
-	case 18: 	goto yy245;
-	case 19: 	goto yy250;
-	case 20: 	goto yy258;
-	case 21: 	goto yy260;
-	case 22: 	goto yy262;
-	case 23: 	goto yy266;
-	case 24: 	goto yy276;
-	case 25: 	goto yy293;
-	case 26: 	goto yy298;
-	case 27: 	goto yy322;
-	case 28: 	goto yy324;
-	case 29: 	goto yy331;
-	case 30: 	goto yy336;
-	case 31: 	goto yy340;
-	case 32: 	goto yy344;
-	case 33: 	goto yy346;
-	case 34: 	goto yy364;
-	case 35: 	goto yy369;
-	case 36: 	goto yy372;
-	case 37: 	goto yy374;
-	case 38: 	goto yy377;
-	case 39: 	goto yy380;
-	case 40: 	goto yy388;
-	case 41: 	goto yy394;
-	case 42: 	goto yy396;
-	case 43: 	goto yy400;
-	case 44: 	goto yy402;
-	case 45: 	goto yy405;
-	case 46: 	goto yy407;
-	case 47: 	goto yy421;
-	case 48: 	goto yy423;
-	case 49: 	goto yy436;
-	case 50: 	goto yy438;
-	case 51: 	goto yy443;
-	case 52: 	goto yy445;
-	case 53: 	goto yy450;
-	case 54: 	goto yy457;
-	case 55: 	goto yy461;
-	case 56: 	goto yy466;
-	case 57: 	goto yy470;
-	case 58: 	goto yy473;
-	case 59: 	goto yy478;
-	case 60: 	goto yy483;
-	case 61: 	goto yy486;
-	case 62: 	goto yy490;
-	case 63: 	goto yy493;
-	case 64: 	goto yy496;
-	case 65: 	goto yy498;
-	case 66: 	goto yy502;
-	case 67: 	goto yy504;
-	case 68: 	goto yy506;
-	case 69: 	goto yy509;
-	case 70: 	goto yy513;
-	case 71: 	goto yy515;
-	case 72: 	goto yy518;
-	case 73: 	goto yy524;
-	case 74: 	goto yy528;
-	case 75: 	goto yy530;
-	case 76: 	goto yy533;
-	case 77: 	goto yy535;
-	case 78: 	goto yy538;
-	case 79: 	goto yy540;
-	default:	goto yy544;
-	}
-yy87:
-	YYDEBUG(87, YYPEEK ());
-	yyaccept = 5;
+	yyaccept = 0;
 	YYSKIP ();
 	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '"':	goto yy84;
-	default:	goto yy88;
-	}
-yy88:
-	YYDEBUG(88, YYPEEK ());
-#line 378 "../ada.re2c"
-	{*id =  108; continue;}
-#line 2088 "../ada_re2c.c"
-yy89:
-	YYDEBUG(89, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	YYDEBUG(90, YYPEEK ());
-	switch (yych) {
-	case ' ':
-	case '!':
-	case '#':
-	case '$':
-	case '%':
-	case '&':
-	case '\'':
-	case '(':
-	case ')':
-	case '*':
-	case '+':
-	case ',':
-	case '-':
-	case '.':
-	case '/':
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case ':':
-	case ';':
-	case '<':
-	case '=':
-	case '>':
-	case '?':
-	case '@':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '\\':
-	case ']':
-	case '^':
-	case '_':
-	case '`':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case '{':
-	case '|':
-	case '}':
-	case '~':
-	case 0x7F:	goto yy84;
-	case '"':	goto yy209;
-	case '[':	goto yy89;
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:	goto yy91;
-	case 0xE0:	goto yy92;
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:	goto yy93;
-	case 0xF0:	goto yy94;
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:	goto yy95;
-	case 0xF4:	goto yy96;
-	default:	goto yy86;
-	}
-yy91:
-	YYDEBUG(91, YYPEEK ());
-	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 0x80:
@@ -2308,47 +1803,445 @@ yy91:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy84;
-	default:	goto yy86;
+	case 0xBF:	goto yy104;
+	default:	goto yy3;
 	}
-yy92:
-	YYDEBUG(92, YYPEEK ());
+yy85:
+	YYDEBUG(85, YYPEEK ());
+	yyaccept = 0;
 	YYSKIP ();
+	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy91;
-	default:	goto yy86;
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy104;
+	default:	goto yy3;
+	}
+yy86:
+	YYDEBUG(86, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+yy87:
+	YYDEBUG(87, YYPEEK ());
+	switch (yych) {
+	case ' ':
+	case '!':
+	case '#':
+	case '$':
+	case '%':
+	case '&':
+	case '\'':
+	case '(':
+	case ')':
+	case '*':
+	case '+':
+	case ',':
+	case '-':
+	case '.':
+	case '/':
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case ':':
+	case ';':
+	case '<':
+	case '=':
+	case '>':
+	case '?':
+	case '@':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '\\':
+	case ']':
+	case '^':
+	case '_':
+	case '`':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case '{':
+	case '|':
+	case '}':
+	case '~':
+	case 0x7F:	goto yy86;
+	case '"':	goto yy89;
+	case '[':	goto yy91;
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:	goto yy93;
+	case 0xE0:	goto yy94;
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:	goto yy95;
+	case 0xF0:	goto yy96;
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:	goto yy97;
+	case 0xF4:	goto yy98;
+	default:	goto yy88;
+	}
+yy88:
+	YYDEBUG(88, YYPEEK ());
+	YYRESTORE ();
+	switch (yyaccept) {
+	case 0: 	goto yy3;
+	case 1: 	goto yy16;
+	case 2: 	goto yy20;
+	case 3: 	goto yy39;
+	case 4: 	goto yy72;
+	case 5: 	goto yy77;
+	case 6: 	goto yy90;
+	case 7: 	goto yy148;
+	case 8: 	goto yy156;
+	case 9: 	goto yy165;
+	case 10: 	goto yy167;
+	case 11: 	goto yy169;
+	case 12: 	goto yy177;
+	case 13: 	goto yy179;
+	case 14: 	goto yy211;
+	case 15: 	goto yy226;
+	case 16: 	goto yy230;
+	case 17: 	goto yy232;
+	case 18: 	goto yy243;
+	case 19: 	goto yy248;
+	case 20: 	goto yy256;
+	case 21: 	goto yy258;
+	case 22: 	goto yy260;
+	case 23: 	goto yy264;
+	case 24: 	goto yy274;
+	case 25: 	goto yy291;
+	case 26: 	goto yy296;
+	case 27: 	goto yy320;
+	case 28: 	goto yy322;
+	case 29: 	goto yy329;
+	case 30: 	goto yy334;
+	case 31: 	goto yy338;
+	case 32: 	goto yy342;
+	case 33: 	goto yy344;
+	case 34: 	goto yy362;
+	case 35: 	goto yy367;
+	case 36: 	goto yy370;
+	case 37: 	goto yy372;
+	case 38: 	goto yy375;
+	case 39: 	goto yy378;
+	case 40: 	goto yy386;
+	case 41: 	goto yy392;
+	case 42: 	goto yy394;
+	case 43: 	goto yy398;
+	case 44: 	goto yy400;
+	case 45: 	goto yy403;
+	case 46: 	goto yy405;
+	case 47: 	goto yy419;
+	case 48: 	goto yy421;
+	case 49: 	goto yy434;
+	case 50: 	goto yy436;
+	case 51: 	goto yy441;
+	case 52: 	goto yy443;
+	case 53: 	goto yy448;
+	case 54: 	goto yy455;
+	case 55: 	goto yy459;
+	case 56: 	goto yy464;
+	case 57: 	goto yy468;
+	case 58: 	goto yy471;
+	case 59: 	goto yy476;
+	case 60: 	goto yy481;
+	case 61: 	goto yy484;
+	case 62: 	goto yy488;
+	case 63: 	goto yy491;
+	case 64: 	goto yy494;
+	case 65: 	goto yy496;
+	case 66: 	goto yy500;
+	case 67: 	goto yy502;
+	case 68: 	goto yy504;
+	case 69: 	goto yy507;
+	case 70: 	goto yy511;
+	case 71: 	goto yy513;
+	case 72: 	goto yy516;
+	case 73: 	goto yy522;
+	case 74: 	goto yy526;
+	case 75: 	goto yy528;
+	case 76: 	goto yy531;
+	case 77: 	goto yy533;
+	case 78: 	goto yy536;
+	case 79: 	goto yy538;
+	default:	goto yy542;
+	}
+yy89:
+	YYDEBUG(89, YYPEEK ());
+	yyaccept = 6;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '"':	goto yy86;
+	default:	goto yy90;
+	}
+yy90:
+	YYDEBUG(90, YYPEEK ());
+#line 378 "../ada.re2c"
+	{*id =  108; continue;}
+#line 2091 "../ada_re2c.c"
+yy91:
+	YYDEBUG(91, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	YYDEBUG(92, YYPEEK ());
+	switch (yych) {
+	case ' ':
+	case '!':
+	case '#':
+	case '$':
+	case '%':
+	case '&':
+	case '\'':
+	case '(':
+	case ')':
+	case '*':
+	case '+':
+	case ',':
+	case '-':
+	case '.':
+	case '/':
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case ':':
+	case ';':
+	case '<':
+	case '=':
+	case '>':
+	case '?':
+	case '@':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '\\':
+	case ']':
+	case '^':
+	case '_':
+	case '`':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case '{':
+	case '|':
+	case '}':
+	case '~':
+	case 0x7F:	goto yy86;
+	case '"':	goto yy207;
+	case '[':	goto yy91;
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:	goto yy93;
+	case 0xE0:	goto yy94;
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:	goto yy95;
+	case 0xF0:	goto yy96;
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:	goto yy97;
+	case 0xF4:	goto yy98;
+	default:	goto yy88;
 	}
 yy93:
 	YYDEBUG(93, YYPEEK ());
@@ -2418,30 +2311,14 @@ yy93:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy91;
-	default:	goto yy86;
+	case 0xBF:	goto yy86;
+	default:	goto yy88;
 	}
 yy94:
 	YYDEBUG(94, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -2474,7 +2351,7 @@ yy94:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy93;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy95:
 	YYDEBUG(95, YYPEEK ());
@@ -2545,58 +2422,65 @@ yy95:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy93;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy96:
 	YYDEBUG(96, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy93;
-	default:	goto yy86;
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy95;
+	default:	goto yy88;
 	}
 yy97:
 	YYDEBUG(97, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'l':	goto yy210;
-	case 'n':	goto yy211;
-	default:	goto yy86;
-	}
-yy98:
-	YYDEBUG(98, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'f':	goto yy117;
-	default:	goto yy86;
-	}
-yy99:
-	YYDEBUG(99, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '"':	goto yy199;
-	default:	goto yy86;
-	}
-yy100:
-	YYDEBUG(100, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
@@ -2663,47 +2547,56 @@ yy100:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy14;
-	default:	goto yy86;
+	case 0xBF:	goto yy95;
+	default:	goto yy88;
+	}
+yy98:
+	YYDEBUG(98, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy95;
+	default:	goto yy88;
+	}
+yy99:
+	YYDEBUG(99, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'l':	goto yy208;
+	case 'n':	goto yy209;
+	default:	goto yy88;
+	}
+yy100:
+	YYDEBUG(100, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'f':	goto yy119;
+	default:	goto yy88;
 	}
 yy101:
 	YYDEBUG(101, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy100;
-	default:	goto yy86;
+	case '"':	goto yy200;
+	default:	goto yy88;
 	}
 yy102:
 	YYDEBUG(102, YYPEEK ());
@@ -2773,30 +2666,14 @@ yy102:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy100;
-	default:	goto yy86;
+	case 0xBF:	goto yy14;
+	default:	goto yy88;
 	}
 yy103:
 	YYDEBUG(103, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -2829,7 +2706,7 @@ yy103:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy102;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy104:
 	YYDEBUG(104, YYPEEK ());
@@ -2900,58 +2777,65 @@ yy104:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy102;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy105:
 	YYDEBUG(105, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy102;
-	default:	goto yy86;
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy104;
+	default:	goto yy88;
 	}
 yy106:
 	YYDEBUG(106, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '\'':	goto yy212;
-	default:	goto yy86;
-	}
-yy107:
-	YYDEBUG(107, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '\'':	goto yy214;
-	default:	goto yy86;
-	}
-yy108:
-	YYDEBUG(108, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '"':	goto yy215;
-	case '\'':	goto yy212;
-	default:	goto yy86;
-	}
-yy109:
-	YYDEBUG(109, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
@@ -3018,47 +2902,56 @@ yy109:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy106;
-	default:	goto yy86;
+	case 0xBF:	goto yy104;
+	default:	goto yy88;
+	}
+yy107:
+	YYDEBUG(107, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy104;
+	default:	goto yy88;
+	}
+yy108:
+	YYDEBUG(108, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '\'':	goto yy210;
+	default:	goto yy88;
+	}
+yy109:
+	YYDEBUG(109, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '\'':	goto yy212;
+	default:	goto yy88;
 	}
 yy110:
 	YYDEBUG(110, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy109;
-	default:	goto yy86;
+	case '"':	goto yy213;
+	case '\'':	goto yy210;
+	default:	goto yy88;
 	}
 yy111:
 	YYDEBUG(111, YYPEEK ());
@@ -3128,30 +3021,14 @@ yy111:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy109;
-	default:	goto yy86;
+	case 0xBF:	goto yy108;
+	default:	goto yy88;
 	}
 yy112:
 	YYDEBUG(112, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -3184,7 +3061,7 @@ yy112:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy111;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy113:
 	YYDEBUG(113, YYPEEK ());
@@ -3255,10 +3132,65 @@ yy113:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy111;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy114:
 	YYDEBUG(114, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy113;
+	default:	goto yy88;
+	}
+yy115:
+	YYDEBUG(115, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
@@ -3277,23 +3209,94 @@ yy114:
 	case 0x8C:
 	case 0x8D:
 	case 0x8E:
-	case 0x8F:	goto yy111;
-	default:	goto yy86;
+	case 0x8F:
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy113;
+	default:	goto yy88;
 	}
-yy115:
-	YYDEBUG(115, YYPEEK ());
-	YYSKIP ();
+yy116:
 	YYDEBUG(116, YYPEEK ());
-#line 373 "../ada.re2c"
-	{*id =  103; continue;}
-#line 3290 "../ada_re2c.c"
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy113;
+	default:	goto yy88;
+	}
 yy117:
 	YYDEBUG(117, YYPEEK ());
-	yyaccept = 6;
+	YYSKIP ();
+	YYDEBUG(118, YYPEEK ());
+#line 373 "../ada.re2c"
+	{*id =  103; continue;}
+#line 3293 "../ada_re2c.c"
+yy119:
+	YYDEBUG(119, YYPEEK ());
+	yyaccept = 5;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
-	YYDEBUG(118, YYPEEK ());
+	YYDEBUG(120, YYPEEK ());
 	switch (yych) {
 	case 0x00:
 	case 0x01:
@@ -3420,7 +3423,7 @@ yy117:
 	case '|':
 	case '}':
 	case '~':
-	case 0x7F:	goto yy117;
+	case 0x7F:	goto yy119;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -3450,8 +3453,8 @@ yy117:
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:	goto yy216;
-	case 0xE0:	goto yy217;
+	case 0xDF:	goto yy214;
+	case 0xE0:	goto yy215;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -3466,52 +3469,47 @@ yy117:
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:	goto yy218;
-	case 0xF0:	goto yy219;
+	case 0xEF:	goto yy216;
+	case 0xF0:	goto yy217;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:	goto yy220;
-	case 0xF4:	goto yy221;
-	default:	goto yy119;
+	case 0xF3:	goto yy218;
+	case 0xF4:	goto yy219;
+	default:	goto yy77;
 	}
-yy119:
-	YYDEBUG(119, YYPEEK ());
-#line 272 "../ada.re2c"
-	{*id =  2; continue;}
-#line 3482 "../ada_re2c.c"
-yy120:
-	YYDEBUG(120, YYPEEK ());
-	YYSKIP ();
+yy121:
 	YYDEBUG(121, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(122, YYPEEK ());
 #line 358 "../ada.re2c"
 	{*id =  88; continue;}
-#line 3489 "../ada_re2c.c"
-yy122:
-	YYDEBUG(122, YYPEEK ());
-	YYSKIP ();
+#line 3487 "../ada_re2c.c"
+yy123:
 	YYDEBUG(123, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(124, YYPEEK ());
 #line 371 "../ada.re2c"
 	{*id =  101; continue;}
-#line 3496 "../ada_re2c.c"
-yy124:
-	YYDEBUG(124, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '#':	goto yy86;
-	default:	goto yy223;
-	}
+#line 3494 "../ada_re2c.c"
 yy125:
 	YYDEBUG(125, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
+	switch (yych) {
+	case '#':	goto yy88;
+	default:	goto yy221;
+	}
+yy126:
 	YYDEBUG(126, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	YYDEBUG(127, YYPEEK ());
 	switch (yych) {
 	case '-':
 	case '.':
 	case 'E':
 	case '_':
-	case 'e':	goto yy125;
+	case 'e':	goto yy126;
 	case '0':
 	case '1':
 	case '2':
@@ -3521,71 +3519,58 @@ yy125:
 	case '6':
 	case '7':
 	case '8':
-	case '9':	goto yy224;
-	default:	goto yy86;
+	case '9':	goto yy222;
+	default:	goto yy88;
 	}
-yy127:
-	YYDEBUG(127, YYPEEK ());
-	YYSKIP ();
+yy128:
 	YYDEBUG(128, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(129, YYPEEK ());
 #line 355 "../ada.re2c"
 	{*id =  85; continue;}
-#line 3534 "../ada_re2c.c"
-yy129:
-	YYDEBUG(129, YYPEEK ());
-	YYSKIP ();
+#line 3532 "../ada_re2c.c"
+yy130:
 	YYDEBUG(130, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(131, YYPEEK ());
 #line 366 "../ada.re2c"
 	{*id =  96; continue;}
-#line 3541 "../ada_re2c.c"
-yy131:
-	YYDEBUG(131, YYPEEK ());
-	YYSKIP ();
+#line 3539 "../ada_re2c.c"
+yy132:
 	YYDEBUG(132, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(133, YYPEEK ());
 #line 365 "../ada.re2c"
 	{*id =  95; continue;}
-#line 3548 "../ada_re2c.c"
-yy133:
-	YYDEBUG(133, YYPEEK ());
-	YYSKIP ();
+#line 3546 "../ada_re2c.c"
+yy134:
 	YYDEBUG(134, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(135, YYPEEK ());
 #line 353 "../ada.re2c"
 	{*id =  83; continue;}
-#line 3555 "../ada_re2c.c"
-yy135:
-	YYDEBUG(135, YYPEEK ());
-	YYSKIP ();
+#line 3553 "../ada_re2c.c"
+yy136:
 	YYDEBUG(136, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(137, YYPEEK ());
 #line 360 "../ada.re2c"
 	{*id =  90; continue;}
-#line 3562 "../ada_re2c.c"
-yy137:
-	YYDEBUG(137, YYPEEK ());
-	YYSKIP ();
+#line 3560 "../ada_re2c.c"
+yy138:
 	YYDEBUG(138, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(139, YYPEEK ());
 #line 362 "../ada.re2c"
 	{*id =  92; continue;}
-#line 3569 "../ada_re2c.c"
-yy139:
-	YYDEBUG(139, YYPEEK ());
-	YYSKIP ();
+#line 3567 "../ada_re2c.c"
+yy140:
 	YYDEBUG(140, YYPEEK ());
+	YYSKIP ();
+	YYDEBUG(141, YYPEEK ());
 #line 363 "../ada.re2c"
 	{*id =  93; continue;}
-#line 3576 "../ada_re2c.c"
-yy141:
-	YYDEBUG(141, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'O':
-	case 'o':	goto yy226;
-	case 'S':
-	case 's':	goto yy227;
-	default:	goto yy15;
-	}
+#line 3574 "../ada_re2c.c"
 yy142:
 	YYDEBUG(142, YYPEEK ());
 	yyaccept = 1;
@@ -3593,8 +3578,10 @@ yy142:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy229;
+	case 'O':
+	case 'o':	goto yy224;
+	case 'S':
+	case 's':	goto yy225;
 	default:	goto yy15;
 	}
 yy143:
@@ -3604,10 +3591,8 @@ yy143:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'I':
-	case 'i':	goto yy230;
-	case 'L':
-	case 'l':	goto yy231;
+	case 'C':
+	case 'c':	goto yy227;
 	default:	goto yy15;
 	}
 yy144:
@@ -3617,8 +3602,10 @@ yy144:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'D':
-	case 'd':	goto yy233;
+	case 'I':
+	case 'i':	goto yy228;
+	case 'L':
+	case 'l':	goto yy229;
 	default:	goto yy15;
 	}
 yy145:
@@ -3628,12 +3615,23 @@ yy145:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy235;
+	case 'D':
+	case 'd':	goto yy231;
 	default:	goto yy15;
 	}
 yy146:
 	YYDEBUG(146, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy233;
+	default:	goto yy15;
+	}
+yy147:
+	YYDEBUG(147, YYPEEK ());
 	yyaccept = 7;
 	YYSKIP ();
 	YYBACKUP ();
@@ -3754,24 +3752,13 @@ yy146:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy147;
+	default:	goto yy148;
 	}
-yy147:
-	YYDEBUG(147, YYPEEK ());
-#line 282 "../ada.re2c"
-	{*id =  12; continue;}
-#line 3764 "../ada_re2c.c"
 yy148:
 	YYDEBUG(148, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'G':
-	case 'g':	goto yy236;
-	default:	goto yy15;
-	}
+#line 282 "../ada.re2c"
+	{*id =  12; continue;}
+#line 3762 "../ada_re2c.c"
 yy149:
 	YYDEBUG(149, YYPEEK ());
 	yyaccept = 1;
@@ -3779,8 +3766,8 @@ yy149:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'D':
-	case 'd':	goto yy237;
+	case 'G':
+	case 'g':	goto yy234;
 	default:	goto yy15;
 	}
 yy150:
@@ -3790,8 +3777,8 @@ yy150:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'S':
-	case 's':	goto yy238;
+	case 'D':
+	case 'd':	goto yy235;
 	default:	goto yy15;
 	}
 yy151:
@@ -3801,8 +3788,8 @@ yy151:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy239;
+	case 'S':
+	case 's':	goto yy236;
 	default:	goto yy15;
 	}
 yy152:
@@ -3812,10 +3799,8 @@ yy152:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy240;
-	case 'L':
-	case 'l':	goto yy241;
+	case 'N':
+	case 'n':	goto yy237;
 	default:	goto yy15;
 	}
 yy153:
@@ -3825,12 +3810,25 @@ yy153:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'G':
-	case 'g':	goto yy242;
+	case 'C':
+	case 'c':	goto yy238;
+	case 'L':
+	case 'l':	goto yy239;
 	default:	goto yy15;
 	}
 yy154:
 	YYDEBUG(154, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'G':
+	case 'g':	goto yy240;
+	default:	goto yy15;
+	}
+yy155:
+	YYDEBUG(155, YYPEEK ());
 	yyaccept = 8;
 	YYSKIP ();
 	YYBACKUP ();
@@ -3951,24 +3949,13 @@ yy154:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy155;
+	default:	goto yy156;
 	}
-yy155:
-	YYDEBUG(155, YYPEEK ());
-#line 291 "../ada.re2c"
-	{*id =  21; continue;}
-#line 3961 "../ada_re2c.c"
 yy156:
 	YYDEBUG(156, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'S':
-	case 's':	goto yy243;
-	default:	goto yy15;
-	}
+#line 291 "../ada.re2c"
+	{*id =  21; continue;}
+#line 3959 "../ada_re2c.c"
 yy157:
 	YYDEBUG(157, YYPEEK ());
 	yyaccept = 1;
@@ -3976,10 +3963,8 @@ yy157:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'D':
-	case 'd':	goto yy244;
-	case 'T':
-	case 't':	goto yy246;
+	case 'S':
+	case 's':	goto yy241;
 	default:	goto yy15;
 	}
 yy158:
@@ -3989,10 +3974,10 @@ yy158:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy247;
-	case 'I':
-	case 'i':	goto yy248;
+	case 'D':
+	case 'd':	goto yy242;
+	case 'T':
+	case 't':	goto yy244;
 	default:	goto yy15;
 	}
 yy159:
@@ -4002,8 +3987,10 @@ yy159:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy249;
+	case 'C':
+	case 'c':	goto yy245;
+	case 'I':
+	case 'i':	goto yy246;
 	default:	goto yy15;
 	}
 yy160:
@@ -4013,8 +4000,8 @@ yy160:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy251;
+	case 'R':
+	case 'r':	goto yy247;
 	default:	goto yy15;
 	}
 yy161:
@@ -4025,7 +4012,7 @@ yy161:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'N':
-	case 'n':	goto yy252;
+	case 'n':	goto yy249;
 	default:	goto yy15;
 	}
 yy162:
@@ -4035,12 +4022,23 @@ yy162:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy253;
+	case 'N':
+	case 'n':	goto yy250;
 	default:	goto yy15;
 	}
 yy163:
 	YYDEBUG(163, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy251;
+	default:	goto yy15;
+	}
+yy164:
+	YYDEBUG(164, YYPEEK ());
 	yyaccept = 9;
 	YYSKIP ();
 	YYBACKUP ();
@@ -4161,15 +4159,15 @@ yy163:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy164;
+	default:	goto yy165;
 	}
-yy164:
-	YYDEBUG(164, YYPEEK ());
-#line 302 "../ada.re2c"
-	{*id =  32; continue;}
-#line 4171 "../ada_re2c.c"
 yy165:
 	YYDEBUG(165, YYPEEK ());
+#line 302 "../ada.re2c"
+	{*id =  32; continue;}
+#line 4169 "../ada_re2c.c"
+yy166:
+	YYDEBUG(166, YYPEEK ());
 	yyaccept = 10;
 	YYSKIP ();
 	YYBACKUP ();
@@ -4289,16 +4287,16 @@ yy165:
 	case 0xF3:
 	case 0xF4:	goto yy15;
 	case 'T':
-	case 't':	goto yy254;
-	default:	goto yy166;
+	case 't':	goto yy252;
+	default:	goto yy167;
 	}
-yy166:
-	YYDEBUG(166, YYPEEK ());
-#line 303 "../ada.re2c"
-	{*id =  33; continue;}
-#line 4300 "../ada_re2c.c"
 yy167:
 	YYDEBUG(167, YYPEEK ());
+#line 303 "../ada.re2c"
+	{*id =  33; continue;}
+#line 4298 "../ada_re2c.c"
+yy168:
+	YYDEBUG(168, YYPEEK ());
 	yyaccept = 11;
 	YYSKIP ();
 	YYBACKUP ();
@@ -4419,24 +4417,13 @@ yy167:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy168;
+	default:	goto yy169;
 	}
-yy168:
-	YYDEBUG(168, YYPEEK ());
-#line 305 "../ada.re2c"
-	{*id =  35; continue;}
-#line 4429 "../ada_re2c.c"
 yy169:
 	YYDEBUG(169, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'M':
-	case 'm':	goto yy255;
-	default:	goto yy15;
-	}
+#line 305 "../ada.re2c"
+	{*id =  35; continue;}
+#line 4427 "../ada_re2c.c"
 yy170:
 	YYDEBUG(170, YYPEEK ());
 	yyaccept = 1;
@@ -4444,8 +4431,8 @@ yy170:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'O':
-	case 'o':	goto yy256;
+	case 'M':
+	case 'm':	goto yy253;
 	default:	goto yy15;
 	}
 yy171:
@@ -4455,8 +4442,8 @@ yy171:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'D':
-	case 'd':	goto yy257;
+	case 'O':
+	case 'o':	goto yy254;
 	default:	goto yy15;
 	}
 yy172:
@@ -4466,8 +4453,8 @@ yy172:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'W':
-	case 'w':	goto yy259;
+	case 'D':
+	case 'd':	goto yy255;
 	default:	goto yy15;
 	}
 yy173:
@@ -4477,8 +4464,8 @@ yy173:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy261;
+	case 'W':
+	case 'w':	goto yy257;
 	default:	goto yy15;
 	}
 yy174:
@@ -4488,12 +4475,23 @@ yy174:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'L':
-	case 'l':	goto yy263;
+	case 'T':
+	case 't':	goto yy259;
 	default:	goto yy15;
 	}
 yy175:
 	YYDEBUG(175, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'L':
+	case 'l':	goto yy261;
+	default:	goto yy15;
+	}
+yy176:
+	YYDEBUG(176, YYPEEK ());
 	yyaccept = 12;
 	YYSKIP ();
 	YYBACKUP ();
@@ -4614,15 +4612,15 @@ yy175:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy176;
+	default:	goto yy177;
 	}
-yy176:
-	YYDEBUG(176, YYPEEK ());
-#line 312 "../ada.re2c"
-	{*id =  42; continue;}
-#line 4624 "../ada_re2c.c"
 yy177:
 	YYDEBUG(177, YYPEEK ());
+#line 312 "../ada.re2c"
+	{*id =  42; continue;}
+#line 4622 "../ada_re2c.c"
+yy178:
+	YYDEBUG(178, YYPEEK ());
 	yyaccept = 13;
 	YYSKIP ();
 	YYBACKUP ();
@@ -4743,24 +4741,13 @@ yy177:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy178;
+	default:	goto yy179;
 	}
-yy178:
-	YYDEBUG(178, YYPEEK ());
-#line 313 "../ada.re2c"
-	{*id =  43; continue;}
-#line 4753 "../ada_re2c.c"
 yy179:
 	YYDEBUG(179, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'H':
-	case 'h':	goto yy264;
-	default:	goto yy15;
-	}
+#line 313 "../ada.re2c"
+	{*id =  43; continue;}
+#line 4751 "../ada_re2c.c"
 yy180:
 	YYDEBUG(180, YYPEEK ());
 	yyaccept = 1;
@@ -4768,8 +4755,8 @@ yy180:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy265;
+	case 'H':
+	case 'h':	goto yy262;
 	default:	goto yy15;
 	}
 yy181:
@@ -4779,8 +4766,8 @@ yy181:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy267;
+	case 'T':
+	case 't':	goto yy263;
 	default:	goto yy15;
 	}
 yy182:
@@ -4790,8 +4777,8 @@ yy182:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy268;
+	case 'E':
+	case 'e':	goto yy265;
 	default:	goto yy15;
 	}
 yy183:
@@ -4801,12 +4788,8 @@ yy183:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy269;
-	case 'I':
-	case 'i':	goto yy270;
-	case 'O':
-	case 'o':	goto yy271;
+	case 'C':
+	case 'c':	goto yy266;
 	default:	goto yy15;
 	}
 yy184:
@@ -4816,10 +4799,12 @@ yy184:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case 'A':
+	case 'a':	goto yy267;
 	case 'I':
-	case 'i':	goto yy272;
-	case 'N':
-	case 'n':	goto yy273;
+	case 'i':	goto yy268;
+	case 'O':
+	case 'o':	goto yy269;
 	default:	goto yy15;
 	}
 yy185:
@@ -4829,18 +4814,10 @@ yy185:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy274;
-	case 'M':
-	case 'm':	goto yy275;
+	case 'I':
+	case 'i':	goto yy270;
 	case 'N':
-	case 'n':	goto yy277;
-	case 'Q':
-	case 'q':	goto yy278;
-	case 'T':
-	case 't':	goto yy279;
-	case 'V':
-	case 'v':	goto yy280;
+	case 'n':	goto yy271;
 	default:	goto yy15;
 	}
 yy186:
@@ -4850,10 +4827,18 @@ yy186:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'L':
-	case 'l':	goto yy281;
-	case 'P':
-	case 'p':	goto yy282;
+	case 'C':
+	case 'c':	goto yy272;
+	case 'M':
+	case 'm':	goto yy273;
+	case 'N':
+	case 'n':	goto yy275;
+	case 'Q':
+	case 'q':	goto yy276;
+	case 'T':
+	case 't':	goto yy277;
+	case 'V':
+	case 'v':	goto yy278;
 	default:	goto yy15;
 	}
 yy187:
@@ -4863,8 +4848,10 @@ yy187:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'M':
-	case 'm':	goto yy283;
+	case 'L':
+	case 'l':	goto yy279;
+	case 'P':
+	case 'p':	goto yy280;
 	default:	goto yy15;
 	}
 yy188:
@@ -4874,8 +4861,8 @@ yy188:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'B':
-	case 'b':	goto yy284;
+	case 'M':
+	case 'm':	goto yy281;
 	default:	goto yy15;
 	}
 yy189:
@@ -4885,8 +4872,8 @@ yy189:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy285;
+	case 'B':
+	case 'b':	goto yy282;
 	default:	goto yy15;
 	}
 yy190:
@@ -4896,10 +4883,8 @@ yy190:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'G':
-	case 'g':	goto yy286;
-	case 'S':
-	case 's':	goto yy287;
+	case 'N':
+	case 'n':	goto yy283;
 	default:	goto yy15;
 	}
 yy191:
@@ -4909,8 +4894,10 @@ yy191:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy288;
+	case 'G':
+	case 'g':	goto yy284;
+	case 'S':
+	case 's':	goto yy285;
 	default:	goto yy15;
 	}
 yy192:
@@ -4920,8 +4907,8 @@ yy192:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy289;
+	case 'R':
+	case 'r':	goto yy286;
 	default:	goto yy15;
 	}
 yy193:
@@ -4931,8 +4918,8 @@ yy193:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'P':
-	case 'p':	goto yy290;
+	case 'E':
+	case 'e':	goto yy287;
 	default:	goto yy15;
 	}
 yy194:
@@ -4942,8 +4929,8 @@ yy194:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy291;
+	case 'P':
+	case 'p':	goto yy288;
 	default:	goto yy15;
 	}
 yy195:
@@ -4953,8 +4940,8 @@ yy195:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy292;
+	case 'T':
+	case 't':	goto yy289;
 	default:	goto yy15;
 	}
 yy196:
@@ -4965,9 +4952,7 @@ yy196:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy294;
-	case 'I':
-	case 'i':	goto yy295;
+	case 'e':	goto yy290;
 	default:	goto yy15;
 	}
 yy197:
@@ -4977,8 +4962,10 @@ yy197:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy296;
+	case 'E':
+	case 'e':	goto yy292;
+	case 'I':
+	case 'i':	goto yy293;
 	default:	goto yy15;
 	}
 yy198:
@@ -4988,92 +4975,26 @@ yy198:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy297;
+	case 'T':
+	case 't':	goto yy294;
 	default:	goto yy15;
 	}
 yy199:
 	YYDEBUG(199, YYPEEK ());
+	yyaccept = 1;
 	YYSKIP ();
+	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':	goto yy299;
-	default:	goto yy86;
+	case 'R':
+	case 'r':	goto yy295;
+	default:	goto yy15;
 	}
 yy200:
 	YYDEBUG(200, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
-yy201:
-	YYDEBUG(201, YYPEEK ());
 	switch (yych) {
-	case 0x00:
-	case 0x01:
-	case 0x02:
-	case 0x03:
-	case 0x05:
-	case 0x06:
-	case 0x07:
-	case 0x08:
-	case '\t':
-	case '\v':
-	case '\f':
-	case '\r':
-	case 0x0E:
-	case 0x0F:
-	case 0x10:
-	case 0x11:
-	case 0x12:
-	case 0x13:
-	case 0x14:
-	case 0x15:
-	case 0x16:
-	case 0x17:
-	case 0x18:
-	case 0x19:
-	case 0x1A:
-	case 0x1B:
-	case 0x1C:
-	case 0x1D:
-	case 0x1E:
-	case 0x1F:
-	case ' ':
-	case '!':
-	case '"':
-	case '#':
-	case '$':
-	case '%':
-	case '&':
-	case '\'':
-	case '(':
-	case ')':
-	case '*':
-	case '+':
-	case ',':
-	case '-':
-	case '.':
-	case '/':
 	case '0':
 	case '1':
 	case '2':
@@ -5084,135 +5005,130 @@ yy201:
 	case '7':
 	case '8':
 	case '9':
-	case ':':
-	case ';':
-	case '<':
-	case '=':
-	case '>':
-	case '?':
-	case '@':
 	case 'A':
 	case 'B':
 	case 'C':
 	case 'D':
 	case 'E':
 	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '\\':
-	case ']':
-	case '^':
-	case '_':
-	case '`':
 	case 'a':
 	case 'b':
 	case 'c':
 	case 'd':
 	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case '{':
-	case '|':
-	case '~':
-	case 0x7F:	goto yy200;
-	case 0x04:
-	case '\n':
-	case '}':	goto yy202;
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:	goto yy203;
-	case 0xE0:	goto yy204;
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:	goto yy205;
-	case 0xF0:	goto yy206;
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:	goto yy207;
-	case 0xF4:	goto yy208;
-	default:	goto yy86;
+	case 'f':	goto yy297;
+	default:	goto yy88;
+	}
+yy201:
+	YYDEBUG(201, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy75;
+	default:	goto yy88;
 	}
 yy202:
 	YYDEBUG(202, YYPEEK ());
 	YYSKIP ();
-	goto yy119;
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy201;
+	default:	goto yy88;
+	}
 yy203:
 	YYDEBUG(203, YYPEEK ());
 	YYSKIP ();
@@ -5281,14 +5197,30 @@ yy203:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy200;
-	default:	goto yy86;
+	case 0xBF:	goto yy201;
+	default:	goto yy88;
 	}
 yy204:
 	YYDEBUG(204, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -5321,7 +5253,7 @@ yy204:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy203;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy205:
 	YYDEBUG(205, YYPEEK ());
@@ -5392,165 +5324,39 @@ yy205:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy203;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy206:
 	YYDEBUG(206, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy205;
-	default:	goto yy86;
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy203;
+	default:	goto yy88;
 	}
 yy207:
 	YYDEBUG(207, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy205;
-	default:	goto yy86;
-	}
-yy208:
-	YYDEBUG(208, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy205;
-	default:	goto yy86;
-	}
-yy209:
-	YYDEBUG(209, YYPEEK ());
-	yyaccept = 5;
+	yyaccept = 6;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '"':	goto yy84;
+	case '"':	goto yy86;
 	case '0':
 	case '1':
 	case '2':
@@ -5572,35 +5378,35 @@ yy209:
 	case 'c':
 	case 'd':
 	case 'e':
-	case 'f':	goto yy301;
+	case 'f':	goto yy299;
+	default:	goto yy90;
+	}
+yy208:
+	YYDEBUG(208, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 's':	goto yy301;
+	default:	goto yy88;
+	}
+yy209:
+	YYDEBUG(209, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'd':	goto yy119;
 	default:	goto yy88;
 	}
 yy210:
 	YYDEBUG(210, YYPEEK ());
 	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 's':	goto yy303;
-	default:	goto yy86;
-	}
 yy211:
 	YYDEBUG(211, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'd':	goto yy117;
-	default:	goto yy86;
-	}
-yy212:
-	YYDEBUG(212, YYPEEK ());
-	YYSKIP ();
-yy213:
-	YYDEBUG(213, YYPEEK ());
 #line 379 "../ada.re2c"
 	{*id =  109; continue;}
-#line 5602 "../ada_re2c.c"
-yy214:
-	YYDEBUG(214, YYPEEK ());
+#line 5408 "../ada_re2c.c"
+yy212:
+	YYDEBUG(212, YYPEEK ());
 	yyaccept = 14;
 	YYSKIP ();
 	YYBACKUP ();
@@ -5700,8 +5506,8 @@ yy214:
 	case '|':
 	case '}':
 	case '~':
-	case 0x7F:	goto yy304;
-	case '[':	goto yy305;
+	case 0x7F:	goto yy302;
+	case '[':	goto yy303;
 	case 0xC2:
 	case 0xC3:
 	case 0xC4:
@@ -5731,8 +5537,8 @@ yy214:
 	case 0xDC:
 	case 0xDD:
 	case 0xDE:
-	case 0xDF:	goto yy306;
-	case 0xE0:	goto yy307;
+	case 0xDF:	goto yy304;
+	case 0xE0:	goto yy305;
 	case 0xE1:
 	case 0xE2:
 	case 0xE3:
@@ -5747,21 +5553,131 @@ yy214:
 	case 0xEC:
 	case 0xED:
 	case 0xEE:
-	case 0xEF:	goto yy308;
-	case 0xF0:	goto yy309;
+	case 0xEF:	goto yy306;
+	case 0xF0:	goto yy307;
 	case 0xF1:
 	case 0xF2:
-	case 0xF3:	goto yy310;
-	case 0xF4:	goto yy311;
-	default:	goto yy213;
+	case 0xF3:	goto yy308;
+	case 0xF4:	goto yy309;
+	default:	goto yy211;
+	}
+yy213:
+	YYDEBUG(213, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '"':	goto yy88;
+	default:	goto yy311;
+	}
+yy214:
+	YYDEBUG(214, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy119;
+	default:	goto yy88;
 	}
 yy215:
 	YYDEBUG(215, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '"':	goto yy86;
-	default:	goto yy313;
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy214;
+	default:	goto yy88;
 	}
 yy216:
 	YYDEBUG(216, YYPEEK ());
@@ -5831,14 +5747,30 @@ yy216:
 	case 0xBC:
 	case 0xBD:
 	case 0xBE:
-	case 0xBF:	goto yy117;
-	default:	goto yy86;
+	case 0xBF:	goto yy214;
+	default:	goto yy88;
 	}
 yy217:
 	YYDEBUG(217, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -5871,7 +5803,7 @@ yy217:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy216;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy218:
 	YYDEBUG(218, YYPEEK ());
@@ -5942,165 +5874,39 @@ yy218:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy216;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy219:
 	YYDEBUG(219, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy218;
-	default:	goto yy86;
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy216;
+	default:	goto yy88;
 	}
 yy220:
 	YYDEBUG(220, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
-	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy218;
-	default:	goto yy86;
-	}
 yy221:
 	YYDEBUG(221, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
 	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy218;
-	default:	goto yy86;
-	}
-yy222:
-	YYDEBUG(222, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-yy223:
-	YYDEBUG(223, YYPEEK ());
-	switch (yych) {
-	case '#':	goto yy314;
+	case '#':	goto yy312;
 	case '-':
 	case '.':
 	case '0':
@@ -6125,22 +5931,22 @@ yy223:
 	case 'c':
 	case 'd':
 	case 'e':
-	case 'f':	goto yy222;
-	default:	goto yy86;
+	case 'f':	goto yy220;
+	default:	goto yy88;
 	}
-yy224:
-	YYDEBUG(224, YYPEEK ());
+yy222:
+	YYDEBUG(222, YYPEEK ());
 	yyaccept = 3;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
-	YYDEBUG(225, YYPEEK ());
+	YYDEBUG(223, YYPEEK ());
 	switch (yych) {
 	case '-':
 	case '.':
 	case 'E':
 	case '_':
-	case 'e':	goto yy125;
+	case 'e':	goto yy126;
 	case '0':
 	case '1':
 	case '2':
@@ -6150,22 +5956,22 @@ yy224:
 	case '6':
 	case '7':
 	case '8':
-	case '9':	goto yy224;
+	case '9':	goto yy222;
 	default:	goto yy39;
 	}
-yy226:
-	YYDEBUG(226, YYPEEK ());
+yy224:
+	YYDEBUG(224, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'R':
-	case 'r':	goto yy315;
+	case 'r':	goto yy313;
 	default:	goto yy15;
 	}
-yy227:
-	YYDEBUG(227, YYPEEK ());
+yy225:
+	YYDEBUG(225, YYPEEK ());
 	yyaccept = 15;
 	YYSKIP ();
 	YYBACKUP ();
@@ -6285,39 +6091,168 @@ yy227:
 	case 0xF3:
 	case 0xF4:	goto yy15;
 	case 'T':
-	case 't':	goto yy316;
-	default:	goto yy228;
+	case 't':	goto yy314;
+	default:	goto yy226;
 	}
-yy228:
-	YYDEBUG(228, YYPEEK ());
+yy226:
+	YYDEBUG(226, YYPEEK ());
 #line 273 "../ada.re2c"
 	{*id =  3; continue;}
-#line 6296 "../ada_re2c.c"
-yy229:
-	YYDEBUG(229, YYPEEK ());
+#line 6102 "../ada_re2c.c"
+yy227:
+	YYDEBUG(227, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy317;
+	case 'e':	goto yy315;
 	default:	goto yy15;
 	}
-yy230:
-	YYDEBUG(230, YYPEEK ());
+yy228:
+	YYDEBUG(228, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy318;
+	case 'a':	goto yy316;
 	default:	goto yy15;
 	}
+yy229:
+	YYDEBUG(229, YYPEEK ());
+	yyaccept = 16;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy230;
+	}
+yy230:
+	YYDEBUG(230, YYPEEK ());
+#line 279 "../ada.re2c"
+	{*id =  9; continue;}
+#line 6253 "../ada_re2c.c"
 yy231:
 	YYDEBUG(231, YYPEEK ());
-	yyaccept = 16;
+	yyaccept = 17;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -6441,138 +6376,31 @@ yy231:
 	}
 yy232:
 	YYDEBUG(232, YYPEEK ());
-#line 279 "../ada.re2c"
-	{*id =  9; continue;}
-#line 6447 "../ada_re2c.c"
+#line 280 "../ada.re2c"
+	{*id =  10; continue;}
+#line 6382 "../ada_re2c.c"
 yy233:
 	YYDEBUG(233, YYPEEK ());
-	yyaccept = 17;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
 	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy234;
+	case 'a':	goto yy317;
+	default:	goto yy15;
 	}
 yy234:
 	YYDEBUG(234, YYPEEK ());
-#line 280 "../ada.re2c"
-	{*id =  10; continue;}
-#line 6576 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'I':
+	case 'i':	goto yy318;
+	default:	goto yy15;
+	}
 yy235:
 	YYDEBUG(235, YYPEEK ());
 	yyaccept = 1;
@@ -6580,8 +6408,8 @@ yy235:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy319;
+	case 'Y':
+	case 'y':	goto yy319;
 	default:	goto yy15;
 	}
 yy236:
@@ -6591,8 +6419,8 @@ yy236:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'I':
-	case 'i':	goto yy320;
+	case 'E':
+	case 'e':	goto yy321;
 	default:	goto yy15;
 	}
 yy237:
@@ -6602,8 +6430,8 @@ yy237:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'Y':
-	case 'y':	goto yy321;
+	case 'S':
+	case 's':	goto yy323;
 	default:	goto yy15;
 	}
 yy238:
@@ -6613,8 +6441,8 @@ yy238:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy323;
+	case 'L':
+	case 'l':	goto yy324;
 	default:	goto yy15;
 	}
 yy239:
@@ -6624,8 +6452,10 @@ yy239:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'S':
-	case 's':	goto yy325;
+	case 'A':
+	case 'a':	goto yy325;
+	case 'T':
+	case 't':	goto yy326;
 	default:	goto yy15;
 	}
 yy240:
@@ -6635,8 +6465,8 @@ yy240:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'L':
-	case 'l':	goto yy326;
+	case 'I':
+	case 'i':	goto yy327;
 	default:	goto yy15;
 	}
 yy241:
@@ -6646,38 +6476,14 @@ yy241:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy327;
-	case 'T':
-	case 't':	goto yy328;
+	case 'E':
+	case 'e':	goto yy328;
+	case 'I':
+	case 'i':	goto yy330;
 	default:	goto yy15;
 	}
 yy242:
 	YYDEBUG(242, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'I':
-	case 'i':	goto yy329;
-	default:	goto yy15;
-	}
-yy243:
-	YYDEBUG(243, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy330;
-	case 'I':
-	case 'i':	goto yy332;
-	default:	goto yy15;
-	}
-yy244:
-	YYDEBUG(244, YYPEEK ());
 	yyaccept = 18;
 	YYSKIP ();
 	YYBACKUP ();
@@ -6798,13 +6604,35 @@ yy244:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy245;
+	default:	goto yy243;
+	}
+yy243:
+	YYDEBUG(243, YYPEEK ());
+#line 294 "../ada.re2c"
+	{*id =  24; continue;}
+#line 6614 "../ada_re2c.c"
+yy244:
+	YYDEBUG(244, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy331;
+	default:	goto yy15;
 	}
 yy245:
 	YYDEBUG(245, YYPEEK ());
-#line 294 "../ada.re2c"
-	{*id =  24; continue;}
-#line 6808 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy332;
+	default:	goto yy15;
+	}
 yy246:
 	YYDEBUG(246, YYPEEK ());
 	yyaccept = 1;
@@ -6812,34 +6640,12 @@ yy246:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy333;
+	case 'T':
+	case 't':	goto yy333;
 	default:	goto yy15;
 	}
 yy247:
 	YYDEBUG(247, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy334;
-	default:	goto yy15;
-	}
-yy248:
-	YYDEBUG(248, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy335;
-	default:	goto yy15;
-	}
-yy249:
-	YYDEBUG(249, YYPEEK ());
 	yyaccept = 19;
 	YYSKIP ();
 	YYBACKUP ();
@@ -6960,13 +6766,35 @@ yy249:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy250;
+	default:	goto yy248;
+	}
+yy248:
+	YYDEBUG(248, YYPEEK ());
+#line 298 "../ada.re2c"
+	{*id =  28; continue;}
+#line 6776 "../ada_re2c.c"
+yy249:
+	YYDEBUG(249, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'C':
+	case 'c':	goto yy335;
+	default:	goto yy15;
 	}
 yy250:
 	YYDEBUG(250, YYPEEK ());
-#line 298 "../ada.re2c"
-	{*id =  28; continue;}
-#line 6970 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy336;
+	default:	goto yy15;
+	}
 yy251:
 	YYDEBUG(251, YYPEEK ());
 	yyaccept = 1;
@@ -6974,8 +6802,8 @@ yy251:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy337;
+	case 'O':
+	case 'o':	goto yy337;
 	default:	goto yy15;
 	}
 yy252:
@@ -6986,7 +6814,7 @@ yy252:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy338;
+	case 'e':	goto yy339;
 	default:	goto yy15;
 	}
 yy253:
@@ -6996,8 +6824,8 @@ yy253:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'O':
-	case 'o':	goto yy339;
+	case 'I':
+	case 'i':	goto yy340;
 	default:	goto yy15;
 	}
 yy254:
@@ -7007,35 +6835,142 @@ yy254:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy341;
+	case 'P':
+	case 'p':	goto yy341;
 	default:	goto yy15;
 	}
 yy255:
 	YYDEBUG(255, YYPEEK ());
-	yyaccept = 1;
+	yyaccept = 20;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
 	case 'I':
-	case 'i':	goto yy342;
-	default:	goto yy15;
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy256;
 	}
 yy256:
 	YYDEBUG(256, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'P':
-	case 'p':	goto yy343;
-	default:	goto yy15;
-	}
+#line 308 "../ada.re2c"
+	{*id =  38; continue;}
+#line 6971 "../ada_re2c.c"
 yy257:
 	YYDEBUG(257, YYPEEK ());
-	yyaccept = 20;
+	yyaccept = 21;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -7159,12 +7094,12 @@ yy257:
 	}
 yy258:
 	YYDEBUG(258, YYPEEK ());
-#line 308 "../ada.re2c"
-	{*id =  38; continue;}
-#line 7165 "../ada_re2c.c"
+#line 309 "../ada.re2c"
+	{*id =  39; continue;}
+#line 7100 "../ada_re2c.c"
 yy259:
 	YYDEBUG(259, YYPEEK ());
-	yyaccept = 21;
+	yyaccept = 22;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -7288,162 +7223,33 @@ yy259:
 	}
 yy260:
 	YYDEBUG(260, YYPEEK ());
-#line 309 "../ada.re2c"
-	{*id =  39; continue;}
-#line 7294 "../ada_re2c.c"
+#line 310 "../ada.re2c"
+	{*id =  40; continue;}
+#line 7229 "../ada_re2c.c"
 yy261:
 	YYDEBUG(261, YYPEEK ());
-	yyaccept = 22;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
 	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy262;
+	case 'l':	goto yy343;
+	default:	goto yy15;
 	}
 yy262:
 	YYDEBUG(262, YYPEEK ());
-#line 310 "../ada.re2c"
-	{*id =  40; continue;}
-#line 7423 "../ada_re2c.c"
-yy263:
-	YYDEBUG(263, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'L':
-	case 'l':	goto yy345;
-	default:	goto yy15;
-	}
-yy264:
-	YYDEBUG(264, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy347;
+	case 'e':	goto yy345;
 	default:	goto yy15;
 	}
-yy265:
-	YYDEBUG(265, YYPEEK ());
+yy263:
+	YYDEBUG(263, YYPEEK ());
 	yyaccept = 23;
 	YYSKIP ();
 	YYBACKUP ();
@@ -7564,13 +7370,35 @@ yy265:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy266;
+	default:	goto yy264;
+	}
+yy264:
+	YYDEBUG(264, YYPEEK ());
+#line 315 "../ada.re2c"
+	{*id =  45; continue;}
+#line 7380 "../ada_re2c.c"
+yy265:
+	YYDEBUG(265, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy346;
+	default:	goto yy15;
 	}
 yy266:
 	YYDEBUG(266, YYPEEK ());
-#line 315 "../ada.re2c"
-	{*id =  45; continue;}
-#line 7574 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'K':
+	case 'k':	goto yy347;
+	default:	goto yy15;
+	}
 yy267:
 	YYDEBUG(267, YYPEEK ());
 	yyaccept = 1;
@@ -7578,8 +7406,8 @@ yy267:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy348;
+	case 'G':
+	case 'g':	goto yy348;
 	default:	goto yy15;
 	}
 yy268:
@@ -7589,8 +7417,8 @@ yy268:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'K':
-	case 'k':	goto yy349;
+	case 'V':
+	case 'v':	goto yy349;
 	default:	goto yy15;
 	}
 yy269:
@@ -7600,8 +7428,10 @@ yy269:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'G':
-	case 'g':	goto yy350;
+	case 'C':
+	case 'c':	goto yy350;
+	case 'T':
+	case 't':	goto yy351;
 	default:	goto yy15;
 	}
 yy270:
@@ -7611,8 +7441,8 @@ yy270:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'V':
-	case 'v':	goto yy351;
+	case 'S':
+	case 's':	goto yy352;
 	default:	goto yy15;
 	}
 yy271:
@@ -7622,10 +7452,8 @@ yy271:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy352;
-	case 'T':
-	case 't':	goto yy353;
+	case 'G':
+	case 'g':	goto yy353;
 	default:	goto yy15;
 	}
 yy272:
@@ -7635,34 +7463,12 @@ yy272:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'S':
-	case 's':	goto yy354;
+	case 'O':
+	case 'o':	goto yy354;
 	default:	goto yy15;
 	}
 yy273:
 	YYDEBUG(273, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'G':
-	case 'g':	goto yy355;
-	default:	goto yy15;
-	}
-yy274:
-	YYDEBUG(274, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'O':
-	case 'o':	goto yy356;
-	default:	goto yy15;
-	}
-yy275:
-	YYDEBUG(275, YYPEEK ());
 	yyaccept = 24;
 	YYSKIP ();
 	YYBACKUP ();
@@ -7783,13 +7589,35 @@ yy275:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy276;
+	default:	goto yy274;
+	}
+yy274:
+	YYDEBUG(274, YYPEEK ());
+#line 325 "../ada.re2c"
+	{*id =  55; continue;}
+#line 7599 "../ada_re2c.c"
+yy275:
+	YYDEBUG(275, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy355;
+	default:	goto yy15;
 	}
 yy276:
 	YYDEBUG(276, YYPEEK ());
-#line 325 "../ada.re2c"
-	{*id =  55; continue;}
-#line 7793 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'U':
+	case 'u':	goto yy356;
+	default:	goto yy15;
+	}
 yy277:
 	YYDEBUG(277, YYPEEK ());
 	yyaccept = 1;
@@ -7797,8 +7625,8 @@ yy277:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy357;
+	case 'U':
+	case 'u':	goto yy357;
 	default:	goto yy15;
 	}
 yy278:
@@ -7808,8 +7636,8 @@ yy278:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'U':
-	case 'u':	goto yy358;
+	case 'E':
+	case 'e':	goto yy358;
 	default:	goto yy15;
 	}
 yy279:
@@ -7819,8 +7647,8 @@ yy279:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'U':
-	case 'u':	goto yy359;
+	case 'E':
+	case 'e':	goto yy359;
 	default:	goto yy15;
 	}
 yy280:
@@ -7830,8 +7658,8 @@ yy280:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy360;
+	case 'A':
+	case 'a':	goto yy360;
 	default:	goto yy15;
 	}
 yy281:
@@ -7852,8 +7680,8 @@ yy282:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy362;
+	case 'T':
+	case 't':	goto yy363;
 	default:	goto yy15;
 	}
 yy283:
@@ -7863,8 +7691,8 @@ yy283:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy363;
+	case 'C':
+	case 'c':	goto yy364;
 	default:	goto yy15;
 	}
 yy284:
@@ -7874,8 +7702,8 @@ yy284:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy365;
+	case 'G':
+	case 'g':	goto yy365;
 	default:	goto yy15;
 	}
 yy285:
@@ -7885,8 +7713,8 @@ yy285:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy366;
+	case 'K':
+	case 'k':	goto yy366;
 	default:	goto yy15;
 	}
 yy286:
@@ -7896,8 +7724,8 @@ yy286:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'G':
-	case 'g':	goto yy367;
+	case 'M':
+	case 'm':	goto yy368;
 	default:	goto yy15;
 	}
 yy287:
@@ -7907,8 +7735,8 @@ yy287:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'K':
-	case 'k':	goto yy368;
+	case 'N':
+	case 'n':	goto yy369;
 	default:	goto yy15;
 	}
 yy288:
@@ -7918,8 +7746,8 @@ yy288:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'M':
-	case 'm':	goto yy370;
+	case 'E':
+	case 'e':	goto yy371;
 	default:	goto yy15;
 	}
 yy289:
@@ -7929,34 +7757,12 @@ yy289:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy371;
+	case 'I':
+	case 'i':	goto yy373;
 	default:	goto yy15;
 	}
 yy290:
 	YYDEBUG(290, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy373;
-	default:	goto yy15;
-	}
-yy291:
-	YYDEBUG(291, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'I':
-	case 'i':	goto yy375;
-	default:	goto yy15;
-	}
-yy292:
-	YYDEBUG(292, YYPEEK ());
 	yyaccept = 25;
 	YYSKIP ();
 	YYBACKUP ();
@@ -8077,13 +7883,35 @@ yy292:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy293;
+	default:	goto yy291;
+	}
+yy291:
+	YYDEBUG(291, YYPEEK ());
+#line 341 "../ada.re2c"
+	{*id =  71; continue;}
+#line 7893 "../ada_re2c.c"
+yy292:
+	YYDEBUG(292, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'N':
+	case 'n':	goto yy374;
+	default:	goto yy15;
 	}
 yy293:
 	YYDEBUG(293, YYPEEK ());
-#line 341 "../ada.re2c"
-	{*id =  71; continue;}
-#line 8087 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'L':
+	case 'l':	goto yy376;
+	default:	goto yy15;
+	}
 yy294:
 	YYDEBUG(294, YYPEEK ());
 	yyaccept = 1;
@@ -8091,34 +7919,12 @@ yy294:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy376;
+	case 'H':
+	case 'h':	goto yy377;
 	default:	goto yy15;
 	}
 yy295:
 	YYDEBUG(295, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'L':
-	case 'l':	goto yy378;
-	default:	goto yy15;
-	}
-yy296:
-	YYDEBUG(296, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'H':
-	case 'h':	goto yy379;
-	default:	goto yy15;
-	}
-yy297:
-	YYDEBUG(297, YYPEEK ());
 	yyaccept = 26;
 	YYSKIP ();
 	YYBACKUP ();
@@ -8239,20 +8045,51 @@ yy297:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy298;
+	default:	goto yy296;
 	}
-yy298:
-	YYDEBUG(298, YYPEEK ());
+yy296:
+	YYDEBUG(296, YYPEEK ());
 #line 345 "../ada.re2c"
 	{*id =  75; continue;}
-#line 8249 "../ada_re2c.c"
+#line 8055 "../ada_re2c.c"
+yy297:
+	YYDEBUG(297, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	YYDEBUG(298, YYPEEK ());
+	switch (yych) {
+	case '"':	goto yy379;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':	goto yy297;
+	default:	goto yy88;
+	}
 yy299:
 	YYDEBUG(299, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	YYDEBUG(300, YYPEEK ());
 	switch (yych) {
-	case '"':	goto yy381;
+	case '"':	goto yy380;
 	case '0':
 	case '1':
 	case '2':
@@ -8275,64 +8112,143 @@ yy299:
 	case 'd':
 	case 'e':
 	case 'f':	goto yy299;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy301:
 	YYDEBUG(301, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
-	YYDEBUG(302, YYPEEK ());
 	switch (yych) {
-	case '"':	goto yy382;
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':	goto yy301;
-	default:	goto yy86;
+	case 'e':	goto yy119;
+	case 'i':	goto yy100;
+	default:	goto yy88;
+	}
+yy302:
+	YYDEBUG(302, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '\'':	goto yy381;
+	default:	goto yy88;
 	}
 yy303:
 	YYDEBUG(303, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'e':	goto yy117;
-	case 'i':	goto yy98;
-	default:	goto yy86;
+	case '"':	goto yy383;
+	case '\'':	goto yy381;
+	default:	goto yy88;
 	}
 yy304:
 	YYDEBUG(304, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '\'':	goto yy383;
-	default:	goto yy86;
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy302;
+	default:	goto yy88;
 	}
 yy305:
 	YYDEBUG(305, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '"':	goto yy385;
-	case '\'':	goto yy383;
-	default:	goto yy86;
+	case 0xA0:
+	case 0xA1:
+	case 0xA2:
+	case 0xA3:
+	case 0xA4:
+	case 0xA5:
+	case 0xA6:
+	case 0xA7:
+	case 0xA8:
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAE:
+	case 0xAF:
+	case 0xB0:
+	case 0xB1:
+	case 0xB2:
+	case 0xB3:
+	case 0xB4:
+	case 0xB5:
+	case 0xB6:
+	case 0xB7:
+	case 0xB8:
+	case 0xB9:
+	case 0xBA:
+	case 0xBB:
+	case 0xBC:
+	case 0xBD:
+	case 0xBE:
+	case 0xBF:	goto yy304;
+	default:	goto yy88;
 	}
 yy306:
 	YYDEBUG(306, YYPEEK ());
@@ -8403,13 +8319,29 @@ yy306:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy304;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy307:
 	YYDEBUG(307, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+	case 0x9D:
+	case 0x9E:
+	case 0x9F:
 	case 0xA0:
 	case 0xA1:
 	case 0xA2:
@@ -8442,7 +8374,7 @@ yy307:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy306;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy308:
 	YYDEBUG(308, YYPEEK ());
@@ -8513,165 +8445,39 @@ yy308:
 	case 0xBD:
 	case 0xBE:
 	case 0xBF:	goto yy306;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
 yy309:
 	YYDEBUG(309, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy308;
-	default:	goto yy86;
+	case 0x80:
+	case 0x81:
+	case 0x82:
+	case 0x83:
+	case 0x84:
+	case 0x85:
+	case 0x86:
+	case 0x87:
+	case 0x88:
+	case 0x89:
+	case 0x8A:
+	case 0x8B:
+	case 0x8C:
+	case 0x8D:
+	case 0x8E:
+	case 0x8F:	goto yy306;
+	default:	goto yy88;
 	}
 yy310:
 	YYDEBUG(310, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
-	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0x94:
-	case 0x95:
-	case 0x96:
-	case 0x97:
-	case 0x98:
-	case 0x99:
-	case 0x9A:
-	case 0x9B:
-	case 0x9C:
-	case 0x9D:
-	case 0x9E:
-	case 0x9F:
-	case 0xA0:
-	case 0xA1:
-	case 0xA2:
-	case 0xA3:
-	case 0xA4:
-	case 0xA5:
-	case 0xA6:
-	case 0xA7:
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAE:
-	case 0xAF:
-	case 0xB0:
-	case 0xB1:
-	case 0xB2:
-	case 0xB3:
-	case 0xB4:
-	case 0xB5:
-	case 0xB6:
-	case 0xB7:
-	case 0xB8:
-	case 0xB9:
-	case 0xBA:
-	case 0xBB:
-	case 0xBC:
-	case 0xBD:
-	case 0xBE:
-	case 0xBF:	goto yy308;
-	default:	goto yy86;
-	}
 yy311:
 	YYDEBUG(311, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
 	switch (yych) {
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
-	case 0x86:
-	case 0x87:
-	case 0x88:
-	case 0x89:
-	case 0x8A:
-	case 0x8B:
-	case 0x8C:
-	case 0x8D:
-	case 0x8E:
-	case 0x8F:	goto yy308;
-	default:	goto yy86;
-	}
-yy312:
-	YYDEBUG(312, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-yy313:
-	YYDEBUG(313, YYPEEK ());
-	switch (yych) {
-	case '"':	goto yy386;
+	case '"':	goto yy384;
 	case '0':
 	case '1':
 	case '2':
@@ -8693,13 +8499,35 @@ yy313:
 	case 'c':
 	case 'd':
 	case 'e':
-	case 'f':	goto yy312;
-	default:	goto yy86;
+	case 'f':	goto yy310;
+	default:	goto yy88;
+	}
+yy312:
+	YYDEBUG(312, YYPEEK ());
+	YYSKIP ();
+	goto yy39;
+yy313:
+	YYDEBUG(313, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy385;
+	default:	goto yy15;
 	}
 yy314:
 	YYDEBUG(314, YYPEEK ());
+	yyaccept = 1;
 	YYSKIP ();
-	goto yy39;
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy387;
+	default:	goto yy15;
+	}
 yy315:
 	YYDEBUG(315, YYPEEK ());
 	yyaccept = 1;
@@ -8707,8 +8535,10 @@ yy315:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy387;
+	case 'P':
+	case 'p':	goto yy388;
+	case 'S':
+	case 's':	goto yy389;
 	default:	goto yy15;
 	}
 yy316:
@@ -8718,8 +8548,8 @@ yy316:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy389;
+	case 'S':
+	case 's':	goto yy390;
 	default:	goto yy15;
 	}
 yy317:
@@ -8729,10 +8559,8 @@ yy317:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'P':
-	case 'p':	goto yy390;
-	case 'S':
-	case 's':	goto yy391;
+	case 'Y':
+	case 'y':	goto yy391;
 	default:	goto yy15;
 	}
 yy318:
@@ -8742,35 +8570,142 @@ yy318:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'S':
-	case 's':	goto yy392;
+	case 'N':
+	case 'n':	goto yy393;
 	default:	goto yy15;
 	}
 yy319:
 	YYDEBUG(319, YYPEEK ());
-	yyaccept = 1;
+	yyaccept = 27;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
 	case 'Y':
-	case 'y':	goto yy393;
-	default:	goto yy15;
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy320;
 	}
 yy320:
 	YYDEBUG(320, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'N':
-	case 'n':	goto yy395;
-	default:	goto yy15;
-	}
+#line 284 "../ada.re2c"
+	{*id =  14; continue;}
+#line 8706 "../ada_re2c.c"
 yy321:
 	YYDEBUG(321, YYPEEK ());
-	yyaccept = 27;
+	yyaccept = 28;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -8894,138 +8829,31 @@ yy321:
 	}
 yy322:
 	YYDEBUG(322, YYPEEK ());
-#line 284 "../ada.re2c"
-	{*id =  14; continue;}
-#line 8900 "../ada_re2c.c"
+#line 285 "../ada.re2c"
+	{*id =  15; continue;}
+#line 8835 "../ada_re2c.c"
 yy323:
 	YYDEBUG(323, YYPEEK ());
-	yyaccept = 28;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
 	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy324;
+	case 't':	goto yy395;
+	default:	goto yy15;
 	}
 yy324:
 	YYDEBUG(324, YYPEEK ());
-#line 285 "../ada.re2c"
-	{*id =  15; continue;}
-#line 9029 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy396;
+	default:	goto yy15;
+	}
 yy325:
 	YYDEBUG(325, YYPEEK ());
 	yyaccept = 1;
@@ -9033,8 +8861,8 @@ yy325:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy397;
+	case 'Y':
+	case 'y':	goto yy397;
 	default:	goto yy15;
 	}
 yy326:
@@ -9045,7 +8873,7 @@ yy326:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'A':
-	case 'a':	goto yy398;
+	case 'a':	goto yy399;
 	default:	goto yy15;
 	}
 yy327:
@@ -9055,34 +8883,12 @@ yy327:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'Y':
-	case 'y':	goto yy399;
+	case 'T':
+	case 't':	goto yy401;
 	default:	goto yy15;
 	}
 yy328:
 	YYDEBUG(328, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'A':
-	case 'a':	goto yy401;
-	default:	goto yy15;
-	}
-yy329:
-	YYDEBUG(329, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy403;
-	default:	goto yy15;
-	}
-yy330:
-	YYDEBUG(330, YYPEEK ());
 	yyaccept = 29;
 	YYSKIP ();
 	YYBACKUP ();
@@ -9203,13 +9009,35 @@ yy330:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy331;
+	default:	goto yy329;
+	}
+yy329:
+	YYDEBUG(329, YYPEEK ());
+#line 292 "../ada.re2c"
+	{*id =  22; continue;}
+#line 9019 "../ada_re2c.c"
+yy330:
+	YYDEBUG(330, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'F':
+	case 'f':	goto yy402;
+	default:	goto yy15;
 	}
 yy331:
 	YYDEBUG(331, YYPEEK ());
-#line 292 "../ada.re2c"
-	{*id =  22; continue;}
-#line 9213 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'Y':
+	case 'y':	goto yy404;
+	default:	goto yy15;
+	}
 yy332:
 	YYDEBUG(332, YYPEEK ());
 	yyaccept = 1;
@@ -9217,34 +9045,12 @@ yy332:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'F':
-	case 'f':	goto yy404;
+	case 'P':
+	case 'p':	goto yy406;
 	default:	goto yy15;
 	}
 yy333:
 	YYDEBUG(333, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'Y':
-	case 'y':	goto yy406;
-	default:	goto yy15;
-	}
-yy334:
-	YYDEBUG(334, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'P':
-	case 'p':	goto yy408;
-	default:	goto yy15;
-	}
-yy335:
-	YYDEBUG(335, YYPEEK ());
 	yyaccept = 30;
 	YYSKIP ();
 	YYBACKUP ();
@@ -9365,37 +9171,37 @@ yy335:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy336;
+	default:	goto yy334;
 	}
-yy336:
-	YYDEBUG(336, YYPEEK ());
+yy334:
+	YYDEBUG(334, YYPEEK ());
 #line 297 "../ada.re2c"
 	{*id =  27; continue;}
-#line 9375 "../ada_re2c.c"
-yy337:
-	YYDEBUG(337, YYPEEK ());
+#line 9181 "../ada_re2c.c"
+yy335:
+	YYDEBUG(335, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'T':
-	case 't':	goto yy409;
+	case 't':	goto yy407;
 	default:	goto yy15;
 	}
-yy338:
-	YYDEBUG(338, YYPEEK ());
+yy336:
+	YYDEBUG(336, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'R':
-	case 'r':	goto yy410;
+	case 'r':	goto yy408;
 	default:	goto yy15;
 	}
-yy339:
-	YYDEBUG(339, YYPEEK ());
+yy337:
+	YYDEBUG(337, YYPEEK ());
 	yyaccept = 31;
 	YYSKIP ();
 	YYBACKUP ();
@@ -9516,38 +9322,167 @@ yy339:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy340;
+	default:	goto yy338;
 	}
-yy340:
-	YYDEBUG(340, YYPEEK ());
+yy338:
+	YYDEBUG(338, YYPEEK ());
 #line 301 "../ada.re2c"
 	{*id =  31; continue;}
-#line 9526 "../ada_re2c.c"
-yy341:
-	YYDEBUG(341, YYPEEK ());
+#line 9332 "../ada_re2c.c"
+yy339:
+	YYDEBUG(339, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'R':
-	case 'r':	goto yy411;
+	case 'r':	goto yy409;
 	default:	goto yy15;
 	}
-yy342:
-	YYDEBUG(342, YYPEEK ());
+yy340:
+	YYDEBUG(340, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'T':
-	case 't':	goto yy412;
+	case 't':	goto yy410;
 	default:	goto yy15;
 	}
+yy341:
+	YYDEBUG(341, YYPEEK ());
+	yyaccept = 32;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy342;
+	}
+yy342:
+	YYDEBUG(342, YYPEEK ());
+#line 307 "../ada.re2c"
+	{*id =  37; continue;}
+#line 9483 "../ada_re2c.c"
 yy343:
 	YYDEBUG(343, YYPEEK ());
-	yyaccept = 32;
+	yyaccept = 33;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -9671,138 +9606,31 @@ yy343:
 	}
 yy344:
 	YYDEBUG(344, YYPEEK ());
-#line 307 "../ada.re2c"
-	{*id =  37; continue;}
-#line 9677 "../ada_re2c.c"
+#line 311 "../ada.re2c"
+	{*id =  41; continue;}
+#line 9612 "../ada_re2c.c"
 yy345:
 	YYDEBUG(345, YYPEEK ());
-	yyaccept = 33;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
 	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy346;
+	case 'r':	goto yy411;
+	default:	goto yy15;
 	}
 yy346:
 	YYDEBUG(346, YYPEEK ());
-#line 311 "../ada.re2c"
-	{*id =  41; continue;}
-#line 9806 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy412;
+	default:	goto yy15;
+	}
 yy347:
 	YYDEBUG(347, YYPEEK ());
 	yyaccept = 1;
@@ -9810,8 +9638,8 @@ yy347:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy413;
+	case 'A':
+	case 'a':	goto yy413;
 	default:	goto yy15;
 	}
 yy348:
@@ -9821,8 +9649,8 @@ yy348:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy414;
+	case 'M':
+	case 'm':	goto yy414;
 	default:	goto yy15;
 	}
 yy349:
@@ -9843,8 +9671,8 @@ yy350:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'M':
-	case 'm':	goto yy416;
+	case 'E':
+	case 'e':	goto yy416;
 	default:	goto yy15;
 	}
 yy351:
@@ -9854,8 +9682,8 @@ yy351:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy417;
+	case 'E':
+	case 'e':	goto yy417;
 	default:	goto yy15;
 	}
 yy352:
@@ -9877,7 +9705,7 @@ yy353:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy419;
+	case 'e':	goto yy420;
 	default:	goto yy15;
 	}
 yy354:
@@ -9887,8 +9715,8 @@ yy354:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy420;
+	case 'R':
+	case 'r':	goto yy422;
 	default:	goto yy15;
 	}
 yy355:
@@ -9898,8 +9726,8 @@ yy355:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy422;
+	case 'M':
+	case 'm':	goto yy423;
 	default:	goto yy15;
 	}
 yy356:
@@ -9909,8 +9737,8 @@ yy356:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy424;
+	case 'E':
+	case 'e':	goto yy424;
 	default:	goto yy15;
 	}
 yy357:
@@ -9920,8 +9748,8 @@ yy357:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'M':
-	case 'm':	goto yy425;
+	case 'R':
+	case 'r':	goto yy425;
 	default:	goto yy15;
 	}
 yy358:
@@ -9931,8 +9759,8 @@ yy358:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy426;
+	case 'R':
+	case 'r':	goto yy426;
 	default:	goto yy15;
 	}
 yy359:
@@ -9942,8 +9770,8 @@ yy359:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'R':
-	case 'r':	goto yy427;
+	case 'C':
+	case 'c':	goto yy427;
 	default:	goto yy15;
 	}
 yy360:
@@ -9959,28 +9787,6 @@ yy360:
 	}
 yy361:
 	YYDEBUG(361, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'C':
-	case 'c':	goto yy429;
-	default:	goto yy15;
-	}
-yy362:
-	YYDEBUG(362, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'R':
-	case 'r':	goto yy430;
-	default:	goto yy15;
-	}
-yy363:
-	YYDEBUG(363, YYPEEK ());
 	yyaccept = 34;
 	YYSKIP ();
 	YYBACKUP ();
@@ -10101,13 +9907,35 @@ yy363:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy364;
+	default:	goto yy362;
+	}
+yy362:
+	YYDEBUG(362, YYPEEK ());
+#line 332 "../ada.re2c"
+	{*id =  62; continue;}
+#line 9917 "../ada_re2c.c"
+yy363:
+	YYDEBUG(363, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'Y':
+	case 'y':	goto yy429;
+	default:	goto yy15;
 	}
 yy364:
 	YYDEBUG(364, YYPEEK ());
-#line 332 "../ada.re2c"
-	{*id =  62; continue;}
-#line 10111 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'H':
+	case 'h':	goto yy430;
+	default:	goto yy15;
+	}
 yy365:
 	YYDEBUG(365, YYPEEK ());
 	yyaccept = 1;
@@ -10115,34 +9943,12 @@ yy365:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'Y':
-	case 'y':	goto yy431;
+	case 'E':
+	case 'e':	goto yy431;
 	default:	goto yy15;
 	}
 yy366:
 	YYDEBUG(366, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'H':
-	case 'h':	goto yy432;
-	default:	goto yy15;
-	}
-yy367:
-	YYDEBUG(367, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy433;
-	default:	goto yy15;
-	}
-yy368:
-	YYDEBUG(368, YYPEEK ());
 	yyaccept = 35;
 	YYSKIP ();
 	YYBACKUP ();
@@ -10263,27 +10069,156 @@ yy368:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy369;
+	default:	goto yy367;
 	}
-yy369:
-	YYDEBUG(369, YYPEEK ());
+yy367:
+	YYDEBUG(367, YYPEEK ());
 #line 336 "../ada.re2c"
 	{*id =  66; continue;}
-#line 10273 "../ada_re2c.c"
-yy370:
-	YYDEBUG(370, YYPEEK ());
+#line 10079 "../ada_re2c.c"
+yy368:
+	YYDEBUG(368, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'I':
-	case 'i':	goto yy434;
+	case 'i':	goto yy432;
 	default:	goto yy15;
 	}
+yy369:
+	YYDEBUG(369, YYPEEK ());
+	yyaccept = 36;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy370;
+	}
+yy370:
+	YYDEBUG(370, YYPEEK ());
+#line 338 "../ada.re2c"
+	{*id =  68; continue;}
+#line 10219 "../ada_re2c.c"
 yy371:
 	YYDEBUG(371, YYPEEK ());
-	yyaccept = 36;
+	yyaccept = 37;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -10407,151 +10342,22 @@ yy371:
 	}
 yy372:
 	YYDEBUG(372, YYPEEK ());
-#line 338 "../ada.re2c"
-	{*id =  68; continue;}
-#line 10413 "../ada_re2c.c"
-yy373:
-	YYDEBUG(373, YYPEEK ());
-	yyaccept = 37;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy374;
-	}
-yy374:
-	YYDEBUG(374, YYPEEK ());
 #line 339 "../ada.re2c"
 	{*id =  69; continue;}
-#line 10542 "../ada_re2c.c"
-yy375:
-	YYDEBUG(375, YYPEEK ());
+#line 10348 "../ada_re2c.c"
+yy373:
+	YYDEBUG(373, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'L':
-	case 'l':	goto yy435;
+	case 'l':	goto yy433;
 	default:	goto yy15;
 	}
-yy376:
-	YYDEBUG(376, YYPEEK ());
+yy374:
+	YYDEBUG(374, YYPEEK ());
 	yyaccept = 38;
 	YYSKIP ();
 	YYBACKUP ();
@@ -10672,26 +10478,26 @@ yy376:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy377;
+	default:	goto yy375;
 	}
-yy377:
-	YYDEBUG(377, YYPEEK ());
+yy375:
+	YYDEBUG(375, YYPEEK ());
 #line 342 "../ada.re2c"
 	{*id =  72; continue;}
-#line 10682 "../ada_re2c.c"
-yy378:
-	YYDEBUG(378, YYPEEK ());
+#line 10488 "../ada_re2c.c"
+yy376:
+	YYDEBUG(376, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy437;
+	case 'e':	goto yy435;
 	default:	goto yy15;
 	}
-yy379:
-	YYDEBUG(379, YYPEEK ());
+yy377:
+	YYDEBUG(377, YYPEEK ());
 	yyaccept = 39;
 	YYSKIP ();
 	YYBACKUP ();
@@ -10812,55 +10618,55 @@ yy379:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy380;
+	default:	goto yy378;
 	}
-yy380:
-	YYDEBUG(380, YYPEEK ());
+yy378:
+	YYDEBUG(378, YYPEEK ());
 #line 344 "../ada.re2c"
 	{*id =  74; continue;}
-#line 10822 "../ada_re2c.c"
-yy381:
-	YYDEBUG(381, YYPEEK ());
+#line 10628 "../ada_re2c.c"
+yy379:
+	YYDEBUG(379, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case ']':	goto yy14;
-	default:	goto yy86;
+	default:	goto yy88;
 	}
-yy382:
-	YYDEBUG(382, YYPEEK ());
+yy380:
+	YYDEBUG(380, YYPEEK ());
 	YYSKIP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case ']':	goto yy84;
-	default:	goto yy86;
+	case ']':	goto yy86;
+	default:	goto yy88;
 	}
-yy383:
-	YYDEBUG(383, YYPEEK ());
+yy381:
+	YYDEBUG(381, YYPEEK ());
 	YYSKIP ();
-	YYDEBUG(384, YYPEEK ());
+	YYDEBUG(382, YYPEEK ());
 	YYRESTORECTX ();
 #line 375 "../ada.re2c"
 	{*id =  105; continue;}
-#line 10846 "../ada_re2c.c"
+#line 10652 "../ada_re2c.c"
+yy383:
+	YYDEBUG(383, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '"':	goto yy88;
+	default:	goto yy438;
+	}
+yy384:
+	YYDEBUG(384, YYPEEK ());
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case ']':	goto yy108;
+	default:	goto yy88;
+	}
 yy385:
 	YYDEBUG(385, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '"':	goto yy86;
-	default:	goto yy440;
-	}
-yy386:
-	YYDEBUG(386, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case ']':	goto yy106;
-	default:	goto yy86;
-	}
-yy387:
-	YYDEBUG(387, YYPEEK ());
 	yyaccept = 40;
 	YYSKIP ();
 	YYBACKUP ();
@@ -10981,13 +10787,35 @@ yy387:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy388;
+	default:	goto yy386;
+	}
+yy386:
+	YYDEBUG(386, YYPEEK ());
+#line 275 "../ada.re2c"
+	{*id =  5; continue;}
+#line 10797 "../ada_re2c.c"
+yy387:
+	YYDEBUG(387, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy439;
+	default:	goto yy15;
 	}
 yy388:
 	YYDEBUG(388, YYPEEK ());
-#line 275 "../ada.re2c"
-	{*id =  5; continue;}
-#line 10991 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy440;
+	default:	goto yy15;
+	}
 yy389:
 	YYDEBUG(389, YYPEEK ());
 	yyaccept = 1;
@@ -10995,8 +10823,8 @@ yy389:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy441;
+	case 'S':
+	case 's':	goto yy442;
 	default:	goto yy15;
 	}
 yy390:
@@ -11006,35 +10834,142 @@ yy390:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy442;
+	case 'E':
+	case 'e':	goto yy444;
 	default:	goto yy15;
 	}
 yy391:
 	YYDEBUG(391, YYPEEK ());
-	yyaccept = 1;
+	yyaccept = 41;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
 	case 'S':
-	case 's':	goto yy444;
-	default:	goto yy15;
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy392;
 	}
 yy392:
 	YYDEBUG(392, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy446;
-	default:	goto yy15;
-	}
+#line 281 "../ada.re2c"
+	{*id =  11; continue;}
+#line 10970 "../ada_re2c.c"
 yy393:
 	YYDEBUG(393, YYPEEK ());
-	yyaccept = 41;
+	yyaccept = 42;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11158,12 +11093,34 @@ yy393:
 	}
 yy394:
 	YYDEBUG(394, YYPEEK ());
-#line 281 "../ada.re2c"
-	{*id =  11; continue;}
-#line 11164 "../ada_re2c.c"
+#line 283 "../ada.re2c"
+	{*id =  13; continue;}
+#line 11099 "../ada_re2c.c"
 yy395:
 	YYDEBUG(395, YYPEEK ());
-	yyaccept = 42;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy445;
+	default:	goto yy15;
+	}
+yy396:
+	YYDEBUG(396, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy446;
+	default:	goto yy15;
+	}
+yy397:
+	YYDEBUG(397, YYPEEK ());
+	yyaccept = 43;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11283,38 +11240,16 @@ yy395:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy396;
-	}
-yy396:
-	YYDEBUG(396, YYPEEK ());
-#line 283 "../ada.re2c"
-	{*id =  13; continue;}
-#line 11293 "../ada_re2c.c"
-yy397:
-	YYDEBUG(397, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'A':
-	case 'a':	goto yy447;
-	default:	goto yy15;
+	default:	goto yy398;
 	}
 yy398:
 	YYDEBUG(398, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'R':
-	case 'r':	goto yy448;
-	default:	goto yy15;
-	}
+#line 288 "../ada.re2c"
+	{*id =  18; continue;}
+#line 11250 "../ada_re2c.c"
 yy399:
 	YYDEBUG(399, YYPEEK ());
-	yyaccept = 43;
+	yyaccept = 44;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11438,12 +11373,23 @@ yy399:
 	}
 yy400:
 	YYDEBUG(400, YYPEEK ());
-#line 288 "../ada.re2c"
-	{*id =  18; continue;}
-#line 11444 "../ada_re2c.c"
+#line 289 "../ada.re2c"
+	{*id =  19; continue;}
+#line 11379 "../ada_re2c.c"
 yy401:
 	YYDEBUG(401, YYPEEK ());
-	yyaccept = 44;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'S':
+	case 's':	goto yy447;
+	default:	goto yy15;
+	}
+yy402:
+	YYDEBUG(402, YYPEEK ());
+	yyaccept = 45;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11563,27 +11509,16 @@ yy401:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy402;
+	default:	goto yy403;
 	}
-yy402:
-	YYDEBUG(402, YYPEEK ());
-#line 289 "../ada.re2c"
-	{*id =  19; continue;}
-#line 11573 "../ada_re2c.c"
 yy403:
 	YYDEBUG(403, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'S':
-	case 's':	goto yy449;
-	default:	goto yy15;
-	}
+#line 293 "../ada.re2c"
+	{*id =  23; continue;}
+#line 11519 "../ada_re2c.c"
 yy404:
 	YYDEBUG(404, YYPEEK ());
-	yyaccept = 45;
+	yyaccept = 46;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11707,12 +11642,144 @@ yy404:
 	}
 yy405:
 	YYDEBUG(405, YYPEEK ());
-#line 293 "../ada.re2c"
-	{*id =  23; continue;}
-#line 11713 "../ada_re2c.c"
+#line 295 "../ada.re2c"
+	{*id =  25; continue;}
+#line 11648 "../ada_re2c.c"
 yy406:
 	YYDEBUG(406, YYPEEK ());
-	yyaccept = 46;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy449;
+	default:	goto yy15;
+	}
+yy407:
+	YYDEBUG(407, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'I':
+	case 'i':	goto yy450;
+	default:	goto yy15;
+	}
+yy408:
+	YYDEBUG(408, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'I':
+	case 'i':	goto yy451;
+	default:	goto yy15;
+	}
+yy409:
+	YYDEBUG(409, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'F':
+	case 'f':	goto yy452;
+	default:	goto yy15;
+	}
+yy410:
+	YYDEBUG(410, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy453;
+	default:	goto yy15;
+	}
+yy411:
+	YYDEBUG(411, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'S':
+	case 's':	goto yy454;
+	default:	goto yy15;
+	}
+yy412:
+	YYDEBUG(412, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'I':
+	case 'i':	goto yy456;
+	default:	goto yy15;
+	}
+yy413:
+	YYDEBUG(413, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'G':
+	case 'g':	goto yy457;
+	default:	goto yy15;
+	}
+yy414:
+	YYDEBUG(414, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy458;
+	default:	goto yy15;
+	}
+yy415:
+	YYDEBUG(415, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy460;
+	default:	goto yy15;
+	}
+yy416:
+	YYDEBUG(416, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'D':
+	case 'd':	goto yy461;
+	default:	goto yy15;
+	}
+yy417:
+	YYDEBUG(417, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'C':
+	case 'c':	goto yy462;
+	default:	goto yy15;
+	}
+yy418:
+	YYDEBUG(418, YYPEEK ());
+	yyaccept = 47;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -11832,148 +11899,16 @@ yy406:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy407;
-	}
-yy407:
-	YYDEBUG(407, YYPEEK ());
-#line 295 "../ada.re2c"
-	{*id =  25; continue;}
-#line 11842 "../ada_re2c.c"
-yy408:
-	YYDEBUG(408, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy451;
-	default:	goto yy15;
-	}
-yy409:
-	YYDEBUG(409, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'I':
-	case 'i':	goto yy452;
-	default:	goto yy15;
-	}
-yy410:
-	YYDEBUG(410, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'I':
-	case 'i':	goto yy453;
-	default:	goto yy15;
-	}
-yy411:
-	YYDEBUG(411, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'F':
-	case 'f':	goto yy454;
-	default:	goto yy15;
-	}
-yy412:
-	YYDEBUG(412, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy455;
-	default:	goto yy15;
-	}
-yy413:
-	YYDEBUG(413, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'S':
-	case 's':	goto yy456;
-	default:	goto yy15;
-	}
-yy414:
-	YYDEBUG(414, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'I':
-	case 'i':	goto yy458;
-	default:	goto yy15;
-	}
-yy415:
-	YYDEBUG(415, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'G':
-	case 'g':	goto yy459;
-	default:	goto yy15;
-	}
-yy416:
-	YYDEBUG(416, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'A':
-	case 'a':	goto yy460;
-	default:	goto yy15;
-	}
-yy417:
-	YYDEBUG(417, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy462;
-	default:	goto yy15;
-	}
-yy418:
-	YYDEBUG(418, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'D':
-	case 'd':	goto yy463;
-	default:	goto yy15;
+	default:	goto yy419;
 	}
 yy419:
 	YYDEBUG(419, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'C':
-	case 'c':	goto yy464;
-	default:	goto yy15;
-	}
+#line 322 "../ada.re2c"
+	{*id =  52; continue;}
+#line 11909 "../ada_re2c.c"
 yy420:
 	YYDEBUG(420, YYPEEK ());
-	yyaccept = 47;
+	yyaccept = 48;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -12097,12 +12032,133 @@ yy420:
 	}
 yy421:
 	YYDEBUG(421, YYPEEK ());
-#line 322 "../ada.re2c"
-	{*id =  52; continue;}
-#line 12103 "../ada_re2c.c"
+#line 323 "../ada.re2c"
+	{*id =  53; continue;}
+#line 12038 "../ada_re2c.c"
 yy422:
 	YYDEBUG(422, YYPEEK ());
-	yyaccept = 48;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'D':
+	case 'd':	goto yy463;
+	default:	goto yy15;
+	}
+yy423:
+	YYDEBUG(423, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy465;
+	default:	goto yy15;
+	}
+yy424:
+	YYDEBUG(424, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'U':
+	case 'u':	goto yy466;
+	default:	goto yy15;
+	}
+yy425:
+	YYDEBUG(425, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'N':
+	case 'n':	goto yy467;
+	default:	goto yy15;
+	}
+yy426:
+	YYDEBUG(426, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'S':
+	case 's':	goto yy469;
+	default:	goto yy15;
+	}
+yy427:
+	YYDEBUG(427, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy470;
+	default:	goto yy15;
+	}
+yy428:
+	YYDEBUG(428, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy472;
+	default:	goto yy15;
+	}
+yy429:
+	YYDEBUG(429, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'P':
+	case 'p':	goto yy473;
+	default:	goto yy15;
+	}
+yy430:
+	YYDEBUG(430, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy474;
+	default:	goto yy15;
+	}
+yy431:
+	YYDEBUG(431, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'D':
+	case 'd':	goto yy475;
+	default:	goto yy15;
+	}
+yy432:
+	YYDEBUG(432, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'N':
+	case 'n':	goto yy477;
+	default:	goto yy15;
+	}
+yy433:
+	YYDEBUG(433, YYPEEK ());
+	yyaccept = 49;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -12222,137 +12278,16 @@ yy422:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy423;
-	}
-yy423:
-	YYDEBUG(423, YYPEEK ());
-#line 323 "../ada.re2c"
-	{*id =  53; continue;}
-#line 12232 "../ada_re2c.c"
-yy424:
-	YYDEBUG(424, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'D':
-	case 'd':	goto yy465;
-	default:	goto yy15;
-	}
-yy425:
-	YYDEBUG(425, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy467;
-	default:	goto yy15;
-	}
-yy426:
-	YYDEBUG(426, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'U':
-	case 'u':	goto yy468;
-	default:	goto yy15;
-	}
-yy427:
-	YYDEBUG(427, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'N':
-	case 'n':	goto yy469;
-	default:	goto yy15;
-	}
-yy428:
-	YYDEBUG(428, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'S':
-	case 's':	goto yy471;
-	default:	goto yy15;
-	}
-yy429:
-	YYDEBUG(429, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy472;
-	default:	goto yy15;
-	}
-yy430:
-	YYDEBUG(430, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'A':
-	case 'a':	goto yy474;
-	default:	goto yy15;
-	}
-yy431:
-	YYDEBUG(431, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'P':
-	case 'p':	goto yy475;
-	default:	goto yy15;
-	}
-yy432:
-	YYDEBUG(432, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'R':
-	case 'r':	goto yy476;
-	default:	goto yy15;
-	}
-yy433:
-	YYDEBUG(433, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'D':
-	case 'd':	goto yy477;
-	default:	goto yy15;
+	default:	goto yy434;
 	}
 yy434:
 	YYDEBUG(434, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'N':
-	case 'n':	goto yy479;
-	default:	goto yy15;
-	}
+#line 340 "../ada.re2c"
+	{*id =  70; continue;}
+#line 12288 "../ada_re2c.c"
 yy435:
 	YYDEBUG(435, YYPEEK ());
-	yyaccept = 49;
+	yyaccept = 50;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -12476,12 +12411,55 @@ yy435:
 	}
 yy436:
 	YYDEBUG(436, YYPEEK ());
-#line 340 "../ada.re2c"
-	{*id =  70; continue;}
-#line 12482 "../ada_re2c.c"
+#line 343 "../ada.re2c"
+	{*id =  73; continue;}
+#line 12417 "../ada_re2c.c"
 yy437:
 	YYDEBUG(437, YYPEEK ());
-	yyaccept = 50;
+	YYSKIP ();
+	yych = YYPEEK ();
+yy438:
+	YYDEBUG(438, YYPEEK ());
+	switch (yych) {
+	case '"':	goto yy478;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':	goto yy437;
+	default:	goto yy88;
+	}
+yy439:
+	YYDEBUG(439, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'C':
+	case 'c':	goto yy479;
+	default:	goto yy15;
+	}
+yy440:
+	YYDEBUG(440, YYPEEK ());
+	yyaccept = 51;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -12601,59 +12579,16 @@ yy437:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy438;
-	}
-yy438:
-	YYDEBUG(438, YYPEEK ());
-#line 343 "../ada.re2c"
-	{*id =  73; continue;}
-#line 12611 "../ada_re2c.c"
-yy439:
-	YYDEBUG(439, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-yy440:
-	YYDEBUG(440, YYPEEK ());
-	switch (yych) {
-	case '"':	goto yy480;
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':	goto yy439;
-	default:	goto yy86;
+	default:	goto yy441;
 	}
 yy441:
 	YYDEBUG(441, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'C':
-	case 'c':	goto yy481;
-	default:	goto yy15;
-	}
+#line 274 "../ada.re2c"
+	{*id =  4; continue;}
+#line 12589 "../ada_re2c.c"
 yy442:
 	YYDEBUG(442, YYPEEK ());
-	yyaccept = 51;
+	yyaccept = 52;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -12777,138 +12712,31 @@ yy442:
 	}
 yy443:
 	YYDEBUG(443, YYPEEK ());
-#line 274 "../ada.re2c"
-	{*id =  4; continue;}
-#line 12783 "../ada_re2c.c"
+#line 277 "../ada.re2c"
+	{*id =  7; continue;}
+#line 12718 "../ada_re2c.c"
 yy444:
 	YYDEBUG(444, YYPEEK ());
-	yyaccept = 52;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
 	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy445;
+	case 'd':	goto yy480;
+	default:	goto yy15;
 	}
 yy445:
 	YYDEBUG(445, YYPEEK ());
-#line 277 "../ada.re2c"
-	{*id =  7; continue;}
-#line 12912 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'N':
+	case 'n':	goto yy482;
+	default:	goto yy15;
+	}
 yy446:
 	YYDEBUG(446, YYPEEK ());
 	yyaccept = 1;
@@ -12916,34 +12744,12 @@ yy446:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'D':
-	case 'd':	goto yy482;
+	case 'E':
+	case 'e':	goto yy483;
 	default:	goto yy15;
 	}
 yy447:
 	YYDEBUG(447, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'N':
-	case 'n':	goto yy484;
-	default:	goto yy15;
-	}
-yy448:
-	YYDEBUG(448, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy485;
-	default:	goto yy15;
-	}
-yy449:
-	YYDEBUG(449, YYPEEK ());
 	yyaccept = 53;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13064,13 +12870,35 @@ yy449:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy450;
+	default:	goto yy448;
+	}
+yy448:
+	YYDEBUG(448, YYPEEK ());
+#line 290 "../ada.re2c"
+	{*id =  20; continue;}
+#line 12880 "../ada_re2c.c"
+yy449:
+	YYDEBUG(449, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'I':
+	case 'i':	goto yy485;
+	default:	goto yy15;
 	}
 yy450:
 	YYDEBUG(450, YYPEEK ());
-#line 290 "../ada.re2c"
-	{*id =  20; continue;}
-#line 13074 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'O':
+	case 'o':	goto yy486;
+	default:	goto yy15;
+	}
 yy451:
 	YYDEBUG(451, YYPEEK ());
 	yyaccept = 1;
@@ -13078,8 +12906,8 @@ yy451:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'I':
-	case 'i':	goto yy487;
+	case 'C':
+	case 'c':	goto yy487;
 	default:	goto yy15;
 	}
 yy452:
@@ -13089,8 +12917,8 @@ yy452:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'O':
-	case 'o':	goto yy488;
+	case 'A':
+	case 'a':	goto yy489;
 	default:	goto yy15;
 	}
 yy453:
@@ -13100,34 +12928,12 @@ yy453:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'C':
-	case 'c':	goto yy489;
+	case 'D':
+	case 'd':	goto yy490;
 	default:	goto yy15;
 	}
 yy454:
 	YYDEBUG(454, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'A':
-	case 'a':	goto yy491;
-	default:	goto yy15;
-	}
-yy455:
-	YYDEBUG(455, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'D':
-	case 'd':	goto yy492;
-	default:	goto yy15;
-	}
-yy456:
-	YYDEBUG(456, YYPEEK ());
 	yyaccept = 54;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13248,37 +13054,37 @@ yy456:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy457;
+	default:	goto yy455;
 	}
-yy457:
-	YYDEBUG(457, YYPEEK ());
+yy455:
+	YYDEBUG(455, YYPEEK ());
 #line 314 "../ada.re2c"
 	{*id =  44; continue;}
-#line 13258 "../ada_re2c.c"
-yy458:
-	YYDEBUG(458, YYPEEK ());
+#line 13064 "../ada_re2c.c"
+yy456:
+	YYDEBUG(456, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'D':
-	case 'd':	goto yy494;
+	case 'd':	goto yy492;
 	default:	goto yy15;
 	}
-yy459:
-	YYDEBUG(459, YYPEEK ());
+yy457:
+	YYDEBUG(457, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy495;
+	case 'e':	goto yy493;
 	default:	goto yy15;
 	}
-yy460:
-	YYDEBUG(460, YYPEEK ());
+yy458:
+	YYDEBUG(458, YYPEEK ());
 	yyaccept = 55;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13399,13 +13205,35 @@ yy460:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy461;
+	default:	goto yy459;
+	}
+yy459:
+	YYDEBUG(459, YYPEEK ());
+#line 318 "../ada.re2c"
+	{*id =  48; continue;}
+#line 13215 "../ada_re2c.c"
+yy460:
+	YYDEBUG(460, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy495;
+	default:	goto yy15;
 	}
 yy461:
 	YYDEBUG(461, YYPEEK ());
-#line 318 "../ada.re2c"
-	{*id =  48; continue;}
-#line 13409 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'U':
+	case 'u':	goto yy497;
+	default:	goto yy15;
+	}
 yy462:
 	YYDEBUG(462, YYPEEK ());
 	yyaccept = 1;
@@ -13413,34 +13241,12 @@ yy462:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'E':
-	case 'e':	goto yy497;
+	case 'T':
+	case 't':	goto yy498;
 	default:	goto yy15;
 	}
 yy463:
 	YYDEBUG(463, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'U':
-	case 'u':	goto yy499;
-	default:	goto yy15;
-	}
-yy464:
-	YYDEBUG(464, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy500;
-	default:	goto yy15;
-	}
-yy465:
-	YYDEBUG(465, YYPEEK ());
 	yyaccept = 56;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13561,37 +13367,37 @@ yy465:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy466;
+	default:	goto yy464;
 	}
-yy466:
-	YYDEBUG(466, YYPEEK ());
+yy464:
+	YYDEBUG(464, YYPEEK ());
 #line 324 "../ada.re2c"
 	{*id =  54; continue;}
-#line 13571 "../ada_re2c.c"
-yy467:
-	YYDEBUG(467, YYPEEK ());
+#line 13377 "../ada_re2c.c"
+yy465:
+	YYDEBUG(465, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'S':
-	case 's':	goto yy501;
+	case 's':	goto yy499;
 	default:	goto yy15;
 	}
-yy468:
-	YYDEBUG(468, YYPEEK ());
+yy466:
+	YYDEBUG(466, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy503;
+	case 'e':	goto yy501;
 	default:	goto yy15;
 	}
-yy469:
-	YYDEBUG(469, YYPEEK ());
+yy467:
+	YYDEBUG(467, YYPEEK ());
 	yyaccept = 57;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13712,26 +13518,26 @@ yy469:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy470;
+	default:	goto yy468;
 	}
-yy470:
-	YYDEBUG(470, YYPEEK ());
+yy468:
+	YYDEBUG(468, YYPEEK ());
 #line 328 "../ada.re2c"
 	{*id =  58; continue;}
-#line 13722 "../ada_re2c.c"
-yy471:
-	YYDEBUG(471, YYPEEK ());
+#line 13528 "../ada_re2c.c"
+yy469:
+	YYDEBUG(469, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy505;
+	case 'e':	goto yy503;
 	default:	goto yy15;
 	}
-yy472:
-	YYDEBUG(472, YYPEEK ());
+yy470:
+	YYDEBUG(470, YYPEEK ());
 	yyaccept = 58;
 	YYSKIP ();
 	YYBACKUP ();
@@ -13852,13 +13658,35 @@ yy472:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy473;
+	default:	goto yy471;
+	}
+yy471:
+	YYDEBUG(471, YYPEEK ());
+#line 331 "../ada.re2c"
+	{*id =  61; continue;}
+#line 13668 "../ada_re2c.c"
+yy472:
+	YYDEBUG(472, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'T':
+	case 't':	goto yy505;
+	default:	goto yy15;
 	}
 yy473:
 	YYDEBUG(473, YYPEEK ());
-#line 331 "../ada.re2c"
-	{*id =  61; continue;}
-#line 13862 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy506;
+	default:	goto yy15;
+	}
 yy474:
 	YYDEBUG(474, YYPEEK ());
 	yyaccept = 1;
@@ -13866,34 +13694,12 @@ yy474:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'T':
-	case 't':	goto yy507;
+	case 'O':
+	case 'o':	goto yy508;
 	default:	goto yy15;
 	}
 yy475:
 	YYDEBUG(475, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy508;
-	default:	goto yy15;
-	}
-yy476:
-	YYDEBUG(476, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'O':
-	case 'o':	goto yy510;
-	default:	goto yy15;
-	}
-yy477:
-	YYDEBUG(477, YYPEEK ());
 	yyaccept = 59;
 	YYSKIP ();
 	YYBACKUP ();
@@ -14014,13 +13820,32 @@ yy477:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy478;
+	default:	goto yy476;
+	}
+yy476:
+	YYDEBUG(476, YYPEEK ());
+#line 335 "../ada.re2c"
+	{*id =  65; continue;}
+#line 13830 "../ada_re2c.c"
+yy477:
+	YYDEBUG(477, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'A':
+	case 'a':	goto yy509;
+	default:	goto yy15;
 	}
 yy478:
 	YYDEBUG(478, YYPEEK ());
-#line 335 "../ada.re2c"
-	{*id =  65; continue;}
-#line 14024 "../ada_re2c.c"
+	YYSKIP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case ']':	goto yy302;
+	default:	goto yy88;
+	}
 yy479:
 	YYDEBUG(479, YYPEEK ());
 	yyaccept = 1;
@@ -14028,31 +13853,12 @@ yy479:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'A':
-	case 'a':	goto yy511;
+	case 'T':
+	case 't':	goto yy510;
 	default:	goto yy15;
 	}
 yy480:
 	YYDEBUG(480, YYPEEK ());
-	YYSKIP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case ']':	goto yy304;
-	default:	goto yy86;
-	}
-yy481:
-	YYDEBUG(481, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'T':
-	case 't':	goto yy512;
-	default:	goto yy15;
-	}
-yy482:
-	YYDEBUG(482, YYPEEK ());
 	yyaccept = 60;
 	YYSKIP ();
 	YYBACKUP ();
@@ -14173,26 +13979,26 @@ yy482:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy483;
+	default:	goto yy481;
 	}
-yy483:
-	YYDEBUG(483, YYPEEK ());
+yy481:
+	YYDEBUG(481, YYPEEK ());
 #line 278 "../ada.re2c"
 	{*id =  8; continue;}
-#line 14183 "../ada_re2c.c"
-yy484:
-	YYDEBUG(484, YYPEEK ());
+#line 13989 "../ada_re2c.c"
+yy482:
+	YYDEBUG(482, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'T':
-	case 't':	goto yy514;
+	case 't':	goto yy512;
 	default:	goto yy15;
 	}
-yy485:
-	YYDEBUG(485, YYPEEK ());
+yy483:
+	YYDEBUG(483, YYPEEK ());
 	yyaccept = 61;
 	YYSKIP ();
 	YYBACKUP ();
@@ -14313,37 +14119,37 @@ yy485:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy486;
+	default:	goto yy484;
 	}
-yy486:
-	YYDEBUG(486, YYPEEK ());
+yy484:
+	YYDEBUG(484, YYPEEK ());
 #line 287 "../ada.re2c"
 	{*id =  17; continue;}
-#line 14323 "../ada_re2c.c"
-yy487:
-	YYDEBUG(487, YYPEEK ());
+#line 14129 "../ada_re2c.c"
+yy485:
+	YYDEBUG(485, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'O':
-	case 'o':	goto yy516;
+	case 'o':	goto yy514;
 	default:	goto yy15;
 	}
-yy488:
-	YYDEBUG(488, YYPEEK ());
+yy486:
+	YYDEBUG(486, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'N':
-	case 'n':	goto yy517;
+	case 'n':	goto yy515;
 	default:	goto yy15;
 	}
-yy489:
-	YYDEBUG(489, YYPEEK ());
+yy487:
+	YYDEBUG(487, YYPEEK ());
 	yyaccept = 62;
 	YYSKIP ();
 	YYBACKUP ();
@@ -14464,26 +14270,26 @@ yy489:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy490;
+	default:	goto yy488;
 	}
-yy490:
-	YYDEBUG(490, YYPEEK ());
+yy488:
+	YYDEBUG(488, YYPEEK ());
 #line 300 "../ada.re2c"
 	{*id =  30; continue;}
-#line 14474 "../ada_re2c.c"
-yy491:
-	YYDEBUG(491, YYPEEK ());
+#line 14280 "../ada_re2c.c"
+yy489:
+	YYDEBUG(489, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'C':
-	case 'c':	goto yy519;
+	case 'c':	goto yy517;
 	default:	goto yy15;
 	}
-yy492:
-	YYDEBUG(492, YYPEEK ());
+yy490:
+	YYDEBUG(490, YYPEEK ());
 	yyaccept = 63;
 	YYSKIP ();
 	YYBACKUP ();
@@ -14604,27 +14410,156 @@ yy492:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy493;
+	default:	goto yy491;
 	}
-yy493:
-	YYDEBUG(493, YYPEEK ());
+yy491:
+	YYDEBUG(491, YYPEEK ());
 #line 306 "../ada.re2c"
 	{*id =  36; continue;}
-#line 14614 "../ada_re2c.c"
-yy494:
-	YYDEBUG(494, YYPEEK ());
+#line 14420 "../ada_re2c.c"
+yy492:
+	YYDEBUG(492, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'I':
-	case 'i':	goto yy520;
+	case 'i':	goto yy518;
 	default:	goto yy15;
 	}
+yy493:
+	YYDEBUG(493, YYPEEK ());
+	yyaccept = 64;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy494;
+	}
+yy494:
+	YYDEBUG(494, YYPEEK ());
+#line 317 "../ada.re2c"
+	{*id =  47; continue;}
+#line 14560 "../ada_re2c.c"
 yy495:
 	YYDEBUG(495, YYPEEK ());
-	yyaccept = 64;
+	yyaccept = 65;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -14748,12 +14683,34 @@ yy495:
 	}
 yy496:
 	YYDEBUG(496, YYPEEK ());
-#line 317 "../ada.re2c"
-	{*id =  47; continue;}
-#line 14754 "../ada_re2c.c"
+#line 319 "../ada.re2c"
+	{*id =  49; continue;}
+#line 14689 "../ada_re2c.c"
 yy497:
 	YYDEBUG(497, YYPEEK ());
-	yyaccept = 65;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'R':
+	case 'r':	goto yy519;
+	default:	goto yy15;
+	}
+yy498:
+	YYDEBUG(498, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy520;
+	default:	goto yy15;
+	}
+yy499:
+	YYDEBUG(499, YYPEEK ());
+	yyaccept = 66;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -14873,38 +14830,16 @@ yy497:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy498;
-	}
-yy498:
-	YYDEBUG(498, YYPEEK ());
-#line 319 "../ada.re2c"
-	{*id =  49; continue;}
-#line 14883 "../ada_re2c.c"
-yy499:
-	YYDEBUG(499, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'R':
-	case 'r':	goto yy521;
-	default:	goto yy15;
+	default:	goto yy500;
 	}
 yy500:
 	YYDEBUG(500, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy522;
-	default:	goto yy15;
-	}
+#line 326 "../ada.re2c"
+	{*id =  56; continue;}
+#line 14840 "../ada_re2c.c"
 yy501:
 	YYDEBUG(501, YYPEEK ());
-	yyaccept = 66;
+	yyaccept = 67;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -15028,12 +14963,12 @@ yy501:
 	}
 yy502:
 	YYDEBUG(502, YYPEEK ());
-#line 326 "../ada.re2c"
-	{*id =  56; continue;}
-#line 15034 "../ada_re2c.c"
+#line 327 "../ada.re2c"
+	{*id =  57; continue;}
+#line 14969 "../ada_re2c.c"
 yy503:
 	YYDEBUG(503, YYPEEK ());
-	yyaccept = 67;
+	yyaccept = 68;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -15157,151 +15092,22 @@ yy503:
 	}
 yy504:
 	YYDEBUG(504, YYPEEK ());
-#line 327 "../ada.re2c"
-	{*id =  57; continue;}
-#line 15163 "../ada_re2c.c"
-yy505:
-	YYDEBUG(505, YYPEEK ());
-	yyaccept = 68;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy506;
-	}
-yy506:
-	YYDEBUG(506, YYPEEK ());
 #line 329 "../ada.re2c"
 	{*id =  59; continue;}
-#line 15292 "../ada_re2c.c"
-yy507:
-	YYDEBUG(507, YYPEEK ());
+#line 15098 "../ada_re2c.c"
+yy505:
+	YYDEBUG(505, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy523;
+	case 'e':	goto yy521;
 	default:	goto yy15;
 	}
-yy508:
-	YYDEBUG(508, YYPEEK ());
+yy506:
+	YYDEBUG(506, YYPEEK ());
 	yyaccept = 69;
 	YYSKIP ();
 	YYBACKUP ();
@@ -15422,38 +15228,167 @@ yy508:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy509;
+	default:	goto yy507;
 	}
-yy509:
-	YYDEBUG(509, YYPEEK ());
+yy507:
+	YYDEBUG(507, YYPEEK ());
 #line 333 "../ada.re2c"
 	{*id =  63; continue;}
-#line 15432 "../ada_re2c.c"
-yy510:
-	YYDEBUG(510, YYPEEK ());
+#line 15238 "../ada_re2c.c"
+yy508:
+	YYDEBUG(508, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'N':
-	case 'n':	goto yy525;
+	case 'n':	goto yy523;
 	default:	goto yy15;
 	}
-yy511:
-	YYDEBUG(511, YYPEEK ());
+yy509:
+	YYDEBUG(509, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'T':
-	case 't':	goto yy526;
+	case 't':	goto yy524;
 	default:	goto yy15;
 	}
+yy510:
+	YYDEBUG(510, YYPEEK ());
+	yyaccept = 70;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy511;
+	}
+yy511:
+	YYDEBUG(511, YYPEEK ());
+#line 276 "../ada.re2c"
+	{*id =  6; continue;}
+#line 15389 "../ada_re2c.c"
 yy512:
 	YYDEBUG(512, YYPEEK ());
-	yyaccept = 70;
+	yyaccept = 71;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -15577,151 +15512,22 @@ yy512:
 	}
 yy513:
 	YYDEBUG(513, YYPEEK ());
-#line 276 "../ada.re2c"
-	{*id =  6; continue;}
-#line 15583 "../ada_re2c.c"
-yy514:
-	YYDEBUG(514, YYPEEK ());
-	yyaccept = 71;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy515;
-	}
-yy515:
-	YYDEBUG(515, YYPEEK ());
 #line 286 "../ada.re2c"
 	{*id =  16; continue;}
-#line 15712 "../ada_re2c.c"
-yy516:
-	YYDEBUG(516, YYPEEK ());
+#line 15518 "../ada_re2c.c"
+yy514:
+	YYDEBUG(514, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'N':
-	case 'n':	goto yy527;
+	case 'n':	goto yy525;
 	default:	goto yy15;
 	}
-yy517:
-	YYDEBUG(517, YYPEEK ());
+yy515:
+	YYDEBUG(515, YYPEEK ());
 	yyaccept = 72;
 	YYSKIP ();
 	YYBACKUP ();
@@ -15842,13 +15648,35 @@ yy517:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy518;
+	default:	goto yy516;
+	}
+yy516:
+	YYDEBUG(516, YYPEEK ());
+#line 299 "../ada.re2c"
+	{*id =  29; continue;}
+#line 15658 "../ada_re2c.c"
+yy517:
+	YYDEBUG(517, YYPEEK ());
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'E':
+	case 'e':	goto yy527;
+	default:	goto yy15;
 	}
 yy518:
 	YYDEBUG(518, YYPEEK ());
-#line 299 "../ada.re2c"
-	{*id =  29; continue;}
-#line 15852 "../ada_re2c.c"
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'N':
+	case 'n':	goto yy529;
+	default:	goto yy15;
+	}
 yy519:
 	YYDEBUG(519, YYPEEK ());
 	yyaccept = 1;
@@ -15857,7 +15685,7 @@ yy519:
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy529;
+	case 'e':	goto yy530;
 	default:	goto yy15;
 	}
 yy520:
@@ -15867,34 +15695,12 @@ yy520:
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case 'N':
-	case 'n':	goto yy531;
+	case 'D':
+	case 'd':	goto yy532;
 	default:	goto yy15;
 	}
 yy521:
 	YYDEBUG(521, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy532;
-	default:	goto yy15;
-	}
-yy522:
-	YYDEBUG(522, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'D':
-	case 'd':	goto yy534;
-	default:	goto yy15;
-	}
-yy523:
-	YYDEBUG(523, YYPEEK ());
 	yyaccept = 73;
 	YYSKIP ();
 	YYBACKUP ();
@@ -16015,38 +15821,167 @@ yy523:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy524;
+	default:	goto yy522;
 	}
-yy524:
-	YYDEBUG(524, YYPEEK ());
+yy522:
+	YYDEBUG(522, YYPEEK ());
 #line 330 "../ada.re2c"
 	{*id =  60; continue;}
-#line 16025 "../ada_re2c.c"
-yy525:
-	YYDEBUG(525, YYPEEK ());
+#line 15831 "../ada_re2c.c"
+yy523:
+	YYDEBUG(523, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'I':
-	case 'i':	goto yy536;
+	case 'i':	goto yy534;
 	default:	goto yy15;
 	}
-yy526:
-	YYDEBUG(526, YYPEEK ());
+yy524:
+	YYDEBUG(524, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'E':
-	case 'e':	goto yy537;
+	case 'e':	goto yy535;
 	default:	goto yy15;
 	}
+yy525:
+	YYDEBUG(525, YYPEEK ());
+	yyaccept = 74;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '[':
+	case '_':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 0xC2:
+	case 0xC3:
+	case 0xC4:
+	case 0xC5:
+	case 0xC6:
+	case 0xC7:
+	case 0xC8:
+	case 0xC9:
+	case 0xCA:
+	case 0xCB:
+	case 0xCC:
+	case 0xCD:
+	case 0xCE:
+	case 0xCF:
+	case 0xD0:
+	case 0xD1:
+	case 0xD2:
+	case 0xD3:
+	case 0xD4:
+	case 0xD5:
+	case 0xD6:
+	case 0xD7:
+	case 0xD8:
+	case 0xD9:
+	case 0xDA:
+	case 0xDB:
+	case 0xDC:
+	case 0xDD:
+	case 0xDE:
+	case 0xDF:
+	case 0xE0:
+	case 0xE1:
+	case 0xE2:
+	case 0xE3:
+	case 0xE4:
+	case 0xE5:
+	case 0xE6:
+	case 0xE7:
+	case 0xE8:
+	case 0xE9:
+	case 0xEA:
+	case 0xEB:
+	case 0xEC:
+	case 0xED:
+	case 0xEE:
+	case 0xEF:
+	case 0xF0:
+	case 0xF1:
+	case 0xF2:
+	case 0xF3:
+	case 0xF4:	goto yy15;
+	default:	goto yy526;
+	}
+yy526:
+	YYDEBUG(526, YYPEEK ());
+#line 296 "../ada.re2c"
+	{*id =  26; continue;}
+#line 15982 "../ada_re2c.c"
 yy527:
 	YYDEBUG(527, YYPEEK ());
-	yyaccept = 74;
+	yyaccept = 75;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -16170,12 +16105,23 @@ yy527:
 	}
 yy528:
 	YYDEBUG(528, YYPEEK ());
-#line 296 "../ada.re2c"
-	{*id =  26; continue;}
-#line 16176 "../ada_re2c.c"
+#line 304 "../ada.re2c"
+	{*id =  34; continue;}
+#line 16111 "../ada_re2c.c"
 yy529:
 	YYDEBUG(529, YYPEEK ());
-	yyaccept = 75;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'G':
+	case 'g':	goto yy537;
+	default:	goto yy15;
+	}
+yy530:
+	YYDEBUG(530, YYPEEK ());
+	yyaccept = 76;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -16295,27 +16241,16 @@ yy529:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy530;
+	default:	goto yy531;
 	}
-yy530:
-	YYDEBUG(530, YYPEEK ());
-#line 304 "../ada.re2c"
-	{*id =  34; continue;}
-#line 16305 "../ada_re2c.c"
 yy531:
 	YYDEBUG(531, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'G':
-	case 'g':	goto yy539;
-	default:	goto yy15;
-	}
+#line 320 "../ada.re2c"
+	{*id =  50; continue;}
+#line 16251 "../ada_re2c.c"
 yy532:
 	YYDEBUG(532, YYPEEK ());
-	yyaccept = 76;
+	yyaccept = 77;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -16439,12 +16374,23 @@ yy532:
 	}
 yy533:
 	YYDEBUG(533, YYPEEK ());
-#line 320 "../ada.re2c"
-	{*id =  50; continue;}
-#line 16445 "../ada_re2c.c"
+#line 321 "../ada.re2c"
+	{*id =  51; continue;}
+#line 16380 "../ada_re2c.c"
 yy534:
 	YYDEBUG(534, YYPEEK ());
-	yyaccept = 77;
+	yyaccept = 1;
+	YYSKIP ();
+	YYBACKUP ();
+	yych = YYPEEK ();
+	switch (yych) {
+	case 'Z':
+	case 'z':	goto yy539;
+	default:	goto yy15;
+	}
+yy535:
+	YYDEBUG(535, YYPEEK ());
+	yyaccept = 78;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -16564,27 +16510,16 @@ yy534:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy535;
+	default:	goto yy536;
 	}
-yy535:
-	YYDEBUG(535, YYPEEK ());
-#line 321 "../ada.re2c"
-	{*id =  51; continue;}
-#line 16574 "../ada_re2c.c"
 yy536:
 	YYDEBUG(536, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'Z':
-	case 'z':	goto yy541;
-	default:	goto yy15;
-	}
+#line 337 "../ada.re2c"
+	{*id =  67; continue;}
+#line 16520 "../ada_re2c.c"
 yy537:
 	YYDEBUG(537, YYPEEK ());
-	yyaccept = 78;
+	yyaccept = 79;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
@@ -16708,162 +16643,33 @@ yy537:
 	}
 yy538:
 	YYDEBUG(538, YYPEEK ());
-#line 337 "../ada.re2c"
-	{*id =  67; continue;}
-#line 16714 "../ada_re2c.c"
+#line 316 "../ada.re2c"
+	{*id =  46; continue;}
+#line 16649 "../ada_re2c.c"
 yy539:
 	YYDEBUG(539, YYPEEK ());
-	yyaccept = 79;
+	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
 	case 'E':
-	case 'F':
-	case 'G':
-	case 'H':
-	case 'I':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'M':
-	case 'N':
-	case 'O':
-	case 'P':
-	case 'Q':
-	case 'R':
-	case 'S':
-	case 'T':
-	case 'U':
-	case 'V':
-	case 'W':
-	case 'X':
-	case 'Y':
-	case 'Z':
-	case '[':
-	case '_':
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	case 'g':
-	case 'h':
-	case 'i':
-	case 'j':
-	case 'k':
-	case 'l':
-	case 'm':
-	case 'n':
-	case 'o':
-	case 'p':
-	case 'q':
-	case 'r':
-	case 's':
-	case 't':
-	case 'u':
-	case 'v':
-	case 'w':
-	case 'x':
-	case 'y':
-	case 'z':
-	case 0xC2:
-	case 0xC3:
-	case 0xC4:
-	case 0xC5:
-	case 0xC6:
-	case 0xC7:
-	case 0xC8:
-	case 0xC9:
-	case 0xCA:
-	case 0xCB:
-	case 0xCC:
-	case 0xCD:
-	case 0xCE:
-	case 0xCF:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
-	case 0xD4:
-	case 0xD5:
-	case 0xD6:
-	case 0xD7:
-	case 0xD8:
-	case 0xD9:
-	case 0xDA:
-	case 0xDB:
-	case 0xDC:
-	case 0xDD:
-	case 0xDE:
-	case 0xDF:
-	case 0xE0:
-	case 0xE1:
-	case 0xE2:
-	case 0xE3:
-	case 0xE4:
-	case 0xE5:
-	case 0xE6:
-	case 0xE7:
-	case 0xE8:
-	case 0xE9:
-	case 0xEA:
-	case 0xEB:
-	case 0xEC:
-	case 0xED:
-	case 0xEE:
-	case 0xEF:
-	case 0xF0:
-	case 0xF1:
-	case 0xF2:
-	case 0xF3:
-	case 0xF4:	goto yy15;
-	default:	goto yy540;
+	case 'e':	goto yy540;
+	default:	goto yy15;
 	}
 yy540:
 	YYDEBUG(540, YYPEEK ());
-#line 316 "../ada.re2c"
-	{*id =  46; continue;}
-#line 16843 "../ada_re2c.c"
-yy541:
-	YYDEBUG(541, YYPEEK ());
-	yyaccept = 1;
-	YYSKIP ();
-	YYBACKUP ();
-	yych = YYPEEK ();
-	switch (yych) {
-	case 'E':
-	case 'e':	goto yy542;
-	default:	goto yy15;
-	}
-yy542:
-	YYDEBUG(542, YYPEEK ());
 	yyaccept = 1;
 	YYSKIP ();
 	YYBACKUP ();
 	yych = YYPEEK ();
 	switch (yych) {
 	case 'D':
-	case 'd':	goto yy543;
+	case 'd':	goto yy541;
 	default:	goto yy15;
 	}
-yy543:
-	YYDEBUG(543, YYPEEK ());
+yy541:
+	YYDEBUG(541, YYPEEK ());
 	yyaccept = 80;
 	YYSKIP ();
 	YYBACKUP ();
@@ -16984,13 +16790,13 @@ yy543:
 	case 0xF2:
 	case 0xF3:
 	case 0xF4:	goto yy15;
-	default:	goto yy544;
+	default:	goto yy542;
 	}
-yy544:
-	YYDEBUG(544, YYPEEK ());
+yy542:
+	YYDEBUG(542, YYPEEK ());
 #line 334 "../ada.re2c"
 	{*id =  64; continue;}
-#line 16994 "../ada_re2c.c"
+#line 16800 "../ada_re2c.c"
 }
 #line 383 "../ada.re2c"
 

@@ -68,8 +68,11 @@ language_fixes; duplicate test_mckenzie_recover test cases here, to test this co
 convert char literal to string literal: test/ada_mode-recover_31.adb
     just fix comment; handled in language_fixes
 
-error in resume:   test/ada_mode-recover_35.adb
-recover timed out: test/ada_mode-recover_34.adb
+test/ada_mode-recover_35.adb
+    error in resume
+
+test/ada_mode-recover_34.adb
+    recover timed out, now ok?
 
 build.sh:
     debbug 40403
