@@ -349,8 +349,6 @@ package body WisiToken.Generate.LR is
               (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
          begin
             if not Has_Element (Dot) then
-               --  Pointer is at the end of the production; add a reduce action.
-
                Add_Lookahead_Actions
                  (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
                   Conflict_Counts, Conflicts, Closure, Descriptor);
@@ -408,6 +406,7 @@ package body WisiToken.Generate.LR is
 
       for Item of Closure.Goto_List loop
          if Item.Symbol in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
+            --  FIXME: Goto_List has terminals; either don't need to add those, or can use that instead of above code.
             Add_Goto (Table.States (State), Item.Symbol, Item.State); -- note list is already sorted.
          end if;
       end loop;

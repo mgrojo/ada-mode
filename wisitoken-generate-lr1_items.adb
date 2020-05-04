@@ -75,7 +75,7 @@ package body WisiToken.Generate.LR1_Items is
       Found    : constant Item_Lists.Cursor := Find (Prod, Dot, Existing_Set);
       Modified : Boolean                    := False;
    begin
-      if Found = No_Element then
+      if not Has_Element (Found) then
          Existing_Set.Set.Insert ((Prod, Dot, new Token_ID_Set'(Lookaheads)));
 
          Modified := True;
@@ -113,27 +113,13 @@ package body WisiToken.Generate.LR1_Items is
    end Lookahead_Image;
 
    function Item_Compare (Left, Right : in Item) return SAL.Compare_Result
-   is begin
-      if Left.Prod.LHS > Right.Prod.LHS then
-         return SAL.Greater;
-      elsif Left.Prod.LHS < Right.Prod.LHS then
-         return SAL.Less;
-
-      elsif Left.Prod.RHS > Right.Prod.RHS then
-         return SAL.Greater;
-      elsif Left.Prod.RHS < Right.Prod.RHS then
-         return SAL.Less;
-
-      else
-         if Left.Dot > Right.Dot then
-            return SAL.Greater;
-         elsif Left.Dot < Right.Dot then
-            return SAL.Less;
-         else
-            return SAL.Equal;
-         end if;
-      end if;
-   end Item_Compare;
+     is (if Left.Prod.LHS > Right.Prod.LHS then SAL.Greater
+         elsif Left.Prod.LHS < Right.Prod.LHS then SAL.Less
+         elsif Left.Prod.RHS > Right.Prod.RHS then SAL.Greater
+         elsif Left.Prod.RHS < Right.Prod.RHS then SAL.Less
+         elsif Left.Dot > Right.Dot then SAL.Greater
+         elsif Left.Dot < Right.Dot then SAL.Less
+         else SAL.Equal);
 
    procedure Include
      (Item  : in out LR1_Items.Item;
@@ -232,32 +218,12 @@ package body WisiToken.Generate.LR1_Items is
    end Find;
 
    function Find
-     (Prod  : in Production_ID;
-      Dot   : in Token_ID_Arrays.Extended_Index;
-      Right : in Item_Set)
+     (Prod : in Production_ID;
+      Dot : in Token_ID_Arrays.Extended_Index;
+      Set  : in Item_Set)
      return Item_Lists.Cursor
    is begin
-      return Right.Set.Find ((Prod, Dot, null));
-   end Find;
-
-   function Find
-     (Prod       : in Production_ID;
-      Dot        : in Token_ID_Arrays.Extended_Index;
-      Right      : in Item_Set;
-      Lookaheads : in Lookahead)
-     return Item_Lists.Cursor
-   is
-      use Item_Lists;
-      Result : constant Cursor := Right.Set.Find ((Prod, Dot, null));
-   begin
-      --  Item_Equal does not consider lookaheads
-      if Result = No_Element then
-         return Result;
-      elsif Constant_Ref (Result).Lookaheads.all = Lookaheads then
-         return Result;
-      else
-         return No_Element;
-      end if;
+      return Set.Set.Find ((Prod, Dot, null));
    end Find;
 
    function To_Item_Set_Tree_Key
@@ -275,7 +241,7 @@ package body WisiToken.Generate.LR1_Items is
          --  want it to compare first, since it is most likely to be different.
 
          loop
-            exit when Cur = No_Element;
+            exit when not Has_Element (Cur);
             declare
                Item_1 : Item renames Item_Set.Set (Cur);
             begin
@@ -396,12 +362,11 @@ package body WisiToken.Generate.LR1_Items is
                declare
                   Prod : WisiToken.Productions.Instance renames Grammar (Element (Dot));
                begin
-
                   For_Each_RHS :
-                  for B in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                  for J in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
-                        RHS : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B);
-                        P_ID : constant Production_ID := (Prod.LHS, B);
+                        RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (J);
+                        P_ID : constant Production_ID := (Prod.LHS, J);
                         Beta : Token_ID_Arrays.Cursor := Next (Dot); -- tokens after nonterminal, possibly null
                      begin
                         --  Compute FIRST (<tail of right hand side> a); loop
@@ -446,7 +411,7 @@ package body WisiToken.Generate.LR1_Items is
             end if; -- Dot is at non-terminal
          end;
 
-         if Item_Lists.Next (Item_I) = Item_Lists.No_Element then
+         if not Has_Element (Item_Lists.Next (Item_I)) then
             exit when not Added_Item;
 
             Item_I := I.Set.First;

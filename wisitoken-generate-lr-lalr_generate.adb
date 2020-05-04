@@ -22,21 +22,48 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 package body WisiToken.Generate.LR.LALR_Generate is
 
-   package Item_List_Cursor_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (LR1_Items.Item_Lists.Cursor);
-
-   type Item_Map is record
-      --  Keep track of all copies of Item, so Lookaheads can be updated
-      --  after they are initially copied.
-      From : LR1_Items.Item_Lists.Cursor;
-      To   : Item_List_Cursor_Lists.List;
+   type Item_ID is record
+      State : Unknown_State_Index                   := Unknown_State;
+      LHS   : Token_ID                              := Invalid_Token_ID;
+      RHS   : Productions.RHS_Arrays.Extended_Index := Productions.RHS_Arrays.No_Index;
+      Dot   : Token_ID_Arrays.Extended_Index        := Token_ID_Arrays.No_Index;
    end record;
 
-   package Item_Map_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item_Map);
-   --  IMPROVEME: should be a 3D array indexed by Prod, rhs_index,
-   --  dot_index. But it's not broken or slow, so we're not fixing it.
+   function Image (Item : in Item_ID) return String
+     is ("(" & Item.State'Image & ", " & Trimmed_Image ((Item.LHS, Item.RHS)) & ")");
+
+   function Compare (Left, Right : in Item_ID) return SAL.Compare_Result
+     is (if Left.State < Right.State then SAL.Less
+         elsif Left.State > Right.State then SAL.Greater
+         elsif Left.LHS < Right.LHS then SAL.Less
+         elsif Left.LHS > Right.LHS then SAL.Greater
+         elsif Left.RHS < Right.RHS then SAL.Less
+         elsif Left.RHS > Right.RHS then SAL.Greater
+         elsif Left.Dot < Right.Dot then SAL.Less
+         elsif Left.Dot > Right.Dot then SAL.Greater
+         else SAL.Equal);
+
+   package Item_ID_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item_ID, Compare);
+
+   type Item_Map is record
+      From : Item_ID;
+      To   : Item_ID_Lists.List;
+   end record;
+
+   function Compare (Left, Right : in Item_Map) return SAL.Compare_Result
+     is (Compare (Left.From, Right.From));
+
+   package Propagation_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item_Map, Compare);
+
+   function Item_Ref
+     (Kernels : in out LR1_Items.Item_Set_List;
+      ID      : in     Item_ID)
+     return LR1_Items.Item_Lists.Variable_Reference_Type
+     is (LR1_Items.Item_Lists.Variable_Ref
+           (LR1_Items.Find (Prod => (ID.LHS, ID.RHS), Dot => ID.Dot, Set => Kernels (ID.State))));
 
    function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return Token_ID_Set_Access
    is begin
@@ -51,22 +78,15 @@ package body WisiToken.Generate.LR.LALR_Generate is
    ----------
    --  Debug output
 
-   procedure Put
-     (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor   : in WisiToken.Descriptor;
-      Propagations : in Item_Map_Lists.List)
+   procedure Put (Propagations : in Propagation_Lists.List)
    is
-      use LR1_Items.Item_Lists;
+      use Item_ID_Lists;
    begin
       for Map of Propagations loop
-         Ada.Text_IO.Put ("From ");
-         LR1_Items.Put (Grammar, Descriptor, Constant_Ref (Map.From), Show_Lookaheads => True);
-         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("From " & Image (Map.From));
 
-         for Cur of Map.To loop
-            Ada.Text_IO.Put ("To   ");
-            LR1_Items.Put (Grammar, Descriptor, Constant_Ref (Cur), Show_Lookaheads => True);
-            Ada.Text_IO.New_Line;
+         for ID of Map.To loop
+            Ada.Text_IO.Put_Line ("To   " & Image (ID));
          end loop;
       end loop;
    end Put;
@@ -85,14 +105,12 @@ package body WisiToken.Generate.LR.LALR_Generate is
       use Token_ID_Arrays;
       use LR1_Items;
       use LR1_Items.Item_Lists;
-      use all type Ada.Containers.Count_Type;
 
       Goto_Set : Item_Set;
    begin
       for Item of Kernel.Set loop
 
          if Item.Dot /= No_Index then
-            pragma Assert (Productions.Constant_Ref_RHS (Grammar, Item.Prod).Tokens.Length > 0);
 
             declare
                Dot      : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
@@ -104,7 +122,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
                --  production; don't need a kernel with dot after EOF.
 
                if (Dot_ID = Symbol and Symbol /= Descriptor.EOI_ID) and then
-                 not Has_Element (Find (Item.Prod, To_Index (Next_Dot), Goto_Set))
+                 not Has_Element (Find (Item, Goto_Set))
                then
                   Goto_Set.Set.Insert
                     ((Prod       => Item.Prod,
@@ -171,8 +189,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Kernel_Tree       : LR1_Items.Item_Set_Trees.Tree; -- for fast find
       States_To_Check   : State_Index_Queues.Queue;
       Checking_State    : State_Index;
-
-      Found_State : Unknown_State_Index;
    begin
       Kernels.Set_First_Last (First_State_Index, First_State_Index - 1);
 
@@ -207,6 +223,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
             declare
                New_Item_Set : Item_Set := LALR_Goto_Transitions
                  (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
+               Found_State : Unknown_State_Index;
             begin
                if New_Item_Set.Set.Length > 0 then
 
@@ -259,60 +276,35 @@ package body WisiToken.Generate.LR.LALR_Generate is
    --  Add a propagation entry (if it doesn't already exist) from From in
    --  From_Set to To_Item.
    procedure Add_Propagation
-     (From         : in     LR1_Items.Item;
-      From_Set     : in     LR1_Items.Item_Set;
+     (From_Item    : in     LR1_Items.Item;
+      From_State   : in     State_Index;
       To_Item      : in     LR1_Items.Item_Lists.Cursor;
-      Propagations : in out Item_Map_Lists.List)
+      To_State     : in     State_Index;
+      Propagations : in out Propagation_Lists.List)
    is
-      use Item_Map_Lists;
-      use Item_List_Cursor_Lists;
+      use Propagation_Lists;
       use LR1_Items;
       use LR1_Items.Item_Lists;
+      use Item_ID_Lists;
 
-      From_Cur : constant Item_Lists.Cursor := Find (From, From_Set);
+      To_Item_Ref : constant LR1_Items.Item_Lists.Constant_Reference_Type := Constant_Ref (To_Item);
 
-      From_Match : Item_Map_Lists.Cursor := Propagations.First;
-      To_Match   : Item_List_Cursor_Lists.Cursor;
+      From_ID : constant Item_ID := (From_State, From_Item.Prod.LHS, From_Item.Prod.RHS, From_Item.Dot);
+      To_ID   : constant Item_ID := (To_State, To_Item_Ref.Prod.LHS, To_Item_Ref.Prod.RHS, To_Item_Ref.Dot);
+
+      From_Match : constant Propagation_Lists.Cursor := Propagations.Find ((From_ID, Item_ID_Lists.Empty_List));
    begin
-      Find_From :
-      loop
-         exit Find_From when not Has_Element (From_Match);
-
-         declare
-            Map : Item_Map renames Constant_Ref (From_Match);
-         begin
-            if From_Cur = Map.From then
-
-               To_Match := Map.To.First;
-               loop
-                  exit when not Has_Element (To_Match);
-
-                  declare
-                     use all type SAL.Compare_Result;
-                     Cur       : Item_Lists.Cursor renames Constant_Ref (To_Match);
-                     Test_Item : LR1_Items.Item renames Constant_Ref (Cur);
-                  begin
-                     if Equal = LR1_Items.Item_Compare (Test_Item, Constant_Ref (To_Item)) then
-                        exit Find_From;
-                     end if;
-                  end;
-                  Next (To_Match);
-               end loop;
-               exit Find_From;
-            end if;
-         end;
-
-         Next (From_Match);
-      end loop Find_From;
-
       if not Has_Element (From_Match) then
-         Propagations.Append ((From_Cur, To_List (To_Item)));
-
-      elsif not Has_Element (To_Match) then
-         Variable_Ref (From_Match).To.Append (To_Item);
+         Propagations.Insert ((From_ID, To_List (To_ID)));
 
       else
-         raise SAL.Programmer_Error with "Add_Propagation: unexpected case";
+         declare
+            To_Match : constant Item_ID_Lists.Cursor := Constant_Ref (From_Match).To.Find (To_ID);
+         begin
+            if not Has_Element (To_Match) then
+               Variable_Ref (From_Match).To.Insert (To_ID);
+            end if;
+         end;
       end if;
    end Add_Propagation;
 
@@ -328,7 +320,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
      (Source_Item  : in     LR1_Items.Item;
       Source_Set   : in     LR1_Items.Item_Set;
       Closure_Item : in     LR1_Items.Item;
-      Propagations : in out Item_Map_Lists.List;
+      Propagations : in out Propagation_Lists.List;
       Descriptor   : in     WisiToken.Descriptor;
       Grammar      : in     WisiToken.Productions.Prod_Arrays.Vector;
       Kernels      : in out LR1_Items.Item_Set_List)
@@ -353,50 +345,51 @@ package body WisiToken.Generate.LR.LALR_Generate is
          Dot        : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
            (Grammar, Closure_Item.Prod).Tokens.To_Cursor (Closure_Item.Dot);
          ID         : constant Token_ID               := Element (Dot);
-         Next_Dot   : constant Extended_Index         := To_Index (Next (Dot));
+         Next_Dot   : constant Token_ID_Arrays.Cursor := Next (Dot);
          Goto_State : constant Unknown_State_Index    := LR1_Items.Goto_State (Source_Set, ID);
-         To_Item    : constant Item_Lists.Cursor      :=
-           (if Goto_State = Unknown_State then Item_Lists.No_Element
-            else LR1_Items.Find (Closure_Item.Prod, Next_Dot, Kernels (Goto_State)));
       begin
-         if Closure_Item.Lookaheads (Descriptor.Last_Lookahead) and Has_Element (To_Item) then
-            Add_Propagation
-              (From         => Source_Item,
-               From_Set     => Source_Set,
-               To_Item      => To_Item,
-               Propagations => Propagations);
-         end if;
+         if Goto_State /= Unknown_State then
+            declare
+               To_Item : constant Item_Lists.Cursor :=
+                 LR1_Items.Find (Closure_Item.Prod, To_Index (Next_Dot), Kernels (Goto_State));
+            begin
+               if Closure_Item.Lookaheads (Descriptor.Last_Lookahead) then
+                  Add_Propagation
+                    (From_Item    => Source_Item,
+                     From_State   => Source_Set.State,
+                     To_Item      => To_Item,
+                     To_State     => Goto_State,
+                     Propagations => Propagations);
+               end if;
 
-         if Has_Element (To_Item) then
-            if Trace_Generate_Table > Outline then
-               Spontaneous_Count := Spontaneous_Count + 1;
-               Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
-            end if;
+               if Trace_Generate_Table > Outline then
+                  Spontaneous_Count := Spontaneous_Count + 1;
+                  Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
+               end if;
 
-            LR1_Items.Include (Variable_Ref (To_Item), Closure_Item.Lookaheads.all, Descriptor);
+               LR1_Items.Include (Variable_Ref (To_Item), Closure_Item.Lookaheads.all, Descriptor);
+            end;
          end if;
       end;
    end Generate_Lookahead_Info;
 
    procedure Propagate_Lookaheads
-     (List       : in Item_Map_Lists.List;
-      Descriptor : in WisiToken.Descriptor)
+     (Propagations : in     Propagation_Lists.List;
+      Kernels      : in out LR1_Items.Item_Set_List;
+      Descriptor   : in     WisiToken.Descriptor)
    is
-      --  In List, update all To lookaheads from From lookaheads,
+      --  In Propagations, update all To lookaheads from From lookaheads,
       --  recursively.
-
-      use LR1_Items.Item_Lists;
-
       More_To_Check : Boolean := True;
       Added_One     : Boolean;
    begin
       while More_To_Check loop
 
          More_To_Check := False;
-         for Mapping of List loop
-            for Copy of Mapping.To loop
+         for Map of Propagations loop
+            for ID of Map.To loop
                LR1_Items.Include
-                 (Variable_Ref (Copy), Constant_Ref (Mapping.From).Lookaheads.all, Added_One, Descriptor);
+                 (Item_Ref (Kernels, ID), Item_Ref (Kernels, Map.From).Lookaheads.all, Added_One, Descriptor);
 
                More_To_Check := More_To_Check or Added_One;
             end loop;
@@ -414,24 +407,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Kernels                 : in out LR1_Items.Item_Set_List;
       Descriptor              : in     WisiToken.Descriptor)
    is
-      pragma Warnings (Off, """Kernel_Item_Set"" is not modified, could be declared constant");
-      --  WORKAROUND: GNAT GPL 2018 complains Kernel_Item_Set could be a constant, but
-      --  when we declare that, it complains the target of the assignment of
-      --  .Prod, .Dot below must be a variable.
-
-      Kernel_Item_Set : LR1_Items.Item_Set := -- used for temporary arg to Closure
-        (Set            => LR1_Items.Item_Lists.To_List
-           ((Prod       => <>,
-             Dot        => <>,
-             Lookaheads => Propagate_Lookahead (Descriptor))),
-         Goto_List      => <>,
-         Dot_IDs        => <>,
-         State          => <>);
-
       Closure : LR1_Items.Item_Set;
-
-      Propagation_List : Item_Map_Lists.List;
-
+      Propagations : Propagation_Lists.List;
    begin
       for Kernel of Kernels loop
          if Trace_Generate_Table > Outline then
@@ -440,15 +417,19 @@ package body WisiToken.Generate.LR.LALR_Generate is
          end if;
 
          for Kernel_Item of Kernel.Set loop
-            Kernel_Item_Set.Set (Kernel_Item_Set.Set.First).Prod := Kernel_Item.Prod;
-            Kernel_Item_Set.Set (Kernel_Item_Set.Set.First).Dot  := Kernel_Item.Dot;
-
             Closure := LR1_Items.Closure
-              (Kernel_Item_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+              ((Set            => LR1_Items.Item_Lists.To_List
+                  ((Prod       => Kernel_Item.Prod,
+                    Dot        => Kernel_Item.Dot,
+                    Lookaheads => Propagate_Lookahead (Descriptor))),
+                Goto_List      => <>,
+                Dot_IDs        => <>,
+                State          => <>),
+               Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
             for Closure_Item of Closure.Set loop
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel, Closure_Item, Propagation_List, Descriptor, Grammar, Kernels);
+                 (Kernel_Item, Kernel, Closure_Item, Propagations, Descriptor, Grammar, Kernels);
             end loop;
          end loop;
       end loop;
@@ -456,11 +437,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
       if Trace_Generate_Table > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Propagations:");
-         Put (Grammar, Descriptor, Propagation_List);
+         Put (Propagations);
          Ada.Text_IO.New_Line;
       end if;
 
-      Propagate_Lookaheads (Propagation_List, Descriptor);
+      Propagate_Lookaheads (Propagations, Kernels, Descriptor);
    end Fill_In_Lookaheads;
 
    --  Add actions for all Kernels to Table.

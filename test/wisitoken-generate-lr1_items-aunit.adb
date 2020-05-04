@@ -50,9 +50,9 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Expected_I : Cursor := Expected.First;
       Index      : Integer  := 1;
    begin
-      if Computed_I /= No_Element or Expected_I /= No_Element then
-         Standard.AUnit.Assertions.Assert (Computed_I /= No_Element, Label & " Computed is empty");
-         Standard.AUnit.Assertions.Assert (Expected_I /= No_Element, Label & " Expected is empty");
+      if Has_Element (Computed_I) or Has_Element (Expected_I) then
+         Standard.AUnit.Assertions.Assert (Has_Element (Computed_I), Label & " Computed is empty");
+         Standard.AUnit.Assertions.Assert (Has_Element (Expected_I), Label & " Expected is empty");
       else
          --  both are empty
          return;
@@ -61,11 +61,11 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       loop
          Check (Label & Integer'Image (Index), Constant_Ref (Computed_I), Constant_Ref (Expected_I), Match_Lookaheads);
          Check (Label & Integer'Image (Index) & ".Next = null",
-                Next (Computed_I) = No_Element, Next (Expected_I) = No_Element);
+                not Has_Element (Next (Computed_I)), not Has_Element (Next (Expected_I)));
          Computed_I := Next (Computed_I);
          Expected_I := Next (Expected_I);
          Index      := Index + 1;
-         exit when Computed_I = No_Element;
+         exit when not Has_Element (Computed_I);
       end loop;
    end Check;
 
@@ -104,9 +104,9 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Expected_I : Cursor  := Expected.First;
       Index      : Integer := 1;
    begin
-      if Computed_I /= No_Element or Expected_I /= No_Element then
-         Standard.AUnit.Assertions.Assert (Computed_I /= No_Element, Label & " Computed is empty");
-         Standard.AUnit.Assertions.Assert (Expected_I /= No_Element, Label & " Expected is empty");
+      if Has_Element (Computed_I) or Has_Element (Expected_I) then
+         Standard.AUnit.Assertions.Assert (Has_Element (Computed_I), Label & " Computed is empty");
+         Standard.AUnit.Assertions.Assert (Has_Element (Expected_I), Label & " Expected is empty");
       else
          --  both are empty
          return;
@@ -116,11 +116,11 @@ package body WisiToken.Generate.LR1_Items.AUnit is
          Check (Label & Integer'Image (Index) & ".Symbol", Computed (Computed_I).Symbol, Expected (Expected_I).Symbol);
          Check (Label & Integer'Image (Index) & ".State", Computed (Computed_I).State, Expected (Expected_I).State);
          Check (Label & Integer'Image (Index) & ".Next = null",
-                Next (Computed_I) = No_Element, Next (Expected_I) = No_Element);
+                not Has_Element (Next (Computed_I)), not Has_Element (Next (Expected_I)));
          Computed_I := Next (Computed_I);
          Expected_I := Next (Expected_I);
          Index      := Index + 1;
-         exit when Computed_I = No_Element;
+         exit when not Has_Element (Computed_I);
       end loop;
    end Check;
 

@@ -123,6 +123,9 @@ package WisiToken.Generate.LR1_Items is
    function Item_Compare (Left, Right : in Item) return SAL.Compare_Result;
    --  Sort Item_Lists in ascending order of Prod.Nonterm, Prod.RHS, Dot;
    --  ignores Lookaheads.
+   --
+   --  In an LALR kernel there can be only one Item with Prod, but that
+   --  is not true in an Item_Set produced by Closure.
 
    package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item, Item_Compare);
 
@@ -201,27 +204,13 @@ package WisiToken.Generate.LR1_Items is
    --  Return No_Element if not found.
 
    function Find
-     (Prod  : in Production_ID;
-      Dot   : in Token_ID_Arrays.Extended_Index;
-      Right : in Item_Set)
+     (Prod : in Production_ID;
+      Dot : in Token_ID_Arrays.Extended_Index;
+      Set  : in Item_Set)
      return Item_Lists.Cursor;
-   --  Return an item from Right that matches Prod, Dot.
+   --  Return an item from Set that matches Prod, Dot.
    --
    --  Return No_Element if not found.
-
-   function Find
-     (Prod       : in Production_ID;
-      Dot        : in Token_ID_Arrays.Extended_Index;
-      Right      : in Item_Set;
-      Lookaheads : in Lookahead)
-     return Item_Lists.Cursor;
-   --  Return an item from Right that matches Prod, Dot, and
-   --  Lookaheads.
-   --
-   --  Return No_Element if not found.
-   --
-   --  Not combined with non-Lookaheads version for speed; this is called
-   --  a lot.
 
    package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (State_Index, Item_Set, Default_Element => (others => <>));

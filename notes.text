@@ -6,10 +6,10 @@ org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-* ; dele
 org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - implement syntax_trees.Insert_Token
 
 (dvc-state-multiple
-'((xmtn . "/Projects/org.stephe_leake.makerules")
-  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "/Projects/org.stephe_leake.sal")
-  (xmtn . "/Projects/org.wisitoken")))
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext.stephe-1")
+  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -21,6 +21,26 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+compile with GNAT Pro 21.0w 20200426
+    but use gnat 20.2 for gpr_query, ada_parse
+        wisi-prj can't cope with that
+
+    (gnat-pro-21.0w-20200426)
+    (shell-bash)
+    (sal-standard)
+
+    in shell:
+    export GPR_PROJECT_PATH="/Projects/org.stephe_leake.sal.stephe-1/build:/Projects/org.stephe_leake.aunit_ext.stephe-1/build:/Projects/org.stephe_leake.makerules"
+    cd build
+    make t_all
+    build/Makefile - set project
+
+
+wisitoken-generate-lr.adb Add_Actions FIXME:
+    doesn't use Goto_List for terminals!
+    Goto_List _does_ contain terminals
+        use them instead of other code in Add_Actions
+
 -explore.check
          --  FIXME: if there were conflicts, enqueue them; they might yield a
          --  cheaper or same cost solution?

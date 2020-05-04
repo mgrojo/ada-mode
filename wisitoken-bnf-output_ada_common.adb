@@ -559,34 +559,37 @@ package body WisiToken.BNF.Output_Ada_Common is
                  Trimmed_Image (Table.States (State_Index).Action_List.Length) & ");");
 
             if Duplicate_Reduce (Table.States (State_Index)) then
-               declare
-                  Node   : Action_Node renames Table.States (State_Index).Action_List (1);
-                  Action : constant Reduce_Action_Rec := Node.Actions.Item;
-               begin
-                  Set_Col (Indent);
-                  Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
-                    Symbols_Image (Table.States (State_Index)) & ", " &
-                    Image (Action.Production) & ", " &
-                    Count_Type'Image (Action.Token_Count) & ", ";
+               if Table.States (State_Index).Action_List.Length > 0 then
+                  --  We only get here with Length = 0 when there's a bug in LALR_Generate.
+                  declare
+                     Node   : Action_Node renames Table.States (State_Index).Action_List (1);
+                     Action : constant Reduce_Action_Rec := Node.Actions.Item;
+                  begin
+                     Set_Col (Indent);
+                     Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
+                       Symbols_Image (Table.States (State_Index)) & ", " &
+                       Image (Action.Production) & ", " &
+                       Count_Type'Image (Action.Token_Count) & ", ";
 
-                  Append
-                    ((if Generate_Data.Action_Names (Action.Production.LHS) = null then "null"
-                      elsif Generate_Data.Action_Names
-                        (Action.Production.LHS)(Action.Production.RHS) = null then "null"
-                      else Generate_Data.Action_Names
-                        (Action.Production.LHS)(Action.Production.RHS).all & "'Access"));
-                  Append (", ");
-                  Append
-                    ((if Generate_Data.Check_Names (Action.Production.LHS) = null then "null"
-                      elsif Generate_Data.Check_Names
-                        (Action.Production.LHS)(Action.Production.RHS) = null then "null"
-                      else Generate_Data.Check_Names
-                        (Action.Production.LHS)(Action.Production.RHS).all & "'Access"));
+                     Append
+                       ((if Generate_Data.Action_Names (Action.Production.LHS) = null then "null"
+                         elsif Generate_Data.Action_Names
+                           (Action.Production.LHS)(Action.Production.RHS) = null then "null"
+                         else Generate_Data.Action_Names
+                           (Action.Production.LHS)(Action.Production.RHS).all & "'Access"));
+                     Append (", ");
+                     Append
+                       ((if Generate_Data.Check_Names (Action.Production.LHS) = null then "null"
+                         elsif Generate_Data.Check_Names
+                           (Action.Production.LHS)(Action.Production.RHS) = null then "null"
+                         else Generate_Data.Check_Names
+                           (Action.Production.LHS)(Action.Production.RHS).all & "'Access"));
 
-                  Indent_Wrap (-Line & ");");
-                  Line_Count := Line_Count + 1;
-                  Indent     := Base_Indent;
-               end;
+                     Indent_Wrap (-Line & ");");
+                     Line_Count := Line_Count + 1;
+                     Indent     := Base_Indent;
+                  end;
+               end if;
 
             else
                for Node of Table.States (State_Index).Action_List loop
