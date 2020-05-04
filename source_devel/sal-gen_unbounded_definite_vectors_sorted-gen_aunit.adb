@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -22,7 +22,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit is
       Computed : in Vector;
       Expected : in Vector)
    is
-      use all type Ada.Containers.Count_Type;
       use Standard.AUnit.Checks;
    begin
       if Computed.Length = 0 then

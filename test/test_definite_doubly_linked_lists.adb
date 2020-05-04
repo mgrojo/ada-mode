@@ -2,7 +2,7 @@
 --
 --  Test Sal.Gen_Definite_Doubly_Linked_Lists
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -38,7 +38,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       use AUnit.Checks.Containers;
 
       List : Integer_Lists.List;
-      Cur : Cursor;
+      Cur : Cursor := List.First;
    begin
       Check ("0", List.Length, 0);
 
@@ -55,7 +55,6 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("1c", Constant_Ref (Cur), 5);
       Next (Cur);
       Check ("1d", Has_Element (Cur), False);
-      Check ("1e", Cur = No_Element, True);
 
       List.Prepend (0);
       Val.Validate ("2", List);
@@ -71,7 +70,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       Delete (List, Cur);
       Val.Validate ("3", List);
-      Check ("3a", Cur = No_Element, True);
+      Check ("3a", Has_Element (Cur), False);
       Check ("3b", List.Length, 3);
       Cur := List.First;
       Check ("3c", Constant_Ref (Cur), 0);
@@ -80,7 +79,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("3e", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("3f", Cur = No_Element, True);
+      Check ("3f", Has_Element (Cur), False);
 
       Cur := List.First;
       Cur := Next (Cur);
@@ -92,18 +91,19 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("4c", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("4d", Cur = No_Element, True);
+      Check ("4d", Has_Element (Cur), False);
 
       declare
          B : constant Integer_Lists.List := List;
+         Cur_B : Cursor := B.First;
       begin
          Check ("4a", B.Length, 2);
-         Cur := B.First;
-         Check ("4b", Constant_Ref (Cur), 0);
-         Next (Cur);
-         Check ("4c", Constant_Ref (Cur), 3);
-         Next (Cur);
-         Check ("4d", Cur = No_Element, True);
+         Cur_B := B.First;
+         Check ("4b", Constant_Ref (Cur_B), 0);
+         Next (Cur_B);
+         Check ("4c", Constant_Ref (Cur_B), 3);
+         Next (Cur_B);
+         Check ("4d", Has_Element (Cur_B), False);
       end;
 
       Check ("5a", List.Length, 2);
@@ -112,7 +112,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("5c", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("5d", Cur = No_Element, True);
+      Check ("5d", Has_Element (Cur), False);
 
    end Nominal;
 
@@ -124,7 +124,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       use AUnit.Checks.Containers;
 
       List : Integer_Lists.List;
-      Cur : Cursor;
+      Cur : Cursor := List.No_Element;
    begin
       --  Insert into empty
       List.Insert (List.First, 2);
@@ -145,7 +145,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("2c", Constant_Ref (Cur), 2);
       Next (Cur);
-      Check ("2d", Cur = No_Element, True);
+      Check ("2d", Has_Element (Cur), False);
 
       --  Insert before tail
       List.Insert (List.Last, 1);
@@ -158,10 +158,10 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("3d", Constant_Ref (Cur), 2);
       Next (Cur);
-      Check ("3e", Cur = No_Element, True);
+      Check ("3e", Has_Element (Cur), False);
 
       --  Insert after tail
-      List.Insert (No_Element, 3);
+      List.Insert (List.No_Element, 3);
       Val.Validate ("4", List);
       Check ("4a", List.Length, 4);
       Cur := List.First;
@@ -173,7 +173,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("4e", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("4f", Cur = No_Element, True);
+      Check ("4f", Has_Element (Cur), False);
 
       --  Insert in middle
       Cur := List.First;
@@ -195,7 +195,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Next (Cur);
       Check ("5f", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("5g", Cur = No_Element, True);
+      Check ("5g", Has_Element (Cur), False);
 
    end Test_Insert;
 

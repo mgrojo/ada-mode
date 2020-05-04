@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -138,21 +138,26 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       return Position.Ptr /= null;
    end Has_Element;
 
-   function First (Container : in List) return Cursor
+   function No_Element (Container : aliased in List) return Cursor
+   is begin
+      return (Container'Access, null);
+   end No_Element;
+
+   function First (Container : aliased in List) return Cursor
    is begin
       if Container.Head = null then
-         return No_Element;
+         return (Container'Access, null);
       else
-         return (Container'Unrestricted_Access, Container.Head);
+         return (Container'Access, Container.Head);
       end if;
    end First;
 
-   function Last (Container : in List) return Cursor
+   function Last (Container : aliased in List) return Cursor
    is begin
       if Container.Tail = null then
-         return No_Element;
+         return (Container'Access, null);
       else
-         return (Container'Unrestricted_Access, Container.Tail);
+         return (Container'Access, Container.Tail);
       end if;
    end Last;
 
@@ -160,7 +165,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
    is begin
       if Position.Ptr /= null then
          if Position.Ptr.Next = null then
-            Position := No_Element;
+            Position.Ptr := null;
          else
             Position.Ptr := Position.Ptr.Next;
          end if;
@@ -173,7 +178,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
          return Position;
       else
          if Position.Ptr.Next = null then
-            return No_Element;
+            return (Position.Container, null);
          else
             return (Position.Container, Position.Ptr.Next);
          end if;
@@ -186,7 +191,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
          return Position;
       else
          if Position.Ptr.Prev = null then
-            return No_Element;
+            return (Position.Container, null);
          else
             return (Position.Container, Position.Ptr.Prev);
          end if;
@@ -203,7 +208,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       use all type Ada.Containers.Count_Type;
    begin
       Delete_Node (Container, Position.Ptr);
-      Position        := No_Element;
+      Position        := (Container'Access, null);
       Container.Count := Container.Count - 1;
    end Delete;
 
@@ -223,7 +228,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
    is
       use all type Ada.Containers.Count_Type;
    begin
-      if Before = No_Element then
+      if Before = (Container'Access, null) then
          Container.Append (Element);
       else
          if Before.Ptr = Container.Head then
@@ -287,7 +292,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    function Iterate (Container : aliased in List) return Iterator_Interfaces.Reversible_Iterator'Class
    is begin
-      return Iterator'(Container => Container'Unrestricted_Access);
+      return Iterator'(Container => Container'Access);
    end Iterate;
 
    overriding function First (Object : Iterator) return Cursor

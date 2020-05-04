@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -163,7 +163,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
      (Container : in out Vector;
       Length    : in     Ada.Containers.Count_Type)
    is
-      use all type Ada.Containers.Count_Type;
       First_Peek : constant Peek_Type      := Peek_Type'First;
       Last_Peek  : constant Base_Peek_Type := Base_Peek_Type (Length);
    begin
@@ -355,10 +354,15 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
       return (Element => Container.Elements (Position.Index)'Access, Dummy => 1);
    end Constant_Ref;
 
-   function Last_Index (Container : aliased Vector) return Base_Peek_Type
+   function Last_Index (Container : in Vector) return Base_Peek_Type
    is begin
       return Container.Last;
    end Last_Index;
+
+   function To_Index (Position : in Cursor) return Base_Peek_Type
+   is begin
+      return Position.Index;
+   end To_Index;
 
    function Constant_Ref (Container : aliased Vector; Index : in Peek_Type) return Constant_Reference_Type
    is begin
