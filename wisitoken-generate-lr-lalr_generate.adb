@@ -85,64 +85,72 @@ package body WisiToken.Generate.LR.LALR_Generate is
       use Token_ID_Arrays;
       use LR1_Items;
       use LR1_Items.Item_Lists;
+      use all type Ada.Containers.Count_Type;
 
       Goto_Set : Item_Set;
-      Dot_ID   : Token_ID;
    begin
       for Item of Kernel.Set loop
 
-         if Has_Element (Item.Dot) then
+         if Item.Dot /= No_Index then
+            pragma Assert (Productions.Constant_Ref_RHS (Grammar, Item.Prod).Tokens.Length > 0);
 
-            Dot_ID := Element (Item.Dot);
-            --  ID of token after Dot
+            declare
+               Dot      : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+                 (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+               Dot_ID   : constant Token_ID               := Element (Dot);
+               Next_Dot : constant Token_ID_Arrays.Cursor := Next (Dot);
+            begin
+               --  If Symbol = EOF_Token, this is the start symbol accept
+               --  production; don't need a kernel with dot after EOF.
 
-            --  If Symbol = EOF_Token, this is the start symbol accept
-            --  production; don't need a kernel with dot after EOF.
-            if (Dot_ID = Symbol and Symbol /= Descriptor.EOI_ID) and then
-              not Has_Element (Find (Item.Prod, Next (Item.Dot), Goto_Set))
-            then
-               Goto_Set.Set.Insert
-                 ((Prod       => Item.Prod,
-                   Dot        => Next (Item.Dot),
-                   Lookaheads => new Token_ID_Set'(Item.Lookaheads.all)));
+               if (Dot_ID = Symbol and Symbol /= Descriptor.EOI_ID) and then
+                 not Has_Element (Find (Item.Prod, To_Index (Next_Dot), Goto_Set))
+               then
+                  Goto_Set.Set.Insert
+                    ((Prod       => Item.Prod,
+                      Dot        => To_Index (Next_Dot),
+                      Lookaheads => new Token_ID_Set'(Item.Lookaheads.all)));
 
-               if Trace_Generate_Table > Detail then
-                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 1 " & Image (Symbol, Descriptor));
-                  Put (Grammar, Descriptor, Goto_Set);
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 1 " & Image (Symbol, Descriptor));
+                     Put (Grammar, Descriptor, Goto_Set);
+                  end if;
                end if;
-            end if;
 
-            if Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-              First_Nonterm_Set (Dot_ID, Symbol)
-            then
-               --  Find the production(s) that create Dot_ID with first token Symbol
-               --  and put them in.
-               for Prod of Grammar loop
-                  for RHS_2_I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
-                     declare
-                        P_ID  : constant Production_ID          := (Prod.LHS, RHS_2_I);
-                        Dot_2 : constant Token_ID_Arrays.Cursor := Prod.RHSs (RHS_2_I).Tokens.First;
-                     begin
-                        if (Dot_ID = Prod.LHS or First_Nonterm_Set (Dot_ID, Prod.LHS)) and
-                          (Has_Element (Dot_2) and then Element (Dot_2) = Symbol)
-                        then
-                           if not Has_Element (Find (P_ID, Next (Dot_2), Goto_Set)) then
-                              Goto_Set.Set.Insert
-                                ((Prod       => P_ID,
-                                  Dot        => Next (Dot_2),
-                                  Lookaheads => Null_Lookahead (Descriptor)));
+               if Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                 First_Nonterm_Set (Dot_ID, Symbol)
+               then
+                  --  Find the production(s) that create Dot_ID with first token Symbol
+                  --  and put them in.
+                  for Prod of Grammar loop
+                     for RHS_2_I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                        declare
+                           P_ID       : constant Production_ID          := (Prod.LHS, RHS_2_I);
+                           Tokens     : Token_ID_Arrays.Vector renames Prod.RHSs (RHS_2_I).Tokens;
+                           Dot_2      : constant Token_ID_Arrays.Cursor := Tokens.First;
+                           Next_Dot_2 : constant Token_ID_Arrays.Cursor := Next (Dot_2);
+                        begin
+                           if (Dot_ID = Prod.LHS or First_Nonterm_Set (Dot_ID, Prod.LHS)) and
+                             (Has_Element (Dot_2) and then Element (Dot_2) = Symbol)
+                           then
+                              if not Has_Element (Find (P_ID, To_Index (Next_Dot_2), Goto_Set)) then
+                                 Goto_Set.Set.Insert
+                                   ((Prod       => P_ID,
+                                     Dot        => To_Index (Next_Dot_2),
+                                     Lookaheads => Null_Lookahead (Descriptor)));
 
-                              --  else already in goto set
+                                 --  else already in goto set
+                              end if;
                            end if;
-                        end if;
-                     end;
+                        end;
+                     end loop;
                   end loop;
-               end loop;
-               if Trace_Generate_Table > Detail then
-                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
-                  Put (Grammar, Descriptor, Goto_Set);
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
+                     Put (Grammar, Descriptor, Goto_Set);
+                  end if;
                end if;
-            end if;
+            end;
          end if; -- item.dot /= null
       end loop;
 
@@ -155,7 +163,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Descriptor        : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
-      use all type Token_ID_Arrays.Cursor;
       use all type Ada.Containers.Count_Type;
       use LR1_Items;
 
@@ -165,20 +172,22 @@ package body WisiToken.Generate.LR.LALR_Generate is
       States_To_Check   : State_Index_Queues.Queue;
       Checking_State    : State_Index;
 
-      New_Item_Set : Item_Set :=
-        (Set            => Item_Lists.To_List
-           ((Prod       => (Grammar.First_Index, 0),
-             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-             Lookaheads => Null_Lookahead (Descriptor))),
-         Goto_List      => <>,
-         Dot_IDs        => <>,
-         State          => First_State_Index);
-
       Found_State : Unknown_State_Index;
    begin
       Kernels.Set_First_Last (First_State_Index, First_State_Index - 1);
 
-      Add (New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
+      Add (Grammar,
+           (Set               => Item_Lists.To_List
+              ((Prod          => (Grammar.First_Index, 0),
+                Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
+                Lookaheads    => Null_Lookahead (Descriptor))),
+            Goto_List         => <>,
+            Dot_IDs           => <>,
+            State             => First_State_Index),
+           Kernels,
+           Kernel_Tree,
+           Descriptor,
+           Include_Lookaheads => False);
 
       States_To_Check.Put (First_State_Index);
       loop
@@ -195,46 +204,48 @@ package body WisiToken.Generate.LR.LALR_Generate is
             --  Item_Set.Dot_IDs, so we can't iterate on that here as we do in
             --  LR1_Generate.
 
-            New_Item_Set := LALR_Goto_Transitions
-              (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
+            declare
+               New_Item_Set : Item_Set := LALR_Goto_Transitions
+                 (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
+            begin
+               if New_Item_Set.Set.Length > 0 then
 
-            if New_Item_Set.Set.Length > 0 then
+                  Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
 
-               Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
+                  if Found_State = Unknown_State then
+                     New_Item_Set.State := Kernels.Last_Index + 1;
 
-               if Found_State = Unknown_State then
-                  New_Item_Set.State := Kernels.Last_Index + 1;
+                     States_To_Check.Put (New_Item_Set.State);
 
-                  States_To_Check.Put (New_Item_Set.State);
+                     Add (Grammar, New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
 
-                  Add (New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
-
-                  if Trace_Generate_Table > Detail then
-                     Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
-
-                     Ada.Text_IO.Put_Line
-                       ("  state" & Unknown_State_Index'Image (Checking_State) &
-                          " adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                          Unknown_State_Index'Image (Kernels.Last_Index));
-                  end if;
-
-                  Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
-               else
-
-                  --  If there's not already a goto entry between these two sets, create one.
-                  if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
                      if Trace_Generate_Table > Detail then
+                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+
                         Ada.Text_IO.Put_Line
                           ("  state" & Unknown_State_Index'Image (Checking_State) &
                              " adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                             Unknown_State_Index'Image (Found_State));
-
+                             Unknown_State_Index'Image (Kernels.Last_Index));
                      end if;
 
-                     Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_State));
+                     Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
+                  else
+
+                     --  If there's not already a goto entry between these two sets, create one.
+                     if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
+                        if Trace_Generate_Table > Detail then
+                           Ada.Text_IO.Put_Line
+                             ("  state" & Unknown_State_Index'Image (Checking_State) &
+                                " adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                                Unknown_State_Index'Image (Found_State));
+
+                        end if;
+
+                        Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_State));
+                     end if;
                   end if;
                end if;
-            end if;
+            end;
          end loop;
       end loop;
 
@@ -334,13 +345,15 @@ package body WisiToken.Generate.LR.LALR_Generate is
          Ada.Text_IO.New_Line;
       end if;
 
-      if not Has_Element (Closure_Item.Dot) then
+      if Closure_Item.Dot = No_Index then
          return;
       end if;
 
       declare
-         ID         : constant Token_ID               := Element (Closure_Item.Dot);
-         Next_Dot   : constant Token_ID_Arrays.Cursor := Next (Closure_Item.Dot);
+         Dot        : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+           (Grammar, Closure_Item.Prod).Tokens.To_Cursor (Closure_Item.Dot);
+         ID         : constant Token_ID               := Element (Dot);
+         Next_Dot   : constant Extended_Index         := To_Index (Next (Dot));
          Goto_State : constant Unknown_State_Index    := LR1_Items.Goto_State (Source_Set, ID);
          To_Item    : constant Item_Lists.Cursor      :=
            (if Goto_State = Unknown_State then Item_Lists.No_Element

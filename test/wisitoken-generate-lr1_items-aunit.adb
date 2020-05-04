@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,7 +29,7 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Expected         : in Item;
       Match_Lookaheads : in Boolean)
    is
-      use Token_ID_Arrays_AUnit;
+      use Standard.AUnit.Checks;
    begin
       Check (Label & ".Prod", Computed.Prod, Expected.Prod);
       Check (Label & ".Dot", Computed.Dot, Expected.Dot);
@@ -131,9 +131,14 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Lookaheads : in Lookahead)
      return Item
    is
-      Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
+      Tokens : Token_ID_Arrays.Vector renames WisiToken.Productions.Constant_Ref_RHS (Grammar, Prod).Tokens;
    begin
-      return (Prod, Dot_I, new Token_ID_Set'(Lookaheads));
+      return
+        (Prod,
+         (if Dot > Tokens.Last_Index
+          then Token_ID_Arrays.No_Index
+          else Dot),
+         new Token_ID_Set'(Lookaheads));
    end Get_Item;
 
    function "+" (Item : in LR1_Items.Item) return Item_Set

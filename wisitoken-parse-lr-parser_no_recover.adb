@@ -233,9 +233,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
-      Current_Verb   : All_Parse_Action_Verbs;
-      Current_Parser : Parser_Lists.Cursor;
-      Action         : Parse_Action_Node_Ptr;
+      Current_Verb : All_Parse_Action_Verbs;
+      Action       : Parse_Action_Node_Ptr;
 
       procedure Check_Error (Check_Parser : in out Parser_Lists.Cursor)
       is begin
@@ -326,100 +325,104 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          --  We don't use 'for Parser_State of Parsers loop' here,
          --  because terminate on error and spawn on conflict require
          --  changing the parser list.
-         Current_Parser := Shared_Parser.Parsers.First;
-         loop
-            exit when Current_Parser.Is_Done;
+         declare
+            Current_Parser : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+         begin
+            loop
+               exit when Current_Parser.Is_Done;
 
-            if Shared_Parser.Terminate_Same_State and
-              Current_Verb = Shift
-            then
-               Shared_Parser.Parsers.Duplicate_State
-                 (Current_Parser, Shared_Parser.Trace.all, Shared_Parser.Terminals);
-               --  If Duplicate_State terminated Current_Parser, Current_Parser now
-               --  points to the next parser. Otherwise it is unchanged.
-            end if;
-
-            exit when Current_Parser.Is_Done;
-
-            if Trace_Parse > Extra then
-               Trace.Put_Line
-                 ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
-                    "," & Integer'Image (Current_Parser.Label) &
-                    ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
-            end if;
-
-            --  Each branch of the following 'if' calls either Current_Parser.Free
-            --  (which advances to the next parser) or Current_Parser.Next.
-
-            if Current_Parser.Verb = Current_Verb then
-               if Trace_Parse > Extra then
-                  Parser_Lists.Put_Top_10 (Trace, Current_Parser);
+               if Shared_Parser.Terminate_Same_State and
+                 Current_Verb = Shift
+               then
+                  Shared_Parser.Parsers.Duplicate_State
+                    (Current_Parser, Shared_Parser.Trace.all, Shared_Parser.Terminals);
+                  --  If Duplicate_State terminated Current_Parser, Current_Parser now
+                  --  points to the next parser. Otherwise it is unchanged.
                end if;
 
-               declare
-                  State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-               begin
-                  Action := Action_For
-                    (Table => Shared_Parser.Table.all,
-                     State => State.Stack.Peek.State,
-                     ID    => State.Tree.ID (State.Current_Token));
-               end;
+               exit when Current_Parser.Is_Done;
 
-               declare
-                  Conflict : Parse_Action_Node_Ptr := Action.Next;
-               begin
-                  loop
-                     exit when Conflict = null;
-                     --  Spawn a new parser (before modifying Current_Parser stack).
+               if Trace_Parse > Extra then
+                  Trace.Put_Line
+                    ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
+                       "," & Integer'Image (Current_Parser.Label) &
+                       ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
+               end if;
 
-                     if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
-                        declare
-                           Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-                           Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);
-                        begin
-                           raise WisiToken.Parse_Error with Error_Message
-                             (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
-                              ": too many parallel parsers required in grammar state" &
-                                State_Index'Image (Parser_State.Stack.Peek.State) &
-                                "; simplify grammar, or increase max-parallel (" &
-                                SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
-                        end;
-                     else
-                        if Trace_Parse > Outline then
+               --  Each branch of the following 'if' calls either Current_Parser.Free
+               --  (which advances to the next parser) or Current_Parser.Next.
+
+               if Current_Parser.Verb = Current_Verb then
+                  if Trace_Parse > Extra then
+                     Parser_Lists.Put_Top_10 (Trace, Current_Parser);
+                  end if;
+
+                  declare
+                     State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+                  begin
+                     Action := Action_For
+                       (Table => Shared_Parser.Table.all,
+                        State => State.Stack.Peek.State,
+                        ID    => State.Tree.ID (State.Current_Token));
+                  end;
+
+                  declare
+                     Conflict : Parse_Action_Node_Ptr := Action.Next;
+                  begin
+                     loop
+                        exit when Conflict = null;
+                        --  Spawn a new parser (before modifying Current_Parser stack).
+
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                              Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);
                            begin
-                              Trace.Put_Line
-                                (Integer'Image (Current_Parser.Label) & ": " &
-                                   Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
-                                   Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
-                                   "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
-                                   Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                              raise WisiToken.Parse_Error with Error_Message
+                                (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
+                                 ": too many parallel parsers required in grammar state" &
+                                   State_Index'Image (Parser_State.Stack.Peek.State) &
+                                   "; simplify grammar, or increase max-parallel (" &
+                                   SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                           end;
+                        else
+                           if Trace_Parse > Outline then
+                              declare
+                                 Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                              begin
+                                 Trace.Put_Line
+                                   (Integer'Image (Current_Parser.Label) & ": " &
+                                      Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
+                                      Parser_State.Tree.Image
+                                        (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
+                                      "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
+                                      Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                              end;
+                           end if;
+
+                           Shared_Parser.Parsers.Prepend_Copy (Current_Parser);
+                           Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
+
+                           declare
+                              Temp : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+                           begin
+                              Check_Error (Temp);
                            end;
                         end if;
 
-                        Shared_Parser.Parsers.Prepend_Copy (Current_Parser);
-                        Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
+                        Conflict := Conflict.Next;
+                     end loop;
+                  end;
 
-                        declare
-                           Temp : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-                        begin
-                           Check_Error (Temp);
-                        end;
-                     end if;
+                  Do_Action (Action.Item, Current_Parser, Shared_Parser);
+                  Check_Error (Current_Parser);
 
-                     Conflict := Conflict.Next;
-                  end loop;
-               end;
-
-               Do_Action (Action.Item, Current_Parser, Shared_Parser);
-               Check_Error (Current_Parser);
-
-            else
-               --  Current parser is waiting for others to catch up
-               Current_Parser.Next;
-            end if;
-         end loop;
+               else
+                  --  Current parser is waiting for others to catch up
+                  Current_Parser.Next;
+               end if;
+            end loop;
+         end;
       end loop Main_Loop;
 
       --  We don't raise Syntax_Error for lexer errors, since they are all

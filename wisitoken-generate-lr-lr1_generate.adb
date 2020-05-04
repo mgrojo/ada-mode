@@ -41,15 +41,23 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Goto_Set : Item_Set;
    begin
       for Item of Set.Set loop
-         if Item.Dot /= No_Element then
-            if Element (Item.Dot) = Symbol and
-              --  We don't need a state with dot after EOI in the
-              --  accept production. EOI should only appear in the
-              --  accept production.
-              Symbol /= Descriptor.EOI_ID
-            then
-               Goto_Set.Set.Insert ((Item.Prod, Next (Item.Dot), new Token_ID_Set'(Item.Lookaheads.all)));
-            end if;
+         if Item.Dot /= No_Index then
+            declare
+               Dot : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+                 (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+            begin
+               if Element (Dot) = Symbol and
+                 --  We don't need a state with dot after EOI in the
+                 --  accept production. EOI should only appear in the
+                 --  accept production.
+                 Symbol /= Descriptor.EOI_ID
+               then
+                  Goto_Set.Set.Insert
+                    ((Item.Prod,
+                      To_Index (Next (Dot)),
+                      new Token_ID_Set'(Item.Lookaheads.all)));
+               end if;
+            end;
          end if;
       end loop;
 
@@ -90,7 +98,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       New_Item_Set : Item_Set := Closure
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
-              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
+              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
               Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOI_ID, Descriptor)))),
           Goto_List      => <>,
           Dot_IDs        => <>,
@@ -102,7 +110,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
    begin
       C.Set_First_Last (First_State_Index, First_State_Index - 1);
 
-      Add (New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
+      Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
       States_To_Check.Put (First_State_Index);
       loop
@@ -134,7 +142,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                   States_To_Check.Put (New_Item_Set.State);
 
-                  Add (New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
+                  Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
                   if Trace_Generate_Table > Outline then
                      Ada.Text_IO.Put_Line

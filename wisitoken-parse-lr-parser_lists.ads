@@ -123,7 +123,7 @@ package WisiToken.Parse.LR.Parser_Lists is
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 
-   type Cursor is tagged private;
+   type Cursor (<>) is tagged private;
 
    function First (List : aliased in out Parser_Lists.List'Class) return Cursor;
    procedure Next (Cursor : in out Parser_Lists.Cursor);
@@ -268,9 +268,9 @@ private
       Parser_Label : Natural; -- label of last added parser.
    end record;
 
-   type Cursor is tagged record
-      Elements : access Parser_State_Lists.List;
-      Ptr      : Parser_State_Lists.Cursor;
+   type Cursor (Elements : access Parser_State_Lists.List) is tagged
+   record
+      Ptr : Parser_State_Lists.Cursor;
    end record;
 
    type Parser_Node_Access is record

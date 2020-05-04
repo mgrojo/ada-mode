@@ -95,7 +95,7 @@ package WisiToken.Generate.LR1_Items is
 
    type Item is record
       Prod       : Production_ID;
-      Dot        : Token_ID_Arrays.Cursor; -- token after item Dot
+      Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index; -- token after item Dot
       Lookaheads : Token_ID_Set_Access := null;
       --  Programmer must remember to copy Item.Lookaheads.all, not
       --  Item.Lookaheads. Wrapping this in Ada.Finalization.Controlled
@@ -202,7 +202,7 @@ package WisiToken.Generate.LR1_Items is
 
    function Find
      (Prod  : in Production_ID;
-      Dot   : in Token_ID_Arrays.Cursor;
+      Dot   : in Token_ID_Arrays.Extended_Index;
       Right : in Item_Set)
      return Item_Lists.Cursor;
    --  Return an item from Right that matches Prod, Dot.
@@ -211,7 +211,7 @@ package WisiToken.Generate.LR1_Items is
 
    function Find
      (Prod       : in Production_ID;
-      Dot        : in Token_ID_Arrays.Cursor;
+      Dot        : in Token_ID_Arrays.Extended_Index;
       Right      : in Item_Set;
       Lookaheads : in Lookahead)
      return Item_Lists.Cursor;
@@ -277,7 +277,8 @@ package WisiToken.Generate.LR1_Items is
    --  Match_Lookaheads is True in LR1_Generate.
 
    procedure Add
-     (New_Item_Set       : in out Item_Set;
+     (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      New_Item_Set       : in     Item_Set;
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
       Descriptor         : in     WisiToken.Descriptor;

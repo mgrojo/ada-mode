@@ -288,9 +288,8 @@ package body WisiToken.BNF.Generate_Utils is
       end case;
    end Constant_Reference;
 
-   type Token_Access_Constant is access constant Token_Container;
-   type Iterator is new Iterator_Interfaces.Forward_Iterator with record
-      Container    : Token_Access_Constant;
+   type Iterator (Container : not null access constant Token_Container)
+   is new Iterator_Interfaces.Forward_Iterator with record
       Non_Grammar  : Boolean;
       Nonterminals : Boolean;
    end record;

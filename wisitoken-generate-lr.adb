@@ -335,7 +335,7 @@ package body WisiToken.Generate.LR is
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor)
    is
-      use WisiToken.Token_ID_Arrays;
+      use Token_ID_Arrays;
 
       State : constant State_Index := Closure.State;
    begin
@@ -344,55 +344,62 @@ package body WisiToken.Generate.LR is
       end if;
 
       for Item of Closure.Set loop
-         if Item.Dot = No_Element then
-            --  Pointer is at the end of the production; add a reduce action.
+         declare
+            Dot : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+              (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+         begin
+            if not Has_Element (Dot) then
+               --  Pointer is at the end of the production; add a reduce action.
 
-            Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
-               Conflict_Counts, Conflicts, Closure, Descriptor);
+               Add_Lookahead_Actions
+                 (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
+                  Conflict_Counts, Conflicts, Closure, Descriptor);
 
-         elsif Element (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-            --  Dot is before a terminal token.
-            declare
-               use all type Ada.Containers.Count_Type;
+            elsif Element (Dot) in
+              Descriptor.First_Terminal .. Descriptor.Last_Terminal
+            then
+               --  Dot is before a terminal token.
+               declare
+                  use all type Ada.Containers.Count_Type;
 
-               P_ID : constant Production_ID := Item.Prod;
+                  P_ID : constant Production_ID := Item.Prod;
 
-               Dot_ID : constant Token_ID := Element (Item.Dot);
-               --  ID of token after Item.Dot
+                  Dot_ID : constant Token_ID := Element (Dot);
+                  --  ID of token after Item.Dot
 
-               Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (Closure, Dot_ID);
-            begin
-               if Dot_ID = Descriptor.EOI_ID then
-                  --  This is the start symbol production with dot before EOF.
-                  declare
-                     RHS  : Productions.Right_Hand_Side renames Grammar (P_ID.LHS).RHSs (P_ID.RHS);
-                  begin
-                     Add_Action
-                       (Dot_ID,
-                        (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
-                        --  EOF is not pushed on stack in parser, because the action for EOF
-                        --  is Accept, not Shift.
-                        Table.States (State).Action_List, Closure,
-                        Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
-                  end;
-               else
-                  if Goto_State /= Unknown_State then
-                     Add_Action
-                       (Dot_ID,
-                        (Shift, P_ID, Goto_State),
-                        Table.States (State).Action_List,
-                        Closure, Grammar, Has_Empty_Production, First_Nonterm_Set,
-                        Conflict_Counts, Conflicts, Descriptor);
+                  Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (Closure, Dot_ID);
+               begin
+                  if Dot_ID = Descriptor.EOI_ID then
+                     --  This is the start symbol production with dot before EOF.
+                     declare
+                        RHS  : Productions.Right_Hand_Side renames Grammar (P_ID.LHS).RHSs (P_ID.RHS);
+                     begin
+                        Add_Action
+                          (Dot_ID,
+                           (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
+                           --  EOF is not pushed on stack in parser, because the action for EOF
+                           --  is Accept, not Shift.
+                           Table.States (State).Action_List, Closure,
+                           Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
+                     end;
+                  else
+                     if Goto_State /= Unknown_State then
+                        Add_Action
+                          (Dot_ID,
+                           (Shift, P_ID, Goto_State),
+                           Table.States (State).Action_List,
+                           Closure, Grammar, Has_Empty_Production, First_Nonterm_Set,
+                           Conflict_Counts, Conflicts, Descriptor);
+                     end if;
                   end if;
+               end;
+            else
+               --  Dot is before a non-terminal token; no action.
+               if Trace_Generate_Table > Detail then
+                  Ada.Text_IO.Put_Line (Image (Element (Dot), Descriptor) & " => no action");
                end if;
-            end;
-         else
-            --  Dot is before a non-terminal token; no action.
-            if Trace_Generate_Table > Detail then
-               Ada.Text_IO.Put_Line (Image (Element (Item.Dot), Descriptor) & " => no action");
             end if;
-         end if;
+         end;
       end loop;
 
       --  We don't place a default error action at the end of every state;
@@ -487,8 +494,6 @@ package body WisiToken.Generate.LR is
      return Token_ID
    is
       use WisiToken.Token_ID_Arrays;
-
-      ID_I : Cursor;
    begin
       case Action.Verb is
       when Reduce | Accept_It =>
@@ -506,30 +511,34 @@ package body WisiToken.Generate.LR is
          --  one, use that.
          for Item of Closure.Set loop
             if LR1_Items.In_Kernel (Grammar, Descriptor, Item) then
-               ID_I := Item.Dot;
-               loop
-                  if ID_I = No_Element then
-                     if Item.Lookaheads (Lookahead) then
-                        return Item.Prod.LHS;
-                     end if;
-                  else
-                     declare
-                        Dot_ID : Token_ID renames Element (ID_I);
-                     begin
-                        if Dot_ID = Lookahead or
-                          (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                             First (Dot_ID, Lookahead))
-                        then
+               declare
+                  Dot : Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+                    (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+               begin
+                  loop
+                     if not Has_Element (Dot) then
+                        if Item.Lookaheads (Lookahead) then
                            return Item.Prod.LHS;
                         end if;
-                        exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                          not Has_Empty_Production (Dot_ID);
-                     end;
-                  end if;
+                     else
+                        declare
+                           Dot_ID : constant Token_ID := Element (Dot);
+                        begin
+                           if Dot_ID = Lookahead or
+                             (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                                First (Dot_ID, Lookahead))
+                           then
+                              return Item.Prod.LHS;
+                           end if;
+                           exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             not Has_Empty_Production (Dot_ID);
+                        end;
+                     end if;
 
-                  exit when ID_I = No_Element;
-                  Next (ID_I);
-               end loop;
+                     exit when not Has_Element (Dot);
+                     Next (Dot);
+                  end loop;
+               end;
             end if;
          end loop;
 
@@ -539,25 +548,29 @@ package body WisiToken.Generate.LR is
             --  Lookahead (the token shifted) is starting a nonterm in a state
             --  production; it is in First of that nonterm.
             if LR1_Items.In_Kernel (Grammar, Descriptor, Item) then
-               ID_I := Item.Dot;
-               loop
-                  exit when ID_I = No_Element;
-                  declare
-                     Dot_ID : Token_ID renames Element (ID_I);
-                  begin
-                     if Dot_ID = Lookahead or
-                       (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                          First (Dot_ID, Lookahead))
-                     then
-                        return Item.Prod.LHS;
-                     end if;
+               declare
+                  Dot : Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
+                    (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+               begin
+                  loop
+                     exit when not Has_Element (Dot);
+                     declare
+                        Dot_ID : constant Token_ID := Element (Dot);
+                     begin
+                        if Dot_ID = Lookahead or
+                          (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             First (Dot_ID, Lookahead))
+                        then
+                           return Item.Prod.LHS;
+                        end if;
 
-                     exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                       not Has_Empty_Production (Dot_ID);
-                  end;
+                        exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                          not Has_Empty_Production (Dot_ID);
+                     end;
 
-                  Next (ID_I);
-               end loop;
+                     Next (Dot);
+                  end loop;
+               end;
             end if;
          end loop;
 
@@ -778,19 +791,19 @@ package body WisiToken.Generate.LR is
       is
          use Ada.Containers;
          Prod   : constant Production_ID := Item.Prod;
-         I      : Token_ID_Arrays.Cursor := Item.Dot;
          Result : Count_Type             := 0;
          Tokens : Vector renames Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens;
+         I      : Token_ID_Arrays.Cursor := Tokens.To_Cursor (Item.Dot);
       begin
-         if I = Token_ID_Arrays.No_Element then
+         if not Has_Element (I) then
             --  Can only compute this at runtime.
             return 0;
          end if;
 
          loop
-            exit when I = Token_ID_Arrays.No_Element;
+            exit when not Has_Element (I);
 
-            if Tokens (I) in Terminals then
+            if Element (I) in Terminals then
                Result := Result + 1;
             else
                Result := Result + Min_Length (Minimal_Terminal_Sequences (Tokens (I)).Sequence);
@@ -808,7 +821,8 @@ package body WisiToken.Generate.LR is
 
       elsif (for some Item of Kernel.Set =>
                Item.Prod.LHS = Descriptor.Accept_ID and
-               (Has_Element (Item.Dot) and then Element (Item.Dot) = Descriptor.EOI_ID))
+               (Item.Dot /= No_Index and then Productions.Constant_Ref_RHS
+                  (Grammar, Item.Prod).Tokens (Item.Dot) = Descriptor.EOI_ID))
       then
          --  No actions
          return;
@@ -823,10 +837,10 @@ package body WisiToken.Generate.LR is
          is
             Tokens : Token_ID_Arrays.Vector renames Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens;
          begin
-            if Item.Dot = Token_ID_Arrays.No_Element then
+            if Item.Dot = Token_ID_Arrays.No_Index then
                return Tokens (Tokens.Last_Index);
             else
-               return Tokens (Prev (Item.Dot));
+               return Tokens (Item.Dot - 1);
             end if;
          end Before_Dot;
 
@@ -850,13 +864,12 @@ package body WisiToken.Generate.LR is
          State.Kernel.Set_First_Last (Kernel_Index'First, Kernel_Index'Last);
          for Item of Kernel.Set loop
             declare
-               Dot_Index : constant Extended_Index := To_Index (Item.Dot); -- Indexes RHS.Tokens, Recursion.
-               Dot_ID    : constant Token_ID       :=
-                 (if Dot_Index = No_Index
-                  then Invalid_Token_ID
-                  else Element (Item.Dot));
-               RHS       : WisiToken.Productions.Right_Hand_Side renames
+               RHS    : WisiToken.Productions.Right_Hand_Side renames
                  Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS);
+               Dot_ID : constant Token_ID :=
+                 (if Item.Dot = No_Index
+                  then Invalid_Token_ID
+                  else RHS.Tokens (Item.Dot));
 
                --  Kernel components
                Length_After_Dot  : constant Count_Type := Set_Minimal_Complete_Actions.Length_After_Dot (Item);
@@ -994,7 +1007,7 @@ package body WisiToken.Generate.LR is
                       else Compute_Action (Dot_ID)));
 
                elsif Length_After_Dot = 0 then
-                  if Dot_Index /= No_Index and RHS.Recursion (1) in Direct_Left | Other_Left then
+                  if Item.Dot /= No_Index and RHS.Recursion (1) in Direct_Left | Other_Left then
                      --  case 2
                      Item_States (I) := (Label => Drop);
                   else

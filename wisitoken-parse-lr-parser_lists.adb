@@ -369,11 +369,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return State_Access (Parser_State_Lists.Persistent_Ref (Position.Ptr));
    end Persistent_State_Ref;
 
-   type List_Access is access all List;
-
-   type Iterator is new Iterator_Interfaces.Forward_Iterator with record
-      Container : List_Access;
-   end record;
+   type Iterator (Container : access List) is new Iterator_Interfaces.Forward_Iterator with null record;
 
    overriding function First (Object : Iterator) return Parser_Node_Access;
    overriding function Next
