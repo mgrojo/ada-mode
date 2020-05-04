@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -36,14 +36,14 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit is
          Check (Label & ".empty", Expected = Empty_List, True);
       else
          loop
-            exit when Cur_Computed = No_Element or Cur_Expected = No_Element;
+            exit when not Has_Element (Cur_Computed) or not Has_Element (Cur_Expected);
             Check_Element (Label & "." & Integer'Image (I), Element (Cur_Computed), Element (Cur_Expected));
             Next (Cur_Computed);
             Next (Cur_Expected);
             I := I + 1;
          end loop;
-         Check (Label & ".computed too long", Cur_Computed, No_Element);
-         Check (Label & ".expected too long", Cur_Expected, No_Element);
+         Check (Label & ".computed too long", Cur_Computed, Computed.No_Element);
+         Check (Label & ".expected too long", Cur_Expected, Computed.No_Element);
       end if;
    end Check;
 

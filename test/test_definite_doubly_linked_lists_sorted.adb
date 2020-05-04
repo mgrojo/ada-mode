@@ -2,7 +2,7 @@
 --
 --  Test Sal.Gen_Definite_Doubly_Linked_Lists_Sorted
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -52,7 +52,7 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       use AUnit.Checks.Containers;
 
       List : Integer_Lists.List;
-      Cur : Cursor;
+      Cur  : Cursor := List.No_Element;
    begin
       Check ("0", List.Length, 0);
 
@@ -69,34 +69,35 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       Check ("1c", Constant_Ref (Cur), 5);
       Next (Cur);
       Check ("1d", Has_Element (Cur), False);
-      Check ("1e", Cur = No_Element, True);
+      Check ("1e", Cur = List.No_Element, True);
 
       Cur := List.First;
       Next (Cur);
       Delete (List, Cur);
       Val.Validate ("2", List);
-      Check ("2a", Cur = No_Element, True);
+      Check ("2a", Cur = List.No_Element, True);
       Check ("2b", List.Length, 2);
       Cur := List.First;
       Check ("2c", Constant_Ref (Cur), 1);
       Next (Cur);
       Check ("2d", Constant_Ref (Cur), 5);
       Next (Cur);
-      Check ("2e", Cur = No_Element, True);
+      Check ("2e", Cur = List.No_Element, True);
 
       declare
          B : Integer_Lists.List := List;
+         Cur_B : Integer_Lists.Cursor := B.No_Element;
          Added : Boolean;
 
          A : Integer_Lists.List renames List;
       begin
          Check ("3a", B.Length, 2);
-         Cur := B.First;
-         Check ("3b", Constant_Ref (Cur), 1);
-         Next (Cur);
-         Check ("3c", Constant_Ref (Cur), 5);
-         Next (Cur);
-         Check ("3d", Cur = No_Element, True);
+         Cur_B := B.First;
+         Check ("3b", Constant_Ref (Cur_B), 1);
+         Next (Cur_B);
+         Check ("3c", Constant_Ref (Cur_B), 5);
+         Next (Cur_B);
+         Check ("3d", Cur_B = B.No_Element, True);
 
          Merge (A, B, Added);
 
@@ -118,7 +119,7 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
          Next (Cur);
          Check ("5f", Constant_Ref (Cur), 5);
          Next (Cur);
-         Check ("5g", Cur = No_Element, True);
+         Check ("5g", Cur = List.No_Element, True);
 
          B.Insert (6);
          B.Insert (4);
@@ -137,7 +138,7 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
          Next (Cur);
          Check ("6g", Constant_Ref (Cur), 5);
          Next (Cur);
-         Check ("6h", Cur = No_Element, True);
+         Check ("6h", Cur = List.No_Element, True);
       end;
    end Nominal;
 
@@ -150,33 +151,33 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       use Lists_AUnit;
 
       List : Integer_Lists.List;
-      Cur : Cursor;
+      Cur : Cursor := List.No_Element;
    begin
       Check ("0", List.Length, 0);
 
       Cur := Find (List, 1);
-      Check ("1", Cur, No_Element);
+      Check ("1", Cur, List.No_Element);
 
       Insert (List, 1);
       Check ("2a", Constant_Ref (Find (List, 1)), 1);
-      Check ("2b", Find (List, 0), No_Element);
-      Check ("2c", Find (List, 4), No_Element);
+      Check ("2b", Find (List, 0), List.No_Element);
+      Check ("2c", Find (List, 4), List.No_Element);
 
       Insert (List, 5);
       Check ("3a", Constant_Ref (Find (List, 1)), 1);
       Check ("3b", Constant_Ref (Find (List, 5)), 5);
-      Check ("3c", Find (List, 0), No_Element);
-      Check ("3d", Find (List, 4), No_Element);
-      Check ("3e", Find (List, 6), No_Element);
+      Check ("3c", Find (List, 0), List.No_Element);
+      Check ("3d", Find (List, 4), List.No_Element);
+      Check ("3e", Find (List, 6), List.No_Element);
 
       Insert (List, 3);
 
       Check ("4a", Constant_Ref (Find (List, 1)), 1);
       Check ("4b", Constant_Ref (Find (List, 3)), 3);
       Check ("4c", Constant_Ref (Find (List, 5)), 5);
-      Check ("4d", Find (List, 0), No_Element);
-      Check ("4e", Find (List, 4), No_Element);
-      Check ("4f", Find (List, 6), No_Element);
+      Check ("4d", Find (List, 0), List.No_Element);
+      Check ("4e", Find (List, 4), List.No_Element);
+      Check ("4f", Find (List, 6), List.No_Element);
 
       Insert (List, 6);
       Insert (List, 7);

@@ -55,6 +55,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("1c", Constant_Ref (Cur), 5);
       Next (Cur);
       Check ("1d", Has_Element (Cur), False);
+      Check ("1e", Cur = List.No_Element, True);
 
       List.Prepend (0);
       Val.Validate ("2", List);
@@ -70,7 +71,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       Delete (List, Cur);
       Val.Validate ("3", List);
-      Check ("3a", Has_Element (Cur), False);
+      Check ("3a", Cur = List.No_Element, True);
       Check ("3b", List.Length, 3);
       Cur := List.First;
       Check ("3c", Constant_Ref (Cur), 0);
