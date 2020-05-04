@@ -4,6 +4,29 @@ org.stephe_leake.sal.stephe-1   : work
 org.stephe_leake.sal.stephe-2   : spark
 
  current work
+compile with gnat 21.0w
+    but use gnat 20.2 for gpr_query, ada_parse
+        wisi-prj can't cope with that
+
+    (gnat-pro-21.0w-20200426)
+    (shell-bash)
+    (sal-standard)
+
+    in shell:
+    export GPR_PROJECT_PATH="/Projects/org.stephe_leake.aunit_ext.stephe-1/build:/Projects/org.stephe_leake.makerules"
+    cd build
+    make t_all
+
+remove 'Unrestricted_Access
+    sal-gen_unbounded_definite_vectors done
+    sal-gen_unbounded_indefinite_vectors done
+
+    sal-gen_definite_doubly_linked_lists
+    sal-gen_definite_doubly_linked_lists_sorted
+    sal-gen_indefinite_doubly_linked_lists
+    sal-gen_unbounded_definite_stacks
+    sal-gen_unbounded_definite_vectors_sorted
+
 build/Makefile
 
     bounded_definite_vectors_sorted
