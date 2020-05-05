@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test Sal.Gen_Definite_Doubly_Linked_Lists
+--  Test SAL.Gen_Indefinite_Doubly_Linked_Lists
 --
 --  Copyright (C) 2017, 2020 Stephen Leake.  All Rights Reserved.
 --
@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Definite_Doubly_Linked_Lists is
+package Test_Indefinite_Doubly_Linked_Lists is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Definite_Doubly_Linked_Lists is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Definite_Doubly_Linked_Lists;
+end Test_Indefinite_Doubly_Linked_Lists;

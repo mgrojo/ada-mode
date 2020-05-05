@@ -2,7 +2,7 @@
 --
 --  Generic unbounded red-black tree with definite elements.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -318,7 +318,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         return (Element => Node.all.Element'Access, Dummy => 1);
+         return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Constant_Reference;
 
@@ -329,7 +329,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position.Node.all.Element'Access, Dummy => 1);
+      return (Element => Position.Node.Element'Access, Dummy => 1);
    end Variable_Reference;
 
    function Variable_Reference
@@ -342,7 +342,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         return (Element => Node.all.Element'Access, Dummy => 1);
+         return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Variable_Reference;
 
