@@ -129,9 +129,6 @@ package WisiToken.Parse.LR.Parser_Lists is
    procedure Next (Cursor : in out Parser_Lists.Cursor);
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Has_Element (Cursor : in Parser_Lists.Cursor) return Boolean is (not Is_Done (Cursor));
-
-   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type;
-
    function Label (Cursor : in Parser_Lists.Cursor) return Natural;
    function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer;
    function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
@@ -187,10 +184,6 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  appear in Cursor.Next ...; it is accessible as First (List).
    --
    --  Copy.Recover is set to default.
-
-   procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
-   --  Delete the Cursor parser. It will not appear in future
-   --  iterations. On return, Cursor points to next parser, or none.
 
    ----------
    --  Stuff for iterators, to allow

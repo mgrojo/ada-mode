@@ -95,11 +95,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Cursor.Ptr = No_Element;
    end Is_Done;
 
-   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type
-   is begin
-      return Cursor.Elements.Length;
-   end Active_Parser_Count;
-
    function Label (Cursor : in Parser_Lists.Cursor) return Natural
    is begin
       return Parser_State_Lists.Constant_Ref (Cursor.Ptr).Label;
@@ -161,6 +156,14 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Terminals : in     Base_Token_Arrays.Vector)
    is
       State : Parser_State renames Parser_State_Lists.Constant_Ref (Current.Ptr).Element.all;
+
+      procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
+      is
+         Temp : Parser_State_Lists.Cursor := Cursor.Ptr;
+      begin
+         Parser_State_Lists.Next (Cursor.Ptr);
+         Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
+      end Free;
    begin
       if Trace_Parse > Outline then
          Trace.Put_Line
@@ -171,7 +174,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                  Terminals, Trace.Descriptor.all));
       end if;
 
-      Current.Free;
+      Free (Current);
 
       if Parsers.Count = 1 then
          Parsers.First.State_Ref.Tree.Flush;
@@ -327,14 +330,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
-
-   procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
-   is
-      Temp : Parser_State_Lists.Cursor := Cursor.Ptr;
-   begin
-      Parser_State_Lists.Next (Cursor.Ptr);
-      Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
-   end Free;
 
    ----------
    --  stuff for iterators
