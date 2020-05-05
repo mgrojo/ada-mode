@@ -197,15 +197,9 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
   ;; point may be in the middle of a word, so insert newline first,
   ;; then go back and indent.
   (insert "\n")
-  (unless (and (wisi-partial-parse-p (line-beginning-position) (line-end-position))
-	       (save-excursion (progn (forward-char -1)(looking-back "begin\\|else" (line-beginning-position)))))
-    ;; Partial parse may think 'begin' is just the start of a
-    ;; statement, when it's actually part of a larger declaration. So
-    ;; don't indent 'begin'. Similarly for 'else'; error recovery will
-    ;; probably insert 'if then' immediately before it
-    (forward-char -1)
-    (funcall indent-line-function)
-    (forward-char 1))
+  (forward-char -1)
+  (funcall indent-line-function)
+  (forward-char 1)
   (funcall indent-line-function))
 
 ;;;; token info cache
@@ -428,9 +422,11 @@ Truncate any region that overlaps POS."
   "Force a parse."
   (interactive)
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
-  (wisi-invalidate-cache 'indent (point-min))
-  (wisi-invalidate-cache 'face (point-min))
-  (wisi-invalidate-cache 'navigate (point-min))
+  (setq wisi--cached-regions ;; necessary instead of wisi-invalidate after ediff-regions
+	(list
+	 (cons 'face nil)
+	 (cons 'navigate nil)
+	 (cons 'indent nil)))
   (wisi-set-parse-try t 'indent)
   (wisi-set-parse-try t 'face)
   (wisi-set-parse-try t 'navigate)

@@ -25,11 +25,11 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
-'((xgit . "c:/Projects/org.stephe_leake.makerules")
-  (xgit . "c:/Projects/org.stephe_leake.sal")
-  (xgit . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xgit . "c:/Projects/org.wisitoken.stephe-2")
-  (xgit . "c:/Projects/org.emacs.ada-mode.stephe-2")))
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.wisitoken")
+  (xgit . "/Projects/org.emacs.ada-mode")))
 
 (dvc-propagate-multiple
  '(

@@ -25,7 +25,9 @@ with "standard_common";
 with "gnatcoll";
 with "gnatcoll_sqlite";
 with "gnatcoll_xref";
+#if HAVE_GNAT_UTIL="yes"
 with "gnat_util";
+#end if;
 #if HAVE_LIBADALANG="yes"
 with "libadalang";
 #end if;

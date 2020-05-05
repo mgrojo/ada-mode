@@ -431,7 +431,7 @@ Makefile.conf : create_makefile_conf.sh
 include Makefile.conf
 
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
-	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
+	gnatprep -DHAVE_GNAT_UTIL=$(HAVE_GNAT_UTIL) -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
 
 ../wisi.gpr : ../wisi.gpr.gp
 	gnatprep -DELPA="no" $< $@
@@ -449,7 +449,7 @@ build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
-	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
+	gprinstall -v -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
