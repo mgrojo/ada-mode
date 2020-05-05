@@ -62,13 +62,13 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
 
    function To_List (Element : in Element_Type) return List;
 
-   type Cursor (<>) is private;
+   type Cursor is private;
 
    function Has_Element (Position : in Cursor) return Boolean;
 
-   function No_Element (Container : aliased in List) return Cursor;
-   function First (Container : aliased in List) return Cursor;
-   function Last (Container : aliased in List) return Cursor;
+   No_Element : constant Cursor;
+   function First (Container : in List) return Cursor;
+   function Last (Container : in List) return Cursor;
 
    procedure Next (Position : in out Cursor)
    with Pre => Has_Element (Position);
@@ -137,8 +137,7 @@ private
       Count : Ada.Containers.Count_Type := 0;
    end record;
 
-   type Cursor (Container : not null access constant List) is
-   record
+   type Cursor is record
       Ptr : Node_Access;
    end record;
 
@@ -151,6 +150,8 @@ private
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
+
+   No_Element : constant Cursor := (Ptr => null);
 
    Empty_List : constant List := (Ada.Finalization.Controlled with null, null, 0);
 

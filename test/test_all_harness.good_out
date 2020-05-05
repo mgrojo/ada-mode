@@ -87,6 +87,7 @@ OK test_definite_doubly_linked_lists.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Test_Insert
 OK test_definite_doubly_linked_lists_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists_sorted.adb : Test_Find
+OK test_indefinite_doubly_linked_lists.adb : Nominal
 OK test_min_heaps_binary.adb : Nominal
 OK test_min_heaps_fibonacci.adb : Nominal
 OK test_min_heaps_fibonacci.adb : Test_Adjust
@@ -110,7 +111,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   110
-Successful Tests:  110
+Total Tests Run:   111
+Successful Tests:  111
 Failed Assertions: 0
 Unexpected Errors: 0

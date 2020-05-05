@@ -138,26 +138,21 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       return Position.Ptr /= null;
    end Has_Element;
 
-   function No_Element (Container : aliased in List) return Cursor
-   is begin
-      return (Container'Access, null);
-   end No_Element;
-
-   function First (Container : aliased in List) return Cursor
+   function First (Container : in List) return Cursor
    is begin
       if Container.Head = null then
-         return (Container'Access, null);
+         return (Ptr => null);
       else
-         return (Container'Access, Container.Head);
+         return (Ptr => Container.Head);
       end if;
    end First;
 
-   function Last (Container : aliased in List) return Cursor
+   function Last (Container : in List) return Cursor
    is begin
       if Container.Tail = null then
-         return (Container'Access, null);
+         return (Ptr => null);
       else
-         return (Container'Access, Container.Tail);
+         return (Ptr => Container.Tail);
       end if;
    end Last;
 
@@ -178,9 +173,9 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
          return Position;
       else
          if Position.Ptr.Next = null then
-            return (Position.Container, null);
+            return (Ptr => null);
          else
-            return (Position.Container, Position.Ptr.Next);
+            return (Ptr => Position.Ptr.Next);
          end if;
       end if;
    end Next;
@@ -191,9 +186,9 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
          return Position;
       else
          if Position.Ptr.Prev = null then
-            return (Position.Container, null);
+            return (Ptr => null);
          else
-            return (Position.Container, Position.Ptr.Prev);
+            return (Ptr => Position.Ptr.Prev);
          end if;
       end if;
    end Previous;
@@ -208,7 +203,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       use all type Ada.Containers.Count_Type;
    begin
       Delete_Node (Container, Position.Ptr);
-      Position        := (Container'Access, null);
+      Position        := (Ptr => null);
       Container.Count := Container.Count - 1;
    end Delete;
 
@@ -228,7 +223,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
    is
       use all type Ada.Containers.Count_Type;
    begin
-      if Before = (Container'Access, null) then
+      if Before = (Ptr => null) then
          Container.Append (Element);
       else
          if Before.Ptr = Container.Head then
