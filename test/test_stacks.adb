@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -151,9 +151,28 @@ package body Test_Stacks is
       when E : others =>
          Assert (False, Ada.Exceptions.Exception_Message (E));
       end;
-
-
    end Compare;
+
+   procedure Test_Iterate (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Assertions;
+
+      Stack_1 : Unbounded_Definite_Stacks.Stack;
+      I       : Integer := 1;
+   begin
+      --  Test Iterate
+
+      for I in reverse 1 .. 10 loop
+         Stack_1.Push (I);
+      end loop;
+
+      for J of Stack_1 loop
+         Assert (J = I, "iterate 1" & I'Image & " got" & J'Image);
+         I := I + 1;
+      end loop;
+   end Test_Iterate;
 
    ----------
    --  Public routines
@@ -164,6 +183,7 @@ package body Test_Stacks is
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Compare'Access, "Compare");
+      Register_Routine (T, Test_Iterate'Access, "Test_Iterate");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

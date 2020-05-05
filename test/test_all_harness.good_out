@@ -73,13 +73,6 @@ OK sal-time_conversions-test.adb : Test_TAI_To_UTC
 OK sal-time_conversions-test.adb : Test_GPS
 OK sal-time_conversions-test.adb : Test_Calendar
 OK ../../test/test_gen_images.adb : Nominal
-OK test_graphs.adb : Test_Find_Path
-OK test_graphs.adb : Test_Find_Cycles
-OK test_graphs.adb : Test_Conflict_Name
-OK test_graphs.adb : Test_Ada_Lite_Name
-OK test_graphs.adb : Test_Strong_Components
-OK test_graphs.adb : Test_Strong_Components_Ada_Lite
-OK test_graphs.adb : Test_Ada_Lite
 OK test_bounded_definite_queues.adb : Nominal
 OK test_bounded_definite_vectors.adb : Nominal
 OK test_bounded_definite_vectors_sorted.adb : Nominal
@@ -96,6 +89,7 @@ OK ../../test/test_randomize_lists.adb : Randomize
 OK test_red_black_trees.adb : Nominal
 OK ../../test/test_stacks.adb : Nominal
 OK ../../test/test_stacks.adb : Compare
+OK ../../test/test_stacks.adb : Test_Iterate
 OK Test_Math_Float_Stats : Test_Stats
 OK test_unbounded_definite_vectors.adb : Nominal
 OK test_unbounded_definite_vectors.adb : Test_Set_First_Last
@@ -111,7 +105,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   111
-Successful Tests:  111
+Total Tests Run:   105
+Successful Tests:  105
 Failed Assertions: 0
 Unexpected Errors: 0

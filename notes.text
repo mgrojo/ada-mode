@@ -4,7 +4,7 @@ org.stephe_leake.sal.stephe-1   : work
 org.stephe_leake.sal.stephe-2   : spark
 
  current work
-compile with gnat 21.0w
+compile with gnat 21.0w 20200426
     but use gnat 20.2 for gpr_query, ada_parse
         wisi-prj can't cope with that
 
@@ -18,8 +18,18 @@ compile with gnat 21.0w
     make t_all
 
 remove 'Unrestricted_Access
-    sal-gen_unbounded_definite_stacks
-    sal-gen_unbounded_definite_vectors_sorted
+    sal-gen_unbounded_definite_stacks done
+        except test_graphs fails to compile, but gives no error message
+            gprclean -> no help
+            delete objects in sal, aunit_ext -> fails
+            delete objects, compile with gnat 20 -> fails
+            submitted adacore ticket T505-014
+            compiles fine in ~/Ada_Work
+            set compiler switches same as sal => compiles fine.
+            put back rest of test_one_harness
+        wisitoken ok
+
+    sal-gen_unbounded_definite_vectors_sorted done,         wisitoken ok
 
 build/Makefile
 

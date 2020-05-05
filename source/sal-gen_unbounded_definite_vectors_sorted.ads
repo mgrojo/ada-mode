@@ -128,14 +128,11 @@ private
    for Vector_Access'Storage_Size use 0;
 
    type Cursor is record
-      Container : Vector_Access  := null;
-      Index     : Base_Peek_Type := No_Index;
+      Index : Base_Peek_Type := No_Index;
    end record;
 
-   type Iterator is new Iterator_Interfaces.Reversible_Iterator with
-   record
-      Container : Vector_Access;
-   end record;
+   type Iterator (Container : not null access constant Vector) is new Iterator_Interfaces.Reversible_Iterator
+     with null record;
 
    overriding function First (Object : Iterator) return Cursor;
    overriding function Last  (Object : Iterator) return Cursor;

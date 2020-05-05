@@ -311,42 +311,42 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
    overriding function First (Object : Iterator) return Cursor
    is begin
       if Object.Container.Elements = null then
-         return (null, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Peek_Type'First);
+         return (Index => Peek_Type'First);
       end if;
    end First;
 
    overriding function Last  (Object : Iterator) return Cursor
    is begin
       if Object.Container.Elements = null then
-         return (null, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Object.Container.Last);
+         return (Index => Object.Container.Last);
       end if;
    end Last;
 
    overriding function Next (Object : in Iterator; Position : in Cursor) return Cursor
    is begin
       if Position.Index = Object.Container.Last then
-         return (null, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Position.Index + 1);
+         return (Index => Position.Index + 1);
       end if;
    end Next;
 
    overriding function Previous (Object : in Iterator; Position : in Cursor) return Cursor
    is begin
       if Position.Index = Peek_Type'First then
-         return (null, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Position.Index - 1);
+         return (Index => Position.Index - 1);
       end if;
    end Previous;
 
    function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class
    is begin
-      return Iterator'(Container => Container'Unrestricted_Access);
+      return Iterator'(Container => Container'Access);
    end Iterate;
 
    function Constant_Ref (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
