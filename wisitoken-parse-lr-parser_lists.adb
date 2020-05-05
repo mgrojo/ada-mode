@@ -364,7 +364,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return State_Access (Parser_State_Lists.Persistent_Ref (Position.Ptr));
    end Persistent_State_Ref;
 
-   type Iterator (Container : access List) is new Iterator_Interfaces.Forward_Iterator with null record;
+   type Iterator (Elements : access Parser_State_Lists.List) is new Iterator_Interfaces.Forward_Iterator
+     with null record;
 
    overriding function First (Object : Iterator) return Parser_Node_Access;
    overriding function Next
@@ -374,7 +375,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
    overriding function First (Object : Iterator) return Parser_Node_Access
    is begin
-      return (Elements => Object.Container.Elements'Access, Ptr => Object.Container.Elements.First);
+      return (Elements => Object.Elements, Ptr => Object.Elements.First);
    end First;
 
    overriding function Next
@@ -389,7 +390,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
    function Iterate (Container : aliased in out List) return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      return Iterator'(Container => Container'Access);
+      return Iterator'(Elements => Container.Elements'Access);
    end Iterate;
 
    function Has_Element (Iterator : in Parser_Node_Access) return Boolean

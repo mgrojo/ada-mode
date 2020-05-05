@@ -213,7 +213,7 @@ package WisiToken.Parse.LR.Parser_Lists is
    --     ... Current_Parser.<visible parser_state component> ...
    --  end loop;
 
-   type Parser_Node_Access is private;
+   type Parser_Node_Access (<>) is private;
 
    function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
 
@@ -266,9 +266,9 @@ private
       Ptr : Parser_State_Lists.Cursor;
    end record;
 
-   type Parser_Node_Access is record
-      Elements : access Parser_State_Lists.List;
-      Ptr      : Parser_State_Lists.Cursor;
+   type Parser_Node_Access (Elements : access Parser_State_Lists.List) is
+   record
+      Ptr : Parser_State_Lists.Cursor;
    end record;
 
 end WisiToken.Parse.LR.Parser_Lists;
