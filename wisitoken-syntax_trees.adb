@@ -32,8 +32,6 @@ package body WisiToken.Syntax_Trees is
       Include_RHS_Index : in Boolean := False)
      return String;
 
-   function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index;
-
    procedure Move_Branch_Point (Tree : in out Syntax_Trees.Tree; Required_Node : in Valid_Node_Index);
 
    type Visit_Parent_Mode is (Before, After);
@@ -52,7 +50,7 @@ package body WisiToken.Syntax_Trees is
    --  all nodes have been processed (Process_Tree returns True).
 
    procedure Set_Children
-     (Nodes    : in out Node_Arrays.Vector;
+     (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array);
 
@@ -133,20 +131,7 @@ package body WisiToken.Syntax_Trees is
          return Nonterm_Node;
       end if;
 
-      if Tree.Flush then
-         Set_Children (Tree.Shared_Tree.Nodes, Nonterm_Node, Children);
-
-      else
-         declare
-            Min_Child_Node : constant Valid_Node_Index := Min (Children);
-         begin
-            if Min_Child_Node <= Tree.Last_Shared_Node then
-               Move_Branch_Point (Tree, Min_Child_Node);
-            end if;
-         end;
-
-         Set_Children (Tree.Branched_Nodes, Nonterm_Node, Children);
-      end if;
+      Set_Children (Tree, Nonterm_Node, Children);
 
       return Nonterm_Node;
    end Add_Nonterm;
@@ -495,7 +480,8 @@ package body WisiToken.Syntax_Trees is
 
    overriding procedure Finalize (Tree : in out Base_Tree)
    is begin
-      Tree.Traversing := False;
+      Tree.Traversing  := False;
+      Tree.Parents_Set := False;
       if Tree.Augmented_Present then
          for Node of Tree.Nodes loop
             if Node.Label = Nonterm then
@@ -1224,18 +1210,6 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Last_Terminal;
 
-   function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index
-   is
-      Result : Node_Index := Item (Item'First);
-   begin
-      for I in Item'Range loop
-         if Item (I) < Result then
-            Result := Item (I);
-         end if;
-      end loop;
-      return Result;
-   end Min;
-
    function Min_Descendant (Nodes : in Node_Arrays.Vector; Node : in Valid_Node_Index) return Valid_Node_Index
    is
       N : Syntax_Trees.Node renames Nodes (Node);
@@ -1584,6 +1558,31 @@ package body WisiToken.Syntax_Trees is
           Augmented   => null));
    end Set_Node_Identifier;
 
+   procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
+   is
+      procedure Set_Parents
+        (Tree   : in out Syntax_Trees.Tree;
+         Node   : in     Valid_Node_Index;
+         Parent : in     Node_Index)
+      is
+         N : Node_Var_Ref renames Tree.Get_Node_Var_Ref (Node);
+      begin
+         N.Parent := Parent;
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+            null;
+
+         when Nonterm =>
+            for C of N.Children loop
+               Set_Parents (Tree, C, Node);
+            end loop;
+         end case;
+      end Set_Parents;
+   begin
+      Set_Parents (Tree, Root (Tree), Invalid_Node_Index);
+      Tree.Shared_Tree.Parents_Set := True;
+   end Set_Parents;
+
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index)
    is begin
       Tree.Root := Root;
@@ -1639,25 +1638,36 @@ package body WisiToken.Syntax_Trees is
    end Set_Augmented;
 
    procedure Set_Children
-     (Nodes    : in out Node_Arrays.Vector;
+     (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
       use all type SAL.Base_Peek_Type;
 
-      N : Nonterm_Node renames Nodes (Parent);
-      J : Positive_Index_Type := Positive_Index_Type'First;
+      N : Node_Var_Ref renames Tree.Get_Node_Var_Ref (Parent);
 
       Min_Terminal_Index_Set : Boolean := False;
    begin
       N.Children.Set_First_Last (Children'First, Children'Last);
       for I in Children'Range loop
-         N.Children (J) := Children (I);
-         declare
-            K : Node renames Nodes (Children (I));
-         begin
-            K.Parent := Parent;
+         N.Children (I) := Children (I);
 
+         if Tree.Parents_Set then
+            --  Parsing is done; we are editing the tree.
+            declare
+               K : Node_Var_Ref renames Tree.Get_Node_Var_Ref (Children (I));
+            begin
+               K.Parent := Parent;
+            end;
+         else
+            --  We do _not_ set K.Parent here; that is only done after parsing is
+            --  complete. See Design note in spec.
+            null;
+         end if;
+
+         declare
+            K : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Children (I));
+         begin
             N.Virtual := N.Virtual or
               (case K.Label is
                when Shared_Terminal                       => False,
@@ -1690,8 +1700,6 @@ package body WisiToken.Syntax_Trees is
                end case;
             end if;
          end;
-
-         J := J + 1;
       end loop;
    end Set_Children;
 

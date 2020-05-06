@@ -2,17 +2,34 @@
 --
 --  Syntax tree type and operations.
 --
---  Rationale :
+--  Design :
+--
+--  There is one syntax tree for each parallel parser. There is one
+--  shared Terminals array (provided by the master parser), matching
+--  the actual input text.
+--
+--  Node contains a Parent component, to make it easy to traverse the
+--  tree in any direction. However, we do not set the Parent nodes
+--  while parsing, to simplify branching the syntax tree for parallel
+--  parsing. When a new nonterm is added to a branched tree, if it set
+--  the parent component of its children, it would first have to move
+--  those children, and all intervening nodes, into the branched tree.
+--  Since Shared_Terminals nodes are created before all other nodes
+--  (when the lexer is run, to allow Lexer_To_Augmented to store info
+--  in the node), that would mean every branched tree is a practically
+--  complete copy of the entire tree, significantly slowing down
+--  parsing (by a factor of 250 on ada-mode wisi.adb when we did this
+--  by mistake!).
+--
+--  The parent components are set by Set_Parents, which is called by
+--  Parser.Execute_Actions before the actions are executed.
+--  Fortunately, we don't need the parent components during error
+--  recover.
 --
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
 --
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
-
---  There is one syntax tree for each parser. There is one shared
---  Terminals array, matching the actual input text.
---
---  Copyright (C) 2018 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -161,12 +178,13 @@ package WisiToken.Syntax_Trees is
       Root : in     Valid_Node_Index;
       Last : in     Valid_Node_Index)
      return Valid_Node_Index
-   with Pre => Tree.Flushed;
+   with Pre => Tree.Flushed and Tree.Parents_Set;
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Stop copying
    --  after children of Last are copied. Return root of new subtree.
    --
-   --  Node index order is preserved. References to objects external to
-   --  tree are shallow copied (Terminals, Augmented).
+   --  Parents of new child nodes are set. Node index order is preserved.
+   --  References to objects external to tree are shallow copied
+   --  (Terminals, Augmented).
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
@@ -235,6 +253,7 @@ package WisiToken.Syntax_Trees is
       Children : in     Valid_Node_Index_Array)
    with
      Pre => Tree.Flushed and
+            Tree.Parents_Set and
             (not Tree.Traversing) and
             Tree.Is_Nonterm (Node);
    --  Set ID of Node to New_ID, and children to Children; set parent of
@@ -286,11 +305,16 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
+   function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
+   procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
+   with Pre => Tree.Flushed;
+
    function Parent
      (Tree  : in Syntax_Trees.Tree;
       Node  : in Valid_Node_Index;
       Count : in Positive := 1)
-     return Node_Index;
+     return Node_Index
+   with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
 
    procedure Set_Name_Region
@@ -366,12 +390,14 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
-     return Node_Index;
+     return Node_Index
+   with Pre => Tree.Parents_Set;
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
       IDs  : in Token_ID_Array)
-     return Node_Index;
+     return Node_Index
+   with Pre => Tree.Parents_Set;
    --  Return the ancestor of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
@@ -380,7 +406,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index
-   with Pre => Tree.Has_Parent (Node);
+   with Pre => Tree.Parents_Set and then Tree.Has_Parent (Node);
    --  Return the sibling of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
@@ -453,12 +479,12 @@ package WisiToken.Syntax_Trees is
    --  Last of Get_Terminals. Invalid_Node_Index if Node is an empty nonterminal.
 
    function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
-   with Pre => Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
    --  Return the terminal that is immediately before Node in Tree;
    --  Invalid_Node_Index if Node is the first terminal in Tree.
 
    function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
-   with Pre => Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
    --  Return the terminal that is immediately after Node in Tree;
    --  Invalid_Node_Index if Node is the last terminal in Tree.
 
@@ -587,6 +613,9 @@ private
       --  True while traversing tree in Process_Tree.
       --  Declared in Base_Tree so it is cleared by Finalize.
 
+      Parents_Set : Boolean := False;
+      --  We don't set Node.Parent until after parse is done; see Design
+      --  note above.
    end record;
 
    type Tree is new Ada.Finalization.Controlled with record
@@ -632,5 +661,8 @@ private
    is (if Node <= Tree.Last_Shared_Node
          then Tree.Shared_Tree.Nodes.Variable_Ref (Node)
          else Tree.Branched_Nodes.Variable_Ref (Node));
+
+   function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
+   is (Tree.Shared_Tree.Parents_Set);
 
 end WisiToken.Syntax_Trees;

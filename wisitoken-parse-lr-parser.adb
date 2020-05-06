@@ -75,7 +75,9 @@ package body WisiToken.Parse.LR.Parser is
          begin
             Status := Action.Check (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
 
-            Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
+            if Nonterm_Token.Name /= Null_Buffer_Region then
+               Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
+            end if;
 
             if Trace_Parse > Detail then
                Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status, Trace.Descriptor.all));
@@ -1132,6 +1134,8 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
          begin
             pragma Assert (Parser_State.Tree.Flushed);
+
+            Parser_State.Tree.Set_Parents;
 
             if Trace_Action > Outline then
                if Trace_Action > Extra then

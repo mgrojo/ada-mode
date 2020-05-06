@@ -73,8 +73,8 @@ package body WisiToken.Syntax_Trees.Test is
 
       Expected_Branched_Nodes : Node_Arrays.Vector;
    begin
-      --  Create a branched tree, set a child of a new node to a shared
-      --  node, thus invoking Move_Branch_Point.
+      --  Create a tree, set the name region of shared node, thus
+      --  invoking Move_Branch_Point.
 
       Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
 
@@ -91,53 +91,35 @@ package body WisiToken.Syntax_Trees.Test is
 
       Node_Name := Branched_Tree.Add_Nonterm
         ((+name_opt_ID, 0), Children => (1 => Node_Ident_1), Action => null, Default_Virtual => False); -- 4
-      --  moves branch point; Branched_Tree.Last_Shared_Node is now 1.
+      --  does not move branch point
 
       Check ("node 4", Node_Name, 4);
 
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (21, 22), others => <>));
-      Node_Ident_2 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 5
+      Branched_Tree.Set_Name_Region (Node_Name, (11, 18));
+      --  moves branch point to Node_Name
+
+      Node_Ident_2 := Branched_Tree.Add_Terminal (+IDENTIFIER_ID); -- 5
 
       Check ("node 5", Node_Ident_2, 5);
 
-      Expected_Branched_Nodes.Set_First_Last (2, 1);
-      Expected_Branched_Nodes.Append
-        ((Shared_Terminal,
-          Parent      => 4,
-          Terminal    => 2,
-          ID          => +IDENTIFIER_ID,
-          Byte_Region => (11, 16),
-          others      => <>)); -- 2
-
-      Expected_Branched_Nodes.Append
-        ((Shared_Terminal,
-          Parent      => 0,
-          Terminal    => 3,
-          ID          => +IDENTIFIER_ID,
-          Byte_Region =>  (18, 19),
-          others      => <>)); -- 3
-
+      Expected_Branched_Nodes.Set_First_Last (4, 3); -- So Append starts with 4 to match node index
       Expected_Branched_Nodes.Append
         ((Nonterm,
-          Parent   => 0,
           ID       => +name_opt_ID,
           Children => +2,
           others   => <>)); -- 4
 
       Expected_Branched_Nodes.Append
-        ((Shared_Terminal,
-          Parent      => 0,
-          ID          => +IDENTIFIER_ID,
-          Byte_Region =>  (21, 22),
-          Terminal    => 4,
-          others      => <>)); -- 5
+        ((Virtual_Terminal,
+          ID     => +IDENTIFIER_ID,
+          others => <>)); -- 5
 
       Check
         ("branched tree",
          Branched_Tree,
          ((Ada.Finalization.Controlled with
            Shared_Tree      => Shared_Tree'Unchecked_Access,
-           Last_Shared_Node => 1,
+           Last_Shared_Node => 3,
            Branched_Nodes   => Expected_Branched_Nodes,
            Flush            => False,
            Root             => Invalid_Node_Index)));
@@ -196,6 +178,8 @@ package body WisiToken.Syntax_Trees.Test is
           2 => Terminals (2).Tree_Index,
           3 => Formal_Part));
 
+      Tree.Set_Parents;
+
       Check ("prev right_paren", Tree.Prev_Terminal (4), 3);
       Check ("prev procedure", Tree.Prev_Terminal (1), Invalid_Node_Index);
       Check ("prev left_paren", Tree.Prev_Terminal (3), 2);
@@ -204,14 +188,6 @@ package body WisiToken.Syntax_Trees.Test is
       Check ("next procedure", Tree.Next_Terminal (1), 2);
       Check ("next name", Tree.Next_Terminal (2), 3);
       Check ("next left_paren", Tree.Next_Terminal (3), 4);
-
-      --  Add more tokens, representing:
-      --
-      --  package Pack_1 is
-      --    procedure Proc_1 ();
-      --  end;
-      --
-      --  note the trailing name is empty
    end Test_Prev_Next_Terminal_1;
 
    procedure Test_Prev_Next_Terminal_2 (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
@@ -319,6 +295,8 @@ package body WisiToken.Syntax_Trees.Test is
         ((+package_declaration_ID, 0),
          (1 => Package_Specification,
           2 => Virtual_Semicolon));
+
+      Tree.Set_Parents;
 
       Check ("prev right_paren", Tree.Prev_Terminal (7), 6);
       Check ("prev procedure", Tree.Prev_Terminal (4), 3);

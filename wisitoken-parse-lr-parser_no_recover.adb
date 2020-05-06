@@ -480,6 +480,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          declare
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref.Element.all;
          begin
+            Parser_State.Tree.Set_Parents;
             Parser.User_Data.Initialize_Actions (Parser_State.Tree);
             Parser_State.Tree.Process_Tree (Process_Node'Access);
          end;
