@@ -336,7 +336,9 @@ package body SAL.Gen_Unbounded_Definite_Vectors_Sorted is
    end Next;
 
    overriding function Previous (Object : in Iterator; Position : in Cursor) return Cursor
-   is begin
+   is
+      pragma Unreferenced (Object);
+   begin
       if Position.Index = Peek_Type'First then
          return (Index => Invalid_Peek_Index);
       else

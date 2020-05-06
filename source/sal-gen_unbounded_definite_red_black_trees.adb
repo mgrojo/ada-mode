@@ -318,7 +318,12 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         return (Element => Node.Element'Access, Dummy => 1);
+         --  WORKAROUND: GNAT Community 2019 requires .all here, GNAT Pro 21.0w
+         --  20200426 requires it _not_ be here. The code is technically legal
+         --  either way, so both compilers have a bug. Keeping .all for now;
+         --  just delete it if you are using 21.0w. Hopefully 21 will fix the
+         --  bug. AdaCore ticket T503-001 on Eurocontrol support contract.
+         return (Element => Node.all.Element'Access, Dummy => 1);
       end if;
    end Constant_Reference;
 
@@ -329,7 +334,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position.Node.Element'Access, Dummy => 1);
+      --  WORKAROUND: see note in Constant_Reference
+      return (Element => Position.Node.all.Element'Access, Dummy => 1);
    end Variable_Reference;
 
    function Variable_Reference
@@ -342,7 +348,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         return (Element => Node.Element'Access, Dummy => 1);
+         --  WORKAROUND: see note in Constant_Reference
+         return (Element => Node.all.Element'Access, Dummy => 1);
       end if;
    end Variable_Reference;
 

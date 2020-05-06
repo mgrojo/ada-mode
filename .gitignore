@@ -4,3 +4,5 @@ build/*.config
 build/*.diff
 build/*.exe
 build/*.out
+build/*.bz2
+build/obj_pro/
