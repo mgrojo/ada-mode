@@ -288,15 +288,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end if;
       end;
 
-      --  Adjust parser state for each successful recovery.
+      --  Spawn new parsers for multiple solutions.
       --
       --  One option here would be to keep only the parser with the least
       --  cost fix. However, the normal reason for having multiple parsers
       --  is to resolve a grammar ambiguity; the least cost fix might
       --  resolve the ambiguity the wrong way. As could any other fix, of
       --  course.
-
-      --  Spawn new parsers for multiple solutions.
       --
       --  We could try to check here for redundant solutions; configs for a
       --  parser that have the same or "equivalent" ops. But those will be
@@ -429,8 +427,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  be other input tokens between the inserts and deletes, and there
                      --  can be conflicts; we let the main parser handle that. We can apply
                      --  all ops up to the first insert.
-                     --
-                     --  Then the main parser parses the edited input stream.
                      --
                      --  Other than Add_Terminal, there's no need to modify
                      --  Parser_State.Tree. Any tree nodes created by the failed parse that

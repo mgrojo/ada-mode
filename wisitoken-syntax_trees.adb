@@ -506,12 +506,13 @@ package body WisiToken.Syntax_Trees is
    end Finalize;
 
    function Insert_After
-     (User_Data : in out User_Data_Type;
-      Tree      : in     Syntax_Trees.Tree'Class;
-      Token     : in     Valid_Node_Index)
+     (User_Data            : in out User_Data_Type;
+      Tree                 : in     Syntax_Trees.Tree'Class;
+      Token                : in     Valid_Node_Index;
+      Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
-      pragma Unreferenced (User_Data, Tree, Token);
+      pragma Unreferenced (User_Data, Tree, Token, Insert_On_Blank_Line);
    begin
       return False;
    end Insert_After;

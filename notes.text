@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a.s-* ; delete support for out_of_order_ops
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - implement syntax_trees.Insert_Token
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
