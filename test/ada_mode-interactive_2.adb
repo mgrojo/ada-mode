@@ -79,12 +79,44 @@ is
    type Wait_Return is
      (Read_Success);
 
+   -- Typing a new type declaration; indent on new blank line should be
+   -- correct for component.
+   --
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(execute-kbd-macro "\nComponent_1")(current-indentation))
+   end record;
+      Component_1--EMACSRESULT:6
+   --EMACSCMD:(progn (forward-line -1)(yank))
+   --EMACSCMD:(progn (forward-line -5)(kill-line 2))
+
 begin
-   --  extending block
+   --  extending block; no errors
    --EMACSCMD:(progn (forward-line 3)(kill-line 1)(forward-line 1)(yank))
-   begin -- target extending
+   begin
       Stuff_2;
-   end; -- target extending
    Stuff_3;
+   end;
+
+   -- Typing code after missing semicolon.
+   --
+   --EMACSCMD:(progn (end-of-line 2)(kill-word 1)(delete-char 1)(execute-kbd-macro "\n+ C;")(current-indentation))
+   A := B
+     + C;
+
+   --EMACSRESULT:5
+
+   -- Typing code after missing parens.
+   --
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(delete-char 1))
+   --EMACSCMD:(progn (forward-line 3)(kill-line 2))
+   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\n-- Comment 1")(current-indentation))
+   if (A and B
+      -- Comment 1
+         )
+     -- Comment 2
+     or C
+   then
+   end if;
+   --EMACSRESULT:6
+   --EMACSCMD:(progn (forward-line -7)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

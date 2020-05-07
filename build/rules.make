@@ -42,7 +42,7 @@ elisp-clean :
 
 ifeq ($(TEST_DIR),source)
 $(WISITOKEN_GENERATE) : force
-	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
+	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe Standard_Common_Profile=Off Standard_Common_Mem_Check=Off
 else
 endif
 

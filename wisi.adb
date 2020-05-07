@@ -852,21 +852,17 @@ package body Wisi is
       Insert_After : constant Boolean := (Before_Aug.First and Prev_Terminal /= Invalid_Node_Index) and then
         Parse_Data_Type'Class (Data).Insert_After (Tree, Token);
 
-      Line : constant Line_Number_Type :=
-        (if Insert_After then Get_Aug_Token_Const_1 (Tree, Prev_Terminal).Line else Before_Aug.Line);
-
       Indent_Line : constant Line_Number_Type :=
-        (if Insert_After
-         then Invalid_Line_Number
-         elsif Before_Aug.First
+        (if Before_Aug.First
          then Before_Aug.Line
          else Invalid_Line_Number);
 
+      --  Set for Insert_After False; see below for True.
       New_Aug : constant Augmented_Token_Access := new Augmented_Token'
         (ID                          => Tree.ID (Token),
          Tree_Index                  => Token,
-         Byte_Region                 => (First | Last => Before_Aug.Byte_Region.First), -- reset for Insert_After below
-         Line                        => Line,
+         Byte_Region                 => (First | Last => Before_Aug.Byte_Region.First),
+         Line                        => Before_Aug.Line,
          Column                      => Before_Aug.Column,
          Char_Region                 => (First | Last => Before_Aug.Char_Region.First),
          Deleted                     => False,
@@ -893,18 +889,67 @@ package body Wisi is
       end if;
 
       if Insert_After then
+         --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
+         --
+         --  When typing new code, we want a new blank line to be indented as
+         --  if the code was there already. To accomplish that, we put the
+         --  inserted tokens at the end of the line before the Before token;
+         --  that will be after the non-grammar on the previous terminal.
+         --
+         --  Compare to test/ada_mode-recover_20.adb. There we are not typing
+         --  new code, but there is a blank line; the right paren is placed at
+         --  the end of the blank line, causing the comment to be indented.
          declare
+            use all type Ada.Containers.Count_Type;
             use all type Ada.Text_IO.Count;
             Prev_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Tree, Prev_Terminal);
-         begin
-            New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
-            New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
-            New_Aug.Column      := Prev_Aug.Column + Ada.Text_IO.Count (Length (New_Aug.Char_Region)) - 1;
 
-         --  Move non_grammar from previous token to this one. See comment
-         --  after inserted right_paren in test/ada_mode-recover_20.adb.
-            New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
-            Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
+            --  Prev_Aug.Non_Grammar must have at least one New_Line, since
+            --  Before_Aug.First is True. The whitespace after the New_Line is not
+            --  given a token.
+            --
+            --  If the first two tokens in Prev_Non_Grammar are both New_Lines,
+            --  there is a blank line after the code line (and before any
+            --  comments); assume that is the edit point.
+            Insert_On_Blank_Line : constant Boolean := Prev_Aug.Non_Grammar.Length >= 2 and then
+              (Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index).ID = Data.Descriptor.New_Line_ID and
+                 Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index + 1).ID = Data.Descriptor.New_Line_ID);
+
+         begin
+            if Insert_On_Blank_Line then
+               declare
+                  Prev_Non_Grammar : constant Non_Grammar_Token :=
+                    Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index + 1);
+                  --  The newline nominally after the inserted token.
+               begin
+                  New_Aug.Byte_Region := (First | Last => Prev_Non_Grammar.Byte_Region.Last - 1);
+                  New_Aug.Char_Region := (First | Last => Prev_Non_Grammar.Char_Region.Last - 1);
+
+                  New_Aug.First  := True;
+                  New_Aug.Line   := Prev_Non_Grammar.Line;
+                  New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (New_Aug.Char_Region)) - 1;
+
+                  New_Aug.First_Indent_Line := Prev_Non_Grammar.Line;
+                  New_Aug.Last_Indent_Line  := Prev_Non_Grammar.Line;
+
+                  for I in Prev_Aug.Non_Grammar.First_Index + 1 .. Prev_Aug.Non_Grammar.Last_Index loop
+                     New_Aug.Non_Grammar.Append (Prev_Aug.Non_Grammar (I));
+                  end loop;
+
+                  Prev_Aug.Non_Grammar.Set_First_Last
+                    (Prev_Aug.Non_Grammar.First_Index, Prev_Aug.Non_Grammar.First_Index);
+               end;
+            else
+               New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
+               New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
+
+               New_Aug.Line   := Prev_Aug.Line;
+               New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (Prev_Aug.Char_Region)) - 1;
+
+               New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
+               Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
+
+            end if;
 
             New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
             New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;

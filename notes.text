@@ -4,7 +4,7 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
+o.e.a.stephe-2 (with o.w.s-1/o.s_l.sal): work;
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
@@ -19,9 +19,8 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
- '(
- ;;("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+ '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -32,9 +31,8 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
   (xgit . "/Projects/org.emacs.ada-mode")))
 
 (dvc-propagate-multiple
- '(
- ;; ("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+ '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
@@ -47,13 +45,22 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-debbug #40964 compile with GNAT Pro 21.0w 20200426
-    Eurocontrol wavefront
+compare ada LR1 generate time
+    o.e.a:
+        LALR re2c generate time: 0.589618659
+        LR1 re2c generate time: 66.265096411
 
-lsp-mode has mechanism to download and install servers
-    adapt that for compiled wisi exes?
+    7.0.1
+        LALR re2c generate time: 0.689046474
+        LR1 re2c generate time: 37.564196185
 
-hide wisi syntax errors window when clear it
+    2020_05_22 (pre fix 'Unrestricted_Access)
+        LALR re2c generate time: 0.520925872
+        LR1 re2c generate time: 62.148224014
+
+    2020_04_22 (pre use virtual in indent)
+        LALR re2c generate time: 0.519115752
+        LR1 re2c generate time: 61.987758850
 
 test/ada_mode-recover_string_quote_1.adb
     undo_reduce after push-back or insert
@@ -146,6 +153,14 @@ align bug:
     use parser
 
 hide wisi syntax errors window when clear it
+
+lsp-mode has mechanism to download and install servers
+    adapt that for compiled wisi exes?
+
+when move to new gnat, need to fix compilation errors
+    assume wisitoken is broken
+    need different compile-env for compiler, xref
+    improve wisi-prj
 
 could elminate wisi.parse_data_type.terminals
     always search syntax tree

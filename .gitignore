@@ -52,3 +52,4 @@ dump_wisitoken_corrected
 test/debug.adb
 sum_diff_lengths
 test/debug.ads
+obj_pro/
