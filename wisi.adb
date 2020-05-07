@@ -846,12 +846,6 @@ package body Wisi is
 
       --  Set data that allows using Token when computing indent.
 
-      Prev_Terminal : constant Node_Index := Tree.Prev_Terminal (Token);
-      --  Invalid_Token_Index if Token is inserted before first grammar token
-
-      Insert_After : constant Boolean := (Before_Aug.First and Prev_Terminal /= Invalid_Node_Index) and then
-        Parse_Data_Type'Class (Data).Insert_After (Tree, Token);
-
       Indent_Line : constant Line_Number_Type :=
         (if Before_Aug.First
          then Before_Aug.Line
@@ -866,42 +860,42 @@ package body Wisi is
          Column                      => Before_Aug.Column,
          Char_Region                 => (First | Last => Before_Aug.Char_Region.First),
          Deleted                     => False,
-         First                       => (if Insert_After then False else Before_Aug.First),
+         First                       => Before_Aug.First,
          Paren_State                 => Before_Aug.Paren_State,
          First_Terminals_Index       => Invalid_Token_Index,
          Last_Terminals_Index        => Invalid_Token_Index,
          First_Indent_Line           => Indent_Line,
          Last_Indent_Line            => Indent_Line,
-         First_Trailing_Comment_Line => Invalid_Line_Number, -- updated for Insert_After below
+         First_Trailing_Comment_Line => Invalid_Line_Number,
          Last_Trailing_Comment_Line  => Invalid_Line_Number,
          Non_Grammar                 => Non_Grammar_Token_Arrays.Empty_Vector,
          Inserted_Before             => Valid_Node_Index_Arrays.Empty_Vector);
 
+      Prev_Terminal : constant Node_Index := Tree.Prev_Terminal (Token);
+      --  Invalid_Node_Index if Token is inserted before first grammar token
+
+      Insert_After : Boolean := False;
    begin
       Tree.Set_Augmented (Token, Base_Token_Class_Access (New_Aug));
 
       Append (Before_Aug.Inserted_Before, Token);
 
-      if Before_Aug.First and not Insert_After then
-         Before_Aug.First             := False;
-         Before_Aug.First_Indent_Line := Invalid_Line_Number;
-         Before_Aug.Last_Indent_Line  := Invalid_Line_Number;
-      end if;
-
-      if Insert_After then
-         --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
-         --
-         --  When typing new code, we want a new blank line to be indented as
-         --  if the code was there already. To accomplish that, we put the
-         --  inserted tokens at the end of the line before the Before token;
-         --  that will be after the non-grammar on the previous terminal.
-         --
-         --  Compare to test/ada_mode-recover_20.adb. There we are not typing
-         --  new code, but there is a blank line; the right paren is placed at
-         --  the end of the blank line, causing the comment to be indented.
+      if Prev_Terminal /= Invalid_Node_Index and Before_Aug.First then
          declare
             use all type Ada.Containers.Count_Type;
             use all type Ada.Text_IO.Count;
+
+            --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
+            --
+            --  When typing new code, we want a new blank line to be indented as
+            --  if the code was there already. To accomplish that, we put the
+            --  inserted tokens at the end of the line before the Before token;
+            --  that will be after the non-grammar on the previous terminal.
+            --
+            --  Compare to test/ada_mode-recover_20.adb. There we are not typing
+            --  new code, but there is a blank line; the right paren is placed at
+            --  the end of the blank line, causing the comment to be indented.
+
             Prev_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Tree, Prev_Terminal);
 
             --  Prev_Aug.Non_Grammar must have at least one New_Line, since
@@ -915,48 +909,61 @@ package body Wisi is
               (Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index).ID = Data.Descriptor.New_Line_ID and
                  Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index + 1).ID = Data.Descriptor.New_Line_ID);
 
+            --  In Ada, 'end' is Insert_After except when Insert_On_Blank_Line is
+            --  True (see test/ada_mode-interactive_2.adb Record_1), so Insert_After
+            --  needs Insert_On_Blank_Line.
          begin
-            if Insert_On_Blank_Line then
-               declare
-                  Prev_Non_Grammar : constant Non_Grammar_Token :=
-                    Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index + 1);
-                  --  The newline nominally after the inserted token.
-               begin
-                  New_Aug.Byte_Region := (First | Last => Prev_Non_Grammar.Byte_Region.Last - 1);
-                  New_Aug.Char_Region := (First | Last => Prev_Non_Grammar.Char_Region.Last - 1);
+            Insert_After := Parse_Data_Type'Class (Data).Insert_After (Tree, Token, Insert_On_Blank_Line);
 
-                  New_Aug.First  := True;
-                  New_Aug.Line   := Prev_Non_Grammar.Line;
-                  New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (New_Aug.Char_Region)) - 1;
+            if Insert_After then
+               if Insert_On_Blank_Line then
+                  declare
+                     Prev_Non_Grammar : constant Non_Grammar_Token :=
+                       Prev_Aug.Non_Grammar (Prev_Aug.Non_Grammar.First_Index + 1);
+                     --  The newline nominally after the inserted token.
+                  begin
+                     New_Aug.Byte_Region := (First | Last => Prev_Non_Grammar.Byte_Region.Last - 1);
+                     New_Aug.Char_Region := (First | Last => Prev_Non_Grammar.Char_Region.Last - 1);
 
-                  New_Aug.First_Indent_Line := Prev_Non_Grammar.Line;
-                  New_Aug.Last_Indent_Line  := Prev_Non_Grammar.Line;
+                     New_Aug.First  := True;
+                     New_Aug.Line   := Prev_Non_Grammar.Line;
+                     New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (New_Aug.Char_Region)) - 1;
 
-                  for I in Prev_Aug.Non_Grammar.First_Index + 1 .. Prev_Aug.Non_Grammar.Last_Index loop
-                     New_Aug.Non_Grammar.Append (Prev_Aug.Non_Grammar (I));
-                  end loop;
+                     New_Aug.First_Indent_Line := Prev_Non_Grammar.Line;
+                     New_Aug.Last_Indent_Line  := Prev_Non_Grammar.Line;
 
-                  Prev_Aug.Non_Grammar.Set_First_Last
-                    (Prev_Aug.Non_Grammar.First_Index, Prev_Aug.Non_Grammar.First_Index);
-               end;
-            else
-               New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
-               New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
+                     for I in Prev_Aug.Non_Grammar.First_Index + 1 .. Prev_Aug.Non_Grammar.Last_Index loop
+                        New_Aug.Non_Grammar.Append (Prev_Aug.Non_Grammar (I));
+                     end loop;
 
-               New_Aug.Line   := Prev_Aug.Line;
-               New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (Prev_Aug.Char_Region)) - 1;
+                     Prev_Aug.Non_Grammar.Set_First_Last
+                       (Prev_Aug.Non_Grammar.First_Index, Prev_Aug.Non_Grammar.First_Index);
+                  end;
+               else
+                  New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
+                  New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
 
-               New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
-               Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
+                  New_Aug.Line   := Prev_Aug.Line;
+                  New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (Prev_Aug.Char_Region)) - 1;
 
+                  New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
+                  Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;
+
+               end if;
+
+               New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
+               New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;
+
+               Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
+               Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
             end if;
-
-            New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
-            New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;
-
-            Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
-            Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
          end;
+      end if;
+
+      if New_Aug.First and not Insert_After then
+         Before_Aug.First             := False;
+         Before_Aug.First_Indent_Line := Invalid_Line_Number;
+         Before_Aug.Last_Indent_Line  := Invalid_Line_Number;
       end if;
 
       if New_Aug.ID = Data.Left_Paren_ID then

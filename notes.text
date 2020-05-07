@@ -45,6 +45,25 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+run all tests
+    test/ada_mode-recover_02.adb
+        error during resume
+        parser 9: stack has wrong state for ';' - should be 1271
+            error in apply ops to stack
+            tree.state (';') not correct for this undo_reduce - it was part of an object_declaration originally.
+            that means before_ops stack is wrong? stack_matches_ops lies!
+                must have been modified by previous error recovery?
+
+    after undo_reduce, only sensible op is push_back!
+        which would delete this particular state error
+
+first error is on Current_Input 75:(IDENTIFIER, (1055 . 1067)), expecting ',' or operator
+9: ((INSERT, RIGHT_PAREN, 75), (INSERT, SEMICOLON, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75))
+    terminates Check_One, makes Current_input a valid object_declaration
+    main parser skips (INSERT, SEMICOLON, 75), skips to 80:(IDENTIFIER, (1092 . 1108)) Get_Current_Input
+
+duplicate problem in test_mckenzie_recover in o.w.s-1
+
 compare ada LR1 generate time
     o.e.a:
         LALR re2c generate time: 0.589618659

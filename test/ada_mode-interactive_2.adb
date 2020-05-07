@@ -82,11 +82,12 @@ is
    -- Typing a new type declaration; indent on new blank line should be
    -- correct for component.
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(execute-kbd-macro "\nComponent_1")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(execute-kbd-macro "\n")(current-indentation))
+   type Record_1 is record
+      Component_1 : Integer;
    end record;
-      Component_1--EMACSRESULT:6
-   --EMACSCMD:(progn (forward-line -1)(yank))
-   --EMACSCMD:(progn (forward-line -5)(kill-line 2))
+
+   --EMACSRESULT:6
 
 begin
    --  extending block; no errors
