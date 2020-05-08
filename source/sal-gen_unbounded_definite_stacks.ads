@@ -112,14 +112,16 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    function Constant_Reference
      (Container : aliased in Stack'Class;
       Position  :         in Peek_Type)
-     return Constant_Reference_Type with Inline;
+     return Constant_Reference_Type
+   with Inline, Pre => Position in 1 .. Container.Depth;
 
    type Cursor (<>) is private;
 
    function Constant_Reference
      (Container : aliased in Stack'Class;
       Position  :         in Cursor)
-     return Constant_Reference_Type with Inline;
+     return Constant_Reference_Type
+   with Inline, Pre => Has_Element (Position);
 
    function Has_Element (Position : in Cursor) return Boolean;
 
