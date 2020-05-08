@@ -1935,6 +1935,26 @@ package body Test_McKenzie_Recover is
          Cost                    => 0);
    end Error_During_Resume_2;
 
+   procedure Error_During_Resume_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  previously got "error during resume"; Explore did Undo_Reduce wrong.
+
+      Parser.Table.McKenzie_Param.Check_Limit := 4;
+
+      Parse_Text ("Check_Recover (Enqueue_Low => A()84, Cost => 1);");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +NUMERIC_LITERAL_ID,
+         Error_Token_Byte_Region => (34, 35),
+         Ops_Race_Condition      => True,
+         Enqueue_Low             => 60,
+         Check_Low               => 27,
+         Cost                    => 4);
+   end Error_During_Resume_3;
+
    procedure Minimal_Complete_Finish_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
@@ -2281,6 +2301,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, No_Push_Back_Prev_Error'Access, "No_Push_Back_Prev_Error");
       Register_Routine (T, Error_During_Resume_1'Access, "Error_During_Resume_1");
       Register_Routine (T, Error_During_Resume_2'Access, "Error_During_Resume_2");
+      Register_Routine (T, Error_During_Resume_3'Access, "Error_During_Resume_3");
       Register_Routine (T, Minimal_Complete_Finish_1'Access, "Minimal_Complete_Finish_1");
       Register_Routine (T, Always_Minimal_Complete'Access, "Always_Minimal_Complete");
       Register_Routine (T, Always_Matching_Begin'Access, "Always_Matching_Begin");

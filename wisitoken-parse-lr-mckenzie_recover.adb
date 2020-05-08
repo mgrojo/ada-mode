@@ -140,7 +140,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
              when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Extra then
             Put_Line
-              (Trace, Parser_State.Label, Parser_Lists.Image
+              (Trace, Parser_State.Label, "stack: " & Parser_Lists.Image
                  (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
          end if;
       end if;
@@ -865,6 +865,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Index := Index + 1;
    end Delete;
 
+   function Find_ID
+     (Config         : in     Configuration;
+      ID             : in     Token_ID)
+     return Boolean
+   is begin
+      for I in 1 .. Config.Stack.Depth - 1 loop
+         --  Depth has Invalid_Token_ID
+         if ID = Config.Stack.Peek (I).Token.ID then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Find_ID;
+
    procedure Find_ID
      (Config         : in     Configuration;
       ID             : in     Token_ID;
@@ -1256,9 +1270,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
    begin
-      if Nonterm_Item.Token.Byte_Region = Null_Buffer_Region then
-         return 0;
-      end if;
       declare
          Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
       begin

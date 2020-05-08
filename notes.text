@@ -48,6 +48,10 @@ test/ada_mode-recover_31.adb
         use parser_state.current_shared_token?
         or change Current_Token to Recover_Token?
 
+redesign parse table to speed recovery
+    group identical reduce actions
+        ada_mode-recover_02.adb
+        only do each reduce once, then insert lots of terminals
 
 error_correction_algorithm.tex
     full vs partial_recursion

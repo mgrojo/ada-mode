@@ -542,9 +542,9 @@ package WisiToken.Parse.LR is
    function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    type Recover_Stack_Item is record
-      State : Unknown_State_Index;
+      State : Unknown_State_Index := Unknown_State;
 
-      Tree_Index : Node_Index;
+      Tree_Index : Node_Index := Invalid_Node_Index;
       --  Valid if copied at recover initialize, Invalid if pushed during
       --  recover.
 

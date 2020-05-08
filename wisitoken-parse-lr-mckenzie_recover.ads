@@ -122,6 +122,13 @@ private
       Index     : in out WisiToken.Token_Index);
    --  Same as Delete_Check, without the check.
 
+   function Find_ID
+     (Config         : in     Configuration;
+      ID             : in     Token_ID)
+     return Boolean;
+   --  Search Config.Stack for a token with ID, starting at
+   --  stack top. Return True if found, False if not.
+
    procedure Find_ID
      (Config         : in     Configuration;
       ID             : in     Token_ID;
@@ -260,15 +267,14 @@ private
      --  Check if Undo_Reduce is valid when there is no previous Config_Op.
      --
      --  Undo_Reduce needs to know what tokens the nonterm contains, to
-     --  push them on the stack. Thus we need either a valid Tree index, or
-     --  an empty nonterm. If Token.Virtual, we can't trust
-     --  Token.Byte_Region to determine empty.
+     --  push them on the stack. Thus we need a valid Tree index. It is
+     --  tempting to also allow an empty nonterm when Tree_Index is
+     --  invalid, but that fails when the real Undo_Reduce results in
+     --  another empty nonterm on the stack; see test_mckenzie_recover.adb
+     --  Error_During_Resume_3.
      is (Stack.Depth > 1 and then
-           ((Stack.Peek.Tree_Index /= Invalid_Node_Index and then
-               Tree.Is_Nonterm (Stack.Peek.Tree_Index)) or
-              (Stack.Peek.Tree_Index = Invalid_Node_Index and
-                 (not Stack.Peek.Token.Virtual and
-                    Stack.Peek.Token.Byte_Region = Null_Buffer_Region))));
+           Stack.Peek.Tree_Index /= Invalid_Node_Index and then
+               Tree.Is_Nonterm (Stack.Peek.Tree_Index));
 
    function Undo_Reduce_Valid
      (Stack   : in Recover_Stacks.Stack;

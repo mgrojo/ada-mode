@@ -305,8 +305,12 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Set_Verb (Shift);
 
             if Parser_State.Resume_Active then
-               if Parser_State.Resume_Token_Goal <= Parser_State.Shared_Token then
-                  pragma Assert (Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index);
+               --  There may still be ops left in Recover_Insert_Delete after we get
+               --  to Resume_Token_Goal, probably from a Language_Fix or string quote
+               --  fix that deletes a lot of tokens.
+               if Parser_State.Resume_Token_Goal <= Parser_State.Shared_Token and
+                 Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+               then
                   Parser_State.Resume_Active := False;
                   if Trace_Parse > Detail then
                      Shared_Parser.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": resume_active: False");
