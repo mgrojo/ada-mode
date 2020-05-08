@@ -34,8 +34,5 @@ package body Ada_Mode.Recover_End_1 is
          -- end return;
       end;
 
-end Ada_Mode.Recover_End_1;
--- Error recovery has a race condition; force it to return repeatable results
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:
+      -- This line is indented as if it were continuing statements in "Return_Example".
+   end Ada_Mode.Recover_End_1;

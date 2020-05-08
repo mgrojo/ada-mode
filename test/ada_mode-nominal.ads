@@ -123,7 +123,7 @@ is -- target 0
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
-   ; -- we don't really care
+     ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(nth 2 (wisi-prj-identifier-at-point (project-current))))
@@ -852,7 +852,7 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-   with Pack => True;
+     with Pack => True;
 
    overriding function Function_2g (Param : in Limited_Derived_Type_1) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_1) is abstract;

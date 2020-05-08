@@ -704,8 +704,8 @@ compilation_unit_list
 component_clause
   : IDENTIFIER AT simple_expression RANGE simple_expression DOT_DOT simple_expression SEMICOLON
     %((wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                                             ada-indent-broken ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken ada-indent-broken ada-indent-broken]))%
   ;
 
 component_clause_list
@@ -1230,7 +1230,7 @@ full_type_declaration
         ;; ada-indent-record-rel-type if type_definition is a record.
         (wisi-indent-action [nil ada-indent-broken ada-indent-broken
                                  [ada-indent-broken (ada-indent-record* 'TYPE 5 ada-indent-broken)]
-                                 ada-indent-broken ada-indent-broken ada-indent-broken]))%
+                                 ada-indent-broken nil ada-indent-broken]))%
   | task_type_declaration
   | protected_type_declaration
   ;
@@ -1890,7 +1890,7 @@ private_extension_declaration
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                                ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                               ada-indent-broken ada-indent-broken]))%
+                               nil ada-indent-broken]))%
   ;
 
 private_type_declaration
@@ -1899,7 +1899,7 @@ private_type_declaration
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil ada-indent-broken ada-indent-broken
-                               ada-indent-broken ada-indent-broken]))%
+                               nil ada-indent-broken]))%
   ;
 
 procedure_call_statement
@@ -2376,7 +2376,7 @@ subtype_declaration
     %((wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken nil
                                ada-indent-broken]))%
   ;
 

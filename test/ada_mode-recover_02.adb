@@ -33,23 +33,22 @@ package body Ada_Mode.Recover_02 is
       Config_Store.Get
         (Parser_Label
 
-   -- Copied from above, intending to move the function call here.
-   -- recover finishes Check_One before this comment.
-   Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
+      -- Copied from above, intending to move the function call here.
+      -- recover deletes ': constant Token_ID'.
+      Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
-   -- recover inserts 'begin; here
-   if Check (Data, Config, Current_Input) then
-      return;
-   end if;
-end Check_One;
+      if Check (Data, Config, Current_Input) then
+         return;
+      end if;
+   end Check_One;
 
-task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.Config_Store) is
-   entry Start;
-   --  Start getting parser/configs to check from Config_Store
+   task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.Config_Store) is
+      entry Start;
+      --  Start getting parser/configs to check from Config_Store
 
-   entry Finish;
-   --  Terminate; no more configs to check.
-end Check_Parser_Config;
+      entry Finish;
+      --  Terminate; no more configs to check.
+   end Check_Parser_Config;
 
 end Ada_Mode.Recover_02;
 -- Error recovery has a race condition; force it to return repeatable results

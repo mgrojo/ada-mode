@@ -15,7 +15,7 @@ package body Ada_Mode.Recover_16 is
             if Parser.Head = in -- started typing 'if then end if' here
               return Memo;
 
-         when Failure =>
+            when Failure =>
             return (State => Failure);
 
          when No_Result =>

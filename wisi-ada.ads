@@ -140,6 +140,7 @@ package Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
    --  [1] ada-indent-record
+   --  Args: anchor_token_index, record_token_index, offset
 
    function Ada_Indent_Record_1
      (Data              : in out Wisi.Parse_Data_Type'Class;
@@ -150,5 +151,6 @@ package Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
    --  [1] ada-indent-record*
+   --  Args: anchor_token_ID, record_token_index, offset
 
 end Wisi.Ada;

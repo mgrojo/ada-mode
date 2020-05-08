@@ -21,24 +21,24 @@ package body Wisi.Libadalang is
                is begin
                   --  extra 'begin'. The cheapest solution inserts 'begin' after 'Prod
                   -- :', turning that into a block label.
-               Prod : WisiToken.Productions.Instance renames Grammar
-                 (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+                  Prod : WisiToken.Productions.Instance renames Grammar
+                    (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+               begin
+                  for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                     declare
+                        use all type SAL.Base_Peek_Type;
                      begin
-                        for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
-                           declare
-                              use all type SAL.Base_Peek_Type;
-                           begin
-                              for J in Tokens.First_Index .. Tokens.Last_Index loop
-                              end loop;
-                           end;
-                           Prod_ID.RHS := I;
-                           return;
-                        <<Next_RHS>>
+                        for J in Tokens.First_Index .. Tokens.Last_Index loop
                         end loop;
-                        exit when not K > Descendants.Last_Index;
-                        K := K + 1;
-                     end loop; --  missing 'loop'
-                     raise SAL.Programmer_Error with "production not found";
+                     end;
+                     Prod_ID.RHS := I;
+                     return;
+                  <<Next_RHS>>
+                  end loop;
+                  exit when not K > Descendants.Last_Index;
+                  K := K + 1;
+                  end loop; --  missing 'loop'
+                  raise SAL.Programmer_Error with "production not found";
                end Find_Production;
             begin
                Find_Production;

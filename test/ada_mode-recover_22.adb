@@ -30,8 +30,9 @@ package body Ada_Mode.Recover_22 is
                   end if;
                end if;
 
-            --  Error detected here; 'end if;' inserted after previous 'end if;'.
-         exception
+               -- Error detected here; 'end if;' inserted before 'exception', so
+               -- indent of blank line is correct for another statement.
+            exception
             when Bad_Config =>
                null;
          end;

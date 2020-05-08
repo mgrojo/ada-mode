@@ -19,7 +19,7 @@ package body Ada_Mode.Recover_26 is
                      return Index;
                   else
 
-            end Find_Terminal;
+                  end Find_Terminal;
 
          begin
             Find_Production;

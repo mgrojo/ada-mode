@@ -34,7 +34,7 @@ procedure Field_parent is
    type D2_T is (D4, D5, D6);
 
    type Var_T (Disc1 : D1_T, Disc2 : D2_T) is record T --  Error: ',' should be ';' ; extra 'T'
-        Field1 : Integer;
+      Field1 : Integer;
    end record;
 
 

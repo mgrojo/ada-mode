@@ -19,7 +19,7 @@ is begin
 
    begin
 
-end Update_Containing_Nonterms;
+   end Update_Containing_Nonterms;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- wisi-mckenzie-enqueue-limit: 280000

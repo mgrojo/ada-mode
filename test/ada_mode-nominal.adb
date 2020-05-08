@@ -422,9 +422,9 @@ is -- target 0
    end Protected_Buffer;
 
    task Executive
-   with
-     Storage_Size => 512 + 256,
-     Priority => 5;
+     with
+       Storage_Size => 512 + 256,
+       Priority => 5;
    --EMACSCMD:(progn (ada-which-function))
    --EMACSRESULT:"Ada_Mode.Nominal"
 
@@ -601,7 +601,7 @@ is -- target 0
    function Function_1d return Float
    is begin
       Procedure_2a
-      ; -- pathological case; we don't really care what this indent is
+        ; -- pathological case; we don't really care what this indent is
       Procedure_2a;
 
       declare -- no label, two statements between begin, declare

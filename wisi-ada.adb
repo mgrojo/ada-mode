@@ -60,9 +60,9 @@ package body Wisi.Ada is
          end if;
 
       else
-         --  Indenting other comment, component or 'end'
+         --  Indenting comment after 'record', other comment, component or 'end'
          --
-         --  Ensure 'record' line is anchored.
+         --  Ensure 'record' line is anchored to Anchor_Token.
          if not (Data.Indents (Record_Token.Line).Label = Anchored or
                    Data.Indents (Record_Token.Line).Label = Anchor_Anchored)
          then
@@ -71,13 +71,15 @@ package body Wisi.Ada is
                Indent_Token_1
                  (Data,
                   Tree,
-                  Record_Token,
-                  Indent_Anchored_2
-                    (Data, Anchor_Token.Line,
-                     Record_Token.Last_Line (Indenting_Comment => False),
+                  Indenting_Token         => Record_Token,
+                  Delta_Indent            => Indent_Anchored_2
+                    (Data,
+                     Anchor_Token.Line,
+                     Record_Token.Last_Line
+                       (Indenting_Comment => False),
                      Ada_Indent_Record_Rel_Type,
-                     Accumulate => True),
-                  Indenting_Comment => False);
+                     Accumulate           => True),
+                  Indenting_Comment       => False);
             end if;
          end if;
 
@@ -912,12 +914,10 @@ package body Wisi.Ada is
       --  We are indenting a token in record_definition or
       --  record_representation_clause, or a comment before 'record'.
       --
-      --  If record_definition, args (1) is the token ID of the anchor (=
-      --  TYPE); it appears as a direct child in an ancestor
-      --  full_type_declaration.
-      --
-      --  If record_representation_clause, args (1) is FOR, child of
-      --  record_representation_clause.
+      --  Args (1) is the token ID of the anchor. If record_definition, this
+      --  is TYPE; it appears as a direct child in an ancestor
+      --  full_type_declaration. If record_representation_clause, args (1)
+      --  is FOR, child of record_representation_clause.
 
       use Ada_Process_Actions;
 

@@ -943,8 +943,12 @@ package body Wisi is
                   New_Aug.Byte_Region := (First | Last => Prev_Aug.Byte_Region.Last);
                   New_Aug.Char_Region := (First | Last => Prev_Aug.Char_Region.Last);
 
+                  New_Aug.First  := False;
                   New_Aug.Line   := Prev_Aug.Line;
                   New_Aug.Column := Prev_Aug.Column + Ada.Text_IO.Count (Length (Prev_Aug.Char_Region)) - 1;
+
+                  New_Aug.First_Indent_Line := Invalid_Line_Number;
+                  New_Aug.Last_Indent_Line  := Invalid_Line_Number;
 
                   New_Aug.Non_Grammar  := Prev_Aug.Non_Grammar;
                   Prev_Aug.Non_Grammar := Non_Grammar_Token_Arrays.Empty_Vector;

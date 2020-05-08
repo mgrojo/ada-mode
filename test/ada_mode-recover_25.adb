@@ -10,7 +10,7 @@ is
    is
       use Ada.Text_IO;
    begin
-   --  Missing procedure body, 'end Put_Usage;' here.
+   --  Missing 'end Put_Usage;' here; inserted before 'File_Name'.
 
    File_Name : constant String := Ada.Command_Line.Argument (1);
    File : SMM.ID3.File;

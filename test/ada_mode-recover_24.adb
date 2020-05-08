@@ -19,7 +19,7 @@ package body Ada_Mode.Recover_24 is
                  Parsed_Config.Current_Shared_Token
                then
 
-      end loop; -- error; should be 'end if;' - recover finishes 'if', 'declare'.
+               end loop; -- error; should be 'end if;' - recover finishes 'if', 'declare'.
 
       Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
       Local_Config_Heap.Add (Parsed_Config);
