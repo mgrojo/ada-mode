@@ -39,15 +39,15 @@ zip :
 	rm -rf ../../$(SAL_BRANCH)-$(ZIP_VERSION)
 	rm -rf ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
 	rm -rf ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(SAL_BRANCH) ../../$(SAL_BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(AUNIT_EXT_BRANCH) ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(MAKERULES_BRANCH) ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	git archive $(SAL_BRANCH) | tar -x -C ../../$(SAL_BRANCH)-$(ZIP_VERSION)
+	git archive $(AUNIT_EXT_BRANCH) | tar -x -C ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	git archive $(MAKERULES_BRANCH) | tar -x -C ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
 	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(SAL_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
 
 tag :
-	mtn tag h:$(SAL_BRANCH) $(SAL_BRANCH)-$(ZIP_VERSION)
-	mtn tag h:$(AUNIT_EXT_BRANCH) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
-	mtn tag h:$(MAKERULES_BRANCH) $(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	git tag $(SAL_BRANCH)-$(ZIP_VERSION) $(SAL_BRANCH)
+	git tag $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)
+	git tag $(MAKERULES_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)
 
 #
 # Local Variables:
