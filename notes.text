@@ -4,45 +4,7 @@ org.stephe_leake.sal.stephe-1   : work
 org.stephe_leake.sal.stephe-2   : spark
 
  current work
-compile with gnat 21.0w 20200426
-    but use gnat 20.2 for gpr_query, ada_parse
-        wisi-prj can't cope with that
-
-    (gnat-pro-21.0w-20200426)
-    (shell-bash)
-    (sal-standard)
-
-    in shell:
-    export GPR_PROJECT_PATH="/Projects/org.stephe_leake.aunit_ext.stephe-1/build:/Projects/org.stephe_leake.makerules"
-    cd build
-    make t_all
-
-remove 'Unrestricted_Access
-    sal-gen_unbounded_definite_stacks done
-        except test_graphs fails to compile, but gives no error message
-            gprclean -> no help
-            delete objects in sal, aunit_ext -> fails
-            delete objects, compile with gnat 20 -> fails
-            submitted adacore ticket T505-014
-            compiles fine in ~/Ada_Work
-            set compiler switches same as sal => compiles fine.
-            put back rest of test_one_harness
-        wisitoken ok
-
-    sal-gen_unbounded_definite_vectors_sorted done,         wisitoken ok
-
 build/Makefile
-
-    bounded_definite_vectors_sorted
-        Windows
-            gnat community 2019
-        Debian:
-            SPARK Pro 20.1 (20200107)
-            Why3 for gnatprove version 1.2.0+git
-            /Projects/gnat/pro_20.1/libexec/spark/bin/alt-ergo: Alt-Ergo version 2.3.0+
-        same error in both
-
-        can't prove Is_Sorted => ask on spark list
 
  references
 d:/Apps/GNAT-gpl_2019/share/doc/spark/pdf/spark2014_rm.pdf
@@ -51,13 +13,12 @@ https://www.adacore.com/books/implementation-guidance-spark
     d:/Archive/GNAT/gpl-2019/ePDF-ImplementationGuidanceSPARK.pdf
 
  Release process:
-
-(no separate aunit_ext or makerules release)
+no separate aunit_ext or makerules release
 
 (dvc-state-multiple
-  '((xmtn . ".")
-    (xmtn . "../org.stephe_leake.makerules")
-    (xmtn . "../org.stephe_leake.aunit_ext")))
+  '((xgit . ".")
+    (xgit . "../org.stephe_leake.makerules")
+    (xgit . "../org.stephe_leake.aunit_ext")))
 
 build/Makefile clean
     check for missing clean actions
@@ -67,8 +28,8 @@ build/Makefile all
 source/sal.html
     "Current version: i.j"
     doc version
-    # review mtn log since last release date
-    $ mtn log --to d:yyyy-mm-dd > release.log
+    # review git log since last release date
+    $ git log --since "dd mmm yyyy" > release.log
 
 bump version
     build/Makefile

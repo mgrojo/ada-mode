@@ -32,7 +32,7 @@ simplify higher level makefiles and project files.</p>
 
 <p>Review the <a href="sal.html#history">release history</a>.</p>
 
-<p>SAL is copyright 1998 - 2006, 2009, 2018 - 2019 by Stephen Leake, released
+<p>SAL is copyright 1998 - 2006, 2009, 2018 - 2020 by Stephen Leake, released
 under GPL version 3 with the GNAT run time exception.</p>
 
 <p>SAL may be obtained in two ways:
@@ -61,6 +61,19 @@ tools I use.</p>
 <h1><a name="history"></a>History</h1>
 
 <dl>
+  <dt>Version 3.4 9 May 2019</dt>
+  <dd>
+    <ul>
+      <li>Add sal-web_utils.ads
+      <li>Update for gnat pro 21, remove uses of Unrestricted_Access. This required spec changes in:
+        <ul>
+          <li>sal-gen_unbounded_definite_vectors
+          <li>sal-gen_unbounded_indefinite_vectors
+          <li>sal-gen_definite_doubly_linked_lists_sorted
+          <li>sal-gen_unbounded_definite_stacks
+        </ul>
+    </ul>
+  </dd>
   <dt>Version 3.3 13 Aug 2019</dt>
   <dd>
     <ul>
@@ -343,6 +356,6 @@ instantiations, and tests.
 
 <hr>
 <p><script src="/common/footer.js"></script>
-<p><!-- hhmts start --> Last modified: Mon Dec 16 11:03:48 Pacific Standard Time 2019 <!-- hhmts end -->
+<p><!-- hhmts start --> Last modified: Sat May  9 15:44:09 Pacific Daylight Time 2020 <!-- hhmts end -->
 </body>
 </html>
