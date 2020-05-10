@@ -22,3 +22,5 @@ build/*.bz2
 build/error_correction_algorithm.pdf
 build/exec_pro/
 build/obj_pro/
+wisitoken_grammar.re2c
+wisitoken_grammar_lalr.parse_table

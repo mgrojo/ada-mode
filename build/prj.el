@@ -132,9 +132,9 @@
 	(setq abs-file (car abs-file)))
       (find-file abs-file)
       (let ((case-fold-search nil)) ;; buffer-local
+	(goto-char (point-min)) ;; for testing repeatedly :)
+	(search-forward (concat "procedure " subprogram-name))
 	(when (string-equal filename "test_mckenzie_recover.adb")
-	  (goto-char (point-min)) ;; for testing repeatedly :)
-	  (search-forward (concat "procedure " subprogram-name))
 	  (let ((begin (point))
 		end)
 	    (save-excursion
@@ -187,19 +187,21 @@
 	     )))
 	))))
 
+(defconst wisitoken-fail-re "FAIL\\|ERROR")
+
 (defun wisitoken-compilation-prev ()
   (interactive)
   (forward-line -2)
   (let ((case-fold-search nil))
-    (search-backward "FAIL"))
+    (search-backward-regexp wisitoken-fail-re))
   )
 
 (defun wisitoken-compilation-next ()
   (interactive)
   (let ((case-fold-search nil))
-    (unless (search-forward "FAIL" nil t)
+    (unless (search-forward-regexp wisitoken-fail-re nil t)
       (goto-char (point-min))
-      (search-forward "FAIL" nil t)))
+      (search-forward-regexp wisitoken-fail-re nil t)))
   )
 
 (defun wisitoken-dtrt ()

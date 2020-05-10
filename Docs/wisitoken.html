@@ -45,18 +45,17 @@ projects.
 for recursive-descent, adding syntax error correction in the parser,
 and adding support for simple Packrat parsers.
 
-<h1>current version: 1.3.1</h1>
+<h1>current version: 2.0</h1>
 
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
 <p>WisiToken may be obtained in two ways:
 <ul>
-  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-1.3.1.tar.bz2">source
-  Gnu tar bzip2 wisitoken-1.3.1.tar.bz2</a>, from
+  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-2.0.tar.bz2">source
+  Gnu tar bzip2 wisitoken-2.0.tar.bz2</a>, from
   the <a href="http://download.savannah.gnu.org/releases/ada-mode/">Gnu
   savannah ada-mode download page</a>.
-  <li><a href="/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.wisitoken. The ada-france server is maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
-    <li><a href="http://download.savannah.gnu.org/releases/ada-mode/org.stephe_leake.sal-3.2.tar.bz2">SAL library, used by wisitoken</a>.
+    <li><a href="http://download.savannah.gnu.org/releases/ada-mode/org.stephe_leake.sal-3.4.tar.bz2">SAL library, used by wisitoken</a>.
 </ul>
 <p>It relies on external libraries:
   <ul>
@@ -79,11 +78,16 @@ Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
 
-<h3>Version 1.3.2 </h3>
+<h3>Version 2.0 </h3>
 <ul>
-  <li>unreleased
+  <li>9 May 2020
   <li>Improve handling of recursion in error recovery Minimal_Complete_Action
+  <li>Other improvements in error recovery.
+  <li>Syntax tree improvements to support using virtual tokens in indent in Emacs ada-mode.
   <li>text_rep parse table format changed.
+  <li>support re2c version 1.3
+  <li>Fix ada-mode debbugs #37620; hang in error recovery tasking.
+  <li>match SAL 3.4 changes
 </ul>
 
 <h3>Version 1.3.1 </h3>
@@ -165,6 +169,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sat Apr 25 07:07:30 Pacific Daylight Time 2020 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sat May  9 16:21:28 Pacific Daylight Time 2020 <!-- hhmts end -->
 </body>
 </html>

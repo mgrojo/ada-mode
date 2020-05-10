@@ -2,7 +2,7 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 1.3.1
+ZIP_VERSION := 2.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests recover_stats.exe doc

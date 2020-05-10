@@ -155,10 +155,10 @@ BRANCH := $(notdir $(shell cd ..; pwd))
 
 zip : force
 	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
+	cd ..; git archive $(BRANCH) | tar -x -C ../../$(BRANCH)-$(ZIP_VERSION)
+	tar -c -C ../.. $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
 
 tag :
-	mtn tag h:$(BRANCH) $(BRANCH)-$(ZIP_VERSION)
+	git tag $(BRANCH)-$(ZIP_VERSION) $(BRANCH)
 
 # end of file

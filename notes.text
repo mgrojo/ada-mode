@@ -7,9 +7,9 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
-  (xgit . "/Projects/org.stephe_leake.aunit_ext.stephe-1")
-  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")))
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.stephe_leake.sal")
+  (xgit . "/Projects/org.wisitoken")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -132,6 +132,7 @@ error_correction_algorithm.tex
    - publish in some ACM journal?
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
+     Stefan Monnier paper on SMIE in  https://programming-journal.org/
 
 wisitoken user guide mention concrete syntax tree
 

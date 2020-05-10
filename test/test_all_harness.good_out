@@ -92,6 +92,7 @@ OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_3
 OK test_mckenzie_recover.adb LALR : No_Push_Back_Prev_Error
 OK test_mckenzie_recover.adb LALR : Error_During_Resume_1
 OK test_mckenzie_recover.adb LALR : Error_During_Resume_2
+OK test_mckenzie_recover.adb LALR : Error_During_Resume_3
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Finish_1
 OK test_mckenzie_recover.adb LALR : Always_Minimal_Complete
 OK test_mckenzie_recover.adb LALR : Always_Matching_Begin
@@ -147,6 +148,7 @@ OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_3
 OK test_mckenzie_recover.adb LR1 : No_Push_Back_Prev_Error
 OK test_mckenzie_recover.adb LR1 : Error_During_Resume_1
 OK test_mckenzie_recover.adb LR1 : Error_During_Resume_2
+OK test_mckenzie_recover.adb LR1 : Error_During_Resume_3
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Finish_1
 OK test_mckenzie_recover.adb LR1 : Always_Minimal_Complete
 OK test_mckenzie_recover.adb LR1 : Always_Matching_Begin
@@ -166,7 +168,7 @@ OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_1
 OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_2
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   166
-Successful Tests:  166
+Total Tests Run:   168
+Successful Tests:  168
 Failed Assertions: 0
 Unexpected Errors: 0
