@@ -20,8 +20,10 @@ no separate aunit_ext or makerules release
     (xgit . "../org.stephe_leake.makerules")
     (xgit . "../org.stephe_leake.aunit_ext")))
 
-build/Makefile clean
-    check for missing clean actions
+build/Makefile
+    (gpr-query-kill-all-sessions)
+    clean
+        # check for missing clean actions
 
 build/Makefile all
 

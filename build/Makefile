@@ -37,12 +37,15 @@ MAKERULES_BRANCH := org.stephe_leake.makerules
 # zip includes aunit_ext, makerules; they are not big enough to deserve their own tarball.
 zip :
 	rm -rf ../../$(SAL_BRANCH)-$(ZIP_VERSION)
+	mkdir ../../$(SAL_BRANCH)-$(ZIP_VERSION)
 	rm -rf ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	mkdir ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
 	rm -rf ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
-	git archive $(SAL_BRANCH) | tar -x -C ../../$(SAL_BRANCH)-$(ZIP_VERSION)
-	git archive $(AUNIT_EXT_BRANCH) | tar -x -C ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
-	git archive $(MAKERULES_BRANCH) | tar -x -C ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
-	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(SAL_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
+	mkdir ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	cd ..; git archive $(SAL_BRANCH) | tar -x -C ../$(SAL_BRANCH)-$(ZIP_VERSION)
+	cd ..; git archive $(AUNIT_EXT_BRANCH) | tar -x -C ../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	cd ..; git archive $(MAKERULES_BRANCH) | tar -x -C ../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	tar -c -C ../.. $(SAL_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
 
 tag :
 	git tag $(SAL_BRANCH)-$(ZIP_VERSION) $(SAL_BRANCH)
