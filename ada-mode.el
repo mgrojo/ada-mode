@@ -1338,10 +1338,11 @@ comment:      comment"
 	((code comment)
 	 ;; After code with no trailing comment, or after comment
 	 ;; test/ada_mode-conditional_expressions.adb
-	 ;; (if J > 42
-	 ;; -- comment indent matching GNAT style check
-	 ;; -- second line of comment
-	 prev-indent)
+	 ;; K2 : Integer := (if J > 42
+	 ;;                  -- comment indent matching GNAT style check
+	 ;;                  then
+	 ;;
+	 (max prev-indent next-indent))
 
 	))
      )))

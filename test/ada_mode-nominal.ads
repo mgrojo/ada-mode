@@ -852,7 +852,7 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-     with Pack => True;
+   with Pack => True;
 
    overriding function Function_2g (Param : in Limited_Derived_Type_1) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_1) is abstract;

@@ -1635,10 +1635,15 @@ also be respected.
 
 Another place where identifier completion is used in the
 @code{xref-find-definitions} (@key{C-u M-.}) and
-@code{wisi-goto-spec/body} (@key{C-u C-c C-d} commands; these complete
+@code{wisi-goto-spec/body} (@key{C-u C-c C-d}) commands; these complete
 on all symbols in the project (provided by @code{gpr_query}). With two
 @kbd{C-u}, the completion is limited to symbols defined in the current
 file.
+
+Note that in Ada, for subprograms that have a specification in the
+@file{.ads} file and a body in the @{.adb} file,
+@key{C-u C-u C-c C-d} returns the spec location only, so it will not
+find the function if invoked in the @{.adb} file.
 
 @node Indentation, Statement skeletons, Identifier completion, Top
 @chapter Indentation

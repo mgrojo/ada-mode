@@ -448,6 +448,13 @@ package body Ada_Mode.Parens is
                               There
                               --  Comment before trailing paren
                            );
+      Ada.Text_Io.Put_Line (
+                            -- comment after paren
+                            Out_File,
+                            Hello &
+                              There
+                              --  Comment before trailing paren
+                           );
       Ada.Text_Io.Put_Line (Out_File,
                             Hello & There
                             --  Comment before trailing paren, token.First = true
@@ -474,6 +481,16 @@ package body Ada_Mode.Parens is
                               There
                               --  Comment before trailing paren, token.First = False
                            );
+      Ada.Text_Io.Put_Line
+        (Item =>
+         --  Comment after =>, token.First = False
+           Hello & There);
+
+      Ada.Text_Io.Put_Line
+        (Item
+           =>
+             --  Comment after =>, token.First = True
+             Hello & There);
    end Hello;
 
    --  Slice in procedure call

@@ -14,16 +14,16 @@ WISI_DIR="../wisi-3.0.1"
 
 gnatprep -DELPA="yes" $WISI_DIR/wisi.gpr.gp $WISI_DIR/wisi.gpr
 
-# FIXME: user may have already set GPR_PROJECT_PATH
-export GPR_PROJECT_PATH=$WISI_DIR
+# We don't add WISI_DIR to GPR_PROJECT_PATH because the user may have
+# already set GPR_PROJECT_PATH.
 
 # Allow running build.sh again, since it often fails the first time.
 #  - Run gprclean, to allow changing compilers and other drastic things
 #  - Don't delete ada_lr1_parse_table.txt
 
-gprclean -r -P ada_mode_wisi_parse.gpr
+gprclean -r -P ada_mode_wisi_parse.gpr -aP $WISI_DIR
 
-gprbuild -p -j8 -P ada_mode_wisi_parse.gpr "$@"
+gprbuild -p -j8 -P ada_mode_wisi_parse.gpr -aP $WISI_DIR "$@"
 
 gzip -c -d -q ada_lr1_parse_table.txt.gz > ada_lr1_parse_table.txt
 

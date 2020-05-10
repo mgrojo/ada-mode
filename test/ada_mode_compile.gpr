@@ -128,9 +128,7 @@ project Ada_Mode_Compile is
       "ada_mode-refactor_object_index_to_element_object.adb",
       "ada_mode-refactor_object_method_to_method_object.adb",
 
-      -- WORKAROUND: this gives bogus warnings about too-long lines
-      -- with CE 2018 on Debian, but is required with GNAT GPL 2017
-      -- "ada_mode-separate_protected_body.adb",
+      "ada_mode-selected_component.adb",
 
       -- This has illegal code; used for testing skeleton expansion
       "ada_skel.adb",

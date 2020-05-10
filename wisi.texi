@@ -394,7 +394,7 @@ current token is ``anchored to'' TOKEN.
 
 @item wisi-anchored* TOKEN OFFSET
 Sets the indent for the current token to be OFFSET from the start of
-TOKEN, but only if TOKEN is the first token on a line.
+TOKEN, but only if TOKEN is the first token on a line; otherwise no indent
 
 @item wisi-anchored*- TOKEN OFFSET
 Sets the indent for the current token to be OFFSET from the start of

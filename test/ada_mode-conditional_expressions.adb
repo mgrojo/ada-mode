@@ -1,3 +1,6 @@
+--  This sets ada-indent-comment-gnat t in Local Variables below; see
+-- ada_mode-conditional_expressions-more_1.adb for setting that nil.
+
 procedure Ada_Mode.Conditional_Expressions is
    subtype Bounded is Integer range -1 .. +1;
    J : Integer := 42;
@@ -6,12 +9,20 @@ procedure Ada_Mode.Conditional_Expressions is
    K0b : Integer := Integer'((if J > 42 then -1 else +1));
 
    K1 : Integer := (if J > 42 then -1
+                    --  comment
                     else +1);
    K2 : Integer := (if J > 42
+                    --  comment
                     then -1
                     else +1);
+   K2a : Integer :=
+     (if J > 42
+      --  comment
+      then -1
+      else +1);
    K3 : Integer := (if
                       J > 42
+                      --  comment
                     then
                        -1
                     else

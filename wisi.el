@@ -778,7 +778,9 @@ Usefull if the parser appears to be hung."
 	  (with-current-buffer wisi-error-buffer
 	    (setq buffer-read-only nil)
 	    (erase-buffer)
-	    (setq buffer-read-only t))))
+	    (setq buffer-read-only t)
+	    (when (get-buffer-window wisi-error-buffer)
+	      (delete-window (get-buffer-window wisi-error-buffer))))))
 
       (condition-case-unless-debug err
 	  (save-excursion

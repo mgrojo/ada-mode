@@ -45,6 +45,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+use (eval-when-compile (call-process "build.sh")(call-process "install.sh")) to automate compile?
+    and install.sh
+    asked on ada-mode mailing list
+
+release; see below
+
 compare ada LR1 generate time
     o.e.a:
         LALR re2c generate time: 0.589618659
@@ -62,52 +68,7 @@ compare ada LR1 generate time
         LALR re2c generate time: 0.519115752
         LR1 re2c generate time: 61.987758850
 
-test/ada_mode-recover_string_quote_1.adb
-    undo_reduce after push-back or insert
-
-test/ada_mode-recover_partial_02_lr1.adb
-    add language_fix to push_back to before '('
-    add paren to descriptor, add this in -explore?
-
-language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
-    selected_component 1
-
-convert char literal to string literal: test/ada_mode-recover_31.adb
-    just fix comment; handled in language_fixes
-
-test/ada_mode-recover_35.adb
-    error in resume
-
-test/ada_mode-recover_34.adb
-    recover timed out, now ok?
-
-build.sh:
-    debbug 40403
-
-    handle user already set GPR_PROJECT_PATH
-        just use -aP $WISI_DIR?
-
-    Recent GNATPro releases do not need 'with gnat_util;' anymore.
-        See: ' [T403-009 <https://gt3-prod-2.adacore.com/#/tn/T403-009>] #422 gnat_util for GNAT-Pro'
-        on Eurocontrol's AdaCore-account
-
-        add to .gpr.gp
-
-use (eval-when-compile (call-process "build.sh")) to automate compile?
-    and install.sh
-
-add to user guide:
-    C-u C-u C-c C-d will not find bodies of public items; they are defined in the spec file, not the body
-
-    ada-indent-record, other functions in ada.wy
-        or doc those in ada.wy with comments
-        see comments in wisi-ada.adb Ada_Indent_Record_1
-
-    wisi-hanging checks for parens
-
-add "don't trust parser-provided text positions if buffer is modified" to wisi manual
-
-indent bugs:
+indent bug
     State.Kernel (I) :=
       (Production        => Item.Prod,
        Recursion         =>
@@ -115,46 +76,21 @@ indent bugs:
          ((case To_Index (Item.Dot) is
 
         comment should align with expression, not discrete_choice
+            which is _not_ what wisi-hanging Indenting_Comment True does
+            semantics of Indenting_Comment are confused
+                Indenting_Token should be the token to which wisi-hanging applies, not the one containing the comment?
+                they are the same when there is a comment-pair
+                    so keep what we have for consistency?
 
+        test/ada_mode-generic_package.ads
+            preceding comment moved when wisi-hanging added to name.
 
-    (if Recursion (1) /= None
-      --  case 2
-    then RHS.Recursion (1)),
+test/ada_mode-recover_partial_02_lr1.adb
+    add language_fix to push_back to before '('
+    add paren to descriptor, add this in -explore?
 
-        comment should align with 'then'
-
-
-    Recover_Op_Arrays.Variable_Ref
-       (Parser_State.Recover_Insert_Delete,
-        Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete))
-    .Ins_Tree_Node := Parser_State.Current_Token;
-
-   function Get_Node_Ref
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Valid_Node_Index_Arrays.Variable_Reference
-   is (if Node <= Tree.Last_Shared_Node
-         then Tree.Shared_Tree.Nodes (Node)
-         else Tree.Branched_Nodes (Node));
-
-align bug:
-   function Image (Item : in Recursion_Class) return String
-     is (case Item is
-         when None        => "None",
-         when Direct_Left => "Direct_Left",
-         when Other_Left  => "Other_Left",
-         when Other => "Other",
-         when Other_Right => "Other_Right",
-         when Direct_Right => "Direct_Right",
-         when Other_Last => "Other_Last");
-
-    similar in test/ada_mode-conditional_expressions.adb
-
-    use parser
-
-hide wisi syntax errors window when clear it
-
-release
+language_fixes; duplicate test_mckenzie_recover test cases here, to test this code
+    selected_component 1
 
 test/ada_mode-recover_06, _10.adb
     not _24
@@ -968,22 +904,6 @@ ftp://alpha.gnu.org/gnu/emacs/pretest/
         make
         # don't make install, just run from the build dir
 
- access to ada-france:
-
-anonymous (read only) access:
-    mtn --db ~/monotone-dbs/ada-france.db --key '' pull www.ada-france.org "org.emacs.*"
-
-read/write access requires a public key:
-    send output of 'mtn pubkey' to Ludovic Brenta
-    <ludovic@ludovic-brenta.org> or Stephe Leake
-    <stephen_leake@stephe-leake.org>
-
-    add it to monotone db via 'mtn read'
-    add it to /etc/monotone/write-permissions
-    /etc/init.d/monotone restart
-
-    mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
-
  git config for elpa checkout
 in ~/.gitconfig:
     # 15 Feb 2016: ELPA has an object that fails this check; only need
@@ -1004,31 +924,6 @@ in ~/.gitconfig:
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
-
- beta test release
-run all tests
-
-do wisitoken, sal release
-
-bump version (elpa releases don't have to be consecutive)
-
-Makefile pub install-elpa elpa-zip-2
-    # install-elpa verifies all required files are included and byte-compile successfully.
-
-verify beta install instructions d:/Web/savannah/ada-mode/index.html
-
-(dvc-state-one ".")
-
-in cygwin console for gpg prompts:
-    cd /Projects/elpa/archive/packages
-    ls *.tar*
-    rm <old>.tar*
-    gpg -b *.tar.*
-
-    scp *.tar.* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-
-all below from "build/Makefile tag zip"
-    except don't commit elpa?
 
  release process
 keep status in ~/projects.text
@@ -1070,10 +965,10 @@ run all tests without elpa:
     build/Makefile elisp
     build/Makefile byte-compile-clean
 
-    - Windows master Emacs, current gnat
+    - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat
     - Windows Emacs 26.1, current gnat
-    - Debian testing, current gnat (community or pro)
+    - Debian testing, Emacs master, current gnat (community or pro)
 
 compare:
     build stuff to compare with previous release in elpa:

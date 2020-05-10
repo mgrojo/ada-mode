@@ -240,7 +240,7 @@ parser accepts; the parser always accepts a superset of ada2012."
   "Return non-nil if point is in a case expression."
   (when (wisi-in-paren-p parse-result)
     (save-excursion
-      (wisi-goto-open-paren 0 parse-result)
+      (wisi-goto-open-paren 1 parse-result)
       (while (forward-comment 1))
       (looking-at "case"))))
 
