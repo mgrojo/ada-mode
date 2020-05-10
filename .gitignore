@@ -6,3 +6,4 @@ build/*.exe
 build/*.out
 build/*.bz2
 build/obj_pro/
+build/*.sig
