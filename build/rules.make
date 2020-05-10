@@ -155,7 +155,8 @@ BRANCH := $(notdir $(shell cd ..; pwd))
 
 zip : force
 	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
-	cd ..; git archive $(BRANCH) | tar -x -C ../../$(BRANCH)-$(ZIP_VERSION)
+	mkdir ../../$(BRANCH)-$(ZIP_VERSION)
+	cd ..; git archive $(BRANCH) | tar -x -C ../$(BRANCH)-$(ZIP_VERSION)
 	tar -c -C ../.. $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
 
 tag :
