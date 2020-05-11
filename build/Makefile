@@ -101,7 +101,6 @@ one :: byte-compile autoloads
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-	rm -f test.log
 #	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
@@ -449,7 +448,7 @@ build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
-	gprinstall -v -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
+	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

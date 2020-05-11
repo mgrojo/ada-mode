@@ -610,7 +610,7 @@ Also sets ff-function-name for ff-pre-load-hook."
 		    ((entry_body entry_declaration)
 		     (setq result (ada-which-function-1 "entry" nil)))
 
-		    (full_type_declaration
+		    ((full_type_declaration private_type_declaration)
 		     (setq result (ada-which-function-1 "type" nil)))
 
 		    (package_body
@@ -863,7 +863,7 @@ compiler-specific compilation filters."
 		    ((entry_body entry_declaration)
 		     (eq (wisi-cache-token cache) 'ENTRY))
 
-		    (full_type_declaration
+		    ((full_type_declaration private_type_declaration)
 		     (when include-type
 		       (eq (wisi-cache-token cache) 'TYPE)))
 

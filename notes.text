@@ -968,6 +968,9 @@ run all tests without elpa:
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat
     - Windows Emacs 26.1, current gnat
+
+    #dvc-state-multiple above
+    (dvc-push)
     - Debian testing, Emacs master, current gnat (community or pro)
 
 compare:
@@ -1111,7 +1114,7 @@ sync for Debian check bogus execute permissions:
     current Emacs for dvc
     # dvc-state-multiple above
     # not elpa; commit elpa on Debian for file permissions
-    $ mtn_sync_ada_france.sh
+    (dvc-push)
     (dvc-sync-review ".")
 
 Debian testing has elpa checkout

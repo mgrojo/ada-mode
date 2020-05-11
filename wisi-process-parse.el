@@ -104,17 +104,20 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
   ;; process buffer contains the process and language protocol versions.
   (with-current-buffer (wisi-process--parser-buffer parser)
     (goto-char (point-min))
-    (search-forward-regexp "protocol: process version \\([0-9]+\\) language version \\([0-9]+\\)")
-    (unless (and (match-string 1)
-		 (string-equal (match-string 1) wisi-process-parse-protocol-version)
-		 (match-string 2)
-		 (string-equal (match-string 2) (wisi-process--parser-language-protocol-version parser)))
-      (wisi-parse-kill parser)
-      (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
-	     (wisi-process--parser-label parser)
-	     wisi-process-parse-protocol-version (wisi-process--parser-language-protocol-version parser)
-	     (match-string 1) (match-string 2)))
-    ))
+    (if (search-forward-regexp "protocol: process version \\([0-9]+\\) language version \\([0-9]+\\)" nil t)
+	(unless (and (match-string 1)
+		     (string-equal (match-string 1) wisi-process-parse-protocol-version)
+		     (match-string 2)
+		     (string-equal (match-string 2) (wisi-process--parser-language-protocol-version parser)))
+	  (wisi-parse-kill parser)
+	  (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
+		 (wisi-process--parser-label parser)
+		 wisi-process-parse-protocol-version (wisi-process--parser-language-protocol-version parser)
+		 (match-string 1) (match-string 2)))
+      ;; Search failed
+      (error "%s parser process protocol version message not found"
+	     (wisi-process--parser-label parser))
+    )))
 
 (defun wisi-process-parse--require-process (parser)
   "Start the process for PARSER if not already started."
@@ -138,7 +141,6 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 			      (wisi-process--parser-exec-opts parser))))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
-      (setf (wisi-process--parser-busy parser) nil)
 
       (wisi-process-parse--wait parser)
       (wisi-process-parse--check-version parser)
@@ -518,8 +520,6 @@ complete."
 (declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
 
 (defun wisi-process-parse--prepare (parser)
-  (wisi-process-parse--require-process parser)
-
   ;; font-lock can trigger a face parse while navigate or indent parse
   ;; is active, due to ‘accept-process-output’ below. Signaling an
   ;; error tells font-lock to try again later.
@@ -540,6 +540,13 @@ complete."
     ;; parser-busy; background elisp can only run when we call
     ;; accept-process-output below.
     (setf (wisi-process--parser-busy parser) t)
+
+    ;; If the parser process has not started yet,
+    ;; wisi-process-parse--require-process calls
+    ;; wisi-process-parse--wait, which can let font-lock invoke the
+    ;; parser again. Thus this call must be after we set
+    ;; wisi-process--parser-busy t
+    (wisi-process-parse--require-process parser)
 
     (setf (wisi-process--parser-total-wait-time parser) 0.0)
     (setf (wisi-parser-lexer-errors parser) nil)
