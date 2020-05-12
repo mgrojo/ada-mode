@@ -24,7 +24,8 @@
 ;; The primary user command is `wisi-skel-expand', which inserts the
 ;; skeleton associated with the previous word (possibly skipping a
 ;; name).
-;;
+
+(require 'skeleton)
 
 (defvar-local wisi-skel-token-alist nil
   "Alist of (STRING . ELEMENT), used by `wisi-skel-expand'.

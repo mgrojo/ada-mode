@@ -1125,10 +1125,11 @@ sync for Debian check bogus execute permissions:
     (dvc-sync-review ".")
 
 Debian testing has elpa checkout
-    ~/bin/mtn_sync_ada_france.sh
+    (dvc-pull ".")
     (dvc-sync-review ".")
 
     upgrade debian (to avoid eventually needing to reinstall from scratch)
+
     if new machine, install gnat CE 2019, gnatcoll
         http://libre.adacore.com
         ada-mode.texi
@@ -1157,7 +1158,7 @@ Debian testing has elpa checkout
     (dvc-sync-review "/Projects/elpa")
 
     # dvc-state-multiple above
-    $ mtn_sync_ada_france.sh
+    (dvc-push ".")
     (dvc-sync-review ".")
 
 On Windows
