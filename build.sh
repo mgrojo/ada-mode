@@ -7,10 +7,19 @@
 #
 # See install.sh for install
 
-# support for libadalang is still experimental
-gnatprep  -DHAVE_LIBADALANG="no" -DELPA="yes" ada_mode_wisi_parse.gpr.gp ada_mode_wisi_parse.gpr
+# As of gnat pro 21, gnat_util is no longer provided or required
+echo 'with "gnat_util"; abstract project check is end check;' > check.gpr
+gprbuild -P check.gpr > /dev/null 2>&1
+if test $? -eq 0 ; then
+    HAVE_GNAT_UTIL=yes
+else
+    HAVE_GNAT_UTIL=no
+fi
 
-WISI_DIR="../wisi-3.0.1"
+# support for libadalang is still experimental
+gnatprep  -DHAVE_LIBADALANG="no" -DELPA="yes" -DHAVE_GNAT_UTIL=$HAVE_GNAT_UTIL ada_mode_wisi_parse.gpr.gp ada_mode_wisi_parse.gpr
+
+WISI_DIR="../wisi-3.1.0"
 
 gnatprep -DELPA="yes" $WISI_DIR/wisi.gpr.gp $WISI_DIR/wisi.gpr
 
@@ -21,7 +30,7 @@ gnatprep -DELPA="yes" $WISI_DIR/wisi.gpr.gp $WISI_DIR/wisi.gpr
 #  - Run gprclean, to allow changing compilers and other drastic things
 #  - Don't delete ada_lr1_parse_table.txt
 
-gprclean -r -P ada_mode_wisi_parse.gpr -aP $WISI_DIR
+gprclean -r -P ada_mode_wisi_parse.gpr -aP$WISI_DIR
 
 gprbuild -p -j8 -P ada_mode_wisi_parse.gpr -aP $WISI_DIR "$@"
 

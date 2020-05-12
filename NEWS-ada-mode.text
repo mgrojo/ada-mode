@@ -6,7 +6,8 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* Ada Mode 7.x
+* Ada Mode 7.1
+11 May 2020
 
 ** gpr_query Version 3
 
@@ -16,8 +17,8 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 ** gpr_query now starts in the background, and provides a completion
    table of all symbols in the project.
 
-** `complete-symbols' (bound by default in the global key map to M-tab
-   (or C-M-i)) now uses the symbol table provided by gpr-query.
+** keystroke C-M-i is bound to `completion-at-point', and uses the
+   symbol table provided by gpr-query.
 
 ** Commands that prompt for a symbol (ie C-u C-c C-d
    wisi-goto-spec/body and C-u M-. xref-find-definitions) use the
@@ -30,6 +31,10 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    small region containing the parens.
 
 ** Virtual tokens are used in indent, improving indent computation.
+
+** Error recovery is improved.
+
+** Fixes debbugs 40403, 40964, 37620
 
 * Ada Mode 7.0.1
 30 Jan 2020

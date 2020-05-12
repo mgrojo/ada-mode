@@ -24,11 +24,9 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
-'((xgit . "/Projects/org.stephe_leake.makerules")
-  (xgit . "/Projects/org.stephe_leake.sal")
-  (xgit . "/Projects/org.stephe_leake.aunit_ext")
-  (xgit . "/Projects/org.wisitoken")
-  (xgit . "/Projects/org.emacs.ada-mode")))
+'((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -121,6 +119,8 @@ could elminate wisi.parse_data_type.terminals
 
     replace line_begin_pos, line_paren_state by line_begin_token?
         fetch aug to get data
+
+    delete package Augmented_Token_Arrays?
 
 lsp-mode has mechanism to download and install servers
     adapt that for compiled wisi exes?
@@ -308,6 +308,8 @@ libadalang/lsp backend
     https://github.com/microsoft/language-server-protocol/issues/18 semantic info for highlight = face
 
     Convert wisitoken syntax tree to adalang - plug in to Lang server
+
+    use lang server infrastructure as wrapper around wisitoken ada parser/wisi post-process
 
     use wisitoken parser with GPS
         add incremental parsing https://www.researchgate.net/profile/SL_Graham/publication/2377179_Efficient_and_Flexible_Incremental_Parsing/links/004635294e13f23ef1000000/Efficient-and-Flexible-Incremental-Parsing.pdf
@@ -510,6 +512,12 @@ do module interface
     add re2c_emacs lexer, that handles emacs raw buffer text
         that lets the emacs buffer be the text buffer, avoiding copy/encode
 
+    add parser task, one per buffer
+        parse ada_mode.ads for face while finishing indent ada_mode.adb
+
+        queue parse requests for one buffer
+            first parse builds syntax tree
+            use it for all post-parse actions
 
 packrat
     need to override wisitoken.parse.put_errors for emacs process interface
@@ -981,13 +989,13 @@ compare:
         install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-2.1.1" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "~/.emacs.d/elpa/wisi-3.0.1" "/Projects/elpa/packages/wisi" nil)
         NEWS-wisi.text
             copyright date
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.1.1" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.0.1" "/Projects/elpa/packages/ada-mode" nil)
         NEWS-ada-mode.text
             add release date
             add new features
@@ -1021,12 +1029,12 @@ bump versions
         (should have been changed already, but verify)
         Protocol_Version if this file changed, or
         wisi-process-parse.el -send-parse, -send-refactor, -execute
-        changed, or for bug fixes/features in parser or wisi.adb
-        ie, if installed parser must be replaced on upgrade or downgrade
+        changed; ie, if installed parser must be replaced on upgrade
+        or downgrade
 
     wisi-ada.ads
         (should have been changed already, but verify)
-        Language_Protocol_Version if this file changed, or for bug fixes/features in wisi-ada.adb
+        Language_Protocol_Version if this file changed
         ie, if installed parser must be replaced on upgrade or downgrade
 
     wisi.el
@@ -1040,10 +1048,10 @@ bump versions
         first line
 
     build.sh
-        GPR_PROJECT_PATH wisi version
+        WISI_DIR wisi version
 
     install.sh
-        GPR_PROJECT_PATH wisi version
+        WISI_DIR wisi version
 
     ada-mode.el
         Version:
@@ -1065,7 +1073,6 @@ bump versions
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
-        WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-i.j.k/
 
     d:/Web/savannah/ada-mode/index.html
         find-replace ada-mode i.j.k
@@ -1098,8 +1105,8 @@ Emacs 25.3, current gnat
     (gpr-query-kill-all-sessions)
     (list-processes)
     # 'd' = kill; gpr_mode_wisi_parse.exe, ada_mode_lr1_wisi_parse.exe
-    cd ~/.emacs.d/elpa/ada-mode-7.0.1; ./build.sh; ./install.sh
-    cd ~/.emacs.d/elpa/wisi-3.0.1; ./build-wisitoken-bnf-generate.sh
+    cd ~/.emacs.d/elpa/ada-mode-7.1.0; ./build.sh; ./install.sh
+    cd ~/.emacs.d/elpa/wisi-3.1.0; ./build-wisitoken-bnf-generate.sh
 
     restart Emacs to set load-path
 
@@ -1214,10 +1221,10 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
-Gnu Emacs Ada mode 7.0.1 released.
+Gnu Emacs Ada mode 7.1.0 released.
 -------------------
 
-Gnu Emacs Ada mode 7.0.1 is now available in GNU ELPA.
+Gnu Emacs Ada mode 7.1.0 is now available in GNU ELPA.
 
 Relative to the previous Ada mode release (6.2.1), this is a
 significant refactoring, which may affect some user custom code.
@@ -1232,13 +1239,13 @@ Relative to the previous beta test (7.0.0), this is a minor feature
 and bug fix release.
 
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.0.1 and wisi-3.0.1,
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.0 and wisi-3.1.0,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
 
-cd ~/.emacs.d/elpa/ada-mode-7.0.1
+cd ~/.emacs.d/elpa/ada-mode-7.1.0
 ./build.sh
 ./install.sh
 
@@ -1250,7 +1257,7 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.0.1
+        subject: closed by ada-mode version 7.1.0
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 

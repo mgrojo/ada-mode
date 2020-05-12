@@ -25,7 +25,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title Ada Mode Version 7.0.1
+@title Ada Mode Version 7.1.0
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -37,7 +37,7 @@ developing GNU and promoting software freedom.''
 @node Top, Overview, (dir), (dir)
 @top Top
 
-Ada Mode Version 7.0.1
+Ada Mode Version 7.1.0
 @end ifnottex
 
 @menu
@@ -1641,9 +1641,9 @@ on all symbols in the project (provided by @code{gpr_query}). With two
 file.
 
 Note that in Ada, for subprograms that have a specification in the
-@file{.ads} file and a body in the @{.adb} file,
+@file{.ads} file and a body in the @file{.adb} file,
 @key{C-u C-u C-c C-d} returns the spec location only, so it will not
-find the function if invoked in the @{.adb} file.
+find the function if invoked in the @file{.adb} file.
 
 @node Indentation, Statement skeletons, Identifier completion, Top
 @chapter Indentation
