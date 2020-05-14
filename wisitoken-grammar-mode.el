@@ -5,10 +5,9 @@
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.0.3
-;; package-requires: ((wisi "2.2.1") (emacs "25.0") (mmm-mode "0.5.7"))
-
-;; no upstream url; just ELPA
+;; Version: 1.1.0
+;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
+;; url: http://www.nongnu.org/ada-mode/
 
 ;; This file is part of GNU Emacs.
 
@@ -325,24 +324,26 @@ Otherwise insert a plain new line."
   (wisi-names t nil))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
-  (let (temp)
-    (unless (and (string-match wisi-names-regexp identifier)
-		 (match-string 2 identifier))
-      ;; Identifier is from identifier-at-point; get line from completion table
-      (setq temp (try-completion identifier (wisi-names t nil)))
-      (unless temp
-	(user-error "%s not found" identifier))
+  (when (get-text-property 0 'xref-identifier identifier)
+    ;; Identifier is from identifier-at-point; find declaration in completion table
+    (let* ((table (wisi-names t nil))
+	   (temp (try-completion identifier table)))
+      (cond
+       ((or (null temp)
+	    (not (test-completion temp table)))
+	(setq identifier (completing-read "decl: " table nil t identifier)))
 
-      (setq identifier temp)
-      (unless (test-completion identifier (wisi-names t nil))
-	(setq identifier (completing-read "decl: " (wisi-names t nil) nil t identifier)))
-      (string-match wisi-names-regexp identifier)))
+       (t
+	(setq identifier temp)))
+      ))
 
-  (let* ((ident (match-string 1 identifier))
-	 (line-str (match-string 2 identifier))
-	 (line (when line-str (string-to-number line-str))))
-    (when line
-      (list (xref-make ident (xref-make-file-location (buffer-file-name) line  0))))
+  ;; Identifier is now from completion table, or nil
+  (when identifier
+    (string-match wisi-names-regexp identifier)
+    (list (xref-make
+	 (match-string 1 identifier)
+	 (xref-make-file-location
+	  (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)))
     ))
 
 ;;; debug

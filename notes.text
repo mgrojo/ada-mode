@@ -29,13 +29,35 @@ wisitoken uses indent-region, mmm-mode overrides indent-line
     write mmm-indent-region
 
  release process
+(dvc-pull "/Projects/elpa")
+(dvc-sync-review "/Projects/elpa")
+
+update NEWS.text
+    $ git log --since "dd mmm yyyy" > release.log
+
 bump version
     wisitoken-grammar-mode.el
         Version:
+        package-requires:
+
+    README
 
     Makefile
         WISITOKEN_GRAMMAR_MODE_VERSION
         WISI_VERSION
 
     build.sh
-        wisi
+        wisi dir in GPR_PROJECT_PATH
+
+update, test ELPA
+    Makefile pub install-elpa
+
+    cd ~/.emacs.d/elpa/wisitoken-grammar-mode-1.1.0; ./build.sh
+
+commit ELPA
+    (dvc-state-one "/Projects/elpa-externals/wisitoken-grammar-mode")
+        add/delete, stage, commit
+
+    (dvc-push "/Projects/elpa-externals/wisitoken-grammar-mode")
+
+-- end of file

@@ -6,8 +6,8 @@
 
 #export Standard_Common_Build := Debug
 
-export WISITOKEN_GRAMMAR_MODE_VERSION := 1.0.0
-export WISI_VERSION                   := 2.1.1
+export WISITOKEN_GRAMMAR_MODE_VERSION := 1.1.0
+export WISI_VERSION                   := 3.1.1
 
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
