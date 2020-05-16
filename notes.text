@@ -24,7 +24,6 @@ update-wisitoken_grammar
 to_tree_sitter
     build/Makefile one
 
-    declare tree-sitter rules for regexp tokens, use those names in nonterms
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!

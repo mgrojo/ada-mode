@@ -20,6 +20,7 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Exceptions;
+with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Syntax_Trees.LR_Utils;
@@ -222,8 +223,7 @@ is
                         begin
                            case To_Token_Enum (Tree.ID (Item)) is
                            when REGEXP_ID =>
-                              --  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-                              Put (File, "/" & Get_Text (Item) & "/");
+                              Put (File, Ident);
 
                            when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
                               --  FIXME: case insensitive?
@@ -366,8 +366,33 @@ is
             end;
 
          when declaration_ID =>
-            --  all ignored.
-            null;
+            case Tree.RHS_Index (Node) is
+            when 0 =>
+               if Tree.ID (Tree.Child (Tree.Child (Node, 2), 1)) = +Wisitoken_Grammar_Actions.TOKEN_ID then
+                  declare
+                     use Ada.Strings;
+                     use Ada.Strings.Fixed;
+                     use WisiToken.Syntax_Trees.LR_Utils;
+                     Name : constant String := Get_Text (Tree.Child (Node, 3));
+                     Iter : constant Syntax_Trees.LR_Utils.Iterator :=
+                       WisiToken_Grammar_Runtime.Iterate (Data, Tree, Tree.Child (Node, 4), +declaration_item_ID);
+                     Item : constant Valid_Node_Index :=
+                       Tree.Child (Syntax_Trees.LR_Utils.Node (First (Iter)), 1);
+                  begin
+                     case To_Token_Enum (Tree.ID (Item)) is
+                     when REGEXP_ID =>
+                        --  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+                        Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Item), Both) & "/,");
+
+                     when others =>
+                        null;
+                     end case;
+                  end;
+               end if;
+
+            when others =>
+               null;
+            end case;
 
          when nonterminal_ID =>
             declare
