@@ -25,7 +25,6 @@ with GNAT.Regexp;
 with SAL.Generic_Decimal_Image;
 with System.Assertions;
 with WisiToken.Generate;   use WisiToken.Generate;
-with WisiToken.Syntax_Trees.LR_Utils;
 package body WisiToken_Grammar_Runtime is
 
    use WisiToken;
@@ -33,23 +32,6 @@ package body WisiToken_Grammar_Runtime is
 
    ----------
    --  Body subprograms, misc order
-
-   procedure Raise_Programmer_Error
-     (Label : in String;
-      Data  : in User_Data_Type;
-      Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in WisiToken.Node_Index);
-   pragma No_Return (Raise_Programmer_Error);
-
-   procedure Raise_Programmer_Error
-     (Label : in String;
-      Data  : in User_Data_Type;
-      Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in WisiToken.Node_Index)
-   is begin
-      WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Data.Terminals.all, Node);
-   end Raise_Programmer_Error;
 
    function Get_Line
      (Data : in User_Data_Type;
@@ -603,7 +585,7 @@ package body WisiToken_Grammar_Runtime is
                         else raise Grammar_Error with
                           Error_Message
                             (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
-                            "expecting {context | pre | post}"))
+                             "expecting {context | pre | post}"))
 
                      elsif Get_Loc (2) = "body" then
                        (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Body_Context
@@ -612,7 +594,7 @@ package body WisiToken_Grammar_Runtime is
                         else raise Grammar_Error with
                           Error_Message
                             (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
-                            "expecting {context | pre | post}"))
+                             "expecting {context | pre | post}"))
 
                      else raise Grammar_Error);
 
@@ -883,6 +865,77 @@ package body WisiToken_Grammar_Runtime is
       end case;
    end Check_EBNF;
 
+   procedure Raise_Programmer_Error
+     (Label : in String;
+      Data  : in User_Data_Type;
+      Tree  : in WisiToken.Syntax_Trees.Tree;
+      Node  : in WisiToken.Node_Index)
+   is begin
+      WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Data.Terminals.all, Node);
+   end Raise_Programmer_Error;
+
+   function Iterate
+     (Data         : in User_Data_Type;
+      Tree         : in WisiToken.Syntax_Trees.Tree;
+      Root         : in Valid_Node_Index;
+      Element_ID   : in WisiToken.Token_ID;
+      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     return WisiToken.Syntax_Trees.LR_Utils.Iterator
+   is begin
+      return WisiToken.Syntax_Trees.LR_Utils.Iterator
+        (WisiToken.Syntax_Trees.LR_Utils.Iterate
+           (Tree, Data.Terminals, Data.Grammar_Lexer, Wisitoken_Grammar_Actions.Descriptor'Access, Root,
+            Element_ID   => Element_ID,
+            Separator_ID => Separator_ID));
+   end Iterate;
+
+   function Find_Declaration
+     (Data : in User_Data_Type;
+      Tree : in WisiToken.Syntax_Trees.Tree;
+      Name : in String)
+     return WisiToken.Node_Index
+   is
+      use WisiToken.Syntax_Trees.LR_Utils;
+
+      function Decl_Name (Decl : in Valid_Node_Index) return String
+      is begin
+         case To_Token_Enum (Tree.ID (Decl)) is
+         when declaration_ID =>
+            case Tree.RHS_Index (Decl) is
+            when 0 =>
+               return Get_Text (Data, Tree, Tree.Child (Decl, 3));
+
+            when 2 | 3 =>
+               return Get_Text (Data, Tree, Tree.Child (Decl, 2));
+
+            when others =>
+               return "";
+            end case;
+
+         when nonterminal_ID =>
+            return Get_Text (Data, Tree, Tree.Child (Decl, 1));
+
+         when others =>
+            return "";
+         end case;
+      end Decl_Name;
+
+      --  Tree.Root is wisitoken_accept
+      Iter : constant Iterator := Iterate (Data, Tree, Tree.Child (Tree.Root, 1), +compilation_unit_ID);
+   begin
+      for I in Iter loop
+         declare
+            Decl : constant Valid_Node_Index := Tree.Child (Node (I), 1);
+         begin
+            if Name = Decl_Name (Decl) then
+               return Decl;
+            end if;
+         end;
+      end loop;
+      return Invalid_Node_Index;
+   end Find_Declaration;
+
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Data : in out User_Data_Type)
@@ -967,6 +1020,7 @@ package body WisiToken_Grammar_Runtime is
 
       function First_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
       is
+         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.First
          List_ID : constant WisiToken.Token_ID := Tree.ID (Root);
 
          --  Return the first child with Element_ID in list of List_IDs. This
@@ -993,6 +1047,8 @@ package body WisiToken_Grammar_Runtime is
 
       function Last_List_Element (Root : in Valid_Node_Index) return Node_Index
       is
+         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.Last
+
          --  Tree is one of:
          --
          --  case a: single element list
@@ -1016,6 +1072,8 @@ package body WisiToken_Grammar_Runtime is
       with Pre => Tree.Parent (Element, 2) /= Invalid_Node_Index and then
                   Tree.ID (Tree.Parent (Element)) = List_ID
       is
+         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.Next
+
          use all type SAL.Base_Peek_Type;
          --  Tree is one of:
          --
@@ -1079,6 +1137,8 @@ package body WisiToken_Grammar_Runtime is
       with Pre => Tree.Parent (Element) /= Invalid_Node_Index and then
                   Tree.ID (Tree.Parent (Element)) = List_ID
       is
+         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.Previous
+
          --  Tree is one of:
          --
          --  case a: first element, no prev

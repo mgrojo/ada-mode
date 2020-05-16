@@ -22,6 +22,7 @@ with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
+with WisiToken.Syntax_Trees.LR_Utils;
 package WisiToken_Grammar_Runtime is
 
    type Meta_Syntax is (Unknown, BNF_Syntax, EBNF_Syntax);
@@ -128,6 +129,29 @@ package WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array;
       Token     : in     WisiToken.Positive_Index_Type);
+
+   procedure Raise_Programmer_Error
+     (Label : in String;
+      Data  : in User_Data_Type;
+      Tree  : in WisiToken.Syntax_Trees.Tree;
+      Node  : in WisiToken.Node_Index);
+   pragma No_Return (Raise_Programmer_Error);
+
+   function Iterate
+     (Data         : in User_Data_Type;
+      Tree         : in WisiToken.Syntax_Trees.Tree;
+      Root         : in WisiToken.Valid_Node_Index;
+      Element_ID   : in WisiToken.Token_ID;
+      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     return WisiToken.Syntax_Trees.LR_Utils.Iterator;
+
+   function Find_Declaration
+     (Data : in User_Data_Type;
+      Tree : in WisiToken.Syntax_Trees.Tree;
+      Name : in String)
+     return WisiToken.Node_Index;
+   --  Return the node that declares Name, Invalid_Node_Index if none.
+   --  The node is either a declaration or a nonterminal.
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;

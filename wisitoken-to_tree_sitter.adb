@@ -22,6 +22,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -49,6 +50,8 @@ is
 
       procedure Put_RHS_Item_List (Node : in Valid_Node_Index; First : in Boolean)
       with Pre => Tree.ID (Node) = +rhs_item_list_ID;
+
+      --  Local bodies
 
       function Get_Text (Tree_Index : in Valid_Node_Index) return String
       is
@@ -186,7 +189,62 @@ is
       with Pre => Tree.ID (Node) = +rhs_item_ID
       is begin
          case Tree.RHS_Index (Node) is
-         when 0 | 1 =>
+         when 0 =>
+            declare
+               use WisiToken_Grammar_Runtime;
+
+               Ident : constant String     := Get_Text (Node);
+               Decl  : constant Node_Index := Find_Declaration (Data, Tree, Ident);
+            begin
+               if Decl = Invalid_Node_Index then
+                  Raise_Programmer_Error ("decl for '" & Ident & "' not found", Data, Tree, Node);
+
+               elsif Tree.ID (Decl) = +nonterminal_ID then
+                  Put (File, Get_Text (Tree.Child (Decl, 1)));
+
+               else
+                  case Tree.RHS_Index (Decl) is
+                  when 0 =>
+                     case To_Token_Enum (Tree.ID (Tree.Child (Tree.Child (Decl, 2), 1))) is
+                     when KEYWORD_ID =>
+                        Put (File, "'" & Get_Text (Tree.Child (Decl, 4)) & "'");
+
+                     when NON_GRAMMAR_ID =>
+                        Not_Translated ("put_rhs_item", Node);
+
+                     when Wisitoken_Grammar_Actions.TOKEN_ID =>
+                        declare
+                           use WisiToken.Syntax_Trees.LR_Utils;
+                           Iter : constant Syntax_Trees.LR_Utils.Iterator :=
+                             Iterate (Data, Tree, Tree.Child (Decl, 4), +declaration_item_ID);
+                           Item : constant Valid_Node_Index :=
+                             Tree.Child (Syntax_Trees.LR_Utils.Node (First (Iter)), 1);
+                        begin
+                           case To_Token_Enum (Tree.ID (Item)) is
+                           when REGEXP_ID =>
+                              --  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+                              Put (File, "/" & Get_Text (Item) & "/");
+
+                           when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+                              --  FIXME: case insensitive?
+                              Put (File, "'" & Get_Text (Item) & "'");
+
+                           when others =>
+                              Not_Translated ("put_rhs_item ident token", Node);
+                           end case;
+                        end;
+
+                     when others =>
+                        Not_Translated ("put_rhs_item ident", Node);
+                     end case;
+
+                  when others =>
+                     Not_Translated ("put_rhs_item 0", Node);
+                  end case;
+               end if;
+            end;
+
+         when 1 =>
             Put (File, Get_Text (Node));
 
          when 2 =>

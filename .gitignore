@@ -25,3 +25,4 @@ build/obj/
 build/obj_pro/
 wisitoken_grammar.re2c
 wisitoken_grammar_lalr.parse_table
+build/*.js
