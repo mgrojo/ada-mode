@@ -43,16 +43,24 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-use (eval-when-compile (call-process "build.sh")(call-process "install.sh")) to automate compile?
-    and install.sh
-    asked on ada-mode mailing list
-
-release; see below
+eldoc
+    use gpr_query to provide info
+    see eglot
 
 compare ada LR1 generate time
     o.e.a:
         LALR re2c generate time: 0.589618659
         LR1 re2c generate time: 66.265096411
+            44 declared conflicts
+            0 accept/reduce conflicts, 5374 shift/reduce conflicts, 27 reduce/reduce conflicts
+            224 rules, 232 user actions, 37 checks, 151571 states
+            67017725 bytes ada_lr1_parse_table.txt
+
+        ada_annex_p.wy LR1 650.00
+            679 declared conflicts
+            547 virtual nonterms
+            0 accept/reduce conflicts, 101760 shift/reduce conflicts, 314759 reduce/reduce conflicts
+            395 rules, 0 user actions, 0 checks, 291358 states
 
     7.0.1
         LALR re2c generate time: 0.689046474
@@ -66,7 +74,14 @@ compare ada LR1 generate time
         LALR re2c generate time: 0.519115752
         LR1 re2c generate time: 61.987758850
 
-indent bug
+indent bugs
+      declare
+         Pos : Integer := GNAT.Regexp.Match (Start_Stop, Line);
+      begin
+         if Pos = Line'First - 1 then
+      --  no match
+      null;
+
     State.Kernel (I) :=
       (Production        => Item.Prod,
        Recursion         =>
@@ -101,6 +116,9 @@ ada-mode language_fix 'extra begin'
 
 LEFT_SQUARE_BRACKET is equiv to LEFT_PAREN at least for aggregates
     update all refs to paren in wisi.adb? wisi-ada.adb? -mckenzie_recover-ada.adb?
+
+use undo-list to update positions in parser response
+    post to emacs-devel
 
 lsp-mode has mechanism to download and install servers
     adapt that for compiled wisi exes?
@@ -980,6 +998,10 @@ run all tests without elpa:
     #dvc-state-multiple above
     (dvc-push)
     - Debian testing, Emacs master, current gnat (community or pro)
+    - Debian testing, Emacs master, Debian gnat
+        gnat
+        libgnatcoll-xref18-dev
+        gprbuild
 
 compare:
     build stuff to compare with previous release in elpa:
@@ -1094,9 +1116,9 @@ prep for elpa tests:
     build/Makefile byte-compile-clean pub
     # pushes to elpa workspace, builds archive
 
-Check copyright on files in published in elpa
+Check copyright on files in elpa
     c:/Projects/elpa/GNUMakefile check_copyrights
-    change to FSF
+    if any ada/wisi files added to output, fix them (add or change to FSF)
 
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
@@ -1120,9 +1142,8 @@ Emacs 25.3, current gnat
 sync for Debian check bogus execute permissions:
     current Emacs for dvc
     # dvc-state-multiple above
-    # not elpa; commit elpa on Debian for file permissions
+    # only uniquify-files in elpa ; commit ada-mode, wisi elpa on Debian for file permissions
     (dvc-push)
-    (dvc-sync-review ".")
 
 Debian testing has elpa checkout
     (dvc-pull ".")
@@ -1155,14 +1176,12 @@ Debian testing has elpa checkout
         add/delete, stage, commit ada-mode, wisi
 
     (dvc-push "/Projects/elpa")
-    (dvc-sync-review "/Projects/elpa")
 
     # dvc-state-multiple above
     (dvc-push ".")
-    (dvc-sync-review ".")
 
 On Windows
-$ mtn_sync_ada_france.sh
+(dvc-pull)
 (dvc-sync-review ".")
 
 delete changes in elpa:
@@ -1222,31 +1241,36 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
-Gnu Emacs Ada mode 7.1.0 released.
+Gnu Emacs Ada mode 7.1.1 released.
 -------------------
 
-Gnu Emacs Ada mode 7.1.0 is now available in GNU ELPA.
+Gnu Emacs Ada mode 7.1.1 is now available in GNU ELPA.
 
-Relative to the previous Ada mode release (6.2.1), this is a
-significant refactoring, which may affect some user custom code.
+Relative to the previous Ada mode release (7.0.1), this is a
+minor feature release.
 
-The wisi package now provides a more complete integration with Emacs
-project.el.
+* ada-mode fully supports non-ASCII text (the few remaining
+  ASCII-only regular expressions have been fixed).
 
-You may want to work thru the tutorials in ada-mode.info again; they
-now cover many of the new features.
+* gpr_query now starts in the background, and provides a completion
+  table of all symbols in the project.
 
-Relative to the previous beta test (7.0.0), this is a minor feature
-and bug fix release.
+* keystroke C-M-i is bound to `completion-at-point', and uses the
+  symbol table provided by gpr-query.
 
+* Commands that prompt for a symbol (ie C-u C-c C-d
+  wisi-goto-spec/body and C-u M-. xref-find-definitions) use the
+  completion table provided by gpr_query. With a single C-u, all
+  symbols in the project are used; with two C-u, only
+  symbols defined in the current file are used.
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.0 and wisi-3.1.0,
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.1 and wisi-3.1.1,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
 
-cd ~/.emacs.d/elpa/ada-mode-7.1.0
+cd ~/.emacs.d/elpa/ada-mode-7.1.1
 ./build.sh
 ./install.sh
 
@@ -1258,7 +1282,7 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.0
+        subject: closed by ada-mode version 7.1.1
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 

@@ -41,7 +41,6 @@ test/gpr_query.db-shm
 test/gpr_query.db-wal
 test/subdir/gpr_query.db
 wisi.gpr
-ada_annex_p.wy
 autoloads.el~
 build/correct-tokens/
 build/libadalang-tokens/
@@ -53,3 +52,9 @@ test/debug.adb
 sum_diff_lengths
 test/debug.ads
 obj_pro/
+ada_annex_p-bnf.wy
+ada_annex_p-process.el
+ada_annex_p_process_actions.ads
+ada_annex_p_process_main.adb
+ada_annex_p_process_main.ads
+ada_annex_p_re2c_c.ads

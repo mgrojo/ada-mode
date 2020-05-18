@@ -49,7 +49,7 @@ endif
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
-	cd ./$(<D); $(WISITOKEN_GENERATE) --time $(<F)
+	cd ./$(<D); $(WISITOKEN_GENERATE) --time --output_bnf $*-bnf.wy $(<F)
 	cd ./$(<D); dos2unix -q $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 	cd ./$(<D); dos2unix -q $(*F)_*_parse_table.txt
 

@@ -1,0 +1,1827 @@
+;;; WisiToken grammar for Ada
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Created: Sept 2012
+;; Keywords: syntax
+;;
+;;  Copied from Ada Language Reference Manual Annex P, minimal changes
+;;  made to conform with WisiToken requirements, then more to conform
+;;  with TreeSitter requirements (no empty nonterms, only ASCII identifiers).
+
+;;  Changes from Annex P:
+;;
+;;  for WisiToken:
+;;
+;;  - listed in alphabetical order, for comparison to ada.wy
+;;
+;;  - add single quotes around literal tokens, operators and reserved words, digits.
+;;
+;;  - use 'TICK' for '''.
+;;
+;;  - delete italics part of token names
+;;
+;;  - replace low level lexical productions with regular expression tokens.
+;;
+;;  for TreeSitter:
+;;
+;;  - rewrite nonterms that can be empty to not be, modify nonterms
+;;    using them to make them optional.
+;;    
+;;    declarative_part
+;;    parameter_profile; delete, just use [formal_part]
+;;    mode
+;;    entry_body_formal_part
+;;    context_clause
+;;    formal_package_actual_part
+
+%meta_syntax EBNF
+
+%code copyright_license %{
+;;  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
+
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%code actions spec post %{
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+}%
+
+%generate LR1 Ada_Emacs text_rep re2c Process
+
+%case_insensitive
+%start compilation
+
+%token <left-paren>  LEFT_PAREN  "("
+%token <right-paren> RIGHT_PAREN ")"
+
+%token <punctuation> AMPERSAND "&"
+%token <punctuation> BAR "|"
+%token <punctuation> BOX "<>"
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> COMMA ","
+%token <punctuation> DOT "."
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> EQUAL "="
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> GREATER ">"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> GREATER_GREATER ">>"
+%token <punctuation> LESS "<"
+%token <punctuation> LESS_EQUAL "<="
+%token <punctuation> LESS_LESS "<<"
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> SLASH_EQUAL "/="
+%token <punctuation> STAR "*"
+%token <punctuation> STAR_STAR "**"
+
+;; Support GNAT character coding in names and character and string
+;; literals (see test/non_ascii.ads)
+%re2c_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
+
+;; re2c lookahead regular expression; this is not a character literal.
+;; re2c does not allow combining | with /, so we need three tokens for
+;; this (sigh).
+%token <punctuation> TICK_1 "'"
+
+%token <regexp> TICK_2
+    %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+  "'"
+
+;; This regexp allows a lot of things that are not Ada numeric
+;; literals, but it's faster than a strictly conforming regexp. For
+;; non-based literals, force a trailing integer so (1..Length) is
+;; parsed correctly.
+%token <regexp> NUMERIC_LITERAL
+    %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+  "1234567890"
+
+;; non_grammar are not seen by the elisp lexer, but are needed by the re2c lexer
+%non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
+
+;; handle DOS or Unix newline
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+
+;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
+;; placeholders as comments. Also terminate placeholder on newline,
+;; EOF, to handle missing }. x04 is EOF.
+%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*) ]%
+
+;; '$' for gnatprep symbols.
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
+  "A_Bogus_Identifier"
+
+%token <string-double> STRING_LITERAL
+    %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
+  '""'
+
+%token <string-single> CHARACTER_LITERAL
+    %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
+  "' '"
+
+%elisp_face font-lock-constant-face
+%elisp_face font-lock-function-name-face
+%elisp_face font-lock-type-face
+%elisp_face nil
+
+%elisp_indent ada-indent-aggregate Ada_Indent_Aggregate
+%elisp_indent ada-indent-renames Ada_Indent_Renames_0
+%elisp_indent ada-indent-return Ada_Indent_Return_0
+%elisp_indent ada-indent-record Ada_Indent_Record_0
+%elisp_indent "ada-indent-record*" Ada_Indent_Record_1
+
+;; Set McKenzie error recovery costs.
+;;
+;; We assume the user is typing new code more often than deleting or
+;; changing old. Minimal_Complete reduces cost for insert, so the
+;; default cost for insert, delete is the same. Often insert requires
+;; push_back first, to get the parser in the right state, so push_back
+;; is cheaper.
+;;
+;; We need a balance between Minimal_Complete and other solutions; if
+;; Minimal_Complete is too cheap, it will complete the entire
+;; compilation_Unit before the error point, when doing something else
+;; at some point is better (see test/ada_mode-recover_29.adb, _15,
+;; _24). On the other hand, doing lots of Minimal_Complete is very
+;; common when writing new code (see test/ada_mode-recover_10.adb,
+;; _error_during_resume_01). So we reduce the cost of inserting 'end
+;; ;'.
+;;
+;; test/ada_mode-recover_change_name.adb needs 'ignore check fail' cost 2
+;;
+;; Default cost for insert, delete, push back/undo_reduce, ignore check fail.
+%mckenzie_cost_default 4 4 2 2
+%mckenzie_minimal_complete_cost_delta -3
+
+;; END is cheaper, because it always requires at least one other
+;; keyword to follow.
+%mckenzie_cost_insert END 3
+
+;; This cost is applied once, independent of token count.
+%mckenzie_cost_matching_begin 3
+
+;; Prefer doing more work at the current error point over moving
+;; forward to a new one; there is normally only one real error point.
+;; But not too much; test/ada_mode-recover_partial_02_lr1.adb requires
+;; cost 2.
+%mckenzie_cost_fast_forward 2
+
+;; Handle converting 'if' to 'case' (and vice-versa), since that is a
+;; common operation. See test/ada_mode-recover_29.adb. This also makes
+;; inserting 'end if;' free; that's used a lot. But this defeats
+;; Forbid_Minimal_Complete; see
+;; test/ada_mode-recover_constant_as_statement_1.adb.
+%mckenzie_cost_insert CASE 2
+%mckenzie_cost_insert IF 2
+
+;; Prefer undo_reduce over push_back; consider the code:
+;;
+;; loop
+;;    if then
+;;       statement;
+;;    -- missing 'end if;'
+;; end loop;
+;; -- ^ error here
+;;
+;; Error recovery will insert 'end if;', after push_back or
+;; undo_reduce of the handled_sequence_of_statements including
+;; 'statement'. If it uses push_back, then 'end if;' is before
+;; 'statement'; if undo_reduce, after, which is the desired result.
+%mckenzie_cost_undo_reduce handled_sequence_of_statements 0
+%mckenzie_cost_undo_reduce sequence_of_statements 0
+%mckenzie_cost_undo_reduce sequence_of_statements_opt 0
+%mckenzie_cost_undo_reduce declarative_part_opt 0
+
+;; Missing or extra closing paren are common; missing handled by
+;; Minimal_Complete.
+%mckenzie_cost_delete RIGHT_PAREN 1
+
+;; test/ada_mode-recover_partial_02_lr1.adb requires 45_000; wisitoken got 30% faster
+%mckenzie_enqueue_limit 58_000
+
+;; 4 required for test/ada_mode-recover_match_names.adb.
+%mckenzie_check_limit 4
+
+;; After finding 1 solution, only check 100 more before giving up.
+;; Reduces solution time on complex errors.
+%mckenzie_check_delta_limit 100
+
+%end_names_optional_option End_Names_Optional
+
+%conflict REDUCE/REDUCE in state choice_relation, relation on token AND ( 502)
+%conflict REDUCE/REDUCE in state choice_relation, relation on token OR ( 502)
+%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR ( 502)
+%conflict REDUCE/REDUCE in state defining_character_literal, name on token DOT ( 1608)
+%conflict REDUCE/REDUCE in state defining_character_literal, name on token RIGHT_PAREN ( 1608)
+%conflict REDUCE/REDUCE in state defining_identifier, direct_name on token DOT ( 93)
+%conflict REDUCE/REDUCE in state defining_identifier, direct_name on token LEFT_PAREN ( 93)
+%conflict REDUCE/REDUCE in state defining_identifier, direct_name on token RIGHT_PAREN ( 1607)
+%conflict REDUCE/REDUCE in state direct_name, aspect_definition on token DOT ( 614)
+%conflict REDUCE/REDUCE in state direct_name, aspect_definition on token IS ( 614)
+%conflict REDUCE/REDUCE in state direct_name, aspect_definition on token SEMICOLON ( 614)
+%conflict REDUCE/REDUCE in state direct_name, defining_operator_symbol on token LEFT_PAREN ( 101)
+%conflict REDUCE/REDUCE in state direct_name, selector_name on token BAR ( 299)
+%conflict REDUCE/REDUCE in state direct_name, selector_name on token EQUAL_GREATER ( 299)
+%conflict REDUCE/REDUCE in state discrete_choice, component_choice_list on token EQUAL_GREATER ( 485)
+%conflict REDUCE/REDUCE in state discriminant_association, record_component_association on token DOT ( 864)
+%conflict REDUCE/REDUCE in state discriminant_association, record_component_association on token RIGHT_PAREN ( 864)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token ABS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token AMPERSAND ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token AND ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token AT ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token BAR ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token BOX ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token COLON_EQUAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token DELTA ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token DIGITS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token DO ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token DOT ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token DOT_DOT ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token ELSE ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token ELSIF ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token EQUAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token EQUAL_GREATER ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token GREATER ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token GREATER_EQUAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token IN ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token IS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token LEFT_PAREN ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token LESS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token LESS_EQUAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token LOOP ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token MINUS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token MOD ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token NEW ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token NOT ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token NULL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token OF ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token OR ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token PLUS ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token RANGE ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token REM ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token RENAMES ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token RIGHT_PAREN ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token SEMICOLON ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token SLASH ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token SLASH_EQUAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token STAR ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token STAR_STAR ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token THEN ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token TICK ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token USE ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token WHEN ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token WITH ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token XOR ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token CHARACTER_LITERAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token IDENTIFIER ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token NUMERIC_LITERAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_indexing, function_call on token STRING_LITERAL ( 149)
+%conflict REDUCE/REDUCE in state generalized_reference, aspect_definition on token IS ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, aspect_definition on token SEMICOLON ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, default_name on token SEMICOLON ( 417)
+%conflict REDUCE/REDUCE in state generalized_reference, default_name on token WITH ( 417)
+%conflict REDUCE/REDUCE in state generalized_reference, exception_choice on token BAR ( 1715)
+%conflict REDUCE/REDUCE in state generalized_reference, exception_choice on token EQUAL_GREATER ( 1715)
+%conflict REDUCE/REDUCE in state generalized_reference, explicit_actual_parameter on token RIGHT_PAREN ( 1887)
+%conflict REDUCE/REDUCE in state generalized_reference, explicit_dereference on token SEMICOLON ( 1084)
+%conflict REDUCE/REDUCE in state generalized_reference, explicit_dereference on token WITH ( 1084)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token ABS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token AMPERSAND ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token AND ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token AT ( 360)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token BAR ( 1715)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token BOX ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token COLON_EQUAL ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token DIGITS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token DO ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token DOT_DOT ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token ELSE ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token ELSIF ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token EQUAL_GREATER ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token GREATER ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token GREATER_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token IN ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token IS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token LESS ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token LESS_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token LOOP ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token MINUS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token MOD ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token NEW ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token NOT ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token NULL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token OF ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token OR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token PLUS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token RANGE ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token REM ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token RIGHT_PAREN ( 95)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token SEMICOLON ( 71)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token SLASH ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token SLASH_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token STAR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token STAR_STAR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token THEN ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token USE ( 360)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token WITH ( 171)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token XOR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token CHARACTER_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token IDENTIFIER ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token NUMERIC_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, function_call on token STRING_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, local_name on token AT ( 360)
+%conflict REDUCE/REDUCE in state generalized_reference, local_name on token USE ( 360)
+%conflict REDUCE/REDUCE in state generalized_reference, nonterminal_519 on token SEMICOLON ( 294)
+%conflict REDUCE/REDUCE in state generalized_reference, parent_unit_name on token RIGHT_PAREN ( 95)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token ABS ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token AMPERSAND ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token AND ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token BAR ( 1238)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token BOX ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token COLON_EQUAL ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token DIGITS ( 18999)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token DO ( 49848)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token DOT_DOT ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token ELSE ( 6230)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token ELSIF ( 6230)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token EQUAL_GREATER ( 1238)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token GREATER ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token GREATER_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token IN ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token IS ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token LESS ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token LESS_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token LOOP ( 5607)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token MINUS ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token MOD ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token NEW ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token NOT ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token NULL ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token OF ( 445)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token OR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token PLUS ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token RANGE ( 18999)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token REM ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token RIGHT_PAREN ( 195)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token SEMICOLON ( 615)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token SLASH ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token SLASH_EQUAL ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token STAR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token STAR_STAR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token THEN ( 1200)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token WITH ( 1238)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token XOR ( 275)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token CHARACTER_LITERAL ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token IDENTIFIER ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token NUMERIC_LITERAL ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, primary on token STRING_LITERAL ( 1769)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token ABS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token AND ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token DIGITS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token DO ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token ELSE ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token ELSIF ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token EQUAL_GREATER ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token IS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token LOOP ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token MINUS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token NEW ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token NOT ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token NULL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token OR ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token PLUS ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token RANGE ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token RIGHT_PAREN ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token SEMICOLON ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token THEN ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token XOR ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token CHARACTER_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token IDENTIFIER ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token NUMERIC_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state generalized_reference, raise_expression on token STRING_LITERAL ( 476)
+%conflict REDUCE/REDUCE in state name, allocator on token ABS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token AMPERSAND ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token AND ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token BAR ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token BOX ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token COLON_EQUAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token DIGITS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token DO ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token DOT ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token DOT_DOT ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token ELSE ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token ELSIF ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token EQUAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token EQUAL_GREATER ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token GREATER ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token GREATER_EQUAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token IN ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token IS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token LEFT_PAREN ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token LESS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token LESS_EQUAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token LOOP ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token MINUS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token MOD ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token NEW ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token NOT ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token NULL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token OF ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token OR ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token PLUS ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token RANGE ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token REM ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token RIGHT_PAREN ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token SEMICOLON ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token SLASH ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token SLASH_EQUAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token STAR ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token STAR_STAR ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token THEN ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token WITH ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token XOR ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token CHARACTER_LITERAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token IDENTIFIER ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token NUMERIC_LITERAL ( 481)
+%conflict REDUCE/REDUCE in state name, allocator on token STRING_LITERAL ( 481)
+%conflict REDUCE/REDUCE in state name, local_name on token AT ( 1231)
+%conflict REDUCE/REDUCE in state name, local_name on token TICK ( 361)
+%conflict REDUCE/REDUCE in state name, local_name on token USE ( 361)
+%conflict REDUCE/REDUCE in state name, selector_name on token BAR ( 300)
+%conflict REDUCE/REDUCE in state name, selector_name on token EQUAL_GREATER ( 300)
+%conflict REDUCE/REDUCE in state pragma_argument_association, function_call on token RIGHT_PAREN ( 967)
+%conflict REDUCE/REDUCE in state pragma_argument_association, generalized_reference on token RIGHT_PAREN ( 967)
+%conflict REDUCE/REDUCE in state pragma_argument_association, prefix on token DOT ( 967)
+%conflict REDUCE/REDUCE in state pragma_argument_association, primary on token RIGHT_PAREN ( 967)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token ABS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token AMPERSAND ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token AND ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token BAR ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token BOX ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token COLON_EQUAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token DIGITS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token DO ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token DOT ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token DOT_DOT ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token ELSE ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token ELSIF ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token EQUAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token EQUAL_GREATER ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token GREATER ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token GREATER_EQUAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token IN ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token IS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token LEFT_PAREN ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token LESS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token LESS_EQUAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token LOOP ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token MINUS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token MOD ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token NEW ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token NOT ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token NULL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token OF ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token OR ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token PLUS ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token RANGE ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token REM ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token RIGHT_PAREN ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token SEMICOLON ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token SLASH ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token SLASH_EQUAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token STAR ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token STAR_STAR ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token THEN ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token WITH ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token XOR ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token CHARACTER_LITERAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token IDENTIFIER ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token NUMERIC_LITERAL ( 273)
+%conflict REDUCE/REDUCE in state primary, operator_symbol on token STRING_LITERAL ( 273)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token AMPERSAND ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token DOT_DOT ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token MINUS ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token MOD ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token PLUS ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token REM ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token SLASH ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token STAR ( 1187)
+%conflict REDUCE/REDUCE in state primary, type_conversion on token STAR_STAR ( 1187)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ABORT ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ACCEPT ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token BEGIN ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token CASE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token DECLARE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token DELAY ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ELSE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ELSIF ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token END ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token EXCEPTION ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token EXIT ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token FOR ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token GOTO ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token IF ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token LESS_LESS ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token LOOP ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token NULL ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token OR ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token RAISE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token REQUEUE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token RETURN ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token SELECT ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token THEN ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token WHEN ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token WHILE ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token CHARACTER_LITERAL ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token IDENTIFIER ( 1045)
+%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token STRING_LITERAL ( 1045)
+%conflict REDUCE/REDUCE in state range, name on token ABS ( 308)
+%conflict REDUCE/REDUCE in state range, name on token AMPERSAND ( 308)
+%conflict REDUCE/REDUCE in state range, name on token AND ( 308)
+%conflict REDUCE/REDUCE in state range, name on token BAR ( 308)
+%conflict REDUCE/REDUCE in state range, name on token DIGITS ( 308)
+%conflict REDUCE/REDUCE in state range, name on token DO ( 308)
+%conflict REDUCE/REDUCE in state range, name on token DOT ( 308)
+%conflict REDUCE/REDUCE in state range, name on token DOT_DOT ( 308)
+%conflict REDUCE/REDUCE in state range, name on token ELSE ( 308)
+%conflict REDUCE/REDUCE in state range, name on token ELSIF ( 308)
+%conflict REDUCE/REDUCE in state range, name on token EQUAL_GREATER ( 308)
+%conflict REDUCE/REDUCE in state range, name on token IS ( 308)
+%conflict REDUCE/REDUCE in state range, name on token LEFT_PAREN ( 308)
+%conflict REDUCE/REDUCE in state range, name on token LOOP ( 308)
+%conflict REDUCE/REDUCE in state range, name on token MINUS ( 308)
+%conflict REDUCE/REDUCE in state range, name on token MOD ( 308)
+%conflict REDUCE/REDUCE in state range, name on token NEW ( 308)
+%conflict REDUCE/REDUCE in state range, name on token NOT ( 308)
+%conflict REDUCE/REDUCE in state range, name on token NULL ( 308)
+%conflict REDUCE/REDUCE in state range, name on token OR ( 308)
+%conflict REDUCE/REDUCE in state range, name on token PLUS ( 308)
+%conflict REDUCE/REDUCE in state range, name on token RANGE ( 308)
+%conflict REDUCE/REDUCE in state range, name on token REM ( 308)
+%conflict REDUCE/REDUCE in state range, name on token RIGHT_PAREN ( 308)
+%conflict REDUCE/REDUCE in state range, name on token SEMICOLON ( 308)
+%conflict REDUCE/REDUCE in state range, name on token SLASH ( 308)
+%conflict REDUCE/REDUCE in state range, name on token STAR ( 308)
+%conflict REDUCE/REDUCE in state range, name on token STAR_STAR ( 308)
+%conflict REDUCE/REDUCE in state range, name on token THEN ( 308)
+%conflict REDUCE/REDUCE in state range, name on token WITH ( 308)
+%conflict REDUCE/REDUCE in state range, name on token XOR ( 308)
+%conflict REDUCE/REDUCE in state range, name on token CHARACTER_LITERAL ( 308)
+%conflict REDUCE/REDUCE in state range, name on token IDENTIFIER ( 308)
+%conflict REDUCE/REDUCE in state range, name on token NUMERIC_LITERAL ( 308)
+%conflict REDUCE/REDUCE in state range, name on token STRING_LITERAL ( 308)
+%conflict REDUCE/REDUCE in state subtype_mark, explicit_actual_parameter on token RIGHT_PAREN ( 306)
+%conflict REDUCE/REDUCE in state subtype_mark, explicit_generic_actual_parameter on token RIGHT_PAREN ( 1197)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token ABS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token AMPERSAND ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token AND ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token BAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token BOX ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token COLON_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token DELTA ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token DIGITS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token DO ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token DOT_DOT ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token ELSE ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token ELSIF ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token EQUAL_GREATER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token GREATER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token GREATER_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token IN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token IS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token LEFT_PAREN ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token LESS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token LESS_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token LOOP ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token MINUS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token MOD ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token NEW ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token NOT ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token NULL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token OF ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token OR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token PLUS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token RANGE ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token REM ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token RENAMES ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token RIGHT_PAREN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token SEMICOLON ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token SLASH ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token SLASH_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token STAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token STAR_STAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token THEN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token TICK ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token WITH ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token XOR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token CHARACTER_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token IDENTIFIER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token NUMERIC_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, function_call on token STRING_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token ABS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token AMPERSAND ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token AND ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token BAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token BOX ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token COLON_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token DELTA ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token DIGITS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token DO ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token DOT_DOT ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token ELSE ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token ELSIF ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token EQUAL_GREATER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token GREATER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token GREATER_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token IN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token IS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token LEFT_PAREN ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token LESS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token LESS_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token LOOP ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token MINUS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token MOD ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token NEW ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token NOT ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token NULL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token OF ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token OR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token PLUS ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token RANGE ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token REM ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token RENAMES ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token RIGHT_PAREN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token SEMICOLON ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token SLASH ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token SLASH_EQUAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token STAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token STAR_STAR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token THEN ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token TICK ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token WITH ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token XOR ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token CHARACTER_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token IDENTIFIER ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token NUMERIC_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, generalized_reference on token STRING_LITERAL ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, implicit_dereference on token LEFT_PAREN ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, implicit_dereference on token TICK ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, iterator_specification on token EQUAL_GREATER ( 1705)
+%conflict REDUCE/REDUCE in state subtype_mark, iterator_specification on token LOOP ( 1705)
+%conflict REDUCE/REDUCE in state subtype_mark, local_name on token TICK ( 360)
+%conflict REDUCE/REDUCE in state subtype_mark, prefix on token DOT ( 139)
+%conflict REDUCE/REDUCE in state subtype_mark, prefix on token LEFT_PAREN ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, prefix on token TICK ( 71)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token ABS ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token AND ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token BAR ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token DIGITS ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token DO ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token ELSE ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token ELSIF ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token EQUAL_GREATER ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token IS ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token LEFT_PAREN ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token LOOP ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token MINUS ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token NEW ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token NOT ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token NULL ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token OR ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token PLUS ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token RANGE ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token RIGHT_PAREN ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token SEMICOLON ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token THEN ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token WITH ( 275)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token XOR ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token CHARACTER_LITERAL ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token IDENTIFIER ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token NUMERIC_LITERAL ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, primary on token STRING_LITERAL ( 445)
+%conflict REDUCE/REDUCE in state subtype_mark, raise_expression on token LEFT_PAREN ( 476)
+%conflict SHIFT/REDUCE in state abort_statement, generalized_reference on token SEMICOLON ( 1020)
+%conflict SHIFT/REDUCE in state aspect_mark, direct_name on token TICK ( 965)
+%conflict SHIFT/REDUCE in state assignment_statement, function_call on token COLON_EQUAL ( 672)
+%conflict SHIFT/REDUCE in state assignment_statement, generalized_reference on token COLON_EQUAL ( 672)
+%conflict SHIFT/REDUCE in state assignment_statement, subtype_mark on token LEFT_PAREN ( 672)
+%conflict SHIFT/REDUCE in state at_clause, name on token USE ( 361)
+%conflict SHIFT/REDUCE in state attribute_definition_clause, generalized_reference on token SEMICOLON ( 1534)
+%conflict SHIFT/REDUCE in state attribute_designator, attribute_designator on token LEFT_PAREN ( 318)
+%conflict SHIFT/REDUCE in state code_statement, name on token SEMICOLON ( 675)
+%conflict SHIFT/REDUCE in state component_list, nonterminal_469_list on token FOR ( 1590)
+%conflict SHIFT/REDUCE in state component_list, nonterminal_469_list on token IDENTIFIER ( 1590)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token ABORT ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token ACCEPT ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token BEGIN ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token CASE ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token DECLARE ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token DELAY ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token EXIT ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token FOR ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token GOTO ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token IF ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token LESS_LESS ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token LOOP ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token NULL ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token RAISE ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token REQUEUE ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token RETURN ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token SELECT ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token WHILE ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token CHARACTER_LITERAL ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token IDENTIFIER ( 1008)
+%conflict SHIFT/REDUCE in state delay_alternative, triggering_statement on token STRING_LITERAL ( 1008)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token ABS ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token LEFT_PAREN ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token MINUS ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token NEW ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token NOT ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token NULL ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token PLUS ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token CHARACTER_LITERAL ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token IDENTIFIER ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token NUMERIC_LITERAL ( 857)
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token STRING_LITERAL ( 857)
+%conflict SHIFT/REDUCE in state derived_type_definition, derived_type_definition on token WITH ( 1599)
+%conflict SHIFT/REDUCE in state derived_type_definition, nonterminal_517 on token NEW ( 1305)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token ABS ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token LEFT_PAREN ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token MINUS ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token NEW ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token NOT ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token NULL ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token PLUS ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token CHARACTER_LITERAL ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token IDENTIFIER ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token NUMERIC_LITERAL ( 858)
+%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token STRING_LITERAL ( 858)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token ABORT ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token ACCEPT ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token BEGIN ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token CASE ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token DECLARE ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token DELAY ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token EXIT ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token FOR ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token GOTO ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token IF ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token LESS_LESS ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token LOOP ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token NULL ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token RAISE ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token REQUEUE ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token RETURN ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token SELECT ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token WHILE ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token CHARACTER_LITERAL ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token IDENTIFIER ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_alternative, triggering_statement on token STRING_LITERAL ( 1015)
+%conflict SHIFT/REDUCE in state entry_call_statement, subtype_mark on token LEFT_PAREN ( 1004)
+%conflict SHIFT/REDUCE in state exception_renaming_declaration, generalized_reference on token SEMICOLON ( 1330)
+%conflict SHIFT/REDUCE in state exception_renaming_declaration, generalized_reference on token WITH ( 1330)
+%conflict SHIFT/REDUCE in state exit_statement, function_call on token SEMICOLON ( 1030)
+%conflict SHIFT/REDUCE in state exit_statement, function_call on token WHEN ( 1030)
+%conflict SHIFT/REDUCE in state exit_statement, generalized_reference on token SEMICOLON ( 1030)
+%conflict SHIFT/REDUCE in state exit_statement, generalized_reference on token WHEN ( 1030)
+%conflict SHIFT/REDUCE in state explicit_dereference, aspect_definition on token DOT ( 615)
+%conflict SHIFT/REDUCE in state explicit_dereference, explicit_actual_parameter on token DOT ( 306)
+%conflict SHIFT/REDUCE in state explicit_dereference, explicit_generic_actual_parameter on token DOT ( 1197)
+%conflict SHIFT/REDUCE in state explicit_dereference, function_call on token DOT ( 71)
+%conflict SHIFT/REDUCE in state explicit_dereference, generalized_reference on token DOT ( 71)
+%conflict SHIFT/REDUCE in state explicit_dereference, implicit_dereference on token DOT ( 71)
+%conflict SHIFT/REDUCE in state explicit_dereference, nonterminal_519 on token DOT ( 294)
+%conflict SHIFT/REDUCE in state explicit_dereference, parent_unit_name on token DOT ( 95)
+%conflict SHIFT/REDUCE in state explicit_dereference, pragma_argument_association on token DOT ( 967)
+%conflict SHIFT/REDUCE in state explicit_dereference, prefix on token DOT ( 71)
+%conflict SHIFT/REDUCE in state explicit_dereference, primary on token DOT ( 275)
+%conflict SHIFT/REDUCE in state explicit_dereference, raise_expression on token DOT ( 476)
+%conflict SHIFT/REDUCE in state explicit_dereference, subtype_mark on token DOT ( 139)
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS ( 196)
+%conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR ( 287)
+%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH ( 752)
+%conflict SHIFT/REDUCE in state formal_package_declaration, subtype_mark on token LEFT_PAREN ( 1084)
+%conflict SHIFT/REDUCE in state full_type_declaration, discriminant_part on token IS ( 976)
+%conflict SHIFT/REDUCE in state generic_actual_part, formal_package_association on token DOT ( 1748)
+%conflict SHIFT/REDUCE in state generic_actual_part, formal_package_association on token RIGHT_PAREN ( 1748)
+%conflict SHIFT/REDUCE in state generic_instantiation, generalized_reference on token SEMICOLON ( 580)
+%conflict SHIFT/REDUCE in state generic_instantiation, generalized_reference on token WITH ( 580)
+%conflict SHIFT/REDUCE in state generic_instantiation, procedure_specification on token IS ( 103)
+%conflict SHIFT/REDUCE in state generic_instantiation, subtype_mark on token LEFT_PAREN ( 580)
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generalized_reference on token SEMICOLON ( 410)
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generalized_reference on token WITH ( 410)
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION ( 2)
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE ( 2)
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE ( 2)
+%conflict SHIFT/REDUCE in state goto_statement, function_call on token SEMICOLON ( 1027)
+%conflict SHIFT/REDUCE in state goto_statement, generalized_reference on token SEMICOLON ( 1027)
+%conflict SHIFT/REDUCE in state indexed_component, explicit_actual_parameter on token DOT ( 309)
+%conflict SHIFT/REDUCE in state indexed_component, explicit_actual_parameter on token RIGHT_PAREN ( 309)
+%conflict SHIFT/REDUCE in state limited_with_clause, generalized_reference on token SEMICOLON ( 170)
+%conflict SHIFT/REDUCE in state local_name, name on token TICK ( 361)
+%conflict SHIFT/REDUCE in state nonlimited_with_clause, generalized_reference on token SEMICOLON ( 104)
+%conflict SHIFT/REDUCE in state nonterminal_467, component_choice_list on token EQUAL_GREATER ( 863)
+%conflict SHIFT/REDUCE in state nonterminal_499_list, simple_expression on token AMPERSAND ( 541)
+%conflict SHIFT/REDUCE in state nonterminal_499_list, simple_expression on token MINUS ( 541)
+%conflict SHIFT/REDUCE in state nonterminal_499_list, simple_expression on token PLUS ( 541)
+%conflict SHIFT/REDUCE in state nonterminal_532_list, nonterminal_532_list on token PRIVATE ( 42)
+%conflict SHIFT/REDUCE in state nonterminal_533_list, context_clause on token PRIVATE ( 43)
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS ( 195)
+%conflict SHIFT/REDUCE in state object_renaming_declaration, defining_IDENTIFIER_list on token COLON ( 182)
+%conflict SHIFT/REDUCE in state object_renaming_declaration, generalized_reference on token SEMICOLON ( 1331)
+%conflict SHIFT/REDUCE in state object_renaming_declaration, generalized_reference on token WITH ( 1331)
+%conflict SHIFT/REDUCE in state package_body_stub, defining_program_unit_name on token IS ( 619)
+%conflict SHIFT/REDUCE in state package_renaming_declaration, generalized_reference on token SEMICOLON ( 325)
+%conflict SHIFT/REDUCE in state package_renaming_declaration, generalized_reference on token WITH ( 325)
+%conflict SHIFT/REDUCE in state parameter_specification, parameter_specification on token NOT ( 599)
+%conflict SHIFT/REDUCE in state positional_array_aggregate, discriminant_association on token DOT ( 864)
+%conflict SHIFT/REDUCE in state positional_array_aggregate, discriminant_association on token RIGHT_PAREN ( 864)
+%conflict SHIFT/REDUCE in state positional_array_aggregate, nonterminal_474 on token DOT ( 1153)
+%conflict SHIFT/REDUCE in state positional_array_aggregate, record_component_association on token DOT ( 499)
+%conflict SHIFT/REDUCE in state positional_array_aggregate, record_component_association on token RIGHT_PAREN ( 499)
+%conflict SHIFT/REDUCE in state pragma_argument_association, aspect_mark on token EQUAL_GREATER ( 965)
+%conflict SHIFT/REDUCE in state procedure_call_statement, function_call on token SEMICOLON ( 672)
+%conflict SHIFT/REDUCE in state procedure_call_statement, generalized_indexing on token SEMICOLON ( 1047)
+%conflict SHIFT/REDUCE in state procedure_call_statement, generalized_reference on token SEMICOLON ( 672)
+%conflict SHIFT/REDUCE in state raise_expression, generalized_reference on token WITH ( 476)
+%conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH ( 476)
+%conflict SHIFT/REDUCE in state raise_statement, generalized_reference on token SEMICOLON ( 1001)
+%conflict SHIFT/REDUCE in state raise_statement, generalized_reference on token WITH ( 1001)
+%conflict SHIFT/REDUCE in state relation, relation on token NOT ( 284)
+%conflict SHIFT/REDUCE in state requeue_statement, generalized_reference on token SEMICOLON ( 1021)
+%conflict SHIFT/REDUCE in state requeue_statement, generalized_reference on token WITH ( 1021)
+%conflict SHIFT/REDUCE in state simple_expression, simple_expression on token AMPERSAND ( 285)
+%conflict SHIFT/REDUCE in state simple_expression, simple_expression on token MINUS ( 285)
+%conflict SHIFT/REDUCE in state simple_expression, simple_expression on token PLUS ( 285)
+%conflict SHIFT/REDUCE in state subpool_specification, function_call on token RIGHT_PAREN ( 786)
+%conflict SHIFT/REDUCE in state subpool_specification, generalized_reference on token RIGHT_PAREN ( 786)
+%conflict SHIFT/REDUCE in state subprogram_renaming_declaration, generalized_reference on token SEMICOLON ( 171)
+%conflict SHIFT/REDUCE in state subprogram_renaming_declaration, generalized_reference on token WITH ( 171)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token ABS ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token DIGITS ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token LEFT_PAREN ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token MINUS ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token NEW ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token NOT ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token NULL ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token PLUS ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token CHARACTER_LITERAL ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token IDENTIFIER ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token NUMERIC_LITERAL ( 302)
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token STRING_LITERAL ( 302)
+%conflict SHIFT/REDUCE in state term, nonterminal_500 on token MOD ( 851)
+%conflict SHIFT/REDUCE in state term, nonterminal_500 on token REM ( 851)
+%conflict SHIFT/REDUCE in state term, nonterminal_500 on token SLASH ( 851)
+%conflict SHIFT/REDUCE in state term, nonterminal_500 on token STAR ( 851)
+%conflict SHIFT/REDUCE in state term, simple_expression on token MOD ( 285)
+%conflict SHIFT/REDUCE in state term, simple_expression on token REM ( 285)
+%conflict SHIFT/REDUCE in state term, simple_expression on token SLASH ( 285)
+%conflict SHIFT/REDUCE in state term, simple_expression on token STAR ( 285)
+%conflict SHIFT/REDUCE in state type_conversion, function_call on token RIGHT_PAREN ( 275)
+%conflict SHIFT/REDUCE in state type_conversion, generalized_reference on token RIGHT_PAREN ( 195)
+%conflict SHIFT/REDUCE in state type_conversion, membership_choice on token LEFT_PAREN ( 844)
+%conflict SHIFT/REDUCE in state type_conversion, subtype_mark on token RIGHT_PAREN ( 275)
+%conflict SHIFT/REDUCE in state use_package_clause, generalized_reference on token SEMICOLON ( 71)
+%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept on token PRIVATE ( 0)
+
+;;; grammar rules
+
+pragma ::=
+  'pragma' IDENTIFIER ['(' pragma_argument_association {'.' pragma_argument_association}')']';'
+
+pragma_argument_association ::=
+  [IDENTIFIER '=>'] name
+  | [IDENTIFIER '=>'] expression
+  | aspect_mark '=>'  name
+  | aspect_mark '=>'  expression
+
+basic_declaration ::=
+    pragma
+    type_declaration
+  | subtype_declaration
+  | object_declaration
+  | number_declaration
+  | subprogram_declaration
+  | abstract_subprogram_declaration
+  | null_procedure_declaration
+  | expression_function_declaration
+  | package_declaration
+  | renaming_declaration
+  | exception_declaration
+  | generic_declaration
+  | generic_instantiation
+
+defining_identifier ::= IDENTIFIER
+
+type_declaration ::=  full_type_declaration
+  | incomplete_type_declaration
+  | private_type_declaration
+  | private_extension_declaration
+
+full_type_declaration ::=
+    'type' defining_identifier [known_discriminant_part] 'is' type_definition [aspect_specification]';'
+  | task_type_declaration
+  | protected_type_declaration
+
+type_definition ::=
+    enumeration_type_definition
+  | integer_type_definition
+  | real_type_definition
+  | array_type_definition
+  | record_type_definition
+  | access_type_definition
+  | derived_type_definition
+  | interface_type_definition
+
+subtype_declaration ::=
+    'subtype' defining_identifier 'is' subtype_indication [aspect_specification]';'
+
+subtype_indication ::=  [null_exclusion] subtype_mark [constraint]
+
+subtype_mark ::= name
+
+constraint ::= scalar_constraint | composite_constraint
+
+scalar_constraint ::=
+  range_constraint | digits_constraint | delta_constraint
+
+composite_constraint ::=
+  index_constraint | discriminant_constraint
+
+object_declaration ::=
+    defining_identifier_list ':' ['aliased'] ['constant'] subtype_indication [':=' expression] [aspect_specification]';'
+  | defining_identifier_list ':' ['aliased'] ['constant'] access_definition [':=' expression] [aspect_specification]';'
+  | defining_identifier_list ':' ['aliased'] ['constant'] array_type_definition [':=' expression]
+    [aspect_specification]';'
+  | single_task_declaration
+  | single_protected_declaration
+
+defining_identifier_list ::= defining_identifier {'.' defining_identifier}
+
+number_declaration ::= defining_identifier_list ':' 'constant' ':=' expression';'
+
+derived_type_definition ::=
+    ['abstract'] ['limited'] 'new' subtype_indication [['and' interface_list] record_extension_part]
+
+range_constraint ::=  range range
+
+range ::=  attribute_reference
+  | simple_expression  '..'  simple_expression
+
+enumeration_type_definition ::=
+  '('enumeration_literal_specification {'.'
+  enumeration_literal_specification}')'
+
+enumeration_literal_specification ::=  defining_identifier |
+  defining_character_literal
+
+defining_character_literal ::= character_literal
+
+integer_type_definition ::= signed_integer_type_definition |
+  modular_type_definition
+
+signed_integer_type_definition ::= range
+  simple_expression  '..'  simple_expression
+
+modular_type_definition ::= 'mod' expression
+
+real_type_definition ::=
+  floating_point_definition | fixed_point_definition
+
+floating_point_definition ::= 'digits' expression [real_range_specification]
+
+real_range_specification ::= 'range' simple_expression '..' simple_expression
+
+fixed_point_definition ::= ordinary_fixed_point_definition |
+  decimal_fixed_point_definition
+
+ordinary_fixed_point_definition ::= 'delta' expression real_range_specification
+
+decimal_fixed_point_definition ::= 'delta' expression 'digits' expression [real_range_specification]
+
+digits_constraint ::= 'digits' simple_expression [range_constraint]
+
+array_type_definition ::=
+  unconstrained_array_definition | constrained_array_definition
+
+unconstrained_array_definition ::=
+  'array' '(' index_subtype_definition {'.' index_subtype_definition}')' 'of' component_definition
+
+index_subtype_definition ::= subtype_mark range '<>'
+
+constrained_array_definition ::=
+  'array' '('discrete_subtype_definition {'.' discrete_subtype_definition}')' 'of' component_definition
+
+discrete_subtype_definition ::= subtype_indication |
+  range
+
+component_definition ::=
+    ['aliased'] subtype_indication
+  | ['aliased'] access_definition
+
+index_constraint ::=  '('discrete_range {'.' discrete_range}')'
+
+discrete_range ::= subtype_indication | range
+
+discriminant_part ::= unknown_discriminant_part | known_discriminant_part
+
+unknown_discriminant_part ::= '(' '<>' ')'
+
+known_discriminant_part ::=
+  '('discriminant_specification {';' discriminant_specification}')'
+
+discriminant_specification ::=
+    defining_identifier_list ':' [null_exclusion] subtype_mark [':=' default_expression]
+  | defining_identifier_list ':' access_definition [':=' default_expression]
+
+default_expression ::= expression
+
+discriminant_constraint ::=
+  '('discriminant_association {'.' discriminant_association}')'
+
+discriminant_association ::=
+  [selector_name {'|'
+  selector_name} '=>'] expression
+
+record_type_definition ::= [['abstract'] 'tagged'] ['limited'] record_definition
+
+record_definition ::=
+    'record' component_list 'end' 'record'
+  | 'null' 'record'
+
+component_list ::=
+    component_item {component_item}
+  | {component_item} variant_part
+  |  'null' ';'
+
+component_item ::= component_declaration | aspect_clause
+
+component_declaration ::=
+defining_identifier_list ':' component_definition [':='
+  default_expression]
+  [aspect_specification]';'
+
+variant_part ::= 'case' direct_name 'is' variant {variant} 'end' 'case' ';'
+
+variant ::= 'when' discrete_choice_list '=>' component_list
+
+discrete_choice_list ::= discrete_choice {'|' discrete_choice}
+
+discrete_choice ::= choice_expression | subtype_indication | range | 'others'
+
+record_extension_part ::= 'with' record_definition
+
+abstract_subprogram_declaration ::=
+  [overriding_indicator] subprogram_specification 'is' 'abstract' [aspect_specification] ';'
+
+interface_type_definition ::=
+  ['limited' | 'task' | 'protected' | 'synchronized'] 'interface' ['and' interface_list]
+
+interface_list ::= subtype_mark {'and' subtype_mark}
+
+access_type_definition ::=
+    [null_exclusion] access_to_object_definition
+  | [null_exclusion] access_to_subprogram_definition
+
+access_to_object_definition ::= 'access' [general_access_modifier] subtype_indication
+
+general_access_modifier ::= 'all' | 'constant'
+
+access_to_subprogram_definition ::=
+    'access' ['protected'] 'procedure' [formal_part]
+  | 'access' ['protected'] 'function'  parameter_and_result_profile
+
+null_exclusion ::= 'not' 'null'
+
+access_definition ::=
+    [null_exclusion] 'access' ['constant'] subtype_mark
+  | [null_exclusion] 'access' ['protected'] 'procedure' [formal_part]
+  | [null_exclusion] 'access' ['protected'] 'function' parameter_and_result_profile
+
+incomplete_type_declaration ::= 'type' defining_identifier [discriminant_part] ['is' 'tagged'] ';'
+
+declarative_part ::= declarative_item+
+
+declarative_item ::= basic_declarative_item | body
+
+basic_declarative_item ::=
+  basic_declaration | aspect_clause | use_clause
+
+body ::= proper_body | body_stub
+
+proper_body ::=
+  subprogram_body | package_body | task_body | protected_body
+
+name ::=
+    direct_name
+  | explicit_dereference
+  | indexed_component
+  | slice
+  | selected_component
+  | attribute_reference
+  | type_conversion
+  | function_call
+  | character_literal
+  | qualified_expression
+  | generalized_reference
+  | generalized_indexing
+
+direct_name ::= IDENTIFIER | operator_symbol
+
+prefix ::= name | implicit_dereference
+
+explicit_dereference ::= name '.' 'all'
+
+implicit_dereference ::= name
+
+indexed_component ::= prefix'('expression {'.' expression}')'
+
+slice ::= prefix'('discrete_range')'
+
+selected_component ::= prefix  '.'  selector_name
+
+selector_name ::= IDENTIFIER | CHARACTER_LITERAL | operator_symbol
+
+attribute_reference ::= prefix TICK attribute_designator
+
+attribute_designator ::=
+    IDENTIFIER ['(' expression ')']
+
+generalized_reference ::= name
+
+generalized_indexing ::= prefix
+  actual_parameter_part
+
+aggregate ::= record_aggregate | extension_aggregate |
+  array_aggregate
+
+record_aggregate ::= '('record_component_association_list')'
+
+record_component_association_list ::=
+    record_component_association {'.' record_component_association}
+  | 'null' 'record'
+
+record_component_association ::=
+  [component_choice_list '=>'] expression
+  | component_choice_list '=>' '<>'
+
+component_choice_list ::=
+    selector_name {'|' selector_name}
+  | 'others'
+
+extension_aggregate ::= '(' ancestor_part 'with' record_component_association_list ')'
+
+ancestor_part ::= expression | subtype_mark
+
+array_aggregate ::=
+  positional_array_aggregate | named_array_aggregate
+
+positional_array_aggregate ::=
+    '(' expression '.' expression {'.' expression} ')'
+  | '('expression {'.' expression} '.' 'others' '=>' expression')'
+  | '('expression {'.' expression} '.' 'others' '=>' '<>' ')'
+
+named_array_aggregate ::= '(' array_component_association {'.' array_component_association} ')'
+
+array_component_association ::=
+  discrete_choice_list '=>' expression
+  | discrete_choice_list '=>' '<>'
+
+expression ::=
+    relation {'and' relation}
+  | relation {'and' 'then' relation}
+  | relation {'or' relation}
+  | relation {'or' 'else' relation}
+  | relation {'xor' relation}
+
+choice_expression ::=
+    choice_relation {'and' choice_relation}
+  | choice_relation {'or' choice_relation}
+  | choice_relation {'xor' choice_relation}
+  | choice_relation {'and' 'then' choice_relation}
+  | choice_relation {'or' 'else' choice_relation}
+
+choice_relation ::=
+  simple_expression [relational_operator simple_expression]
+
+relation ::=
+    simple_expression [relational_operator simple_expression]
+  | simple_expression ['not'] 'in' membership_choice_list
+  | raise_expression
+
+membership_choice_list ::= membership_choice {'|' membership_choice}
+
+membership_choice ::= simple_expression | range |
+  subtype_mark
+
+simple_expression ::= [unary_adding_operator] term {
+  binary_adding_operator term}
+
+term ::= factor {multiplying_operator factor}
+
+factor ::= primary ['**' primary] | 'abs' primary | 'not' primary
+
+primary ::=
+    NUMERIC_LITERAL | 'null' | STRING_LITERAL | aggregate
+  | name | allocator | '(' expression ')'
+  | '(' conditional_expression ')' | '(' quantified_expression ')'
+
+relational_operator ::=  '=' | '/=' | '<' | '<=' | '>' | '>='
+
+binary_adding_operator ::=     '+'   | '-'   | '&'
+
+unary_adding_operator ::=     '+'   | '-'
+
+multiplying_operator ::=     '*'   | '/'   | 'mod' | 'rem'
+
+conditional_expression ::= if_expression | case_expression
+
+if_expression ::=
+  'if' condition 'then' expression
+  {'elsif' condition 'then' expression}
+  ['else' expression]
+
+condition ::= expression
+
+case_expression ::=
+  'case' expression 'is'
+  case_expression_alternative {'.'
+  case_expression_alternative}
+
+case_expression_alternative ::=
+  'when' discrete_choice_list '=>'
+  expression
+
+quantified_expression ::= 'for' quantifier
+  loop_parameter_specification '=>' predicate
+  | 'for' quantifier iterator_specification '=>' predicate
+
+quantifier ::= 'all' | 'some'
+
+predicate ::= expression
+
+type_conversion ::=
+    subtype_mark '(' expression ')'
+  | subtype_mark '(' name ')'
+
+qualified_expression ::= subtype_mark TICK '(' expression ')' | subtype_mark TICK aggregate
+
+allocator ::=
+    'new' [subpool_specification] subtype_indication
+  | 'new' [subpool_specification] qualified_expression
+
+subpool_specification ::= '('name')'
+
+sequence_of_statements ::= statement {statement} {label}
+
+statement ::=
+  {label} simple_statement | {label} compound_statement
+
+simple_statement ::= null_statement
+  | assignment_statement   | exit_statement
+  | goto_statement   | procedure_call_statement
+  | simple_return_statement   | entry_call_statement
+  | requeue_statement   | delay_statement
+  | abort_statement   | raise_statement
+  | code_statement
+
+compound_statement ::=
+  if_statement   | case_statement
+  | loop_statement   | block_statement
+  | extended_return_statement
+  | accept_statement   | select_statement
+
+null_statement ::= 'null' ';'
+
+label ::= '<<' statement_identifier '>>'
+
+statement_identifier ::= direct_name
+
+assignment_statement ::=
+  name ':=' expression';'
+
+if_statement ::=
+  'if' condition 'then'
+  sequence_of_statements
+  {'elsif' condition 'then'
+  sequence_of_statements}
+  ['else'
+  sequence_of_statements]
+  'end' 'if' ';'
+
+case_statement ::=
+  'case' expression 'is'
+  case_statement_alternative
+  {case_statement_alternative}
+  'end' 'case' ';'
+
+case_statement_alternative ::=
+  'when' discrete_choice_list '=>'
+  sequence_of_statements
+
+loop_statement ::=
+  [statement_identifier ':']
+  [iteration_scheme] 'loop'
+  sequence_of_statements
+  'end' 'loop' [identifier] ';'
+
+iteration_scheme ::= 'while' condition
+  | 'for' loop_parameter_specification
+  | 'for' iterator_specification
+
+loop_parameter_specification ::=
+  defining_identifier 'in' ['reverse'] discrete_subtype_definition
+
+iterator_specification ::=
+    defining_identifier 'in' ['reverse'] name
+  | defining_identifier [':' subtype_indication] 'of' ['reverse'] 'name'
+
+block_statement ::=
+  [statement_identifier ':']
+  ['declare' [declarative_part]]
+  'begin'
+  handled_sequence_of_statements
+  'end' [identifier] ';'
+
+exit_statement ::=
+  'exit' [name] ['when' condition]';'
+
+goto_statement ::= 'goto' name';'
+
+subprogram_declaration ::=
+  [overriding_indicator]
+  subprogram_specification
+  [aspect_specification]';'
+
+subprogram_specification ::=
+  procedure_specification
+  | function_specification
+
+procedure_specification ::= 'procedure' defining_program_unit_name [formal_part]
+
+function_specification ::= 'function' defining_designator parameter_and_result_profile
+
+designator ::= [parent_unit_name  '.'  ]identifier | operator_symbol
+
+defining_designator ::= defining_program_unit_name | defining_operator_symbol
+
+defining_program_unit_name ::= [parent_unit_name  '.'  ] defining_identifier
+
+operator_symbol ::= string_literal
+
+defining_operator_symbol ::= operator_symbol
+
+parameter_and_result_profile ::=
+  [formal_part] 'return' [null_exclusion] subtype_mark
+  | [formal_part] 'return' access_definition
+
+formal_part ::= '('parameter_specification {';' parameter_specification}')'
+
+parameter_specification ::=
+    defining_identifier_list ':' ['aliased'] [mode] [null_exclusion] subtype_mark [':=' default_expression]
+  | defining_identifier_list ':' access_definition [':=' default_expression]
+
+mode ::= 'in' | 'in' 'out' | 'out'
+
+subprogram_body ::=
+  [overriding_indicator]
+  subprogram_specification
+  [aspect_specification] 'is'
+  [declarative_part]
+  'begin'
+  handled_sequence_of_statements
+  'end' [designator]';'
+
+procedure_call_statement ::=
+  name';'
+  | prefix actual_parameter_part';'
+
+function_call ::=
+  name
+  | prefix actual_parameter_part
+
+actual_parameter_part ::= '('parameter_association {'.' parameter_association}')'
+
+parameter_association ::= [selector_name '=>'] explicit_actual_parameter
+
+explicit_actual_parameter ::= expression | name
+
+simple_return_statement ::= 'return' [expression]';'
+
+extended_return_object_declaration ::=
+    defining_identifier ':' ['aliased'] ['constant'] return_subtype_indication [':=' expression]
+
+extended_return_statement ::=
+  'return' extended_return_object_declaration ['do' handled_sequence_of_statements 'end' 'return'] ';'
+
+return_subtype_indication ::= subtype_indication | access_definition
+
+null_procedure_declaration ::=
+  [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
+
+expression_function_declaration ::=
+    [overriding_indicator] function_specification 'is' '('expression')' [aspect_specification] ';'
+  | [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
+
+package_declaration ::= package_specification';'
+
+package_specification ::=
+    'package' defining_program_unit_name [aspect_specification] 'is' {basic_declarative_item}
+    ['private' {basic_declarative_item}] 'end' [[parent_unit_name '.' ] identifier]
+
+package_body ::=
+    'package' 'body' defining_program_unit_name [aspect_specification] 'is' [declarative_part]
+    ['begin' handled_sequence_of_statements] 'end' [[parent_unit_name '.' ]identifier] ';'
+
+private_type_declaration ::=
+    'type' defining_identifier [discriminant_part] 'is'
+    [['abstract'] 'tagged'] ['limited'] 'private' [aspect_specification]';'
+
+private_extension_declaration ::=
+    'type' defining_identifier [discriminant_part] 'is' ['abstract'] ['limited' | 'synchronized'] 'new'
+    subtype_indication ['and' interface_list] 'with' 'private' [aspect_specification] ';'
+
+overriding_indicator ::= ['not'] 'overriding'
+
+use_clause ::= use_package_clause | use_type_clause
+
+use_package_clause ::= 'use' name {'.' name}';'
+
+use_type_clause ::= 'use' ['all'] 'type' subtype_mark {'.' subtype_mark}';'
+
+renaming_declaration ::=
+    object_renaming_declaration
+  | exception_renaming_declaration
+  | package_renaming_declaration
+  | subprogram_renaming_declaration
+  | generic_renaming_declaration
+
+object_renaming_declaration ::=
+    defining_identifier ':' [null_exclusion] subtype_mark 'renames' name [aspect_specification]';'
+  | defining_identifier ':' access_definition 'renames' name [aspect_specification]';'
+
+exception_renaming_declaration ::= defining_identifier ':' 'exception' 'renames' name [aspect_specification]';'
+
+package_renaming_declaration ::= 'package' defining_program_unit_name 'renames' name [aspect_specification]';'
+
+subprogram_renaming_declaration ::=
+    [overriding_indicator] subprogram_specification 'renames' name [aspect_specification]';'
+
+generic_renaming_declaration ::=
+    'generic' 'package' defining_program_unit_name 'renames' name [aspect_specification]';'
+  | 'generic' 'procedure' defining_program_unit_name 'renames' name [aspect_specification]';'
+  | 'generic' 'function' defining_program_unit_name 'renames' name [aspect_specification]';'
+
+task_type_declaration ::=
+    'task' 'type' defining_identifier [known_discriminant_part] [aspect_specification]
+    ['is' ['new' interface_list 'with'] task_definition]';'
+
+single_task_declaration ::=
+  'task' defining_identifier [aspect_specification] ['is' ['new' interface_list 'with'] task_definition]';'
+
+task_definition ::= {task_item} [ 'private' {task_item}] 'end' [identifier]
+
+task_item ::= entry_declaration | aspect_clause
+
+task_body ::=
+    'task' body defining_identifier [aspect_specification] 'is' [declarative_part] 'begin'
+    handled_sequence_of_statements 'end' [identifier]';'
+
+protected_type_declaration ::=
+    'protected' 'type' defining_identifier [known_discriminant_part] [aspect_specification] 'is'
+    ['new' interface_list 'with'] protected_definition';'
+
+single_protected_declaration ::=
+  'protected' defining_identifier [aspect_specification] 'is' ['new' interface_list 'with'] protected_definition';'
+
+protected_definition ::=
+  { protected_operation_declaration } [ 'private' { protected_element_declaration } ] 'end' [identifier]
+
+protected_operation_declaration ::=
+    subprogram_declaration
+  | entry_declaration
+  | aspect_clause
+
+protected_element_declaration ::= protected_operation_declaration | component_declaration
+
+protected_body ::=
+  'protected' 'body' defining_identifier [aspect_specification] 'is' { protected_operation_item } 'end' [identifier]';'
+
+protected_operation_item ::=
+    subprogram_declaration
+  | subprogram_body
+  | null_procedure_declaration
+  | expression_function_declaration
+  | entry_body
+  | aspect_clause
+
+entry_declaration ::=
+    [overriding_indicator] 'entry' defining_identifier ['('discrete_subtype_definition')'] [formal_part]
+    [aspect_specification]';'
+
+accept_statement ::=
+    'accept' direct_name ['('entry_index')'] [formal_part]
+    ['do' handled_sequence_of_statements 'end' [identifier]] ';'
+
+entry_index ::= expression
+
+entry_body ::=
+    'entry' defining_identifier [entry_body_formal_part] entry_barrier 'is' [declarative_part] 'begin'
+    handled_sequence_of_statements 'end' [identifier]';'
+
+entry_body_formal_part ::=
+    '(' entry_index_specification ')' [formal_part]
+    ['('entry_index_specification')'] formal_part
+
+entry_barrier ::= 'when' condition
+
+entry_index_specification ::= 'for' defining_identifier 'in' discrete_subtype_definition
+
+entry_call_statement ::= name [actual_parameter_part] ';'
+
+requeue_statement ::= 'requeue' name ['with' 'abort'] ';'
+
+delay_statement ::= delay_until_statement | delay_relative_statement
+
+delay_until_statement ::= 'delay' 'until' expression ';'
+
+delay_relative_statement ::= 'delay' expression ';'
+
+select_statement ::=
+    selective_accept
+  | timed_entry_call
+  | conditional_entry_call
+  | asynchronous_select
+
+selective_accept ::=
+    'select' [guard] select_alternative { 'or' [guard] select_alternative } [ 'else' sequence_of_statements ] 'end'
+    'select' ';'
+
+guard ::= 'when' condition '=>'
+
+select_alternative ::=
+    accept_alternative
+  | delay_alternative
+  | terminate_alternative
+
+accept_alternative ::= accept_statement [sequence_of_statements]
+
+delay_alternative ::= delay_statement [sequence_of_statements]
+
+terminate_alternative ::= 'terminate' ';'
+
+timed_entry_call ::= 'select' entry_call_alternative 'or' delay_alternative 'end' 'select' ';'
+
+entry_call_alternative ::= procedure_or_entry_call [sequence_of_statements]
+
+procedure_or_entry_call ::= procedure_call_statement | entry_call_statement
+
+conditional_entry_call ::= 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
+
+asynchronous_select ::= 'select' triggering_alternative 'then' 'abort' abortable_part 'end' 'select' ';'
+
+triggering_alternative ::= triggering_statement [sequence_of_statements]
+
+triggering_statement ::= procedure_or_entry_call | delay_statement
+
+abortable_part ::= sequence_of_statements
+
+abort_statement ::= 'abort' name {'.' name} ';'
+
+compilation ::= {compilation_unit}
+
+compilation_unit ::=
+    [context_clause] library_item
+  | [context_clause] subunit
+
+library_item ::=
+    ['private'] library_unit_declaration
+  | library_unit_body
+  | ['private'] library_unit_renaming_declaration
+
+library_unit_declaration ::=
+    subprogram_declaration
+  | package_declaration
+  | generic_declaration
+  | generic_instantiation
+
+library_unit_renaming_declaration ::=
+    package_renaming_declaration
+  | generic_renaming_declaration
+  | subprogram_renaming_declaration
+
+library_unit_body ::= subprogram_body | package_body
+
+parent_unit_name ::= name
+
+context_clause ::= context_item+
+
+context_item ::= with_clause | use_clause
+
+with_clause ::= limited_with_clause | nonlimited_with_clause
+
+limited_with_clause ::= 'limited' ['private'] 'with' name {'.' name} ';'
+
+nonlimited_with_clause ::= ['private'] 'with' name {'.' name} ';'
+
+body_stub ::=
+    subprogram_body_stub
+  | package_body_stub
+  | task_body_stub
+  | protected_body_stub
+
+subprogram_body_stub ::=
+    [overriding_indicator] subprogram_specification 'is' 'separate' [aspect_specification] ';'
+
+package_body_stub ::= 'package' 'body' defining_identifier 'is' 'separate' [aspect_specification] ';'
+
+task_body_stub ::= 'task' 'body' defining_identifier 'is' 'separate' [aspect_specification] ';'
+
+protected_body_stub ::= 'protected' 'body' defining_identifier 'is' 'separate' [aspect_specification] ';'
+
+subunit ::= 'separate' '('parent_unit_name')' proper_body
+
+exception_declaration ::= defining_identifier_list ':' 'exception' [aspect_specification]';'
+
+handled_sequence_of_statements ::= sequence_of_statements ['exception' exception_handler {exception_handler}]
+
+exception_handler ::=
+  'when' [choice_parameter_specification ':'] exception_choice {'|' exception_choice} '=>' sequence_of_statements
+
+choice_parameter_specification ::= defining_identifier
+
+exception_choice ::= name | 'others'
+
+raise_statement ::=
+    'raise' ';'
+  | 'raise' name ['with' expression] ';'
+
+raise_expression ::= 'raise' name ['with' simple_expression]
+
+generic_declaration ::= generic_subprogram_declaration | generic_package_declaration
+
+generic_subprogram_declaration ::= generic_formal_part subprogram_specification [aspect_specification] ';'
+
+generic_package_declaration ::= generic_formal_part package_specification ';'
+
+generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause}
+
+generic_formal_parameter_declaration ::=
+    formal_object_declaration
+  | formal_type_declaration
+  | formal_subprogram_declaration
+  | formal_package_declaration
+
+generic_instantiation ::=
+    'package' defining_program_unit_name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+  | [overriding_indicator] 'procedure' defining_program_unit_name 'is' 'new' name [generic_actual_part]
+    [aspect_specification] ';'
+  | [overriding_indicator] 'function' defining_designator 'is' 'new' name [generic_actual_part]
+    [aspect_specification] ';'
+
+generic_actual_part ::= '(' generic_association {'.' generic_association}')'
+
+generic_association ::= [selector_name '=>'] explicit_generic_actual_parameter
+
+explicit_generic_actual_parameter ::= expression | name | subtype_mark
+
+formal_object_declaration ::=
+    defining_identifier_list ':' [mode] [null_exclusion] subtype_mark [':=' default_expression] [aspect_specification]';'
+  | defining_identifier_list ':' [mode] access_definition [':=' default_expression] [aspect_specification]';'
+
+formal_type_declaration ::=
+    formal_complete_type_declaration
+  | formal_incomplete_type_declaration
+
+formal_complete_type_declaration ::=
+    'type' defining_identifier [discriminant_part] 'is' formal_type_definition [aspect_specification] ';'
+
+formal_incomplete_type_declaration ::= 'type' defining_identifier [discriminant_part] ['is' 'tagged'] ';'
+
+formal_type_definition ::=
+    formal_private_type_definition
+  | formal_derived_type_definition
+  | formal_discrete_type_definition
+  | formal_signed_integer_type_definition
+  | formal_modular_type_definition
+  | formal_floating_point_definition
+  | formal_ordinary_fixed_point_definition
+  | formal_decimal_fixed_point_definition
+  | formal_array_type_definition
+  | formal_access_type_definition
+  | formal_interface_type_definition
+
+formal_private_type_definition ::= [['abstract'] 'tagged'] ['limited'] 'private'
+
+formal_derived_type_definition ::=
+  ['abstract'] ['limited' | 'synchronized'] 'new' subtype_mark [['and' interface_list] 'with' 'private']
+
+formal_discrete_type_definition ::= '(' '<>' ')'
+
+formal_signed_integer_type_definition ::= range '<>'
+
+formal_modular_type_definition ::= 'mod' '<>'
+
+formal_floating_point_definition ::= 'digits' '<>'
+
+formal_ordinary_fixed_point_definition ::= 'delta' '<>'
+
+formal_decimal_fixed_point_definition ::= 'delta' '<>' 'digits' '<>'
+
+formal_array_type_definition ::= array_type_definition
+
+formal_access_type_definition ::= access_type_definition
+
+formal_interface_type_definition ::= interface_type_definition
+
+formal_subprogram_declaration ::=
+    formal_concrete_subprogram_declaration
+  | formal_abstract_subprogram_declaration
+
+formal_concrete_subprogram_declaration ::=
+    'with' subprogram_specification ['is' subprogram_default] [aspect_specification]';'
+
+formal_abstract_subprogram_declaration ::=
+  'with' subprogram_specification 'is' 'abstract' [subprogram_default] [aspect_specification]';'
+
+subprogram_default ::= default_name | '<>' | 'null'
+
+default_name ::= name
+
+formal_package_declaration ::=
+  'with' 'package' defining_identifier 'is' 'new' name [formal_package_actual_part] [aspect_specification]';'
+
+formal_package_actual_part ::=
+    '(' ['others' '=>'] '<>' ')'
+  | generic_actual_part
+  | '(' formal_package_association {'.' formal_package_association} ['.' 'others' '=>' '<>'] ')'
+
+formal_package_association ::=
+    generic_association
+  | selector_name '=>' '<>'
+
+aspect_clause ::=
+    attribute_definition_clause
+  | enumeration_representation_clause
+  | record_representation_clause
+  | at_clause
+
+local_name ::= direct_name
+  | direct_name TICK attribute_designator
+  | name
+
+aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {'.' aspect_mark ['=>' aspect_definition] }
+
+aspect_mark ::= IDENTIFIER [TICK 'Class']
+
+aspect_definition ::= name | expression | identifier
+
+attribute_definition_clause ::=
+    'for' local_name TICK attribute_designator 'use' expression';'
+  | 'for' local_name TICK attribute_designator 'use' name';'
+
+enumeration_representation_clause ::= 'for' local_name 'use' enumeration_aggregate';'
+
+enumeration_aggregate ::= array_aggregate
+
+record_representation_clause ::= 'for' local_name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' ';'
+
+component_clause ::=
+  local_name 'at' position range first_bit '..' last_bit ';'
+
+position ::= expression
+
+first_bit ::= simple_expression
+
+last_bit ::= simple_expression
+
+code_statement ::= qualified_expression';'
+
+delta_constraint ::= 'delta' simple_expression [range_constraint]
+
+at_clause ::= 'for' direct_name 'use' 'at' expression ';'
+
+mod_clause ::= 'at' 'mod' expression ';'
+
+  ;; end of file

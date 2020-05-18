@@ -1,4 +1,4 @@
-Emacs wisi package 3.1.0
+Emacs wisi package 3.1.1
 
 The wisi package provides utilities for using generalized
 error-correcting LR parsers (in external processes) to do indentation,
@@ -7,4 +7,3 @@ See ada-mode for an example of its use.
 
 It also provides wisitoken-parse_table-mode, for navigating the
 diagnostic parse tables output by wisitoken-bnf-generate.
-
