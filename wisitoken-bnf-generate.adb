@@ -134,8 +134,6 @@ is
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
    Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
-   Do_Time : Boolean := False;
-
    procedure Use_Input_File (File_Name : in String)
    is
       use Ada.Strings.Unbounded;
@@ -260,7 +258,7 @@ begin
 
          elsif Argument (Arg_Next) = "--time" then
             Arg_Next := Arg_Next + 1;
-            Do_Time  := True;
+            WisiToken.Trace_Time := True;
 
          else
             raise User_Error with "invalid argument '" & Argument (Arg_Next) & "'";
@@ -467,7 +465,7 @@ begin
                   Ignore_Conflicts  => Ignore_Conflicts,
                   Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-               if Do_Time then
+               if WisiToken.Trace_Time then
                   Time_End := Clock;
 
                   Put_Line
@@ -494,7 +492,7 @@ begin
                   Ignore_Conflicts  => Ignore_Conflicts,
                   Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-               if Do_Time then
+               if Trace_Time then
                   Time_End := Clock;
 
                   Put_Line

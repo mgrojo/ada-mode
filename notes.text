@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a; speed up lr1
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - wisitoken_to_tree_sitter
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")

@@ -438,6 +438,9 @@ package WisiToken is
    Trace_Generate_Minimal_Complete : Integer := 0;
    --  Output during grammar generation.
 
+   Trace_Time : Boolean := False;
+   --  Output execution time for various things.
+
    Debug_Mode : Boolean := False;
    --  If True, Output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.
