@@ -37,6 +37,7 @@ package WisiToken.Generate.LR1_Items is
    use all type Interfaces.Integer_16;
 
    subtype Lookahead is Token_ID_Set;
+   subtype Lookahead_Access is Token_ID_Set_Access;
    --  Picking a type for Lookahead is not straight-forward. The
    --  operations required are (called numbers are for LR1 generate
    --  ada_lite):
@@ -96,7 +97,7 @@ package WisiToken.Generate.LR1_Items is
    type Item is record
       Prod       : Production_ID;
       Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index; -- token after item Dot
-      Lookaheads : Token_ID_Set_Access := null;
+      Lookaheads : Lookahead_Access := null;
       --  Programmer must remember to copy Item.Lookaheads.all, not
       --  Item.Lookaheads. Wrapping this in Ada.Finalization.Controlled
       --  would just slow it down.
@@ -132,7 +133,9 @@ package WisiToken.Generate.LR1_Items is
    procedure Include
      (Item  : in out LR1_Items.Item;
       Value : in     Lookahead;
-      Added :    out Boolean);
+      Added :    out Boolean)
+   with Pre => Value'First = Item.Lookaheads'First and
+               Value'Last = Item.Lookaheads'Last;
    --  Add Value to Item.Lookahead, if not already present.
    --
    --  Added is True if Value was not already present.

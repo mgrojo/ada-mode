@@ -21,6 +21,42 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+speed up lr1 for ada_annex_p
+    build/Makefile generate_ada_lr1.gprof
+
+[1]     40.1    1.97   63.16                 wisitoken__generate__lr1_items__merge [1]
+               32.51    0.00 169205053/169205053     wisitoken__generate__lr1_items__include [5]
+        added precondition to allow optimizing array checks
+            => very small improvement
+
+         change Include (and Merge) to pass Value as array of token_id
+            that would work for two calls of Merge, with a single lookahead token
+            much faster on ada_lite; .
+ 12.50      0.07     0.02  1350342     0.00     0.00  wisitoken__token_id_arrays__element__2
+ 12.50      0.09     0.02                             __fentry__
+  6.25      0.10     0.01   192375     0.00     0.00  wisitoken__productions__rhs_arrays__last_index
+  6.25      0.11     0.01   182872     0.00     0.00  wisitoken__generate__lr1_items__include
+
+        on ada_annex_p:
+            o.w.s-1 810.177805870
+            o.w:    840.042862230
+
+        change to packed with array "and"
+            slower
+            look at assembly
+            debug_packed_boolean.adb in ~/Ada_Work
+d:/apps/gnat-gpl_2019/bin/gcc.exe -c -x ada -gnatA -O3 -save-temps -gnat12 -gnatwa debug_packed_boolean.adb
+    not packed.
+    constrained array is packed
+    use constrained array that's too big; max 64 terminals
+
+                0.62   26.42 179222382/179222382     wisitoken__generate__lr1_items__find__2 [7]
+        already binary search on sorted list
+        time is spent in compare, not list indexing
+                5.43    0.00 985443652/985443652     wisitoken__generate__lr1_items__item_lists__find__2 [8]
+[17]     3.3    5.43    0.00 985443652         wisitoken__generate__lr1_items__item_compare [17]
+
+
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!
     Goto_List _does_ contain terminals
