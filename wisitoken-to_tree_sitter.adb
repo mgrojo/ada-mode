@@ -64,8 +64,7 @@ is
                --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
                return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
-            elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID then
-               return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
+               --  We don't strip string delimiters; tree-setter can use the same ones.
             else
                return Data.Grammar_Lexer.Buffer_Text (Region);
             end if;
@@ -142,7 +141,10 @@ is
          case Tree.RHS_Index (Node) is
          when 0 | 1 =>
             Put_RHS_Alternative_List (Tree.Child (Node, 2), First => True);
-         when 2 | 3 =>
+         when 2 =>
+            Put (File, "$." & Get_Text (Tree.Child (Node, 1)));
+         when 3 =>
+            --  STRING_LITERAL_2
             Put (File, Get_Text (Tree.Child (Node, 1)));
          when others =>
             Not_Translated ("Put_RHS_Optional_Item", Node);
@@ -167,12 +169,12 @@ is
 
          when 4 =>
             Put (File, "repeat1(");
-            Put (File, Get_Text (Tree.Child (Node, 1)));
+            Put (File, "$." & Get_Text (Tree.Child (Node, 1)));
             Put (File, ")");
 
          when 5 =>
             Put (File, "repeat(");
-            Put (File, Get_Text (Tree.Child (Node, 1)));
+            Put (File, "$." & Get_Text (Tree.Child (Node, 1)));
             Put (File, ")");
 
          when others =>
@@ -201,14 +203,14 @@ is
                   Raise_Programmer_Error ("decl for '" & Ident & "' not found", Data, Tree, Node);
 
                elsif Tree.ID (Decl) = +nonterminal_ID then
-                  Put (File, Get_Text (Tree.Child (Decl, 1)));
+                  Put (File, "$." & Get_Text (Tree.Child (Decl, 1)));
 
                else
                   case Tree.RHS_Index (Decl) is
                   when 0 =>
                      case To_Token_Enum (Tree.ID (Tree.Child (Tree.Child (Decl, 2), 1))) is
                      when KEYWORD_ID =>
-                        Put (File, "'" & Get_Text (Tree.Child (Decl, 4)) & "'");
+                        Put (File, Get_Text (Tree.Child (Decl, 4)));
 
                      when NON_GRAMMAR_ID =>
                         Not_Translated ("put_rhs_item", Node);
@@ -223,11 +225,11 @@ is
                         begin
                            case To_Token_Enum (Tree.ID (Item)) is
                            when REGEXP_ID =>
-                              Put (File, Ident);
+                              Put (File, "$." & Ident);
 
                            when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
                               --  FIXME: case insensitive?
-                              Put (File, "'" & Get_Text (Item) & "'");
+                              Put (File, Get_Text (Item));
 
                            when others =>
                               Not_Translated ("put_rhs_item ident token", Node);
@@ -245,11 +247,13 @@ is
             end;
 
          when 1 =>
+            --  STRING_LITERAL_2
             Put (File, Get_Text (Node));
 
          when 2 =>
             --  ignore attribute
             null;
+
          when 3 =>
             Put_RHS_Optional_Item (Tree.Child (Node, 1));
 
@@ -381,7 +385,6 @@ is
                   begin
                      case To_Token_Enum (Tree.ID (Item)) is
                      when REGEXP_ID =>
-                        --  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
                         Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Item), Both) & "/,");
 
                      when others =>
