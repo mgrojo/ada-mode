@@ -21,6 +21,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+to_tree_sitter
+    build/Makefile one
+
+
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!
     Goto_List _does_ contain terminals
