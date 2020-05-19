@@ -22,6 +22,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Environment_Variables;
 with Test_BNF_Suite;
 with WisiToken;
 procedure Test_BNF_Harness
@@ -39,7 +40,10 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite;
+   Include_BNF  : constant Boolean := Ada.Environment_Variables.Value ("EBNF_ONLY") = "false";
+   Include_EBNF : constant Boolean := Include_BNF or Ada.Environment_Variables.Value ("EBNF_ONLY") = "true";
+
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite (Include_BNF, Include_EBNF);
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
@@ -47,18 +51,14 @@ is
 begin
    Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
 
-   case Argument_Count is
-   when 0 | 1 =>
-      null;
-
-   when others =>
+   if Argument_Count > 1 then
       declare
          Test_Name : constant String := "bnf_wy_test.adb ";
          Root_Name : String renames Argument (2);
       begin
          Filter.Set_Name (Test_Name & Root_Name);
       end;
-   end case;
+   end if;
 
    WisiToken.Trace_Generate_Table := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
    WisiToken.Trace_Parse          := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);

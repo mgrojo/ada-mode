@@ -45,6 +45,10 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Node (Cursor : in LR_Utils.Cursor) return Node_Index;
 
+   function Get_Node (Cursor : in LR_Utils.Cursor) return Node_Index
+     renames Node;
+   --  Useful when Node is hidden by another declaration.
+
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
    type Iterator is new Iterator_Interfaces.Reversible_Iterator with private;
@@ -64,9 +68,12 @@ package WisiToken.Syntax_Trees.LR_Utils is
       Root         : in Valid_Node_Index;
       Element_ID   : in WisiToken.Token_ID;
       Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
-     return Iterator_Interfaces.Reversible_Iterator'Class;
+     return Iterator;
 
-   function Count (Iter : Iterator) return Ada.Containers.Count_Type;
+   function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
+
+   function Copy_List (List : in out Iterator) return Valid_Node_Index;
+   --  Deep copy List into List.Tree, return root node of new list.
 
 private
 

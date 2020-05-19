@@ -196,7 +196,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Root         : in Valid_Node_Index;
       Element_ID   : in WisiToken.Token_ID;
       Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
-     return Iterator_Interfaces.Reversible_Iterator'Class
+     return Iterator
    is begin
       return Iterator'
         (Iterator_Interfaces.Reversible_Iterator with
@@ -216,5 +216,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end loop;
       return Result;
    end Count;
+
+   function Copy_List (List : in out Iterator) return Valid_Node_Index
+   is begin
+      return List.Tree.Copy_Subtree
+        (Root => List.Root,
+         Last => Node (List.First));
+   end Copy_List;
 
 end WisiToken.Syntax_Trees.LR_Utils;

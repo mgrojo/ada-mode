@@ -883,11 +883,10 @@ package body WisiToken_Grammar_Runtime is
       Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return WisiToken.Syntax_Trees.LR_Utils.Iterator
    is begin
-      return WisiToken.Syntax_Trees.LR_Utils.Iterator
-        (WisiToken.Syntax_Trees.LR_Utils.Iterate
-           (Tree, Data.Terminals, Data.Grammar_Lexer, Wisitoken_Grammar_Actions.Descriptor'Access, Root,
-            Element_ID   => Element_ID,
-            Separator_ID => Separator_ID));
+      return WisiToken.Syntax_Trees.LR_Utils.Iterate
+        (Tree, Data.Terminals, Data.Grammar_Lexer, Wisitoken_Grammar_Actions.Descriptor'Access, Root,
+         Element_ID   => Element_ID,
+         Separator_ID => Separator_ID);
    end Iterate;
 
    function Find_Declaration
@@ -1018,51 +1017,31 @@ package body WisiToken_Grammar_Runtime is
          return Tree.RHS_Index (Root) = 0;
       end List_Singleton;
 
+      function Iterate
+        (Root         : in Valid_Node_Index;
+         Element_ID   : in WisiToken.Token_ID;
+         Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+        return WisiToken.Syntax_Trees.LR_Utils.Iterator
+      is begin
+         return WisiToken.Syntax_Trees.LR_Utils.Iterate
+           (Tree, Data.Terminals, Data.Grammar_Lexer, Wisitoken_Grammar_Actions.Descriptor'Access,
+            Root, Element_ID, Separator_ID);
+      end Iterate;
+
       function First_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
       is
-         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.First
-         List_ID : constant WisiToken.Token_ID := Tree.ID (Root);
-
-         --  Return the first child with Element_ID in list of List_IDs. This
-         --  is not the same as Find_Descendant, because we check the children
-         --  first, and only the first child.
-         Node : Node_Index := Root;
+         use WisiToken.Syntax_Trees.LR_Utils;
+         Iter : constant Iterator := Iterate (Root, Element_ID);
       begin
-         loop
-            declare
-               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
-            begin
-               if Tree.ID (Children (1)) = List_ID then
-                  Node := Children (1);
-               elsif Tree.ID (Children (1)) = Element_ID then
-                  Node := Children (1);
-                  exit;
-               else
-                  Raise_Programmer_Error ("first_list_element", Data, Tree, Node);
-               end if;
-            end;
-         end loop;
-         return Node;
+         return Node (Iter.First);
       end First_List_Element;
 
-      function Last_List_Element (Root : in Valid_Node_Index) return Node_Index
+      function Last_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
       is
-         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.Last
-
-         --  Tree is one of:
-         --
-         --  case a: single element list
-         --  element_list : root
-         --  | element: Last
-         --
-         --  case c: no next
-         --  element_list: root
-         --  | element_list
-         --  | | element:
-         --  | element: Last
-         Children : constant Valid_Node_Index_Array := Tree.Children (Root);
+         use WisiToken.Syntax_Trees.LR_Utils;
+         Iter : constant Iterator := Iterate (Root, Element_ID);
       begin
-         return Children (Children'Last);
+         return Node (Iter.Last);
       end Last_List_Element;
 
       function Next_List_Element
@@ -1241,16 +1220,19 @@ package body WisiToken_Grammar_Runtime is
          --
          --  The containing elment may be rhs or rhs_alternative_list
 
+         use WisiToken.Syntax_Trees.LR_Utils;
+
          Container                 : constant Valid_Node_Index := Tree.Find_Ancestor
            (B, (+rhs_ID, +rhs_alternative_list_ID));
          Orig_RHS_Element_C_Head   : constant Node_Index       := Next_List_Element
            (Tree.Parent (B, 2), +rhs_item_list_ID);
          Orig_RHS_Item_List_C_Root : constant Valid_Node_Index := List_Root (Tree.Parent (B, 3));
          Orig_RHS_Item_List_A_Root : constant Valid_Node_Index := Tree.Child (Tree.Parent (B, 3), 1);
+         Orig_RHS_Item_List_A_Iter : constant Iterator         := Iterate (Orig_RHS_Item_List_A_Root, +rhs_element_ID);
          Orig_RHS_Element_A_Head   : constant Node_Index       :=
            (if Orig_RHS_Item_List_A_Root = Tree.Parent (B, 2)
             then Invalid_Node_Index -- a is empty
-            else First_List_Element (Orig_RHS_Item_List_A_Root, +rhs_element_ID));
+            else Node (Orig_RHS_Item_List_A_Iter.First));
          Container_List            : constant Valid_Node_Index :=
            (if Tree.ID (Container) = +rhs_ID then Tree.Parent (Container) else Container);
          New_RHS_Item_List_A       : Node_Index                := Invalid_Node_Index;
@@ -1346,7 +1328,8 @@ package body WisiToken_Grammar_Runtime is
                   else New_RHS_Item_List_C);
             else
                declare
-                  Tail_Element_A : constant Valid_Node_Index := Last_List_Element (New_RHS_Item_List_A);
+                  Tail_Element_A : constant Valid_Node_Index :=
+                    Last_List_Element (New_RHS_Item_List_A, +rhs_element_ID);
                   Head_Element_B : constant Valid_Node_Index := First_List_Element
                     (New_RHS_Item_List_C, +rhs_element_ID);
                begin
@@ -2352,11 +2335,12 @@ package body WisiToken_Grammar_Runtime is
                            Tail_Element_A : constant Node_Index       :=
                              (if Root_List_A = Tree.Parent (Node, 2)
                               then Invalid_Node_Index -- a is empty
-                              else Last_List_Element (Root_List_A));
+                              else Last_List_Element (Root_List_A, +rhs_element_ID));
                            Root_List_B    : constant Valid_Node_Index := Tree.Child (Tree.Child (Node, 2), 1);
                            Head_Element_B : constant Valid_Node_Index := First_List_Element
                              (Root_List_B, +rhs_element_ID);
-                           Tail_Element_B : constant Valid_Node_Index := Last_List_Element (Root_List_B);
+                           Tail_Element_B : constant Valid_Node_Index := Last_List_Element
+                             (Root_List_B, +rhs_element_ID);
                            Root_List_C    : constant Valid_Node_Index := List_Root (Tree.Parent (Node, 3));
                            Head_Element_C : constant Node_Index       := Next_List_Element
                              (Tree.Parent (Node, 2), +rhs_item_list_ID);
@@ -2428,7 +2412,7 @@ package body WisiToken_Grammar_Runtime is
                   Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 1), (1 => Tree.Child (Node, 1)));
 
                when others =>
-                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplmented", Data, Tree, Node);
+                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplemented", Data, Tree, Node);
                end case;
 
                Clear_EBNF_Node (Node);
