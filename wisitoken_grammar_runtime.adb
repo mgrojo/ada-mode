@@ -876,12 +876,12 @@ package body WisiToken_Grammar_Runtime is
    end Raise_Programmer_Error;
 
    function Iterate
-     (Data         : in User_Data_Type;
-      Tree         : in WisiToken.Syntax_Trees.Tree;
-      Root         : in Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     (Data         : in     User_Data_Type;
+      Tree         : in out WisiToken.Syntax_Trees.Tree;
+      Root         : in     Valid_Node_Index;
+      List_ID      : in     WisiToken.Token_ID;
+      Element_ID   : in     WisiToken.Token_ID;
+      Separator_ID : in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return WisiToken.Syntax_Trees.LR_Utils.Iterator
    is begin
       return WisiToken.Syntax_Trees.LR_Utils.Iterate
@@ -893,9 +893,9 @@ package body WisiToken_Grammar_Runtime is
    end Iterate;
 
    function Find_Declaration
-     (Data : in User_Data_Type;
-      Tree : in WisiToken.Syntax_Trees.Tree;
-      Name : in String)
+     (Data : in     User_Data_Type;
+      Tree : in out WisiToken.Syntax_Trees.Tree;
+      Name : in     String)
      return WisiToken.Node_Index
    is
       use WisiToken.Syntax_Trees.LR_Utils;
@@ -1192,20 +1192,22 @@ package body WisiToken_Grammar_Runtime is
          --  or B is a virtual identifier naming the new nonterm replacing the
          --  original.
          --
-         --  where a, c can be empty. Insert a second rhs_item_list without B.
+         --  Insert a second rhs_item_list without B.
          --
-         --  The containing element may be rhs or rhs_alternative_list
+         --  a, c can be empty. The containing element may be rhs or
+         --  rhs_alternative_list
+         use Syntax_Trees.LR_Utils;
 
-         Container                 : constant Valid_Node_Index := Tree.Find_Ancestor
+         Container : constant Valid_Node_Index := Tree.Find_Ancestor
            (B, (+rhs_ID, +rhs_alternative_list_ID));
-         Orig_RHS_Element_C_Head   : constant Node_Index       := Next_List_Element
-           (Tree.Parent (B, 2), +rhs_item_list_ID);
-         Orig_RHS_Item_List_C_Root : constant Valid_Node_Index := List_Root (Tree.Parent (B, 3));
-         Orig_RHS_Item_List_A_Root : constant Valid_Node_Index := Tree.Child (Tree.Parent (B, 3), 1);
-         Orig_RHS_Element_A_Head   : constant Node_Index       :=
-           (if Orig_RHS_Item_List_A_Root = Tree.Parent (B, 2)
-            then Invalid_Node_Index -- a is empty
-            else First_List_Element (Orig_RHS_Item_List_A_Root, +rhs_item_list_ID, +rhs_element_ID));
+
+         Orig_ABC_Iter : Iterator := Iterate
+           (List_Root (Tree.Parent (B, 3)), +rhs_item_list_ID, +rhs_element_ID);
+
+         Orig_ABC_B_Cur   : constant Cursor := Orig_ABC_Iter.To_Cursor (Tree.Parent (B, 2));
+         Orig_ABC_A_Last  : constant Cursor := Orig_ABC_Iter.Previous (Orig_ABC_B_Cur);
+         Orig_ABC_C_First : constant Cursor := Orig_ABC_Iter.Next (Orig_ABC_B_Cur);
+
          Container_List            : constant Valid_Node_Index :=
            (if Tree.ID (Container) = +rhs_ID then Tree.Parent (Container) else Container);
          New_RHS_Item_List_A       : Node_Index                := Invalid_Node_Index;
@@ -1250,11 +1252,9 @@ package body WisiToken_Grammar_Runtime is
             Ada.Text_IO.Put_Line ("insert_optional_rhs");
          end if;
 
-         if Orig_RHS_Element_A_Head /= Invalid_Node_Index then
+         if Has_Element (Orig_ABC_A_Last) then
             --  a is not empty
-            New_RHS_Item_List_A := Tree.Copy_Subtree
-              (Last => Orig_RHS_Element_A_Head,
-               Root => Orig_RHS_Item_List_A_Root);
+            New_RHS_Item_List_A := Orig_ABC_Iter.Copy_List (Last => Orig_ABC_A_Last);
 
             if Trace_Generate_EBNF > Extra then
                Ada.Text_IO.New_Line;
@@ -1263,11 +1263,9 @@ package body WisiToken_Grammar_Runtime is
             end if;
          end if;
 
-         if Orig_RHS_Element_C_Head /= Invalid_Node_Index then
+         if Has_Element (Orig_ABC_C_First) then
             --  c is not empty
-            New_RHS_Item_List_C := Tree.Copy_Subtree
-              (Last => Orig_RHS_Element_C_Head,
-               Root => Orig_RHS_Item_List_C_Root);
+            New_RHS_Item_List_C := Orig_ABC_Iter.Copy_List (First => Orig_ABC_C_First);
 
             if Trace_Generate_EBNF > Extra then
                Ada.Text_IO.New_Line;
@@ -1305,13 +1303,14 @@ package body WisiToken_Grammar_Runtime is
                   else New_RHS_Item_List_C);
             else
                declare
+                  --  FIXME: use LR_Utils.Delete (b_cur).
                   Tail_Element_A : constant Valid_Node_Index := Last_List_Element
                     (New_RHS_Item_List_A, +rhs_item_list_ID, +rhs_element_ID);
                   Head_Element_B : constant Valid_Node_Index := First_List_Element
                     (New_RHS_Item_List_C, +rhs_item_list_ID, +rhs_element_ID);
                begin
                   Tree.Set_Children
-                    (Tree.Parent (Head_Element_B),
+                    (Tree.Parent (Get_Node (Orig_ABC_B_Cur)),
                      (+rhs_item_list_ID, 1),
                      (Tree.Parent (Tail_Element_A), Head_Element_B));
                end;
@@ -1352,11 +1351,11 @@ package body WisiToken_Grammar_Runtime is
          Append_Element (Container_List, New_RHS_AC, +BAR_ID);
       end Insert_Optional_RHS;
 
-      Compilation_Unit_List_Tail : constant Valid_Node_Index := Tree.Child (Tree.Root, 1);
-
       procedure Add_Compilation_Unit (Unit : in Valid_Node_Index; Prepend : in Boolean := False)
       with Pre => Tree.ID (Unit) in +declaration_ID | +nonterminal_ID
       is
+         Compilation_Unit_List_Root : constant Valid_Node_Index := Tree.Child (Tree.Root, 1);
+
          Comp_Unit : constant Valid_Node_Index := Tree.Add_Nonterm
            ((+compilation_unit_ID, (if Tree.ID (Unit) = +declaration_ID then 0 else 1)),
             (1 => Unit));
@@ -1364,10 +1363,10 @@ package body WisiToken_Grammar_Runtime is
          if Prepend then
             Append_Element
               (Tree.Parent
-                 (First_List_Element (Compilation_Unit_List_Tail, +compilation_unit_list_ID, +compilation_unit_ID)),
+                 (First_List_Element (Compilation_Unit_List_Root, +compilation_unit_list_ID, +compilation_unit_ID)),
                Comp_Unit);
          else
-            Append_Element (Compilation_Unit_List_Tail, Comp_Unit);
+            Append_Element (Compilation_Unit_List_Root, Comp_Unit);
          end if;
 
          if Trace_Generate_EBNF > Extra then
@@ -2449,46 +2448,37 @@ package body WisiToken_Grammar_Runtime is
 
          when STRING_LITERAL_2_ID =>
             declare
+               use Syntax_Trees.LR_Utils;
                Value      : constant String  := Get_Text (Data, Tree, Node, Strip_Quotes => True);
                Name_Ident : Identifier_Index;
                Found      : Boolean          := False;
             begin
                --  See if Value is already declared
-               declare
-                  Temp : Node_Index := First_List_Element
-                    (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
-                  Decl : Node_Index;
-               begin
-                  loop
-                     pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
+               for Cur in Iterate (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID) loop
 
-                     if Tree.Production_ID (Tree.Child (Temp, 1)) = (+declaration_ID, 0) then
-                        Decl := Tree.Child (Temp, 1);
-                        declare
-                           Value_Node : constant Valid_Node_Index := Tree.Child (Tree.Child (Decl, 4), 1);
-                        begin
-                           if Tree.ID (Value_Node) = +declaration_item_ID and then
-                             Tree.ID (Tree.Child (Value_Node, 1)) in
-                             +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
-                             Value = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
-                           then
-                              Found := True;
-                              case Tree.Label (Tree.Child (Decl, 3)) is
-                              when Shared_Terminal =>
-                                 Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
-                              when Virtual_Identifier =>
-                                 Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
-                              when others =>
-                                 raise SAL.Programmer_Error;
-                              end case;
-                           end if;
-                        end;
-                     end if;
-
-                     Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                     exit when Temp = Invalid_Node_Index;
-                  end loop;
-               end;
+                  if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+declaration_ID, 0) then
+                     declare
+                        Decl       : constant Node_Index       := Tree.Child (Get_Node (Cur), 1);
+                        Value_Node : constant Valid_Node_Index := Tree.Child (Tree.Child (Decl, 4), 1);
+                     begin
+                        if Tree.ID (Value_Node) = +declaration_item_ID and then
+                          Tree.ID (Tree.Child (Value_Node, 1)) in
+                          +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
+                          Value = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
+                        then
+                           Found := True;
+                           case Tree.Label (Tree.Child (Decl, 3)) is
+                           when Shared_Terminal =>
+                              Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
+                           when Virtual_Identifier =>
+                              Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
+                           when others =>
+                              raise SAL.Programmer_Error;
+                           end case;
+                        end if;
+                     end;
+                  end if;
+               end loop;
 
                if not Found then
                   if GNAT.Regexp.Match (Value, Symbol_Regexp) then

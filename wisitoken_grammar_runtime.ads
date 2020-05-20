@@ -138,18 +138,18 @@ package WisiToken_Grammar_Runtime is
    pragma No_Return (Raise_Programmer_Error);
 
    function Iterate
-     (Data         : in User_Data_Type;
-      Tree         : in WisiToken.Syntax_Trees.Tree;
-      Root         : in WisiToken.Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     (Data         : in     User_Data_Type;
+      Tree         : in out WisiToken.Syntax_Trees.Tree;
+      Root         : in     WisiToken.Valid_Node_Index;
+      List_ID      : in     WisiToken.Token_ID;
+      Element_ID   : in     WisiToken.Token_ID;
+      Separator_ID : in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return WisiToken.Syntax_Trees.LR_Utils.Iterator;
 
    function Find_Declaration
-     (Data : in User_Data_Type;
-      Tree : in WisiToken.Syntax_Trees.Tree;
-      Name : in String)
+     (Data : in     User_Data_Type;
+      Tree : in out WisiToken.Syntax_Trees.Tree;
+      Name : in     String)
      return WisiToken.Node_Index;
    --  Return the node that declares Name, Invalid_Node_Index if none.
    --  The node is either a declaration or a nonterminal.

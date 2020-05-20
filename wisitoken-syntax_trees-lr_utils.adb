@@ -67,7 +67,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                      exit;
                   else
                      Raise_Programmer_Error
-                       ("lr_utils.first", Iter.Descriptor.all, Iter.Lexer, Iter.Tree,
+                       ("lr_utils.first", Iter.Descriptor.all, Iter.Lexer, Iter.Tree.all,
                         Iter.Terminals.all, Result.Node);
                   end if;
                end;
@@ -211,31 +211,31 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Previous;
 
    function Iterate
-     (Tree         : in WisiToken.Syntax_Trees.Tree;
-      Terminals    : in WisiToken.Base_Token_Array_Access;
-      Lexer        : in WisiToken.Lexer.Handle;
-      Descriptor   : in WisiToken.Descriptor_Access_Constant;
-      Root         : in Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals    :         in     WisiToken.Base_Token_Array_Access;
+      Lexer        :         in     WisiToken.Lexer.Handle;
+      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
+      Root         :         in     Valid_Node_Index;
+      List_ID      :         in     WisiToken.Token_ID;
+      Element_ID   :         in     WisiToken.Token_ID;
+      Separator_ID :         in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return Iterator
    is
       pragma Unreferenced (List_ID); --  checked in precondition.
    begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree, Terminals, Lexer, Descriptor, Root,
+         Tree'Access, Terminals, Lexer, Descriptor, Root,
          List_ID      => Tree.ID (Root),
          Element_ID   => Element_ID,
          Separator_ID => Separator_ID);
    end Iterate;
 
-   function Invalid_Iterator (Tree : in WisiToken.Syntax_Trees.Tree) return Iterator
+   function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator
    is begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree         => Tree,
+         Tree         => Tree'Access,
          Terminals    => null,
          Lexer        => null,
          Descriptor   => null,
@@ -262,6 +262,11 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end if;
    end To_Cursor;
 
+   function Root (Iter : in Iterator) return Valid_Node_Index
+   is begin
+      return Iter.Root;
+   end Root;
+
    function Count (Iter : Iterator) return Ada.Containers.Count_Type
    is
       use Ada.Containers;
@@ -273,9 +278,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return Result;
    end Count;
 
-   function Copy_List (List : in out Iterator) return Valid_Node_Index
+   function Copy_List
+     (List  : in out Iterator;
+      First : in     Cursor := No_Element;
+      Last  : in     Cursor := No_Element)
+     return Valid_Node_Index
    is begin
-      return List.Tree.Copy_Subtree (Root => List.Root, Last => Node (List.First));
+      return List.Tree.Copy_Subtree
+        (Root => (if First = No_Element then List.Root else List.Tree.Parent (First.Node)),
+         Last => (if Last = No_Element then List.First.Node else Last.Node));
    end Copy_List;
 
 end WisiToken.Syntax_Trees.LR_Utils;

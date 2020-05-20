@@ -26,7 +26,12 @@ lr_utils iterator don't copy Tree; get ref.
 
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
-    rhs_optional_item done
+    working on insert_optional_rhs
+        use iter.delete (cur)
+
+    delete next_list_element
+
+    move List_Root to LR_Utils
 
     Append_Element inserts before last
         add append or insert to lr_utils

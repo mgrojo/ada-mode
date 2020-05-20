@@ -51,6 +51,9 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  element: Last
 
    type Cursor is private;
+
+   No_Element : constant Cursor;
+
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
 
    function Node (Cursor : in LR_Utils.Cursor) return Node_Index;
@@ -61,7 +64,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator is new Iterator_Interfaces.Reversible_Iterator with private;
+   type Iterator (<>) is new Iterator_Interfaces.Reversible_Iterator with private;
 
    overriding function First (Iter : Iterator) return Cursor;
    overriding function Last  (Iter : Iterator) return Cursor;
@@ -71,19 +74,19 @@ package WisiToken.Syntax_Trees.LR_Utils is
    overriding function Previous (Iter : Iterator; Position : Cursor) return Cursor;
 
    function Iterate
-     (Tree         : in WisiToken.Syntax_Trees.Tree;
-      Terminals    : in WisiToken.Base_Token_Array_Access;
-      Lexer        : in WisiToken.Lexer.Handle;
-      Descriptor   : in WisiToken.Descriptor_Access_Constant;
-      Root         : in Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals    :         in     WisiToken.Base_Token_Array_Access;
+      Lexer        :         in     WisiToken.Lexer.Handle;
+      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
+      Root         :         in     Valid_Node_Index;
+      List_ID      :         in     WisiToken.Token_ID;
+      Element_ID   :         in     WisiToken.Token_ID;
+      Separator_ID :         in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return Iterator
    with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
    --  The list cannot be empty.
 
-   function Invalid_Iterator (Tree : in WisiToken.Syntax_Trees.Tree) return Iterator;
+   function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator;
    --  First, Last return empty cursor, count returns 0.
 
    function Is_Invalid (Iter : in Iterator) return Boolean;
@@ -92,19 +95,29 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  If assertions enabled, checks that Node is child of Iter.Root, and
    --  Tree.ID (Node) = Iter.Element_ID.
 
+   function Root (Iter : in Iterator) return Valid_Node_Index;
    function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
 
-   function Copy_List (List : in out Iterator) return Valid_Node_Index;
-   --  Deep copy (using Tree.Copy_Tree) all of List into List.Tree,
-   --  return root node of new list..
+   function Copy_List
+     (List  : in out Iterator;
+      First : in Cursor := No_Element;
+      Last  : in Cursor := No_Element)
+     return Valid_Node_Index;
+   --  Deep copy (using Tree.Copy_Tree) slice of List into List.Tree,
+   --  return root node of new list.
+   --
+   --  If First = No_Element, copy from List.First.
+   --  If Last = No_Element, copy thru List.Last.
 private
 
    type Cursor is record
       Node : Node_Index;
    end record;
 
-   type Iterator is new Iterator_Interfaces.Reversible_Iterator with record
-      Tree         : WisiToken.Syntax_Trees.Tree;
+   No_Element : constant Cursor := (Node => Invalid_Node_Index);
+
+   type Iterator (Tree : not null access WisiToken.Syntax_Trees.Tree) is new Iterator_Interfaces.Reversible_Iterator
+     with record
       Terminals    : WisiToken.Base_Token_Array_Access;
       Lexer        : WisiToken.Lexer.Handle;
       Descriptor   : WisiToken.Descriptor_Access_Constant;
