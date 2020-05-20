@@ -2231,12 +2231,14 @@ package body WisiToken_Grammar_Runtime is
             --  | | | | | | rhs_item: contains b
             --  | | | | | | | rhs_optional_item: Node
             --  | | | | | | | | LEFT_BRACKET: Node.Children (1)
-            --  | | | | | | | | rhs_alternative_item_list: Node.Children (2) b
+            --  | | | | | | | | rhs_alternative_list: Node.Children (2) b
             --  | | | | | | | | RIGHT_BRACKET: Node.Children (3)
             --  | | | | rhs_element: head of c
             --  | | | | | rhs_item: head of c
 
             declare
+               use all type Ada.Containers.Count_Type;
+
                Name_Ident    : Base_Identifier_Index := Invalid_Identifier_Index;
                Name_Terminal : Base_Token_Index      := Invalid_Token_Index;
                Name_Label    : Base_Token_Index      := Invalid_Token_Index;
@@ -2249,8 +2251,9 @@ package body WisiToken_Grammar_Runtime is
 
                   --  Check for special cases
 
-                  if List_Singleton (Tree.Child (Node, 2)) then
-                     if List_Singleton (Tree.Child (Tree.Child (Node, 2), 1)) then
+                  if Iterate (Tree.Child (Node, 2), +rhs_alternative_list_ID, +rhs_item_list_ID).Count = 1 then
+                     if Iterate (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID).Count = 1
+                     then
                         --  Single item in rhs_alternative_list and rhs_item_list; just use it.
                         --
                         --  Single alternative, multiple rhs_items handled below
@@ -2258,7 +2261,7 @@ package body WisiToken_Grammar_Runtime is
                            Name_Element_Node    : Valid_Node_Index;
                            Name_Identifier_Node : Node_Index;
                         begin
-                           Found     := True;
+                           Found             := True;
                            Name_Element_Node := First_List_Element
                              (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
 
@@ -2283,18 +2286,21 @@ package body WisiToken_Grammar_Runtime is
                   else
                      --  See if we've already created a nonterminal for this.
                      declare
-                        New_Text             : constant String := Get_Text (Data, Tree, Tree.Child (Node, 2));
-                        Temp                 : Node_Index      := First_List_Element
+                        use Syntax_Trees.LR_Utils;
+
+                        New_Text : constant String   := Get_Text (Data, Tree, Tree.Child (Node, 2));
+                        Iter     : constant Iterator := Iterate
                           (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+
                         Name_Identifier_Node : Node_Index;
                      begin
-                        loop
-                           pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
+                        for Cur in Iter loop
+                           pragma Assert (Tree.ID (Get_Node (Cur)) = +compilation_unit_ID);
 
-                           if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) then
-                              if New_Text = Get_Text (Data, Tree, Tree.Child (Tree.Child (Temp, 1), 3)) then
+                           if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
+                              if New_Text = Get_Text (Data, Tree, Tree.Child (Tree.Child (Get_Node (Cur), 1), 3)) then
                                  Found := True;
-                                 Name_Identifier_Node := Tree.Child (Tree.Child (Temp, 1), 1);
+                                 Name_Identifier_Node := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
                                  case Tree.Label (Name_Identifier_Node) is
                                  when Virtual_Identifier =>
                                     Name_Ident := Tree.Identifier (Name_Identifier_Node);
@@ -2306,9 +2312,6 @@ package body WisiToken_Grammar_Runtime is
                                  exit;
                               end if;
                            end if;
-
-                           Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                           exit when Found or Temp = Invalid_Node_Index;
                         end loop;
                      end;
                   end if;

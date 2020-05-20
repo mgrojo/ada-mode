@@ -30,8 +30,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    begin
       raise SAL.Programmer_Error with Error_Message
         (Lexer.File_Name,
-         (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line), 0,
-         Label & Node'Image & ":" &
+         --  Not clear why we need Line + 1 here, to match Emacs.
+         (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line + 1), 0,
+         Label & ":" &
            Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
