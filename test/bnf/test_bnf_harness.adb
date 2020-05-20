@@ -40,10 +40,11 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Include_BNF  : constant Boolean := Ada.Environment_Variables.Value ("EBNF_ONLY") = "false";
-   Include_EBNF : constant Boolean := Include_BNF or Ada.Environment_Variables.Value ("EBNF_ONLY") = "true";
+   EBNF_Only : constant Boolean :=
+     Ada.Environment_Variables.Exists ("EBNF_ONLY") and then
+     Ada.Environment_Variables.Value ("EBNF_ONLY") = "true";
 
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite (Include_BNF, Include_EBNF);
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only);
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;

@@ -31,7 +31,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       raise SAL.Programmer_Error with Error_Message
         (Lexer.File_Name,
          (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line), 0,
-         Label & Node'Image & ":" & Tree.Image (Node, Descriptor, Include_Children => True));
+         Label & Node'Image & ":" &
+           Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean is (Cursor.Node /= Invalid_Node_Index);
@@ -40,42 +41,62 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    overriding function First (Iter : Iterator) return Cursor
    is begin
-      return Result : Cursor do
-         Result.Node := Iter.Root;
-         loop
-            declare
-               Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Result.Node);
-            begin
-               if Iter.Tree.ID (Children (1)) = Iter.List_ID then
-                  Result.Node := Children (1);
-               elsif Iter.Tree.ID (Children (1)) = Iter.Element_ID then
-                  Result.Node := Children (1);
-                  exit;
-               else
-                  Raise_Programmer_Error
-                    ("first_list_element", Iter.Descriptor.all, Iter.Lexer, Iter.Tree, Iter.Terminals.all, Result.Node);
-               end if;
-            end;
-         end loop;
-      end return;
+      if Iter.Root = Invalid_Node_Index then
+         return (Node => Invalid_Node_Index);
+      else
+         return Result : Cursor do
+            Result.Node := Iter.Root;
+            loop
+               declare
+                  Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Result.Node);
+               begin
+                  --  An empty list looks like:
+                  --
+                  --  parent_2:
+                  --  | list
+                  --  | | list
+                  --  | | | element: First
+                  --  | | element: 2
+                  --  | element: 3
+                  --  element: Last
+                  if Iter.Tree.ID (Children (1)) = Iter.List_ID then
+                     Result.Node := Children (1);
+                  elsif Iter.Tree.ID (Children (1)) = Iter.Element_ID then
+                     Result.Node := Children (1);
+                     exit;
+                  else
+                     Raise_Programmer_Error
+                       ("lr_utils.first", Iter.Descriptor.all, Iter.Lexer, Iter.Tree,
+                        Iter.Terminals.all, Result.Node);
+                  end if;
+               end;
+            end loop;
+         end return;
+      end if;
    end First;
 
    overriding function Last  (Iter : Iterator) return Cursor
-   is
-      --  Tree is one of:
-      --
-      --  case a: single element list
-      --  element_list : root
-      --  | element: Last
-      --
-      --  case c: no next
-      --  element_list: root
-      --  | element_list
-      --  | | element:
-      --  | element: Last
-      Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Iter.Root);
-   begin
-      return (Node => Children (Children'Last));
+   is begin
+      if Iter.Root = Invalid_Node_Index then
+         return (Node => Invalid_Node_Index);
+      else
+         declare
+            --  Tree is one of:
+            --
+            --  case a: single element list
+            --  element_list : root
+            --  | element: Last
+            --
+            --  case c: no next
+            --  element_list: root
+            --  | element_list
+            --  | | element:
+            --  | element: Last
+            Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Iter.Root);
+         begin
+            return (Node => Children (Children'Last));
+         end;
+      end if;
    end Last;
 
    overriding function Next (Iter : Iterator; Position : Cursor) return Cursor
@@ -194,17 +215,51 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Lexer        : in WisiToken.Lexer.Handle;
       Descriptor   : in WisiToken.Descriptor_Access_Constant;
       Root         : in Valid_Node_Index;
+      List_ID      : in WisiToken.Token_ID;
       Element_ID   : in WisiToken.Token_ID;
       Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
      return Iterator
-   is begin
-      return Iterator'
+   is
+      pragma Unreferenced (List_ID); --  checked in precondition.
+   begin
+      return
         (Iterator_Interfaces.Reversible_Iterator with
          Tree, Terminals, Lexer, Descriptor, Root,
          List_ID      => Tree.ID (Root),
          Element_ID   => Element_ID,
          Separator_ID => Separator_ID);
    end Iterate;
+
+   function Invalid_Iterator (Tree : in WisiToken.Syntax_Trees.Tree) return Iterator
+   is begin
+      return
+        (Iterator_Interfaces.Reversible_Iterator with
+         Tree         => Tree,
+         Terminals    => null,
+         Lexer        => null,
+         Descriptor   => null,
+         Root         => Invalid_Node_Index,
+         List_ID      => Invalid_Token_ID,
+         Element_ID   => Invalid_Token_ID,
+         Separator_ID => Invalid_Token_ID);
+   end Invalid_Iterator;
+
+   function Is_Invalid (Iter : in Iterator) return Boolean
+   is begin
+      return Iter.Root = Invalid_Node_Index;
+   end Is_Invalid;
+
+   function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor
+   is begin
+      if Iter.Root = Invalid_Node_Index then
+         return (Node => Invalid_Node_Index);
+      else
+         pragma Assert (Iter.Tree.Is_Descendant_Of (Iter.Root, Node));
+         pragma Assert (Iter.Tree.ID (Node) = Iter.Element_ID);
+
+         return (Node => Node);
+      end if;
+   end To_Cursor;
 
    function Count (Iter : Iterator) return Ada.Containers.Count_Type
    is
@@ -219,9 +274,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Copy_List (List : in out Iterator) return Valid_Node_Index
    is begin
-      return List.Tree.Copy_Subtree
-        (Root => List.Root,
-         Last => Node (List.First));
+      return List.Tree.Copy_Subtree (Root => List.Root, Last => Node (List.First));
    end Copy_List;
 
 end WisiToken.Syntax_Trees.LR_Utils;

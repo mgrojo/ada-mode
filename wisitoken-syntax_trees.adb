@@ -27,9 +27,11 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree              : in Syntax_Trees.Tree;
       N                 : in Syntax_Trees.Node;
+      Node_Index        : in Valid_Node_Index;
       Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean;
-      Include_RHS_Index : in Boolean := False)
+      Include_RHS_Index : in Boolean := False;
+      Node_Numbers      : in Boolean := False)
      return String;
 
    procedure Move_Branch_Point (Tree : in out Syntax_Trees.Tree; Required_Node : in Valid_Node_Index);
@@ -962,9 +964,10 @@ package body WisiToken.Syntax_Trees is
    end Identifier;
 
    function Image
-     (Tree       : in Syntax_Trees.Tree;
-      Children   : in Valid_Node_Index_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
+     (Tree         : in Syntax_Trees.Tree;
+      Children     : in Valid_Node_Index_Arrays.Vector;
+      Descriptor   : in WisiToken.Descriptor;
+      Node_Numbers : in Boolean)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -973,7 +976,7 @@ package body WisiToken.Syntax_Trees is
    begin
       for I of Children loop
          Result := Result & (if Need_Comma then ", " else "") &
-           Tree.Image (I, Descriptor, Include_Children => False);
+           Tree.Image (I, Descriptor, Include_Children => False, Node_Numbers => Node_Numbers);
          Need_Comma := True;
       end loop;
       Result := Result & ")";
@@ -983,24 +986,22 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree              : in Syntax_Trees.Tree;
       N                 : in Syntax_Trees.Node;
+      Node_Index        : in Valid_Node_Index;
       Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean;
-      Include_RHS_Index : in Boolean := False)
+      Include_RHS_Index : in Boolean := False;
+      Node_Numbers      : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
-      Result : Unbounded_String;
+      Result : Unbounded_String := +(if Node_Numbers then Image (Node_Index) & ":" else "");
    begin
-      if Include_Children and N.Label = Nonterm then
-         Result := +Image (N.ID, Descriptor) & '_' & Trimmed_Image (N.RHS_Index) & ": ";
-      end if;
-
       case N.Label is
       when Shared_Terminal =>
-         Result := Result & (+Token_Index'Image (N.Terminal)) & ":";
+         Result := Result & Trimmed_Image (N.Terminal) & ":";
 
       when Virtual_Identifier =>
-         Result := Result & (+Identifier_Index'Image (N.Identifier)) & ";";
+         Result := Result & Trimmed_Image (N.Identifier) & ";";
 
       when others =>
          null;
@@ -1011,24 +1012,26 @@ package body WisiToken.Syntax_Trees is
         (if N.Byte_Region = Null_Buffer_Region then "" else ", " & Image (N.Byte_Region)) & ")";
 
       if Include_Children and N.Label = Nonterm then
-         Result := Result & " <= " & Image (Tree, N.Children, Descriptor);
+         Result := Result & " <= " & Image (Tree, N.Children, Descriptor, Node_Numbers);
       end if;
 
       return -Result;
    end Image;
 
    function Image
-     (Tree             : in Syntax_Trees.Tree;
-      Node             : in Valid_Node_Index;
-      Descriptor       : in WisiToken.Descriptor;
-      Include_Children : in Boolean := False)
+     (Tree              : in Syntax_Trees.Tree;
+      Node              : in Valid_Node_Index;
+      Descriptor        : in WisiToken.Descriptor;
+      Include_Children  : in Boolean := False;
+      Include_RHS_Index : in Boolean := False;
+      Node_Numbers      : in Boolean := False)
      return String
    is begin
       return Tree.Image
         ((if Node <= Tree.Last_Shared_Node
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)),
-         Descriptor, Include_Children);
+         Node, Descriptor, Include_Children, Include_RHS_Index, Node_Numbers);
    end Image;
 
    function Image
@@ -1043,7 +1046,7 @@ package body WisiToken.Syntax_Trees is
    begin
       for I in Nodes'Range loop
          Result := Result & (if Need_Comma then ", " else "") &
-           Tree.Image (Nodes (I), Descriptor, Include_Children => False);
+           Tree.Image (Nodes (I), Descriptor);
          Need_Comma := True;
       end loop;
       Result := Result & ")";
@@ -1079,6 +1082,25 @@ package body WisiToken.Syntax_Trees is
          Flush            => Flush,
          Root             => <>);
    end Initialize;
+
+   function Is_Descendant_Of
+     (Tree       : in Syntax_Trees.Tree;
+      Root       : in Valid_Node_Index;
+      Descendant : in Valid_Node_Index)
+     return Boolean
+   is
+      Node : Node_Index := Descendant;
+   begin
+      loop
+         exit when Node = Invalid_Node_Index;
+         if Node = Root then
+            return True;
+         end if;
+
+         Node := Tree.Parent (Node);
+      end loop;
+      return False;
+   end Is_Descendant_Of;
 
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
@@ -1415,7 +1437,7 @@ package body WisiToken.Syntax_Trees is
          for I in 1 .. Level loop
             Put ("| ");
          end loop;
-         Put (Image (Tree, N, Descriptor, Include_Children => False, Include_RHS_Index => True));
+         Put (Image (Tree, N, Node, Descriptor, Include_Children => False, Include_RHS_Index => True));
          if Image_Augmented /=  null and N.Augmented /= null then
             Put_Line (" - " & Image_Augmented (N.Augmented));
          else

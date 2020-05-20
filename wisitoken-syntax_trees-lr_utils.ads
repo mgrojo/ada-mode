@@ -39,6 +39,16 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --
    --  list : list separator element | element ;
    --  list : element | list separator element ;
+   --
+   --  In the syntax tree, this looks like:
+   --
+   --  list: root
+   --  | list
+   --  | | list
+   --  | | | element: First
+   --  | | element: 2
+   --  | element: 3
+   --  element: Last
 
    type Cursor is private;
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
@@ -66,15 +76,27 @@ package WisiToken.Syntax_Trees.LR_Utils is
       Lexer        : in WisiToken.Lexer.Handle;
       Descriptor   : in WisiToken.Descriptor_Access_Constant;
       Root         : in Valid_Node_Index;
+      List_ID      : in WisiToken.Token_ID;
       Element_ID   : in WisiToken.Token_ID;
       Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
-     return Iterator;
+     return Iterator
+   with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
+   --  The list cannot be empty.
+
+   function Invalid_Iterator (Tree : in WisiToken.Syntax_Trees.Tree) return Iterator;
+   --  First, Last return empty cursor, count returns 0.
+
+   function Is_Invalid (Iter : in Iterator) return Boolean;
+
+   function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor;
+   --  If assertions enabled, checks that Node is child of Iter.Root, and
+   --  Tree.ID (Node) = Iter.Element_ID.
 
    function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
 
    function Copy_List (List : in out Iterator) return Valid_Node_Index;
-   --  Deep copy List into List.Tree, return root node of new list.
-
+   --  Deep copy (using Tree.Copy_Tree) all of List into List.Tree,
+   --  return root node of new list..
 private
 
    type Cursor is record
@@ -86,7 +108,7 @@ private
       Terminals    : WisiToken.Base_Token_Array_Access;
       Lexer        : WisiToken.Lexer.Handle;
       Descriptor   : WisiToken.Descriptor_Access_Constant;
-      Root         : Valid_Node_Index;
+      Root         : WisiToken.Node_Index;
       List_ID      : WisiToken.Token_ID;
       Element_ID   : WisiToken.Token_ID;
       Separator_ID : WisiToken.Token_ID;

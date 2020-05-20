@@ -44,10 +44,12 @@ with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
+with SAL.Generic_Decimal_Image;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
+with SAL.Gen_Unconstrained_Array_Image;
 package WisiToken is
 
    Partial_Parse : exception; -- a partial parse terminated.
@@ -299,6 +301,15 @@ package WisiToken is
    type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
    --  Index matches Base_Token_Array, Augmented_Token_Array
 
+   function Image is new SAL.Generic_Decimal_Image (Valid_Node_Index);
+   --  Has Width parameter
+
+   function Image (Item : in Valid_Node_Index) return String
+     is (Image (Item, 4));
+
+   function Image is new SAL.Gen_Unconstrained_Array_Image
+     (Positive_Index_Type, Valid_Node_Index, Valid_Node_Index_Array, Image);
+
    package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
    --  Index matches Valid_Node_Index_Array.
@@ -408,6 +419,8 @@ package WisiToken is
    --  For virtual identifiers created during syntax tree rewrite.
 
    Invalid_Identifier_Index : constant Base_Identifier_Index := Base_Identifier_Index'First;
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Identifier_Index);
 
    ----------
    --  Trace, debug

@@ -292,7 +292,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Nonterm (Node);
 
    function Has_Branched_Nodes (Tree : in Syntax_Trees.Tree) return Boolean;
-   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   with Pre => Tree.Is_Nonterm (Node);
    function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
@@ -436,6 +437,13 @@ package WisiToken.Syntax_Trees is
    --  Return the descendant of Node (may be Node) for which Predicate
    --  returns True, or Invalid_Node_Index if none do.
 
+   function Is_Descendant_Of
+     (Tree       : in Syntax_Trees.Tree;
+      Root       : in Valid_Node_Index;
+      Descendant : in Valid_Node_Index)
+     return Boolean
+   with Pre => Tree.Parents_Set and (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root));
+
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
@@ -503,10 +511,12 @@ package WisiToken.Syntax_Trees is
    --  Return all descendants of Node matching ID.
 
    function Image
-     (Tree             : in Syntax_Trees.Tree;
-      Node             : in Valid_Node_Index;
-      Descriptor       : in WisiToken.Descriptor;
-      Include_Children : in Boolean := False)
+     (Tree              : in Syntax_Trees.Tree;
+      Node              : in Valid_Node_Index;
+      Descriptor        : in WisiToken.Descriptor;
+      Include_Children  : in Boolean := False;
+      Include_RHS_Index : in Boolean := False;
+      Node_Numbers      : in Boolean := False)
      return String;
    function Image
      (Tree       : in Syntax_Trees.Tree;

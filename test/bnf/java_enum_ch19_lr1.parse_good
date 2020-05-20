@@ -1,22 +1,22 @@
  6 tokens lexed
- 0: 0:  1:(LEFT_CURLY_BRACKET, (16 . 16)) : shift and goto state 1
- 0: 1:  2:(IDENTIFIER, (18 . 18)) : shift and goto state 4
- 0: 4:  3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstant
-EnumConstant_0: (EnumConstant, (18 . 18)) <= ( 2:(IDENTIFIER, (18 . 18)))
+ 0: 0: 1:(LEFT_CURLY_BRACKET, (16 . 16)) : shift and goto state 1
+ 0: 1: 2:(IDENTIFIER, (18 . 18)) : shift and goto state 4
+ 0: 4: 3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstant
+(EnumConstant, (18 . 18)) <= (2:(IDENTIFIER, (18 . 18)))
  ... goto state 6
- 0: 6:  3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstantList
-EnumConstantList_0: (EnumConstantList, (18 . 18)) <= ((EnumConstant, (18 . 18)))
+ 0: 6: 3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstantList
+(EnumConstantList, (18 . 18)) <= ((EnumConstant, (18 . 18)))
  ... goto state 5
- 0: 5:  3:(COMMA, (19 . 19)) : shift and goto state 8
- 0: 8:  4:(IDENTIFIER, (21 . 21)) : shift and goto state 4
- 0: 4:  5:(COMMA, (22 . 22)) : reduce 1 tokens to EnumConstant
-EnumConstant_0: (EnumConstant, (21 . 21)) <= ( 4:(IDENTIFIER, (21 . 21)))
+ 0: 5: 3:(COMMA, (19 . 19)) : shift and goto state 8
+ 0: 8: 4:(IDENTIFIER, (21 . 21)) : shift and goto state 4
+ 0: 4: 5:(COMMA, (22 . 22)) : reduce 1 tokens to EnumConstant
+(EnumConstant, (21 . 21)) <= (4:(IDENTIFIER, (21 . 21)))
  ... goto state 10
- 0: 10:  5:(COMMA, (22 . 22)) : reduce 3 tokens to EnumConstantList
-EnumConstantList_1: (EnumConstantList, (18 . 21)) <= ((EnumConstantList, (18 . 18)),  3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21)))
+ 0: 10: 5:(COMMA, (22 . 22)) : reduce 3 tokens to EnumConstantList
+(EnumConstantList, (18 . 21)) <= ((EnumConstantList, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21)))
  ... goto state 5
- 0: 5:  5:(COMMA, (22 . 22)) : shift and goto state 8
- 0: 8:  6:(Wisi_EOI, (23 . 22)) : ERROR
+ 0: 5: 5:(COMMA, (22 . 22)) : shift and goto state 8
+ 0: 8: 6:(Wisi_EOI, (23 . 22)) : ERROR
  0: 8: expecting: RIGHT_CURLY_BRACKET, IDENTIFIER
  0: zombie
 
@@ -32,11 +32,11 @@ recover: succeed, parser count 1
  0: Current_Token (RIGHT_CURLY_BRACKET) Shared_Token  6:(Wisi_EOI, (23 . 22))
  0: resume_active: True, token goal 10
  0: 8: (RIGHT_CURLY_BRACKET) : shift and goto state 9
- 0: 9:  6:(Wisi_EOI, (23 . 22)) : reduce 4 tokens to EnumBody
-EnumBody_0: (EnumBody, (16 . 22)) <= ( 1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)),  5:(COMMA, (22 . 22)), (RIGHT_CURLY_BRACKET))
+ 0: 9: 6:(Wisi_EOI, (23 . 22)) : reduce 4 tokens to EnumBody
+(EnumBody, (16 . 22)) <= (1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 5:(COMMA, (22 . 22)), (RIGHT_CURLY_BRACKET))
  ... goto state 2
- 0: 2:  6:(Wisi_EOI, (23 . 22)) : accept it
-wisitoken_accept_0: (wisitoken_accept, (16 . 22)) <= ((EnumBody, (16 . 22)))
+ 0: 2: 6:(Wisi_EOI, (23 . 22)) : accept it
+(wisitoken_accept, (16 . 22)) <= ((EnumBody, (16 . 22)))
  0: succeed
 java_enum_ch19.input:3:0: syntax error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
    recovered: ((INSERT, RIGHT_CURLY_BRACKET, 6))

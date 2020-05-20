@@ -1,7 +1,7 @@
  3 tokens lexed
- 0: 0:  1:(AT, (42 . 42)) : shift and goto state 1
- 0: 1:  2:(Identifier, (43 . 48)) : shift and goto state 7
- 0: 7:  3:(Wisi_EOI, (66 . 65)) : ERROR
+ 0: 0: 1:(AT, (42 . 42)) : shift and goto state 1
+ 0: 1: 2:(Identifier, (43 . 48)) : shift and goto state 7
+ 0: 7: 3:(Wisi_EOI, (66 . 65)) : ERROR
  0: 7: expecting: AT, LESS, Identifier
  0: zombie
 
@@ -17,23 +17,23 @@ recover: succeed, parser count 1
  0: Current_Token (Identifier) Shared_Token  3:(Wisi_EOI, (66 . 65))
  0: resume_active: True, token goal 7
  0: 7: (Identifier) : reduce 1 tokens to ClassType
-ClassType_3: (ClassType, (43 . 48)) <= ( 2:(Identifier, (43 . 48)))
+(ClassType, (43 . 48)) <= (2:(Identifier, (43 . 48)))
  ... goto state 9
  0: 9: (Identifier) : reduce 2 tokens to Annotation
-Annotation_0: (Annotation, (42 . 48)) <= ( 1:(AT, (42 . 42)), (ClassType, (43 . 48)))
+(Annotation, (42 . 48)) <= (1:(AT, (42 . 42)), (ClassType, (43 . 48)))
  ... goto state 5
  0: 5: (Identifier) : reduce 1 tokens to AnnotationList
-AnnotationList_0: (AnnotationList, (42 . 48)) <= ((Annotation, (42 . 48)))
+(AnnotationList, (42 . 48)) <= ((Annotation, (42 . 48)))
  ... goto state 4
  0: 4: (Identifier) : shift and goto state 12
- 0: 12:  3:(Wisi_EOI, (66 . 65)) : reduce 2 tokens to ClassType
-ClassType_1: (ClassType, (42 . 48)) <= ((AnnotationList, (42 . 48)), (Identifier))
+ 0: 12: 3:(Wisi_EOI, (66 . 65)) : reduce 2 tokens to ClassType
+(ClassType, (42 . 48)) <= ((AnnotationList, (42 . 48)), (Identifier))
  ... goto state 6
- 0: 6:  3:(Wisi_EOI, (66 . 65)) : reduce 1 tokens to CompilationUnit
-CompilationUnit_0: (CompilationUnit, (42 . 48)) <= ((ClassType, (42 . 48)))
+ 0: 6: 3:(Wisi_EOI, (66 . 65)) : reduce 1 tokens to CompilationUnit
+(CompilationUnit, (42 . 48)) <= ((ClassType, (42 . 48)))
  ... goto state 3
- 0: 3:  3:(Wisi_EOI, (66 . 65)) : accept it
-wisitoken_accept_0: (wisitoken_accept, (42 . 48)) <= ((CompilationUnit, (42 . 48)))
+ 0: 3: 3:(Wisi_EOI, (66 . 65)) : accept it
+(wisitoken_accept, (42 . 48)) <= ((CompilationUnit, (42 . 48)))
  0: succeed
 java_types_ch19.input:5:0: syntax error: expecting AT, LESS, Identifier, found ''
    recovered: ((INSERT, Identifier, 3))
