@@ -29,6 +29,11 @@
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
 --
+--  Base_Tree and Tree are not limited to allow
+--  wisitoken-parse-lr-parser_lists.ads Prepend_Copy to copy them. No
+--  Adjust is needed; Augmented pointers are shared between the trees,
+--  since during parse they are set only for shared_termnals.
+--
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -56,15 +61,20 @@ package WisiToken.Syntax_Trees is
    overriding procedure Finalize (Tree : in out Base_Tree);
    --  Free any allocated storage.
 
+   function Is_Empty (Tree : in Base_Tree) return Boolean;
+
    type Tree is new Ada.Finalization.Controlled with private;
 
    type Tree_Variable_Reference (Element : access Tree) is null record with
      Implicit_Dereference => Element;
 
+   function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
+
    procedure Initialize
      (Branched_Tree : in out Tree;
       Shared_Tree   : in     Base_Tree_Access;
-      Flush         : in     Boolean);
+      Flush         : in     Boolean)
+   with Pre => Branched_Tree.Is_Empty and Shared_Tree.Is_Empty;
    --  Set Branched_Tree to refer to Shared_Tree.
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
@@ -631,6 +641,9 @@ private
       --  note above.
    end record;
 
+   function Is_Empty (Tree : in Base_Tree) return Boolean
+   is (Tree.Nodes.Length = 0);
+
    type Tree is new Ada.Finalization.Controlled with record
       Shared_Tree : Base_Tree_Access;
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
@@ -674,6 +687,9 @@ private
    is (if Node <= Tree.Last_Shared_Node
          then Tree.Shared_Tree.Nodes.Variable_Ref (Node)
          else Tree.Branched_Nodes.Variable_Ref (Node));
+
+   function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
+   is (Tree.Branched_Nodes.Length = 0 and (Tree.Shared_Tree = null or else Tree.Shared_Tree.Is_Empty));
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Shared_Tree.Parents_Set);

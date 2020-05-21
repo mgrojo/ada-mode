@@ -1631,18 +1631,19 @@ package body WisiToken_Grammar_Runtime is
             --  | | | RIGHT_PAREN
 
             declare
+               use Syntax_Trees.LR_Utils;
+
                Element_Content  : constant String           := Get_Text (Data, Tree, Tree.Child (Node, 2));
                Right_Paren_Node : constant Valid_Node_Index := Tree.Child (Node, 3);
-               Temp             : Node_Index                := First_List_Element
+               Iter             : constant Iterator         := Iterate
                  (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
                Name_Node        : Node_Index;
                New_Ident        : Base_Identifier_Index     := Invalid_Identifier_Index;
             begin
                --  See if there's an existing nonterminal for this content.
-               loop
-                  pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
+               for Cur in Iter loop
 
-                  if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) then
+                  if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
                      --  Target nonterm is:
                      --
                      --  (compilation_unit_1, (111 . 128))
@@ -1652,12 +1653,12 @@ package body WisiToken_Grammar_Runtime is
                      --  | | (rhs_list_1, (111 . 128))
                      --  | | | ...
                      declare
-                        RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 3);
+                        RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Get_Node (Cur), 1), 3);
                      begin
                         if RHS_List_1 /= Invalid_Node_Index and then
                           Element_Content = Get_Text (Data, Tree, RHS_List_1)
                         then
-                           Name_Node := Tree.Child (Tree.Child (Temp, 1), 1);
+                           Name_Node := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
                            case Tree.Label (Name_Node) is
                            when Shared_Terminal =>
                               New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
@@ -1671,9 +1672,6 @@ package body WisiToken_Grammar_Runtime is
                         end if;
                      end;
                   end if;
-
-                  Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                  exit when Temp = Invalid_Node_Index;
                end loop;
 
                if New_Ident = Invalid_Identifier_Index then
@@ -1975,42 +1973,45 @@ package body WisiToken_Grammar_Runtime is
                is
                   --  Look for a virtual pair of nonterms implementing a list of Element_Content.
                   --  If found, set List_Nonterm_Virtual_Name, List_Element
-                  Temp      : Node_Index := First_List_Element
-                    (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
-                  Name_Node : Node_Index;
-               begin
-                  loop
-                     pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
+                  use Syntax_Trees.LR_Utils;
 
-                     if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) and
-                       Tree.Is_Virtual (Tree.Child (Temp, 1))
+                  Iter : constant Iterator := Iterate
+                    (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+               begin
+                  for Cur in Iter loop
+
+                     if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) and
+                       Tree.Is_Virtual (Tree.Child (Get_Node (Cur), 1))
                      then
-                        if Element_Content = Get_Text (Data, Tree, Tree.Child (Tree.Child (Temp, 1), 3)) then
-                           Name_Node := Tree.Child (Tree.Child (Temp, 1), 1);
-                           case Tree.Label (Name_Node) is
-                           when Virtual_Identifier =>
-                              List_Element := Tree.Identifier (Name_Node);
-                           when others =>
-                              Raise_Programmer_Error
-                                ("unimplemented Find_List_Nonterminal_2 case '" & Element_Content & "'",
-                                 Data, Tree, Name_Node);
-                           end case;
+                        if Element_Content = Get_Text (Data, Tree, Tree.Child (Tree.Child (Get_Node (Cur), 1), 3)) then
+                           declare
+                              Name_Node : constant Node_Index := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
+                           begin
+                              case Tree.Label (Name_Node) is
+                              when Virtual_Identifier =>
+                                 List_Element := Tree.Identifier (Name_Node);
+                              when others =>
+                                 Raise_Programmer_Error
+                                   ("unimplemented Find_List_Nonterminal_2 case '" & Element_Content & "'",
+                                    Data, Tree, Name_Node);
+                              end case;
+                           end;
 
                            --  list nonterm is the next nonterminal
-                           Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                           Name_Node := Tree.Child (Tree.Child (Temp, 1), 1);
-                           case Tree.Label (Name_Node) is
-                           when Virtual_Identifier =>
-                              List_Nonterm_Virtual_Name := Tree.Identifier (Name_Node);
-                           when others =>
-                              raise SAL.Programmer_Error;
-                           end case;
-                           exit;
+                           declare
+                              Name_Node : constant Node_Index := Tree.Child
+                                (Tree.Child (Get_Node (Iter.Next (Cur)), 1), 1);
+                           begin
+                              case Tree.Label (Name_Node) is
+                              when Virtual_Identifier =>
+                                 List_Nonterm_Virtual_Name := Tree.Identifier (Name_Node);
+                              when others =>
+                                 raise SAL.Programmer_Error;
+                              end case;
+                              exit;
+                           end;
                         end if;
                      end if;
-
-                     Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                     exit when Temp = Invalid_Node_Index;
                   end loop;
                end Find_List_Nonterminal_2;
 
@@ -2020,13 +2021,14 @@ package body WisiToken_Grammar_Runtime is
                   --  Element_Content, which is a single rhs_element; no List_Element
                   --  Nonterminal. If found, set List_Nonterm_Virtual_Name or
                   --  List_Nonterm_Terminal_Name
-                  Temp      : Node_Index := First_List_Element
+                  use Syntax_Trees.LR_Utils;
+
+                  Iter : constant Iterator := Iterate
                     (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
                begin
-                  loop
-                     pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
+                  for Cur in Iter loop
 
-                     if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) then
+                     if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
                         --  Target List_Nonterm is:
                         --
                         --  nonterminal_nnn_list
@@ -2044,8 +2046,8 @@ package body WisiToken_Grammar_Runtime is
                         --  | | | BAR
                         --  | | | rhs: ... list_nonterm list_element
                         declare
-                           Name_Node  : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 1);
-                           RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 3);
+                           Name_Node  : constant Node_Index := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
+                           RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Get_Node (Cur), 1), 3);
                            RHS_List_2 : constant Node_Index :=
                              (if RHS_List_1 = Invalid_Node_Index
                               then Invalid_Node_Index
@@ -2079,9 +2081,6 @@ package body WisiToken_Grammar_Runtime is
                            end if;
                         end;
                      end if;
-
-                     Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
-                     exit when Temp = Invalid_Node_Index;
                   end loop;
                end Find_List_Nonterminal_1;
             begin
@@ -2259,7 +2258,6 @@ package body WisiToken_Grammar_Runtime is
                         Name_Identifier_Node : Node_Index;
                      begin
                         for Cur in Iter loop
-                           pragma Assert (Tree.ID (Get_Node (Cur)) = +compilation_unit_ID);
 
                            if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
                               if New_Text = Get_Text (Data, Tree, Tree.Child (Tree.Child (Get_Node (Cur), 1), 3)) then

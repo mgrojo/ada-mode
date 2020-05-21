@@ -27,11 +27,11 @@ lr_utils iterator don't copy Tree; get ref.
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
-    make syntax_trees.tree limited, or override Adjust to throw exception
-
     delete next_list_element
+        only one use left!
 
     move List_Root to LR_Utils
+        or change Insert_Optional_RHS.B to Cursor
 
     Append_Element inserts before last
         add append new or insert new to lr_utils
