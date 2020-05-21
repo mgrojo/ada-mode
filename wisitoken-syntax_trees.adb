@@ -260,6 +260,11 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Child;
 
+   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Ada.Containers.Count_Type
+   is begin
+      return Tree.Get_Node_Const_Ref (Node).Children.Length;
+   end Child_Count;
+
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array
    is begin
       if N.Children.Length = 0 then
@@ -303,8 +308,7 @@ package body WisiToken.Syntax_Trees is
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Valid_Node_Index;
-      Last : in     Valid_Node_Index)
+      Root : in     Valid_Node_Index)
      return Valid_Node_Index
    is
       function Copy_Node
@@ -363,27 +367,10 @@ package body WisiToken.Syntax_Trees is
                New_Children : Valid_Node_Index_Arrays.Vector;
             begin
                if Children'Length > 0 then
-                  declare
-                     use all type SAL.Base_Peek_Type;
-                     Last_Index   : SAL.Base_Peek_Type  := SAL.Base_Peek_Type'Last;
-                  begin
-                     for I in Children'Range loop
-                        if Children (I) = Last then
-                           Last_Index := I;
-                        end if;
-                     end loop;
-
-                     if Last_Index = SAL.Base_Peek_Type'Last then
-                        New_Children.Set_First_Last (Children'First, Children'Last);
-                        for I in Children'Range loop
-                           New_Children (I) := Copy_Node (Tree, Children (I), Parent);
-                        end loop;
-                     else
-                        for I in Last_Index .. Children'Last loop
-                           New_Children.Append (Copy_Node (Tree, Children (I), Parent));
-                        end loop;
-                     end if;
-                  end;
+                  New_Children.Set_First_Last (Children'First, Children'Last);
+                  for I in Children'Range loop
+                     New_Children (I) := Copy_Node (Tree, Children (I), Parent);
+                  end loop;
                end if;
 
                declare

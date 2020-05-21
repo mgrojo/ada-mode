@@ -1190,7 +1190,9 @@ package body WisiToken_Grammar_Runtime is
          --  | a b* c
          --
          --  or B is a virtual identifier naming the new nonterm replacing the
-         --  original.
+         --  original
+         --
+         --  or B is a rhs_multiple_item that is allowed to be empty.
          --
          --  Insert a second rhs_item_list without B.
          --
@@ -1201,18 +1203,18 @@ package body WisiToken_Grammar_Runtime is
          Container : constant Valid_Node_Index := Tree.Find_Ancestor
            (B, (+rhs_ID, +rhs_alternative_list_ID));
 
-         Orig_ABC_Iter : Iterator := Iterate
+         Orig_ABC_Iter : constant Iterator := Iterate
            (List_Root (Tree.Parent (B, 3)), +rhs_item_list_ID, +rhs_element_ID);
 
          Orig_ABC_B_Cur   : constant Cursor := Orig_ABC_Iter.To_Cursor (Tree.Parent (B, 2));
          Orig_ABC_A_Last  : constant Cursor := Orig_ABC_Iter.Previous (Orig_ABC_B_Cur);
          Orig_ABC_C_First : constant Cursor := Orig_ABC_Iter.Next (Orig_ABC_B_Cur);
 
-         Container_List            : constant Valid_Node_Index :=
+         Container_List : constant Valid_Node_Index :=
            (if Tree.ID (Container) = +rhs_ID then Tree.Parent (Container) else Container);
-         New_RHS_Item_List_A       : Node_Index                := Invalid_Node_Index;
-         New_RHS_Item_List_C       : Node_Index                := Invalid_Node_Index;
-         New_RHS_AC                : Valid_Node_Index;
+
+         New_RHS_Item_List_AC_Iter : Iterator := Invalid_Iterator (Tree);
+         New_RHS_AC                : Node_Index;
 
          function Add_Actions (RHS_Item_List : Valid_Node_Index) return Valid_Node_Index
          with Pre => Tree.ID (Container) = +rhs_ID
@@ -1254,81 +1256,46 @@ package body WisiToken_Grammar_Runtime is
 
          if Has_Element (Orig_ABC_A_Last) then
             --  a is not empty
-            New_RHS_Item_List_A := Orig_ABC_Iter.Copy_List (Last => Orig_ABC_A_Last);
-
-            if Trace_Generate_EBNF > Extra then
-               Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("new a:");
-               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_Item_List_A);
-            end if;
+            Orig_ABC_Iter.Copy_List
+              (Source_Last => Orig_ABC_A_Last,
+               Dest_Iter   => New_RHS_Item_List_AC_Iter);
          end if;
 
          if Has_Element (Orig_ABC_C_First) then
             --  c is not empty
-            New_RHS_Item_List_C := Orig_ABC_Iter.Copy_List (First => Orig_ABC_C_First);
-
-            if Trace_Generate_EBNF > Extra then
-               Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("new c:");
-               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_Item_List_C);
-            end if;
+            Orig_ABC_Iter.Copy_List
+              (Source_First => Orig_ABC_C_First,
+               Dest_Iter    => New_RHS_Item_List_AC_Iter);
          end if;
 
-         if New_RHS_Item_List_C = Invalid_Node_Index then
-            if New_RHS_Item_List_A = Invalid_Node_Index then
-               --  a c is empty; there cannot be any actions.
-               New_RHS_AC :=
-                 (if Tree.ID (Container) = +rhs_ID
-                  then Tree.Add_Nonterm ((+rhs_ID, 0), (1 .. 0 => Invalid_Node_Index))
-                  else
-                     --  rhs_alternative_list_ID
-                     --  The grammar does not allow an empty alternative in an
-                     --  rhs_alterntive_list; this will be fixed when it is converted to an
-                     --  rhs_list.
-                     Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 .. 0 => Invalid_Node_Index)));
-            else
-               --  c is empty
-               New_RHS_AC :=
-                 (if Tree.ID (Container) = +rhs_ID
-                  then Add_Actions (New_RHS_Item_List_A)
-                  else New_RHS_Item_List_A);
-            end if;
+         if New_RHS_Item_List_AC_Iter.Root = Invalid_Node_Index then
+            --  a c is empty; there cannot be any actions.
+            New_RHS_AC :=
+              (if Tree.ID (Container) = +rhs_ID
+               then Tree.Add_Nonterm ((+rhs_ID, 0), (1 .. 0 => Invalid_Node_Index))
+               else
+                  --  rhs_alternative_list_ID
+                  --  The grammar does not allow an empty alternative in an
+                  --  rhs_alterntive_list; this will be fixed when it is converted to an
+                  --  rhs_list.
+                  Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 .. 0 => Invalid_Node_Index)));
          else
-            --  c is not empty
-            if New_RHS_Item_List_A = Invalid_Node_Index then
-               --  a is empty
-               New_RHS_AC :=
-                 (if Tree.ID (Container) = +rhs_ID
-                  then Add_Actions (New_RHS_Item_List_C)
-                  else New_RHS_Item_List_C);
-            else
-               declare
-                  --  FIXME: use LR_Utils.Delete (b_cur).
-                  Tail_Element_A : constant Valid_Node_Index := Last_List_Element
-                    (New_RHS_Item_List_A, +rhs_item_list_ID, +rhs_element_ID);
-                  Head_Element_B : constant Valid_Node_Index := First_List_Element
-                    (New_RHS_Item_List_C, +rhs_item_list_ID, +rhs_element_ID);
-               begin
-                  Tree.Set_Children
-                    (Tree.Parent (Get_Node (Orig_ABC_B_Cur)),
-                     (+rhs_item_list_ID, 1),
-                     (Tree.Parent (Tail_Element_A), Head_Element_B));
-               end;
-
-               New_RHS_AC :=
-                 (if Tree.ID (Container) = +rhs_ID
-                  then Add_Actions (New_RHS_Item_List_C)
-                  else New_RHS_Item_List_C);
-
-               if Trace_Generate_EBNF > Extra then
-                  Ada.Text_IO.New_Line;
-                  Ada.Text_IO.Put_Line ("new ac:");
-                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
-               end if;
-            end if;
+            --  ac is not empty
+            New_RHS_AC :=
+              (if Tree.ID (Container) = +rhs_ID
+               then Add_Actions (New_RHS_Item_List_AC_Iter.Root)
+               else New_RHS_Item_List_AC_Iter.Root);
          end if;
 
-         --  Record copied EBNF nodes
+         if Trace_Generate_EBNF > Extra then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("new ac:");
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
+         end if;
+
+         --  FIXME: use LR_Utils?
+         Append_Element (Container_List, New_RHS_AC, +BAR_ID);
+
          declare
             procedure Record_Copied_Node
               (Tree : in out WisiToken.Syntax_Trees.Tree;
@@ -1347,8 +1314,6 @@ package body WisiToken_Grammar_Runtime is
          begin
             Tree.Process_Tree (Record_Copied_Node'Access, New_RHS_AC);
          end;
-
-         Append_Element (Container_List, New_RHS_AC, +BAR_ID);
       end Insert_Optional_RHS;
 
       procedure Add_Compilation_Unit (Unit : in Valid_Node_Index; Prepend : in Boolean := False)

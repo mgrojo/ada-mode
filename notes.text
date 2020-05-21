@@ -26,15 +26,15 @@ lr_utils iterator don't copy Tree; get ref.
 
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
-    working on insert_optional_rhs
-        use iter.delete (cur)
+
+    make syntax_trees.tree limited, or override Adjust to throw exception
 
     delete next_list_element
 
     move List_Root to LR_Utils
 
     Append_Element inserts before last
-        add append or insert to lr_utils
+        add append new or insert new to lr_utils
 
 
 wisitoken-generate-lr.adb Add_Actions FIXME:

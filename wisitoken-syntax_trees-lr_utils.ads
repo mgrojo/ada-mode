@@ -46,8 +46,11 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  | list
    --  | | list
    --  | | | element: First
+   --  | | separator
    --  | | element: 2
+   --  | separator
    --  | element: 3
+   --  separator
    --  element: Last
 
    type Cursor is private;
@@ -95,19 +98,34 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  If assertions enabled, checks that Node is child of Iter.Root, and
    --  Tree.ID (Node) = Iter.Element_ID.
 
-   function Root (Iter : in Iterator) return Valid_Node_Index;
+   function Root (Iter : in Iterator) return Node_Index;
    function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
 
-   function Copy_List
-     (List  : in out Iterator;
-      First : in Cursor := No_Element;
-      Last  : in Cursor := No_Element)
-     return Valid_Node_Index;
-   --  Deep copy (using Tree.Copy_Tree) slice of List into List.Tree,
-   --  return root node of new list.
+   procedure Delete (Iter : in Iterator; Item : in out Cursor);
+   --  Delete Item from Iter list. On return, Item points to next list
+   --  element.
+
+   function Same_Tree (A, B : in Iterator) return Boolean;
+
+   procedure Append_Copy
+     (Source_Iter : in     Iterator;
+      Source_Item : in     Cursor;
+      Dest_Iter   : in out Iterator)
+   with Pre => Same_Tree (Source_Iter, Dest_Iter) and Has_Element (Source_Item);
+   --  Append a copy of Source_Item to Dest_Iter. New node is
+   --  Dest_Iter.Root.
+
+   procedure Copy_List
+     (Source_Iter  : in     Iterator;
+      Source_First : in     Cursor := No_Element;
+      Source_Last  : in     Cursor := No_Element;
+      Dest_Iter    : in out Iterator);
+   --  Deep copy slice of Source_Iter, appending to Dest.
    --
    --  If First = No_Element, copy from List.First.
    --  If Last = No_Element, copy thru List.Last.
+   --
+   --  Invalid_Node_Index is returned if First .. Last is empty.
 private
 
    type Cursor is record
@@ -116,15 +134,23 @@ private
 
    No_Element : constant Cursor := (Node => Invalid_Node_Index);
 
-   type Iterator (Tree : not null access WisiToken.Syntax_Trees.Tree) is new Iterator_Interfaces.Reversible_Iterator
-     with record
-      Terminals    : WisiToken.Base_Token_Array_Access;
-      Lexer        : WisiToken.Lexer.Handle;
-      Descriptor   : WisiToken.Descriptor_Access_Constant;
-      Root         : WisiToken.Node_Index;
-      List_ID      : WisiToken.Token_ID;
-      Element_ID   : WisiToken.Token_ID;
-      Separator_ID : WisiToken.Token_ID;
+   type Iterator (Tree  : not null access WisiToken.Syntax_Trees.Tree) is new Iterator_Interfaces.Reversible_Iterator
+   with record
+      Terminals         : WisiToken.Base_Token_Array_Access;
+      Lexer             : WisiToken.Lexer.Handle;
+      Descriptor        : WisiToken.Descriptor_Access_Constant;
+      Root              : WisiToken.Node_Index;
+      List_ID           : WisiToken.Token_ID;
+      One_Element_RHS   : Natural;
+      Multi_Element_RHS : Natural;
+      Element_ID        : WisiToken.Token_ID;
+      Separator_ID      : WisiToken.Token_ID;
    end record;
+
+   function Root (Iter : in Iterator) return Node_Index
+   is (Iter.Root);
+
+   function Same_Tree (A, B : in Iterator) return Boolean
+     is (A.Tree = B.Tree);
 
 end WisiToken.Syntax_Trees.LR_Utils;

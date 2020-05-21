@@ -176,12 +176,11 @@ package WisiToken.Syntax_Trees is
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Valid_Node_Index;
-      Last : in     Valid_Node_Index)
+      Root : in     Valid_Node_Index)
      return Valid_Node_Index
    with Pre => Tree.Flushed and Tree.Parents_Set;
-   --  Deep copy (into Tree) subtree of Tree rooted at Root. Stop copying
-   --  after children of Last are copied. Return root of new subtree.
+   --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
+   --  of new subtree.
    --
    --  Parents of new child nodes are set. Node index order is preserved.
    --  References to objects external to tree are shallow copied
@@ -280,6 +279,9 @@ package WisiToken.Syntax_Trees is
    function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Unknown_State_Index;
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
+
+   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Ada.Containers.Count_Type
+   with Pre => Tree.Is_Nonterm (Node);
 
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    with Pre => Tree.Is_Nonterm (Node);

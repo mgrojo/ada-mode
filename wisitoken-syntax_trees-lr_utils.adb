@@ -32,7 +32,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
         (Lexer.File_Name,
          --  Not clear why we need Line + 1 here, to match Emacs.
          (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line + 1), 0,
-         Label & ":" &
+         Label & ": " &
            Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
@@ -222,27 +222,38 @@ package body WisiToken.Syntax_Trees.LR_Utils is
      return Iterator
    is
       pragma Unreferenced (List_ID); --  checked in precondition.
+
+      Multi_Element_RHS : constant Natural :=
+        (if Tree.Child_Count (Root) = 1
+         then (if Tree.RHS_Index (Root) = 0 then 1 else 0)
+         elsif Tree.Child_Count (Root) in 2 .. 3 --  3 if there is a separator
+         then Tree.RHS_Index (Root)
+         else raise SAL.Programmer_Error);
    begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
          Tree'Access, Terminals, Lexer, Descriptor, Root,
-         List_ID      => Tree.ID (Root),
-         Element_ID   => Element_ID,
-         Separator_ID => Separator_ID);
+         List_ID           => Tree.ID (Root),
+         One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
+         Multi_Element_RHS => Multi_Element_RHS,
+         Element_ID        => Element_ID,
+         Separator_ID      => Separator_ID);
    end Iterate;
 
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator
    is begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree         => Tree'Access,
-         Terminals    => null,
-         Lexer        => null,
-         Descriptor   => null,
-         Root         => Invalid_Node_Index,
-         List_ID      => Invalid_Token_ID,
-         Element_ID   => Invalid_Token_ID,
-         Separator_ID => Invalid_Token_ID);
+         Tree              => Tree'Access,
+         Terminals         => null,
+         Lexer             => null,
+         Descriptor        => null,
+         Root              => Invalid_Node_Index,
+         List_ID           => Invalid_Token_ID,
+         One_Element_RHS   => 0,
+         Multi_Element_RHS => 0,
+         Element_ID        => Invalid_Token_ID,
+         Separator_ID      => Invalid_Token_ID);
    end Invalid_Iterator;
 
    function Is_Invalid (Iter : in Iterator) return Boolean
@@ -262,11 +273,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end if;
    end To_Cursor;
 
-   function Root (Iter : in Iterator) return Valid_Node_Index
-   is begin
-      return Iter.Root;
-   end Root;
-
    function Count (Iter : Iterator) return Ada.Containers.Count_Type
    is
       use Ada.Containers;
@@ -278,15 +284,78 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return Result;
    end Count;
 
-   function Copy_List
-     (List  : in out Iterator;
-      First : in     Cursor := No_Element;
-      Last  : in     Cursor := No_Element)
-     return Valid_Node_Index
-   is begin
-      return List.Tree.Copy_Subtree
-        (Root => (if First = No_Element then List.Root else List.Tree.Parent (First.Node)),
-         Last => (if Last = No_Element then List.First.Node else Last.Node));
+   procedure Delete (Iter : in Iterator; Item : in out Cursor)
+   is
+      Prev_Item : constant Cursor := Iter.Previous (Item);
+      Next_Item : constant Cursor := Iter.Next (Item);
+   begin
+      if Has_Element (Prev_Item) and Has_Element (Next_Item) then
+         declare
+            --  Deleting element 3 in example list in spec.
+            Parent   : constant Valid_Node_Index := Iter.Tree.Parent (Get_Node (Item));
+            Children : Valid_Node_Index_Array    := Iter.Tree.Children (Parent);
+         begin
+            Children (1) := Iter.Tree.Parent (Prev_Item.Node);
+
+            Iter.Tree.Set_Children (Parent, (Iter.List_ID, Iter.Multi_Element_RHS), Children);
+         end;
+      else
+         raise SAL.Not_Implemented;
+      end if;
+   end Delete;
+
+   procedure Append_Copy
+     (Source_Iter : in     Iterator;
+      Source_Item : in     Cursor;
+      Dest_Iter   : in out Iterator)
+   is
+      Tree      : Syntax_Trees.Tree renames Dest_Iter.Tree.all;
+      New_Child : constant Valid_Node_Index := Tree.Copy_Subtree (Source_Item.Node);
+   begin
+      if Dest_Iter.Root = Invalid_Node_Index then
+         --  First item in Dest
+         Dest_Iter :=
+           (Dest_Iter.Tree,
+            Source_Iter.Terminals, Source_Iter.Lexer, Source_Iter.Descriptor,
+            List_ID           => Source_Iter.List_ID,
+            One_Element_RHS   => Source_Iter.One_Element_RHS,
+            Multi_Element_RHS => Source_Iter.Multi_Element_RHS,
+            Element_ID        => Source_Iter.Element_ID,
+            Separator_ID      => Source_Iter.Separator_ID,
+            Root              => Tree.Add_Nonterm
+              (Production     => (Source_Iter.List_ID, Source_Iter.One_Element_RHS),
+               Children       => (1 => New_Child)));
+
+      else
+         --  Adding element Last in spec example
+         Dest_Iter.Root :=
+           Tree.Add_Nonterm
+             (Production     => (Source_Iter.List_ID, Source_Iter.Multi_Element_RHS),
+              Children       =>
+                (if Dest_Iter.Separator_ID = Invalid_Token_ID
+                 then (Dest_Iter.Root, New_Child)
+                 else (Dest_Iter.Root, Tree.Add_Terminal (Dest_Iter.Separator_ID), New_Child)));
+      end if;
+   end Append_Copy;
+
+   procedure Copy_List
+     (Source_Iter  : in     Iterator;
+      Source_First : in     Cursor := No_Element;
+      Source_Last  : in     Cursor := No_Element;
+      Dest_Iter    : in out Iterator)
+   is
+      Item : Cursor          := (if Source_First = No_Element then Source_Iter.First else Source_First);
+      Last : constant Cursor := (if Source_Last = No_Element then Source_Iter.Last else Source_Last);
+   begin
+      loop
+         exit when not Has_Element (Item);
+
+         Append_Copy (Source_Iter, Item, Dest_Iter);
+
+         exit when Item = Last;
+
+         Item := Source_Iter.Next (Item);
+      end loop;
    end Copy_List;
 
 end WisiToken.Syntax_Trees.LR_Utils;
