@@ -31,8 +31,9 @@
 --
 --  Base_Tree and Tree are not limited to allow
 --  wisitoken-parse-lr-parser_lists.ads Prepend_Copy to copy them. No
---  Adjust is needed; Augmented pointers are shared between the trees,
---  since during parse they are set only for shared_termnals.
+--  Adjust is needed; Shared_Tree is shared between parsers, and
+--  Augmented pointers are also shared, since during parse they are
+--  set only for Shared_Terminals.
 --
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --

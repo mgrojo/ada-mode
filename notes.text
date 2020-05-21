@@ -28,14 +28,18 @@ change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
     delete next_list_element
-        only one use left!
+        working on rhs_optional_item, create new nonterm
+            add lr_utils.splice
 
     move List_Root to LR_Utils
         or change Insert_Optional_RHS.B to Cursor
 
+    Move List_Singleton to LR_Utils, or use .Count
+
     Append_Element inserts before last
         add append new or insert new to lr_utils
 
+    delete first_list_element?
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!

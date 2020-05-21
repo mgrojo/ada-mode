@@ -338,7 +338,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end if;
    end Append_Copy;
 
-   procedure Copy_List
+   procedure Copy
      (Source_Iter  : in     Iterator;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
@@ -356,6 +356,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
          Item := Source_Iter.Next (Item);
       end loop;
-   end Copy_List;
+   end Copy;
 
 end WisiToken.Syntax_Trees.LR_Utils;

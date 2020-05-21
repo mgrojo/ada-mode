@@ -1415,7 +1415,7 @@ package body WisiToken.Syntax_Trees is
          if Node_Printed (Node) then
             --  This does not catch all possible tree edit errors, but it does
             --  catch circles.
-            raise SAL.Programmer_Error with "Print_Tree: invalid tree" & Node_Index'Image (Node);
+            raise SAL.Programmer_Error with "Print_Tree: invalid tree; loop:" & Node_Index'Image (Node);
          else
             Node_Printed (Node) := True;
          end if;

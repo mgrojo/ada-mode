@@ -1044,83 +1044,6 @@ package body WisiToken_Grammar_Runtime is
          return Node (Iter.First);
       end First_List_Element;
 
-      function Last_List_Element
-        (Root       : in Valid_Node_Index;
-         List_ID    : in WisiToken.Token_ID;
-         Element_ID : in WisiToken.Token_ID)
-        return Node_Index
-      is
-         use WisiToken.Syntax_Trees.LR_Utils;
-         Iter : constant Iterator := Iterate (Root, List_ID, Element_ID);
-      begin
-         return Node (Iter.Last);
-      end Last_List_Element;
-
-      function Next_List_Element
-        (Element : in Valid_Node_Index;
-         List_ID : in WisiToken.Token_ID)
-        return Node_Index
-      with Pre => Tree.Parent (Element, 2) /= Invalid_Node_Index and then
-                  Tree.ID (Tree.Parent (Element)) = List_ID
-      is
-         --  IMPROVEME: replace this with Syntax_Trees.LR_Utils.Next
-
-         use all type SAL.Base_Peek_Type;
-         --  Tree is one of:
-         --
-         --  case a: first element, no next
-         --  rhs
-         --  | rhs_item_list
-         --  | | rhs_item: Element
-         --  | action
-         --
-         --  case b: first element, next
-         --  rhs_item_list
-         --  | rhs_item_list
-         --  | | rhs_item: Element
-         --  | rhs_item: next element
-         --
-         --  case c: non-first element, no next
-         --  rhs
-         --  | rhs_item_list
-         --  | | rhs_item_list
-         --  | | | rhs_item:
-         --  | | rhs_item: Element
-         --  | action
-         --
-         --  case d: non-first element, next
-         --  rhs_item_list
-         --  | rhs_item_list
-         --  | | rhs_item_list
-         --  | | | rhs_item:
-         --  | | rhs_item: Element
-         --  | rhs_item: next element
-
-         Element_ID      : constant WisiToken.Token_ID     := Tree.ID (Element);
-         Grand_Parent    : constant Valid_Node_Index       := Tree.Parent (Element, 2);
-         Aunts           : constant Valid_Node_Index_Array := Tree.Children (Grand_Parent);
-         Last_List_Child : SAL.Base_Peek_Type              := Aunts'First - 1;
-      begin
-         if Tree.ID (Grand_Parent) /= List_ID then
-            --  No next
-            return Invalid_Node_Index;
-         end if;
-
-         --  Children may be non-list items; ACTION in an rhs_list, for example.
-         for I in Aunts'Range loop
-            if Tree.ID (Aunts (I)) in List_ID | Element_ID then
-               Last_List_Child := I;
-            end if;
-         end loop;
-
-         if Last_List_Child = 1 then
-            --  No next
-            return Invalid_Node_Index;
-         else
-            return Aunts (2);
-         end if;
-      end Next_List_Element;
-
       procedure Append_Element
         (Tail_List    : in Valid_Node_Index;
          New_Element  : in Valid_Node_Index;
@@ -1185,18 +1108,18 @@ package body WisiToken_Grammar_Runtime is
       procedure Insert_Optional_RHS (B : in Valid_Node_Index)
       with Pre => Tree.ID (B) in +rhs_multiple_item_ID | +rhs_optional_item_ID | +IDENTIFIER_ID
       is
-         --  B is an optional item in an rhs_item_list :
-         --  | a b? c
-         --  | a b* c
+         --  B is an optional item in an rhs_item_list:
+         --  | A B? C
+         --
+         --  or B is a rhs_multiple_item that is allowed to be empty:
+         --  | A B* C
          --
          --  or B is a virtual identifier naming the new nonterm replacing the
          --  original
          --
-         --  or B is a rhs_multiple_item that is allowed to be empty.
-         --
          --  Insert a second rhs_item_list without B.
          --
-         --  a, c can be empty. The containing element may be rhs or
+         --  A, C can be empty. The containing element may be rhs or
          --  rhs_alternative_list
          use Syntax_Trees.LR_Utils;
 
@@ -1256,14 +1179,14 @@ package body WisiToken_Grammar_Runtime is
 
          if Has_Element (Orig_ABC_A_Last) then
             --  a is not empty
-            Orig_ABC_Iter.Copy_List
+            Orig_ABC_Iter.Copy
               (Source_Last => Orig_ABC_A_Last,
                Dest_Iter   => New_RHS_Item_List_AC_Iter);
          end if;
 
          if Has_Element (Orig_ABC_C_First) then
             --  c is not empty
-            Orig_ABC_Iter.Copy_List
+            Orig_ABC_Iter.Copy
               (Source_First => Orig_ABC_C_First,
                Dest_Iter    => New_RHS_Item_List_AC_Iter);
          end if;
@@ -2168,36 +2091,43 @@ package body WisiToken_Grammar_Runtime is
          when rhs_optional_item_ID =>
             --  Source looks like:
             --
-            --  | a [b] c
+            --  | A [B] C
             --
-            --  where 'a', 'b', 'c' are token sequences. Translate to:
+            --  where A, B, C are token sequences, and Node is "[B]".
             --
-            --  | a nonterm_b c
-            --  | a c
+            --  First add a second RHS without B:
+            --  | A C
             --
-            --  where 'nonterm_b' is a new nonterminal containing b, unless b is
-            --  simple enough to inline.
+            --  then edit existing RHS to either inline B:
+            --  | A B C
+            --
+            --  or replace B with a new nonterminal:
+            --  | A Nonterm_B C
+            --
+            --  Nonterm_B : B ;
             --
             --  See nested_ebnf_optional.wy for an example of nested optional
             --  items.
             --
             --  current tree:
             --
-            --  | rhs_list:
-            --  | | rhs | rhs_alternative_list:
+            --  rhs_list:
+            --  | rhs | rhs_alternative_list:
+            --  | | rhs_item_list
             --  | | | rhs_item_list
-            --  | | | | rhs_item_list
-            --  | | | ...
-            --  | | | | | | rhs_element:
-            --  | | | | | | | rhs_item: contains a tail
-            --  | | | | | rhs_element:
-            --  | | | | | | rhs_item: contains b
-            --  | | | | | | | rhs_optional_item: Node
-            --  | | | | | | | | LEFT_BRACKET: Node.Children (1)
-            --  | | | | | | | | rhs_alternative_list: Node.Children (2) b
-            --  | | | | | | | | RIGHT_BRACKET: Node.Children (3)
-            --  | | | | rhs_element: head of c
-            --  | | | | | rhs_item: head of c
+            --  | | ...
+            --  | | | | | rhs_element: a.last
+            --  | | | | | | rhs_item:
+            --  | | | | rhs_element:
+            --  | | | | | rhs_item: contains b
+            --  | | | | | | rhs_optional_item: Node
+            --  | | | | | | | LEFT_BRACKET: Node.Children (1)
+            --  | | | | | | | rhs_alternative_list: Node.Children (2) b
+            --  | | | | | | | RIGHT_BRACKET: Node.Children (3)
+            --  | | | rhs_element: c.first
+            --  | | | | rhs_item:
+
+            Insert_Optional_RHS (Node);
 
             declare
                use all type Ada.Containers.Count_Type;
@@ -2320,58 +2250,62 @@ package body WisiToken_Grammar_Runtime is
                         --  No separate nonterminal, so token labels stay in the same RHS for
                         --  actions. Splice together rhs_item_lists a, b, c
                         declare
-                           Root_List_A    : constant Valid_Node_Index := Tree.Child (Tree.Parent (Node, 3), 1);
-                           Tail_Element_A : constant Node_Index       :=
-                             (if Root_List_A = Tree.Parent (Node, 2)
-                              then Invalid_Node_Index -- a is empty
-                              else Last_List_Element (Root_List_A, +rhs_item_list_ID, +rhs_element_ID));
-                           Root_List_B    : constant Valid_Node_Index := Tree.Child (Tree.Child (Node, 2), 1);
-                           Head_Element_B : constant Valid_Node_Index := First_List_Element
-                             (Root_List_B, +rhs_item_list_ID, +rhs_element_ID);
-                           Tail_Element_B : constant Valid_Node_Index := Last_List_Element
-                             (Root_List_B, +rhs_item_list_ID, +rhs_element_ID);
-                           Root_List_C    : constant Valid_Node_Index := List_Root (Tree.Parent (Node, 3));
-                           Head_Element_C : constant Node_Index       := Next_List_Element
-                             (Tree.Parent (Node, 2), +rhs_item_list_ID);
-                           RHS            : constant Valid_Node_Index := Tree.Parent (Root_List_C);
-                           RHS_Children   : Valid_Node_Index_Array    := Tree.Children (RHS);
+                           use WisiToken.Syntax_Trees.LR_Utils;
+
+                           ABC_Iter : constant Iterator := Iterate
+                             (List_Root (Tree.Parent (Node, 3)), +rhs_item_list_ID, +rhs_element_ID);
+
+                           ABC_B_Cur   : constant Cursor := ABC_Iter.To_Cursor (Tree.Parent (Node, 2));
+                           ABC_A_Last  : constant Cursor := ABC_Iter.Previous (ABC_B_Cur);
+                           ABC_C_First : constant Cursor := ABC_Iter.Next (ABC_B_Cur);
+
+                           B_Iter : constant Iterator := Iterate
+                             (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
+
+                           RHS          : constant Valid_Node_Index := Tree.Parent (ABC_Iter.Root);
+                           RHS_Children : Valid_Node_Index_Array    := Tree.Children (RHS);
                         begin
-                           if Tail_Element_A = Invalid_Node_Index and Head_Element_C = Invalid_Node_Index then
-                              --  A, C both empty
-                              RHS_Children (1) := Tree.Child (Root_List_B, 1);
+                           if ABC_A_Last = No_Element and ABC_C_First = No_Element then
+                              --  A, C both empty; just inline B
+                              RHS_Children (1) := Tree.Child (B_Iter.Root, 1);
                               Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
 
-                           elsif Tail_Element_A = Invalid_Node_Index then
-                              --  A empty, C not empty
+                           elsif ABC_A_Last = No_Element then
+                              --  A empty, C not empty; splice B onto head of C
                               declare
-                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Tail_Element_B);
-                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Head_Element_C);
+                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.Last));
+                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_C_First));
                               begin
-                                 Tree.Set_Children (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Head_Element_C));
-                                 --  Head_Element_C remains the list root.
+                                 Tree.Set_Children
+                                   (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
                               end;
 
-                           elsif Head_Element_C = Invalid_Node_Index then
-                              --  A not empty, C empty.
+                           elsif ABC_C_First = No_Element then
+                              --  A not empty, C empty; splice B onto tail of A.
                               declare
-                                 Parent_A : constant Valid_Node_Index := Tree.Parent (Tail_Element_A);
-                                 Parent_B : constant Valid_Node_Index := Tree.Parent (Head_Element_B);
+                                 Parent_A : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
+                                 Parent_B : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.First));
+                                 pragma Assert (Tree.RHS_Index (Parent_B) = 0);
                               begin
-                                 Tree.Set_Children (Parent_B, (+rhs_item_list_ID, 1), (Parent_A, Head_Element_B));
-                                 RHS_Children (1) := Root_List_B;
+                                 Tree.Set_Children
+                                   (Parent_B, (+rhs_item_list_ID, 1), (Parent_A, Tree.Child (Parent_B, 1)));
+                                 RHS_Children (1) := B_Iter.Root;
                                  Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
                               end;
                            else
                               --  A, C both not empty
                               declare
-                                 Parent_A  : constant Valid_Node_Index := Tree.Parent (Tail_Element_A);
-                                 Parent_B1 : constant Valid_Node_Index := Tree.Parent (Head_Element_B);
-                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Tail_Element_B);
-                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Head_Element_C);
+                                 Parent_A  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
+                                 Parent_B1 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.First));
+                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.Last));
+                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_C_First));
+                                 pragma Assert (Tree.RHS_Index (Parent_B1) = 0);
+                                 pragma Assert (Tree.RHS_Index (Parent_C) = 1);
                               begin
-                                 Tree.Set_Children (Parent_B1, (+rhs_item_list_ID, 1), (Parent_A, Head_Element_B));
-                                 Tree.Set_Children (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Head_Element_C));
-                                 --  Head_Element_C remains the list root.
+                                 Tree.Set_Children
+                                   (Parent_B1, (+rhs_item_list_ID, 1), (Parent_A, Tree.Child (Parent_B1, 1)));
+                                 Tree.Set_Children
+                                   (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
                               end;
                            end if;
 
@@ -2405,8 +2339,6 @@ package body WisiToken_Grammar_Runtime is
                end case;
 
                Clear_EBNF_Node (Node);
-
-               Insert_Optional_RHS (Node);
             end;
 
          when STRING_LITERAL_2_ID =>

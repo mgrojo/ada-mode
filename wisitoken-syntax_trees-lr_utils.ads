@@ -115,7 +115,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  Append a copy of Source_Item to Dest_Iter. New node is
    --  Dest_Iter.Root.
 
-   procedure Copy_List
+   procedure Copy
      (Source_Iter  : in     Iterator;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
@@ -124,8 +124,12 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --
    --  If First = No_Element, copy from List.First.
    --  If Last = No_Element, copy thru List.Last.
-   --
-   --  Invalid_Node_Index is returned if First .. Last is empty.
+
+   --  procedure Splice
+   --    (Left_Iter   : in Iterator;
+   --     Right_Iter  : in Iterator;
+   --     Right_First : in Cursor);
+   --  --  Splice Right_Iter list starting at Right_First onto tail of Left_Iter list.
 private
 
    type Cursor is record
@@ -148,7 +152,7 @@ private
    end record;
 
    function Root (Iter : in Iterator) return Node_Index
-   is (Iter.Root);
+     is (Iter.Root);
 
    function Same_Tree (A, B : in Iterator) return Boolean
      is (A.Tree = B.Tree);
