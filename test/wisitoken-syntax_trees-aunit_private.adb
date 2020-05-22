@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 
 pragma License (GPL);
 
-with WisiToken.AUnit;
+with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check
@@ -28,7 +28,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use WisiToken.Syntax_Trees.AUnit_Public.Valid_Node_Index_Arrays_AUnit;
+      use WisiToken.AUnit.Valid_Node_Index_Arrays_AUnit;
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
@@ -51,7 +51,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected : in Tree)
    is
       use Standard.AUnit.Checks;
-      use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.AUnit;
       use Node_Arrays_AUnit;
    begin
       --  Ignoring shared_tree

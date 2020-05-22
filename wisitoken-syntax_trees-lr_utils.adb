@@ -36,10 +36,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
            Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
-   function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean is (Cursor.Node /= Invalid_Node_Index);
-
-   function Node (Cursor : in LR_Utils.Cursor) return Node_Index is (Cursor.Node);
-
    overriding function First (Iter : Iterator) return Cursor
    is begin
       if Iter.Root = Invalid_Node_Index then
@@ -51,15 +47,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                declare
                   Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Result.Node);
                begin
-                  --  An empty list looks like:
-                  --
-                  --  parent_2:
-                  --  | list
-                  --  | | list
-                  --  | | | element: First
-                  --  | | element: 2
-                  --  | element: 3
-                  --  element: Last
                   if Iter.Tree.ID (Children (1)) = Iter.List_ID then
                      Result.Node := Children (1);
                   elsif Iter.Tree.ID (Children (1)) = Iter.Element_ID then
@@ -81,22 +68,18 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       if Iter.Root = Invalid_Node_Index then
          return (Node => Invalid_Node_Index);
       else
-         declare
-            --  Tree is one of:
-            --
-            --  case a: single element list
-            --  element_list : root
-            --  | element: Last
-            --
-            --  case c: no next
-            --  element_list: root
-            --  | element_list
-            --  | | element:
-            --  | element: Last
-            Children : constant Valid_Node_Index_Array := Iter.Tree.Children (Iter.Root);
-         begin
-            return (Node => Children (Children'Last));
-         end;
+         --  Tree is one of:
+         --
+         --  case a: single element list
+         --  element_list : root
+         --  | element: Last
+         --
+         --  case c: no next
+         --  element_list: root
+         --  | element_list
+         --  | | element:
+         --  | element: Last
+         return (Node => Iter.Tree.Child (Iter.Root, SAL.Base_Peek_Type (Iter.Tree.Child_Count (Iter.Root))));
       end if;
    end Last;
 
@@ -357,5 +340,32 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Item := Source_Iter.Next (Item);
       end loop;
    end Copy;
+
+   procedure Splice
+     (Left_Iter   : in out Iterator;
+      Left_Last   : in     Cursor;
+      Right_Iter  : in     Iterator;
+      Right_First : in     Cursor)
+   is begin
+      Left_Iter.Tree.Set_Children
+        (Left_Iter.Tree.Parent (Right_First.Node),
+         (Left_Iter.List_ID, Left_Iter.Multi_Element_RHS),
+         (Left_Iter.Tree.Parent (Left_Last.Node), Right_First.Node));
+
+      --  Preserve Iter.Last = iter.tree.child (iter.root).
+      Left_Iter.Root := Right_Iter.Root;
+   end Splice;
+
+   function List_Root (Tree : in Syntax_Trees.Tree; Item : in Valid_Node_Index) return Valid_Node_Index
+   is
+      List_ID : constant WisiToken.Token_ID := Tree.ID (Item);
+      Node    : Valid_Node_Index            := Item;
+   begin
+      loop
+         exit when Tree.ID (Tree.Parent (Node)) /= List_ID;
+         Node := Tree.Parent (Node);
+      end loop;
+      return Node;
+   end List_Root;
 
 end WisiToken.Syntax_Trees.LR_Utils;

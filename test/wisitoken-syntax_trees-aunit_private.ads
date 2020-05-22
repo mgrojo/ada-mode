@@ -2,7 +2,7 @@
 --
 --  Private AUnit checks for parent
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Checks;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
-with WisiToken.Syntax_Trees.AUnit_Public;
+with WisiToken.AUnit;
 private package WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
@@ -30,7 +30,7 @@ private package WisiToken.Syntax_Trees.AUnit_Private is
       Computed : in Node;
       Expected : in Node);
 
-   package Node_Arrays_AUnit is new Node_Arrays.Gen_AUnit (AUnit_Public.Check, Check);
+   package Node_Arrays_AUnit is new Node_Arrays.Gen_AUnit (WisiToken.AUnit.Check, Check);
 
    procedure Check
      (Label    : in String;

@@ -29,10 +29,8 @@ change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
 
     delete next_list_element
         working on rhs_optional_item, create new nonterm
-            add lr_utils.splice
 
-    move List_Root to LR_Utils
-        or change Insert_Optional_RHS.B to Cursor
+    change Insert_Optional_RHS.B to take Iter, Cursor?
 
     Move List_Singleton to LR_Utils, or use .Count
 

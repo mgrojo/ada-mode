@@ -1004,18 +1004,6 @@ package body WisiToken_Grammar_Runtime is
             Action     => Wisitoken_Grammar_Actions.nonterminal_0'Access);
       end Tree_Add_Nonterminal;
 
-      function List_Root (Item : in Valid_Node_Index) return Valid_Node_Index
-      is
-         List_ID : constant WisiToken.Token_ID := Tree.ID (Item);
-         Node : Valid_Node_Index := Item;
-      begin
-         loop
-            exit when Tree.ID (Tree.Parent (Node)) /= List_ID;
-            Node := Tree.Parent (Node);
-         end loop;
-         return Node;
-      end List_Root;
-
       function List_Singleton (Root : in Valid_Node_Index) return Boolean
       is begin
          return Tree.RHS_Index (Root) = 0;
@@ -1127,7 +1115,7 @@ package body WisiToken_Grammar_Runtime is
            (B, (+rhs_ID, +rhs_alternative_list_ID));
 
          Orig_ABC_Iter : constant Iterator := Iterate
-           (List_Root (Tree.Parent (B, 3)), +rhs_item_list_ID, +rhs_element_ID);
+           (List_Root (Tree, Tree.Parent (B, 3)), +rhs_item_list_ID, +rhs_element_ID);
 
          Orig_ABC_B_Cur   : constant Cursor := Orig_ABC_Iter.To_Cursor (Tree.Parent (B, 2));
          Orig_ABC_A_Last  : constant Cursor := Orig_ABC_Iter.Previous (Orig_ABC_B_Cur);
@@ -2252,14 +2240,14 @@ package body WisiToken_Grammar_Runtime is
                         declare
                            use WisiToken.Syntax_Trees.LR_Utils;
 
-                           ABC_Iter : constant Iterator := Iterate
-                             (List_Root (Tree.Parent (Node, 3)), +rhs_item_list_ID, +rhs_element_ID);
+                           ABC_Iter : Iterator := Iterate
+                             (List_Root (Tree, Tree.Parent (Node, 3)), +rhs_item_list_ID, +rhs_element_ID);
 
                            ABC_B_Cur   : constant Cursor := ABC_Iter.To_Cursor (Tree.Parent (Node, 2));
                            ABC_A_Last  : constant Cursor := ABC_Iter.Previous (ABC_B_Cur);
                            ABC_C_First : constant Cursor := ABC_Iter.Next (ABC_B_Cur);
 
-                           B_Iter : constant Iterator := Iterate
+                           B_Iter : Iterator := Iterate
                              (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
 
                            RHS          : constant Valid_Node_Index := Tree.Parent (ABC_Iter.Root);
@@ -2271,29 +2259,21 @@ package body WisiToken_Grammar_Runtime is
                               Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
 
                            elsif ABC_A_Last = No_Element then
-                              --  A empty, C not empty; splice B onto head of C
-                              declare
-                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.Last));
-                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_C_First));
-                              begin
-                                 Tree.Set_Children
-                                   (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
-                              end;
+                              --  A empty, C not empty; splice C onto tail of B
+                              Splice (Left_Iter => B_Iter, Left_Last => B_Iter.Last,
+                                      Right_Iter => ABC_Iter, Right_First => ABC_C_First);
 
                            elsif ABC_C_First = No_Element then
                               --  A not empty, C empty; splice B onto tail of A.
-                              declare
-                                 Parent_A : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
-                                 Parent_B : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.First));
-                                 pragma Assert (Tree.RHS_Index (Parent_B) = 0);
-                              begin
-                                 Tree.Set_Children
-                                   (Parent_B, (+rhs_item_list_ID, 1), (Parent_A, Tree.Child (Parent_B, 1)));
-                                 RHS_Children (1) := B_Iter.Root;
-                                 Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
-                              end;
+                              Splice (Left_Iter => ABC_Iter, Left_Last => ABC_A_Last,
+                                      Right_Iter => B_Iter, Right_First => B_Iter.First);
+                              RHS_Children (1) := B_Iter.Root;
+                              Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
                            else
-                              --  A, C both not empty
+                              --  A, C both not empty. This would take two calls to Splice, but the
+                              --  first call Splice (ABC_Iter, ABC_A_Last, B_Iter, B_Iter.First)
+                              --  would detach C from ABC_Iter, and C is not a list on it's own.
+                              --  So we just edit the list directly.
                               declare
                                  Parent_A  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
                                  Parent_B1 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.First));
@@ -2307,6 +2287,7 @@ package body WisiToken_Grammar_Runtime is
                                  Tree.Set_Children
                                    (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
                               end;
+                              --  ABC_Iter root is left unchanged, so we don't need to update RHS_Children
                            end if;
 
                            if Trace_Generate_EBNF > Extra then

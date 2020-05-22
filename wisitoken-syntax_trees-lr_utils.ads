@@ -2,6 +2,13 @@
 --
 --  Utilities for navigating syntax trees produced by an LR parser.
 --
+--  Design :
+--
+--  It would be safer if Cursor contained a pointer to Iterator; then
+--  Copy and Splice could just take Cursor arguments. But that
+--  requires mode 'aliased in' for First, Last, which is not
+--  conformant with Ada.Iterator_Interfaces.
+--
 --  Copyright (C) 2019, 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -42,7 +49,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --
    --  In the syntax tree, this looks like:
    --
-   --  list: root
+   --  list: Root
    --  | list
    --  | | list
    --  | | | element: First
@@ -69,12 +76,10 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    type Iterator (<>) is new Iterator_Interfaces.Reversible_Iterator with private;
 
-   overriding function First (Iter : Iterator) return Cursor;
-   overriding function Last  (Iter : Iterator) return Cursor;
-
-   overriding function Next (Iter : Iterator; Position : Cursor) return Cursor;
-
-   overriding function Previous (Iter : Iterator; Position : Cursor) return Cursor;
+   overriding function First (Iter : in Iterator) return Cursor;
+   overriding function Last  (Iter : in Iterator) return Cursor;
+   overriding function Next     (Iter : in Iterator; Position : Cursor) return Cursor;
+   overriding function Previous (Iter : in Iterator; Position : Cursor) return Cursor;
 
    function Iterate
      (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
@@ -98,6 +103,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  If assertions enabled, checks that Node is child of Iter.Root, and
    --  Tree.ID (Node) = Iter.Element_ID.
 
+   function Tree (Iter : in Iterator) return Tree_Variable_Reference;
    function Root (Iter : in Iterator) return Node_Index;
    function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
 
@@ -105,13 +111,14 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  Delete Item from Iter list. On return, Item points to next list
    --  element.
 
-   function Same_Tree (A, B : in Iterator) return Boolean;
+   function Compatible (A, B : in Iterator) return Boolean;
+   function Contains (Iter : in Iterator; Item : in Cursor) return Boolean;
 
    procedure Append_Copy
      (Source_Iter : in     Iterator;
       Source_Item : in     Cursor;
       Dest_Iter   : in out Iterator)
-   with Pre => Same_Tree (Source_Iter, Dest_Iter) and Has_Element (Source_Item);
+   with Pre => Compatible (Source_Iter, Dest_Iter) and Source_Iter.Contains (Source_Item);
    --  Append a copy of Source_Item to Dest_Iter. New node is
    --  Dest_Iter.Root.
 
@@ -119,18 +126,37 @@ package WisiToken.Syntax_Trees.LR_Utils is
      (Source_Iter  : in     Iterator;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
-      Dest_Iter    : in out Iterator);
+      Dest_Iter    : in out Iterator)
+   with Pre => Compatible (Source_Iter, Dest_Iter);
    --  Deep copy slice of Source_Iter, appending to Dest.
    --
    --  If First = No_Element, copy from List.First.
    --  If Last = No_Element, copy thru List.Last.
 
-   --  procedure Splice
-   --    (Left_Iter   : in Iterator;
-   --     Right_Iter  : in Iterator;
-   --     Right_First : in Cursor);
-   --  --  Splice Right_Iter list starting at Right_First onto tail of Left_Iter list.
+   procedure Splice
+     (Left_Iter   : in out Iterator;
+      Left_Last   : in     Cursor;
+      Right_Iter  : in     Iterator;
+      Right_First : in     Cursor)
+   with
+     Pre  => Compatible (Left_Iter, Right_Iter) and
+             Right_Iter.Contains (Right_First) and
+             Left_Iter.Contains (Left_Last);
+   --  Splice Right_Iter list starting at Right_First onto tail of
+   --  Left_Iter list, removing the slice from Right_Iter.
+   --  Left_Iter.Root is updated to the new list root.
+   --
+   --  On return, the slice of Left_Iter after Left_Last is inaccessible;
+   --  any cursors to it are invalid (this is not enforced), and it has
+   --  no proper list root.
+
+   function List_Root (Tree : in Syntax_Trees.Tree; Item : in Valid_Node_Index) return Valid_Node_Index;
+   --  Return last parent of Item where ID (Parent) = ID (Item).
+   --
+   --  Using the example list above, List_Root (Tree.Parent (First)) => Root.
+
 private
+   use all type WisiToken.Lexer.Handle;
 
    type Cursor is record
       Node : Node_Index;
@@ -151,10 +177,32 @@ private
       Separator_ID      : WisiToken.Token_ID;
    end record;
 
-   function Root (Iter : in Iterator) return Node_Index
-     is (Iter.Root);
+   function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean
+   is (Cursor.Node /= Invalid_Node_Index);
 
-   function Same_Tree (A, B : in Iterator) return Boolean
-     is (A.Tree = B.Tree);
+   function Node (Cursor : in LR_Utils.Cursor) return Node_Index
+   is (Cursor.Node);
+
+   function Tree (Iter : in Iterator) return Tree_Variable_Reference
+   is (Element => Iter.Tree);
+
+   function Root (Iter : in Iterator) return Node_Index
+   is (Iter.Root);
+
+   function Compatible (A, B : in Iterator) return Boolean
+   is --  Either A or B is Invalid_Iterator, or all components are the same except Root
+     (A.Tree = B.Tree and
+        ((A.Root = Invalid_Node_Index or B.Root = Invalid_Node_Index) or else
+           (A.Terminals = B.Terminals and
+              A.Lexer = B.Lexer and
+              A.Descriptor = B.Descriptor and
+              A.List_ID = B.List_ID and
+              A.One_Element_RHS = B.One_Element_RHS and
+              A.Multi_Element_RHS = B.Multi_Element_RHS and
+              A.Element_ID = B.Element_ID and
+              A.Separator_ID = B.Separator_ID)));
+
+   function Contains (Iter : in Iterator; Item : in Cursor) return Boolean
+   is (for some I in Iter => I.Node = Item.Node);
 
 end WisiToken.Syntax_Trees.LR_Utils;
