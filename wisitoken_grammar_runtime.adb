@@ -1004,11 +1004,6 @@ package body WisiToken_Grammar_Runtime is
             Action     => Wisitoken_Grammar_Actions.nonterminal_0'Access);
       end Tree_Add_Nonterminal;
 
-      function List_Singleton (Root : in Valid_Node_Index) return Boolean
-      is begin
-         return Tree.RHS_Index (Root) = 0;
-      end List_Singleton;
-
       function Iterate
         (Root         : in Valid_Node_Index;
          Element_ID   : in WisiToken.Token_ID;
@@ -2118,6 +2113,7 @@ package body WisiToken_Grammar_Runtime is
             Insert_Optional_RHS (Node);
 
             declare
+               use WisiToken.Syntax_Trees.LR_Utils;
                use all type Ada.Containers.Count_Type;
 
                Name_Ident    : Base_Identifier_Index := Invalid_Identifier_Index;
@@ -2130,182 +2126,192 @@ package body WisiToken_Grammar_Runtime is
                   --  : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
                   --  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
 
-                  --  Check for special cases
+                  --  FIXME: debugging
+                  if Trace_Generate_EBNF > Extra then
+                     Ada.Text_IO.New_Line;
+                     Ada.Text_IO.Put_Line ("edited tree:");
+                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root);
+                  end if;
 
-                  if Iterate (Tree.Child (Node, 2), +rhs_alternative_list_ID, +rhs_item_list_ID).Count = 1 then
-                     if Iterate (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID).Count = 1
-                     then
-                        --  Single item in rhs_alternative_list and rhs_item_list; just use it.
-                        --
-                        --  Single alternative, multiple rhs_items handled below
+                  --  Check for special cases
+                  declare
+                     B_Alternative_Iter : constant Iterator := Iterate
+                       (Tree.Child (Node, 2), +rhs_alternative_list_ID, +rhs_item_list_ID);
+
+                     B_Item_Iter : Iterator := Iterate
+                       (Get_Node (B_Alternative_Iter.First), +rhs_item_list_ID, +rhs_element_ID);
+                  begin
+
+                     if B_Alternative_Iter.Count = 1 then
+                        if B_Item_Iter.Count = 1
+                        then
+                           --  Single item in rhs_alternative_list and rhs_item_list; just use it.
+                           --
+                           --  Single alternative, multiple rhs_items handled below
+                           declare
+                              Name_Element_Node    : Valid_Node_Index;
+                              Name_Identifier_Node : Node_Index;
+                           begin
+                              Found             := True;
+                              Name_Element_Node := First_List_Element
+                                (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
+
+                              if Tree.RHS_Index (Name_Element_Node) = 0 then
+                                 Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 1), 1);
+                              else
+                                 --  Name has a label
+                                 Name_Label           := Tree.First_Shared_Terminal (Tree.Child (Name_Element_Node, 1));
+                                 Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 3), 1);
+                              end if;
+
+                              case Tree.Label (Name_Identifier_Node) is
+                              when Virtual_Identifier =>
+                                 Name_Ident := Tree.Identifier (Name_Identifier_Node);
+                              when Shared_Terminal =>
+                                 Name_Terminal := Tree.First_Shared_Terminal (Name_Identifier_Node);
+                              when others =>
+                                 Raise_Programmer_Error
+                                   ("unhandled rhs_optional case ", Data, Tree, Name_Identifier_Node);
+                              end case;
+                           end;
+                        end if;
+                     else
+                        --  See if we've already created a nonterminal for this.
                         declare
-                           Name_Element_Node    : Valid_Node_Index;
+                           New_Text : constant String   := Get_Text (Data, Tree, Tree.Child (Node, 2));
+                           Iter     : constant Iterator := Iterate
+                             (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+
                            Name_Identifier_Node : Node_Index;
                         begin
-                           Found             := True;
-                           Name_Element_Node := First_List_Element
-                             (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
+                           for Cur in Iter loop
 
-                           if Tree.RHS_Index (Name_Element_Node) = 0 then
-                              Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 1), 1);
-                           else
-                              --  Name has a label
-                              Name_Label           := Tree.First_Shared_Terminal (Tree.Child (Name_Element_Node, 1));
-                              Name_Identifier_Node := Tree.Child (Tree.Child (Name_Element_Node, 3), 1);
-                           end if;
-
-                           case Tree.Label (Name_Identifier_Node) is
-                           when Virtual_Identifier =>
-                              Name_Ident := Tree.Identifier (Name_Identifier_Node);
-                           when Shared_Terminal =>
-                              Name_Terminal := Tree.First_Shared_Terminal (Name_Identifier_Node);
-                           when others =>
-                              Raise_Programmer_Error ("unhandled rhs_optional case ", Data, Tree, Name_Identifier_Node);
-                           end case;
-                        end;
-                     end if;
-                  else
-                     --  See if we've already created a nonterminal for this.
-                     declare
-                        use Syntax_Trees.LR_Utils;
-
-                        New_Text : constant String   := Get_Text (Data, Tree, Tree.Child (Node, 2));
-                        Iter     : constant Iterator := Iterate
-                          (Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
-
-                        Name_Identifier_Node : Node_Index;
-                     begin
-                        for Cur in Iter loop
-
-                           if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
-                              if New_Text = Get_Text (Data, Tree, Tree.Child (Tree.Child (Get_Node (Cur), 1), 3)) then
-                                 Found := True;
-                                 Name_Identifier_Node := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
-                                 case Tree.Label (Name_Identifier_Node) is
-                                 when Virtual_Identifier =>
-                                    Name_Ident := Tree.Identifier (Name_Identifier_Node);
-                                 when others =>
-                                    Raise_Programmer_Error
-                                      ("unhandled rhs_optional case '" & New_Text & "'",
-                                       Data, Tree, Name_Identifier_Node);
-                                 end case;
-                                 exit;
+                              if Tree.Production_ID (Tree.Child (Get_Node (Cur), 1)) = (+nonterminal_ID, 0) then
+                                 if New_Text = Get_Text (Data, Tree, Tree.Child (Tree.Child (Get_Node (Cur), 1), 3))
+                                 then
+                                    Found := True;
+                                    Name_Identifier_Node := Tree.Child (Tree.Child (Get_Node (Cur), 1), 1);
+                                    case Tree.Label (Name_Identifier_Node) is
+                                    when Virtual_Identifier =>
+                                       Name_Ident := Tree.Identifier (Name_Identifier_Node);
+                                    when others =>
+                                       Raise_Programmer_Error
+                                         ("unhandled rhs_optional case '" & New_Text & "'",
+                                          Data, Tree, Name_Identifier_Node);
+                                    end case;
+                                    exit;
+                                 end if;
                               end if;
-                           end if;
-                        end loop;
-                     end;
-                  end if;
-
-                  if Found then
-                     --  Use previously created nonterminal
-                     if Name_Ident /= Invalid_Identifier_Index then
-                        Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Name_Ident);
-
-                        --  Change RHS_Index, delete Check_EBNF action
-                        Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
-
-                     elsif Name_Terminal /= Invalid_Token_Index then
-                        Tree.Set_Children
-                          (Tree.Parent (Node),
-                           (+rhs_item_ID, 0),
-                           (1 => Tree.Add_Terminal (Name_Terminal, Data.Terminals.all)));
-
-                     else
-                        raise SAL.Programmer_Error;
+                           end loop;
+                        end;
                      end if;
 
-                     if Name_Label /= Invalid_Token_Index then
-                        declare
-                           Label_Node : constant Valid_Node_Index := Tree.Add_Terminal
-                             (Name_Label, Data.Terminals.all);
-                           Equal_Node : constant Valid_Node_Index := Tree.Add_Terminal (+EQUAL_ID);
-                        begin
+                     if Found then
+                        --  Use previously created nonterminal
+                        if Name_Ident /= Invalid_Identifier_Index then
+                           Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Name_Ident);
+
+                           --  Change RHS_Index, delete Check_EBNF action
+                           Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
+
+                        elsif Name_Terminal /= Invalid_Token_Index then
                            Tree.Set_Children
-                             (Tree.Parent (Tree.Parent (Node)),
-                              (+rhs_element_ID, 1),
-                              (1 => Label_Node,
-                               2 => Equal_Node,
-                               3 => Tree.Parent (Node)));
-                        end;
-                     end if;
+                             (Tree.Parent (Node),
+                              (+rhs_item_ID, 0),
+                              (1 => Tree.Add_Terminal (Name_Terminal, Data.Terminals.all)));
 
-                  else
-                     --  Create a new nonterm, or handle more special cases
+                        else
+                           raise SAL.Programmer_Error;
+                        end if;
 
-                     if List_Singleton (Tree.Child (Node, 2)) then
-                        --  Single alternative, multiple rhs_items
-                        --
-                        --  No separate nonterminal, so token labels stay in the same RHS for
-                        --  actions. Splice together rhs_item_lists a, b, c
-                        declare
-                           use WisiToken.Syntax_Trees.LR_Utils;
+                        if Name_Label /= Invalid_Token_Index then
+                           declare
+                              Label_Node : constant Valid_Node_Index := Tree.Add_Terminal
+                                (Name_Label, Data.Terminals.all);
+                              Equal_Node : constant Valid_Node_Index := Tree.Add_Terminal (+EQUAL_ID);
+                           begin
+                              Tree.Set_Children
+                                (Tree.Parent (Tree.Parent (Node)),
+                                 (+rhs_element_ID, 1),
+                                 (1 => Label_Node,
+                                  2 => Equal_Node,
+                                  3 => Tree.Parent (Node)));
+                           end;
+                        end if;
 
-                           ABC_Iter : Iterator := Iterate
-                             (List_Root (Tree, Tree.Parent (Node, 3)), +rhs_item_list_ID, +rhs_element_ID);
-
-                           ABC_B_Cur   : constant Cursor := ABC_Iter.To_Cursor (Tree.Parent (Node, 2));
-                           ABC_A_Last  : constant Cursor := ABC_Iter.Previous (ABC_B_Cur);
-                           ABC_C_First : constant Cursor := ABC_Iter.Next (ABC_B_Cur);
-
-                           B_Iter : Iterator := Iterate
-                             (Tree.Child (Tree.Child (Node, 2), 1), +rhs_item_list_ID, +rhs_element_ID);
-
-                           RHS          : constant Valid_Node_Index := Tree.Parent (ABC_Iter.Root);
-                           RHS_Children : Valid_Node_Index_Array    := Tree.Children (RHS);
-                        begin
-                           if ABC_A_Last = No_Element and ABC_C_First = No_Element then
-                              --  A, C both empty; just inline B
-                              RHS_Children (1) := Tree.Child (B_Iter.Root, 1);
-                              Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
-
-                           elsif ABC_A_Last = No_Element then
-                              --  A empty, C not empty; splice C onto tail of B
-                              Splice (Left_Iter => B_Iter, Left_Last => B_Iter.Last,
-                                      Right_Iter => ABC_Iter, Right_First => ABC_C_First);
-
-                           elsif ABC_C_First = No_Element then
-                              --  A not empty, C empty; splice B onto tail of A.
-                              Splice (Left_Iter => ABC_Iter, Left_Last => ABC_A_Last,
-                                      Right_Iter => B_Iter, Right_First => B_Iter.First);
-                              RHS_Children (1) := B_Iter.Root;
-                              Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
-                           else
-                              --  A, C both not empty. This would take two calls to Splice, but the
-                              --  first call Splice (ABC_Iter, ABC_A_Last, B_Iter, B_Iter.First)
-                              --  would detach C from ABC_Iter, and C is not a list on it's own.
-                              --  So we just edit the list directly.
-                              declare
-                                 Parent_A  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
-                                 Parent_B1 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.First));
-                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Iter.Last));
-                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_C_First));
-                                 pragma Assert (Tree.RHS_Index (Parent_B1) = 0);
-                                 pragma Assert (Tree.RHS_Index (Parent_C) = 1);
-                              begin
-                                 Tree.Set_Children
-                                   (Parent_B1, (+rhs_item_list_ID, 1), (Parent_A, Tree.Child (Parent_B1, 1)));
-                                 Tree.Set_Children
-                                   (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
-                              end;
-                              --  ABC_Iter root is left unchanged, so we don't need to update RHS_Children
-                           end if;
-
-                           if Trace_Generate_EBNF > Extra then
-                              Ada.Text_IO.New_Line;
-                              Ada.Text_IO.Put_Line ("edited rhs:");
-                              Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, RHS);
-                           end if;
-                        end;
                      else
-                        declare
-                           Nonterm_B : constant Identifier_Index := Next_Nonterm_Name ("");
-                        begin
-                           New_Nonterminal (Nonterm_B, Tree.Child (Node, 2));
-                           Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
-                        end;
-                        Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
+                        --  Handle more special cases, or create a new nonterm
+
+                        if B_Alternative_Iter.Count = 1 then
+                           --  Single alternative, multiple rhs_items
+                           --
+                           --  No separate nonterminal, so token labels stay in the same RHS for
+                           --  actions. Splice together rhs_item_lists a, b, c
+                           declare
+                              ABC_Iter : Iterator := Iterate
+                                (List_Root (Tree, Tree.Parent (Node, 3)), +rhs_item_list_ID, +rhs_element_ID);
+
+                              ABC_B_Cur   : constant Cursor := ABC_Iter.To_Cursor (Tree.Parent (Node, 2));
+                              ABC_A_Last  : constant Cursor := ABC_Iter.Previous (ABC_B_Cur);
+                              ABC_C_First : constant Cursor := ABC_Iter.Next (ABC_B_Cur);
+
+                              RHS          : constant Valid_Node_Index := Tree.Parent (ABC_Iter.Root);
+                              RHS_Children : Valid_Node_Index_Array    := Tree.Children (RHS);
+                           begin
+                              if ABC_A_Last = No_Element and ABC_C_First = No_Element then
+                                 --  A, C both empty; just inline B
+                                 RHS_Children (1) := Tree.Child (B_Item_Iter.Root, 1);
+                                 Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
+
+                              elsif ABC_A_Last = No_Element then
+                                 --  A empty, C not empty; splice C onto tail of B
+                                 Splice (Left_Iter => B_Item_Iter, Left_Last => B_Item_Iter.Last,
+                                         Right_Iter => ABC_Iter, Right_First => ABC_C_First);
+
+                              elsif ABC_C_First = No_Element then
+                                 --  A not empty, C empty; splice B onto tail of A.
+                                 Splice (Left_Iter => ABC_Iter, Left_Last => ABC_A_Last,
+                                         Right_Iter => B_Item_Iter, Right_First => B_Item_Iter.First);
+                                 RHS_Children (1) := B_Item_Iter.Root;
+                                 Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
+                              else
+                                 --  A, C both not empty. This would take two calls to Splice, but the
+                                 --  first call Splice (ABC_Iter, ABC_A_Last, B_Item_Iter, B_Item_Iter.First)
+                                 --  would detach C from ABC_Iter, and C is not a list on it's own.
+                                 --  So we just edit the list directly.
+                                 declare
+                                    Parent_A  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_A_Last));
+                                    Parent_B1 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Item_Iter.First));
+                                    Parent_B2 : constant Valid_Node_Index := Tree.Parent (Get_Node (B_Item_Iter.Last));
+                                    Parent_C  : constant Valid_Node_Index := Tree.Parent (Get_Node (ABC_C_First));
+                                    pragma Assert (Tree.RHS_Index (Parent_B1) = 0);
+                                    pragma Assert (Tree.RHS_Index (Parent_C) = 1);
+                                 begin
+                                    Tree.Set_Children
+                                      (Parent_B1, (+rhs_item_list_ID, 1), (Parent_A, Tree.Child (Parent_B1, 1)));
+                                    Tree.Set_Children
+                                      (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Get_Node (ABC_C_First)));
+                                 end;
+                                 --  ABC_Iter root is left unchanged, so we don't need to update RHS_Children
+                              end if;
+
+                              if Trace_Generate_EBNF > Extra then
+                                 Ada.Text_IO.New_Line;
+                                 Ada.Text_IO.Put_Line ("edited rhs:");
+                                 Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, RHS);
+                              end if;
+                           end;
+                        else
+                           declare
+                              Nonterm_B : constant Identifier_Index := Next_Nonterm_Name ("");
+                           begin
+                              New_Nonterminal (Nonterm_B, Tree.Child (Node, 2));
+                              Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
+                           end;
+                           Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
+                        end if;
                      end if;
-                  end if;
+                  end;
 
                when 2 =>
                   --  | IDENTIFIER QUESTION
