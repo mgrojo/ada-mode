@@ -1022,17 +1022,17 @@ package body WisiToken_Grammar_Runtime is
             Root, List_ID, Element_ID, Separator_ID);
       end Iterate;
 
-      function Iterate_From_First
-        (First_Element : in Valid_Node_Index;
-         List_ID       : in WisiToken.Token_ID;
-         Element_ID    : in WisiToken.Token_ID;
-         Separator_ID  : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+      function Iterate_From_Element
+        (Element      : in Valid_Node_Index;
+         List_ID      : in WisiToken.Token_ID;
+         Element_ID   : in WisiToken.Token_ID;
+         Separator_ID : in WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
         return WisiToken.Syntax_Trees.LR_Utils.Iterator
       is begin
-         return WisiToken.Syntax_Trees.LR_Utils.Iterate_From_First
+         return WisiToken.Syntax_Trees.LR_Utils.Iterate_From_Element
            (Tree, Data.Terminals, Data.Grammar_Lexer, Wisitoken_Grammar_Actions.Descriptor'Access,
-            First_Element, List_ID, Element_ID, Separator_ID);
-      end Iterate_From_First;
+            Element, List_ID, Element_ID, Separator_ID);
+      end Iterate_From_Element;
 
       function Empty_Iterator
         (List_ID      : in WisiToken.Token_ID;
@@ -1124,10 +1124,11 @@ package body WisiToken_Grammar_Runtime is
          --  or B is a virtual identifier naming the new nonterm replacing the
          --  original
          --
-         --  Insert a second rhs_item_list without B.
-         --
          --  A, C can be empty. The containing element may be rhs or
          --  rhs_alternative_list
+         --
+         --  Insert a second rhs or rhs_item_list (after the one containing B)
+         --  without B.
          use Syntax_Trees.LR_Utils;
 
          Container : constant Valid_Node_Index := Tree.Find_Ancestor
@@ -1135,12 +1136,12 @@ package body WisiToken_Grammar_Runtime is
 
          Container_List : Iterator :=
            (case To_Token_Enum (Tree.ID (Container)) is
-            when rhs_ID         =>
-               Iterate_From_First
-                 (First_Element => (Container),
-                  List_ID       => +rhs_list_ID,
-                  Element_ID    => +rhs_ID,
-                  Separator_ID  => +BAR_ID),
+            when rhs_ID        =>
+               Iterate_From_Element
+                 (Element      => Container,
+                  List_ID      => +rhs_list_ID,
+                  Element_ID   => +rhs_ID,
+                  Separator_ID => +BAR_ID),
 
             when rhs_alternative_list_ID =>
               (case Tree.RHS_Index (B) is
@@ -1166,7 +1167,7 @@ package body WisiToken_Grammar_Runtime is
                when others => raise SAL.Programmer_Error),
             when others => raise SAL.Programmer_Error);
 
-         Orig_ABC_Iter : constant Iterator := Iterate_From_First
+         Orig_ABC_Iter : constant Iterator := Iterate_From_Element
            (Tree.Parent (B, 2),
             List_ID    => +rhs_item_list_ID,
             Element_ID => +rhs_element_ID);
@@ -1212,10 +1213,6 @@ package body WisiToken_Grammar_Runtime is
             end case;
          end Add_Actions;
       begin
-         if Trace_Generate_EBNF > Extra then
-            Ada.Text_IO.Put_Line ("insert_optional_rhs");
-         end if;
-
          if Has_Element (Orig_ABC_A_Last) then
             --  a is not empty
             Orig_ABC_Iter.Copy
@@ -1253,14 +1250,23 @@ package body WisiToken_Grammar_Runtime is
                else New_RHS_Item_List_AC_Iter.Root);
          end if;
 
+         Container_List.Insert
+           (New_Element => New_RHS_AC,
+            After =>
+              (case To_Token_Enum (Tree.ID (Container)) is
+               when rhs_ID =>
+                  Container_List.To_Cursor (Container),
+
+               when rhs_alternative_list_ID =>
+                  Container_List.To_Cursor (Tree.Child (Tree.Find_Ancestor (B, +rhs_alternative_list_ID), 1)),
+
+               when others => raise SAL.Programmer_Error));
+
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("new ac:");
-            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
+            Ada.Text_IO.Put_Line ("Insert_Optional_RHS edited container:");
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (Container_List.Root));
          end if;
-
-         --  FIXME: container_list.insert (new_rhs_ac, after => ?) would preserve rhs order better.
-         Container_List.Append (New_Element => New_RHS_AC);
 
          declare
             procedure Record_Copied_Node
@@ -1925,7 +1931,7 @@ package body WisiToken_Grammar_Runtime is
 
             if Trace_Generate_EBNF > Extra then
                Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("edited rhs_list:");
+               Ada.Text_IO.Put_Line ("Check_Canonical_List edited rhs_list:");
                Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (RHS_2));
             end if;
          end Check_Canonical_List;
@@ -2132,7 +2138,7 @@ package body WisiToken_Grammar_Runtime is
 
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("edited rhs_item:");
+            Ada.Text_IO.Put_Line ("RHS_Multiple_Item edited rhs_item:");
             Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Parent_RHS_Item);
          end if;
       exception
@@ -2191,7 +2197,6 @@ package body WisiToken_Grammar_Runtime is
          Name_Label    : Base_Token_Index      := Invalid_Token_Index;
          Found         : Boolean               := False;
       begin
-
          Insert_Optional_RHS (Node);
          case Tree.RHS_Index (Node) is
          when 0 | 1 =>
@@ -2313,7 +2318,7 @@ package body WisiToken_Grammar_Runtime is
                      --  No separate nonterminal, so token labels stay in the same RHS for
                      --  actions. Splice together rhs_item_lists a, b, c
                      declare
-                        ABC_Iter : Iterator := Iterate_From_First
+                        ABC_Iter : Iterator := Iterate_From_Element
                           (Tree.Parent (Node, 2),
                            List_ID    => +rhs_item_list_ID,
                            Element_ID => +rhs_element_ID);
@@ -2364,7 +2369,7 @@ package body WisiToken_Grammar_Runtime is
 
                         if Trace_Generate_EBNF > Extra then
                            Ada.Text_IO.New_Line;
-                           Ada.Text_IO.Put_Line ("edited rhs:");
+                           Ada.Text_IO.Put_Line ("RHS_Optional_Item edited rhs:");
                            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, RHS);
                         end if;
                      end;
@@ -2405,7 +2410,7 @@ package body WisiToken_Grammar_Runtime is
 
          if WisiToken.Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("edited rhs:");
+            Ada.Text_IO.Put_Line ("RHS_Optional_Item edited rhs:");
             Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Find_Ancestor (Node, +rhs_ID));
          end if;
 

@@ -925,6 +925,20 @@ package body WisiToken.Syntax_Trees is
       return Tree.Branched_Nodes.Length > 0;
    end Has_Branched_Nodes;
 
+   function Has_Child
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Index;
+      Child : in Valid_Node_Index)
+     return Boolean
+   is begin
+      for C of Tree.Get_Node_Const_Ref (Node).Children loop
+         if C = Child then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Child;
+
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
       if Node <= Tree.Last_Shared_Node then
@@ -1558,6 +1572,33 @@ package body WisiToken.Syntax_Trees is
          else (Tree.Branched_Nodes (Node).ID, Tree.Branched_Nodes (Node).RHS_Index));
    end Production_ID;
 
+   procedure Replace_Child
+     (Tree                 : in out Syntax_Trees.Tree;
+      Parent               : in     Valid_Node_Index;
+      Old_Child            : in     Valid_Node_Index;
+      New_Child            : in     Valid_Node_Index;
+      Old_Child_New_Parent : in     Node_Index)
+   is
+      N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Parent);
+
+      function Find_Child_Index return SAL.Base_Peek_Type
+      is begin
+         for I in N.Children.First_Index .. N.Children.Last_Index loop
+            if N.Children (I) = Old_Child then
+               return I;
+            end if;
+         end loop;
+         raise SAL.Programmer_Error; -- Should be prevented by precondition.
+      end Find_Child_Index;
+
+      Child_Index : constant SAL.Base_Peek_Type := Find_Child_Index;
+   begin
+      N.Children (Child_Index) := New_Child;
+
+      Tree.Shared_Tree.Nodes (Old_Child).Parent := Old_Child_New_Parent;
+      Tree.Shared_Tree.Nodes (New_Child).Parent := Parent;
+   end Replace_Child;
+
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -1568,6 +1609,19 @@ package body WisiToken.Syntax_Trees is
          then Tree.Shared_Tree.Nodes (Node).RHS_Index
          else Tree.Branched_Nodes (Node).RHS_Index);
    end RHS_Index;
+
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Index
+   is begin
+      if Tree.Root /= Invalid_Node_Index then
+         return Tree.Root;
+      else
+         if Tree.Flush then
+            return Tree.Shared_Tree.Nodes.Last_Index;
+         else
+            return Tree.Branched_Nodes.Last_Index;
+         end if;
+      end if;
+   end Root;
 
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
@@ -1617,19 +1671,6 @@ package body WisiToken.Syntax_Trees is
    is begin
       Tree.Root := Root;
    end Set_Root;
-
-   function Root (Tree : in Syntax_Trees.Tree) return Node_Index
-   is begin
-      if Tree.Root /= Invalid_Node_Index then
-         return Tree.Root;
-      else
-         if Tree.Flush then
-            return Tree.Shared_Tree.Nodes.Last_Index;
-         else
-            return Tree.Branched_Nodes.Last_Index;
-         end if;
-      end if;
-   end Root;
 
    function Same_Token
      (Tree_1  : in Syntax_Trees.Tree'Class;

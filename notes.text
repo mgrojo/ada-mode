@@ -22,11 +22,8 @@ update-wisitoken_grammar
 
  current work
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
-    factor out Handle_rhs_multiple_item etc
-        only change in commit
-
     running Makefile t_bnf
-        to better preserve RHS order, insert_optional_rhs should insert after current, not append at end.
+        multiple failures
 
         ada_lite_ebnf_bnf.wy
             nonterminal_018_opt from handled_sequence_of_statements has two empty rhs
@@ -53,6 +50,7 @@ change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
 
     syntax_trees: whenever change Parent, set Parent.Child (?) to Invalid_Node_Index?
         cleans up LR_Utils.append; only ned to check for List_Parent = invalid_node_index.
+        resolves FIXME: on syntax_Trees.Replace_Child.
         see what problems that causes.
 
 wisitoken-generate-lr.adb Add_Actions FIXME:

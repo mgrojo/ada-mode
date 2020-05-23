@@ -96,21 +96,21 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  If there is no separator, set Separator_ID = WisiToken.Invalid_Token_ID
    --  The list cannot be empty; use Empty_Iterator for an empty list.
 
-   function Iterate_From_First
-     (Tree          : aliased in out WisiToken.Syntax_Trees.Tree;
-      Terminals     :         in     WisiToken.Base_Token_Array_Access;
-      Lexer         :         in     WisiToken.Lexer.Handle;
-      Descriptor    :         in     WisiToken.Descriptor_Access_Constant;
-      First_Element :         in     Valid_Node_Index;
-      List_ID       :         in     WisiToken.Token_ID;
-      Element_ID    :         in     WisiToken.Token_ID;
-      Separator_ID  :         in     WisiToken.Token_ID)
+   function Iterate_From_Element
+     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals    :         in     WisiToken.Base_Token_Array_Access;
+      Lexer        :         in     WisiToken.Lexer.Handle;
+      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
+      Element      :         in     Valid_Node_Index;
+      List_ID      :         in     WisiToken.Token_ID;
+      Element_ID   :         in     WisiToken.Token_ID;
+      Separator_ID :         in     WisiToken.Token_ID)
      return Iterator
-   with Pre => Tree.ID (Tree.Parent (First_Element)) = List_ID and
-               Tree.ID (First_Element) = Element_ID and
-               Tree.ID (Tree.Parent (First_Element)) = List_ID;
+   with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
+               Tree.ID (Element) = Element_ID and
+               Tree.ID (Tree.Parent (Element)) = List_ID;
    --  Same as Iterate, but it first finds the root as an ancestor of
-   --  First_Element.
+   --  Element.
 
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator;
    --  First, Last return empty cursor, count returns 0, all other
@@ -166,7 +166,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
      (Iter        : in out Iterator;
       New_Element : in     Valid_Node_Index)
    with Pre => not Iter.Is_Invalid and then Iter.Tree.ID (New_Element) = Iter.Element_ID;
-   --  Append New_Item to Iter, including Iter.Separator_ID if it is not
+   --  Append New_Item to Iter list, including Iter.Separator_ID if it is not
    --  Invalid_Token_Index.
    --
    --  If Iter was Empty, or if Iter.Root has no parent in Tree, or if
@@ -175,6 +175,23 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  Set_Node_Identifier was called on it), the new list has no parent.
    --  Otherwise, the parent of Iter.Root is updated to hold the new
    --  Iter.Root.
+
+   procedure Insert
+     (Iter        : in out Iterator;
+      New_Element : in     Valid_Node_Index;
+      After       : in     Cursor)
+   with Pre => not Iter.Is_Invalid and then
+               (Iter.Tree.ID (New_Element) = Iter.Element_ID and
+                Iter.Contains (After));
+   --  Insert New_Item into Iter list after Ater, including
+   --  Iter.Separator_ID if it is not Invalid_Token_Index.
+   --
+   --  If Iter was Empty, or if Iter.Root has no parent in Tree, or if
+   --  the parent has ID of Invalid_Token_ID (meaning Clear_Children was
+   --  called on it), or if the parent is not a nonterm (meaning
+   --  Set_Node_Identifier was called on it), the new list has no parent.
+   --  Otherwise, if After is Iter.Last, the parent of Iter.Root is
+   --  updated to hold the new Iter.Root.
 
    procedure Copy
      (Source_Iter  : in     Iterator;

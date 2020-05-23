@@ -254,8 +254,30 @@ package WisiToken.Syntax_Trees is
    with
      Pre => Tree.Flushed and
             (not Tree.Traversing) and
-            Tree.Is_Nonterm (Parent);
-   --  Child.Parent must already be set.
+            Tree.Is_Nonterm (Parent) and
+            Tree.Parent (Child) = Parent; --  FIXME: too easy to forget
+
+   procedure Replace_Child
+     (Tree                 : in out Syntax_Trees.Tree;
+      Parent               : in     Valid_Node_Index;
+      Old_Child            : in     Valid_Node_Index;
+      New_Child            : in     Valid_Node_Index;
+      Old_Child_New_Parent : in     Node_Index)
+   with
+     Pre => Tree.Flushed and
+            (not Tree.Traversing) and
+            (Tree.Is_Nonterm (Parent) and then
+             (Tree.Has_Child (Parent, Old_Child) and
+              Tree.Parent (Old_Child) in Parent | Old_Child_New_Parent));
+   --  In Parent children, find Old_Child, replace with New_Child.
+   --  Set New_Child.Parent to Parent, and Old_Child.Parent to
+   --  Old_Child_New_Parent.
+   --
+   --  We allow Old_Child.Parent to already be Old_Child_New_Parent,
+   --  because that is a common use case; Old_Child is set as a child of
+   --  a new nonterm New_Child, then Replace_Child is called. FIXME: it
+   --  would be safer if New_Nonterm set Parent.Child to
+   --  Invalid_Node_Index.
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
@@ -329,6 +351,12 @@ package WisiToken.Syntax_Trees is
 
    function Has_Branched_Nodes (Tree : in Syntax_Trees.Tree) return Boolean;
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   with Pre => Tree.Is_Nonterm (Node);
+   function Has_Child
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Index;
+      Child : in Valid_Node_Index)
+     return Boolean
    with Pre => Tree.Is_Nonterm (Node);
    function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;

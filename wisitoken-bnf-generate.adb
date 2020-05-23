@@ -344,7 +344,6 @@ begin
                      Tree.Print_Tree
                        (Wisitoken_Grammar_Actions.Descriptor,
                         Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
-                     Ada.Text_IO.New_Line;
                   end if;
 
                   WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);

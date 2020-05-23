@@ -228,25 +228,25 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Separator_ID      => Separator_ID);
    end Iterate;
 
-   function Iterate_From_First
-     (Tree          : aliased in out WisiToken.Syntax_Trees.Tree;
-      Terminals     :         in     WisiToken.Base_Token_Array_Access;
-      Lexer         :         in     WisiToken.Lexer.Handle;
-      Descriptor    :         in     WisiToken.Descriptor_Access_Constant;
-      First_Element :         in     Valid_Node_Index;
-      List_ID       :         in     WisiToken.Token_ID;
-      Element_ID    :         in     WisiToken.Token_ID;
-      Separator_ID  :         in     WisiToken.Token_ID)
+   function Iterate_From_Element
+     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals    :         in     WisiToken.Base_Token_Array_Access;
+      Lexer        :         in     WisiToken.Lexer.Handle;
+      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
+      Element      :         in     Valid_Node_Index;
+      List_ID      :         in     WisiToken.Token_ID;
+      Element_ID   :         in     WisiToken.Token_ID;
+      Separator_ID :         in     WisiToken.Token_ID)
      return Iterator
    is
-      Root : Valid_Node_Index := Tree.Parent (First_Element);
+      Root : Valid_Node_Index := Tree.Parent (Element);
    begin
       loop
          exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
          Root := Tree.Parent (Root);
       end loop;
       return Iterate (Tree, Terminals, Lexer, Descriptor, Root, List_ID, Element_ID, Separator_ID);
-   end Iterate_From_First;
+   end Iterate_From_Element;
 
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator
    is begin
@@ -340,29 +340,79 @@ package body WisiToken.Syntax_Trees.LR_Utils is
               (Tree.ID (List_Parent) /= Invalid_Token_ID and
                  Tree.Label (List_Parent) = Nonterm)
             then
-               declare
-                  ID       : constant WisiToken.Production_ID := Tree.Production_ID (List_Parent);
-                  Children : Valid_Node_Index_Array           := Tree.Children (List_Parent);
-
-                  function Find_List_Index return SAL.Base_Peek_Type
-                  is begin
-                     for I in Children'Range loop
-                        if Children (I) = Old_Root then
-                           return I;
-                        end if;
-                     end loop;
-                     raise SAL.Programmer_Error;
-                  end Find_List_Index;
-
-                  List_Index : constant SAL.Base_Peek_Type := Find_List_Index;
-               begin
-                  Children (List_Index) := Iter.Root;
-                  Tree.Set_Children (List_Parent, ID, Children);
-               end;
+               Tree.Replace_Child
+                 (List_Parent,
+                  Old_Child            => Old_Root,
+                  New_Child            => Iter.Root,
+                  Old_Child_New_Parent => Iter.Root);
             end if;
          end;
       end if;
    end Append;
+
+   procedure Insert
+     (Iter        : in out Iterator;
+      New_Element : in     Valid_Node_Index;
+      After       : in     Cursor)
+   is
+      --  Current Tree (see wisitoken_syntax_trees-test.adb Test_Insert_1):
+      --
+      --  list: Tree.Root
+      --  | list = Parent
+      --  | | list
+      --  | | | list
+      --  | | | | element: 1 = First
+      --  | | | separator
+      --  | | | element: 2 = After
+      --  | | separator
+      --  | | element: 3 = Before
+      --  | separator
+      --  | element: 4 = Last
+
+      --  Insert New_Element after 2:
+      --
+      --  list: Tree.Root
+      --  | list
+      --  | | list = Parent
+      --  | | | list: new_list_nonterm
+      --  | | | | list
+      --  | | | | | element: First
+      --  | | | | separator
+      --  | | | | element: After
+      --  | | | separator
+      --  | | | element: new
+      --  | | separator
+      --  | | element: Before
+      --  | separator
+      --  | element: Last
+
+      Before : constant Node_Index := Iter.Next (After).Node;
+   begin
+      if Before = Invalid_Node_Index then
+         Append (Iter, New_Element);
+      else
+         declare
+            Old_Child : constant Valid_Node_Index := Iter.Tree.Parent (After.Node);
+
+            New_List_Nonterm : constant Valid_Node_Index := Iter.Tree.Add_Nonterm
+              (Production => (Iter.List_ID, Iter.Multi_Element_RHS),
+               Children   =>
+                 (if Iter.Separator_ID = Invalid_Token_ID
+                  then (Old_Child, New_Element)
+                  else (Old_Child, Iter.Tree.Add_Terminal (Iter.Separator_ID), New_Element)));
+
+            Parent : constant Valid_Node_Index := Iter.Tree.Parent (Before);
+         begin
+            --  After cannot be Iter.First, because then Before would be
+            --  Invalid_Node_Index. So we don't need to change After.RHS_Index.
+            Iter.Tree.Replace_Child
+              (Parent               => Parent,
+               Old_Child            => Old_Child,
+               New_Child            => New_List_Nonterm,
+               Old_Child_New_Parent => New_List_Nonterm);
+         end;
+      end if;
+   end Insert;
 
    procedure Copy
      (Source_Iter  : in     Iterator;
