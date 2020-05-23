@@ -22,6 +22,9 @@ update-wisitoken_grammar
 
  current work
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
+    factor out Handle_rhs_multiple_item etc
+        only change in commit
+
     running Makefile t_bnf
         to better preserve RHS order, insert_optional_rhs should insert after current, not append at end.
 
@@ -43,9 +46,6 @@ change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     splice update root parent like Append?
 
     delete Append_List_Item
-
-    factor out Handle_rhs_multiple_item etc
-        only change in commit
 
     delete first_list_element?
 
