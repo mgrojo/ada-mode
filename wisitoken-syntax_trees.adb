@@ -287,6 +287,26 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Children;
 
+   procedure Clear_Children
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Index)
+   is
+      Parent_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+   begin
+      Parent_Node.ID        := Invalid_Production_ID.LHS;
+      Parent_Node.RHS_Index := Invalid_Production_ID.RHS;
+      Parent_Node.Action    := null;
+
+      --  We don't update Min/Max_terminal_index; we assume Set_Children is
+      --  only called after parsing is done, so they are no longer needed.
+
+      for C of Parent_Node.Children loop
+         Tree.Shared_Tree.Nodes (C).Parent := Invalid_Node_Index;
+      end loop;
+
+      Parent_Node.Children.Clear;
+   end Clear_Children;
+
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
       Tree.Finalize;
@@ -1400,7 +1420,8 @@ package body WisiToken.Syntax_Trees is
      (Tree            : in Syntax_Trees.Tree;
       Descriptor      : in WisiToken.Descriptor;
       Root            : in Node_Index                   := Invalid_Node_Index;
-      Image_Augmented : in Syntax_Trees.Image_Augmented := null)
+      Image_Augmented : in Syntax_Trees.Image_Augmented := null;
+      Image_Action    : in Syntax_Trees.Image_Action    := null)
    is
       use Ada.Text_IO;
 
@@ -1425,12 +1446,14 @@ package body WisiToken.Syntax_Trees is
             Put ("| ");
          end loop;
          Put (Image (Tree, N, Node, Descriptor, Include_Children => False, Include_RHS_Index => True));
-         if Image_Augmented /=  null and N.Augmented /= null then
-            Put_Line (" - " & Image_Augmented (N.Augmented));
-         else
-            New_Line;
+         if Image_Augmented /= null and N.Augmented /= null then
+            Put (" - " & Image_Augmented (N.Augmented));
+         end if;
+         if N.Label = Nonterm and then (Image_Action /= null and N.Action /= null) then
+            Put (" - " & Image_Action (N.Action));
          end if;
 
+         New_Line;
          if N.Label = Nonterm then
             for Child of N.Children loop
                Print_Node (Child, Level + 1);
@@ -1515,9 +1538,6 @@ package body WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index);
       Root         : in     Node_Index := Invalid_Node_Index)
    is begin
-      if Root = Invalid_Node_Index and Tree.Root = Invalid_Node_Index then
-         raise SAL.Programmer_Error with "Tree.Root not set";
-      end if;
       Tree.Shared_Tree.Traversing := True;
       Process_Tree (Tree, (if Root = Invalid_Node_Index then Tree.Root else Root), Process_Node);
       Tree.Shared_Tree.Traversing := False;
@@ -1724,9 +1744,12 @@ package body WisiToken.Syntax_Trees is
 
       J : Positive_Index_Type := Positive_Index_Type'First;
    begin
+      if New_ID /= (Parent_Node.ID, Parent_Node.RHS_Index) then
+         Parent_Node.Action    := null;
+      end if;
+
       Parent_Node.ID        := New_ID.LHS;
       Parent_Node.RHS_Index := New_ID.RHS;
-      Parent_Node.Action    := null;
 
       Parent_Node.Children.Set_First_Last (Children'First, Children'Last);
       for I in Children'Range loop

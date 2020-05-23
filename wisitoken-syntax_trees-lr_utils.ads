@@ -67,6 +67,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
 
    function Node (Cursor : in LR_Utils.Cursor) return Node_Index;
+   --  Invalid_Node_Index if not Has_Element (Cursor).
 
    function Get_Node (Cursor : in LR_Utils.Cursor) return Node_Index
      renames Node;
@@ -89,38 +90,91 @@ package WisiToken.Syntax_Trees.LR_Utils is
       Root         :         in     Valid_Node_Index;
       List_ID      :         in     WisiToken.Token_ID;
       Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+      Separator_ID :         in     WisiToken.Token_ID)
      return Iterator
    with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
-   --  The list cannot be empty.
+   --  If there is no separator, set Separator_ID = WisiToken.Invalid_Token_ID
+   --  The list cannot be empty; use Empty_Iterator for an empty list.
+
+   function Iterate_From_First
+     (Tree          : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals     :         in     WisiToken.Base_Token_Array_Access;
+      Lexer         :         in     WisiToken.Lexer.Handle;
+      Descriptor    :         in     WisiToken.Descriptor_Access_Constant;
+      First_Element :         in     Valid_Node_Index;
+      List_ID       :         in     WisiToken.Token_ID;
+      Element_ID    :         in     WisiToken.Token_ID;
+      Separator_ID  :         in     WisiToken.Token_ID)
+     return Iterator
+   with Pre => Tree.ID (Tree.Parent (First_Element)) = List_ID and
+               Tree.ID (First_Element) = Element_ID and
+               Tree.ID (Tree.Parent (First_Element)) = List_ID;
+   --  Same as Iterate, but it first finds the root as an ancestor of
+   --  First_Element.
 
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator;
-   --  First, Last return empty cursor, count returns 0.
+   --  First, Last return empty cursor, count returns 0, all other
+   --  operations fail a precondition check.
+   --
+   --  Useful when the result should never be used, but must be present,
+   --  as in a conditional expression.
 
    function Is_Invalid (Iter : in Iterator) return Boolean;
 
-   function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor;
-   --  If assertions enabled, checks that Node is child of Iter.Root, and
-   --  Tree.ID (Node) = Iter.Element_ID.
+   function Empty_Iterator
+     (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals         :         in     WisiToken.Base_Token_Array_Access;
+      Lexer             :         in     WisiToken.Lexer.Handle;
+      Descriptor        :         in     WisiToken.Descriptor_Access_Constant;
+      List_ID           :         in     WisiToken.Token_ID;
+      Multi_Element_RHS :         in     Natural;
+      Element_ID        :         in     WisiToken.Token_ID;
+      Separator_ID      :         in     WisiToken.Token_ID)
+     return Iterator;
+   --  Result Root returns Invalid_Node_Index; First, Last return empty
+   --  cursor, count returns 0; Append works correctly.
 
-   function Tree (Iter : in Iterator) return Tree_Variable_Reference;
-   function Root (Iter : in Iterator) return Node_Index;
-   function Count (Iter : in Iterator) return Ada.Containers.Count_Type;
+   function Is_Empty (Iter : in Iterator) return Boolean;
+   --  Returns True if Iter is invalid, or if Iter is empty
 
-   procedure Delete (Iter : in Iterator; Item : in out Cursor);
-   --  Delete Item from Iter list. On return, Item points to next list
-   --  element.
+   function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor
+   with Pre => (not Iter.Is_Invalid) and then (Iter.Contains (Node) and Iter.Tree.ID (Node) = Iter.Element_ID);
+
+   function Tree (Iter : in Iterator) return Tree_Variable_Reference
+   with Pre => not Iter.Is_Invalid;
+
+   function Root (Iter : in Iterator) return Node_Index
+   with Pre => not Iter.Is_Invalid;
+
+   function Element_ID (Iter : in Iterator) return Token_ID
+   with Pre => not Iter.Is_Invalid;
+
+   function Count (Iter : in Iterator) return Ada.Containers.Count_Type
+   with Pre => not Iter.Is_Invalid;
 
    function Compatible (A, B : in Iterator) return Boolean;
-   function Contains (Iter : in Iterator; Item : in Cursor) return Boolean;
+   --  True if A and B are not invalid, and all components are the same
+   --  except Root.
 
-   procedure Append_Copy
-     (Source_Iter : in     Iterator;
-      Source_Item : in     Cursor;
-      Dest_Iter   : in out Iterator)
-   with Pre => Compatible (Source_Iter, Dest_Iter) and Source_Iter.Contains (Source_Item);
-   --  Append a copy of Source_Item to Dest_Iter. New node is
-   --  Dest_Iter.Root.
+   function Contains (Iter : in Iterator; Node : in Valid_Node_Index) return Boolean
+   with Pre => not Iter.Is_Invalid;
+
+   function Contains (Iter : in Iterator; Item : in Cursor) return Boolean
+   with Pre => not Iter.Is_Invalid;
+
+   procedure Append
+     (Iter        : in out Iterator;
+      New_Element : in     Valid_Node_Index)
+   with Pre => not Iter.Is_Invalid and then Iter.Tree.ID (New_Element) = Iter.Element_ID;
+   --  Append New_Item to Iter, including Iter.Separator_ID if it is not
+   --  Invalid_Token_Index.
+   --
+   --  If Iter was Empty, or if Iter.Root has no parent in Tree, or if
+   --  the parent has ID of Invalid_Token_ID (meaning Clear_Children was
+   --  called on it), or if the parent is not a nonterm (meaning
+   --  Set_Node_Identifier was called on it), the new list has no parent.
+   --  Otherwise, the parent of Iter.Root is updated to hold the new
+   --  Iter.Root.
 
    procedure Copy
      (Source_Iter  : in     Iterator;
@@ -150,11 +204,6 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  any cursors to it are invalid (this is not enforced), and it has
    --  no proper list root.
 
-   function List_Root (Tree : in Syntax_Trees.Tree; Item : in Valid_Node_Index) return Valid_Node_Index;
-   --  Return last parent of Item where ID (Parent) = ID (Item).
-   --
-   --  Using the example list above, List_Root (Tree.Parent (First)) => Root.
-
 private
    use all type WisiToken.Lexer.Handle;
 
@@ -183,26 +232,39 @@ private
    function Node (Cursor : in LR_Utils.Cursor) return Node_Index
    is (Cursor.Node);
 
+   function Is_Invalid (Iter : in Iterator) return Boolean
+   is (Iter.Terminals = null);
+
+   function Is_Empty (Iter : in Iterator) return Boolean
+   is (Iter.Root = Invalid_Node_Index);
+
    function Tree (Iter : in Iterator) return Tree_Variable_Reference
    is (Element => Iter.Tree);
 
    function Root (Iter : in Iterator) return Node_Index
    is (Iter.Root);
 
+   function Element_ID (Iter : in Iterator) return Token_ID
+   is (Iter.Element_ID);
+
    function Compatible (A, B : in Iterator) return Boolean
-   is --  Either A or B is Invalid_Iterator, or all components are the same except Root
+   is
      (A.Tree = B.Tree and
-        ((A.Root = Invalid_Node_Index or B.Root = Invalid_Node_Index) or else
-           (A.Terminals = B.Terminals and
-              A.Lexer = B.Lexer and
-              A.Descriptor = B.Descriptor and
-              A.List_ID = B.List_ID and
-              A.One_Element_RHS = B.One_Element_RHS and
-              A.Multi_Element_RHS = B.Multi_Element_RHS and
-              A.Element_ID = B.Element_ID and
-              A.Separator_ID = B.Separator_ID)));
+        A.Terminals /= null and
+        B.Terminals /= null and
+        A.Terminals = B.Terminals and
+        A.Lexer = B.Lexer and
+        A.Descriptor = B.Descriptor and
+        A.List_ID = B.List_ID and
+        A.One_Element_RHS = B.One_Element_RHS and
+        A.Multi_Element_RHS = B.Multi_Element_RHS and
+        A.Element_ID = B.Element_ID and
+        A.Separator_ID = B.Separator_ID);
+
+   function Contains (Iter : in Iterator; Node : in Valid_Node_Index) return Boolean
+   is (for some I in Iter => I.Node = Node);
 
    function Contains (Iter : in Iterator; Item : in Cursor) return Boolean
-   is (for some I in Iter => I.Node = Item.Node);
+   is (Contains (Iter, Item.Node));
 
 end WisiToken.Syntax_Trees.LR_Utils;

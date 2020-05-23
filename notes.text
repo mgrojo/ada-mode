@@ -21,19 +21,39 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-lr_utils iterator don't copy Tree; get ref.
-    tree should be limited
-
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
+        to better preserve RHS order, insert_optional_rhs should insert after current, not append at end.
 
-    Append_Element inserts before last?
-        add append new or insert new to lr_utils
+        ada_lite_ebnf_bnf.wy
+            nonterminal_018_opt from handled_sequence_of_statements has two empty rhs
+
+        java_ebnf_bnf.wy
+            compilation_unit
+
+        python_ebnf_bnf.wy
+            expr_stmt_2
+
+    fix Insert_Optional_Item when both A, C empty
+        ada_lite_ebnf handled_sequence_of_statements
+
+        currently inserts an empty rhs_item_list, which is illegal according to w_g.wy
+            change to use new_nonterminal_opt
+
+    splice update root parent like Append?
+
+    delete Append_List_Item
+
+    factor out Handle_rhs_multiple_item etc
+        only change in commit
 
     delete first_list_element?
 
     change Insert_Optional_RHS.B to take Iter, Cursor?
 
+    syntax_trees: whenever change Parent, set Parent.Child (?) to Invalid_Node_Index?
+        cleans up LR_Utils.append; only ned to check for List_Parent = invalid_node_index.
+        see what problems that causes.
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!

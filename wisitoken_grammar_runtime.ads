@@ -124,6 +124,9 @@ package WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array);
 
+   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String;
+   --  For Syntax_Trees.Print_Tree.
+
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;

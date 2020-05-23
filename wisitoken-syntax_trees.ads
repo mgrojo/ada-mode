@@ -268,10 +268,33 @@ package WisiToken.Syntax_Trees is
             (not Tree.Traversing) and
             Tree.Is_Nonterm (Node);
    --  Set ID of Node to New_ID, and children to Children; set parent of
-   --  Children to Node. Remove any Action.
+   --  Children to Node.
    --
-   --  New_ID is required, and Action removed, because this is most
-   --  likely a different production.
+   --  Parent of previous children is _not_ changed; that must be done
+   --  before calling this, either by calling Clear_Children on Node, or
+   --  by adding them to some other nonterm.
+   --
+   --  If New_ID /= Tree.Production_ID (Node), then Node's Action is set
+   --  to null, because the old Action probably no longer applies.
+
+   procedure Clear_Children
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Index)
+   with
+     Pre => Tree.Flushed and
+            Tree.Parents_Set and
+            (not Tree.Traversing) and
+            Tree.Is_Nonterm (Node);
+   --  In Node Children, set Parent to Invalid_Node_ID.
+   --
+   --  Then change the content of Node:
+   --  - Children to empty
+   --  - Production_ID to Invalid_Production_ID
+   --  - Action to null
+   --
+   --  This is normally done before calling Set_Node_Identifier, when the
+   --  children are being discarded, as opposed to reused in some other
+   --  nonterm.
 
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
@@ -468,7 +491,8 @@ package WisiToken.Syntax_Trees is
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Index);
-      Root         : in     Node_Index := Invalid_Node_Index);
+      Root         : in     Node_Index := Invalid_Node_Index)
+   with Pre => Root /= Invalid_Node_Index or Tree.Root /= Invalid_Node_Index;
    --  Traverse subtree of Tree rooted at Root (default Tree.Root) in
    --  depth-first order, calling Process_Node on each node.
 
@@ -550,12 +574,14 @@ package WisiToken.Syntax_Trees is
    --  Simple list of numbers, for debugging
 
    type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
+   type Image_Action is access function (Action : in Semantic_Action) return String;
 
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
       Descriptor      : in WisiToken.Descriptor;
       Root            : in Node_Index                   := Invalid_Node_Index;
-      Image_Augmented : in Syntax_Trees.Image_Augmented := null)
+      Image_Augmented : in Syntax_Trees.Image_Augmented := null;
+      Image_Action    : in Syntax_Trees.Image_Action    := null)
    with Pre => Tree.Flushed;
    --  Print tree rooted at Root (default Tree.Root) to
    --  Text_IO.Current_Output, for debugging. For each node,

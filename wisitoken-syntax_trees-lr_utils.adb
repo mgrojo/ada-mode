@@ -121,11 +121,16 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                --  | | rhs_item: Element
                --  | rhs_item: next element : Aunt
 
-               Grand_Parent    : constant Valid_Node_Index       := Iter.Tree.Parent (Position.Node, 2);
-               Aunts           : constant Valid_Node_Index_Array := Iter.Tree.Children (Grand_Parent);
-               Last_List_Child : SAL.Base_Peek_Type              := Aunts'First - 1;
+               Grand_Parent : constant Node_Index := Iter.Tree.Parent (Position.Node, 2);
+
+               Aunts           : constant Valid_Node_Index_Array :=
+                 (if Grand_Parent = Invalid_Node_Index
+                  then (1 .. 0 => Invalid_Node_Index)
+                  else Iter.Tree.Children (Grand_Parent));
+
+               Last_List_Child : SAL.Base_Peek_Type := Aunts'First - 1;
             begin
-               if Iter.Tree.ID (Grand_Parent) /= Iter.List_ID then
+               if Grand_Parent = Invalid_Node_Index or else Iter.Tree.ID (Grand_Parent) /= Iter.List_ID then
                   --  No next
                   Result.Node := Invalid_Node_Index;
                else
@@ -201,7 +206,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Root         :         in     Valid_Node_Index;
       List_ID      :         in     WisiToken.Token_ID;
       Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID := WisiToken.Invalid_Token_ID)
+      Separator_ID :         in     WisiToken.Token_ID)
      return Iterator
    is
       pragma Unreferenced (List_ID); --  checked in precondition.
@@ -223,6 +228,26 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Separator_ID      => Separator_ID);
    end Iterate;
 
+   function Iterate_From_First
+     (Tree          : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals     :         in     WisiToken.Base_Token_Array_Access;
+      Lexer         :         in     WisiToken.Lexer.Handle;
+      Descriptor    :         in     WisiToken.Descriptor_Access_Constant;
+      First_Element :         in     Valid_Node_Index;
+      List_ID       :         in     WisiToken.Token_ID;
+      Element_ID    :         in     WisiToken.Token_ID;
+      Separator_ID  :         in     WisiToken.Token_ID)
+     return Iterator
+   is
+      Root : Valid_Node_Index := Tree.Parent (First_Element);
+   begin
+      loop
+         exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+         Root := Tree.Parent (Root);
+      end loop;
+      return Iterate (Tree, Terminals, Lexer, Descriptor, Root, List_ID, Element_ID, Separator_ID);
+   end Iterate_From_First;
+
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator
    is begin
       return
@@ -239,21 +264,31 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Separator_ID      => Invalid_Token_ID);
    end Invalid_Iterator;
 
-   function Is_Invalid (Iter : in Iterator) return Boolean
+   function Empty_Iterator
+     (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
+      Terminals         :         in     WisiToken.Base_Token_Array_Access;
+      Lexer             :         in     WisiToken.Lexer.Handle;
+      Descriptor        :         in     WisiToken.Descriptor_Access_Constant;
+      List_ID           :         in     WisiToken.Token_ID;
+      Multi_Element_RHS :         in     Natural;
+      Element_ID        :         in     WisiToken.Token_ID;
+      Separator_ID      :         in     WisiToken.Token_ID)
+     return Iterator
    is begin
-      return Iter.Root = Invalid_Node_Index;
-   end Is_Invalid;
+      return
+        (Iterator_Interfaces.Reversible_Iterator with
+         Tree'Access, Terminals, Lexer, Descriptor,
+         Root              => Invalid_Node_Index,
+         List_ID           => List_ID,
+         One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
+         Multi_Element_RHS => Multi_Element_RHS,
+         Element_ID        => Element_ID,
+         Separator_ID      => Separator_ID);
+   end Empty_Iterator;
 
    function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor
    is begin
-      if Iter.Root = Invalid_Node_Index then
-         return (Node => Invalid_Node_Index);
-      else
-         pragma Assert (Iter.Tree.Is_Descendant_Of (Iter.Root, Node));
-         pragma Assert (Iter.Tree.ID (Node) = Iter.Element_ID);
-
-         return (Node => Node);
-      end if;
+      return (Node => Node);
    end To_Cursor;
 
    function Count (Iter : Iterator) return Ada.Containers.Count_Type
@@ -267,59 +302,67 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return Result;
    end Count;
 
-   procedure Delete (Iter : in Iterator; Item : in out Cursor)
+   procedure Append
+     (Iter        : in out Iterator;
+      New_Element : in     Valid_Node_Index)
    is
-      Prev_Item : constant Cursor := Iter.Previous (Item);
-      Next_Item : constant Cursor := Iter.Next (Item);
+      Tree : Syntax_Trees.Tree renames Iter.Tree.all;
    begin
-      if Has_Element (Prev_Item) and Has_Element (Next_Item) then
-         declare
-            --  Deleting element 3 in example list in spec.
-            Parent   : constant Valid_Node_Index := Iter.Tree.Parent (Get_Node (Item));
-            Children : Valid_Node_Index_Array    := Iter.Tree.Children (Parent);
-         begin
-            Children (1) := Iter.Tree.Parent (Prev_Item.Node);
-
-            Iter.Tree.Set_Children (Parent, (Iter.List_ID, Iter.Multi_Element_RHS), Children);
-         end;
-      else
-         raise SAL.Not_Implemented;
-      end if;
-   end Delete;
-
-   procedure Append_Copy
-     (Source_Iter : in     Iterator;
-      Source_Item : in     Cursor;
-      Dest_Iter   : in out Iterator)
-   is
-      Tree      : Syntax_Trees.Tree renames Dest_Iter.Tree.all;
-      New_Child : constant Valid_Node_Index := Tree.Copy_Subtree (Source_Item.Node);
-   begin
-      if Dest_Iter.Root = Invalid_Node_Index then
+      if Iter.Root = Invalid_Node_Index then
          --  First item in Dest
-         Dest_Iter :=
-           (Dest_Iter.Tree,
-            Source_Iter.Terminals, Source_Iter.Lexer, Source_Iter.Descriptor,
-            List_ID           => Source_Iter.List_ID,
-            One_Element_RHS   => Source_Iter.One_Element_RHS,
-            Multi_Element_RHS => Source_Iter.Multi_Element_RHS,
-            Element_ID        => Source_Iter.Element_ID,
-            Separator_ID      => Source_Iter.Separator_ID,
+         Iter :=
+           (Iter.Tree,
+            Iter.Terminals, Iter.Lexer, Iter.Descriptor,
+            List_ID           => Iter.List_ID,
+            One_Element_RHS   => Iter.One_Element_RHS,
+            Multi_Element_RHS => Iter.Multi_Element_RHS,
+            Element_ID        => Iter.Element_ID,
+            Separator_ID      => Iter.Separator_ID,
             Root              => Tree.Add_Nonterm
-              (Production     => (Source_Iter.List_ID, Source_Iter.One_Element_RHS),
-               Children       => (1 => New_Child)));
+              (Production     => (Iter.List_ID, Iter.One_Element_RHS),
+               Children       => (1 => New_Element)));
 
       else
          --  Adding element Last in spec example
-         Dest_Iter.Root :=
-           Tree.Add_Nonterm
-             (Production     => (Source_Iter.List_ID, Source_Iter.Multi_Element_RHS),
-              Children       =>
-                (if Dest_Iter.Separator_ID = Invalid_Token_ID
-                 then (Dest_Iter.Root, New_Child)
-                 else (Dest_Iter.Root, Tree.Add_Terminal (Dest_Iter.Separator_ID), New_Child)));
+         declare
+            List_Parent : constant Node_Index       := Tree.Parent (Iter.Root);
+            Old_Root    : constant Valid_Node_Index := Iter.Root;
+         begin
+            Iter.Root :=
+              Tree.Add_Nonterm
+                (Production     => (Iter.List_ID, Iter.Multi_Element_RHS),
+                 Children       =>
+                   (if Iter.Separator_ID = Invalid_Token_ID
+                    then (Iter.Root, New_Element)
+                    else (Iter.Root, Tree.Add_Terminal (Iter.Separator_ID), New_Element)));
+
+            if List_Parent /= Invalid_Node_Index and then
+              (Tree.ID (List_Parent) /= Invalid_Token_ID and
+                 Tree.Label (List_Parent) = Nonterm)
+            then
+               declare
+                  ID       : constant WisiToken.Production_ID := Tree.Production_ID (List_Parent);
+                  Children : Valid_Node_Index_Array           := Tree.Children (List_Parent);
+
+                  function Find_List_Index return SAL.Base_Peek_Type
+                  is begin
+                     for I in Children'Range loop
+                        if Children (I) = Old_Root then
+                           return I;
+                        end if;
+                     end loop;
+                     raise SAL.Programmer_Error;
+                  end Find_List_Index;
+
+                  List_Index : constant SAL.Base_Peek_Type := Find_List_Index;
+               begin
+                  Children (List_Index) := Iter.Root;
+                  Tree.Set_Children (List_Parent, ID, Children);
+               end;
+            end if;
+         end;
       end if;
-   end Append_Copy;
+   end Append;
 
    procedure Copy
      (Source_Iter  : in     Iterator;
@@ -333,7 +376,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       loop
          exit when not Has_Element (Item);
 
-         Append_Copy (Source_Iter, Item, Dest_Iter);
+         Dest_Iter.Append (Dest_Iter.Tree.Copy_Subtree (Item.Node));
 
          exit when Item = Last;
 
@@ -355,17 +398,5 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       --  Preserve Iter.Last = iter.tree.child (iter.root).
       Left_Iter.Root := Right_Iter.Root;
    end Splice;
-
-   function List_Root (Tree : in Syntax_Trees.Tree; Item : in Valid_Node_Index) return Valid_Node_Index
-   is
-      List_ID : constant WisiToken.Token_ID := Tree.ID (Item);
-      Node    : Valid_Node_Index            := Item;
-   begin
-      loop
-         exit when Tree.ID (Tree.Parent (Node)) /= List_ID;
-         Node := Tree.Parent (Node);
-      end loop;
-      return Node;
-   end List_Root;
 
 end WisiToken.Syntax_Trees.LR_Utils;
