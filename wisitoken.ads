@@ -364,6 +364,7 @@ package WisiToken is
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Token_Index, Base_Token, Default_Element => (others => <>));
    type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
+   type Base_Token_Array_Access_Constant is access constant Base_Token_Arrays.Vector;
 
    function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
 

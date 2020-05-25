@@ -459,55 +459,69 @@ begin
 
                Time_Start := Clock;
 
-               Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate
-                 (Generate_Data.Grammar,
-                  Generate_Data.Descriptor.all,
-                  Generate_Utils.To_Conflicts
-                    (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                  Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
-                  Parse_Table_File_Name,
-                  Include_Extra     => Test_Main,
-                  Ignore_Conflicts  => Ignore_Conflicts,
-                  Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
+               if Generate_Data.Grammar (Generate_Data.Descriptor.Accept_ID).LHS = Invalid_Token_ID then
+                  WisiToken.Generate.Put_Error
+                    (WisiToken.Generate.Error_Message
+                       (Grammar_Parser.Lexer.File_Name, 1,
+                        "%start token not specified or not found; no LALR parse table generated"));
+               else
+                  Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate
+                    (Generate_Data.Grammar,
+                     Generate_Data.Descriptor.all,
+                     Generate_Utils.To_Conflicts
+                       (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                     Parse_Table_File_Name,
+                     Include_Extra     => Test_Main,
+                     Ignore_Conflicts  => Ignore_Conflicts,
+                     Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-               if Do_Time then
-                  Time_End := Clock;
+                  if Do_Time then
+                     Time_End := Clock;
 
-                  Put_Line
-                    (Standard_Error,
-                     "LALR " & Lexer_Image (Tuple.Lexer).all & " generate time:" &
-                       Duration'Image (To_Duration (Time_End - Time_Start)));
-               end if;
+                     Put_Line
+                       (Standard_Error,
+                        "LALR " & Lexer_Image (Tuple.Lexer).all & " generate time:" &
+                          Duration'Image (To_Duration (Time_End - Time_Start)));
+                  end if;
 
-               if Parse_Table_File_Name /= "" then
-                  Parse_Table_Append_Stats;
+                  if Parse_Table_File_Name /= "" then
+                     Parse_Table_Append_Stats;
+                  end if;
                end if;
 
             when LR1 =>
                Time_Start := Clock;
 
-               Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LR1_Generate.Generate
-                 (Generate_Data.Grammar,
-                  Generate_Data.Descriptor.all,
-                  Generate_Utils.To_Conflicts
-                    (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                  Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
-                  Parse_Table_File_Name,
-                  Include_Extra     => Test_Main,
-                  Ignore_Conflicts  => Ignore_Conflicts,
-                  Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
+               if Generate_Data.Grammar (Generate_Data.Descriptor.Accept_ID).LHS = Invalid_Token_ID then
+                  WisiToken.Generate.Put_Error
+                    (WisiToken.Generate.Error_Message
+                       (Grammar_Parser.Lexer.File_Name, 1,
+                        "%start token not specified or not found; no LALR parse table generated"));
+               else
+                  Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LR1_Generate.Generate
+                    (Generate_Data.Grammar,
+                     Generate_Data.Descriptor.all,
+                     Generate_Utils.To_Conflicts
+                       (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                     Parse_Table_File_Name,
+                     Include_Extra     => Test_Main,
+                     Ignore_Conflicts  => Ignore_Conflicts,
+                     Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-               if Do_Time then
-                  Time_End := Clock;
+                  if Do_Time then
+                     Time_End := Clock;
 
-                  Put_Line
-                    (Standard_Error,
-                     "LR1 " & Lexer_Image (Tuple.Lexer).all & " generate time:" &
-                       Duration'Image (To_Duration (Time_End - Time_Start)));
-               end if;
+                     Put_Line
+                       (Standard_Error,
+                        "LR1 " & Lexer_Image (Tuple.Lexer).all & " generate time:" &
+                          Duration'Image (To_Duration (Time_End - Time_Start)));
+                  end if;
 
-               if Parse_Table_File_Name /= "" then
-                  Parse_Table_Append_Stats;
+                  if Parse_Table_File_Name /= "" then
+                     Parse_Table_Append_Stats;
+                  end if;
                end if;
 
             when Packrat_Generate_Algorithm =>

@@ -53,9 +53,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                      Result.Node := Children (1);
                      exit;
                   else
-                     Raise_Programmer_Error
-                       ("lr_utils.first", Iter.Descriptor.all, Iter.Lexer, Iter.Tree.all,
-                        Iter.Terminals.all, Result.Node);
+                     raise SAL.Programmer_Error;
                   end if;
                end;
             end loop;
@@ -90,7 +88,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       else
          return Result : Cursor do
             declare
-               use all type SAL.Base_Peek_Type;
                --  Tree is one of:
                --
                --  case a: first element, no next
@@ -200,9 +197,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Iterate
      (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Terminals    :         in     WisiToken.Base_Token_Array_Access;
-      Lexer        :         in     WisiToken.Lexer.Handle;
-      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
       Root         :         in     Valid_Node_Index;
       List_ID      :         in     WisiToken.Token_ID;
       Element_ID   :         in     WisiToken.Token_ID;
@@ -220,7 +214,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree'Access, Terminals, Lexer, Descriptor, Root,
+         Tree'Access, Root,
          List_ID           => Tree.ID (Root),
          One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
          Multi_Element_RHS => Multi_Element_RHS,
@@ -228,11 +222,23 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Separator_ID      => Separator_ID);
    end Iterate;
 
+   function Iterate_Constant
+     (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
+      Root       :         in     Valid_Node_Index;
+      List_ID    :         in     WisiToken.Token_ID;
+      Element_ID :         in     WisiToken.Token_ID)
+     return Iterator
+   is begin
+      return Iterate (Tree, Root, List_ID, Element_ID, Invalid_Token_ID);
+   end Iterate_Constant;
+
+   function Iterate (Iter : in Iterator; Root : in Valid_Node_Index) return Iterator
+   is begin
+      return Iterate (Iter.Tree.all, Root, Iter.List_ID, Iter.Element_ID, Iter.Separator_ID);
+   end Iterate;
+
    function Iterate_From_Element
      (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Terminals    :         in     WisiToken.Base_Token_Array_Access;
-      Lexer        :         in     WisiToken.Lexer.Handle;
-      Descriptor   :         in     WisiToken.Descriptor_Access_Constant;
       Element      :         in     Valid_Node_Index;
       List_ID      :         in     WisiToken.Token_ID;
       Element_ID   :         in     WisiToken.Token_ID;
@@ -245,7 +251,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
          Root := Tree.Parent (Root);
       end loop;
-      return Iterate (Tree, Terminals, Lexer, Descriptor, Root, List_ID, Element_ID, Separator_ID);
+      return Iterate (Tree, Root, List_ID, Element_ID, Separator_ID);
+   end Iterate_From_Element;
+
+   function Iterate_From_Element (Iter : in Iterator; Element : in Valid_Node_Index) return Iterator
+   is begin
+      return Iterate_From_Element (Iter.Tree.all, Element, Iter.List_ID, Iter.Element_ID, Iter.Separator_ID);
    end Iterate_From_Element;
 
    function Invalid_Iterator (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Iterator
@@ -253,9 +264,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return
         (Iterator_Interfaces.Reversible_Iterator with
          Tree              => Tree'Access,
-         Terminals         => null,
-         Lexer             => null,
-         Descriptor        => null,
          Root              => Invalid_Node_Index,
          List_ID           => Invalid_Token_ID,
          One_Element_RHS   => 0,
@@ -266,9 +274,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Empty_Iterator
      (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
-      Terminals         :         in     WisiToken.Base_Token_Array_Access;
-      Lexer             :         in     WisiToken.Lexer.Handle;
-      Descriptor        :         in     WisiToken.Descriptor_Access_Constant;
       List_ID           :         in     WisiToken.Token_ID;
       Multi_Element_RHS :         in     Natural;
       Element_ID        :         in     WisiToken.Token_ID;
@@ -277,13 +282,18 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    is begin
       return
         (Iterator_Interfaces.Reversible_Iterator with
-         Tree'Access, Terminals, Lexer, Descriptor,
+         Tree'Access,
          Root              => Invalid_Node_Index,
          List_ID           => List_ID,
          One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
          Multi_Element_RHS => Multi_Element_RHS,
          Element_ID        => Element_ID,
          Separator_ID      => Separator_ID);
+   end Empty_Iterator;
+
+   function Empty_Iterator (Iter : in Iterator) return Iterator
+   is begin
+      return Empty_Iterator (Iter.Tree.all, Iter.List_ID, Iter.Multi_Element_RHS, Iter.Element_ID, Iter.Separator_ID);
    end Empty_Iterator;
 
    function To_Cursor (Iter : in Iterator; Node : in Valid_Node_Index) return Cursor
@@ -312,7 +322,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  First item in Dest
          Iter :=
            (Iter.Tree,
-            Iter.Terminals, Iter.Lexer, Iter.Descriptor,
             List_ID           => Iter.List_ID,
             One_Element_RHS   => Iter.One_Element_RHS,
             Multi_Element_RHS => Iter.Multi_Element_RHS,
@@ -434,6 +443,111 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end loop;
    end Copy;
 
+   function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean
+   is begin
+      if Skip_List'Length = 0 then return False; end if;
+
+      if Skip_List (Skip_List'Last).Label /= Skip then return False; end if;
+
+      if (for some I in Skip_List'First .. Skip_List'Last - 1 => Skip_List (I).Label /= Nested) then
+         return False;
+      end if;
+
+      for I in Skip_List'First + 1 .. Skip_List'Last loop
+         if Tree.ID (Skip_List (I).Element) /= Skip_List (I - 1).Element_ID then
+            return False;
+         end if;
+         if Iterate_From_Element
+           (Tree, Skip_List (I - 1).Element, Skip_List (I).List_ID, Skip_List (I).Element_ID,
+            Skip_List (I).Separator_ID).Count = 1
+         then
+            return False;
+         end if;
+      end loop;
+
+      return True;
+   end Valid_Skip_List;
+
+   function Copy_Skip_Nested
+     (Source_Iter : in     Iterator;
+      Skip_List   : in     Skip_Array;
+      Skip_Found  : in out Boolean)
+      return Valid_Node_Index
+   is
+      Tree : Syntax_Trees.Tree renames Source_Iter.Tree.all;
+
+      Dest_Iter : Iterator := Empty_Iterator (Source_Iter);
+
+      function Get_Dest_Child
+        (Node      : in Valid_Node_Index;
+         Skip_List : in Skip_Array)
+        return Valid_Node_Index
+      with Pre => Tree.Is_Nonterm (Node) and
+                  (Skip_List'Length > 1 and then
+                   (Skip_List (Skip_List'First).Label = Nested and Skip_List (Skip_List'Last).Label = Skip))
+      is
+         Skip_This : Nested_Skip_Item renames Skip_List (Skip_List'First);
+      begin
+         if Node = Skip_This.List_Root then
+            return Copy_Skip_Nested
+              (Source_Iter     => Iterate
+                 (Tree,
+                  Root         => Skip_This.List_Root,
+                  List_ID      => Skip_This.List_ID,
+                  Element_ID   => Skip_This.Element_ID,
+                  Separator_ID => Skip_This.Separator_ID),
+               Skip_List       => Skip_List (Skip_List'First + 1 .. Skip_List'Last),
+               Skip_Found      => Skip_Found);
+         else
+            declare
+               Source_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+               Dest_Children   : Valid_Node_Index_Array (Source_Children'Range);
+            begin
+               for I in Source_Children'Range loop
+                  if Source_Children (I) = Skip_This.List_Root then
+                     Dest_Children (I) := Copy_Skip_Nested
+                       (Source_Iter     => Iterate
+                          (Tree,
+                           Root         => Skip_This.List_Root,
+                           List_ID      => Skip_This.List_ID,
+                           Element_ID   => Skip_This.Element_ID,
+                           Separator_ID => Skip_This.Separator_ID),
+                        Skip_List       => Skip_List (Skip_List'First + 1 .. Skip_List'Last),
+                        Skip_Found      => Skip_Found);
+                  else
+                     if Tree.Label (Source_Children (I)) = Nonterm then
+                        Dest_Children (I) := Get_Dest_Child (Source_Children (I), Skip_List);
+                     else
+                        Dest_Children (I) := Tree.Copy_Subtree (Source_Children (I));
+                     end if;
+                  end if;
+               end loop;
+
+               return Tree.Add_Nonterm (Tree.Production_ID (Node), Dest_Children, Tree.Action (Node));
+            end;
+         end if;
+      end Get_Dest_Child;
+
+      Skip_This : Nested_Skip_Item renames Skip_List (Skip_List'First);
+   begin
+      --  See test_lr_utils.adb Test_Copy_Skip for an example.
+      for Item in Source_Iter loop
+         if Skip_This.Element = Item.Node then
+            case Skip_This.Label is
+            when Skip =>
+               --  Done nesting; skip this one
+               Skip_Found := True;
+
+            when Nested =>
+               Dest_Iter.Append (Get_Dest_Child (Item.Node, Skip_List));
+            end case;
+         else
+            Dest_Iter.Append (Tree.Copy_Subtree (Item.Node));
+         end if;
+      end loop;
+      return Dest_Iter.Root;
+   end Copy_Skip_Nested;
+
    procedure Splice
      (Left_Iter   : in out Iterator;
       Left_Last   : in     Cursor;
@@ -448,5 +562,20 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       --  Preserve Iter.Last = iter.tree.child (iter.root).
       Left_Iter.Root := Right_Iter.Root;
    end Splice;
+
+   function List_Root
+     (Tree    : in Syntax_Trees.Tree;
+      Node    : in Valid_Node_Index;
+      List_ID : in Token_ID)
+     return Valid_Node_Index
+   is
+      Root : Node_Index := Node;
+   begin
+      loop
+         exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+         Root := Tree.Parent (Root);
+      end loop;
+      return Root;
+   end List_Root;
 
 end WisiToken.Syntax_Trees.LR_Utils;

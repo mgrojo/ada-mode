@@ -1093,7 +1093,8 @@ package body WisiToken.Syntax_Trees is
    procedure Initialize
      (Branched_Tree : in out Syntax_Trees.Tree;
       Shared_Tree   : in     Base_Tree_Access;
-      Flush         : in     Boolean)
+      Flush         : in     Boolean;
+      Set_Parents   : in     Boolean := False)
    is begin
       Branched_Tree :=
         (Ada.Finalization.Controlled with
@@ -1102,6 +1103,8 @@ package body WisiToken.Syntax_Trees is
          Branched_Nodes   => <>,
          Flush            => Flush,
          Root             => <>);
+
+      Branched_Tree.Shared_Tree.Parents_Set := Set_Parents;
    end Initialize;
 
    function Is_Descendant_Of

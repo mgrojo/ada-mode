@@ -74,7 +74,8 @@ package WisiToken.Syntax_Trees is
    procedure Initialize
      (Branched_Tree : in out Tree;
       Shared_Tree   : in     Base_Tree_Access;
-      Flush         : in     Boolean)
+      Flush         : in     Boolean;
+      Set_Parents   : in     Boolean := False)
    with Pre => Branched_Tree.Is_Empty and Shared_Tree.Is_Empty;
    --  Set Branched_Tree to refer to Shared_Tree.
 
@@ -97,7 +98,7 @@ package WisiToken.Syntax_Trees is
    procedure Set_Lexer_Terminals
      (User_Data : in out User_Data_Type;
       Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     Base_Token_Array_Access)
+      Terminals : in     Base_Token_Array_Access_Constant)
    is null;
 
    procedure Reset (User_Data : in out User_Data_Type) is null;
@@ -195,7 +196,7 @@ package WisiToken.Syntax_Trees is
    --
    --  Parents of new child nodes are set. Node index order is preserved.
    --  References to objects external to tree are shallow copied
-   --  (Terminals, Augmented).
+   --  (Terminals, Augmented, Action).
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
@@ -464,8 +465,8 @@ package WisiToken.Syntax_Trees is
       IDs  : in Token_ID_Array)
      return Node_Index
    with Pre => Tree.Parents_Set;
-   --  Return the ancestor of Node that contains ID, or Invalid_Node_Index if
-   --  none match.
+   --  Return the ancestor of Node that contains ID (starting search with
+   --  Node.Parent), or Invalid_Node_Index if none match.
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
