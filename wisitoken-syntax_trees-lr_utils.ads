@@ -337,8 +337,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Valid_Skip_List (Tree : aliased in Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean;
    --  The last element must be Skip, preceding elements must all be
    --  Nested. The Element in each array element must have ID = preceding
-   --  Element_ID, and the list described by each element must have more
-   --  than one item (so it is not empty when skipped).
+   --  Element_ID. The net result of all skips must not be empty.
 
    function Copy_Skip_Nested
      (Source_List       :         in     Constant_List;

@@ -1275,7 +1275,7 @@ package body WisiToken_Grammar_Runtime is
                         List_ID    => +rhs_item_list_ID,
                         Element_ID => +rhs_element_ID),
                      Skip_List, Skip_Found, Tree,
-                     Separator_ID => +BAR_ID,
+                     Separator_ID => Invalid_Token_ID,
                      Multi_Element_RHS => 1);
 
                   if not Skip_Found then
@@ -1283,7 +1283,8 @@ package body WisiToken_Grammar_Runtime is
                   end if;
                end if;
 
-               if Duplicate (Container_List, New_RHS_AC) then
+               if not Empty_Copy_Skip_Result and then Duplicate (Container_List, New_RHS_AC) then
+                  --  FIXME: check for duplicate empty?
                   Is_Duplicate := True;
                else
                   Container_List.Insert
@@ -1305,7 +1306,7 @@ package body WisiToken_Grammar_Runtime is
             New_RHS_AC := Copy_Skip_Nested
               (Create_Constant_List
                  (Tree,
-                  Root           => Tree.Child (Container, 1),
+                  Root           => Get_Node (Container_List.First),
                   List_ID        => +rhs_item_list_ID,
                   Element_ID     => +rhs_element_ID),
                (1                => (Skip, Tree.Find_Ancestor (B, +rhs_element_ID))),
@@ -1313,12 +1314,20 @@ package body WisiToken_Grammar_Runtime is
                Separator_ID      => Invalid_Token_ID,
                Multi_Element_RHS => 1);
 
+            --  FIXME: debugging
+            Ada.Text_IO.Put_Line ("Insert_Optional_RHS new_rhs_ac:");
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
+
+            Ada.Text_IO.Put_Line ("Insert_Optional_RHS Container_list:");
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container_List.Root);
+
             if Duplicate (Container_List, New_RHS_AC) then
                Is_Duplicate := True;
             else
                Container_List.Insert
                  (New_Element => New_RHS_AC,
-                  After       => Container_List.To_Cursor (Container));
+                  After       => Container_List.To_Cursor
+                    (List_Root (Tree, Tree.Find_Ancestor (B, +rhs_item_list_ID), +rhs_item_list_ID)));
             end if;
          end if;
 

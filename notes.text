@@ -23,11 +23,13 @@ update-wisitoken_grammar
  current work
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
-        multiple failures
 
-        ada_lite_ebnf.wy handled_sequence_of_statements
-            duplicate rhs
-                search container_list for identical content
+        java_ebnf.wy
+            expression. arrayCreatorRest, interfaceMethodDeclaration wrong; _bnf.wy_good is right
+
+
+        python_ebnf.wy testlist_comp wrong; _bnf.wy_good is right
+            except it does not realize that dictorsetmaker has the same nonterminal
 
         nested_ebnf_optional.wy if_statement wrong.
 
@@ -35,10 +37,8 @@ change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
 
     delete Append_Element
 
-    change Insert_Optional_RHS.B to take Iter, Cursor?
-
     syntax_trees: whenever change Parent, set Parent.Child (?) to Invalid_Node_Index?
-        cleans up LR_Utils.append; only ned to check for List_Parent = invalid_node_index.
+        cleans up LR_Utils.append; only need to check for List_Parent = invalid_node_index.
         resolves FIXME: on syntax_Trees.Replace_Child.
         see what problems that causes.
 

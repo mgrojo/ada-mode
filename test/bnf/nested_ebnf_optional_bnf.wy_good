@@ -40,9 +40,12 @@
 %token <punctuation> SEMICOLON ";"
 
 if_statement
-  : IF expression THEN statement nonterminal_021 END IF SEMICOLON
+  : IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
   | IF expression THEN statement END IF SEMICOLON
+  | IF expression THEN statement ELSIF statement END IF SEMICOLON
+  | IF expression THEN statement ELSIF statement ELSIF statement END IF SEMICOLON
   ;
+
 statement
   : GOTO SEMICOLON
   ;
@@ -52,11 +55,4 @@ expression
   ;
 
 ;; end of file
-nonterminal_020
-  : ELSIF statement ELSE statement
-  | ELSIF statement
-  ;
-nonterminal_021
-  : ELSIF statement nonterminal_020
-  | ELSIF statement
-  ;
+

@@ -365,8 +365,9 @@ generic_instantiation
   ;
 
 handled_sequence_of_statements
-  : sequence_of_statements nonterminal_018
+  : sequence_of_statements EXCEPTION nonterminal_017_list
   | sequence_of_statements
+  | sequence_of_statements EXCEPTION
   ;
 
 ;; explicit _opt for action, error recover language fixes.
@@ -378,8 +379,8 @@ identifier_opt
   ;
 
 if_statement
-  : IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-  | IF expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON
+  : IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON
+  | IF expression THEN sequence_of_statements nonterminal_018_list END IF SEMICOLON
   | IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
   | IF expression THEN sequence_of_statements END IF SEMICOLON
   ;
@@ -514,14 +515,14 @@ selected_component
   ;
 
 sequence_of_statements
-  : nonterminal_021_list
+  : nonterminal_020_list
   | ;; empty
   ;
 
 simple_expression
-  : unary_adding_operator term nonterminal_022_list
+  : unary_adding_operator term nonterminal_021_list
   | unary_adding_operator term
-  | term nonterminal_022_list
+  | term nonterminal_021_list
   | term
   ;
 
@@ -649,25 +650,21 @@ nonterminal_017_list
   : exception_handler
   | nonterminal_017_list exception_handler
   ;
-nonterminal_018
-  : EXCEPTION nonterminal_017_list
-  | EXCEPTION
-  ;
-nonterminal_020
+nonterminal_019
   : ELSIF expression THEN sequence_of_statements
   ;
-nonterminal_019_list
-  : nonterminal_020
-  | nonterminal_019_list nonterminal_020
+nonterminal_018_list
+  : nonterminal_019
+  | nonterminal_018_list nonterminal_019
   ;
-nonterminal_021_list
+nonterminal_020_list
   : statement
-  | nonterminal_021_list statement
+  | nonterminal_020_list statement
   ;
-nonterminal_023
+nonterminal_022
   : binary_adding_operator term
   ;
-nonterminal_022_list
-  : nonterminal_023
-  | nonterminal_022_list nonterminal_023
+nonterminal_021_list
+  : nonterminal_022
+  | nonterminal_021_list nonterminal_022
   ;

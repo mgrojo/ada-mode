@@ -77,10 +77,10 @@ ArrayType
 Dims
   : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
   | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_024_list
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_024_list
   ;
 
 PrimitiveType
@@ -103,4 +103,11 @@ nonterminal_023
 nonterminal_022_list
   : nonterminal_023
   | nonterminal_022_list nonterminal_023
+  ;
+nonterminal_025
+  : LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  ;
+nonterminal_024_list
+  : nonterminal_025
+  | nonterminal_024_list nonterminal_025
   ;

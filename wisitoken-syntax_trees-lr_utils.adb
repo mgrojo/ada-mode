@@ -593,12 +593,19 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          if Tree.ID (Skip_List (I).Element) /= Skip_List (I - 1).Element_ID then
             return False;
          end if;
-         if I < Skip_List'Last and then Create_From_Element
-           (Tree, Skip_List (I - 1).Element, Skip_List (I).List_ID, Skip_List (I).Element_ID).Count = 1
-         then
-            return False;
-         end if;
       end loop;
+
+      if Skip_List'Length > 2 then
+         declare
+            I : constant Positive_Index_Type := Skip_List'Last - 1;
+         begin
+            if Create_From_Element
+              (Tree, Skip_List (I - 1).Element, Skip_List (I).List_ID, Skip_List (I).Element_ID).Count = 1
+            then
+               return False;
+            end if;
+         end;
+      end if;
 
       return True;
    end Valid_Skip_List;
