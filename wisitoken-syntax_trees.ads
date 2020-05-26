@@ -66,7 +66,10 @@ package WisiToken.Syntax_Trees is
 
    type Tree is new Ada.Finalization.Controlled with private;
 
-   type Tree_Variable_Reference (Element : access Tree) is null record with
+   type Tree_Variable_Reference (Element : not null access Tree) is null record with
+     Implicit_Dereference => Element;
+
+   type Tree_Constant_Reference (Element : not null access constant Tree) is null record with
      Implicit_Dereference => Element;
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
