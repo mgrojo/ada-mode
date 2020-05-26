@@ -47,6 +47,7 @@ expr_stmt
 ;; Simplified has a similar problem
 expr_stmt_2
   : testlist_star_expr nonterminal_040
+  | testlist_star_expr
   ;
 
 ;; This was recognized as a canonical list, and 'nonlocal' left out.

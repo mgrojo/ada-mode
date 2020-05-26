@@ -144,7 +144,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Grand_Parent : constant Node_Index := Tree.Parent (Position, 2);
 
                Aunts           : constant Valid_Node_Index_Array :=
-                 (if Grand_Parent = Invalid_Node_Index
+                 (if Grand_Parent = Invalid_Node_Index or else Tree.ID (Grand_Parent) /= List_ID
                   then (1 .. 0 => Invalid_Node_Index)
                   else Tree.Children (Grand_Parent));
 
@@ -617,7 +617,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
-      return Valid_Node_Index
+      return Node_Index
    is
       Dest_List : List := Empty_List
         (Tree, Source_List.List_ID, Multi_Element_RHS, Source_List.Element_ID, Separator_ID);
@@ -688,6 +688,25 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          end if;
       end loop;
       return Dest_List.Root;
+   end Copy_Skip_Nested;
+
+   function Copy_Skip_Nested
+     (Source_List       :         in     Constant_List;
+      Skip_List         :         in     Skip_Array;
+      Tree              : aliased in out Syntax_Trees.Tree;
+      Separator_ID      :         in     Token_ID;
+      Multi_Element_RHS :         in     Natural)
+     return Node_Index
+   is
+      Skip_Found : Boolean := False;
+   begin
+      return Result : constant Node_Index := Copy_Skip_Nested
+        (Source_List, Skip_List, Skip_Found, Tree, Separator_ID, Multi_Element_RHS)
+      do
+         if not Skip_Found then
+            raise SAL.Programmer_Error with "Skip not found";
+         end if;
+      end return;
    end Copy_Skip_Nested;
 
    procedure Splice

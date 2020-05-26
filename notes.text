@@ -21,30 +21,50 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+report gdb bug to adacore
+    show_node doesn't work
+        test on debian 20.1w
+
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
-    running Makefile t_bnf
-
-        java_ebnf.wy
-            expression. arrayCreatorRest, interfaceMethodDeclaration wrong; _bnf.wy_good is right
-
-
-        python_ebnf.wy testlist_comp wrong; _bnf.wy_good is right
-            except it does not realize that dictorsetmaker has the same nonterminal
-
-        nested_ebnf_optional.wy if_statement wrong.
-
-    splice update root parent like Append?
-
-    delete Append_Element
 
     syntax_trees: whenever change Parent, set Parent.Child (?) to Invalid_Node_Index?
         cleans up LR_Utils.append; only need to check for List_Parent = invalid_node_index.
         resolves FIXME: on syntax_Trees.Replace_Child.
         see what problems that causes.
 
+    running Makefile t_bnf
+        ada_lite_ebnf.wy broken again
+            not creating empty rhs
+
+        python_ebnf.wy
+            testlist_comp, dictorsetmaker
+                in debug.wy
+                skip_list missing top level
+                tree broken; parent/child wrong
+
+
+                nested rhs_alternatives, only inner has an empty rhs_item_list
+                    can add to outer, rather than to parent rhs
+
+                does not realize that dictorsetmaker has the same nonterminal?
+
+            expr_stmt
+
+    splice update root parent like Append?
+
+    delete Append_Element
+
+    insert_optional_rhs check for duplicate empty
+
+
 propagate to main
 
 recognize more canonical lists
+    ada_lite_ebnf.wy
+    simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
+        recognize term_list
+            _not_ just add parens
+
     java_types_ch19.wy Dims
 
 wisitoken-generate-lr.adb Add_Actions FIXME:

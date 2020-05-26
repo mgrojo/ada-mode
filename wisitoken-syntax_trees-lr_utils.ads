@@ -337,22 +337,29 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Valid_Skip_List (Tree : aliased in Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean;
    --  The last element must be Skip, preceding elements must all be
    --  Nested. The Element in each array element must have ID = preceding
-   --  Element_ID. The net result of all skips must not be empty.
+   --  Element_ID. The net result of all skips must not be empty, unless
+   --  there is only one item (Skip); the containing list may have only
+   --  that.
 
    function Copy_Skip_Nested
      (Source_List       :         in     Constant_List;
       Skip_List         :         in     Skip_Array;
-      Skip_Found        :         in out Boolean;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
-     return Valid_Node_Index
+     return Node_Index
    with Pre => Valid_Skip_List (Source_List.Tree, Skip_List);
    --  Copy list in Source_List, skipping one element as indicated by
    --  Skip_List. Return root of copied list.
    --
-   --  We need Tree and teh following args in addition to Source_List,
+   --  Return is Invalid_Node_Index (indicating an empty list) if
+   --  Skip_List has only one item (Skip), and Source_List has only that
+   --  item.
+   --
+   --  We need Tree and the following args in addition to Source_List,
    --  because we need write access.
+   --
+   --  Raises SAL.Programmer_Error if Skip_List is not found.
 
    procedure Splice
      (Left_List   : in out List;
