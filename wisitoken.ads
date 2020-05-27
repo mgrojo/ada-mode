@@ -295,8 +295,10 @@ package WisiToken is
    --  Syntax tree nodes.
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
+   --  Note that Valid_Node_Index includes Deleted_Child.
 
    Invalid_Node_Index : constant Node_Index := Node_Index'First;
+   Deleted_Child      : constant Node_Index := Node_Index'Last;
 
    type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
    --  Index matches Base_Token_Array, Augmented_Token_Array

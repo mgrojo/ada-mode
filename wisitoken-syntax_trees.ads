@@ -24,7 +24,14 @@
 --  The parent components are set by Set_Parents, which is called by
 --  Parser.Execute_Actions before the actions are executed.
 --  Fortunately, we don't need the parent components during error
---  recover.
+--  recover. After calling Set_Parents (ie, while editing the syntax
+--  tree after parse), any functions that modify children or parents
+--  update the corresponding links, setting them to Invalid_Node_Index
+--  or Deleted_Child as appropriate.
+--
+--  Set_Parents also controls updating Min_Terminal_Index; it is
+--  updated before Set_Parents is called, not after. We assume it is
+--  only needed during error recovery.
 --
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
@@ -195,7 +202,7 @@ package WisiToken.Syntax_Trees is
      return Valid_Node_Index
    with Pre => Tree.Flushed and Tree.Parents_Set;
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
-   --  of new subtree.
+   --  of new subtree; it has no parent.
    --
    --  Parents of new child nodes are set. Node index order is preserved.
    --  References to objects external to tree are shallow copied
@@ -208,10 +215,15 @@ package WisiToken.Syntax_Trees is
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Index
-   with Pre  => not Tree.Traversing;
+   with Pre => not Tree.Traversing and
+               (for all C of Children => C /= Deleted_Child);
    --  Add a new Nonterm node, which can be empty. Result points to the
    --  added node. If Children'Length = 0, set Nonterm.Virtual :=
    --  Default_Virtual.
+   --
+   --  If Tree.Parents_Set, then Children.Parent are set to the new node,
+   --  and in previous parents of those children (if any), the
+   --  corresponding entry in Children is set to Deleted_Child.
 
    function Add_Terminal
      (Tree      : in out Syntax_Trees.Tree;
@@ -231,8 +243,8 @@ package WisiToken.Syntax_Trees is
    --  Add a new Virtual_Terminal node with no parent. Before is the
    --  index of the terminal in Terminals that this virtual is inserted
    --  before during error correction; if Invalid_Token_Index, it is
-   --  inserted during EBNF translation, and there is no such terminal in
-   --  Terminals. Result points to the added node.
+   --  inserted during EBNF translation, and there is no such terminal.
+   --  Result points to the added node.
 
    function Before
      (Tree             : in Syntax_Trees.Tree;
@@ -256,32 +268,34 @@ package WisiToken.Syntax_Trees is
       Parent : in     Valid_Node_Index;
       Child  : in     Valid_Node_Index)
    with
-     Pre => Tree.Flushed and
-            (not Tree.Traversing) and
-            Tree.Is_Nonterm (Parent) and
-            Tree.Parent (Child) = Parent; --  FIXME: too easy to forget
+     Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
+            Tree.Is_Nonterm (Parent);
+   --  Sets Child.Parent.
+
+   function Child_Index
+     (Tree   : in out Syntax_Trees.Tree;
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
+     return SAL.Peek_Type
+   with Pre => Tree.Has_Child (Parent, Child);
 
    procedure Replace_Child
      (Tree                 : in out Syntax_Trees.Tree;
       Parent               : in     Valid_Node_Index;
+      Child_Index          : in     SAL.Peek_Type;
       Old_Child            : in     Valid_Node_Index;
       New_Child            : in     Valid_Node_Index;
       Old_Child_New_Parent : in     Node_Index)
    with
-     Pre => Tree.Flushed and
-            (not Tree.Traversing) and
+     Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
             (Tree.Is_Nonterm (Parent) and then
-             (Tree.Has_Child (Parent, Old_Child) and
-              Tree.Parent (Old_Child) in Parent | Old_Child_New_Parent));
-   --  In Parent children, find Old_Child, replace with New_Child.
+             ((Tree.Child (Parent, Child_Index) = Deleted_Child or
+               Tree.Parent (Old_Child) = Invalid_Node_Index) or else
+              (Tree.Child (Parent, Child_Index) = Old_Child and
+               Tree.Parent (Old_Child) = Parent)));
+   --  In Parent.Children, find Old_Child, replace with New_Child.
    --  Set New_Child.Parent to Parent, and Old_Child.Parent to
    --  Old_Child_New_Parent.
-   --
-   --  We allow Old_Child.Parent to already be Old_Child_New_Parent,
-   --  because that is a common use case; Old_Child is set as a child of
-   --  a new nonterm New_Child, then Replace_Child is called. FIXME: it
-   --  would be safer if New_Nonterm set Parent.Child to
-   --  Invalid_Node_Index.
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
@@ -289,47 +303,28 @@ package WisiToken.Syntax_Trees is
       New_ID   : in     WisiToken.Production_ID;
       Children : in     Valid_Node_Index_Array)
    with
-     Pre => Tree.Flushed and
-            Tree.Parents_Set and
-            (not Tree.Traversing) and
-            Tree.Is_Nonterm (Node);
-   --  Set ID of Node to New_ID, and children to Children; set parent of
-   --  Children to Node.
+     Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
+            Tree.Is_Nonterm (Node) and
+            (for all C of Children => C /= Deleted_Child);
+   --  If parents of current Node.Children are not Invalid_Node_Index,
+   --  set corresponding entry in those parents to Deleted_Child, then
+   --  set Parent to Invalid_Node_Index.
    --
-   --  Parent of previous children is _not_ changed; that must be done
-   --  before calling this, either by calling Clear_Children on Node, or
-   --  by adding them to some other nonterm.
+   --  Then set ID of Node to New_ID, and Node.Children to Children; set
+   --  parents of Children to Node.
    --
-   --  If New_ID /= Tree.Production_ID (Node), then Node's Action is set
+   --  If New_ID /= Tree.Production_ID (Node), Node.Action is set
    --  to null, because the old Action probably no longer applies.
-
-   procedure Clear_Children
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Index)
-   with
-     Pre => Tree.Flushed and
-            Tree.Parents_Set and
-            (not Tree.Traversing) and
-            Tree.Is_Nonterm (Node);
-   --  In Node Children, set Parent to Invalid_Node_ID.
-   --
-   --  Then change the content of Node:
-   --  - Children to empty
-   --  - Production_ID to Invalid_Production_ID
-   --  - Action to null
-   --
-   --  This is normally done before calling Set_Node_Identifier, when the
-   --  children are being discarded, as opposed to reused in some other
-   --  nonterm.
 
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Index;
       ID         : in Token_ID;
       Identifier : in Identifier_Index)
-   with Pre => Tree.Flushed and
+   with Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
                Tree.Is_Nonterm (Node);
-   --  Change Node to a Virtual_Identifier.
+   --  Set parents of current Node.Children to Invalid_Node_Index.
+   --  Then change Node to a Virtual_Identifier.
 
    procedure Set_State
      (Tree  : in out Syntax_Trees.Tree;
@@ -345,6 +340,8 @@ package WisiToken.Syntax_Trees is
 
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    with Pre => Tree.Is_Nonterm (Node);
+   --  Any children that were cleared by Add_Nonterm are returned as
+   --  Deleted_Child.
 
    function Child
      (Tree        : in Syntax_Trees.Tree;
@@ -364,7 +361,12 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Nonterm (Node);
    function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
-   function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+
+   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   --  True if contained buffer region is empty; always the case for
+   --  virtual tokens, and for most copied tokens. Use Has_Children or
+   --  Child_Count to see if Node has children.
+
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
@@ -457,19 +459,24 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Nonterm (Node);
 
    function Find_Ancestor
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
-      ID   : in Token_ID)
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      ID         : in Token_ID;
+      Max_Parent : in Boolean := False)
      return Node_Index
    with Pre => Tree.Parents_Set;
    function Find_Ancestor
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
-      IDs  : in Token_ID_Array)
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      IDs        : in Token_ID_Array;
+      Max_Parent : in Boolean := False)
      return Node_Index
    with Pre => Tree.Parents_Set;
    --  Return the ancestor of Node that contains ID (starting search with
    --  Node.Parent), or Invalid_Node_Index if none match.
+   --
+   --  If Max_Parent, return max parent found if none match; this will be
+   --  Invalid_Node_Index if Node has no parent.
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
@@ -510,7 +517,7 @@ package WisiToken.Syntax_Trees is
       Root       : in Valid_Node_Index;
       Descendant : in Valid_Node_Index)
      return Boolean
-   with Pre => Tree.Parents_Set and (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root));
+   with Pre => Tree.Parents_Set and Tree.Is_Nonterm (Root);
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
 

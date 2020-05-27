@@ -26,33 +26,28 @@ report gdb bug to adacore
         test on debian 20.1w
 
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
-
-    syntax_trees: whenever change Parent, set Parent.Child (?) to Invalid_Node_Index?
-        cleans up LR_Utils.append; only need to check for List_Parent = invalid_node_index.
-        resolves FIXME: on syntax_Trees.Replace_Child.
-        see what problems that causes.
-
     running Makefile t_bnf
-        ada_lite_ebnf.wy broken again
-            not creating empty rhs
 
-        python_ebnf.wy
-            testlist_comp, dictorsetmaker
-                in debug.wy
-                skip_list missing top level
-                tree broken; parent/child wrong
+    java_types_ch19.wy
+        unknown conflicts from Dims
+            missing some alternatives
+        tokens not found; from NumericType, last nonterminal
+            compilation_unit_list tree must be truncated
 
+    ada_lite_ebnf excess conflicts
+        something's not right
 
-                nested rhs_alternatives, only inner has an empty rhs_item_list
-                    can add to outer, rather than to parent rhs
+    python_ebnf.wy
+        testlist_comp, dictorsetmaker
 
-                does not realize that dictorsetmaker has the same nonterminal?
+        nested rhs_alternatives, only inner has an empty rhs_item_list
+            can add edited rhs_alternative_list to outer (since it is not empty), rather than to parent rhs
 
-            expr_stmt
+        does not realize that dictorsetmaker has the same nonterminal?
+
+        expr_stmt
 
     splice update root parent like Append?
-
-    delete Append_Element
 
     insert_optional_rhs check for duplicate empty
 

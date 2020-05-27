@@ -78,7 +78,7 @@ package body WisiToken.Syntax_Trees is
       Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Parent);
    begin
       Node.Children.Append (Child);
-      --  We don't update Min/Max_terminal_index; they are no longer needed.
+      Tree.Shared_Tree.Nodes (Child).Parent := Parent;
    end Add_Child;
 
    function Add_Identifier
@@ -224,6 +224,15 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Augmented_Const;
 
+   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Byte_Region = Null_Buffer_Region;
+      else
+         return Tree.Branched_Nodes (Node).Byte_Region = Null_Buffer_Region;
+      end if;
+   end Buffer_Region_Is_Empty;
+
    function Byte_Region
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -265,6 +274,30 @@ package body WisiToken.Syntax_Trees is
       return Tree.Get_Node_Const_Ref (Node).Children.Length;
    end Child_Count;
 
+   function Child_Index
+     (N     : in Node;
+      Child : in Valid_Node_Index)
+     return SAL.Peek_Type
+   is begin
+      for I in N.Children.First_Index .. N.Children.Last_Index loop
+         if N.Children (I) = Child then
+            return I;
+         end if;
+      end loop;
+      raise SAL.Programmer_Error; -- Should be prevented by precondition
+   end Child_Index;
+
+   function Child_Index
+     (Tree   : in out Syntax_Trees.Tree;
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
+     return SAL.Peek_Type
+   is
+      N : Node_Var_Ref renames Get_Node_Var_Ref (Tree, Parent);
+   begin
+      return Child_Index (N, Child);
+   end Child_Index;
+
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array
    is begin
       if N.Children.Length = 0 then
@@ -286,26 +319,6 @@ package body WisiToken.Syntax_Trees is
          return Children (Tree.Branched_Nodes (Node));
       end if;
    end Children;
-
-   procedure Clear_Children
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Index)
-   is
-      Parent_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
-   begin
-      Parent_Node.ID        := Invalid_Production_ID.LHS;
-      Parent_Node.RHS_Index := Invalid_Production_ID.RHS;
-      Parent_Node.Action    := null;
-
-      --  We don't update Min/Max_terminal_index; we assume Set_Children is
-      --  only called after parsing is done, so they are no longer needed.
-
-      for C of Parent_Node.Children loop
-         Tree.Shared_Tree.Nodes (C).Parent := Invalid_Node_Index;
-      end loop;
-
-      Parent_Node.Children.Clear;
-   end Clear_Children;
 
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
@@ -447,6 +460,8 @@ package body WisiToken.Syntax_Trees is
                null;
             when Nonterm =>
                for I of N.Children loop
+                  --  We don't check for Deleted_Child here; encountering one indicates
+                  --  an error in the user algorithm.
                   Result := Result + Count_IDs (Tree, I, ID);
                end loop;
             end case;
@@ -474,8 +489,11 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             return Result : Integer := 0 do
-               for I of N.Children loop
-                  Result := Result + Count_Terminals (Tree, I);
+               for C of N.Children loop
+                  --  This can be called to build a debugging image while editing the tree
+                  if C /= Deleted_Child then
+                     Result := Result + Count_Terminals (Tree, C);
+                  end if;
                end loop;
             end return;
          end case;
@@ -527,12 +545,14 @@ package body WisiToken.Syntax_Trees is
    end Insert_After;
 
    function Find_Ancestor
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
-      ID   : in Token_ID)
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      ID         : in Token_ID;
+      Max_Parent : in Boolean := False)
      return Node_Index
    is
-      N : Node_Index := Node;
+      N           : Node_Index := Node;
+      Last_Parent : Node_Index := Invalid_Node_Index;
    begin
       loop
          N :=
@@ -541,21 +561,26 @@ package body WisiToken.Syntax_Trees is
             else Tree.Branched_Nodes (N).Parent);
 
          exit when N = Invalid_Node_Index;
+         Last_Parent := N;
+
          exit when ID =
            (if N <= Tree.Last_Shared_Node
             then Tree.Shared_Tree.Nodes (N).ID
             else Tree.Branched_Nodes (N).ID);
       end loop;
-      return N;
+
+      return (if Max_Parent then Last_Parent else N);
    end Find_Ancestor;
 
    function Find_Ancestor
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
-      IDs  : in Token_ID_Array)
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      IDs        : in Token_ID_Array;
+      Max_Parent : in Boolean := False)
      return Node_Index
    is
-      N : Node_Index := Node;
+      N           : Node_Index := Node;
+      Last_Parent : Node_Index := Invalid_Node_Index;
    begin
       loop
          N :=
@@ -564,13 +589,15 @@ package body WisiToken.Syntax_Trees is
             else Tree.Branched_Nodes (N).Parent);
 
          exit when N = Invalid_Node_Index;
+         Last_Parent := N;
+
          exit when
            (for some ID of IDs => ID =
               (if N <= Tree.Last_Shared_Node
                then Tree.Shared_Tree.Nodes (N).ID
                else Tree.Branched_Nodes (N).ID));
       end loop;
-      return N;
+      return (if Max_Parent then Last_Parent else N);
    end Find_Ancestor;
 
    function Find_Child
@@ -586,12 +613,14 @@ package body WisiToken.Syntax_Trees is
             return Invalid_Node_Index;
          when Nonterm =>
             for C of N.Children loop
-               if ID =
-                 (if C <= Tree.Last_Shared_Node
-                  then Tree.Shared_Tree.Nodes (C).ID
-                  else Tree.Branched_Nodes (C).ID)
-               then
-                  return C;
+               if C /= Deleted_Child then
+                  if ID =
+                    (if C <= Tree.Last_Shared_Node
+                     then Tree.Shared_Tree.Nodes (C).ID
+                     else Tree.Branched_Nodes (C).ID)
+                  then
+                     return C;
+                  end if;
                end if;
             end loop;
             return Invalid_Node_Index;
@@ -671,12 +700,14 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             for C of N.Children loop
-               if ID =
-                 (if C <= Tree.Last_Shared_Node
-                  then Tree.Shared_Tree.Nodes (C).ID
-                  else Tree.Branched_Nodes (C).ID)
-               then
-                  return C;
+               if C /= Deleted_Child then
+                  if ID =
+                    (if C <= Tree.Last_Shared_Node
+                     then Tree.Shared_Tree.Nodes (C).ID
+                     else Tree.Branched_Nodes (C).ID)
+                  then
+                     return C;
+                  end if;
                end if;
             end loop;
             return Invalid_Node_Index;
@@ -740,6 +771,7 @@ package body WisiToken.Syntax_Trees is
             null;
          when Nonterm =>
             for I of N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                Get_IDs (Tree, I, ID, Result, Last);
             end loop;
          end case;
@@ -782,8 +814,11 @@ package body WisiToken.Syntax_Trees is
             Result (Last) := Node;
 
          when Nonterm =>
-            for I of N.Children loop
-               Get_Terminals (Tree, I, Result, Last);
+            for C of N.Children loop
+               --  This is called to build an edited source image while editing the tree
+               if C /= Deleted_Child then
+                  Get_Terminals (Tree, C, Result, Last);
+               end if;
             end loop;
          end case;
       end Compute;
@@ -814,6 +849,7 @@ package body WisiToken.Syntax_Trees is
             return Index;
          when Nonterm =>
             for C of N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                declare
                   Term : constant Node_Index := First_Terminal (Tree, C);
                begin
@@ -850,6 +886,7 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             for I of N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                Get_Terminal_IDs (Tree, I, Result, Last);
             end loop;
          end case;
@@ -902,6 +939,7 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             for C of N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                declare
                   ID : constant Token_ID := First_Terminal_ID (Tree, C);
                begin
@@ -997,7 +1035,9 @@ package body WisiToken.Syntax_Trees is
    begin
       for I of Children loop
          Result := Result & (if Need_Comma then ", " else "") &
-           Tree.Image (I, Descriptor, Include_Children => False, Node_Numbers => Node_Numbers);
+           (if I = Deleted_Child
+            then "-"
+            else Tree.Image (I, Descriptor, Include_Children => False, Node_Numbers => Node_Numbers));
          Need_Comma := True;
       end loop;
       Result := Result & ")";
@@ -1126,15 +1166,6 @@ package body WisiToken.Syntax_Trees is
       return False;
    end Is_Descendant_Of;
 
-   function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
-   is begin
-      if Node <= Tree.Last_Shared_Node then
-         return Tree.Shared_Tree.Nodes (Node).Byte_Region = Null_Buffer_Region;
-      else
-         return Tree.Branched_Nodes (Node).Byte_Region = Null_Buffer_Region;
-      end if;
-   end Is_Empty;
-
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
       if Node <= Tree.Last_Shared_Node then
@@ -1216,6 +1247,7 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             for C of reverse N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                declare
                   Last_Term : constant Base_Token_Index := Tree.Last_Shared_Terminal (C);
                begin
@@ -1245,6 +1277,7 @@ package body WisiToken.Syntax_Trees is
          return Node;
       when Nonterm =>
          for C of reverse N.Children loop
+            --  Encountering Deleted_Child here is an error in the user algorithm.
             declare
                Term : constant Node_Index := Last_Terminal (Tree, C);
             begin
@@ -1270,6 +1303,7 @@ package body WisiToken.Syntax_Trees is
             Min : Node_Index := Node;
          begin
             for C of N.Children loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                Min := Node_Index'Min (Min, Min_Descendant (Nodes, C));
             end loop;
             return Min;
@@ -1299,6 +1333,7 @@ package body WisiToken.Syntax_Trees is
          when Nonterm =>
             --  Use first non-empty
             for J in N.Children.First_Index .. N.Children.Last_Index loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                declare
                   Result : constant Node_Index := First_Child (N.Children (J));
                begin
@@ -1323,6 +1358,7 @@ package body WisiToken.Syntax_Trees is
             begin
                pragma Assert (N.Label = Nonterm);
                for I in N.Children.First_Index .. N.Children.Last_Index loop
+                  --  Encountering Deleted_Child here is an error in the user algorithm.
                   if N.Children (I) = Child then
                      --  Use first non-empty next from I + 1.
                      for J in I + 1 .. N.Children.Last_Index loop
@@ -1384,6 +1420,7 @@ package body WisiToken.Syntax_Trees is
          when Nonterm =>
             --  Use first non-empty from end.
             for J in reverse N.Children.First_Index .. N.Children.Last_Index loop
+               --  Encountering Deleted_Child here is an error in the user algorithm.
                declare
                   Result : constant Node_Index := Last_Child (N.Children (J));
                begin
@@ -1408,6 +1445,7 @@ package body WisiToken.Syntax_Trees is
             begin
                pragma Assert (N.Label = Nonterm);
                for I in reverse N.Children.First_Index .. N.Children.Last_Index loop
+                  --  Encountering Deleted_Child here is an error in the user algorithm.
                   if N.Children (I) = Child then
                      --  Use first non-empty from I - 1.
                      for J in reverse N.Children.First_Index .. I - 1 loop
@@ -1473,7 +1511,11 @@ package body WisiToken.Syntax_Trees is
          New_Line;
          if N.Label = Nonterm then
             for Child of N.Children loop
-               Print_Node (Child, Level + 1);
+               if Child = Deleted_Child then
+                  Put ("<deleted>");
+               else
+                  Print_Node (Child, Level + 1);
+               end if;
             end loop;
          end if;
       end Print_Node;
@@ -1503,8 +1545,10 @@ package body WisiToken.Syntax_Trees is
 
          if N.Label = Nonterm then
             for Child of N.Children loop
-               if not Process_Tree (Tree, Child, Visit_Parent, Process_Node) then
-                  return False;
+               if Child /= Deleted_Child then
+                  if not Process_Tree (Tree, Child, Visit_Parent, Process_Node) then
+                     return False;
+                  end if;
                end if;
             end loop;
          end if;
@@ -1534,7 +1578,9 @@ package body WisiToken.Syntax_Trees is
       is begin
          if N.Label = Nonterm then
             for Child of N.Children loop
-               Process_Tree (Tree, Child, Process_Node);
+               if Child /= Deleted_Child then
+                  Process_Tree (Tree, Child, Process_Node);
+               end if;
             end loop;
          end if;
 
@@ -1578,23 +1624,12 @@ package body WisiToken.Syntax_Trees is
    procedure Replace_Child
      (Tree                 : in out Syntax_Trees.Tree;
       Parent               : in     Valid_Node_Index;
+      Child_Index          : in     SAL.Peek_Type;
       Old_Child            : in     Valid_Node_Index;
       New_Child            : in     Valid_Node_Index;
       Old_Child_New_Parent : in     Node_Index)
    is
       N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Parent);
-
-      function Find_Child_Index return SAL.Base_Peek_Type
-      is begin
-         for I in N.Children.First_Index .. N.Children.Last_Index loop
-            if N.Children (I) = Old_Child then
-               return I;
-            end if;
-         end loop;
-         raise SAL.Programmer_Error; -- Should be prevented by precondition.
-      end Find_Child_Index;
-
-      Child_Index : constant SAL.Base_Peek_Type := Find_Child_Index;
    begin
       N.Children (Child_Index) := New_Child;
 
@@ -1634,6 +1669,12 @@ package body WisiToken.Syntax_Trees is
    is
       Current : constant Syntax_Trees.Node := Tree.Shared_Tree.Nodes (Node);
    begin
+      for C of Current.Children loop
+         if C /= Deleted_Child then
+            Tree.Shared_Tree.Nodes (C).Parent := Invalid_Node_Index;
+         end if;
+      end loop;
+
       Tree.Shared_Tree.Nodes.Replace_Element
         (Node,
          (Label       => Virtual_Identifier,
@@ -1661,6 +1702,11 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             for C of N.Children loop
+               if C = Deleted_Child then
+                  --  This can only happen if someone calls Set_Parents after parents
+                  --  are already set.
+                  raise SAL.Programmer_Error with "encountered Deleted_Child";
+               end if;
                Set_Parents (Tree, C, Node);
             end loop;
          end case;
@@ -1716,64 +1762,83 @@ package body WisiToken.Syntax_Trees is
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
-      use all type SAL.Base_Peek_Type;
-
       N : Node_Var_Ref renames Tree.Get_Node_Var_Ref (Parent);
 
       Min_Terminal_Index_Set : Boolean := False;
    begin
+      --  See Design note in spec about Parents, Parent_Set.
+
+      if Tree.Parents_Set then
+         --  Clear current Children.Parent first, in case some are also in new
+         --  children.
+         for C of N.Children loop
+            if C /= WisiToken.Deleted_Child then
+               Tree.Shared_Tree.Nodes (C).Parent := Invalid_Node_Index;
+            end if;
+         end loop;
+      end if;
+
       N.Children.Set_First_Last (Children'First, Children'Last);
+
       for I in Children'Range loop
+
          N.Children (I) := Children (I);
 
          if Tree.Parents_Set then
-            --  Parsing is done; we are editing the tree.
             declare
-               K : Node_Var_Ref renames Tree.Get_Node_Var_Ref (Children (I));
+               Child_Node : Node renames Tree.Shared_Tree.Nodes (Children (I));
             begin
-               K.Parent := Parent;
+               if Child_Node.Parent /= Invalid_Node_Index then
+                  declare
+                     Other_Parent : Node renames Tree.Shared_Tree.Nodes (Child_Node.Parent);
+                     Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
+                       (Other_Parent, Children (I));
+                  begin
+                     Other_Parent.Children (Child_Index) := WisiToken.Deleted_Child;
+                  end;
+               end if;
+
+               Child_Node.Parent := Parent;
             end;
-         else
-            --  We do _not_ set K.Parent here; that is only done after parsing is
-            --  complete. See Design note in spec.
-            null;
          end if;
 
-         declare
-            K : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Children (I));
-         begin
-            N.Virtual := N.Virtual or
-              (case K.Label is
-               when Shared_Terminal                       => False,
-               when Virtual_Terminal | Virtual_Identifier => True,
-               when Nonterm                               => K.Virtual);
+         if not Tree.Shared_Tree.Parents_Set then
+            declare
+               K : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Children (I));
+            begin
+               N.Virtual := N.Virtual or
+                 (case K.Label is
+                  when Shared_Terminal                       => False,
+                  when Virtual_Terminal | Virtual_Identifier => True,
+                  when Nonterm                               => K.Virtual);
 
-            if N.Byte_Region.First > K.Byte_Region.First then
-               N.Byte_Region.First := K.Byte_Region.First;
-            end if;
+               if N.Byte_Region.First > K.Byte_Region.First then
+                  N.Byte_Region.First := K.Byte_Region.First;
+               end if;
 
-            if N.Byte_Region.Last < K.Byte_Region.Last then
-               N.Byte_Region.Last := K.Byte_Region.Last;
-            end if;
+               if N.Byte_Region.Last < K.Byte_Region.Last then
+                  N.Byte_Region.Last := K.Byte_Region.Last;
+               end if;
 
-            if not Min_Terminal_Index_Set then
-               case K.Label is
-               when Shared_Terminal =>
-                  Min_Terminal_Index_Set := True;
-                  N.Min_Terminal_Index   := K.Terminal;
-
-               when Virtual_Terminal | Virtual_Identifier =>
-                  null;
-
-               when Nonterm =>
-                  if K.Min_Terminal_Index /= Invalid_Token_Index then
-                     --  not an empty nonterm
+               if not Min_Terminal_Index_Set then
+                  case K.Label is
+                  when Shared_Terminal =>
                      Min_Terminal_Index_Set := True;
-                     N.Min_Terminal_Index   := K.Min_Terminal_Index;
-                  end if;
-               end case;
-            end if;
-         end;
+                     N.Min_Terminal_Index   := K.Terminal;
+
+                  when Virtual_Terminal | Virtual_Identifier =>
+                     null;
+
+                  when Nonterm =>
+                     if K.Min_Terminal_Index /= Invalid_Token_Index then
+                        --  not an empty nonterm
+                        Min_Terminal_Index_Set := True;
+                        N.Min_Terminal_Index   := K.Min_Terminal_Index;
+                     end if;
+                  end case;
+               end if;
+            end;
+         end if;
       end loop;
    end Set_Children;
 
@@ -1783,26 +1848,16 @@ package body WisiToken.Syntax_Trees is
       New_ID   : in     WisiToken.Production_ID;
       Children : in     Valid_Node_Index_Array)
    is
-      use all type SAL.Base_Peek_Type;
-      Parent_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
-
-      J : Positive_Index_Type := Positive_Index_Type'First;
+      Parent_Node  : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
    begin
       if New_ID /= (Parent_Node.ID, Parent_Node.RHS_Index) then
-         Parent_Node.Action    := null;
+         Parent_Node.Action := null;
       end if;
 
       Parent_Node.ID        := New_ID.LHS;
       Parent_Node.RHS_Index := New_ID.RHS;
 
-      Parent_Node.Children.Set_First_Last (Children'First, Children'Last);
-      for I in Children'Range loop
-         --  We don't update Min/Max_terminal_index; we assume Set_Children is
-         --  only called after parsing is done, so they are no longer needed.
-         Parent_Node.Children (J) := Children (I);
-         Tree.Shared_Tree.Nodes (Children (I)).Parent := Node;
-         J := J + 1;
-      end loop;
+      Set_Children (Tree, Node, Children);
    end Set_Children;
 
    procedure Set_State

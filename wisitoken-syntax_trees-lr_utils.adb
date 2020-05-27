@@ -468,8 +468,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       else
          --  Adding element Last in spec example
          declare
-            List_Parent : constant Node_Index       := Tree.Parent (Container.Root);
-            Old_Root    : constant Valid_Node_Index := Container.Root;
+            List_Parent : constant Node_Index         := Tree.Parent (Container.Root);
+            Old_Root    : constant Valid_Node_Index   := Container.Root;
+            Child_Index : constant SAL.Base_Peek_Type :=
+              (if List_Parent = Invalid_Node_Index
+               then 0
+               else Tree.Child_Index (List_Parent, Old_Root));
          begin
             Container.Root :=
               Tree.Add_Nonterm
@@ -479,12 +483,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                     then (Container.Root, New_Element)
                     else (Container.Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
-            if List_Parent /= Invalid_Node_Index and then
-              (Tree.ID (List_Parent) /= Invalid_Token_ID and
-                 Tree.Label (List_Parent) = Nonterm)
-            then
+            if List_Parent /= Invalid_Node_Index then
                Tree.Replace_Child
                  (List_Parent,
+                  Child_Index,
                   Old_Child            => Old_Root,
                   New_Child            => Container.Root,
                   Old_Child_New_Parent => Container.Root);
@@ -492,6 +494,37 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          end;
       end if;
    end Append;
+
+   procedure Prepend
+     (Container   : in out List;
+      New_Element : in     Valid_Node_Index)
+   is
+      Tree : Syntax_Trees.Tree renames Container.Tree.all;
+   begin
+      if Container.Root = Invalid_Node_Index then
+         Container :=
+           (Container.Tree,
+            List_ID           => Container.List_ID,
+            One_Element_RHS   => Container.One_Element_RHS,
+            Multi_Element_RHS => Container.Multi_Element_RHS,
+            Element_ID        => Container.Element_ID,
+            Separator_ID      => Container.Separator_ID,
+            Root              => Tree.Add_Nonterm
+              (Production     => (Container.List_ID, Container.One_Element_RHS),
+               Children       => (1 => New_Element)));
+
+      else
+         --  Inserting element First in spec example
+         declare
+            First : constant Valid_Node_Index := Container.First.Node;
+         begin
+            Tree.Set_Children
+              (Node     => Tree.Parent (First),
+               New_ID   => (Container.List_ID, Container.Multi_Element_RHS),
+               Children => (First, New_Element));
+         end;
+      end if;
+   end Prepend;
 
    procedure Insert
      (Container   : in out List;
@@ -531,11 +564,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Iter   : constant Iterator   := Container.Iterate;
       Before : constant Node_Index := Iter.Next (After).Node;
    begin
-      if Before = Invalid_Node_Index then
+      if After.Node = Invalid_Node_Index then
+         Prepend (Container, New_Element);
+      elsif Before = Invalid_Node_Index then
          Append (Container, New_Element);
       else
          declare
-            Old_Child : constant Valid_Node_Index := Container.Tree.Parent (After.Node);
+            Parent      : constant Valid_Node_Index := Container.Tree.Parent (Before);
+            Old_Child   : constant Valid_Node_Index := Container.Tree.Parent (After.Node);
+            Child_Index : constant SAL.Peek_Type    := Container.Tree.Child_Index (Parent, Old_Child);
 
             New_List_Nonterm : constant Valid_Node_Index := Container.Tree.Add_Nonterm
               (Production => (Container.List_ID, Container.Multi_Element_RHS),
@@ -544,12 +581,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                   then (Old_Child, New_Element)
                   else (Old_Child, Container.Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
-            Parent : constant Valid_Node_Index := Container.Tree.Parent (Before);
          begin
             --  After cannot be Container.First, because then Before would be
             --  Invalid_Node_Index. So we don't need to change After.RHS_Index.
             Container.Tree.Replace_Child
               (Parent               => Parent,
+               Child_Index          => Child_Index,
                Old_Child            => Old_Child,
                New_Child            => New_List_Nonterm,
                Old_Child_New_Parent => New_List_Nonterm);

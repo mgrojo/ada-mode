@@ -264,11 +264,17 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  it is not Invalid_Token_Index.
    --
    --  If Container was Empty, or if Container.Root has no parent in
-   --  Tree, or if the parent has ID of Invalid_Token_ID (meaning
-   --  Clear_Children was called on it), or if the parent is not a
-   --  nonterm (meaning Set_Node_Identifier was called on it), the
-   --  modified list has no parent. Otherwise, the parent of
+   --  Tree, the modified list has no parent. Otherwise, the parent of
    --  Container.Root is updated to hold the new Container.Root.
+
+   procedure Prepend
+     (Container   : in out List;
+      New_Element : in     Valid_Node_Index)
+   with Pre => not Container.Is_Invalid and then Container.Tree.ID (New_Element) = Container.Element_ID;
+   --  Prepend New_Item to Container, including Container.Separator_ID if
+   --  it is not Invalid_Token_Index.
+   --
+   --  Container.Root parent is unchanged.
 
    procedure Insert
      (Container   : in out List;
@@ -280,10 +286,9 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  Insert New_Item into Container after Ater, including
    --  Container.Separator_ID if it is not Invalid_Token_Index.
    --
-   --  If Container was Empty, or if Container.Root has no parent in
-   --  Tree, or if the parent has ID of Invalid_Token_ID (meaning
-   --  Clear_Children was called on it), or if the parent is not a
-   --  nonterm (meaning Set_Node_Identifier was called on it), the
+   --  If After is No_Element, calls Prepend.
+   --
+   --  If Container was Empty, or if Container.Root has no parent, the
    --  modified list has no parent. Otherwise, if After is
    --  Container.Last, the parent of Container.Root is updated to hold
    --  the new Container.Root.
