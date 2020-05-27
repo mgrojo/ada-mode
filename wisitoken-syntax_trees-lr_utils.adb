@@ -514,14 +514,19 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Children       => (1 => New_Element)));
 
       else
-         --  Inserting element First in spec example
+         --  Inserting element First (with list parent node) in spec example
          declare
-            First : constant Valid_Node_Index := Container.First.Node;
+            First  : constant Valid_Node_Index := Container.First.Node;
+            Parent : constant Valid_Node_Index := Tree.Parent (First);
+
+            List_Node : constant Valid_Node_Index := Tree.Add_Nonterm
+              ((Container.List_ID, Container.One_Element_RHS),
+               (1 => New_Element));
          begin
             Tree.Set_Children
-              (Node     => Tree.Parent (First),
+              (Node     => Parent,
                New_ID   => (Container.List_ID, Container.Multi_Element_RHS),
-               Children => (First, New_Element));
+               Children => (List_Node, First));
          end;
       end if;
    end Prepend;

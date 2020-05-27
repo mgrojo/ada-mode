@@ -28,20 +28,21 @@ report gdb bug to adacore
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
-    java_types_ch19.wy
-        unknown conflicts from Dims
-            missing some alternatives
-        tokens not found; from NumericType, last nonterminal
-            compilation_unit_list tree must be truncated
+    translate_optional always inline
+        just call current code in a loop.
 
-    ada_lite_ebnf excess conflicts
-        something's not right
+    factor out Find_Content (string)?
+
+
+    java_types_ch19.wy
+        dims : in {{Annotation} '[' ']'}, each rep of outer list can have AnnotationList or not
+            that's wrong in _bnf.wy_good, right in new
+            but nonterminal_023 is the same as nonterminal_025; search for it.
 
     python_ebnf.wy
         testlist_comp, dictorsetmaker
 
         nested rhs_alternatives, only inner has an empty rhs_item_list
-            can add edited rhs_alternative_list to outer (since it is not empty), rather than to parent rhs
 
         does not realize that dictorsetmaker has the same nonterminal?
 

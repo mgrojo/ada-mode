@@ -1192,6 +1192,8 @@ package body WisiToken_Grammar_Runtime is
          end if;
 
          declare
+            Skip_List : constant Skip_Array := Find_RHS_Skips;
+
             Container_ID : WisiToken.Token_ID := Tree.ID (Container);
 
             Container_List : Syntax_Trees.LR_Utils.List :=
@@ -1218,7 +1220,7 @@ package body WisiToken_Grammar_Runtime is
             New_RHS_AC   : Node_Index := Invalid_Node_Index;
             Is_Duplicate : Boolean    := False;
          begin
-            if Container_ID = +rhs_ID or else RHS_Item_List_List.Count = 1 then
+            if Container_ID = +rhs_ID or Empty_Copy_Skip_Result then
                --  We can't insert an empty rhs_item_list into an
                --  rhs_alterative_list, so copy the full RHS.
 
@@ -1236,43 +1238,42 @@ package body WisiToken_Grammar_Runtime is
                      Separator_ID => +BAR_ID);
                end if;
 
-               declare
-                  Skip_List : constant Skip_Array := Find_RHS_Skips;
-               begin
-                  if not Empty_Copy_Skip_Result then
-                     New_RHS_AC := Copy_Skip_Nested
-                       (Create_Constant_List
-                          (Tree,
-                           Root       => Tree.Child (Container, 1),
-                           List_ID    => +rhs_item_list_ID,
-                           Element_ID => +rhs_element_ID),
-                        Skip_List, Tree,
-                        Separator_ID => Invalid_Token_ID,
-                        Multi_Element_RHS => 1);
-                  end if;
+               if Empty_Copy_Skip_Result then
+                  --  New rhs is empty; no rhs_item_list
+                  null;
+               else
+                  New_RHS_AC := Copy_Skip_Nested
+                    (Create_Constant_List
+                       (Tree,
+                        Root       => Tree.Child (Container, 1),
+                        List_ID    => +rhs_item_list_ID,
+                        Element_ID => +rhs_element_ID),
+                     Skip_List, Tree,
+                     Separator_ID => Invalid_Token_ID,
+                     Multi_Element_RHS => 1);
+               end if;
 
-                  if not Empty_Copy_Skip_Result then
-                     --  FIXME: check for duplicate empty?
-                     if Duplicate (Container_List, New_RHS_AC) then
-                        Is_Duplicate := True;
-                     else
-                        Container_List.Insert
-                          (New_Element => Tree.Add_Nonterm
-                             ((+rhs_ID, (if Empty_Copy_Skip_Result then 0 else Tree.RHS_Index (Container))),
-                              (if Empty_Copy_Skip_Result then
-                                 (1 .. 0 => Invalid_Node_Index)
-                               else
-                                 (case Tree.RHS_Index (Container) is
-                                  when 1 => (1 => New_RHS_AC),
-                                  when 2 => (New_RHS_AC, Tree.Copy_Subtree (Tree.Child (Container, 2))),
-                                  when 3 => (New_RHS_AC,
-                                             Tree.Copy_Subtree (Tree.Child (Container, 2)),
-                                             Tree.Copy_Subtree (Tree.Child (Container, 3))),
-                                  when others => raise SAL.Programmer_Error))),
-                           After => Container_List.To_Cursor (Container));
-                     end if;
-                  end if;
-               end;
+               if not Empty_Copy_Skip_Result then
+                  --  FIXME: check for duplicate empty?
+                  Is_Duplicate := Duplicate (Container_List, New_RHS_AC);
+               end if;
+
+               if not Is_Duplicate then
+                  Container_List.Insert
+                    (New_Element => Tree.Add_Nonterm
+                       ((+rhs_ID, (if Empty_Copy_Skip_Result then 0 else Tree.RHS_Index (Container))),
+                        (if Empty_Copy_Skip_Result then
+                           (1 .. 0 => Invalid_Node_Index)
+                         else
+                           (case Tree.RHS_Index (Container) is
+                            when 1 => (1 => New_RHS_AC),
+                            when 2 => (New_RHS_AC, Tree.Copy_Subtree (Tree.Child (Container, 2))),
+                            when 3 => (New_RHS_AC,
+                                       Tree.Copy_Subtree (Tree.Child (Container, 2)),
+                                       Tree.Copy_Subtree (Tree.Child (Container, 3))),
+                            when others => raise SAL.Programmer_Error))),
+                     After => Container_List.To_Cursor (Container));
+               end if;
 
             else
                New_RHS_AC := Copy_Skip_Nested
@@ -1782,7 +1783,7 @@ package body WisiToken_Grammar_Runtime is
                return;
             end if;
 
-            if Trace_Generate_EBNF > Outline then
+            if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("canonical list");
             end if;
 
@@ -2202,11 +2203,11 @@ package body WisiToken_Grammar_Runtime is
             begin
 
                if B_Alternative_List.Count = 1 then
-                  if B_Item_List.Count = 1
-                  then
+                  if B_Item_List.Count = 1 then
                      --  Single item in rhs_alternative_list and rhs_item_list; just use it.
                      --
-                     --  Single alternative, multiple rhs_items handled below
+                     --  Single alternative, multiple rhs_items handled below in "more
+                     --  special cases", after check for created nonterminal.
                      declare
                         Name_Element_Node    : Valid_Node_Index;
                         Name_Identifier_Node : Node_Index;
@@ -2235,7 +2236,7 @@ package body WisiToken_Grammar_Runtime is
                      end;
                   end if;
                else
-                  --  See if we've already created a nonterminal for this.
+                  --  Multiple alternatives; see if we've already created a nonterminal for this.
                   declare
                      New_Text : constant String   := Get_Text (Data, Tree, Tree.Child (Node, 2));
                      List     : constant Constant_List := Create_Constant_List
@@ -2457,6 +2458,7 @@ package body WisiToken_Grammar_Runtime is
             end if;
          end if;
 
+         --  Replace string literal in rhs_item
          declare
             Parent : constant Valid_Node_Index := Tree.Parent (Node);
          begin
