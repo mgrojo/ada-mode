@@ -28,12 +28,6 @@ report gdb bug to adacore
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
-    translate_optional always inline
-        just call current code in a loop.
-
-    factor out Find_Content (string)?
-
-
     java_types_ch19.wy
         dims : in {{Annotation} '[' ']'}, each rep of outer list can have AnnotationList or not
             that's wrong in _bnf.wy_good, right in new

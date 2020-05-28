@@ -36,6 +36,34 @@ package body WisiToken.Syntax_Trees.LR_Utils is
            Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
+   function Count (Container : Constant_List) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Result : Count_Type := 0;
+   begin
+      for Item of Container loop
+         Result := Result + 1;
+      end loop;
+      return Result;
+   end Count;
+
+   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
+   is begin
+      return (for some N of Container => N = Node);
+   end Contains;
+
+   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
+   is
+      pragma Unreferenced (Container);
+   begin
+      return (Node => Node);
+   end To_Cursor;
+
+   function Contains (Container : in Constant_List; Item : in Cursor) return Boolean
+   is begin
+      return (for some N of Container => N = Item.Node);
+   end Contains;
+
    function First
      (Tree       : in WisiToken.Syntax_Trees.Tree;
       Root       : in WisiToken.Node_Index;
@@ -66,7 +94,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end if;
    end First;
 
-   function First (Container : in List) return Cursor
+   function First (Container : in Constant_List) return Cursor
    is begin
       return (Node => First (Container.Tree.all, Container.Root, Container.List_ID, Container.Element_ID));
    end First;
@@ -94,7 +122,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end if;
    end Last;
 
-   function Last  (Container : in List) return Cursor
+   function Last  (Container : in Constant_List) return Cursor
    is begin
       return (Node => Last (Container.Tree.all, Container.Root));
    end Last;
@@ -233,22 +261,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return (Node => Previous (Iter.Container.Tree.all, Position.Node));
    end Previous;
 
-   function List_Constant_Ref (Container : aliased in List; Position : in Cursor) return Valid_Node_Index
+   function List_Constant_Ref (Container : aliased in Constant_List'Class; Position : in Cursor) return Valid_Node_Index
    is
       pragma Unreferenced (Container);
    begin
       return Position.Node;
    end List_Constant_Ref;
-
-   function First (Container : in Constant_List) return Cursor
-   is begin
-      return (Node => First (Container.Tree.all, Container.Root, Container.List_ID, Container.Element_ID));
-   end First;
-
-   function Last  (Container : in Constant_List) return Cursor
-   is begin
-      return (Node => Last (Container.Tree.all, Container.Root));
-   end Last;
 
    overriding function Next (Iter : in Constant_Iterator; Position : Cursor) return Cursor
    is begin
@@ -260,192 +278,139 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return (Node => Previous (Iter.Container.Tree.all, Position.Node));
    end Previous;
 
-   function Constant_List_Constant_Ref
-     (Container : aliased in Constant_List;
-      Position  :         in Cursor)
-     return Valid_Node_Index
-   is
-      pragma Unreferenced (Container);
-   begin
-      return Position.Node;
-   end Constant_List_Constant_Ref;
+   package body Creators is
 
-   function Create_List
-     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Root         :         in     Valid_Node_Index;
-      List_ID      :         in     WisiToken.Token_ID;
-      Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID)
-     return List
-   is
-      pragma Unreferenced (List_ID); --  checked in precondition.
+      function Create_List
+        (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root         :         in     Valid_Node_Index;
+         List_ID      :         in     WisiToken.Token_ID;
+         Element_ID   :         in     WisiToken.Token_ID;
+         Separator_ID :         in     WisiToken.Token_ID)
+        return List
+      is
+         pragma Unreferenced (List_ID); --  checked in precondition.
 
-      Multi_Element_RHS : constant Natural :=
-        (if Tree.Child_Count (Root) = 1
-         then (if Tree.RHS_Index (Root) = 0 then 1 else 0)
-         elsif Tree.Child_Count (Root) in 2 .. 3 --  3 if there is a separator
-         then Tree.RHS_Index (Root)
-         else raise SAL.Programmer_Error);
-   begin
-      return
-        (Tree'Access, Root,
-         List_ID           => Tree.ID (Root),
-         One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
-         Multi_Element_RHS => Multi_Element_RHS,
-         Element_ID        => Element_ID,
-         Separator_ID      => Separator_ID);
-   end Create_List;
+         Multi_Element_RHS : constant Natural :=
+           (if Tree.Child_Count (Root) = 1
+            then (if Tree.RHS_Index (Root) = 0 then 1 else 0)
+            elsif Tree.Child_Count (Root) in 2 .. 3 --  3 if there is a separator
+            then Tree.RHS_Index (Root)
+            else raise SAL.Programmer_Error);
+      begin
+         return
+           (Tree'Access, Root,
+            List_ID           => Tree.ID (Root),
+            One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
+            Multi_Element_RHS => Multi_Element_RHS,
+            Element_ID        => Element_ID,
+            Separator_ID      => Separator_ID);
+      end Create_List;
 
-   function Create_Constant_List
-     (Tree       : aliased in WisiToken.Syntax_Trees.Tree;
-      Root       :         in Valid_Node_Index;
-      List_ID    :         in WisiToken.Token_ID;
-      Element_ID :         in WisiToken.Token_ID)
-     return Constant_List
-   is
-      pragma Unreferenced (List_ID); --  in precondition
-   begin
-      return
-        (Tree'Access, Root,
-         List_ID    => Tree.ID (Root),
-         Element_ID => Element_ID);
-   end Create_Constant_List;
+      function Create_List
+        (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root       :         in     Valid_Node_Index;
+         List_ID    :         in     WisiToken.Token_ID;
+         Element_ID :         in     WisiToken.Token_ID)
+        return Constant_List
+      is
+         pragma Unreferenced (List_ID); --  in precondition
+      begin
+         return
+           (Tree'Access, Root,
+            List_ID    => Tree.ID (Root),
+            Element_ID => Element_ID);
+      end Create_List;
 
-   function Create_List (Container : in List; Root : in Valid_Node_Index) return List
-   is begin
-      return Create_List (Container.Tree.all, Root, Container.List_ID, Container.Element_ID, Container.Separator_ID);
-   end Create_List;
+      function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
+      is begin
+         return Create_List (Container.Tree.all, Root, Container.List_ID, Container.Element_ID, Container.Separator_ID);
+      end Create_List;
 
-   function Create_From_Element
-     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Element      :         in     Valid_Node_Index;
-      List_ID      :         in     WisiToken.Token_ID;
-      Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID)
-     return List
-   is
-      Root : Valid_Node_Index := Tree.Parent (Element);
-   begin
-      loop
-         exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
-         Root := Tree.Parent (Root);
-      end loop;
-      return Create_List (Tree, Root, List_ID, Element_ID, Separator_ID);
-   end Create_From_Element;
+      function Create_From_Element
+        (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+         Element      :         in     Valid_Node_Index;
+         List_ID      :         in     WisiToken.Token_ID;
+         Element_ID   :         in     WisiToken.Token_ID;
+         Separator_ID :         in     WisiToken.Token_ID)
+        return List
+      is
+         Root : Valid_Node_Index := Tree.Parent (Element);
+      begin
+         loop
+            exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+            Root := Tree.Parent (Root);
+         end loop;
+         return Create_List (Tree, Root, List_ID, Element_ID, Separator_ID);
+      end Create_From_Element;
 
-   function Create_From_Element (Container : in List; Element : in Valid_Node_Index) return List
-   is begin
-      return Create_From_Element
-        (Container.Tree.all, Element, Container.List_ID, Container.Element_ID, Container.Separator_ID);
-   end Create_From_Element;
+      function Create_From_Element (Container : in out List; Element : in Valid_Node_Index) return List
+      is begin
+         return Create_From_Element
+           (Container.Tree.all, Element, Container.List_ID, Container.Element_ID, Container.Separator_ID);
+      end Create_From_Element;
 
-   function Create_From_Element
-     (Tree       : aliased in WisiToken.Syntax_Trees.Tree;
-      Element    :         in Valid_Node_Index;
-      List_ID    :         in WisiToken.Token_ID;
-      Element_ID :         in WisiToken.Token_ID)
-     return Constant_List
-   is
-      Root : Valid_Node_Index := Tree.Parent (Element);
-   begin
-      loop
-         exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
-         Root := Tree.Parent (Root);
-      end loop;
-      return Create_Constant_List (Tree, Root, List_ID, Element_ID);
-   end Create_From_Element;
+      function Create_From_Element
+        (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
+         Element    :         in     Valid_Node_Index;
+         List_ID    :         in     WisiToken.Token_ID;
+         Element_ID :         in     WisiToken.Token_ID)
+        return Constant_List
+      is
+         Root : Valid_Node_Index := Tree.Parent (Element);
+      begin
+         loop
+            exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+            Root := Tree.Parent (Root);
+         end loop;
+         return Create_List (Tree, Root, List_ID, Element_ID);
+      end Create_From_Element;
 
-   function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return List
-   is begin
-      return
-        (Tree              => Tree'Access,
-         Root              => Invalid_Node_Index,
-         List_ID           => Invalid_Token_ID,
-         One_Element_RHS   => 0,
-         Multi_Element_RHS => 0,
-         Element_ID        => Invalid_Token_ID,
-         Separator_ID      => Invalid_Token_ID);
-   end Invalid_List;
+      function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return List
+      is begin
+         return
+           (Tree              => Tree'Access,
+            Root              => Invalid_Node_Index,
+            List_ID           => Invalid_Token_ID,
+            One_Element_RHS   => 0,
+            Multi_Element_RHS => 0,
+            Element_ID        => Invalid_Token_ID,
+            Separator_ID      => Invalid_Token_ID);
+      end Invalid_List;
 
-   function Invalid_List (Tree : aliased in WisiToken.Syntax_Trees.Tree) return Constant_List
-   is begin
-      return
-        (Tree       => Tree'Access,
-         Root       => Invalid_Node_Index,
-         List_ID    => Invalid_Token_ID,
-         Element_ID => Invalid_Token_ID);
-   end Invalid_List;
+      function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Constant_List
+      is begin
+         return
+           (Tree       => Tree'Access,
+            Root       => Invalid_Node_Index,
+            List_ID    => Invalid_Token_ID,
+            Element_ID => Invalid_Token_ID);
+      end Invalid_List;
 
-   function Empty_List
-     (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
-      List_ID           :         in     WisiToken.Token_ID;
-      Multi_Element_RHS :         in     Natural;
-      Element_ID        :         in     WisiToken.Token_ID;
-      Separator_ID      :         in     WisiToken.Token_ID)
-     return List
-   is begin
-      return
-        (Tree'Access,
-         Root              => Invalid_Node_Index,
-         List_ID           => List_ID,
-         One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
-         Multi_Element_RHS => Multi_Element_RHS,
-         Element_ID        => Element_ID,
-         Separator_ID      => Separator_ID);
-   end Empty_List;
+      function Empty_List
+        (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
+         List_ID           :         in     WisiToken.Token_ID;
+         Multi_Element_RHS :         in     Natural;
+         Element_ID        :         in     WisiToken.Token_ID;
+         Separator_ID      :         in     WisiToken.Token_ID)
+        return List
+      is begin
+         return
+           (Tree'Access,
+            Root              => Invalid_Node_Index,
+            List_ID           => List_ID,
+            One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
+            Multi_Element_RHS => Multi_Element_RHS,
+            Element_ID        => Element_ID,
+            Separator_ID      => Separator_ID);
+      end Empty_List;
 
-   function Empty_List (Container : in List) return List
-   is begin
-      return Empty_List
-        (Container.Tree.all, Container.List_ID, Container.Multi_Element_RHS, Container.Element_ID,
-         Container.Separator_ID);
-   end Empty_List;
-
-   function To_Cursor (Container : in List; Node : in Valid_Node_Index) return Cursor
-   is
-      pragma Unreferenced (Container);
-   begin
-      return (Node => Node);
-   end To_Cursor;
-
-   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
-   is
-      pragma Unreferenced (Container);
-   begin
-      return (Node => Node);
-   end To_Cursor;
-
-   function Count (Container : List) return Ada.Containers.Count_Type
-   is
-      use Ada.Containers;
-      Result : Count_Type := 0;
-   begin
-      for Item of Container loop
-         Result := Result + 1;
-      end loop;
-      return Result;
-   end Count;
-
-   function Count (Container : Constant_List) return Ada.Containers.Count_Type
-   is
-      use Ada.Containers;
-      Result : Count_Type := 0;
-   begin
-      for Item of Container loop
-         Result := Result + 1;
-      end loop;
-      return Result;
-   end Count;
-
-   function Contains (Container : in List; Node : in Valid_Node_Index) return Boolean
-   is begin
-      return (for some N of Container => N = Node);
-   end Contains;
-
-   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
-   is begin
-      return (for some N of Container => N = Node);
-   end Contains;
+      function Empty_List (Container : in out List) return List
+      is begin
+         return Empty_List
+           (Container.Tree.all, Container.List_ID, Container.Multi_Element_RHS, Container.Element_ID,
+            Container.Separator_ID);
+      end Empty_List;
+   end Creators;
 
    procedure Append
      (Container   : in out List;
@@ -600,7 +565,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Insert;
 
    procedure Copy
-     (Source_List  : in     Constant_List;
+     (Source_List  : in     Constant_List'Class;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
       Dest_List    : in out List'Class)
@@ -621,7 +586,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       end loop;
    end Copy;
 
-   function Valid_Skip_List (Tree : aliased in Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean
+   function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean
    is begin
       if Skip_List'Length = 0 then return False; end if;
 
@@ -641,7 +606,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          declare
             I : constant Positive_Index_Type := Skip_List'Last - 1;
          begin
-            if Create_From_Element
+            if Creators.Create_From_Element
               (Tree, Skip_List (I - 1).Element, Skip_List (I).List_ID, Skip_List (I).Element_ID).Count = 1
             then
                return False;
@@ -653,7 +618,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Valid_Skip_List;
 
    function Copy_Skip_Nested
-     (Source_List       :         in     Constant_List;
+     (Source_List       :         in     Constant_List'Class;
       Skip_List         :         in     Skip_Array;
       Skip_Found        :         in out Boolean;
       Tree              : aliased in out Syntax_Trees.Tree;
@@ -661,7 +626,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Multi_Element_RHS :         in     Natural)
       return Node_Index
    is
-      Dest_List : List := Empty_List
+      Dest_List : List := Creators.Empty_List
         (Tree, Source_List.List_ID, Multi_Element_RHS, Source_List.Element_ID, Separator_ID);
 
       function Get_Dest_Child
@@ -676,7 +641,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       begin
          if Node = Skip_This.List_Root then
             return Copy_Skip_Nested
-              (Create_Constant_List
+              (Creators.Create_List
                  (Tree,
                   Root       => Skip_This.List_Root,
                   List_ID    => Skip_This.List_ID,
@@ -691,7 +656,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                for I in Source_Children'Range loop
                   if Source_Children (I) = Skip_This.List_Root then
                      Dest_Children (I) := Copy_Skip_Nested
-                       (Create_Constant_List
+                       (Creators.Create_List
                           (Tree,
                            Root       => Skip_This.List_Root,
                            List_ID    => Skip_This.List_ID,
@@ -733,7 +698,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Copy_Skip_Nested;
 
    function Copy_Skip_Nested
-     (Source_List       :         in     Constant_List;
+     (Source_List       :         in     Constant_List'Class;
       Skip_List         :         in     Skip_Array;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;

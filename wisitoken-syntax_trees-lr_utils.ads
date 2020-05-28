@@ -62,19 +62,44 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  separator
    --  element: Last
 
-   type List (<>) is tagged private with
-     Constant_Indexing => List_Constant_Ref,
-     Default_Iterator  => Iterate,
-     Iterator_Element  => Valid_Node_Index;
-
    type Constant_List (<>) is tagged private with
-     Constant_Indexing => Constant_List_Constant_Ref,
+     Constant_Indexing => List_Constant_Ref,
      Default_Iterator  => Iterate_Constant,
      Iterator_Element  => Valid_Node_Index;
+
+   function Tree (Container : in Constant_List) return Tree_Constant_Reference
+   with Pre => not Container.Is_Invalid;
+
+   function Is_Invalid (Container : in Constant_List) return Boolean;
+
+   function Is_Empty (Container : in Constant_List) return Boolean;
+   --  Returns True if Container is invalid, or if Container is empty
+
+   function Root (Container : in Constant_List) return Node_Index
+   with Pre => not Container.Is_Invalid;
+
+   function List_ID (Container : in Constant_List) return Token_ID
+   with Pre => not Container.Is_Invalid;
+
+   function Element_ID (Container : in Constant_List) return Token_ID
+   with Pre => not Container.Is_Invalid;
+
+   function Count (Container : in Constant_List) return Ada.Containers.Count_Type
+   with Pre => not Container.Is_Invalid;
+
+   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
+   with Pre => not Container.Is_Invalid;
 
    type Cursor is private;
 
    No_Element : constant Cursor;
+
+   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
+   with Pre => (not Container.Is_Invalid) and then
+               (Container.Contains (Node) and Container.Tree.ID (Node) = Container.Element_ID);
+
+   function Contains (Container : in Constant_List; Item : in Cursor) return Boolean
+   with Pre => not Container.Is_Invalid;
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
 
@@ -87,174 +112,131 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator (Container : not null access constant List) is new Iterator_Interfaces.Reversible_Iterator
+   type Iterator (Container : not null access constant Constant_List'Class) is
+     new Iterator_Interfaces.Reversible_Iterator
      with null record;
 
-   function First (Container : in List) return Cursor;
-   function Last  (Container : in List) return Cursor;
+   function First (Container : in Constant_List) return Cursor;
+   function Last  (Container : in Constant_List) return Cursor;
 
    overriding function First (Iter : in Iterator) return Cursor is (Iter.Container.First);
    overriding function Last  (Iter : in Iterator) return Cursor is (Iter.Container.Last);
    overriding function Next     (Iter : in Iterator; Position : Cursor) return Cursor;
    overriding function Previous (Iter : in Iterator; Position : Cursor) return Cursor;
 
-   function List_Constant_Ref (Container : aliased in List; Position : in Cursor) return Valid_Node_Index;
-
-   function Iterate (Container : aliased in List'Class) return Iterator
-   is (Iterator_Interfaces.Reversible_Iterator with Container'Access);
+   function List_Constant_Ref
+     (Container : aliased in Constant_List'Class;
+      Position  :         in Cursor)
+     return Valid_Node_Index;
 
    type Constant_Iterator (Container : not null access constant Constant_List) is new
      Iterator_Interfaces.Reversible_Iterator
      with null record;
-
-   function First (Container : in Constant_List) return Cursor;
-   function Last  (Container : in Constant_List) return Cursor;
 
    overriding function First (Iter : in Constant_Iterator) return Cursor is (Iter.Container.First);
    overriding function Last  (Iter : in Constant_Iterator) return Cursor is (Iter.Container.Last);
    overriding function Next     (Iter : in Constant_Iterator; Position : Cursor) return Cursor;
    overriding function Previous (Iter : in Constant_Iterator; Position : Cursor) return Cursor;
 
-   function Constant_List_Constant_Ref
-     (Container : aliased in Constant_List;
-      Position  :         in Cursor)
-     return Valid_Node_Index;
-   function Constant_Ref (Container : aliased in Constant_List; Position : in Cursor) return Valid_Node_Index
-     renames Constant_List_Constant_Ref;
-
    function Iterate_Constant (Container : aliased in Constant_List'Class) return Constant_Iterator
    is (Iterator_Interfaces.Reversible_Iterator with Container'Access);
 
-   function Create_List
-     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Root         :         in     Valid_Node_Index;
-      List_ID      :         in     WisiToken.Token_ID;
-      Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID)
-     return List
-   with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
-   --  If there is no separator, set Separator_ID = WisiToken.Invalid_Token_ID
-   --  The list cannot be empty; use Empty_List for an empty list.
-
-   function Create_Constant_List
-     (Tree       : aliased in WisiToken.Syntax_Trees.Tree;
-      Root       :         in Valid_Node_Index;
-      List_ID    :         in WisiToken.Token_ID;
-      Element_ID :         in WisiToken.Token_ID)
-     return Constant_List
-   with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
-   --  The separator is only need when adding new elements.
-
-   function Create_List (Container : in List; Root : in Valid_Node_Index) return List
-   with Pre => (Container.Tree.Is_Nonterm (Root) and then Container.Tree.Has_Children (Root)) and
-               Container.Tree.ID (Root) = Container.List_ID;
-   --  Same as Create_List, get all other params from Container.
-
-   function Create_From_Element
-     (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-      Element      :         in     Valid_Node_Index;
-      List_ID      :         in     WisiToken.Token_ID;
-      Element_ID   :         in     WisiToken.Token_ID;
-      Separator_ID :         in     WisiToken.Token_ID)
-     return List
-   with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
-               Tree.ID (Element) = Element_ID and
-               Tree.ID (Tree.Parent (Element)) = List_ID;
-   --  Same as Create_List, but it first finds the root as an ancestor of
-   --  Element.
-
-   function Create_From_Element (Container : in List; Element : in Valid_Node_Index) return List
-   with Pre => Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID and
-               Container.Tree.ID (Element) = Container.Element_ID and
-               Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID;
-   --  Same as Create_From_Element, get all other params from Container.
-
-   function Create_From_Element
-     (Tree       : aliased in WisiToken.Syntax_Trees.Tree;
-      Element    :         in Valid_Node_Index;
-      List_ID    :         in WisiToken.Token_ID;
-      Element_ID :         in WisiToken.Token_ID)
-     return Constant_List
-   with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
-               Tree.ID (Element) = Element_ID and
-               Tree.ID (Tree.Parent (Element)) = List_ID;
-   --  Same as Create_List, but it first finds the root as an ancestor of
-   --  Element.
-
-   function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return List;
-   function Invalid_List (Tree : aliased in WisiToken.Syntax_Trees.Tree) return Constant_List;
-   --  First, Last return empty cursor, count returns 0, all other
-   --  operations fail a precondition check.
-   --
-   --  Useful when the result should never be used, but must be present,
-   --  as in a conditional expression.
-
-   function Is_Invalid (Container : in List) return Boolean;
-   function Is_Invalid (Container : in Constant_List) return Boolean;
-
-   function Empty_List
-     (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
-      List_ID           :         in     WisiToken.Token_ID;
-      Multi_Element_RHS :         in     Natural;
-      Element_ID        :         in     WisiToken.Token_ID;
-      Separator_ID      :         in     WisiToken.Token_ID)
-     return List;
-   --  Result Root returns Invalid_Node_Index; First, Last return empty
-   --  cursor, count returns 0; Append works correctly.
-
-   function Empty_List (Container : in List) return List;
-   --  Same as Empty_List, get all params from Container.
-
-   function Is_Empty (Container : in List) return Boolean;
-   --  Returns True if Container is invalid, or if Container is empty
-
-   function To_Cursor (Container : in List; Node : in Valid_Node_Index) return Cursor
-   with Pre => (not Container.Is_Invalid) and then
-               (Container.Contains (Node) and Container.Tree.ID (Node) = Container.Element_ID);
-
-   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
-   with Pre => (not Container.Is_Invalid) and then
-               (Container.Contains (Node) and Container.Tree.ID (Node) = Container.Element_ID);
-
-   function Tree (Container : in List) return Tree_Variable_Reference
-   with Pre => not Container.Is_Invalid;
-
-   function Tree (Container : in Constant_List) return Tree_Constant_Reference
-   with Pre => not Container.Is_Invalid;
-
-   function Root (Container : in List) return Node_Index
-   with Pre => not Container.Is_Invalid;
-
-   function List_ID (Container : in List) return Token_ID
-   with Pre => not Container.Is_Invalid;
-
-   function Element_ID (Container : in List) return Token_ID
-   with Pre => not Container.Is_Invalid;
-
-   function Element_ID (Container : in Constant_List) return Token_ID
-   with Pre => not Container.Is_Invalid;
+   type List (<>) is new Constant_List with private with
+     Default_Iterator  => Iterate,
+     Iterator_Element  => Valid_Node_Index;
 
    function Separator_ID (Container : in List) return Token_ID
    with Pre => not Container.Is_Invalid;
 
-   function Count (Container : in List) return Ada.Containers.Count_Type
-   with Pre => not Container.Is_Invalid;
-   function Count (Container : in Constant_List) return Ada.Containers.Count_Type
-   with Pre => not Container.Is_Invalid;
+   function Iterate (Container : aliased in List'Class) return Iterator
+   is (Iterator_Interfaces.Reversible_Iterator with Container'Access);
 
-   function Compatible (A, B : in List) return Boolean;
-   function Compatible (A : in Constant_List; B : in List'Class) return Boolean;
+   package Creators is
+      --  Nested package so these are not primitive, and don't have to be
+      --  overridden for List.
+
+      function Create_List
+        (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root         :         in     Valid_Node_Index;
+         List_ID      :         in     WisiToken.Token_ID;
+         Element_ID   :         in     WisiToken.Token_ID;
+         Separator_ID :         in     WisiToken.Token_ID)
+        return List
+      with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
+      --  If there is no separator, set Separator_ID = WisiToken.Invalid_Token_ID
+      --  The list cannot be empty; use Empty_List for an empty list.
+
+      function Create_List
+        (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root       :         in     Valid_Node_Index;
+         List_ID    :         in     WisiToken.Token_ID;
+         Element_ID :         in     WisiToken.Token_ID)
+        return Constant_List
+      with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
+      --  The separator is only need when adding new elements.
+
+      function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
+      with Pre => (Container.Tree.Is_Nonterm (Root) and then Container.Tree.Has_Children (Root)) and
+                  Container.Tree.ID (Root) = Container.List_ID;
+      --  Same as Create_List, get all other params from Container.
+
+      function Create_From_Element
+        (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
+         Element      :         in     Valid_Node_Index;
+         List_ID      :         in     WisiToken.Token_ID;
+         Element_ID   :         in     WisiToken.Token_ID;
+         Separator_ID :         in     WisiToken.Token_ID)
+        return List
+      with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
+                  Tree.ID (Element) = Element_ID and
+                  Tree.ID (Tree.Parent (Element)) = List_ID;
+      --  Same as Create_List, but it first finds the root as an ancestor of
+      --  Element.
+
+      function Create_From_Element (Container : in out List; Element : in Valid_Node_Index) return List
+      with Pre => Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID and
+                  Container.Tree.ID (Element) = Container.Element_ID and
+                  Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID;
+      --  Same as Create_From_Element, get all other params from Container.
+
+      function Create_From_Element
+        (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
+         Element    :         in     Valid_Node_Index;
+         List_ID    :         in     WisiToken.Token_ID;
+         Element_ID :         in     WisiToken.Token_ID)
+        return Constant_List
+      with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
+                  Tree.ID (Element) = Element_ID and
+                  Tree.ID (Tree.Parent (Element)) = List_ID;
+      --  Same as Create_List, but it first finds the root as an ancestor of
+      --  Element.
+
+      function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return List;
+      function Invalid_List (Tree : aliased in out WisiToken.Syntax_Trees.Tree) return Constant_List;
+      --  First, Last return empty cursor, count returns 0, all other
+      --  operations fail a precondition check.
+      --
+      --  Useful when the result should never be used, but must be present,
+      --  as in a conditional expression.
+
+      function Empty_List
+        (Tree              : aliased in out WisiToken.Syntax_Trees.Tree;
+         List_ID           :         in     WisiToken.Token_ID;
+         Multi_Element_RHS :         in     Natural;
+         Element_ID        :         in     WisiToken.Token_ID;
+         Separator_ID      :         in     WisiToken.Token_ID)
+        return List;
+      --  Result Root returns Invalid_Node_Index; First, Last return empty
+      --  cursor, count returns 0; Append works correctly.
+
+      function Empty_List (Container : in out List) return List;
+      --  Same as Empty_List, get all other params from Container.
+
+   end Creators;
+
+   function Compatible (A, B : in Constant_List'Class) return Boolean;
    --  True if A and B are not invalid, and all components are the same
    --  except Root.
-
-   function Contains (Container : in List; Node : in Valid_Node_Index) return Boolean
-   with Pre => not Container.Is_Invalid;
-
-   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
-   with Pre => not Container.Is_Invalid;
-
-   function Contains (Container : in List; Item : in Cursor) return Boolean
-   with Pre => not Container.Is_Invalid;
 
    procedure Append
      (Container   : in out List;
@@ -294,7 +276,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  the new Container.Root.
 
    procedure Copy
-     (Source_List  : in     Constant_List;
+     (Source_List  : in     Constant_List'Class;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
       Dest_List    : in out List'Class)
@@ -339,7 +321,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Image is new SAL.Gen_Unconstrained_Array_Image_Aux
      (Positive_Index_Type, Skip_Item, Skip_Array, WisiToken.Descriptor, Image);
 
-   function Valid_Skip_List (Tree : aliased in Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean;
+   function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean;
    --  The last element must be Skip, preceding elements must all be
    --  Nested. The Element in each array element must have ID = preceding
    --  Element_ID. The net result of all skips must not be empty, unless
@@ -347,13 +329,13 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  that.
 
    function Copy_Skip_Nested
-     (Source_List       :         in     Constant_List;
+     (Source_List       :         in     Constant_List'Class;
       Skip_List         :         in     Skip_Array;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
      return Node_Index
-   with Pre => Valid_Skip_List (Source_List.Tree, Skip_List);
+   with Pre => Valid_Skip_List (Tree, Skip_List);
    --  Copy list in Source_List, skipping one element as indicated by
    --  Skip_List. Return root of copied list.
    --
@@ -398,22 +380,42 @@ private
 
    No_Element : constant Cursor := (Node => Invalid_Node_Index);
 
-   type List (Tree  : not null access WisiToken.Syntax_Trees.Tree) is tagged
-   record
-      Root              : WisiToken.Node_Index;
-      List_ID           : WisiToken.Token_ID;
-      One_Element_RHS   : Natural;
-      Multi_Element_RHS : Natural;
-      Element_ID        : WisiToken.Token_ID;
-      Separator_ID      : WisiToken.Token_ID;
-   end record;
-
-   type Constant_List (Tree : not null access constant WisiToken.Syntax_Trees.Tree) is tagged
+   type Constant_List (Tree : not null access WisiToken.Syntax_Trees.Tree) is tagged
+     --  We'd prefer to have Tree be 'constant' here, but then it would
+     --  also be constant in List, where we _don't_ want that. An
+     --  alternative design would be to not derive List from Constant_List;
+     --  then we would not be able to use Copy_Skip_Nested to copy from a
+     --  List.
    record
       Root       : WisiToken.Node_Index;
       List_ID    : WisiToken.Token_ID;
       Element_ID : WisiToken.Token_ID;
    end record;
+
+   type List is new Constant_List with
+   record
+      One_Element_RHS   : Natural;
+      Multi_Element_RHS : Natural;
+      Separator_ID      : WisiToken.Token_ID;
+   end record;
+
+   function Tree (Container : in Constant_List) return Tree_Constant_Reference
+   is (Element => Container.Tree);
+
+   function Is_Invalid (Container : in Constant_List) return Boolean
+   is (Container.List_ID = Invalid_Token_ID);
+
+   function Is_Empty (Container : in Constant_List) return Boolean
+   is (Container.Root = Invalid_Node_Index);
+
+   function Root (Container : in Constant_List) return Node_Index
+   is (Container.Root);
+
+   function List_ID (Container : in Constant_List) return Token_ID
+   is (Container.List_ID);
+
+   function Element_ID (Container : in Constant_List) return Token_ID
+   is (Container.Element_ID);
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean
    is (Cursor.Node /= Invalid_Node_Index);
@@ -421,56 +423,15 @@ private
    function Node (Cursor : in LR_Utils.Cursor) return Node_Index
    is (Cursor.Node);
 
-   function Is_Invalid (Container : in List) return Boolean
-   is (Container.List_ID = Invalid_Token_ID);
-
-   function Is_Invalid (Container : in Constant_List) return Boolean
-   is (Container.List_ID = Invalid_Token_ID);
-
-   function Is_Empty (Container : in List) return Boolean
-   is (Container.Root = Invalid_Node_Index);
-
-   function Tree (Container : in List) return Tree_Variable_Reference
-   is (Element => Container.Tree);
-
-   function Tree (Container : in Constant_List) return Tree_Constant_Reference
-   is (Element => Container.Tree);
-
-   function Root (Container : in List) return Node_Index
-   is (Container.Root);
-
-   function List_ID (Container : in List) return Token_ID
-   is (Container.List_ID);
-
-   function Element_ID (Container : in List) return Token_ID
-   is (Container.Element_ID);
-
-   function Element_ID (Container : in Constant_List) return Token_ID
-   is (Container.Element_ID);
-
    function Separator_ID (Container : in List) return Token_ID
    is (Container.Separator_ID);
 
-   function Compatible (A, B : in List) return Boolean
-   is
-     (A.Tree = B.Tree and
-        A.List_ID /= Invalid_Token_ID and
-        B.List_ID /= Invalid_Token_ID and
-        A.List_ID = B.List_ID and
-        A.One_Element_RHS = B.One_Element_RHS and
-        A.Multi_Element_RHS = B.Multi_Element_RHS and
-        A.Element_ID = B.Element_ID and
-        A.Separator_ID = B.Separator_ID);
-
-   function Compatible (A : in Constant_List; B : in List'Class) return Boolean
+   function Compatible (A, B : in Constant_List'Class) return Boolean
    is
      (A.Tree = B.Tree and
         A.List_ID /= Invalid_Token_ID and
         B.List_ID /= Invalid_Token_ID and
         A.List_ID = B.List_ID and
         A.Element_ID = B.Element_ID);
-
-   function Contains (Container : in List; Item : in Cursor) return Boolean
-   is (Contains (Container, Item.Node));
 
 end WisiToken.Syntax_Trees.LR_Utils;
