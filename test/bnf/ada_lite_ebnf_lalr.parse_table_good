@@ -210,8 +210,8 @@ Productions:
 87.0: generic_instantiation <= PACKAGE name IS NEW name SEMICOLON
 87.1: generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON
 88.0: handled_sequence_of_statements <= sequence_of_statements EXCEPTION nonterminal_017_list ; (1 => Other_Left, 3 => Other_Right)
-88.1: handled_sequence_of_statements <= sequence_of_statements ; (1 => Other_Left)
-88.2: handled_sequence_of_statements <= sequence_of_statements EXCEPTION ; (1 => Other_Left)
+88.1: handled_sequence_of_statements <= sequence_of_statements EXCEPTION ; (1 => Other_Left)
+88.2: handled_sequence_of_statements <= sequence_of_statements ; (1 => Other_Left)
 89.0: identifier_opt <= IDENTIFIER
 89.1: identifier_opt <=
 90.0: if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON ; (4 => Other, 5 => Other, 7 => Other)
@@ -2207,7 +2207,7 @@ State 69:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 70:
      64.0:block_statement <= block_label_opt DECLARE ^ declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -3351,14 +3351,14 @@ State 130:
 
 State 131:
      88.0:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION nonterminal_017_list
-     88.1:handled_sequence_of_statements <= sequence_of_statements ^
-     88.2:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION
+     88.1:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION
+     88.2:handled_sequence_of_statements <= sequence_of_statements ^
 
-   END                                => reduce 1 tokens to handled_sequence_of_statements 88.1
+   END                                => reduce 1 tokens to handled_sequence_of_statements 88.2
    EXCEPTION                          => shift and goto state 198 88.0
    default                            => ERROR
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 132:
      98.0:package_body <= PACKAGE ^ BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4374,16 +4374,16 @@ State 197:
 
 State 198:
      88.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^ nonterminal_017_list
-     88.2:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^
+     88.1:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^
 
-   END                                => reduce 2 tokens to handled_sequence_of_statements 88.2
+   END                                => reduce 2 tokens to handled_sequence_of_statements 88.1
    WHEN                               => shift and goto state 241 78.0
    default                            => ERROR
 
    exception_handler                  goto state 242
    nonterminal_017_list               goto state 243
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Action => handled_sequence_of_statements 88.1
 
 State 199:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -4461,7 +4461,7 @@ State 202:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 203:
     117.1:subprogram_body <= subprogram_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4746,7 +4746,7 @@ State 213:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 214:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -5301,7 +5301,7 @@ State 254:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 255:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements
@@ -5566,7 +5566,7 @@ State 272:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 273:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END ^ name_opt SEMICOLON
@@ -6030,7 +6030,7 @@ State 303:
    statement                          goto state 60
    nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 304:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END ^ name_opt SEMICOLON

@@ -1627,13 +1627,16 @@ package body WisiToken.Syntax_Trees is
       Child_Index          : in     SAL.Peek_Type;
       Old_Child            : in     Valid_Node_Index;
       New_Child            : in     Valid_Node_Index;
-      Old_Child_New_Parent : in     Node_Index)
+      Old_Child_New_Parent : in     Node_Index := Invalid_Node_Index)
    is
       N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Parent);
    begin
       N.Children (Child_Index) := New_Child;
 
-      Tree.Shared_Tree.Nodes (Old_Child).Parent := Old_Child_New_Parent;
+      if Old_Child /= Deleted_Child then
+         Tree.Shared_Tree.Nodes (Old_Child).Parent := Old_Child_New_Parent;
+      end if;
+
       Tree.Shared_Tree.Nodes (New_Child).Parent := Parent;
    end Replace_Child;
 
@@ -1901,6 +1904,17 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Set_Name_Region;
 
+   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
+   is
+      N : Valid_Node_Index := Node;
+   begin
+      loop
+         exit when Tree.Shared_Tree.Nodes (N).Parent = Invalid_Node_Index;
+         N := Tree.Shared_Tree.Nodes (N).Parent;
+      end loop;
+      return N;
+   end Sub_Tree_Root;
+
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    is begin
       if Node <= Tree.Last_Shared_Node then
@@ -1975,5 +1989,67 @@ package body WisiToken.Syntax_Trees is
          return Tree.Branched_Nodes (Node).State;
       end if;
    end State;
+
+   procedure Validate_Tree
+     (Tree          : in out Syntax_Trees.Tree;
+      Descriptor    : in     WisiToken.Descriptor;
+      Root          : in     Node_Index                 := Invalid_Node_Index;
+      Validate_Node : in     Syntax_Trees.Validate_Node := null)
+   is
+      procedure Process_Node
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Valid_Node_Index)
+      is
+         use Ada.Text_IO;
+         N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+         Node_Image_Output : Boolean := False;
+      begin
+         if N.Label = Nonterm then
+            for I in N.Children.First_Index .. N.Children.Last_Index loop
+               if N.Children (I) = Deleted_Child then
+                  if not Node_Image_Output then
+                     Put_Line
+                       (Current_Error,
+                        Image (Tree, N, Node, Descriptor,
+                               Include_Children  => True,
+                               Include_RHS_Index => True,
+                               Node_Numbers      => True));
+                     Node_Image_Output := True;
+                  end if;
+                  Put_Line ("... child" & I'Image & " deleted");
+
+               else
+                  declare
+                     Child_Parent : constant Node_Index := Tree.Shared_Tree.Nodes (N.Children (I)).Parent;
+                  begin
+                     if Child_Parent /= Node then
+                        if not Node_Image_Output then
+                           Put_Line
+                             (Current_Error,
+                              Image (Tree, N, Node, Descriptor,
+                                     Include_Children  => True,
+                                     Include_RHS_Index => True,
+                                     Node_Numbers      => True));
+                           Node_Image_Output := True;
+                        end if;
+                        if Child_Parent = Invalid_Node_Index then
+                           Put_Line (Current_Error, "... child.parent invalid");
+                        else
+                           Put_Line (Current_Error, "... child.parent" & Child_Parent'Image & " incorrect");
+                        end if;
+                     end if;
+                  end;
+               end if;
+            end loop;
+         end if;
+
+         if Validate_Node /= null then
+            Validate_Node (Tree, Node, Node_Image_Output);
+         end if;
+      end Process_Node;
+
+   begin
+      Process_Tree (Tree, (if Root = Invalid_Node_Index then Tree.Root else Root), Process_Node'Access);
+   end Validate_Tree;
 
 end WisiToken.Syntax_Trees;

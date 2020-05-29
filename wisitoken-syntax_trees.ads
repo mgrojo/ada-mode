@@ -285,17 +285,20 @@ package WisiToken.Syntax_Trees is
       Child_Index          : in     SAL.Peek_Type;
       Old_Child            : in     Valid_Node_Index;
       New_Child            : in     Valid_Node_Index;
-      Old_Child_New_Parent : in     Node_Index)
+      Old_Child_New_Parent : in     Node_Index := Invalid_Node_Index)
    with
      Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
             (Tree.Is_Nonterm (Parent) and then
-             ((Tree.Child (Parent, Child_Index) = Deleted_Child or
-               Tree.Parent (Old_Child) = Invalid_Node_Index) or else
-              (Tree.Child (Parent, Child_Index) = Old_Child and
+             (Tree.Child (Parent, Child_Index) = Old_Child and
+              (Old_Child = Deleted_Child or else
                Tree.Parent (Old_Child) = Parent)));
-   --  In Parent.Children, find Old_Child, replace with New_Child.
-   --  Set New_Child.Parent to Parent, and Old_Child.Parent to
-   --  Old_Child_New_Parent.
+   --  In Parent.Children, replace child at Child_Index with New_Child.
+   --  Unless Old_Child is Deleted_Child, set Old_Child.Parent to
+   --  Old_Child_New_Parent (may be Invalid_Node_Index). Unless New_Child
+   --  is Deleted_Child, set New_Child.Parent to Parent.
+   --
+   --  If Old_Child is Deleted_Child, Old_Child_New_Parent should be left
+   --  to default.
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
@@ -525,6 +528,10 @@ package WisiToken.Syntax_Trees is
    --  Return value set by Set_Root; defaults to the last node added.
    --  returns Invalid_Node_Index if Tree is empty.
 
+   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
+   with Pre => Tree.Parents_Set and Tree.Is_Nonterm (Node);
+   --  Return top ancestor of Node.
+
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure
@@ -611,6 +618,24 @@ package WisiToken.Syntax_Trees is
       Inverted : in Boolean := False)
      return String;
    --  Simple list of numbers, for debugging
+
+   type Validate_Node is access procedure
+     (Tree              : in     Syntax_Trees.Tree;
+      Node              : in     Valid_Node_Index;
+      Node_Image_Output : in out Boolean);
+   --  Called by Validate_Tree for each node visited; perform other
+   --  checks, output to Text_IO.Current_Error. If Node_Image_Output is
+   --  False, output Image (Tree, Node, Descriptor, others => True) once
+   --  before any error messages.
+
+   procedure Validate_Tree
+     (Tree          : in out Syntax_Trees.Tree;
+      Descriptor    : in     WisiToken.Descriptor;
+      Root          : in     Node_Index                 := Invalid_Node_Index;
+      Validate_Node : in     Syntax_Trees.Validate_Node := null)
+   with Pre => Tree.Flushed and Tree.Parents_Set;
+   --  Verify child/parent links, and that no children are Deleted_Child.
+   --  Violations output a message to Text_IO.Current_Error.
 
    type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
    type Image_Action is access function (Action : in Semantic_Action) return String;

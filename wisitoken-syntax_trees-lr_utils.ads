@@ -141,6 +141,28 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Iterate_Constant (Container : aliased in Constant_List'Class) return Constant_Iterator
    is (Iterator_Interfaces.Reversible_Iterator with Container'Access);
 
+   type Find_Equal is access function
+     (Target : in String;
+      List   : in Constant_List'Class;
+      Node   : in Valid_Node_Index)
+   return Boolean;
+   --  Function called by Find to compare Target to Node. Target, List
+   --  are the Find arguments; Node is an element of List. Return True if
+   --  Node matches Target.
+
+   function Find
+     (Container : in Constant_List;
+      Target    : in Valid_Node_Index)
+     return Cursor
+   with Pre => not Container.Is_Invalid and Container.Tree.ID (Target) = Container.Element_ID;
+
+   function Find
+     (Container : in Constant_List;
+      Target    : in String;
+      Equal     : in Find_Equal)
+     return Cursor
+   with Pre => not Container.Is_Invalid;
+
    type List (<>) is new Constant_List with private with
      Default_Iterator  => Iterate,
      Iterator_Element  => Valid_Node_Index;
@@ -286,6 +308,13 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  If First = No_Element, copy from List.First.
    --  If Last = No_Element, copy thru List.Last.
 
+   procedure Delete
+     (Container : in out List;
+      Item      : in out Cursor)
+   with Pre => Container.Contains (Item);
+   --  Delete Item from Container. Parent of Container.Root is updated
+   --  appropriately. Cursor is set to No_Element.
+
    type Skip_Label is (Nested, Skip);
 
    type Skip_Item (Label : Skip_Label := Skip_Label'First) is
@@ -294,8 +323,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
       case Label is
       when Nested =>
          --  Element is an element in the list currently being copied
-         --  containing a nested list with an element to skip. The nested list
-         --  is defined by:
+         --  containing a nested list with an element to skip (given by Element
+         --  in the next Skip_Item). The nested list is defined by:
          List_Root         : Valid_Node_Index;
          List_ID           : Token_ID;
          Element_ID        : Token_ID;
@@ -318,53 +347,52 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    type Skip_Array is array (Positive_Index_Type range <>) of Skip_Item;
 
+   type Skip_Info (Skip_Last : SAL.Base_Peek_Type) is
+   record
+      --  Skip_Last may be Positive_Index_Type'First - 1 to indicate an
+      --  empty or invalid skip list.
+      Start_List_Root  : Valid_Node_Index := Valid_Node_Index'Last;
+      Start_List_ID    : Token_ID := Invalid_Token_ID;
+      Start_Element_ID : Token_ID := Invalid_Token_ID;
+      Skips            : Skip_Array (Positive_Index_Type'First .. Skip_Last);
+   end record;
+
    function Image is new SAL.Gen_Unconstrained_Array_Image_Aux
      (Positive_Index_Type, Skip_Item, Skip_Array, WisiToken.Descriptor, Image);
+
+   function Image (Item : in Skip_Info; Descriptor : in WisiToken.Descriptor) return String
+   is ("(" &
+         (if Item.Start_List_ID = Invalid_Token_ID
+          then ""
+          else Item.Start_List_Root'Image & ", " & Image (Item.Start_List_ID, Descriptor) & ", " &
+             Image (Item.Skips, Descriptor))
+         & ")");
 
    function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean;
    --  The last element must be Skip, preceding elements must all be
    --  Nested. The Element in each array element must have ID = preceding
    --  Element_ID. The net result of all skips must not be empty, unless
-   --  there is only one item (Skip); the containing list may have only
+   --  there is only one item (Skip); Start_List_Root may contain only
    --  that.
 
    function Copy_Skip_Nested
-     (Source_List       :         in     Constant_List'Class;
-      Skip_List         :         in     Skip_Array;
+     (Skip_List         :         in     Skip_Info;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
      return Node_Index
-   with Pre => Valid_Skip_List (Tree, Skip_List);
-   --  Copy list in Source_List, skipping one element as indicated by
-   --  Skip_List. Return root of copied list.
+   with Pre => Skip_List.Start_List_ID /= Invalid_Token_ID and then
+               (Valid_Skip_List (Tree, Skip_List.Skips) and
+                Skip_List.Start_List_ID /= Skip_List.Start_Element_ID);
+   --  Copy list rooted at Skip_List.Start_List, skipping one element as
+   --  indicated by Skip_List.Skip. Return root of copied list.
    --
-   --  Return is Invalid_Node_Index (indicating an empty list) if
-   --  Skip_List has only one item (Skip), and Source_List has only that
-   --  item.
+   --  Result is Invalid_Node_Index (indicating an empty list) if
+   --  Skip_List has only one item (Skip), and Skip_List.Start_List_Root
+   --  has only that item.
    --
-   --  We need Tree and the following args in addition to Source_List,
-   --  because we need write access.
-   --
-   --  Raises SAL.Programmer_Error if Skip_List is not found.
-
-   procedure Splice
-     (Left_List   : in out List;
-      Left_Last   : in     Cursor;
-      Right_List  : in     List;
-      Right_First : in     Cursor)
-   with
-     Pre  => Compatible (Left_List, Right_List) and
-             Right_List.Contains (Right_First) and
-             Left_List.Contains (Left_Last);
-   --  Splice Right_List starting at Right_First onto tail of
-   --  Left_List, removing the slice from Right_List.
-   --  Left_List.Root is updated to the new list root.
-   --  FIXME: update tree parent
-   --
-   --  On return, the slice of Left_List after Left_Last is inaccessible;
-   --  any cursors to it are invalid (this is not enforced), and it has
-   --  no proper list root.
+   --  Raises SAL.Programmer_Error if skip item described by Skip_List is
+   --  not found.
 
    function List_Root
      (Tree    : in Syntax_Trees.Tree;

@@ -366,8 +366,8 @@ generic_instantiation
 
 handled_sequence_of_statements
   : sequence_of_statements EXCEPTION nonterminal_017_list
-  | sequence_of_statements
   | sequence_of_statements EXCEPTION
+  | sequence_of_statements
   ;
 
 ;; explicit _opt for action, error recover language fixes.

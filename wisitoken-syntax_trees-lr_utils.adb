@@ -278,6 +278,33 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return (Node => Previous (Iter.Container.Tree.all, Position.Node));
    end Previous;
 
+   function Find
+     (Container : in Constant_List;
+      Target    : in Valid_Node_Index)
+     return Cursor
+   is begin
+      for Cur in Container.Iterate_Constant loop
+         if Target = Cur.Node then
+            return Cur;
+         end if;
+      end loop;
+      return No_Element;
+   end Find;
+
+   function Find
+     (Container : in Constant_List;
+      Target    : in String;
+      Equal     : in Find_Equal)
+     return Cursor
+   is begin
+      for Cur in Container.Iterate_Constant loop
+         if Equal (Target, Container, Cur.Node) then
+            return Cur;
+         end if;
+      end loop;
+      return No_Element;
+   end Find;
+
    package body Creators is
 
       function Create_List
@@ -452,9 +479,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Tree.Replace_Child
                  (List_Parent,
                   Child_Index,
-                  Old_Child            => Old_Root,
-                  New_Child            => Container.Root,
-                  Old_Child_New_Parent => Container.Root);
+                  Old_Child => Deleted_Child,
+                  New_Child => Container.Root);
             end if;
          end;
       end if;
@@ -552,12 +578,35 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                   else (Old_Child, Container.Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
          begin
-            --  After cannot be Container.First, because then Before would be
-            --  Invalid_Node_Index. So we don't need to change After.RHS_Index.
+            --  After = Container.First is not a special case:
+            --
+            --  list: Tree.Root
+            --  | list
+            --  | | list = Parent
+            --  | | | list: new_list_nonterm
+            --  | | | | list
+            --  | | | | | element: First = After
+            --  | | | | separator
+            --  | | | | element: New_Element
+            --  | | | separator
+            --  | | | element: Before
+            --
+            --  Typical case:
+            --
+            --  | | list = Parent
+            --  | | | list: New_list_nonterm
+            --  | | | | | ...
+            --  | | | | separator
+            --  | | | | element: After
+            --  | | | separator
+            --  | | | element: New_Element
+            --  | | separator
+            --  | | element: Before
+
             Container.Tree.Replace_Child
               (Parent               => Parent,
                Child_Index          => Child_Index,
-               Old_Child            => Old_Child,
+               Old_Child            => Deleted_Child,
                New_Child            => New_List_Nonterm,
                Old_Child_New_Parent => New_List_Nonterm);
          end;
@@ -585,6 +634,95 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Item := Source_Iter.Next (Item);
       end loop;
    end Copy;
+
+   procedure Delete
+     (Container : in out List;
+      Item      : in out Cursor)
+   is
+      Tree : Syntax_Trees.Tree renames Container.Tree.all;
+   begin
+      if Container.First = Container.Last then
+         --  result is empty
+         declare
+            List_Parent  : constant Valid_Node_Index := Tree.Parent (Container.Root);
+            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Parent, Container.Root);
+         begin
+            Tree.Replace_Child
+              (List_Parent, Parent_Index,
+               Old_Child => Container.Root,
+               New_Child => Deleted_Child);
+
+            Container.Root := Invalid_Node_Index;
+         end;
+
+      elsif Item = Container.First then
+         --  list: Root
+         --  | list :
+         --  | | list : a : update to One_Element_RHS
+         --  | | | element: old First : delete
+         --  | | separator
+         --  | | element: new First
+         --  | ...
+         declare
+            List_Node : constant Valid_Node_Index := Tree.Parent (Item.Node);
+         begin
+            Tree.Set_Children
+              (List_Node,
+               (Container.List_ID, Container.One_Element_RHS),
+               (1 => Tree.Child (List_Node, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3))));
+         end;
+
+      elsif Item = Container.Last then
+         --  list: Root : delete
+         --  | list : new Root; update old Root.Parent
+         --  | ...
+         --  | separator
+         --  | element: new Last
+         --  separator
+         --  element: Last : Delete
+         declare
+            List_Parent  : constant Valid_Node_Index := Tree.Parent (Container.Root);
+            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Parent, Container.Root);
+            New_Root     : constant Valid_Node_Index := Tree.Child
+              (Container.Root, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3));
+         begin
+            Tree.Replace_Child
+              (List_Parent, Parent_Index,
+               Old_Child            => Container.Root,
+               New_Child            => New_Root,
+               Old_Child_New_Parent => Invalid_Node_Index);
+
+            Container.Root := New_Root;
+         end;
+
+      else
+         --  list: Root
+         --  | list : List_Node : delete, update parent
+         --  | | list
+         --  | | | element: First
+         --  | | separator
+         --  | | element: 2
+         --  | separator
+         --  | element: 3 : delete
+         --  separator
+         --  element: Last
+
+         declare
+            List_Node    : constant Valid_Node_Index := Tree.Parent (Item.Node);
+            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Node, Item.Node);
+            New_Child    : constant Valid_Node_Index := Tree.Child
+              (List_Node, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3));
+         begin
+            Tree.Replace_Child
+              (List_Node, Parent_Index,
+               Old_Child            => Item.Node,
+               New_Child            => New_Child,
+               Old_Child_New_Parent => Invalid_Node_Index);
+         end;
+      end if;
+
+      Item.Node := Invalid_Node_Index;
+   end Delete;
 
    function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean
    is begin
@@ -698,38 +836,28 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Copy_Skip_Nested;
 
    function Copy_Skip_Nested
-     (Source_List       :         in     Constant_List'Class;
-      Skip_List         :         in     Skip_Array;
+     (Skip_List         :         in     Skip_Info;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
      return Node_Index
    is
+      Source_List : constant Constant_List := Creators.Create_List
+        (Tree,
+         Root       => Skip_List.Start_List_Root,
+         List_ID    => Skip_List.Start_List_ID,
+         Element_ID => Skip_List.Start_Element_ID);
+
       Skip_Found : Boolean := False;
    begin
       return Result : constant Node_Index := Copy_Skip_Nested
-        (Source_List, Skip_List, Skip_Found, Tree, Separator_ID, Multi_Element_RHS)
+        (Source_List, Skip_List.Skips, Skip_Found, Tree, Separator_ID, Multi_Element_RHS)
       do
          if not Skip_Found then
             raise SAL.Programmer_Error with "Skip not found";
          end if;
       end return;
    end Copy_Skip_Nested;
-
-   procedure Splice
-     (Left_List   : in out List;
-      Left_Last   : in     Cursor;
-      Right_List  : in     List;
-      Right_First : in     Cursor)
-   is begin
-      Left_List.Tree.Set_Children
-        (Left_List.Tree.Parent (Right_First.Node),
-         (Left_List.List_ID, Left_List.Multi_Element_RHS),
-         (Left_List.Tree.Parent (Left_Last.Node), Right_First.Node));
-
-      --  Preserve Iter.Last = iter.tree.child (iter.root).
-      Left_List.Root := Right_List.Root;
-   end Splice;
 
    function List_Root
      (Tree    : in Syntax_Trees.Tree;

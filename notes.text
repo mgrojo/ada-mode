@@ -21,22 +21,17 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-report gdb bug to adacore
-    show_node doesn't work
-        test on debian 20.1w
-
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
-    java_types_ch19.wy
-        dims : in {{Annotation} '[' ']'}, each rep of outer list can have AnnotationList or not
-            that's wrong in _bnf.wy_good, right in new
-            but nonterminal_023 is the same as nonterminal_025; search for it.
+    translated to existing nonterm => erase_copied_ebnf_nodes
+
+
+    use List.Find for all comp_unit_list searches
+        translate_rhs_group_item
 
     python_ebnf.wy
         testlist_comp, dictorsetmaker
-
-        nested rhs_alternatives, only inner has an empty rhs_item_list
 
         does not realize that dictorsetmaker has the same nonterminal?
 

@@ -10,13 +10,13 @@
 ;; are computed anyway.
 %generate LR1 Ada re2c
 
+%start CompilationUnit
+%meta_syntax BNF
 %keyword CHAR "char"
 %keyword LONG "long"
 %keyword INT "int"
 %keyword SHORT "short"
 %keyword BYTE "byte"
-%start CompilationUnit
-%meta_syntax BNF
 %partial_recursion
 
 %mckenzie_cost_default 3 3 2 0
@@ -77,10 +77,8 @@ ArrayType
 Dims
   : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
   | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_024_list
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_022_list
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET nonterminal_024_list
   ;
 
 PrimitiveType
@@ -99,15 +97,9 @@ NumericType
 ;; end of file
 nonterminal_023
   : AnnotationList LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
   ;
 nonterminal_022_list
   : nonterminal_023
   | nonterminal_022_list nonterminal_023
-  ;
-nonterminal_025
-  : LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
-  ;
-nonterminal_024_list
-  : nonterminal_025
-  | nonterminal_024_list nonterminal_025
   ;

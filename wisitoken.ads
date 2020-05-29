@@ -313,7 +313,7 @@ package WisiToken is
      (Positive_Index_Type, Valid_Node_Index, Valid_Node_Index_Array, Image);
 
    package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
+     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'Last);
    --  Index matches Valid_Node_Index_Array.
 
    type Base_Token is tagged record

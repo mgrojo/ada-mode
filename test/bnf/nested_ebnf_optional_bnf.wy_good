@@ -19,6 +19,7 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%meta_syntax BNF
 %keyword TRUE "True"
 %keyword GOTO "goto"
 %keyword END "end"
@@ -26,7 +27,6 @@
 %keyword ELSIF "elsif"
 %keyword THEN "then"
 %keyword IF "if"
-%meta_syntax BNF
 %case_insensitive
 
 %generate LALR Ada re2c
@@ -41,9 +41,9 @@
 
 if_statement
   : IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
-  | IF expression THEN statement END IF SEMICOLON
-  | IF expression THEN statement ELSIF statement END IF SEMICOLON
   | IF expression THEN statement ELSIF statement ELSIF statement END IF SEMICOLON
+  | IF expression THEN statement ELSIF statement END IF SEMICOLON
+  | IF expression THEN statement END IF SEMICOLON
   ;
 
 statement
