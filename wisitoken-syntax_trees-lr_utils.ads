@@ -197,6 +197,17 @@ package WisiToken.Syntax_Trees.LR_Utils is
       with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
       --  The separator is only need when adding new elements.
 
+      function Create_List
+        (Container :         in     Constant_List;
+         Tree      : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root      :         in     Valid_Node_Index)
+        return Constant_List
+      with Pre => (Container.Tree.Is_Nonterm (Root) and then
+                   Container.Tree.Has_Children (Root)) and
+                  Container.Tree.ID (Root) = Container.List_ID;
+      --  Same as Create_List, get all other params from Container.
+      --  Need Tree for non-constant view.
+
       function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
       with Pre => (Container.Tree.Is_Nonterm (Root) and then Container.Tree.Has_Children (Root)) and
                   Container.Tree.ID (Root) = Container.List_ID;
@@ -351,10 +362,12 @@ package WisiToken.Syntax_Trees.LR_Utils is
    record
       --  Skip_Last may be Positive_Index_Type'First - 1 to indicate an
       --  empty or invalid skip list.
-      Start_List_Root  : Valid_Node_Index := Valid_Node_Index'Last;
-      Start_List_ID    : Token_ID := Invalid_Token_ID;
-      Start_Element_ID : Token_ID := Invalid_Token_ID;
-      Skips            : Skip_Array (Positive_Index_Type'First .. Skip_Last);
+      Start_List_Root         : Valid_Node_Index := Valid_Node_Index'Last;
+      Start_List_ID           : Token_ID         := Invalid_Token_ID;
+      Start_Element_ID        : Token_ID         := Invalid_Token_ID;
+      Start_Separator_ID      : Token_ID         := Invalid_Token_ID;
+      Start_Multi_Element_RHS : Natural          := 0;
+      Skips                   : Skip_Array (Positive_Index_Type'First .. Skip_Last);
    end record;
 
    function Image is new SAL.Gen_Unconstrained_Array_Image_Aux
@@ -376,10 +389,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  that.
 
    function Copy_Skip_Nested
-     (Skip_List         :         in     Skip_Info;
-      Tree              : aliased in out Syntax_Trees.Tree;
-      Separator_ID      :         in     Token_ID;
-      Multi_Element_RHS :         in     Natural)
+     (Skip_List :         in     Skip_Info;
+      Tree      : aliased in out Syntax_Trees.Tree)
      return Node_Index
    with Pre => Skip_List.Start_List_ID /= Invalid_Token_ID and then
                (Valid_Skip_List (Tree, Skip_List.Skips) and
@@ -412,8 +423,7 @@ private
      --  We'd prefer to have Tree be 'constant' here, but then it would
      --  also be constant in List, where we _don't_ want that. An
      --  alternative design would be to not derive List from Constant_List;
-     --  then we would not be able to use Copy_Skip_Nested to copy from a
-     --  List.
+     --  then we would would have to duplicate all operations.
    record
       Root       : WisiToken.Node_Index;
       List_ID    : WisiToken.Token_ID;

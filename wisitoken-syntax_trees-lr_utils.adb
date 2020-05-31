@@ -348,6 +348,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Element_ID => Element_ID);
       end Create_List;
 
+      function Create_List
+        (Container :         in     Constant_List;
+         Tree      : aliased in out WisiToken.Syntax_Trees.Tree;
+         Root      :         in     Valid_Node_Index)
+        return Constant_List
+      is begin
+         return Create_List (Tree, Root, Container.List_ID, Container.Element_ID);
+      end Create_List;
+
       function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
       is begin
          return Create_List (Container.Tree.all, Root, Container.List_ID, Container.Element_ID, Container.Separator_ID);
@@ -644,79 +653,125 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       if Container.First = Container.Last then
          --  result is empty
          declare
-            List_Parent  : constant Valid_Node_Index := Tree.Parent (Container.Root);
-            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Parent, Container.Root);
+            List_Parent : constant Node_Index := Tree.Parent (Container.Root);
          begin
-            Tree.Replace_Child
-              (List_Parent, Parent_Index,
-               Old_Child => Container.Root,
-               New_Child => Deleted_Child);
+            if List_Parent = Invalid_Node_Index then
+               if Tree.Root = Container.Root then
+                  Tree.Root := Invalid_Node_Index;
+               end if;
 
+            else
+               Tree.Replace_Child
+                 (List_Parent,
+                  Child_Index => Tree.Child_Index (List_Parent, Container.Root),
+                  Old_Child => Container.Root,
+                  New_Child => Deleted_Child);
+            end if;
             Container.Root := Invalid_Node_Index;
          end;
 
       elsif Item = Container.First then
-         --  list: Root
-         --  | list :
-         --  | | list : a : update to One_Element_RHS
-         --  | | | element: old First : delete
-         --  | | separator
-         --  | | element: new First
-         --  | ...
+         --  Before:
+         --
+         --  0011: | List_1: Parent_2
+         --  0009: | | List_0: delete
+         --  0008: | | | Element_0: old First: Item.Node: delete
+         --  0001: | | | | ...
+         --  0002: | | separator?: delete
+         --  0010: | | Element_0: new First
+         --  0003: | | | ...
+
+         --
+         --  After:
+         --
+         --  0011: | List_0: Parent_2
+         --  0010: | | Element_0: new First
+         --  0003: | | | ...
+
          declare
-            List_Node : constant Valid_Node_Index := Tree.Parent (Item.Node);
+            Parent_2 : constant Valid_Node_Index := Tree.Parent (Item.Node, 2);
          begin
             Tree.Set_Children
-              (List_Node,
+              (Parent_2,
                (Container.List_ID, Container.One_Element_RHS),
-               (1 => Tree.Child (List_Node, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3))));
+               (1 => Tree.Child (Parent_2, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3))));
          end;
 
       elsif Item = Container.Last then
-         --  list: Root : delete
-         --  | list : new Root; update old Root.Parent
-         --  | ...
-         --  | separator
-         --  | element: new Last
-         --  separator
-         --  element: Last : Delete
+         --  Before:
+         --
+         --   ?  ?: List_Parent
+         --  15: | List_1 : Root, delete
+         --  11: | | List_*: New_Root
+         --  10: | | | Element_0
+         --  03: | | ...
+         --  06: | | separator?, delete
+         --  14: | | Element_0 : Last. delete
+         --  07: | | | ...
+
+         --   ?  ?: List_Parent
+         --  11: | List_*: Root
+         --  10: | | Element_0
+         --  03: | ...
+
          declare
-            List_Parent  : constant Valid_Node_Index := Tree.Parent (Container.Root);
-            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Parent, Container.Root);
-            New_Root     : constant Valid_Node_Index := Tree.Child
-              (Container.Root, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3));
+            List_Parent : constant Node_Index       := Tree.Parent (Container.Root);
+            New_Root    : constant Valid_Node_Index := Tree.Child (Container.Root, 1);
          begin
-            Tree.Replace_Child
-              (List_Parent, Parent_Index,
-               Old_Child            => Container.Root,
-               New_Child            => New_Root,
-               Old_Child_New_Parent => Invalid_Node_Index);
+            if List_Parent = Invalid_Node_Index then
+               Tree.Delete_Parent (New_Root);
+               Container.Root := New_Root;
+
+            else
+               declare
+                  Parent_Index : constant SAL.Peek_Type := Tree.Child_Index (List_Parent, Container.Root);
+               begin
+                  Tree.Replace_Child
+                    (List_Parent, Parent_Index,
+                     Old_Child            => Container.Root,
+                     New_Child            => New_Root,
+                     Old_Child_New_Parent => Invalid_Node_Index);
+               end;
+            end if;
 
             Container.Root := New_Root;
          end;
 
       else
-         --  list: Root
-         --  | list : List_Node : delete, update parent
-         --  | | list
-         --  | | | element: First
-         --  | | separator
-         --  | | element: 2
-         --  | separator
-         --  | element: 3 : delete
-         --  separator
-         --  element: Last
+         --  Node numbers from test_lr_utils test case 1.
+         --
+         --  before:
+         --  15: list: Parent_2
+         --  13: | list: Parent_1, Old_Child
+         --  11: | | list: Parent_1_Child_1, New_Child
+         --  09: | | | list:
+         --  08: | | | | element: 1, First
+         --  02: | | | separator?
+         --  10: | | | element: 2
+         --  04: | | separator?
+         --  12: | | element: 3, Item.Node, delete
+         --  06: | separator?
+         --  14: | element: 4, Last
+         --
+         --  after
+         --  15: list: Parent_2
+         --  11: | list: Parent_1_Child_1
+         --  09: | | list:
+         --  08: | | | element: 1, First
+         --  02: | | separator?
+         --  10: | | element: 2
+         --  06: | separator?
+         --  14: | element: 4, Last
 
          declare
-            List_Node    : constant Valid_Node_Index := Tree.Parent (Item.Node);
-            Parent_Index : constant SAL.Peek_Type    := Tree.Child_Index (List_Node, Item.Node);
-            New_Child    : constant Valid_Node_Index := Tree.Child
-              (List_Node, (if Container.Separator_ID = Invalid_Token_ID then 2 else 3));
+            Parent_1         : constant Valid_Node_Index := Tree.Parent (Item.Node);
+            Parent_2         : constant Valid_Node_Index := Tree.Parent (Parent_1);
+            Parent_1_Child_1 : constant Valid_Node_Index := Tree.Child (Parent_1, 1);
          begin
             Tree.Replace_Child
-              (List_Node, Parent_Index,
-               Old_Child            => Item.Node,
-               New_Child            => New_Child,
+              (Parent_2, 1,
+               Old_Child            => Parent_1,
+               New_Child            => Parent_1_Child_1,
                Old_Child_New_Parent => Invalid_Node_Index);
          end;
       end if;
@@ -836,10 +891,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    end Copy_Skip_Nested;
 
    function Copy_Skip_Nested
-     (Skip_List         :         in     Skip_Info;
-      Tree              : aliased in out Syntax_Trees.Tree;
-      Separator_ID      :         in     Token_ID;
-      Multi_Element_RHS :         in     Natural)
+     (Skip_List :         in     Skip_Info;
+      Tree      : aliased in out Syntax_Trees.Tree)
      return Node_Index
    is
       Source_List : constant Constant_List := Creators.Create_List
@@ -851,7 +904,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Skip_Found : Boolean := False;
    begin
       return Result : constant Node_Index := Copy_Skip_Nested
-        (Source_List, Skip_List.Skips, Skip_Found, Tree, Separator_ID, Multi_Element_RHS)
+        (Source_List, Skip_List.Skips, Skip_Found, Tree, Skip_List.Start_Separator_ID,
+         Skip_List.Start_Multi_Element_RHS)
       do
          if not Skip_Found then
             raise SAL.Programmer_Error with "Skip not found";

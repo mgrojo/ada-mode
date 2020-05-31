@@ -505,6 +505,53 @@ package body WisiToken.Syntax_Trees is
           else Tree.Branched_Nodes (Node)));
    end Count_Terminals;
 
+   procedure Delete_Parent
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Index)
+   is
+      N      : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+      Parent : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (N.Parent);
+   begin
+      Parent.Children (Child_Index (Parent, Node)) := Deleted_Child;
+
+      if N.Parent = Tree.Root then
+         Tree.Root := Node;
+      end if;
+
+      N.Parent := Invalid_Node_Index;
+   end Delete_Parent;
+
+   function Error_Message
+     (Tree      : in Syntax_Trees.Tree;
+      Terminals : in Base_Token_Array_Access_Constant;
+      Node      : in Valid_Node_Index;
+      File_Name : in String;
+      Message   : in String)
+     return String
+   is
+      First_Terminal : constant Valid_Node_Index  := Tree.First_Terminal (Node);
+      Line           : Line_Number_Type  := Line_Number_Type'First;
+      Column         : Ada.Text_IO.Count := Ada.Text_IO.Count'First;
+   begin
+      case Tree.Label (First_Terminal) is
+      when Shared_Terminal =>
+         declare
+            Token : Base_Token renames Terminals.all (Tree.First_Shared_Terminal (First_Terminal));
+         begin
+            Line   := Token.Line;
+            Column := Token.Column;
+         end;
+
+      when Virtual_Terminal | Virtual_Identifier =>
+         Line   := Line_Number_Type'First;
+         Column := Ada.Text_IO.Count (Tree.Byte_Region (First_Terminal).First);
+
+      when others =>
+         null;
+      end case;
+      return WisiToken.Error_Message (File_Name, Line, Column, Message);
+   end Error_Message;
+
    overriding procedure Finalize (Tree : in out Base_Tree)
    is begin
       Tree.Traversing  := False;
@@ -1512,7 +1559,11 @@ package body WisiToken.Syntax_Trees is
          if N.Label = Nonterm then
             for Child of N.Children loop
                if Child = Deleted_Child then
-                  Put ("<deleted>");
+                  Put ("    : ");
+                  for I in 1 .. Level + 1 loop
+                     Put ("| ");
+                  end loop;
+                  Put_Line (" <deleted>");
                else
                   Print_Node (Child, Level + 1);
                end if;
@@ -1520,9 +1571,14 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Print_Node;
 
+      Print_Root : constant Node_Index := (if Root = Invalid_Node_Index then Tree.Root else Root);
    begin
       Node_Printed.Set_First_Last (Tree.First_Index, Tree.Last_Index);
-      Print_Node ((if Root = Invalid_Node_Index then Tree.Root else Root), 0);
+      if Print_Root = Invalid_Node_Index then
+         Put_Line ("<empty tree>");
+      else
+         Print_Node (Print_Root, 0);
+      end if;
    end Print_Tree;
 
    function Process_Tree
@@ -1653,15 +1709,7 @@ package body WisiToken.Syntax_Trees is
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index
    is begin
-      if Tree.Root /= Invalid_Node_Index then
-         return Tree.Root;
-      else
-         if Tree.Flush then
-            return Tree.Shared_Tree.Nodes.Last_Index;
-         else
-            return Tree.Branched_Nodes.Last_Index;
-         end if;
-      end if;
+      return Tree.Root;
    end Root;
 
    procedure Set_Node_Identifier
@@ -1992,7 +2040,9 @@ package body WisiToken.Syntax_Trees is
 
    procedure Validate_Tree
      (Tree          : in out Syntax_Trees.Tree;
+      Terminals     : in     Base_Token_Array_Access_Constant;
       Descriptor    : in     WisiToken.Descriptor;
+      File_Name     : in     String;
       Root          : in     Node_Index                 := Invalid_Node_Index;
       Validate_Node : in     Syntax_Trees.Validate_Node := null)
    is
@@ -2010,13 +2060,16 @@ package body WisiToken.Syntax_Trees is
                   if not Node_Image_Output then
                      Put_Line
                        (Current_Error,
-                        Image (Tree, N, Node, Descriptor,
-                               Include_Children  => True,
-                               Include_RHS_Index => True,
-                               Node_Numbers      => True));
+                        Tree.Error_Message
+                          (Terminals, Node, File_Name,
+                           Image (Tree, N, Node, Descriptor,
+                                  Include_Children => False,
+                                  Node_Numbers     => True)));
                      Node_Image_Output := True;
                   end if;
-                  Put_Line ("... child" & I'Image & " deleted");
+                  Put_Line
+                    (Current_Error, Tree.Error_Message
+                       (Terminals, Node, File_Name, "... child" & I'Image & " deleted"));
 
                else
                   declare
@@ -2026,16 +2079,21 @@ package body WisiToken.Syntax_Trees is
                         if not Node_Image_Output then
                            Put_Line
                              (Current_Error,
-                              Image (Tree, N, Node, Descriptor,
-                                     Include_Children  => True,
-                                     Include_RHS_Index => True,
-                                     Node_Numbers      => True));
+                              Tree.Error_Message
+                                (Terminals, Node, File_Name,
+                                 Image (Tree, N, Node, Descriptor,
+                                        Include_Children => False,
+                                        Node_Numbers     => True)));
                            Node_Image_Output := True;
                         end if;
                         if Child_Parent = Invalid_Node_Index then
-                           Put_Line (Current_Error, "... child.parent invalid");
+                           Put_Line
+                             (Current_Error, Tree.Error_Message
+                                (Terminals, Node, File_Name, "... child.parent invalid"));
                         else
-                           Put_Line (Current_Error, "... child.parent" & Child_Parent'Image & " incorrect");
+                           Put_Line
+                             (Current_Error, Tree.Error_Message
+                                (Terminals, Node, File_Name, "... child.parent" & Child_Parent'Image & " incorrect"));
                         end if;
                      end if;
                   end;

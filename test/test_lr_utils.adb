@@ -28,55 +28,40 @@ with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.LR_Utils; use WisiToken.Syntax_Trees.LR_Utils;
 package body Test_LR_Utils is
    use WisiToken;
+   use WisiToken.Syntax_Trees;
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.Syntax_Trees.LR_Utils.Iterator;
+      Computed : in Constant_List'Class;
       Expected : in Valid_Node_Index_Array)
    is
       use all type SAL.Base_Peek_Type;
       use AUnit.Checks.Containers;
       use WisiToken.AUnit;
-      Cur : Cursor := Computed.First;
+      Iter : constant Constant_Iterator := Computed.Iterate_Constant;
+      Cur  : Cursor            := Computed.First;
    begin
       Check (Label & ".count", Computed.Count, Ada.Containers.Count_Type (Expected'Length));
 
       for I in Expected'Range loop
          Check (Label & "." & I'Image, Get_Node (Cur), Expected (I));
-         if Computed.Separator_ID /= Invalid_Token_ID and I > Expected'First then
-            Check
-              (Label & ".separator",
-               Computed.Tree.ID (Computed.Tree.Child (Computed.Tree.Parent (Get_Node (Cur)), 2)),
-               Computed.Separator_ID);
+         if Computed in List then
+            declare
+               Computed_List : List renames List (Computed);
+            begin
+               if Computed_List.Separator_ID /= Invalid_Token_ID and I > Expected'First then
+                  Check
+                    (Label & ".separator",
+                     Computed.Tree.ID (Computed.Tree.Child (Computed.Tree.Parent (Get_Node (Cur)), 2)),
+                     Computed_List.Separator_ID);
+               end if;
+            end;
          end if;
-         Cur := Computed.Next (Cur);
+         Cur := Iter.Next (Cur);
       end loop;
    end Check;
 
    package Stacks is new SAL.Gen_Bounded_Definite_Stacks (Node_Index);
-
-   generic
-      Tree       : in out Syntax_Trees.Tree;
-      Terminals  : WisiToken.Base_Token_Array_Access_Constant;
-      Descriptor : WisiToken.Descriptor_Access_Constant;
-   function Gen_Iterate
-     (Root         : in Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID)
-     return WisiToken.Syntax_Trees.LR_Utils.Iterator;
-
-   function Gen_Iterate
-     (Root         : in Valid_Node_Index;
-      List_ID      : in WisiToken.Token_ID;
-      Element_ID   : in WisiToken.Token_ID;
-      Separator_ID : in WisiToken.Token_ID)
-     return WisiToken.Syntax_Trees.LR_Utils.Iterator
-   is begin
-      return WisiToken.Syntax_Trees.LR_Utils.Iterate
-        (Tree, Terminals, null, Descriptor,
-         Root, List_ID, Element_ID, Separator_ID);
-   end Gen_Iterate;
 
    generic
       type Token_Enum_ID is (<>);
@@ -103,164 +88,6 @@ package body Test_LR_Utils is
 
    ----------
    --  Test subprograms
-
-   procedure Test_Splice_1 (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-
-      type Token_Enum_ID is
-        (LEFT_BRACKET_ID,
-         RIGHT_BRACKET_ID,
-         IDENTIFIER_ID,
-         RHS_Optional_Item_ID,
-         RHS_ID,
-         RHS_Item_List_ID,
-         RHS_Element_ID,
-         RHS_Item_ID,
-         RHS_Alternative_List_ID);
-
-      function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
-      is (WisiToken."+" (WisiToken.Token_ID'First, Token_Enum_ID'Pos (Item)));
-
-      Descriptor : aliased constant WisiToken.Descriptor :=
-        (First_Terminal       => +LEFT_BRACKET_ID,
-         Last_Terminal        => +IDENTIFIER_ID,
-         First_Nonterminal    => +RHS_Optional_Item_ID,
-         Last_Nonterminal     => +RHS_Alternative_List_ID,
-         EOI_ID               => Invalid_Token_ID,
-         Accept_ID            => Invalid_Token_ID,
-         Case_Insensitive     => False,
-         New_Line_ID          => Invalid_Token_ID,
-         String_1_ID          => Invalid_Token_ID,
-         String_2_ID          => Invalid_Token_ID,
-         Image                =>
-           (new String'("LEFT_BRACKET"),
-            new String'("RIGHT_BRACKET"),
-            new String'("IDENTIFIER"),
-            new String'("RHS_Optional_Item"),
-            new String'("RHS"),
-            new String'("RHS_Item_List"),
-            new String'("RHS_Element"),
-            new String'("RHS_Item"),
-            new String'("RHS_Alternative_List")),
-         Terminal_Image_Width => 13,
-         Image_Width          => 21,
-         Last_Lookahead       => Invalid_Token_ID);
-
-      Terminals   : aliased Base_Token_Arrays.Vector;
-      Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
-      Tree        : WisiToken.Syntax_Trees.Tree;
-      Stack : Stacks.Stack (10);
-
-      function Iterate is new Gen_Iterate (Tree, Terminals'Unchecked_Access, Descriptor'Unchecked_Access);
-      procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
-
-      Left_Iter_First_Expected      : Node_Index;
-      Left_Iter_Root_Expected       : Node_Index;
-      Optional_Node                 : Node_Index;
-      Right_Iter_First_Pre_Expected : Node_Index;
-      Right_Iter_Last_Expected      : Node_Index;
-      Right_Iter_Root_Expected      : Node_Index;
-   begin
-      --  Create a tree representing the parse of:
-      --
-      --  [ IDENTIFIER EQUAL_GREATER ] expression
-      --  1 3        |12         25|    |30   38|
-      --  1 2          3             4 5
-
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
-
-      Terminals.Append ((+LEFT_BRACKET_ID, Invalid_Node_Index, (1, 1), others => <>));
-      Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (3, 12), others => <>));
-      Terminals (2).Tree_Index := Tree.Add_Terminal (2, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (14, 25), others => <>));
-      Terminals (3).Tree_Index := Tree.Add_Terminal (3, Terminals);
-
-      Terminals.Append ((+RIGHT_BRACKET_ID, Invalid_Node_Index, (27, 27), others => <>));
-      Terminals (4).Tree_Index := Tree.Add_Terminal (4, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (29, 38), others => <>));
-      Terminals (5).Tree_Index := Tree.Add_Terminal (5, Terminals);
-
-      Stack.Push (1); --  '['
-      Stack.Push (2); --  'IDENTIFIER'
-      Reduce (1, RHS_Item_ID, 0);
-      Reduce (1, RHS_Element_ID, 0);
-      Left_Iter_First_Expected := Stack.Peek;
-      Reduce (1, RHS_Item_List_ID, 0);
-
-      Stack.Push (3); -- 'EQUAL_GREATER'
-      Reduce (1, RHS_Item_ID, 0);
-      Reduce (1, RHS_Element_ID, 0);
-      Reduce (2, RHS_Item_List_ID, 1);
-      Left_Iter_Root_Expected := Stack.Peek;
-      Reduce (1, RHS_Alternative_List_ID, 0);
-
-      Stack.Push (4); -- ']'
-      Reduce (3, RHS_Optional_Item_ID, 0);
-      Optional_Node := Stack.Peek;
-      Reduce (1, RHS_Item_ID, 3);
-      Reduce (1, RHS_Element_ID, 0);
-      Right_Iter_First_Pre_Expected := Stack.Peek;
-      Reduce (1, RHS_Item_List_ID, 0);
-
-      Stack.Push (5); -- 'expression'
-      Reduce (1, RHS_Item_ID, 0);
-      Reduce (1, RHS_Element_ID, 0);
-      Right_Iter_Last_Expected := Stack.Peek;
-      Reduce (2, RHS_Item_List_ID, 1);
-      Right_Iter_Root_Expected := Stack.Peek;
-      Reduce (1, RHS_ID, 1);
-
-      Tree.Set_Root (Stack.Pop);
-
-      if WisiToken.Trace_Generate_Table > WisiToken.Outline then
-         Ada.Text_IO.Put_Line ("before splice");
-         Tree.Print_Tree (Descriptor);
-      end if;
-
-      declare
-         use WisiToken.AUnit;
-         use Standard.AUnit.Checks;
-
-         --  Duplicating wisitoken-grammar_runtime.adb Translate_EBNF
-         --  rhs_optional_ID A empty, C not empty.
-
-         Left_Iter : Iterator := Iterate -- B_Iter
-           (Tree.Child (Tree.Child (Optional_Node, 2), 1), +RHS_Item_List_ID, +RHS_Element_ID, Invalid_Token_ID);
-
-         Left_Last : constant Cursor := Left_Iter.Last;
-
-         Right_Iter : constant Iterator := Iterate_From_Element (Left_Iter, Tree.Parent (Optional_Node, 2)); -- ABC_Iter
-
-         B_Cur       : constant Cursor := Right_Iter.To_Cursor (Tree.Parent (Optional_Node, 2));
-         Right_First : constant Cursor := Right_Iter.Next (B_Cur);
-      begin
-         Check ("left_iter.root pre", Left_Iter.Root, Left_Iter_Root_Expected);
-         Check ("left_iter.First pre", Get_Node (Left_Iter.First), Left_Iter_First_Expected);
-         Check ("right_iter.root pre", Right_Iter.Root, Right_Iter_Root_Expected);
-         Check ("right_iter.First pre", Get_Node (Right_Iter.First), Right_Iter_First_Pre_Expected);
-
-         Splice (Left_Iter, Left_Last, Right_Iter, Right_First);
-
-         if WisiToken.Trace_Generate_Table > Outline then
-            Ada.Text_IO.Put_Line ("after splice");
-            Tree.Print_Tree (Descriptor);
-         end if;
-
-         --  The result is a bit confusing because Right_Iter.Root is an ancestor of Left_Iter.Root
-         Check ("left_iter.root post", Left_Iter.Root, Right_Iter_Root_Expected);
-         Check ("left_iter.first post", Get_Node (Left_Iter.First), Left_Iter_First_Expected);
-         Check ("left_iter.last post", Get_Node (Left_Iter.Last), Right_Iter_Last_Expected);
-         Check ("left_iter.contains (right_first)", Left_Iter.Contains (Right_First), True);
-         Check ("right_iter.first post", Get_Node (Right_Iter.First), Left_Iter_First_Expected);
-         Check ("right_iter.last post", Get_Node (Right_Iter.Last), Right_Iter_Last_Expected);
-      end;
-
-   end Test_Splice_1;
 
    procedure Test_Insert_1 (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
@@ -300,7 +127,6 @@ package body Test_LR_Utils is
       Tree        : WisiToken.Syntax_Trees.Tree;
       Stack       : Stacks.Stack (10);
 
-      function Iterate is new Gen_Iterate (Tree, Terminals'Unchecked_Access, Descriptor'Unchecked_Access);
       procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
 
    begin
@@ -370,7 +196,7 @@ package body Test_LR_Utils is
       declare
          use WisiToken.AUnit;
 
-         Iter : Iterator := Iterate (Tree.Root, +List_ID, +Element_ID, +SEPARATOR_ID);
+         List : LR_Utils.List := Creators.Create_List (Tree, Tree.Root, +List_ID, +Element_ID, +SEPARATOR_ID);
 
          Pre_Expected : constant Valid_Node_Index_Array := (8, 10, 12, 14);
 
@@ -399,18 +225,220 @@ package body Test_LR_Utils is
       begin
          Check ("root", Tree.Root, 15);
 
-         Check ("pre", Iter, Pre_Expected);
+         Check ("pre", List, Pre_Expected);
 
-         Insert (Iter, New_Element, After => Iter.To_Cursor (10)); -- creates separator 18
+         Insert (List, New_Element, After => List.To_Cursor (10)); -- creates separator 18
 
          if WisiToken.Trace_Generate_Table > Outline then
             Ada.Text_IO.Put_Line ("after insert");
             Tree.Print_Tree (Descriptor);
          end if;
 
-         Check ("post", Iter, Post_Expected);
+         Check ("post", List, Post_Expected);
       end;
    end Test_Insert_1;
+
+   procedure Test_Delete_1 (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      type Token_Enum_ID is
+        (SEPARATOR_ID,
+         IDENTIFIER_ID,
+         List_ID,
+         Element_ID,
+         Other_ID);
+
+      function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
+      is (WisiToken."+" (WisiToken.Token_ID'First, Token_Enum_ID'Pos (Item)));
+
+      Descriptor : aliased constant WisiToken.Descriptor :=
+        (First_Terminal       => +SEPARATOR_ID,
+         Last_Terminal        => +IDENTIFIER_ID,
+         First_Nonterminal    => +List_ID,
+         Last_Nonterminal     => +Other_ID,
+         EOI_ID               => Invalid_Token_ID,
+         Accept_ID            => Invalid_Token_ID,
+         Case_Insensitive     => False,
+         New_Line_ID          => Invalid_Token_ID,
+         String_1_ID          => Invalid_Token_ID,
+         String_2_ID          => Invalid_Token_ID,
+         Image                =>
+           (new String'("SEPARATOR"),
+            new String'("IDENTIFIER"),
+            new String'("List"),
+            new String'("Element"),
+            new String'("Other")),
+         Terminal_Image_Width => 13,
+         Image_Width          => 21,
+         Last_Lookahead       => Invalid_Token_ID);
+
+      Terminals   : aliased Base_Token_Arrays.Vector;
+      Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
+      Tree        : WisiToken.Syntax_Trees.Tree;
+      Stack       : Stacks.Stack (10);
+
+      procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
+
+   begin
+      --  Create a tree duplicating example in LR_Utils.Insert:
+      --
+      --  15: list: Tree.Root
+      --  13: | list
+      --  11: | | list
+      --  09: | | | list
+      --  08: | | | | element: 1, First
+      --  02: | | | separator
+      --  10: | | | element: 2
+      --  04: | | separator
+      --  12: | | element: 3
+      --  06: | separator
+      --  14: | element: 4, Last
+
+      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (1, 1), others => <>));
+      Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
+
+      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (2, 2), others => <>));
+      Terminals (2).Tree_Index := Tree.Add_Terminal (2, Terminals);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (3, 3), others => <>));
+      Terminals (3).Tree_Index := Tree.Add_Terminal (3, Terminals);
+
+      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (4, 4), others => <>));
+      Terminals (4).Tree_Index := Tree.Add_Terminal (4, Terminals);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (5, 5), others => <>));
+      Terminals (5).Tree_Index := Tree.Add_Terminal (5, Terminals);
+
+      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (6, 6), others => <>));
+      Terminals (6).Tree_Index := Tree.Add_Terminal (6, Terminals);
+
+      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (7, 7), others => <>));
+      Terminals (7).Tree_Index := Tree.Add_Terminal (7, Terminals);
+
+      Stack.Push (1);
+      Reduce (1, Element_ID, 0); -- node 8
+      Reduce (1, List_ID, 0);
+
+      Stack.Push (2);
+      Stack.Push (3);
+      Reduce (1, Element_ID, 0); -- 10
+      Reduce (3, List_ID, 1);
+
+      Stack.Push (4);
+      Stack.Push (5);
+      Reduce (1, Element_ID, 0); -- 12
+      Reduce (3, List_ID, 1);
+
+      Stack.Push (6);
+      Stack.Push (7);
+      Reduce (1, Element_ID, 0); -- 14
+      Reduce (3, List_ID, 1);
+
+      Tree.Set_Root (Stack.Pop);
+
+      if WisiToken.Trace_Generate_Table > WisiToken.Outline then
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("1 before");
+         Tree.Print_Tree (Descriptor);
+      end if;
+
+      declare
+         use WisiToken.AUnit;
+         use AUnit.Checks;
+
+         List : LR_Utils.List := Creators.Create_List (Tree, Tree.Root, +List_ID, +Element_ID, +SEPARATOR_ID);
+
+         --  See body of LR_Utils for comments with After list structure.
+
+         Cur : Cursor := List.To_Cursor (12);
+      begin
+         Check ("0 tree root", Tree.Root, 15);
+         Check ("0 list", List, (8, 10, 12, 14));
+         Check ("0 list root parent", Tree.Parent (List.Root), Invalid_Node_Index);
+
+         Delete (List, Cur);
+
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("1 after");
+            Tree.Print_Tree (Descriptor);
+         end if;
+
+         Check ("1 list", List, (8, 10, 14));
+         Check ("1 list root", List.Root, 15);
+         Check ("1 list root parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("1 cur", Has_Element (Cur), False);
+
+         Cur := List.First;
+         List.Delete (Cur);
+
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("2 after");
+            Tree.Print_Tree (Descriptor);
+         end if;
+
+         Check ("2 list", List, (10, 14));
+         Check ("2 list root", List.Root, 15);
+         Check ("2 list root parent", Tree.Parent (List.Root), Invalid_Node_Index);
+
+         Cur := List.Last;
+         List.Delete (Cur);
+
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("3 after");
+            Tree.Print_Tree (Descriptor);
+         end if;
+
+         Check ("3 list", List, (1 => 10));
+         Check ("3 list root", List.Root, 11);
+         Check ("3 list root parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("3 tree root", Tree.Root, 11);
+
+         Cur := List.First;
+         List.Delete (Cur);
+
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("4 after");
+            Tree.Print_Tree (Descriptor);
+         end if;
+
+         Check ("4 list", List, (1 .. 0 => 0));
+         Check ("4 list root", List.Root, Invalid_Node_Index);
+         Check ("4 tree root", Tree.Root, Invalid_Node_Index);
+      end;
+
+      --  test delete last with node parent.
+      declare
+         use WisiToken.AUnit;
+
+         List : LR_Utils.List := Creators.Empty_List
+           (Tree,
+            List_ID           => +List_ID,
+            Multi_Element_RHS => 1,
+            Element_ID        => +Element_ID,
+            Separator_ID      => Invalid_Token_ID);
+
+         Cur : Cursor;
+      begin
+         List.Append (Tree.Add_Nonterm ((+Element_ID, 1), (1 .. 0 => 1)));
+         List.Append (Tree.Add_Nonterm ((+Element_ID, 2), (1 .. 0 => 1)));
+         Tree.Set_Root (Tree.Add_Nonterm ((+Other_ID, 0), (1 => List.Root)));
+         Check ("5 list root", List.Root, 19);
+         Check ("5 tree root", Tree.Root, 20);
+
+         Cur := List.Last;
+
+         List.Delete (Cur);
+         Check ("6 list root", List.Root, 17);
+         Check ("6 tree root", Tree.Root, 20);
+      end;
+   end Test_Delete_1;
 
    procedure Test_Copy_Skip (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
@@ -462,8 +490,6 @@ package body Test_LR_Utils is
       Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
       Tree        : WisiToken.Syntax_Trees.Tree;
       Stack       : Stacks.Stack (10);
-
-      function Iterate is new Gen_Iterate (Tree, Terminals'Unchecked_Access, Descriptor'Unchecked_Access);
 
       procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
 
@@ -574,9 +600,17 @@ package body Test_LR_Utils is
 
       --  First copy just the inner list, to test a simpler case.
       declare
-         Source_Iter : constant Iterator := Iterate (List_Root (3), +List_1_ID, +Element_1_ID, Invalid_Token_ID);
+         Inner_List : constant Constant_List := Creators.Create_List
+           (Tree, List_Root (3), +List_1_ID, +Element_1_ID);
 
-         Skip_List : constant Skip_Array := (1 => (Skip, Skip_Element (3)));
+         Skip_List : constant Skip_Info :=
+           (Skip_Last               => 1,
+            Start_List_Root         => Inner_List.Root,
+            Start_List_ID           => +List_1_ID,
+            Start_Element_ID        => +Element_1_ID,
+            Start_Separator_ID      => Invalid_Token_ID,
+            Start_Multi_Element_RHS => 1,
+            Skips                   => (1 => (Skip, Skip_Element (3))));
 
          Pre_Expected  : constant Valid_Node_Index_Array := (13, 15);
          Post_Expected : constant Valid_Node_Index_Array := (1 => 28);
@@ -589,57 +623,60 @@ package body Test_LR_Utils is
             Tree.Print_Tree (Descriptor);
          end if;
 
-         Check ("1 inner.pre", Source_Iter, Pre_Expected);
+         Check ("1 inner.pre", Inner_List, Pre_Expected);
 
-         declare
-            Skip_Found : Boolean := False;
-            Dest_Iter : constant Iterator := Iterate
-              (Source_Iter, Copy_Skip_Nested (Source_Iter, Skip_List, Skip_Found));
-         begin
-            Check ("1 inner skip_found", Skip_Found, True);
+         Inner_List_Copy := Copy_Skip_Nested (Skip_List, Tree);
 
-            Inner_List_Copy := Dest_Iter.Root;
+         Stack.Push (Inner_List_Copy);
+         Stack.Push (Tree.Root);
 
-            Stack.Push (Inner_List_Copy);
-            Stack.Push (Tree.Root);
+         Reduce (2, Top_ID, 1);
 
-            Reduce (2, Top_ID, 1);
+         Tree.Set_Root (Stack.Pop);
 
-            Tree.Set_Root (Stack.Pop);
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("post copy_skip inner");
+            Tree.Print_Tree (Descriptor);
+         end if;
 
-            if WisiToken.Trace_Generate_Table > Outline then
-               Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("post copy_skip inner");
-               Tree.Print_Tree (Descriptor);
-            end if;
-
-            Check ("1 inner.post source", Source_Iter, Pre_Expected);
-            Check ("1 inner.post dest", Dest_Iter, Post_Expected);
-         end;
+         Check ("1 inner.post source", Inner_List, Pre_Expected);
+         Check ("1 inner.post dest", Creators.Create_List (Inner_List, Tree, Inner_List_Copy), Post_Expected);
       end;
 
       --  Now copy the outer list, skipping the same item
       declare
-         Outer_Iter : constant Iterator := Iterate (List_Root (1), +List_1_ID, +Element_1_ID, +SEPARATOR_1_ID);
-         Inner_Iter : constant Iterator := Iterate (List_Root (3), +List_1_ID, +Element_1_ID, Invalid_Token_ID);
+         Outer_List : constant Constant_List := Creators.Create_List
+           (Tree, List_Root (1), +List_1_ID, +Element_1_ID);
+         Inner_List : constant Constant_List := Creators.Create_List
+           (Tree, List_Root (3), +List_1_ID, +Element_1_ID);
 
-         Skip_List : constant Skip_Array :=
-           (1               =>
-              (Nested,
-               Element      => Skip_Element (1),
-               List_Root    => List_Root (2),
-               List_ID      => +List_2_ID,
-               Element_ID   => +List_1_ID,
-               Separator_ID => Invalid_Token_ID),
-            2               =>
-              (Nested,
-               Element      => Skip_Element (2),
-               List_Root    => List_Root (3),
-               List_ID      => +List_1_ID,
-               Element_ID   => +Element_1_ID,
-               Separator_ID => Invalid_Token_ID),
-            3               =>
-              (Skip, Skip_Element (3)));
+         Skip_List : constant Skip_Info :=
+           (Skip_Last               => 3,
+            Start_List_Root         => Outer_List.Root,
+            Start_List_ID           => Outer_List.List_ID,
+            Start_Element_ID        => Outer_List.Element_ID,
+            Start_Separator_ID      => +SEPARATOR_1_ID,
+            Start_Multi_Element_RHS => 1,
+            Skips                   =>
+              (1                    =>
+                 (Nested,
+                  Element           => Skip_Element (1),
+                  List_Root         => List_Root (2),
+                  List_ID           => +List_2_ID,
+                  Element_ID        => +List_1_ID,
+                  Multi_Element_RHS => 1,
+                  Separator_ID      => Invalid_Token_ID),
+               2                    =>
+                 (Nested,
+                  Element           => Skip_Element (2),
+                  List_Root         => List_Root (3),
+                  List_ID           => +List_1_ID,
+                  Element_ID        => +Element_1_ID,
+                  Multi_Element_RHS => 1,
+                  Separator_ID      => Invalid_Token_ID),
+               3                    =>
+               (Skip, Skip_Element (3))));
 
          Pre_Outer_Expected  : constant Valid_Node_Index_Array := (11, 20, 22, 24);
          Pre_Inner_Expected  : constant Valid_Node_Index_Array := (13, 15);
@@ -649,56 +686,49 @@ package body Test_LR_Utils is
 
          Outer_List_Copy : Node_Index;
       begin
-         Check ("2 inner.pre", Inner_Iter, Pre_Inner_Expected);
-         Check ("2 outer.pre", Outer_Iter, Pre_Outer_Expected);
+         Check ("2 inner.pre", Inner_List, Pre_Inner_Expected);
+         Check ("2 outer.pre", Outer_List, Pre_Outer_Expected);
 
+         Outer_List_Copy := Copy_Skip_Nested (Skip_List, Tree);
+
+         Stack.Push (Outer_List_Copy);
+         Stack.Push (Tree.Root);
+
+         Reduce (2, Top_ID, 1);
+
+         Tree.Set_Root (Stack.Pop);
+
+         if WisiToken.Trace_Generate_Table > Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("post copy_skip outer");
+            Tree.Print_Tree (Descriptor);
+         end if;
+
+         Check ("outer.post source", Outer_List, Pre_Outer_Expected);
+         Check ("inner.post source", Inner_List, Pre_Inner_Expected);
+
+         Check ("outer.post dest", Creators.Create_List (Outer_List, Tree, Outer_List_Copy), Post_Outer_Expected);
+         Check ("inner.post dest", Creators.Create_List (Inner_List, Tree, 37), Post_Inner_Expected);
+
+         --  Check that "other" nodes got copied correctly.
          declare
-            Skip_Found : Boolean := False;
-            Dest_Iter : constant Iterator := Iterate (Outer_Iter, Copy_Skip_Nested (Outer_Iter, Skip_List, Skip_Found));
+            use WisiToken.AUnit;
+            use AUnit.Checks.Containers;
+            Node : Node_Index := Tree.Parent (Post_Inner_Expected (1));
          begin
-            Check ("2 inner skip_found", Skip_Found, True);
+            Check ("other 0.ID", Tree.ID (Node), +List_1_ID);
 
-            Outer_List_Copy := Dest_Iter.Root;
+            Node := Tree.Parent (Node, 2);
+            Check ("other 1.ID", Tree.ID (Node), +Other_2_ID);
+            Check ("other 1.child_count", Tree.Child_Count (Node), 3);
+            Check ("other 1.1", Tree.ID (Tree.Child (Node, 1)), +LEFT_BRACKET_ID);
+            Check ("other 1.3", Tree.ID (Tree.Child (Node, 3)), +RIGHT_BRACKET_ID);
 
-            Stack.Push (Outer_List_Copy);
-            Stack.Push (Tree.Root);
+            Node := Tree.Parent (Node);
+            Check ("other 2.ID", Tree.ID (Node), +Other_1_ID);
 
-            Reduce (2, Top_ID, 1);
-
-            Tree.Set_Root (Stack.Pop);
-
-            if WisiToken.Trace_Generate_Table > Outline then
-               Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("post copy_skip outer");
-               Tree.Print_Tree (Descriptor);
-            end if;
-
-            Check ("outer.post source", Outer_Iter, Pre_Outer_Expected);
-            Check ("inner.post source", Inner_Iter, Pre_Inner_Expected);
-
-            Check ("outer.post dest", Dest_Iter, Post_Outer_Expected);
-            Check ("inner.post dest", Iterate (Inner_Iter, 37), Post_Inner_Expected);
-
-            --  Check that "other" nodes got copied correctly.
-            declare
-               use WisiToken.AUnit;
-               use AUnit.Checks.Containers;
-               Node : Node_Index := Tree.Parent (Post_Inner_Expected (1));
-            begin
-               Check ("other 0.ID", Tree.ID (Node), +List_1_ID);
-
-               Node := Tree.Parent (Node, 2);
-               Check ("other 1.ID", Tree.ID (Node), +Other_2_ID);
-               Check ("other 1.child_count", Tree.Child_Count (Node), 3);
-               Check ("other 1.1", Tree.ID (Tree.Child (Node, 1)), +LEFT_BRACKET_ID);
-               Check ("other 1.3", Tree.ID (Tree.Child (Node, 3)), +RIGHT_BRACKET_ID);
-
-               Node := Tree.Parent (Node);
-               Check ("other 2.ID", Tree.ID (Node), +Other_1_ID);
-
-               Node := Tree.Parent (Node);
-               Check ("other 3", Node, 42);
-            end;
+            Node := Tree.Parent (Node);
+            Check ("other 3", Node, 42);
          end;
       end;
    end Test_Copy_Skip;
@@ -710,8 +740,8 @@ package body Test_LR_Utils is
    is
       use Standard.AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Test_Splice_1'Access, "Test_Splice_1");
       Register_Routine (T, Test_Insert_1'Access, "Test_Insert_1");
+      Register_Routine (T, Test_Delete_1'Access, "Test_Delete_1");
       Register_Routine (T, Test_Copy_Skip'Access, "Test_Copy_Skip");
    end Register_Tests;
 

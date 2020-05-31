@@ -942,11 +942,39 @@ package body WisiToken_Grammar_Runtime is
           else "[a-zA-Z0-9_]+"),
          Case_Sensitive => not Data.Language_Params.Case_Insensitive);
 
+      procedure Erase_Copied_EBNF_Node (Node : in Valid_Node_Index)
+      is
+         Found : Boolean := False;
+      begin
+         if Trace_Generate_EBNF > Outline then
+            Ada.Text_IO.Put_Line ("erase copied deleted EBNF node" & Node'Image);
+         end if;
+         --  Vector Delete replaces content with
+         --  Valid_Node_Index_Arrays.Default_Element = Valid_Node_Index'Last =
+         --  Deleted_Child; this is clearer.
+
+         for I in Copied_EBNF_Nodes.First_Index .. Copied_EBNF_Nodes.Last_Index loop
+            if Copied_EBNF_Nodes (I) = Node then
+               Copied_EBNF_Nodes (I) := Deleted_Child;
+               Found := True;
+               exit;
+            end if;
+         end loop;
+         if not Found then
+            raise SAL.Programmer_Error with Node'Image & " not found in Copied_EBNF_Nodes";
+         end if;
+      end Erase_Copied_EBNF_Node;
+
       procedure Clear_EBNF_Node (Node : in Valid_Node_Index)
       is begin
          if Node in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index then
+            if Trace_Generate_EBNF > Outline then
+               Ada.Text_IO.Put_Line ("clear translated EBNF node" & Node'Image);
+            end if;
+
             Data.EBNF_Nodes (Node) := False;
-            --  else in Copied_EBNF_Nodes; don't need to delete from there.
+         else
+            Erase_Copied_EBNF_Node (Node);
          end if;
       end Clear_EBNF_Node;
 
@@ -976,6 +1004,19 @@ package body WisiToken_Grammar_Runtime is
 
          return ID;
       end Next_Nonterm_Name;
+
+      function Find_Nonterminal
+        (Target : in String;
+         Equal  : in WisiToken.Syntax_Trees.LR_Utils.Find_Equal)
+        return Node_Index
+      is
+         use WisiToken.Syntax_Trees.LR_Utils;
+      begin
+         return Get_Node
+           (Creators.Create_List
+              (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID).Find
+              (Target, Equal));
+      end Find_Nonterminal;
 
       function Tree_Add_Nonterminal
         (Child_1 : in Valid_Node_Index;
@@ -1064,8 +1105,11 @@ package body WisiToken_Grammar_Runtime is
               rhs_attribute_ID |
               STRING_LITERAL_2_ID
             then
-               if Trace_Generate_EBNF > Detail then
-                  Ada.Text_IO.Put_Line ("new EBNF node" & Node'Image);
+               if Trace_Generate_EBNF > Outline then
+                  Ada.Text_IO.Put_Line
+                    ("new EBNF node " & Tree.Image
+                       (Node, Wisitoken_Grammar_Actions.Descriptor,
+                        Node_Numbers => True));
                end if;
                Copied_EBNF_Nodes.Append (Node);
             end if;
@@ -1074,14 +1118,12 @@ package body WisiToken_Grammar_Runtime is
          Tree.Process_Tree (Record_Copied_Node'Access, Node);
       end Record_Copied_EBNF_Nodes;
 
-      procedure Erase_Copied_EBNF_Nodes (Node : in Valid_Node_Index)
+      procedure Erase_Deleted_EBNF_Nodes (Node : in Valid_Node_Index)
       is
-         procedure Erase_Copied_Node
+         procedure Erase_Deleted_Node
            (Tree : in out WisiToken.Syntax_Trees.Tree;
             Node : in WisiToken.Valid_Node_Index)
-         is
-            Found : Boolean := False;
-         begin
+         is begin
             if To_Token_Enum (Tree.ID (Node)) in
               rhs_optional_item_ID |
               rhs_multiple_item_ID |
@@ -1089,33 +1131,20 @@ package body WisiToken_Grammar_Runtime is
               rhs_attribute_ID |
               STRING_LITERAL_2_ID
             then
-               if Trace_Generate_EBNF > Detail then
-                  Ada.Text_IO.Put_Line ("erase copied EBNF node" & Node'Image);
-               end if;
-               --  Vector Delete replaces content with
-               --  Valid_Node_Index_Arrays.Default_Element = Valid_Node_Index'Last =
-               --  Deleted_Child; this is clearer.
-
                if Node < Copied_EBNF_Nodes (Copied_EBNF_Nodes.First_Index) then
                   --  Node is original, not copied
+                  if Trace_Generate_EBNF > Outline then
+                     Ada.Text_IO.Put_Line ("erase original deleted EBNF node" & Node'Image);
+                  end if;
                   Data.EBNF_Nodes (Node) := False;
                else
-                  for I in Copied_EBNF_Nodes.First_Index .. Copied_EBNF_Nodes.Last_Index loop
-                     if Copied_EBNF_Nodes (I) = Node then
-                        Copied_EBNF_Nodes (I) := Deleted_Child;
-                        Found := True;
-                        exit;
-                     end if;
-                  end loop;
-                  if not Found then
-                     raise SAL.Programmer_Error with Node'Image & " not found in Copied_EBNF_Nodes";
-                  end if;
+                  Erase_Copied_EBNF_Node (Node);
                end if;
             end if;
-         end Erase_Copied_Node;
+         end Erase_Deleted_Node;
       begin
-         Tree.Process_Tree (Erase_Copied_Node'Access, Node);
-      end Erase_Copied_EBNF_Nodes;
+         Tree.Process_Tree (Erase_Deleted_Node'Access, Node);
+      end Erase_Deleted_EBNF_Nodes;
 
       procedure Insert_Optional_RHS (B : in Valid_Node_Index)
       with Pre => Tree.ID (B) in +rhs_multiple_item_ID | +rhs_optional_item_ID | +IDENTIFIER_ID
@@ -1143,98 +1172,46 @@ package body WisiToken_Grammar_Runtime is
             use all type SAL.Base_Peek_Type;
 
             Non_Empty_List : Node_Index := Invalid_Node_Index;
-            --  First (nearest) rhs_list or rhs_alternative_list ancestor of B
-            --  that will not be empty when B is skipped.
+            --  First (nearest) rhs_item_list ancestor of B that will not be empty
+            --  when B is skipped.
 
-            Skip_Node        : Valid_Node_Index         := Tree.Find_Ancestor (B, +rhs_element_ID);
-            Last_Skip_Node   : Valid_Node_Index         := Skip_Node;
             Skip_Last        : Positive_Index_Type'Base := Positive_Index_Type'First;
-            Search_For       : WisiToken.Token_ID       := +rhs_item_list_ID;
-            Reset_Search_For : WisiToken.Token_ID       := Search_For;
-         begin
-            --  First count the number of Skip_Items we need, and set Non_Empty_List
+            Last_Skip_Node   : Valid_Node_Index         := Tree.Find_Ancestor (B, +rhs_element_ID);
+            Reset_Search_For : WisiToken.Token_ID       := +rhs_item_list_ID;
 
-            loop
-               case To_Token_Enum (Search_For) is
-               when rhs_item_list_ID =>
-                  Skip_Node := Tree.Find_Ancestor (Skip_Node, +rhs_item_list_ID);
+            procedure Search (Result : in out Skip_Info)
+            is
+               Skip_Node  : Valid_Node_Index   := Last_Skip_Node;
+               Search_For : WisiToken.Token_ID := Reset_Search_For;
+            begin
+               loop
+                  case To_Token_Enum (Search_For) is
+                  when rhs_item_list_ID =>
+                     Skip_Node := Tree.Find_Ancestor (Skip_Node, +rhs_item_list_ID);
 
-                  Skip_Node := List_Root (Tree, Skip_Node, +rhs_item_list_ID);
+                     Skip_Node := List_Root (Tree, Skip_Node, +rhs_item_list_ID);
 
-                  Search_For := +rhs_element_ID;
+                     Search_For := +rhs_element_ID;
 
-                  if Skip_Last = Positive_Index_Type'First and then
-                    Create_List (Tree, Skip_Node, +rhs_item_list_ID, +rhs_element_ID).Count = 1
-                  then
-                     --  This list will be empty; no need to descend into it
-                     Last_Skip_Node   := Skip_Node;
-                     Reset_Search_For := Search_For;
-                  else
-                     Skip_Last := Skip_Last + 1;
-                  end if;
+                     if Result.Skips'Length = 0 then
+                        declare
+                           List_Count : constant Ada.Containers.Count_Type := Create_List
+                             (Tree, Skip_Node, +rhs_item_list_ID, +rhs_element_ID).Count;
+                        begin
+                           if List_Count > 1 then
+                              Non_Empty_List := List_Root (Tree, Skip_Node, +rhs_item_list_ID);
+                              exit;
 
-               when rhs_element_ID =>
-                  declare
-                     List_Node : Valid_Node_Index := Tree.Find_Ancestor
-                       (Skip_Node, (+rhs_ID, +rhs_alternative_list_ID));
-                  begin
-
-                     if Tree.ID (List_Node) = +rhs_ID then
-                        Non_Empty_List := Skip_Node;
-                        Skip_Last      := Skip_Last - 1;
-                        exit;
-                     end if;
-
-                     List_Node := List_Root (Tree, List_Node, +rhs_alternative_list_ID);
-                     declare
-                        List_Count : constant Ada.Containers.Count_Type := Create_List
-                          (Tree, List_Node, +rhs_alternative_list_ID, +rhs_item_list_ID, +BAR_ID).Count;
-                     begin
-                        if List_Count > 1 then
-                           Non_Empty_List := Skip_Node;
-                           Skip_Last      := Skip_Last - 1;
-                           exit;
-                        end if;
-
-                        Skip_Node := Tree.Find_Ancestor (Skip_Node, +rhs_element_ID);
-
-                        Search_For := +rhs_item_list_ID;
-
-                        if Skip_Last = Positive_Index_Type'First then
-                           --  This list will be empty; no need to descend into it
-                           Last_Skip_Node   := Skip_Node;
-                           Reset_Search_For := Search_For;
-                        else
-                           Skip_Last := Skip_Last + 1;
-                        end if;
-                     end;
-                  end;
-               when others =>
-                  raise SAL.Programmer_Error;
-               end case;
-
-            end loop;
-
-            return Result : Skip_Info (Skip_Last) do
-               if Non_Empty_List /= Invalid_Node_Index then
-                  Result.Start_List_Root  := Non_Empty_List;
-                  Result.Start_List_ID    := Tree.ID (Non_Empty_List);
-                  Result.Start_Element_ID :=
-                    (if Result.Start_List_ID = +rhs_item_list_ID then +rhs_element_ID else +rhs_item_list_ID);
-
-                  if Result.Skips'Length > 0 then
-                     Result.Skips (Skip_Last) := (Skip, Last_Skip_Node);
-                     Skip_Node                := Last_Skip_Node;
-                     Search_For               := Reset_Search_For;
-                  end if;
-
-                  for I in reverse Result.Skips'First .. Result.Skips'Last - 1 loop
-                     case To_Token_Enum (Search_For) is
-                     when rhs_item_list_ID =>
-                        Skip_Node := Tree.Find_Ancestor (Skip_Node, +rhs_item_list_ID);
-                        Skip_Node := List_Root (Tree, Skip_Node, +rhs_item_list_ID);
-
-                        Result.Skips (I) :=
+                           elsif Skip_Last = Positive_Index_Type'First and List_Count = 1 then
+                              --  This list will be empty; no need to descend into it
+                              Last_Skip_Node   := Skip_Node;
+                              Reset_Search_For := Search_For;
+                           else
+                              Skip_Last := Skip_Last + 1;
+                           end if;
+                        end;
+                     else
+                        Result.Skips (Skip_Last) :=
                           (Label             => Nested,
                            Element           => Skip_Node,
                            List_Root         => Skip_Node,
@@ -1243,16 +1220,38 @@ package body WisiToken_Grammar_Runtime is
                            Separator_ID      => Invalid_Token_ID,
                            Multi_Element_RHS => 1);
 
-                        Search_For := +rhs_element_ID;
+                        Skip_Last := Skip_Last - 1;
+                     end if;
 
-                     when rhs_element_ID =>
-                        declare
-                           List_Node  : constant Valid_Node_Index := List_Root
-                             (Tree, Tree.Find_Ancestor (Skip_Node, +rhs_alternative_list_ID), +rhs_alternative_list_ID);
-                        begin
-                           Skip_Node := Tree.Find_Ancestor (List_Node, +rhs_element_ID);
+                  when rhs_element_ID =>
+                     declare
+                        List_Node : Valid_Node_Index := Tree.Find_Ancestor
+                          (Skip_Node, (+rhs_ID, +rhs_alternative_list_ID));
+                     begin
 
-                           Result.Skips (I) :=
+                        if Result.Skips'Length = 0 and then
+                          Tree.ID (List_Node) = +rhs_ID
+                        then
+                           Non_Empty_List := List_Root (Tree, Skip_Node, +rhs_item_list_ID);
+                           Skip_Last      := Skip_Last - 1;
+                           exit;
+                        end if;
+
+                        List_Node := List_Root (Tree, List_Node, +rhs_alternative_list_ID);
+                        Skip_Node := Tree.Find_Ancestor (Skip_Node, +rhs_element_ID);
+
+                        Search_For := +rhs_item_list_ID;
+
+                        if Result.Skips'Length = 0 then
+                           if Skip_Last = Positive_Index_Type'First then
+                              --  This list will be empty; no need to descend into it
+                              Last_Skip_Node   := Skip_Node;
+                              Reset_Search_For := Search_For;
+                           else
+                              Skip_Last := Skip_Last + 1;
+                           end if;
+                        else
+                           Result.Skips (Skip_Last) :=
                              (Label             => Nested,
                               Element           => Skip_Node,
                               List_Root         => List_Node,
@@ -1261,16 +1260,45 @@ package body WisiToken_Grammar_Runtime is
                               Separator_ID      => +BAR_ID,
                               Multi_Element_RHS => 1);
 
-                           Search_For := +rhs_item_list_ID;
-                        end;
+                           Skip_Last := Skip_Last - 1;
+                        end if;
+                     end;
+                  when others =>
+                     raise SAL.Programmer_Error;
+                  end case;
 
-                     when others =>
-                        raise SAL.Programmer_Error;
-                     end case;
+               end loop;
+            end Search;
 
-                  end loop;
+            Result_1 : Skip_Info (Skip_Last => Positive_Index_Type'First - 1);
+         begin
+            --  First count the number of Skip_Items we need, and set
+            --  Non_Empty_List.
+            Search (Result_1);
+
+            declare
+               Result : Skip_Info (Skip_Last);
+            begin
+               if Result.Skips'Length = 0 then
+                  return Result;
                end if;
-            end return;
+
+               Result.Start_List_Root  := Non_Empty_List;
+               Result.Start_List_ID    := +rhs_item_list_ID;
+               Result.Start_Element_ID := +rhs_element_ID;
+
+               Result.Start_Separator_ID      := Invalid_Token_ID;
+               Result.Start_Multi_Element_RHS := 1;
+
+               Result.Skips (Skip_Last) := (Skip, Last_Skip_Node);
+
+               if Result.Skips'Length = 1 then
+                  return Result;
+               end if;
+
+               Search (Result);
+               return Result;
+            end;
          end Find_Skips;
 
          Container : Valid_Node_Index := Tree.Find_Ancestor (B, (+rhs_ID, +rhs_alternative_list_ID));
@@ -1309,7 +1337,9 @@ package body WisiToken_Grammar_Runtime is
                Ada.Text_IO.Put_Line ("skip: " & Image (Skip_List, Wisitoken_Grammar_Actions.Descriptor));
             end if;
 
-            if Skip_List.Skips'Length = 0 or else Skip_List.Start_Element_ID = +rhs_ID then
+            if Skip_List.Skips'Length = 0 or else
+              +rhs_ID = Tree.ID (Tree.Parent (Skip_List.Start_List_Root))
+            then
                --  Insert an edited rhs into the rhs_list.
                --
                --  We can't insert an empty rhs_item_list into an
@@ -1334,10 +1364,7 @@ package body WisiToken_Grammar_Runtime is
                   --  FIXME: check for duplicate empty?
                   null;
                else
-                  New_RHS_AC := Copy_Skip_Nested
-                    (Skip_List, Tree,
-                     Separator_ID => Invalid_Token_ID,
-                     Multi_Element_RHS => 1);
+                  New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree);
 
                   Is_Duplicate := Duplicate (Container_List, New_RHS_AC);
                end if;
@@ -1353,24 +1380,25 @@ package body WisiToken_Grammar_Runtime is
             else
                --  Insert an edited rhs_item_list into an rhs_alternative_list
 
-               New_RHS_AC := Copy_Skip_Nested
-                 (Skip_List, Tree,
-                  Separator_ID      => Invalid_Token_ID,
-                  Multi_Element_RHS => 1);
-
-               if New_RHS_AC = Invalid_Node_Index then
-                  --  Empty; FIXME: innermost rhs_item_list could be empty, but an
-                  --  intermediate one not; Skip_List has that info.
-                  raise SAL.Programmer_Error;
-               end if;
+               New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree);
 
                if Duplicate (Container_List, New_RHS_AC) then
+                  --  IMPROVEME: check for duplicate before do copy; requires version of
+                  --  Get_Text that understands Skip_Info
                   Is_Duplicate := True;
                else
-                  Container_List.Insert
-                    (New_Element => New_RHS_AC,
-                     After       => Container_List.To_Cursor
-                       (List_Root (Tree, Tree.Find_Ancestor (B, +rhs_item_list_ID), +rhs_item_list_ID)));
+                  declare
+                     After : Valid_Node_Index := B;
+                  begin
+                     loop
+                        After := List_Root (Tree, Tree.Find_Ancestor (After, +rhs_item_list_ID), +rhs_item_list_ID);
+                        exit when Container_List.Contains (After);
+                     end loop;
+
+                     Container_List.Insert
+                       (New_Element => New_RHS_AC,
+                        After       => Container_List.To_Cursor (After));
+                  end;
                end if;
             end if;
 
@@ -1718,7 +1746,7 @@ package body WisiToken_Grammar_Runtime is
             New_Ident := Next_Nonterm_Name;
             New_Nonterminal ("group item", New_Ident, Tree.Child (Node, 2));
          else
-            Erase_Copied_EBNF_Nodes (Tree.Child (Node, 2));
+            Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
          end if;
 
          Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Ident);
@@ -2139,6 +2167,8 @@ package body WisiToken_Grammar_Runtime is
                   New_Nonterminal_List
                     (List_Nonterm_Virtual_Name, Tree.First_Shared_Terminal (Tree.Child (Node, 2)),
                      Data.Terminals.all, Tree.Byte_Region (Node));
+               else
+                  Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
                end if;
             else
                Find_List_Nonterminal_2 (Get_Text (Data, Tree, Tree.Child (Node, 2)));
@@ -2152,6 +2182,8 @@ package body WisiToken_Grammar_Runtime is
                      New_Nonterminal_List
                        (List_Nonterm_Virtual_Name, List_Element_Virtual_Name, Tree.Byte_Region (Node));
                   end;
+               else
+                  Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
                end if;
             end if;
 
@@ -2166,6 +2198,9 @@ package body WisiToken_Grammar_Runtime is
                  (List_Nonterm_Virtual_Name,
                   Tree.First_Shared_Terminal (Tree.Child (Node, 1)), Data.Terminals.all,
                   Tree.Byte_Region (Node));
+            else
+               --  nothing to erase
+               null;
             end if;
 
             if Tree.RHS_Index (Node) = 5 then
@@ -2295,9 +2330,9 @@ package body WisiToken_Grammar_Runtime is
                  (Tree, Tree.Child (B, 2), +rhs_alternative_list_ID, +rhs_item_list_ID);
 
             begin
-               --  An alternate design would be to splice together the exising A,
+               --  An alternate design would be to splice together the existing A,
                --  B_i, C; but it's too hard to get all the parent updates right.
-               for Alt of B_Alternative_List loop
+               for Alt of reverse B_Alternative_List loop
 
                   declare
                      B_Item_List : constant Constant_List := Create_List
@@ -2323,12 +2358,18 @@ package body WisiToken_Grammar_Runtime is
                         Container_List.Insert (New_ABC.Root, After => Container_Cur);
                      end if;
 
-                     Erase_Copied_EBNF_Nodes (B_Item_List.Root);
+                     Erase_Deleted_EBNF_Nodes (B_Item_List.Root);
                      Record_Copied_EBNF_Nodes (New_ABC.Root);
                   end;
                end loop;
 
                Container_List.Delete (Container_Cur);
+
+               if WisiToken.Trace_Generate_EBNF > Extra then
+                  Ada.Text_IO.New_Line;
+                  Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
+                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, (Container_List.Root));
+               end if;
             end;
 
          when 2 =>
@@ -2346,9 +2387,21 @@ package body WisiToken_Grammar_Runtime is
 
             Tree.Set_Children (Tree.Parent (B), (+rhs_item_ID, 0), (1 => Tree.Child (B, 1)));
 
+            if WisiToken.Trace_Generate_EBNF > Extra then
+               Ada.Text_IO.New_Line;
+               Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
+               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (B));
+            end if;
+
          when 3 =>
             --  | STRING_LITERAL_2 QUESTION
             Tree.Set_Children (Tree.Parent (B), (+rhs_item_ID, 1), (1 => Tree.Child (B, 1)));
+
+            if WisiToken.Trace_Generate_EBNF > Extra then
+               Ada.Text_IO.New_Line;
+               Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
+               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (B));
+            end if;
 
          when others =>
             Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplemented", Data, Tree, B);
@@ -2371,15 +2424,17 @@ package body WisiToken_Grammar_Runtime is
       procedure Translate_Token_Literal (Node : in Valid_Node_Index)
       is
          use Syntax_Trees.LR_Utils;
-         use Syntax_Trees.LR_Utils.Creators;
-         Value      : constant String  := Get_Text (Data, Tree, Node, Strip_Quotes => True);
+
          Name_Ident : Identifier_Index;
-         Found      : Boolean          := False;
-      begin
-         --  See if Value is already declared
-         for N of Create_List
-           (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID)
-         loop
+
+         function Equal
+           (Target : in String;
+            List   : in Constant_List'Class;
+            N      : in Valid_Node_Index)
+           return Boolean
+         is
+            pragma Unreferenced (List);
+         begin
             if Tree.Production_ID (Tree.Child (N, 1)) = (+declaration_ID, 0) then
                declare
                   Decl       : constant Node_Index       := Tree.Child (N, 1);
@@ -2388,9 +2443,8 @@ package body WisiToken_Grammar_Runtime is
                   if Tree.ID (Value_Node) = +declaration_item_ID and then
                     Tree.ID (Tree.Child (Value_Node, 1)) in
                     +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
-                    Value = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
+                    Target = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
                   then
-                     Found := True;
                      case Tree.Label (Tree.Child (Decl, 3)) is
                      when Shared_Terminal =>
                         Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
@@ -2399,12 +2453,20 @@ package body WisiToken_Grammar_Runtime is
                      when others =>
                         raise SAL.Programmer_Error;
                      end case;
+                     return True;
+                  else
+                     return False;
                   end if;
                end;
+            else
+               return False;
             end if;
-         end loop;
+         end Equal;
 
-         if not Found then
+         Value : constant String     := Get_Text (Data, Tree, Node, Strip_Quotes => True);
+         Found : constant Node_Index := Find_Nonterminal (Value, Equal'Unrestricted_Access);
+      begin
+         if Found = Invalid_Node_Index then
             if GNAT.Regexp.Match (Value, Symbol_Regexp) then
                Name_Ident := New_Identifier (Ada.Characters.Handling.To_Upper (Value));
             else
@@ -2439,7 +2501,9 @@ package body WisiToken_Grammar_Runtime is
          end;
 
          Clear_EBNF_Node (Node);
-         if Found then return; end if;
+         if Found /= Invalid_Node_Index then
+            return;
+         end if;
 
          --  Declare token for keyword string literal
          declare
@@ -2542,13 +2606,14 @@ package body WisiToken_Grammar_Runtime is
                Node_Image_Output := True;
                Put_Line
                  (Current_Error,
-                  Tree.Image
-                    (Node, Wisitoken_Grammar_Actions.Descriptor,
-                     Include_Children  => True,
-                     Include_RHS_Index => True,
-                     Node_Numbers      => True));
+                  Error_Message
+                    (Tree, Data.Terminals, Node, Data.Grammar_Lexer.File_Name,
+                     Tree.Image
+                       (Node, Wisitoken_Grammar_Actions.Descriptor,
+                        Node_Numbers => True)));
             end if;
-            Put_Line (Standard_Error, "... " & Msg);
+            Put_Line (Current_Error, "... " & Msg);
+            WisiToken.Generate.Error := True;
          end Put_Error;
 
          procedure Check_EBNF_Allowed
@@ -2612,7 +2677,7 @@ package body WisiToken_Grammar_Runtime is
                when 2 =>
                   if Tree.Child_Count (Node) /= 2 then
                      Put_Error ("expected child_count 2");
-                  elsif Tree.ID (Children (1)) /= +rhs_list_ID or
+                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
                     Tree.ID (Children (2)) /= +ACTION_ID
                   then
                      Put_Error ("expecting rhs_item_list ACTION");
@@ -2621,7 +2686,7 @@ package body WisiToken_Grammar_Runtime is
                when 3 =>
                   if Tree.Child_Count (Node) /= 3 then
                      Put_Error ("expected child_count 3");
-                  elsif Tree.ID (Children (1)) /= +rhs_list_ID or
+                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
                     Tree.ID (Children (2)) /= +ACTION_ID or
                     Tree.ID (Children (3)) /= +ACTION_ID
                   then
@@ -2825,10 +2890,10 @@ package body WisiToken_Grammar_Runtime is
 
                when 5 =>
                   if Children'Length /= 2 or else
-                    (Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID or
+                    (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
                        Tree.ID (Children (2)) /= +STAR_ID)
                   then
-                     Put_Error ("expecting STRING_LITERAL_2 STAR");
+                     Put_Error ("expecting IDENTIFIER STAR");
                   end if;
 
                when others =>
@@ -2876,7 +2941,15 @@ package body WisiToken_Grammar_Runtime is
          for N of Copied_EBNF_Nodes loop
             if N /= Deleted_Child then
                if Tree.Sub_Tree_Root (N) /= Tree.Root then
-                  Put_Line (Standard_Error, N'Image & " not in tree");
+                  Put_Line
+                    (Current_Error,
+                     Error_Message
+                       (Tree, Data.Terminals, N, Data.Grammar_Lexer.File_Name,
+                        Tree.Image
+                          (N, Wisitoken_Grammar_Actions.Descriptor,
+                           Node_Numbers      => True)));
+                  Put_Line (Current_Error, "... not in tree");
+                  WisiToken.Generate.Error := True;
                end if;
             end if;
          end loop;
@@ -2887,14 +2960,19 @@ package body WisiToken_Grammar_Runtime is
       --  translated first, so duplicates of the containing item can be found
       for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
          if Data.EBNF_Nodes (I) then
-            if Trace_Generate_EBNF > Detail then
+            if Trace_Generate_EBNF > Outline then
                Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("translate original node" & Node_Index'Image (I));
+               Ada.Text_IO.Put_Line
+                 ("translate original node " & Tree.Image
+                    (I, Wisitoken_Grammar_Actions.Descriptor,
+                     Node_Numbers => True));
             end if;
 
             Process_Node (I);
 
-            Tree.Validate_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root, Validate_Node'Unrestricted_Access);
+            Tree.Validate_Tree
+              (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
+               Validate_Node'Unrestricted_Access);
             Check_Copied_EBNF;
          end if;
       end loop;
@@ -2909,19 +2987,27 @@ package body WisiToken_Grammar_Runtime is
             exit when I > Copied_EBNF_Nodes.Last_Index;
             if Copied_EBNF_Nodes (I) = Deleted_Child then
                --  Deleted
-               if Trace_Generate_EBNF > Detail then
+               if Trace_Generate_EBNF > Outline then
                   Ada.Text_IO.New_Line;
-                  Ada.Text_IO.Put_Line ("skipping deleted copied node" & Node_Index'Image (Copied_EBNF_Nodes (I)));
+                  Ada.Text_IO.Put_Line
+                    ("skipping deleted copied node " & Tree.Image
+                       (Copied_EBNF_Nodes (I), Wisitoken_Grammar_Actions.Descriptor,
+                        Node_Numbers => True));
                end if;
             else
-               if Trace_Generate_EBNF > Detail then
+               if Trace_Generate_EBNF > Outline then
                   Ada.Text_IO.New_Line;
-                  Ada.Text_IO.Put_Line ("translate copied node" & Node_Index'Image (Copied_EBNF_Nodes (I)));
+                  Ada.Text_IO.Put_Line
+                    ("translate copied node " & Tree.Image
+                       (Copied_EBNF_Nodes (I), Wisitoken_Grammar_Actions.Descriptor,
+                        Node_Numbers => True));
                end if;
 
                Process_Node (Copied_EBNF_Nodes (I));
 
-               Tree.Validate_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root, Validate_Node'Unrestricted_Access);
+               Tree.Validate_Tree
+                 (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
+                  Validate_Node'Unrestricted_Access);
                Check_Copied_EBNF;
             end if;
             I := I + 1;
@@ -2929,7 +3015,9 @@ package body WisiToken_Grammar_Runtime is
       end;
 
       EBNF_Allowed := False;
-      Tree.Validate_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root, Validate_Node'Unrestricted_Access);
+      Tree.Validate_Tree
+        (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
+         Validate_Node'Unrestricted_Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 

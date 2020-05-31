@@ -24,20 +24,8 @@ update-wisitoken_grammar
 change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
     running Makefile t_bnf
 
-    translated to existing nonterm => erase_copied_ebnf_nodes
-
-
-    use List.Find for all comp_unit_list searches
-        translate_rhs_group_item
-
-    python_ebnf.wy
-        testlist_comp, dictorsetmaker
-
-        does not realize that dictorsetmaker has the same nonterminal?
-
-        expr_stmt
-
-    splice update root parent like Append?
+    java_types_ch19.wy
+        SAL.PROGRAMMER_ERROR:  670 not found in Copied_EBNF_Nodes
 
     insert_optional_rhs check for duplicate empty
 

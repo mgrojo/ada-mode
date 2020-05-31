@@ -319,6 +319,16 @@ package WisiToken.Syntax_Trees is
    --  If New_ID /= Tree.Production_ID (Node), Node.Action is set
    --  to null, because the old Action probably no longer applies.
 
+   procedure Delete_Parent
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Index)
+   with
+     Pre => Tree.Flushed and Tree.Parents_Set and (not Tree.Traversing) and
+            Tree.Parent (Node) /= Invalid_Node_Index;
+   --  Set child in Node.Parent to Deleted_Child. If Node.Parent =
+   --  Tree.Root, set Tree.Root to Node. Set Node.Parent to
+   --  Invalid_Node_Index.
+
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Index;
@@ -525,7 +535,7 @@ package WisiToken.Syntax_Trees is
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
-   --  Return value set by Set_Root; defaults to the last node added.
+   --  Return value set by Set_Root.
    --  returns Invalid_Node_Index if Tree is empty.
 
    function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
@@ -619,18 +629,29 @@ package WisiToken.Syntax_Trees is
      return String;
    --  Simple list of numbers, for debugging
 
+   function Error_Message
+     (Tree      : in Syntax_Trees.Tree;
+      Terminals : in Base_Token_Array_Access_Constant;
+      Node      : in Valid_Node_Index;
+      File_Name : in String;
+      Message   : in String)
+     return String;
+   --  Get Line, column from Node.
+
    type Validate_Node is access procedure
      (Tree              : in     Syntax_Trees.Tree;
       Node              : in     Valid_Node_Index;
       Node_Image_Output : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform other
    --  checks, output to Text_IO.Current_Error. If Node_Image_Output is
-   --  False, output Image (Tree, Node, Descriptor, others => True) once
+   --  False, output Image (Tree, Node, Descriptor, Node_Numbers => True) once
    --  before any error messages.
 
    procedure Validate_Tree
      (Tree          : in out Syntax_Trees.Tree;
+      Terminals     : in     Base_Token_Array_Access_Constant;
       Descriptor    : in     WisiToken.Descriptor;
+      File_Name     : in     String;
       Root          : in     Node_Index                 := Invalid_Node_Index;
       Validate_Node : in     Syntax_Trees.Validate_Node := null)
    with Pre => Tree.Flushed and Tree.Parents_Set;
