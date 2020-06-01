@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a; speed up lr1
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - wisitoken_to_tree_sitter
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - speed up lr1
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canonical lists
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -21,6 +21,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+delete descriptor.case_insensitive?
+    move to lexer?
+
 to_tree_sitter
     build/Makefile one
 
@@ -225,6 +228,13 @@ test_mckenzie use lr-parser-gen_aunit
 
 change to incremental parse
     integrate with tree-sitter?
+
+    change syntax tree; store lists in a single node
+        needs syntax in .wy to indicate a list
+            ebnf recognize canonical list might be enough
+        fewer nodes in syntax tree; should be faster (for large files)
+            push_back part of a list?
+        simplifies syntax tree editing (translate_ebnf)
 
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1

@@ -141,8 +141,15 @@ package body WisiToken.Parse.Packrat.Procedural is
             Parser.Derivs (R).Replace_Element (Start_Pos, (State => Failure));
          else
             Memo := Eval (Parser, R, Last_Pos);
-            if Trace_Parse > Detail and then Memo.State = Success then
-               Parser.Trace.Put_Line (Parser.Tree.Image (Memo.Result, Descriptor, Include_Children => True));
+            if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
+               case Memo.State is
+               when Success =>
+                  Parser.Trace.Put_Line (Parser.Tree.Image (Memo.Result, Descriptor, Include_Children => True));
+               when Failure =>
+                  Parser.Trace.Put_Line (Image (R, Descriptor) & " failed at pos" & Last_Pos'Image);
+               when No_Result =>
+                  raise SAL.Programmer_Error;
+               end case;
             end if;
             Parser.Derivs (R).Replace_Element (Start_Pos, Memo);
             return Memo;

@@ -137,7 +137,7 @@ DIFF_OPT := -u -w
 %.exe : force; gprbuild -p -j8 --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe
