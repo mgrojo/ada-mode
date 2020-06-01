@@ -29,10 +29,6 @@
 --  update the corresponding links, setting them to Invalid_Node_Index
 --  or Deleted_Child as appropriate.
 --
---  Set_Parents also controls updating Min_Terminal_Index; it is
---  updated before Set_Parents is called, not after. We assume it is
---  only needed during error recovery.
---
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
 --
@@ -392,7 +388,7 @@ package WisiToken.Syntax_Trees is
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
    procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
-   with Pre => Tree.Flushed;
+   with Pre => Tree.Flushed and Tree.Root /= Invalid_Node_Index;
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
@@ -539,7 +535,7 @@ package WisiToken.Syntax_Trees is
    --  returns Invalid_Node_Index if Tree is empty.
 
    function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
-   with Pre => Tree.Parents_Set and Tree.Is_Nonterm (Node);
+   with Pre => Tree.Parents_Set;
    --  Return top ancestor of Node.
 
    procedure Process_Tree

@@ -1853,43 +1853,41 @@ package body WisiToken.Syntax_Trees is
             end;
          end if;
 
-         if not Tree.Shared_Tree.Parents_Set then
-            declare
-               K : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Children (I));
-            begin
-               N.Virtual := N.Virtual or
-                 (case K.Label is
-                  when Shared_Terminal                       => False,
-                  when Virtual_Terminal | Virtual_Identifier => True,
-                  when Nonterm                               => K.Virtual);
+         declare
+            K : Node_Const_Ref renames Tree.Get_Node_Const_Ref (Children (I));
+         begin
+            N.Virtual := N.Virtual or
+              (case K.Label is
+               when Shared_Terminal                       => False,
+               when Virtual_Terminal | Virtual_Identifier => True,
+               when Nonterm                               => K.Virtual);
 
-               if N.Byte_Region.First > K.Byte_Region.First then
-                  N.Byte_Region.First := K.Byte_Region.First;
-               end if;
+            if N.Byte_Region.First > K.Byte_Region.First then
+               N.Byte_Region.First := K.Byte_Region.First;
+            end if;
 
-               if N.Byte_Region.Last < K.Byte_Region.Last then
-                  N.Byte_Region.Last := K.Byte_Region.Last;
-               end if;
+            if N.Byte_Region.Last < K.Byte_Region.Last then
+               N.Byte_Region.Last := K.Byte_Region.Last;
+            end if;
 
-               if not Min_Terminal_Index_Set then
-                  case K.Label is
-                  when Shared_Terminal =>
+            if not Min_Terminal_Index_Set then
+               case K.Label is
+               when Shared_Terminal =>
+                  Min_Terminal_Index_Set := True;
+                  N.Min_Terminal_Index   := K.Terminal;
+
+               when Virtual_Terminal | Virtual_Identifier =>
+                  null;
+
+               when Nonterm =>
+                  if K.Min_Terminal_Index /= Invalid_Token_Index then
+                     --  not an empty nonterm
                      Min_Terminal_Index_Set := True;
-                     N.Min_Terminal_Index   := K.Terminal;
-
-                  when Virtual_Terminal | Virtual_Identifier =>
-                     null;
-
-                  when Nonterm =>
-                     if K.Min_Terminal_Index /= Invalid_Token_Index then
-                        --  not an empty nonterm
-                        Min_Terminal_Index_Set := True;
-                        N.Min_Terminal_Index   := K.Min_Terminal_Index;
-                     end if;
-                  end case;
-               end if;
-            end;
-         end if;
+                     N.Min_Terminal_Index   := K.Min_Terminal_Index;
+                  end if;
+               end case;
+            end if;
+         end;
       end loop;
    end Set_Children;
 

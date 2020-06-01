@@ -1,6 +1,5 @@
 
 OK test_generate_errors.adb ../test/bnf/unused_tokens : Run_Test
-OK bnf_wy_test.adb ada_lite_ebnf ada_lite : Run_Test
 OK bnf_wy_test.adb body_instantiation_conflict : Run_Test
 OK bnf_wy_test.adb case_expression : Run_Test
 OK bnf_wy_test.adb character_literal : Run_Test
@@ -15,6 +14,10 @@ OK bnf_wy_test.adb empty_production_6 : Run_Test
 OK bnf_wy_test.adb empty_production_7 : Run_Test
 OK bnf_wy_test.adb empty_production_8 : Run_Test
 OK bnf_wy_test.adb identifier_list_name_conflict : Run_Test
+OK bnf_wy_test.adb range_conflict : Run_Test
+OK bnf_wy_test.adb skip_to_grammar : Run_Test
+OK bnf_wy_test.adb warth_left_recurse_expr_1 : Run_Test
+OK bnf_wy_test.adb ada_lite_ebnf ada_lite : Run_Test
 OK bnf_wy_test.adb java_ebnf : Run_Test
 OK bnf_wy_test.adb java_enum_ch19 : Run_Test
 OK bnf_wy_test.adb java_expressions_antlr : Run_Test
@@ -23,11 +26,8 @@ OK bnf_wy_test.adb java_types_ch19 : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb python_ebnf : Run_Test
-OK bnf_wy_test.adb range_conflict : Run_Test
-OK bnf_wy_test.adb skip_to_grammar : Run_Test
 OK bnf_wy_test.adb subprograms : Run_Test
 OK bnf_wy_test.adb three_action_conflict : Run_Test
-OK bnf_wy_test.adb warth_left_recurse_expr_1 : Run_Test
 OK association_grammar_test.adb : Nominal
 OK dragon_4_43_lr1_test.adb : Test_First_Follow
 OK dragon_4_43_lr1_test.adb : Test_LR1_Items
@@ -44,6 +44,9 @@ OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
 OK test_follow.adb : Subprograms.One
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
+OK test_lr_utils.adb : Test_Insert_1
+OK test_lr_utils.adb : Test_Delete_1
+OK test_lr_utils.adb : Test_Copy_Skip
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
 OK test_mckenzie_recover.adb LALR : Error_1
@@ -168,7 +171,7 @@ OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_1
 OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_2
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   168
-Successful Tests:  168
+Total Tests Run:   171
+Successful Tests:  171
 Failed Assertions: 0
 Unexpected Errors: 0

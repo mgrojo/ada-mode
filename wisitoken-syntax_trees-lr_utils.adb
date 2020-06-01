@@ -481,10 +481,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                 (Production     => (Container.List_ID, Container.Multi_Element_RHS),
                  Children       =>
                    (if Container.Separator_ID = Invalid_Token_ID
-                    then (Container.Root, New_Element)
-                    else (Container.Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
+                    then (Old_Root, New_Element)
+                    else (Old_Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
-            if List_Parent /= Invalid_Node_Index then
+            if List_Parent = Invalid_Node_Index then
+               if Tree.Root = Old_Root then
+                  Tree.Root := Container.Root;
+               end if;
+
+            else
                Tree.Replace_Child
                  (List_Parent,
                   Child_Index,
@@ -514,10 +519,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Children       => (1 => New_Element)));
 
       else
-         --  Inserting element First (with list parent node) in spec example
+         --  Inserting element First (with list parent node and separator) in spec example
          declare
-            First  : constant Valid_Node_Index := Container.First.Node;
-            Parent : constant Valid_Node_Index := Tree.Parent (First);
+            Old_First  : constant Valid_Node_Index := Container.First.Node;
+            Parent : constant Valid_Node_Index := Tree.Parent (Old_First);
 
             List_Node : constant Valid_Node_Index := Tree.Add_Nonterm
               ((Container.List_ID, Container.One_Element_RHS),
@@ -526,7 +531,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Tree.Set_Children
               (Node     => Parent,
                New_ID   => (Container.List_ID, Container.Multi_Element_RHS),
-               Children => (List_Node, First));
+               Children =>
+                 (if Container.Separator_ID = Invalid_Token_ID
+                  then (List_Node, Old_First)
+                  else (List_Node, Tree.Add_Terminal (Container.Separator_ID), Old_First)));
          end;
       end if;
    end Prepend;

@@ -1,7 +1,7 @@
  5 tokens lexed
-upper_c_1: (upper_c, (2 . 2)) <= ( 2:(LOWER_D, (2 . 2)))
-upper_c_0: (upper_c, (1 . 2)) <= ( 1:(LOWER_C, (1 . 1)), (upper_c, (2 . 2)))
-upper_c_1: (upper_c, (4 . 4)) <= ( 4:(LOWER_D, (4 . 4)))
-upper_c_0: (upper_c, (3 . 4)) <= ( 3:(LOWER_C, (3 . 3)), (upper_c, (4 . 4)))
-upper_s_0: (upper_s, (1 . 4)) <= ((upper_c, (1 . 2)), (upper_c, (3 . 4)))
-wisitoken_accept_0: (wisitoken_accept, (1 . 5)) <= ((upper_s, (1 . 4)),  5:(Wisi_EOI, (6 . 5)))
+(upper_c, (2 . 2)) <= (2:(LOWER_D, (2 . 2)))
+(upper_c, (1 . 2)) <= (1:(LOWER_C, (1 . 1)), (upper_c, (2 . 2)))
+(upper_c, (4 . 4)) <= (4:(LOWER_D, (4 . 4)))
+(upper_c, (3 . 4)) <= (3:(LOWER_C, (3 . 3)), (upper_c, (4 . 4)))
+(upper_s, (1 . 4)) <= ((upper_c, (1 . 2)), (upper_c, (3 . 4)))
+(wisitoken_accept, (1 . 5)) <= ((upper_s, (1 . 4)), 5:(Wisi_EOI, (6 . 5)))

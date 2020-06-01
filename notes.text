@@ -21,14 +21,7 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-change wisitoken_grammar_runtime.adb Translate_EBNF_To_BNF to use LR_Utils
-    running Makefile t_bnf
-
-    java_types_ch19.wy
-        SAL.PROGRAMMER_ERROR:  670 not found in Copied_EBNF_Nodes
-
-    insert_optional_rhs check for duplicate empty
-
+test ada_annex_p, java, python
 
 propagate to main
 

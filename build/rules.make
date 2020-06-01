@@ -33,6 +33,7 @@ tests :: test_all_harness.diff
 
 # generated code used by test_bnf_suite.adb and others.
 # If add to this, add to wisitoken_test.gpr
+EBNF_ONLY ?= false
 ifeq ($(EBNF_ONLY),false)
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads

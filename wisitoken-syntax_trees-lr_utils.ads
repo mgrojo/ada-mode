@@ -55,11 +55,11 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  | list
    --  | | list
    --  | | | element: First
-   --  | | separator
+   --  | | separator?
    --  | | element: 2
-   --  | separator
+   --  | separator?
    --  | element: 3
-   --  separator
+   --  separator?
    --  element: Last
 
    type Constant_List (<>) is tagged private with
@@ -297,7 +297,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
       After       : in     Cursor)
    with Pre => not Container.Is_Invalid and then
                (Container.Tree.ID (New_Element) = Container.Element_ID and
-                Container.Contains (After));
+                (After = No_Element or else Container.Contains (After)));
    --  Insert New_Item into Container after Ater, including
    --  Container.Separator_ID if it is not Invalid_Token_Index.
    --

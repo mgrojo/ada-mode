@@ -51,7 +51,7 @@ package body Test_LR_Utils is
             begin
                if Computed_List.Separator_ID /= Invalid_Token_ID and I > Expected'First then
                   Check
-                    (Label & ".separator",
+                    (Label & "." & I'Image & ".separator",
                      Computed.Tree.ID (Computed.Tree.Child (Computed.Tree.Parent (Get_Node (Cur)), 2)),
                      Computed_List.Separator_ID);
                end if;
@@ -97,7 +97,8 @@ package body Test_LR_Utils is
         (SEPARATOR_ID,
          IDENTIFIER_ID,
          List_ID,
-         Element_ID);
+         Element_ID,
+         Other_ID);
 
       function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
       is (WisiToken."+" (WisiToken.Token_ID'First, Token_Enum_ID'Pos (Item)));
@@ -106,7 +107,7 @@ package body Test_LR_Utils is
         (First_Terminal       => +SEPARATOR_ID,
          Last_Terminal        => +IDENTIFIER_ID,
          First_Nonterminal    => +List_ID,
-         Last_Nonterminal     => +Element_ID,
+         Last_Nonterminal     => +Other_ID,
          EOI_ID               => Invalid_Token_ID,
          Accept_ID            => Invalid_Token_ID,
          Case_Insensitive     => False,
@@ -117,7 +118,8 @@ package body Test_LR_Utils is
            (new String'("SEPARATOR"),
             new String'("IDENTIFIER"),
             new String'("List"),
-            new String'("Element")),
+            new String'("Element"),
+            new String'("Other")),
          Terminal_Image_Width => 13,
          Image_Width          => 21,
          Last_Lookahead       => Invalid_Token_ID);
@@ -132,17 +134,18 @@ package body Test_LR_Utils is
    begin
       --  Create a tree duplicating example in LR_Utils.Insert:
       --
-      --  15: list: Tree.Root
-      --  13: | list
-      --  11: | | list = Parent
-      --  09: | | | list
-      --  08: | | | | element: First
-      --  02: | | | separator
-      --  10: | | | element: After
-      --  04: | | separator
-      --  12: | | element: Before
-      --  06: | separator
-      --  14: | element: Last
+      --  16: other: Tree.Root
+      --  15: | list: List.Root
+      --  13: | | list
+      --  11: | | | list = Parent
+      --  09: | | | | list
+      --  08: | | | | | element: First
+      --  02: | | | | separator
+      --  10: | | | | element: After
+      --  04: | | | separator
+      --  12: | | | element: Before
+      --  06: | | separator
+      --  14: | | element: Last
 
       Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
 
@@ -184,7 +187,7 @@ package body Test_LR_Utils is
       Stack.Push (6);
       Stack.Push (7);
       Reduce (1, Element_ID, 0); -- 14
-      Reduce (3, List_ID, 1);
+      Reduce (3, List_ID, 1); -- 15
 
       Tree.Set_Root (Stack.Pop);
 
@@ -197,8 +200,6 @@ package body Test_LR_Utils is
          use WisiToken.AUnit;
 
          List : LR_Utils.List := Creators.Create_List (Tree, Tree.Root, +List_ID, +Element_ID, +SEPARATOR_ID);
-
-         Pre_Expected : constant Valid_Node_Index_Array := (8, 10, 12, 14);
 
          --  After Insert:
          --
@@ -216,25 +217,67 @@ package body Test_LR_Utils is
          --  12: | | element: Before
          --  06: | separator
          --  14: | element: Last
-
-         Post_Expected : constant Valid_Node_Index_Array := (8, 10, 17, 12, 14);
-
-         New_Element : constant Valid_Node_Index := Tree.Add_Nonterm -- 17
-           ((+Element_ID, 0),
-            (1 => Tree.Add_Terminal (+IDENTIFIER_ID))); -- 16
       begin
-         Check ("root", Tree.Root, 15);
+         Check ("0 root", Tree.Root, 15);
 
-         Check ("pre", List, Pre_Expected);
+         Check ("0 list", List, (8, 10, 12, 14));
+         Check ("0 list.root", List.Root, 15);
+         Check ("0 list.parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("0 tree root", Tree.Root, 15);
 
-         Insert (List, New_Element, After => List.To_Cursor (10)); -- creates separator 18
+         Insert
+           (List,
+            Tree.Add_Nonterm
+              ((+Element_ID, 0),
+               (1 => Tree.Add_Terminal (+IDENTIFIER_ID))),
+            After => List.To_Cursor (10));
+         --  creates ident 16, element 17, separator 18, list_id 19
 
          if WisiToken.Trace_Generate_Table > Outline then
-            Ada.Text_IO.Put_Line ("after insert");
+            Ada.Text_IO.Put_Line ("1 after insert");
             Tree.Print_Tree (Descriptor);
          end if;
 
-         Check ("post", List, Post_Expected);
+         Check ("1 list", List, (8, 10, 17, 12, 14));
+         Check ("1 list.root", List.Root, 15);
+         Check ("1 list.parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("1 tree root", Tree.Root, 15);
+
+         --  Insert before List.First; tests Prepend with separator
+         Insert
+           (List,
+            Tree.Add_Nonterm ((+Element_ID, 0), (1 => Tree.Add_Terminal (+IDENTIFIER_ID))),
+            After => No_Element);
+
+         Check ("2 list", List, (21, 8, 10, 17, 12, 14));
+         Check ("2 list.root", List.Root, 15);
+         Check ("2 list.parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("2 tree root", Tree.Root, 15);
+
+         --  Insert after List.Last; tests Append with separator and no list parent
+         Insert
+           (List,
+            Tree.Add_Nonterm ((+Element_ID, 0), (1 => Tree.Add_Terminal (+IDENTIFIER_ID))),
+            After => List.Last);
+
+         Check ("3 list", List, (21, 8, 10, 17, 12, 14, 25));
+         Check ("3 list.root", List.Root, 27);
+         Check ("3 list.parent", Tree.Parent (List.Root), Invalid_Node_Index);
+         Check ("3 tree root", Tree.Root, 27);
+
+         --  Insert after List.Last; tests Append update parent when list has parent
+         Tree.Set_Root (Tree.Add_Nonterm ((+Other_ID, 0), (1 => Tree.Root)));
+         Check ("4a tree root", Tree.Root, 28);
+
+         Insert
+           (List,
+            Tree.Add_Nonterm ((+Element_ID, 0), (1 => Tree.Add_Terminal (+IDENTIFIER_ID))),
+            After => List.Last);
+
+         Check ("4 list", List, (21, 8, 10, 17, 12, 14, 25, 30));
+         Check ("4 list.root", List.Root, 32);
+         Check ("4 list.parent", Tree.Parent (List.Root), 28);
+         Check ("4 tree root", Tree.Root, 28);
       end;
    end Test_Insert_1;
 
@@ -408,7 +451,7 @@ package body Test_LR_Utils is
             Tree.Print_Tree (Descriptor);
          end if;
 
-         Check ("4 list", List, (1 .. 0 => 0));
+         Check ("4 list", List, (1 .. 0 => 1));
          Check ("4 list root", List.Root, Invalid_Node_Index);
          Check ("4 tree root", Tree.Root, Invalid_Node_Index);
       end;
