@@ -43,6 +43,14 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+test/ada_mode-fatal_error_1.adb
+
+ada-format-param-list take option to convert from single line to multi-line
+    and vice-versa?
+    requires passing that option to Ada reformat code; changes elisp-ada API
+
+gpr-query: mode line Symbols > 100%
+
 eldoc
     use gpr_query to provide info
     see eglot
@@ -59,8 +67,13 @@ compare ada LR1 generate time
         ada_annex_p.wy LR1 650.00
             679 declared conflicts
             547 virtual nonterms
-            0 accept/reduce conflicts, 101760 shift/reduce conflicts, 314759 reduce/reduce conflicts
-            395 rules, 0 user actions, 0 checks, 291358 states
+            0 accept/reduce conflicts, 97411 shift/reduce conflicts, 422574 reduce/reduce conflicts
+            396 rules, 0 user actions, 0 checks, 299492 states
+            make wisi-bnf-gen faster: o.w.s-1
+            reduce conflicts; o.e.a, use LALR
+simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
+    recognize term_list
+        _not_ just add parens
 
     7.0.1
         LALR re2c generate time: 0.689046474
@@ -97,6 +110,9 @@ indent bugs
 
         test/ada_mode-generic_package.ads
             preceding comment moved when wisi-hanging added to name.
+
+wisi-prj.el use project-switch-project?
+    stores projects in a file
 
 test/ada_mode-recover_partial_02_lr1.adb
     add language_fix to push_back to before '('

@@ -17,12 +17,10 @@ project Ada_Mode_Compile is
       "ada_mode-ada2012.ads", -- font-lock only
 
       "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
-
       "ada_mode-conditional_expressions-more_1.adb",
-
       "ada_mode-debbugs_35124.ads", -- spec
-
       "ada_mode-debbugs_36548.adb", -- partial syntax
+      "ada_mode-fatal_error_1.adb",
 
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",

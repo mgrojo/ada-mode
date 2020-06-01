@@ -26,7 +26,7 @@
 ;; grammar, mainly by allowing many items to be empty.
 
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2020 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -47,6 +47,7 @@
    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
+%generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
 
 %case_insensitive
@@ -1062,7 +1063,7 @@ expression_function_declaration
  ;; IS does not start a block, so it is not "motion".
  ;;
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
   ;
 
 extended_return_object_declaration

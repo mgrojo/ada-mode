@@ -520,6 +520,36 @@ The extensions should include a `.' if needed.")
   "Alist used by `find-file' to find the name of the other package.
 See `ff-other-file-alist'.")
 
+(defconst ada-declaration-nonterms
+  '(
+    abstract_subprogram_declaration
+    entry_body
+    entry_declaration
+    expression_function_declaration
+    full_type_declaration
+    generic_instantiation
+    generic_package_declaration
+    generic_subprogram_declaration
+    null_procedure_declaration
+    object_declaration
+    package_body
+    package_declaration
+    pragma_g
+    private_extension_declaration
+    private_type_declaration
+    protected_body
+    protected_type_declaration
+    single_protected_declaration
+    single_task_declaration
+    subprogram_body
+    subprogram_declaration
+    subprogram_renaming_declaration
+    subtype_declaration
+    task_body
+    task_type_declaration
+    )
+  "wisi-cache nonterminal symbols that are Ada declarations.")
+
 (defconst ada-parent-name-regexp
   "\\([[:alnum:]_\\.]+\\)\\.[[:alnum:]_]+"
   "Regexp for extracting the parent name from fully-qualified name.")
@@ -585,6 +615,7 @@ See `ff-other-file-alist'.")
 (defun ada-which-function (&optional include-type)
   "Return name of subprogram/task/package containing point.
 Also sets ff-function-name for ff-pre-load-hook."
+  (interactive) ;; because which-function-mode does not provide which-function to call intermittently!
   ;; Fail gracefully and silently, since this could be called from
   ;; which-function-mode.
   (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
@@ -648,6 +679,8 @@ Also sets ff-function-name for ff-pre-load-hook."
 		    (task_body
 		     (setq result (ada-which-function-1 "task" nil)))
 		    ))
+		(when (called-interactively-p 'interactive)
+		  (message result))
 		result)))
 	(error "")))
     ))
@@ -818,13 +851,19 @@ compiler-specific compilation filters."
   ;; doesn't change, at least on Windows.
   (let ((start-buffer (current-buffer))
 	pos item file)
-    ;; We use `pop-to-buffer', not `set-buffer', so `forward-line'
-    ;; works. But that might eat an `other-frame-window-mode' prefix,
-    ;; which the user means to apply to ’ada-goto-source’ below;
-    ;; disable that temporarily.
+    ;; We use `pop-to-buffer', not `set-buffer', so point is correct
+    ;; for the current window showing compilation-last-buffer, and
+    ;; moving point in that window works. But that might eat an
+    ;; `other-frame-window-mode' prefix, which the user means to apply
+    ;; to ’ada-goto-source’ below; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
       (pop-to-buffer compilation-last-buffer nil t)
       (setq pos (next-single-property-change (point) 'ada-secondary-error))
+      (unless pos
+	;; probably at end of compilation-buffer, in new compile
+	(goto-char (point-min))
+	(setq pos (next-single-property-change (point) 'ada-secondary-error)))
+
       (when pos
 	(setq item (get-text-property pos 'ada-secondary-error))
 	;; file-relative-name handles absolute Windows paths from
@@ -834,8 +873,7 @@ compiler-specific compilation filters."
 
 	;; Set point in compilation buffer past this secondary error, so
 	;; user can easily go to the next one.
-	(goto-char pos)
-	(forward-line 1))
+	(goto-char (next-single-property-change (1+ pos) 'ada-secondary-error)))
 
       (pop-to-buffer start-buffer nil t);; for windowing history
       )
@@ -850,10 +888,8 @@ compiler-specific compilation filters."
 (defun ada-goto-declaration-start-1 (include-type)
   "Subroutine of `ada-goto-declaration-start'."
   (let ((start (point))
-	(cache (wisi-get-cache (point)))
+	(cache (or (wisi-get-cache (point)) (wisi-backward-cache)))
 	(done nil))
-    (unless cache
-      (setq cache (wisi-backward-cache)))
     ;; cache is null at bob
     (while (not done)
       (if cache
@@ -888,7 +924,7 @@ compiler-specific compilation filters."
 		     (eq (wisi-cache-token cache) 'TASK))
 
 		    ))
-	    (unless (< start (wisi-cache-end cache))
+	    (unless (<= start (wisi-cache-end cache))
 	      ;; found declaration does not include start; find containing one.
 	      (setq done nil))
 	    (unless done
@@ -1120,13 +1156,13 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 	  ))
 
 (defconst ada-wisi-named-begin-regexp
-  "\\bfunction\\b\\|\\bpackage\\b\\|\\bprocedure\\b\\|\\btask\\b"
+  "\\_<function\\_>\\|\\_<package\\_>\\|\\_<procedure\\_>\\|\\_<task\\_>"
   )
 
 (defconst ada-wisi-partial-begin-regexp
-  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|"
+  (concat "\\_<begin\\_>\\|\\_<declare\\_>\\|"
 	  ada-wisi-named-begin-regexp
-	  "\\|\\bend;\\|\\bend " ada-name-regexp ";"))
+	  "\\|\\_<end;\\|\\_<end " ada-name-regexp ";"))
 
 (defconst ada-wisi-partial-end-regexp
   (concat ada-wisi-partial-begin-regexp
@@ -1149,13 +1185,18 @@ Must match wisi-ada.ads Language_Protocol_Version.")
   ;; begin
   ;;    Foo;
   ;;
-  ;; Inserting new line after 'Foo;'; if we include 'begin', there
-  ;; is no error (begin starts a statement), and the indent is
-  ;; computed incorrectly.
+  ;; Inserting new line after 'Foo;'; if we include 'begin' but not
+  ;; 'end;', there is no error (begin starts a statement), and the
+  ;; indent is computed incorrectly, because it is assumed that the
+  ;; line containing 'end;' is indented correctly.
   ;;
   ;; This is handled by the set of keywords in
   ;; ada-wisi-partial-begin-regexp.
   (cond
+   ((looking-at "[ \t]*\\_<begin\\_>")
+    ;; indenting 'begin'; best option is to assume it is indented properly
+    (point))
+
    ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
      (lambda () (or (wisi-in-string-or-comment-p)

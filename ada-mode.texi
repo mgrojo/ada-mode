@@ -1610,7 +1610,23 @@ few letters of an identifier, and then loop through all the possible
 completions.
 
 @code{complete-symbol} completes on all the symbols defined in the
-current project, as returned by @code{gpr_query}.
+current project, as returned by @code{gpr_query}. For a
+procedure declared as:
+
+@example
+package Package_Name is
+   procedure Procedure_Name (args);
+@end example
+
+the completion string looks like:
+
+@example
+Procedure_Name(args)<Package_Name<line>>
+@end example
+
+so for example you can type "iterate<wisitok" to complete on WisiToken
+iterators, or "add(Data" to complete on all subprograms whose name
+starts with "add" and whose first argument starts with "Data".
 
 If you have bound @code{hippie-expand}, that also uses
 @code{dabbrev-expand}.

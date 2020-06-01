@@ -475,7 +475,7 @@ Used to ignore whitespace changes in before/after change hooks.")
      ((> end wisi--change-end)
       ;; `buffer-base-buffer' deals with edits in indirect buffers
       ;; created by ediff-regions-*
-      (set-marker wisi--change-end end (buffer-base-buffer)))
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
      )
 
     (unless (= begin end)
@@ -1660,6 +1660,7 @@ where the car is a list (FILE LINE COL)."
 (defun wisi-show-containing-or-previous-cache ()
   (interactive)
   (let ((cache (wisi-get-cache (point))))
+    (push-mark)
     (if cache
 	(message "containing %s" (wisi-goto-containing cache t))
       (message "previous %s" (wisi-backward-cache)))
