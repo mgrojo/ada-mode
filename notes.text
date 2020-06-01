@@ -18,13 +18,9 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-test ada_annex_p, java, python
-
-propagate to main
-
 recognize more canonical lists
     ada_lite_ebnf.wy
     simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}

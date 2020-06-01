@@ -3047,6 +3047,25 @@ package body WisiToken_Grammar_Runtime is
          end loop;
       end;
 
+      declare
+         use Ada.Text_IO;
+      begin
+         for Node of Copied_EBNF_Nodes loop
+            if Node /= Deleted_Child then
+               Put_Line
+                 (Current_Error,
+                  Error_Message
+                    (Tree, Data.Terminals, Node, Data.Grammar_Lexer.File_Name,
+                     Tree.Image
+                       (Node, Wisitoken_Grammar_Actions.Descriptor,
+                        Include_RHS_Index => True,
+                        Include_Children  => Trace_Generate_EBNF > Detail,
+                        Node_Numbers      => True)));
+               Put_Line (Current_Error, "... copied EBNF node not translated");
+            end if;
+         end loop;
+      end;
+
       EBNF_Allowed := False;
       Tree.Validate_Tree
         (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
