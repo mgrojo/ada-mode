@@ -22,7 +22,7 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    procedure Set_Lexer_Terminals
      (User_Data : in out User_Data_Type;
       Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     WisiToken.Base_Token_Array_Access)
+      Terminals : in     WisiToken.Base_Token_Array_Access_Constant)
    is begin
       User_Data.Lexer     := Lexer;
       User_Data.Terminals := Terminals;

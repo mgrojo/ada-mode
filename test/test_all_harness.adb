@@ -18,9 +18,9 @@
 
 pragma License (GPL);
 
-with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Options;
 with AUnit.Reporter.Text;
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
@@ -37,6 +37,7 @@ with Test_Accept_State;
 with Test_BNF_Suite;
 with Test_Follow;
 with Test_LR_Expecting_Terminal_Sequence;
+with Test_LR_Utils;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
 with Test_Skip_To;
@@ -62,7 +63,7 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite;
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only => False);
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
@@ -112,6 +113,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Accept_State.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR_Utils.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));

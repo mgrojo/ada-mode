@@ -2,132 +2,132 @@
 Full Parser
 'Module.Symbol'
  4 tokens lexed
- 0: 0:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
- 0: 1:  2:(DOT_ID, (7 . 7)) : shift and goto state 4
- 0: 4:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
- 0: 9:  4:(EOF_ID, (14 . 13)) : reduce 3 tokens to symbol_name_id
-symbol_name_id_0: (symbol_name_id, (1 . 13)) <= ( 1:(IDENTIFIER_ID, (1 . 6)),  2:(DOT_ID, (7 . 7)),  3:(IDENTIFIER_ID, (8 . 13)))
+ 0: 0: 1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
+ 0: 1: 2:(DOT_ID, (7 . 7)) : shift and goto state 4
+ 0: 4: 3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
+ 0: 9: 4:(EOF_ID, (14 . 13)) : reduce 3 tokens to symbol_name_id
+(symbol_name_id, (1 . 13)) <= (1:(IDENTIFIER_ID, (1 . 6)), 2:(DOT_ID, (7 . 7)), 3:(IDENTIFIER_ID, (8 . 13)))
  ... goto state 3
- 0: 3:  4:(EOF_ID, (14 . 13)) : reduce 1 tokens to name_id
-name_id_1: (name_id, (1 . 13)) <= ((symbol_name_id, (1 . 13)))
+ 0: 3: 4:(EOF_ID, (14 . 13)) : reduce 1 tokens to name_id
+(name_id, (1 . 13)) <= ((symbol_name_id, (1 . 13)))
  ... goto state 2
- 0: 2:  4:(EOF_ID, (14 . 13)) : accept it
-statement_id_0: (statement_id, (1 . 13)) <= ((name_id, (1 . 13)))
+ 0: 2: 4:(EOF_ID, (14 . 13)) : accept it
+(statement_id, (1 . 13)) <= ((name_id, (1 . 13)))
  0: succeed
 success
 
 'Module.Symbol (Index)'
  7 tokens lexed
- 0: 0:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
- 0: 1:  2:(DOT_ID, (7 . 7)) : shift and goto state 4
- 0: 4:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
- 0: 9:  4:(PAREN_LEFT_ID, (15 . 15)) : reduce 3 tokens to symbol_name_id
-symbol_name_id_0: (symbol_name_id, (1 . 13)) <= ( 1:(IDENTIFIER_ID, (1 . 6)),  2:(DOT_ID, (7 . 7)),  3:(IDENTIFIER_ID, (8 . 13)))
+ 0: 0: 1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
+ 0: 1: 2:(DOT_ID, (7 . 7)) : shift and goto state 4
+ 0: 4: 3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
+ 0: 9: 4:(PAREN_LEFT_ID, (15 . 15)) : reduce 3 tokens to symbol_name_id
+(symbol_name_id, (1 . 13)) <= (1:(IDENTIFIER_ID, (1 . 6)), 2:(DOT_ID, (7 . 7)), 3:(IDENTIFIER_ID, (8 . 13)))
  ... goto state 3
- 0: 3:  4:(PAREN_LEFT_ID, (15 . 15)) : shift and goto state 6
- 0: 6:  5:(IDENTIFIER_ID, (16 . 20)) : shift and goto state 11
- 0: 11:  6:(PAREN_RIGHT_ID, (21 . 21)) : shift and goto state 13
- 0: 13:  7:(EOF_ID, (22 . 21)) : reduce 3 tokens to component_id
-component_id_1: (component_id, (15 . 21)) <= ( 4:(PAREN_LEFT_ID, (15 . 15)),  5:(IDENTIFIER_ID, (16 . 20)),  6:(PAREN_RIGHT_ID, (21 . 21)))
+ 0: 3: 4:(PAREN_LEFT_ID, (15 . 15)) : shift and goto state 6
+ 0: 6: 5:(IDENTIFIER_ID, (16 . 20)) : shift and goto state 11
+ 0: 11: 6:(PAREN_RIGHT_ID, (21 . 21)) : shift and goto state 13
+ 0: 13: 7:(EOF_ID, (22 . 21)) : reduce 3 tokens to component_id
+(component_id, (15 . 21)) <= (4:(PAREN_LEFT_ID, (15 . 15)), 5:(IDENTIFIER_ID, (16 . 20)), 6:(PAREN_RIGHT_ID, (21 . 21)))
  ... goto state 7
- 0: 7:  7:(EOF_ID, (22 . 21)) : reduce 1 tokens to component_list_id
-component_list_id_1: (component_list_id, (15 . 21)) <= ((component_id, (15 . 21)))
+ 0: 7: 7:(EOF_ID, (22 . 21)) : reduce 1 tokens to component_list_id
+(component_list_id, (15 . 21)) <= ((component_id, (15 . 21)))
  ... goto state 8
- 0: 8:  7:(EOF_ID, (22 . 21)) : reduce 2 tokens to name_id
-name_id_0: (name_id, (1 . 21)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (15 . 21)))
+ 0: 8: 7:(EOF_ID, (22 . 21)) : reduce 2 tokens to name_id
+(name_id, (1 . 21)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (15 . 21)))
  ... goto state 2
- 0: 2:  7:(EOF_ID, (22 . 21)) : accept it
-statement_id_0: (statement_id, (1 . 21)) <= ((name_id, (1 . 21)))
+ 0: 2: 7:(EOF_ID, (22 . 21)) : accept it
+(statement_id, (1 . 21)) <= ((name_id, (1 . 21)))
  0: succeed
 success
 
 'Module.Symbol.Component'
  6 tokens lexed
- 0: 0:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
- 0: 1:  2:(DOT_ID, (7 . 7)) : shift and goto state 4
- 0: 4:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
- 0: 9:  4:(DOT_ID, (14 . 14)) : reduce 3 tokens to symbol_name_id
-symbol_name_id_0: (symbol_name_id, (1 . 13)) <= ( 1:(IDENTIFIER_ID, (1 . 6)),  2:(DOT_ID, (7 . 7)),  3:(IDENTIFIER_ID, (8 . 13)))
+ 0: 0: 1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
+ 0: 1: 2:(DOT_ID, (7 . 7)) : shift and goto state 4
+ 0: 4: 3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
+ 0: 9: 4:(DOT_ID, (14 . 14)) : reduce 3 tokens to symbol_name_id
+(symbol_name_id, (1 . 13)) <= (1:(IDENTIFIER_ID, (1 . 6)), 2:(DOT_ID, (7 . 7)), 3:(IDENTIFIER_ID, (8 . 13)))
  ... goto state 3
- 0: 3:  4:(DOT_ID, (14 . 14)) : shift and goto state 5
- 0: 5:  5:(IDENTIFIER_ID, (15 . 23)) : shift and goto state 10
- 0: 10:  6:(EOF_ID, (24 . 23)) : reduce 2 tokens to component_id
-component_id_0: (component_id, (14 . 23)) <= ( 4:(DOT_ID, (14 . 14)),  5:(IDENTIFIER_ID, (15 . 23)))
+ 0: 3: 4:(DOT_ID, (14 . 14)) : shift and goto state 5
+ 0: 5: 5:(IDENTIFIER_ID, (15 . 23)) : shift and goto state 10
+ 0: 10: 6:(EOF_ID, (24 . 23)) : reduce 2 tokens to component_id
+(component_id, (14 . 23)) <= (4:(DOT_ID, (14 . 14)), 5:(IDENTIFIER_ID, (15 . 23)))
  ... goto state 7
- 0: 7:  6:(EOF_ID, (24 . 23)) : reduce 1 tokens to component_list_id
-component_list_id_1: (component_list_id, (14 . 23)) <= ((component_id, (14 . 23)))
+ 0: 7: 6:(EOF_ID, (24 . 23)) : reduce 1 tokens to component_list_id
+(component_list_id, (14 . 23)) <= ((component_id, (14 . 23)))
  ... goto state 8
- 0: 8:  6:(EOF_ID, (24 . 23)) : reduce 2 tokens to name_id
-name_id_0: (name_id, (1 . 23)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (14 . 23)))
+ 0: 8: 6:(EOF_ID, (24 . 23)) : reduce 2 tokens to name_id
+(name_id, (1 . 23)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (14 . 23)))
  ... goto state 2
- 0: 2:  6:(EOF_ID, (24 . 23)) : accept it
-statement_id_0: (statement_id, (1 . 23)) <= ((name_id, (1 . 23)))
+ 0: 2: 6:(EOF_ID, (24 . 23)) : accept it
+(statement_id, (1 . 23)) <= ((name_id, (1 . 23)))
  0: succeed
 success
 
 'Module.Symbol (Index).Component'
  9 tokens lexed
- 0: 0:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
- 0: 1:  2:(DOT_ID, (7 . 7)) : shift and goto state 4
- 0: 4:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
- 0: 9:  4:(PAREN_LEFT_ID, (15 . 15)) : reduce 3 tokens to symbol_name_id
-symbol_name_id_0: (symbol_name_id, (1 . 13)) <= ( 1:(IDENTIFIER_ID, (1 . 6)),  2:(DOT_ID, (7 . 7)),  3:(IDENTIFIER_ID, (8 . 13)))
+ 0: 0: 1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
+ 0: 1: 2:(DOT_ID, (7 . 7)) : shift and goto state 4
+ 0: 4: 3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
+ 0: 9: 4:(PAREN_LEFT_ID, (15 . 15)) : reduce 3 tokens to symbol_name_id
+(symbol_name_id, (1 . 13)) <= (1:(IDENTIFIER_ID, (1 . 6)), 2:(DOT_ID, (7 . 7)), 3:(IDENTIFIER_ID, (8 . 13)))
  ... goto state 3
- 0: 3:  4:(PAREN_LEFT_ID, (15 . 15)) : shift and goto state 6
- 0: 6:  5:(IDENTIFIER_ID, (16 . 20)) : shift and goto state 11
- 0: 11:  6:(PAREN_RIGHT_ID, (21 . 21)) : shift and goto state 13
- 0: 13:  7:(DOT_ID, (22 . 22)) : reduce 3 tokens to component_id
-component_id_1: (component_id, (15 . 21)) <= ( 4:(PAREN_LEFT_ID, (15 . 15)),  5:(IDENTIFIER_ID, (16 . 20)),  6:(PAREN_RIGHT_ID, (21 . 21)))
+ 0: 3: 4:(PAREN_LEFT_ID, (15 . 15)) : shift and goto state 6
+ 0: 6: 5:(IDENTIFIER_ID, (16 . 20)) : shift and goto state 11
+ 0: 11: 6:(PAREN_RIGHT_ID, (21 . 21)) : shift and goto state 13
+ 0: 13: 7:(DOT_ID, (22 . 22)) : reduce 3 tokens to component_id
+(component_id, (15 . 21)) <= (4:(PAREN_LEFT_ID, (15 . 15)), 5:(IDENTIFIER_ID, (16 . 20)), 6:(PAREN_RIGHT_ID, (21 . 21)))
  ... goto state 7
- 0: 7:  7:(DOT_ID, (22 . 22)) : shift and goto state 5
- 0: 5:  8:(IDENTIFIER_ID, (23 . 31)) : shift and goto state 10
- 0: 10:  9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_id
-component_id_0: (component_id, (22 . 31)) <= ( 7:(DOT_ID, (22 . 22)),  8:(IDENTIFIER_ID, (23 . 31)))
+ 0: 7: 7:(DOT_ID, (22 . 22)) : shift and goto state 5
+ 0: 5: 8:(IDENTIFIER_ID, (23 . 31)) : shift and goto state 10
+ 0: 10: 9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_id
+(component_id, (22 . 31)) <= (7:(DOT_ID, (22 . 22)), 8:(IDENTIFIER_ID, (23 . 31)))
  ... goto state 7
- 0: 7:  9:(EOF_ID, (32 . 31)) : reduce 1 tokens to component_list_id
-component_list_id_1: (component_list_id, (22 . 31)) <= ((component_id, (22 . 31)))
+ 0: 7: 9:(EOF_ID, (32 . 31)) : reduce 1 tokens to component_list_id
+(component_list_id, (22 . 31)) <= ((component_id, (22 . 31)))
  ... goto state 12
- 0: 12:  9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_list_id
-component_list_id_0: (component_list_id, (15 . 31)) <= ((component_id, (15 . 21)), (component_list_id, (22 . 31)))
+ 0: 12: 9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_list_id
+(component_list_id, (15 . 31)) <= ((component_id, (15 . 21)), (component_list_id, (22 . 31)))
  ... goto state 8
- 0: 8:  9:(EOF_ID, (32 . 31)) : reduce 2 tokens to name_id
-name_id_0: (name_id, (1 . 31)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (15 . 31)))
+ 0: 8: 9:(EOF_ID, (32 . 31)) : reduce 2 tokens to name_id
+(name_id, (1 . 31)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (15 . 31)))
  ... goto state 2
- 0: 2:  9:(EOF_ID, (32 . 31)) : accept it
-statement_id_0: (statement_id, (1 . 31)) <= ((name_id, (1 . 31)))
+ 0: 2: 9:(EOF_ID, (32 . 31)) : accept it
+(statement_id, (1 . 31)) <= ((name_id, (1 . 31)))
  0: succeed
 success
 
 'Module.Symbol.Component (Index)'
  9 tokens lexed
- 0: 0:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
- 0: 1:  2:(DOT_ID, (7 . 7)) : shift and goto state 4
- 0: 4:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
- 0: 9:  4:(DOT_ID, (14 . 14)) : reduce 3 tokens to symbol_name_id
-symbol_name_id_0: (symbol_name_id, (1 . 13)) <= ( 1:(IDENTIFIER_ID, (1 . 6)),  2:(DOT_ID, (7 . 7)),  3:(IDENTIFIER_ID, (8 . 13)))
+ 0: 0: 1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 1
+ 0: 1: 2:(DOT_ID, (7 . 7)) : shift and goto state 4
+ 0: 4: 3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 9
+ 0: 9: 4:(DOT_ID, (14 . 14)) : reduce 3 tokens to symbol_name_id
+(symbol_name_id, (1 . 13)) <= (1:(IDENTIFIER_ID, (1 . 6)), 2:(DOT_ID, (7 . 7)), 3:(IDENTIFIER_ID, (8 . 13)))
  ... goto state 3
- 0: 3:  4:(DOT_ID, (14 . 14)) : shift and goto state 5
- 0: 5:  5:(IDENTIFIER_ID, (15 . 23)) : shift and goto state 10
- 0: 10:  6:(PAREN_LEFT_ID, (25 . 25)) : reduce 2 tokens to component_id
-component_id_0: (component_id, (14 . 23)) <= ( 4:(DOT_ID, (14 . 14)),  5:(IDENTIFIER_ID, (15 . 23)))
+ 0: 3: 4:(DOT_ID, (14 . 14)) : shift and goto state 5
+ 0: 5: 5:(IDENTIFIER_ID, (15 . 23)) : shift and goto state 10
+ 0: 10: 6:(PAREN_LEFT_ID, (25 . 25)) : reduce 2 tokens to component_id
+(component_id, (14 . 23)) <= (4:(DOT_ID, (14 . 14)), 5:(IDENTIFIER_ID, (15 . 23)))
  ... goto state 7
- 0: 7:  6:(PAREN_LEFT_ID, (25 . 25)) : shift and goto state 6
- 0: 6:  7:(IDENTIFIER_ID, (26 . 30)) : shift and goto state 11
- 0: 11:  8:(PAREN_RIGHT_ID, (31 . 31)) : shift and goto state 13
- 0: 13:  9:(EOF_ID, (32 . 31)) : reduce 3 tokens to component_id
-component_id_1: (component_id, (25 . 31)) <= ( 6:(PAREN_LEFT_ID, (25 . 25)),  7:(IDENTIFIER_ID, (26 . 30)),  8:(PAREN_RIGHT_ID, (31 . 31)))
+ 0: 7: 6:(PAREN_LEFT_ID, (25 . 25)) : shift and goto state 6
+ 0: 6: 7:(IDENTIFIER_ID, (26 . 30)) : shift and goto state 11
+ 0: 11: 8:(PAREN_RIGHT_ID, (31 . 31)) : shift and goto state 13
+ 0: 13: 9:(EOF_ID, (32 . 31)) : reduce 3 tokens to component_id
+(component_id, (25 . 31)) <= (6:(PAREN_LEFT_ID, (25 . 25)), 7:(IDENTIFIER_ID, (26 . 30)), 8:(PAREN_RIGHT_ID, (31 . 31)))
  ... goto state 7
- 0: 7:  9:(EOF_ID, (32 . 31)) : reduce 1 tokens to component_list_id
-component_list_id_1: (component_list_id, (25 . 31)) <= ((component_id, (25 . 31)))
+ 0: 7: 9:(EOF_ID, (32 . 31)) : reduce 1 tokens to component_list_id
+(component_list_id, (25 . 31)) <= ((component_id, (25 . 31)))
  ... goto state 12
- 0: 12:  9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_list_id
-component_list_id_0: (component_list_id, (14 . 31)) <= ((component_id, (14 . 23)), (component_list_id, (25 . 31)))
+ 0: 12: 9:(EOF_ID, (32 . 31)) : reduce 2 tokens to component_list_id
+(component_list_id, (14 . 31)) <= ((component_id, (14 . 23)), (component_list_id, (25 . 31)))
  ... goto state 8
- 0: 8:  9:(EOF_ID, (32 . 31)) : reduce 2 tokens to name_id
-name_id_0: (name_id, (1 . 31)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (14 . 31)))
+ 0: 8: 9:(EOF_ID, (32 . 31)) : reduce 2 tokens to name_id
+(name_id, (1 . 31)) <= ((symbol_name_id, (1 . 13)), (component_list_id, (14 . 31)))
  ... goto state 2
- 0: 2:  9:(EOF_ID, (32 . 31)) : accept it
-statement_id_0: (statement_id, (1 . 31)) <= ((name_id, (1 . 31)))
+ 0: 2: 9:(EOF_ID, (32 . 31)) : accept it
+(statement_id, (1 . 31)) <= ((name_id, (1 . 31)))
  0: succeed
 success
 

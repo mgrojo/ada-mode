@@ -18,15 +18,19 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
 delete descriptor.case_insensitive?
     move to lexer?
 
-to_tree_sitter
-    build/Makefile one
+recognize more canonical lists
+    ada_lite_ebnf.wy
+    simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
+        recognize term_list
+            _not_ just add parens
 
+    java_types_ch19.wy Dims
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!

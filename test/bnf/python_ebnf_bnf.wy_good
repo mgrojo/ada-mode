@@ -42,11 +42,13 @@ comp_for
 
 expr_stmt
   : testlist_star_expr nonterminal_038
+  | testlist_star_expr
   ;
 
 ;; Simplified has a similar problem
 expr_stmt_2
   : testlist_star_expr nonterminal_040
+  | testlist_star_expr
   ;
 
 ;; This was recognized as a canonical list, and 'nonlocal' left out.
@@ -118,7 +120,6 @@ nonterminal_038
   : annassign
   | augassign nonterminal_034
   | nonterminal_036_list
-  | ;; empty
   ;
 nonterminal_039_list
   : yield_expr
@@ -126,7 +127,6 @@ nonterminal_039_list
   ;
 nonterminal_040
   : nonterminal_039_list
-  | ;; empty
   ;
 nonterminal_042
   : COMMA NAME

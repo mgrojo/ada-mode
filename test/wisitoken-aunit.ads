@@ -2,7 +2,7 @@
 --
 --  AUnit Checks for parent
 --
---  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -14,6 +14,7 @@
 pragma License (GPL);
 
 with AUnit.Checks;
+with SAL.AUnit;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
@@ -72,5 +73,11 @@ package WisiToken.AUnit is
      (Label    : in String;
       Computed : in Buffer_Region;
       Expected : in Buffer_Region);
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
+
+   package Valid_Node_Index_Arrays_AUnit is new WisiToken.Valid_Node_Index_Arrays.Gen_AUnit
+     (Check_Index   => SAL.AUnit.Check,
+      Check_Element => Check);
 
 end WisiToken.AUnit;

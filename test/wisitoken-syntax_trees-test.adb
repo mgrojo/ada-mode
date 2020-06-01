@@ -20,7 +20,7 @@
 
 pragma License (GPL);
 
-with WisiToken.Syntax_Trees.AUnit_Public;
+with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.Test is
 
@@ -58,7 +58,7 @@ package body WisiToken.Syntax_Trees.Test is
       pragma Unreferenced (T);
 
       use WisiToken.Syntax_Trees.AUnit_Private;
-      use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.AUnit;
       use all type Node_Arrays.Vector;
       use all type Valid_Node_Index_Arrays.Vector;
 
@@ -130,7 +130,7 @@ package body WisiToken.Syntax_Trees.Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.AUnit;
 
       Terminals   : aliased Base_Token_Arrays.Vector;
       Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
@@ -138,7 +138,6 @@ package body WisiToken.Syntax_Trees.Test is
       Param_List  : Node_Index;
       Formal_Part : Node_Index;
       Name        : Node_Index;
-      pragma Unreferenced (Name);
    begin
       --  Create a tree representing the parse of:
       --
@@ -178,6 +177,7 @@ package body WisiToken.Syntax_Trees.Test is
           2 => Terminals (2).Tree_Index,
           3 => Formal_Part));
 
+      Tree.Set_Root (Name);
       Tree.Set_Parents;
 
       Check ("prev right_paren", Tree.Prev_Terminal (4), 3);
@@ -194,7 +194,7 @@ package body WisiToken.Syntax_Trees.Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.AUnit;
 
       Terminals                : aliased Base_Token_Arrays.Vector;
       Shared_Tree              : aliased WisiToken.Syntax_Trees.Base_Tree;
@@ -296,6 +296,7 @@ package body WisiToken.Syntax_Trees.Test is
          (1 => Package_Specification,
           2 => Virtual_Semicolon));
 
+      Tree.Set_Root (Package_Declaration);
       Tree.Set_Parents;
 
       Check ("prev right_paren", Tree.Prev_Terminal (7), 6);

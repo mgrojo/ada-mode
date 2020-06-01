@@ -1,33 +1,33 @@
  10 tokens lexed
- 0: 0:  1:(BEGIN, (1 . 5)) : shift and goto state 1
- 0: 1:  2:(IDENTIFIER, (10 . 14)) : spawn 1, (2 active)
- 1: 1:  2:(IDENTIFIER, (10 . 14)) : reduce 0 tokens to label_opt
-label_opt_1: (label_opt) <= ()
+ 0: 0: 1:(BEGIN, (1 . 5)) : shift and goto state 1
+ 0: 1: 2:(IDENTIFIER, (10 . 14)) : spawn 1, (2 active)
+ 1: 1: 2:(IDENTIFIER, (10 . 14)) : reduce 0 tokens to label_opt
+(label_opt) <= ()
  ... goto state 6
- 0: 1:  2:(IDENTIFIER, (10 . 14)) : shift and goto state 3
- 1: 6:  2:(IDENTIFIER, (10 . 14)) : shift and goto state 10
- 1: 10:  3:(COLON, (16 . 16)) : ERROR
+ 0: 1: 2:(IDENTIFIER, (10 . 14)) : shift and goto state 3
+ 1: 6: 2:(IDENTIFIER, (10 . 14)) : shift and goto state 10
+ 1: 10: 3:(COLON, (16 . 16)) : ERROR
  1: expecting: COLON_EQUAL
  1: terminate (1 active):  3:(COLON, (16 . 16))
- 0: 3:  3:(COLON, (16 . 16)) : shift and goto state 7
- 0: 7:  4:(IDENTIFIER, (21 . 21)) : reduce 2 tokens to label_opt
-label_opt_0: (label_opt, (10 . 16)) <= ( 2:(IDENTIFIER, (10 . 14)),  3:(COLON, (16 . 16)))
+ 0: 3: 3:(COLON, (16 . 16)) : shift and goto state 7
+ 0: 7: 4:(IDENTIFIER, (21 . 21)) : reduce 2 tokens to label_opt
+(label_opt, (10 . 16)) <= (2:(IDENTIFIER, (10 . 14)), 3:(COLON, (16 . 16)))
  ... goto state 6
- 0: 6:  4:(IDENTIFIER, (21 . 21)) : shift and goto state 10
- 0: 10:  5:(COLON_EQUAL, (23 . 24)) : shift and goto state 12
- 0: 12:  6:(IDENTIFIER, (26 . 26)) : shift and goto state 13
- 0: 13:  7:(SEMICOLON, (27 . 27)) : shift and goto state 14
- 0: 14:  8:(END, (29 . 31)) : reduce 5 tokens to statement
-statement_0: (statement, (10 . 27)) <= ((label_opt, (10 . 16)),  4:(IDENTIFIER, (21 . 21)),  5:(COLON_EQUAL, (23 . 24)),  6:(IDENTIFIER, (26 . 26)),  7:(SEMICOLON, (27 . 27)))
+ 0: 6: 4:(IDENTIFIER, (21 . 21)) : shift and goto state 10
+ 0: 10: 5:(COLON_EQUAL, (23 . 24)) : shift and goto state 12
+ 0: 12: 6:(IDENTIFIER, (26 . 26)) : shift and goto state 13
+ 0: 13: 7:(SEMICOLON, (27 . 27)) : shift and goto state 14
+ 0: 14: 8:(END, (29 . 31)) : reduce 5 tokens to statement
+(statement, (10 . 27)) <= ((label_opt, (10 . 16)), 4:(IDENTIFIER, (21 . 21)), 5:(COLON_EQUAL, (23 . 24)), 6:(IDENTIFIER, (26 . 26)), 7:(SEMICOLON, (27 . 27)))
  ... goto state 4
- 0: 4:  8:(END, (29 . 31)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (10 . 27)) <= ((statement, (10 . 27)))
+ 0: 4: 8:(END, (29 . 31)) : reduce 1 tokens to sequence_of_statements
+(sequence_of_statements, (10 . 27)) <= ((statement, (10 . 27)))
  ... goto state 5
- 0: 5:  8:(END, (29 . 31)) : shift and goto state 8
- 0: 8:  9:(SEMICOLON, (32 . 32)) : shift and goto state 11
- 0: 11:  10:(Wisi_EOI, (35 . 34)) : reduce 4 tokens to compilation_unit
-compilation_unit_0: (compilation_unit, (1 . 32)) <= ( 1:(BEGIN, (1 . 5)), (sequence_of_statements, (10 . 27)),  8:(END, (29 . 31)),  9:(SEMICOLON, (32 . 32)))
+ 0: 5: 8:(END, (29 . 31)) : shift and goto state 8
+ 0: 8: 9:(SEMICOLON, (32 . 32)) : shift and goto state 11
+ 0: 11: 10:(Wisi_EOI, (35 . 34)) : reduce 4 tokens to compilation_unit
+(compilation_unit, (1 . 32)) <= (1:(BEGIN, (1 . 5)), (sequence_of_statements, (10 . 27)), 8:(END, (29 . 31)), 9:(SEMICOLON, (32 . 32)))
  ... goto state 2
- 0: 2:  10:(Wisi_EOI, (35 . 34)) : accept it
-wisitoken_accept_0: (wisitoken_accept, (1 . 32)) <= ((compilation_unit, (1 . 32)))
+ 0: 2: 10:(Wisi_EOI, (35 . 34)) : accept it
+(wisitoken_accept, (1 . 32)) <= ((compilation_unit, (1 . 32)))
  0: succeed

@@ -139,12 +139,11 @@ Tokens:
  137 => nonterminal_016
  138 => nonterminal_015_list
  139 => nonterminal_017_list
- 140 => nonterminal_018
- 141 => nonterminal_020
- 142 => nonterminal_019_list
- 143 => nonterminal_021_list
- 144 => nonterminal_023
- 145 => nonterminal_022_list
+ 140 => nonterminal_019
+ 141 => nonterminal_018_list
+ 142 => nonterminal_020_list
+ 143 => nonterminal_022
+ 144 => nonterminal_021_list
 
 Productions:
 56.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
@@ -210,12 +209,13 @@ Productions:
 86.0: function_specification <= FUNCTION name parameter_and_result_profile
 87.0: generic_instantiation <= PACKAGE name IS NEW name SEMICOLON
 87.1: generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON
-88.0: handled_sequence_of_statements <= sequence_of_statements nonterminal_018 ; (1 => Other_Left, 2 => Other_Right)
-88.1: handled_sequence_of_statements <= sequence_of_statements ; (1 => Other_Left)
+88.0: handled_sequence_of_statements <= sequence_of_statements EXCEPTION nonterminal_017_list ; (1 => Other_Left, 3 => Other_Right)
+88.1: handled_sequence_of_statements <= sequence_of_statements EXCEPTION ; (1 => Other_Left)
+88.2: handled_sequence_of_statements <= sequence_of_statements ; (1 => Other_Left)
 89.0: identifier_opt <= IDENTIFIER
 89.1: identifier_opt <=
-90.0: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON ; (4 => Other, 5 => Other, 7 => Other)
-90.1: if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON ; (4 => Other, 5 => Other)
+90.0: if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON ; (4 => Other, 5 => Other, 7 => Other)
+90.1: if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list END IF SEMICOLON ; (4 => Other, 5 => Other)
 90.2: if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON ; (4 => Other, 6 => Other)
 90.3: if_statement <= IF expression THEN sequence_of_statements END IF SEMICOLON ; (4 => Other)
 91.0: index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ; (2 => Other)
@@ -263,11 +263,11 @@ Productions:
 110.4: relational_operator <= GREATER
 110.5: relational_operator <= GREATER_EQUAL
 111.0: selected_component <= name DOT IDENTIFIER ; (1 => Other_Left)
-112.0: sequence_of_statements <= nonterminal_021_list ; (1 => Other_Left)
+112.0: sequence_of_statements <= nonterminal_020_list ; (1 => Other_Left)
 112.1: sequence_of_statements <=
-113.0: simple_expression <= unary_adding_operator term nonterminal_022_list ; (2 => Other, 3 => Other_Right)
+113.0: simple_expression <= unary_adding_operator term nonterminal_021_list ; (2 => Other, 3 => Other_Right)
 113.1: simple_expression <= unary_adding_operator term ; (2 => Other_Right)
-113.2: simple_expression <= term nonterminal_022_list ; (1 => Other_Left, 2 => Other_Right)
+113.2: simple_expression <= term nonterminal_021_list ; (1 => Other_Left, 2 => Other_Right)
 113.3: simple_expression <= term ; (1 => Other_Left)
 114.0: simple_return_statement <= RETURN expression SEMICOLON
 115.0: simple_statement <= assignment_statement
@@ -313,50 +313,48 @@ Productions:
 138.1: nonterminal_015_list <= nonterminal_015_list nonterminal_016 ; (1 => Direct_Left)
 139.0: nonterminal_017_list <= exception_handler ; (1 => Other_Left)
 139.1: nonterminal_017_list <= nonterminal_017_list exception_handler ; (1 => Direct_Left, 2 => Other_Right)
-140.0: nonterminal_018 <= EXCEPTION nonterminal_017_list ; (2 => Other_Right)
-140.1: nonterminal_018 <= EXCEPTION
-141.0: nonterminal_020 <= ELSIF expression THEN sequence_of_statements ; (4 => Other_Right)
-142.0: nonterminal_019_list <= nonterminal_020 ; (1 => Other_Left)
-142.1: nonterminal_019_list <= nonterminal_019_list nonterminal_020 ; (1 => Direct_Left, 2 => Other_Right)
-143.0: nonterminal_021_list <= statement ; (1 => Other_Left)
-143.1: nonterminal_021_list <= nonterminal_021_list statement ; (1 => Direct_Left, 2 => Other_Right)
-144.0: nonterminal_023 <= binary_adding_operator term ; (2 => Other_Right)
-145.0: nonterminal_022_list <= nonterminal_023 ; (1 => Other_Left)
-145.1: nonterminal_022_list <= nonterminal_022_list nonterminal_023 ; (1 => Direct_Left, 2 => Other_Right)
+140.0: nonterminal_019 <= ELSIF expression THEN sequence_of_statements ; (4 => Other_Right)
+141.0: nonterminal_018_list <= nonterminal_019 ; (1 => Other_Left)
+141.1: nonterminal_018_list <= nonterminal_018_list nonterminal_019 ; (1 => Direct_Left, 2 => Other_Right)
+142.0: nonterminal_020_list <= statement ; (1 => Other_Left)
+142.1: nonterminal_020_list <= nonterminal_020_list statement ; (1 => Direct_Left, 2 => Other_Right)
+143.0: nonterminal_022 <= binary_adding_operator term ; (2 => Other_Right)
+144.0: nonterminal_021_list <= nonterminal_022 ; (1 => Other_Left)
+144.1: nonterminal_021_list <= nonterminal_021_list nonterminal_022 ; (1 => Direct_Left, 2 => Other_Right)
 
 Recursions:
 1 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
-2 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
+2 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
 3 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
-4 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
+4 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
 5 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
-6 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
+6 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
 7 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
-8 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
+8 => (57 (0) -> 61 (0, 1) -> 60 (0, 1) -> 80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (2) -> 95 (1) -> )
 9 => (61 (1) -> )
-10 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (0) -> 98 (0, 2) -> 88 (0, 1) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
-11 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (0) -> 98 (0, 2) -> 88 (0) -> 140 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
-12 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (1) -> 117 (0, 1) -> 88 (0, 1) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
-13 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (1) -> 117 (0, 1) -> 88 (0) -> 140 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
-14 => (64 (0, 1) -> 88 (0, 1) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
-15 => (64 (0, 1) -> 88 (0) -> 140 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (3) -> )
+10 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (0) -> 98 (0, 2) -> 88 (0, 1, 2) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
+11 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (0) -> 98 (0, 2) -> 88 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
+12 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (1) -> 117 (0, 1) -> 88 (0, 1, 2) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
+13 => (64 (0) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> 65 (0) -> 106 (1) -> 117 (0, 1) -> 88 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
+14 => (64 (0, 1) -> 88 (0, 1, 2) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
+15 => (64 (0, 1) -> 88 (0) -> 139 (0, 1) -> 78 (0) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (3) -> )
 16 => (65 (0) -> 106 (0) -> 98 (0, 1, 2, 3) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> )
 17 => (65 (0) -> 106 (1) -> 117 (0, 1) -> 74 (0) -> 128 (0, 1) -> 73 (0) -> )
-18 => (67 (0) -> 126 (0, 1) -> 68 (0) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> 71 (1) -> )
-19 => (71 (0) -> 90 (0, 0, 1, 2, 2, 3) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> )
-20 => (71 (0) -> 90 (0, 1) -> 142 (0, 1) -> 141 (0) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> )
-21 => (71 (2) -> 93 (0, 1) -> 112 (0) -> 143 (0, 1) -> 116 (1) -> )
+18 => (67 (0) -> 126 (0, 1) -> 68 (0) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> 71 (1) -> )
+19 => (71 (0) -> 90 (0, 0, 1, 2, 2, 3) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> )
+20 => (71 (0) -> 90 (0, 1) -> 141 (0, 1) -> 140 (0) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> )
+21 => (71 (2) -> 93 (0, 1) -> 112 (0) -> 142 (0, 1) -> 116 (1) -> )
 22 => (72 (1) -> 91 (0) -> 75 (0) -> 121 (0) -> )
 23 => (80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
-24 => (80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
+24 => (80 (0, 1, 2, 3) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
 25 => (80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
-26 => (80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
+26 => (80 (1) -> 132 (0, 1) -> 131 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
 27 => (80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
-28 => (80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
+28 => (80 (2) -> 134 (0, 1) -> 133 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
 29 => (80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
-30 => (80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
+30 => (80 (3) -> 136 (0, 1) -> 135 (0) -> 109 (0, 0, 1) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> 83 (0, 1) -> 103 (3) -> 102 (0) -> )
 31 => (83 (0, 1) -> 103 (2) -> 95 (0) -> 108 (0, 1) -> 107 (0, 0) -> 113 (0, 1, 2, 3) -> 122 (0, 1) -> )
-32 => (83 (0, 1) -> 103 (2) -> 95 (0) -> 108 (0, 1) -> 107 (0, 0) -> 113 (0, 2) -> 145 (0, 1) -> 144 (0) -> 122 (0, 1) -> )
+32 => (83 (0, 1) -> 103 (2) -> 95 (0) -> 108 (0, 1) -> 107 (0, 0) -> 113 (0, 2) -> 144 (0, 1) -> 143 (0) -> 122 (0, 1) -> )
 33 => (95 (0, 1) -> )
 34 => (95 (3) -> 111 (0) -> )
 35 => (108 (0) -> )
@@ -370,9 +368,9 @@ Recursions:
 43 => (136 (1) -> )
 44 => (138 (1) -> )
 45 => (139 (1) -> )
-46 => (142 (1) -> )
-47 => (143 (1) -> )
-48 => (145 (1) -> )
+46 => (141 (1) -> )
+47 => (142 (1) -> )
+48 => (144 (1) -> )
 
 McKenzie:
 (Insert =>
@@ -621,12 +619,11 @@ McKenzie:
  nonterminal_016                    => 4,
  nonterminal_015_list               => 4,
  nonterminal_017_list               => 4,
- nonterminal_018                    => 4,
- nonterminal_020                    => 4,
- nonterminal_019_list               => 4,
- nonterminal_021_list               => 4,
- nonterminal_023                    => 4,
- nonterminal_022_list               => 4)
+ nonterminal_019                    => 4,
+ nonterminal_018_list               => 4,
+ nonterminal_020_list               => 4,
+ nonterminal_022                    => 4,
+ nonterminal_021_list               => 4)
 (Undo_Reduce =>
  wisitoken_accept                   => 4,
  actual_parameter_part              => 4,
@@ -712,12 +709,11 @@ McKenzie:
  nonterminal_016                    => 4,
  nonterminal_015_list               => 4,
  nonterminal_017_list               => 4,
- nonterminal_018                    => 4,
- nonterminal_020                    => 4,
- nonterminal_019_list               => 4,
- nonterminal_021_list               => 4,
- nonterminal_023                    => 4,
- nonterminal_022_list               => 4)
+ nonterminal_019                    => 4,
+ nonterminal_018_list               => 4,
+ nonterminal_020_list               => 4,
+ nonterminal_022                    => 4,
+ nonterminal_021_list               => 4)
 Minimal_Complete_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
@@ -832,8 +828,8 @@ State 4:
    Minimal_Complete_Action => IDENTIFIER 95.2
 
 State 5:
-     90.0:if_statement <= IF ^ expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-     90.1:if_statement <= IF ^ expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON
+     90.0:if_statement <= IF ^ expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON
+     90.1:if_statement <= IF ^ expression THEN sequence_of_statements nonterminal_018_list END IF SEMICOLON
      90.2:if_statement <= IF ^ expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
      90.3:if_statement <= IF ^ expression THEN sequence_of_statements END IF SEMICOLON
 
@@ -891,7 +887,7 @@ State 6:
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
@@ -1855,7 +1851,7 @@ State 50:
    Minimal_Complete_Action => relation 109.1
 
 State 51:
-    113.2:simple_expression <= term ^ nonterminal_022_list
+    113.2:simple_expression <= term ^ nonterminal_021_list
     113.3:simple_expression <= term ^
     122.1:term <= term ^ multiplying_operator factor
 
@@ -1885,13 +1881,13 @@ State 51:
 
    binary_adding_operator             goto state 106
    multiplying_operator               goto state 107
-   nonterminal_023                    goto state 108
-   nonterminal_022_list               goto state 109
+   nonterminal_022                    goto state 108
+   nonterminal_021_list               goto state 109
 
    Minimal_Complete_Action => simple_expression 113.3
 
 State 52:
-    113.0:simple_expression <= unary_adding_operator ^ term nonterminal_022_list
+    113.0:simple_expression <= unary_adding_operator ^ term nonterminal_021_list
     113.1:simple_expression <= unary_adding_operator ^ term
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -1996,8 +1992,8 @@ State 57:
    Minimal_Complete_Action => RETURN 99.1
 
 State 58:
-     90.0:if_statement <= IF expression ^ THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-     90.1:if_statement <= IF expression ^ THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON
+     90.0:if_statement <= IF expression ^ THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON
+     90.1:if_statement <= IF expression ^ THEN sequence_of_statements nonterminal_018_list END IF SEMICOLON
      90.2:if_statement <= IF expression ^ THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
      90.3:if_statement <= IF expression ^ THEN sequence_of_statements END IF SEMICOLON
 
@@ -2015,29 +2011,29 @@ State 59:
    Minimal_Complete_Action => END 93.1
 
 State 60:
-    143.0:nonterminal_021_list <= statement ^
+    142.0:nonterminal_020_list <= statement ^
 
-   BEGIN                              => reduce 1 tokens to nonterminal_021_list 143.0
-   CASE                               => reduce 1 tokens to nonterminal_021_list 143.0
-   DECLARE                            => reduce 1 tokens to nonterminal_021_list 143.0
-   ELSE                               => reduce 1 tokens to nonterminal_021_list 143.0
-   ELSIF                              => reduce 1 tokens to nonterminal_021_list 143.0
-   END                                => reduce 1 tokens to nonterminal_021_list 143.0
-   EXIT                               => reduce 1 tokens to nonterminal_021_list 143.0
-   EXCEPTION                          => reduce 1 tokens to nonterminal_021_list 143.0
-   FOR                                => reduce 1 tokens to nonterminal_021_list 143.0
-   IF                                 => reduce 1 tokens to nonterminal_021_list 143.0
-   LOOP                               => reduce 1 tokens to nonterminal_021_list 143.0
-   RETURN                             => reduce 1 tokens to nonterminal_021_list 143.0
-   WHEN                               => reduce 1 tokens to nonterminal_021_list 143.0
-   IDENTIFIER                         => reduce 1 tokens to nonterminal_021_list 143.0
+   BEGIN                              => reduce 1 tokens to nonterminal_020_list 142.0
+   CASE                               => reduce 1 tokens to nonterminal_020_list 142.0
+   DECLARE                            => reduce 1 tokens to nonterminal_020_list 142.0
+   ELSE                               => reduce 1 tokens to nonterminal_020_list 142.0
+   ELSIF                              => reduce 1 tokens to nonterminal_020_list 142.0
+   END                                => reduce 1 tokens to nonterminal_020_list 142.0
+   EXIT                               => reduce 1 tokens to nonterminal_020_list 142.0
+   EXCEPTION                          => reduce 1 tokens to nonterminal_020_list 142.0
+   FOR                                => reduce 1 tokens to nonterminal_020_list 142.0
+   IF                                 => reduce 1 tokens to nonterminal_020_list 142.0
+   LOOP                               => reduce 1 tokens to nonterminal_020_list 142.0
+   RETURN                             => reduce 1 tokens to nonterminal_020_list 142.0
+   WHEN                               => reduce 1 tokens to nonterminal_020_list 142.0
+   IDENTIFIER                         => reduce 1 tokens to nonterminal_020_list 142.0
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_021_list 143.0
+   Minimal_Complete_Action => nonterminal_020_list 142.0
 
 State 61:
-    112.0:sequence_of_statements <= nonterminal_021_list ^
-    143.1:nonterminal_021_list <= nonterminal_021_list ^ statement
+    112.0:sequence_of_statements <= nonterminal_020_list ^
+    142.1:nonterminal_020_list <= nonterminal_020_list ^ statement
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1 67.0
@@ -2198,48 +2194,48 @@ State 69:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 131
+   handled_sequence_of_statements     goto state 130
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
 State 70:
      64.0:block_statement <= block_label_opt DECLARE ^ declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 140
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 139
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => declarative_part 74.1
 
@@ -2271,11 +2267,11 @@ State 71:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 151
+   sequence_of_statements             goto state 150
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
@@ -2289,21 +2285,21 @@ State 72:
    PLUS                               => shift and goto state 40 125.0
    STRING_LITERAL                     => shift and goto state 41 103.1
    NUMERIC_LITERAL                    => shift and goto state 42 103.0
-   IDENTIFIER                         => shift and goto state 152 60.0
+   IDENTIFIER                         => shift and goto state 151 60.0
    default                            => ERROR
 
-   association                        goto state 153
-   association_list                   goto state 154
-   expression                         goto state 155
+   association                        goto state 152
+   association_list                   goto state 153
+   expression                         goto state 154
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 156
-   range_list                         goto state 157
+   range_g                            goto state 155
+   range_list                         goto state 156
    relation                           goto state 49
    selected_component                 goto state 29
-   simple_expression                  goto state 158
+   simple_expression                  goto state 157
    term                               goto state 51
    unary_adding_operator              goto state 52
 
@@ -2321,7 +2317,7 @@ State 73:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 159
+   expression                         goto state 158
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -2337,7 +2333,7 @@ State 73:
 State 74:
     111.0:selected_component <= name DOT ^ IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 160 111.0
+   IDENTIFIER                         => shift and goto state 159 111.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 111.0
@@ -2407,28 +2403,28 @@ State 77:
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 161
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 160
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => declarative_part 74.1
 
@@ -2441,12 +2437,12 @@ State 78:
    PLUS                               => shift and goto state 40 125.0
    STRING_LITERAL                     => shift and goto state 41 103.1
    NUMERIC_LITERAL                    => shift and goto state 42 103.0
-   IDENTIFIER                         => shift and goto state 152 60.0
+   IDENTIFIER                         => shift and goto state 151 60.0
    default                            => ERROR
 
-   association                        goto state 153
-   association_list                   goto state 162
-   expression                         goto state 155
+   association                        goto state 152
+   association_list                   goto state 161
+   expression                         goto state 154
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -2484,7 +2480,7 @@ State 79:
 State 80:
     117.0:subprogram_body <= subprogram_specification aspect_specification ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
 
-   IS                                 => shift and goto state 163 117.0
+   IS                                 => shift and goto state 162 117.0
    default                            => ERROR
 
    Minimal_Complete_Action => IS 117.0
@@ -2512,7 +2508,7 @@ State 81:
 State 82:
     102.0:paren_expression <= LEFT_PAREN expression ^ RIGHT_PAREN
 
-   RIGHT_PAREN                        => shift and goto state 164 102.0
+   RIGHT_PAREN                        => shift and goto state 163 102.0
    default                            => ERROR
 
    Minimal_Complete_Action => RIGHT_PAREN 102.0
@@ -2549,11 +2545,11 @@ State 83:
 State 84:
      67.0:case_statement <= CASE expression IS ^ nonterminal_004_list END CASE SEMICOLON
 
-   WHEN                               => shift and goto state 165 68.0
+   WHEN                               => shift and goto state 164 68.0
    default                            => ERROR
 
-   case_statement_alternative         goto state 166
-   nonterminal_004_list               goto state 167
+   case_statement_alternative         goto state 165
+   nonterminal_004_list               goto state 166
 
    Minimal_Complete_Action => WHEN 68.0
 
@@ -2573,7 +2569,7 @@ State 85:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   relation                           goto state 168
+   relation                           goto state 167
    selected_component                 goto state 29
    simple_expression                  goto state 50
    term                               goto state 51
@@ -2597,7 +2593,7 @@ State 86:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   relation                           goto state 169
+   relation                           goto state 168
    selected_component                 goto state 29
    simple_expression                  goto state 50
    term                               goto state 51
@@ -2621,7 +2617,7 @@ State 87:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   relation                           goto state 170
+   relation                           goto state 169
    selected_component                 goto state 29
    simple_expression                  goto state 50
    term                               goto state 51
@@ -2654,7 +2650,7 @@ State 89:
    SEMICOLON                          => reduce 2 tokens to expression 80.1
    default                            => ERROR
 
-   nonterminal_010                    goto state 171
+   nonterminal_010                    goto state 170
 
    Minimal_Complete_Action => expression 80.1
 
@@ -2683,7 +2679,7 @@ State 91:
    SEMICOLON                          => reduce 2 tokens to expression 80.2
    default                            => ERROR
 
-   nonterminal_012                    goto state 172
+   nonterminal_012                    goto state 171
 
    Minimal_Complete_Action => expression 80.2
 
@@ -2712,7 +2708,7 @@ State 93:
    SEMICOLON                          => reduce 2 tokens to expression 80.3
    default                            => ERROR
 
-   nonterminal_014                    goto state 173
+   nonterminal_014                    goto state 172
 
    Minimal_Complete_Action => expression 80.3
 
@@ -2817,7 +2813,7 @@ State 100:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   simple_expression                  goto state 174
+   simple_expression                  goto state 173
    term                               goto state 51
    unary_adding_operator              goto state 52
 
@@ -2884,7 +2880,7 @@ State 105:
    Minimal_Complete_Action => multiplying_operator 94.0
 
 State 106:
-    144.0:nonterminal_023 <= binary_adding_operator ^ term
+    143.0:nonterminal_022 <= binary_adding_operator ^ term
 
    LEFT_PAREN                         => shift and goto state 37 102.0
    NOT                                => shift and goto state 38 83.1
@@ -2898,7 +2894,7 @@ State 106:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   term                               goto state 175
+   term                               goto state 174
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
@@ -2912,7 +2908,7 @@ State 107:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   factor                             goto state 176
+   factor                             goto state 175
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
@@ -2921,35 +2917,35 @@ State 107:
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
 State 108:
-    145.0:nonterminal_022_list <= nonterminal_023 ^
+    144.0:nonterminal_021_list <= nonterminal_022 ^
 
-   AND                                => reduce 1 tokens to nonterminal_022_list 145.0
-   IS                                 => reduce 1 tokens to nonterminal_022_list 145.0
-   LOOP                               => reduce 1 tokens to nonterminal_022_list 145.0
-   OR                                 => reduce 1 tokens to nonterminal_022_list 145.0
-   RIGHT_PAREN                        => reduce 1 tokens to nonterminal_022_list 145.0
-   THEN                               => reduce 1 tokens to nonterminal_022_list 145.0
-   XOR                                => reduce 1 tokens to nonterminal_022_list 145.0
-   AMPERSAND                          => reduce 1 tokens to nonterminal_022_list 145.0
-   COLON_EQUAL                        => reduce 1 tokens to nonterminal_022_list 145.0
-   COMMA                              => reduce 1 tokens to nonterminal_022_list 145.0
-   DOT_DOT                            => reduce 1 tokens to nonterminal_022_list 145.0
-   EQUAL                              => reduce 1 tokens to nonterminal_022_list 145.0
-   GREATER                            => reduce 1 tokens to nonterminal_022_list 145.0
-   GREATER_EQUAL                      => reduce 1 tokens to nonterminal_022_list 145.0
-   LESS                               => reduce 1 tokens to nonterminal_022_list 145.0
-   LESS_EQUAL                         => reduce 1 tokens to nonterminal_022_list 145.0
-   MINUS                              => reduce 1 tokens to nonterminal_022_list 145.0
-   PLUS                               => reduce 1 tokens to nonterminal_022_list 145.0
-   SEMICOLON                          => reduce 1 tokens to nonterminal_022_list 145.0
-   SLASH_EQUAL                        => reduce 1 tokens to nonterminal_022_list 145.0
+   AND                                => reduce 1 tokens to nonterminal_021_list 144.0
+   IS                                 => reduce 1 tokens to nonterminal_021_list 144.0
+   LOOP                               => reduce 1 tokens to nonterminal_021_list 144.0
+   OR                                 => reduce 1 tokens to nonterminal_021_list 144.0
+   RIGHT_PAREN                        => reduce 1 tokens to nonterminal_021_list 144.0
+   THEN                               => reduce 1 tokens to nonterminal_021_list 144.0
+   XOR                                => reduce 1 tokens to nonterminal_021_list 144.0
+   AMPERSAND                          => reduce 1 tokens to nonterminal_021_list 144.0
+   COLON_EQUAL                        => reduce 1 tokens to nonterminal_021_list 144.0
+   COMMA                              => reduce 1 tokens to nonterminal_021_list 144.0
+   DOT_DOT                            => reduce 1 tokens to nonterminal_021_list 144.0
+   EQUAL                              => reduce 1 tokens to nonterminal_021_list 144.0
+   GREATER                            => reduce 1 tokens to nonterminal_021_list 144.0
+   GREATER_EQUAL                      => reduce 1 tokens to nonterminal_021_list 144.0
+   LESS                               => reduce 1 tokens to nonterminal_021_list 144.0
+   LESS_EQUAL                         => reduce 1 tokens to nonterminal_021_list 144.0
+   MINUS                              => reduce 1 tokens to nonterminal_021_list 144.0
+   PLUS                               => reduce 1 tokens to nonterminal_021_list 144.0
+   SEMICOLON                          => reduce 1 tokens to nonterminal_021_list 144.0
+   SLASH_EQUAL                        => reduce 1 tokens to nonterminal_021_list 144.0
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_022_list 145.0
+   Minimal_Complete_Action => nonterminal_021_list 144.0
 
 State 109:
-    113.2:simple_expression <= term nonterminal_022_list ^
-    145.1:nonterminal_022_list <= nonterminal_022_list ^ nonterminal_023
+    113.2:simple_expression <= term nonterminal_021_list ^
+    144.1:nonterminal_021_list <= nonterminal_021_list ^ nonterminal_022
 
    AND                                => reduce 2 tokens to simple_expression 113.2
    IS                                 => reduce 2 tokens to simple_expression 113.2
@@ -2974,12 +2970,12 @@ State 109:
    default                            => ERROR
 
    binary_adding_operator             goto state 106
-   nonterminal_023                    goto state 177
+   nonterminal_022                    goto state 176
 
    Minimal_Complete_Action => simple_expression 113.2
 
 State 110:
-    113.0:simple_expression <= unary_adding_operator term ^ nonterminal_022_list
+    113.0:simple_expression <= unary_adding_operator term ^ nonterminal_021_list
     113.1:simple_expression <= unary_adding_operator term ^
     122.1:term <= term ^ multiplying_operator factor
 
@@ -3009,15 +3005,15 @@ State 110:
 
    binary_adding_operator             goto state 106
    multiplying_operator               goto state 107
-   nonterminal_023                    goto state 108
-   nonterminal_022_list               goto state 178
+   nonterminal_022                    goto state 108
+   nonterminal_021_list               goto state 177
 
    Minimal_Complete_Action => (PLUS 62.0, simple_expression 113.1)
 
 State 111:
      79.2:exit_statement <= EXIT WHEN expression ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 179 79.2
+   SEMICOLON                          => shift and goto state 178 79.2
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 79.2
@@ -3034,7 +3030,7 @@ State 112:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 180
+   expression                         goto state 179
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -3084,15 +3080,15 @@ State 114:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   discrete_subtype_definition        goto state 181
+   discrete_subtype_definition        goto state 180
    factor                             goto state 45
-   name                               goto state 182
+   name                               goto state 181
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 183
+   range_g                            goto state 182
    selected_component                 goto state 29
-   simple_expression                  goto state 184
-   subtype_indication                 goto state 185
+   simple_expression                  goto state 183
+   subtype_indication                 goto state 184
    term                               goto state 51
    unary_adding_operator              goto state 52
 
@@ -3110,22 +3106,22 @@ State 115:
    PLUS                               => shift and goto state 40 125.0
    STRING_LITERAL                     => shift and goto state 41 103.1
    NUMERIC_LITERAL                    => shift and goto state 42 103.0
-   IDENTIFIER                         => shift and goto state 186 60.0
+   IDENTIFIER                         => shift and goto state 185 60.0
    default                            => ERROR
 
-   association                        goto state 153
-   association_list                   goto state 154
-   expression                         goto state 155
+   association                        goto state 152
+   association_list                   goto state 153
+   expression                         goto state 154
    factor                             goto state 45
    name                               goto state 46
-   parameter_specification            goto state 187
+   parameter_specification            goto state 186
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 156
-   range_list                         goto state 157
+   range_g                            goto state 155
+   range_list                         goto state 156
    relation                           goto state 49
    selected_component                 goto state 29
-   simple_expression                  goto state 158
+   simple_expression                  goto state 157
    term                               goto state 51
    unary_adding_operator              goto state 52
 
@@ -3134,7 +3130,7 @@ State 115:
 State 116:
      99.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 188 99.1
+   IDENTIFIER                         => shift and goto state 187 99.1
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 99.1
@@ -3142,7 +3138,7 @@ State 116:
 State 117:
      99.0:parameter_and_result_profile <= formal_part ^ RETURN IDENTIFIER
 
-   RETURN                             => shift and goto state 189 99.0
+   RETURN                             => shift and goto state 188 99.0
    default                            => ERROR
 
    Minimal_Complete_Action => RETURN 99.0
@@ -3158,8 +3154,8 @@ State 118:
    Minimal_Complete_Action => function_specification 86.0
 
 State 119:
-     90.0:if_statement <= IF expression THEN ^ sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-     90.1:if_statement <= IF expression THEN ^ sequence_of_statements nonterminal_019_list END IF SEMICOLON
+     90.0:if_statement <= IF expression THEN ^ sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON
+     90.1:if_statement <= IF expression THEN ^ sequence_of_statements nonterminal_018_list END IF SEMICOLON
      90.2:if_statement <= IF expression THEN ^ sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
      90.3:if_statement <= IF expression THEN ^ sequence_of_statements END IF SEMICOLON
 
@@ -3190,42 +3186,42 @@ State 119:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 190
+   sequence_of_statements             goto state 189
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
 State 120:
      93.1:loop_statement <= LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
 
-   LOOP                               => shift and goto state 191 93.1
+   LOOP                               => shift and goto state 190 93.1
    default                            => ERROR
 
    Minimal_Complete_Action => LOOP 93.1
 
 State 121:
-    143.1:nonterminal_021_list <= nonterminal_021_list statement ^
+    142.1:nonterminal_020_list <= nonterminal_020_list statement ^
 
-   BEGIN                              => reduce 2 tokens to nonterminal_021_list 143.1
-   CASE                               => reduce 2 tokens to nonterminal_021_list 143.1
-   DECLARE                            => reduce 2 tokens to nonterminal_021_list 143.1
-   ELSE                               => reduce 2 tokens to nonterminal_021_list 143.1
-   ELSIF                              => reduce 2 tokens to nonterminal_021_list 143.1
-   END                                => reduce 2 tokens to nonterminal_021_list 143.1
-   EXIT                               => reduce 2 tokens to nonterminal_021_list 143.1
-   EXCEPTION                          => reduce 2 tokens to nonterminal_021_list 143.1
-   FOR                                => reduce 2 tokens to nonterminal_021_list 143.1
-   IF                                 => reduce 2 tokens to nonterminal_021_list 143.1
-   LOOP                               => reduce 2 tokens to nonterminal_021_list 143.1
-   RETURN                             => reduce 2 tokens to nonterminal_021_list 143.1
-   WHEN                               => reduce 2 tokens to nonterminal_021_list 143.1
-   IDENTIFIER                         => reduce 2 tokens to nonterminal_021_list 143.1
+   BEGIN                              => reduce 2 tokens to nonterminal_020_list 142.1
+   CASE                               => reduce 2 tokens to nonterminal_020_list 142.1
+   DECLARE                            => reduce 2 tokens to nonterminal_020_list 142.1
+   ELSE                               => reduce 2 tokens to nonterminal_020_list 142.1
+   ELSIF                              => reduce 2 tokens to nonterminal_020_list 142.1
+   END                                => reduce 2 tokens to nonterminal_020_list 142.1
+   EXIT                               => reduce 2 tokens to nonterminal_020_list 142.1
+   EXCEPTION                          => reduce 2 tokens to nonterminal_020_list 142.1
+   FOR                                => reduce 2 tokens to nonterminal_020_list 142.1
+   IF                                 => reduce 2 tokens to nonterminal_020_list 142.1
+   LOOP                               => reduce 2 tokens to nonterminal_020_list 142.1
+   RETURN                             => reduce 2 tokens to nonterminal_020_list 142.1
+   WHEN                               => reduce 2 tokens to nonterminal_020_list 142.1
+   IDENTIFIER                         => reduce 2 tokens to nonterminal_020_list 142.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_021_list 143.1
+   Minimal_Complete_Action => nonterminal_020_list 142.1
 
 State 122:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -3236,21 +3232,21 @@ State 122:
      98.3:package_body <= PACKAGE BODY name ^ IS declarative_part END name_opt SEMICOLON
     111.0:selected_component <= name ^ DOT IDENTIFIER
 
-   IS                                 => shift and goto state 192 98.2
+   IS                                 => shift and goto state 191 98.2
    LEFT_PAREN                         => shift and goto state 72 57.0
    WITH                               => shift and goto state 78 58.0
    DOT                                => shift and goto state 74 111.0
    default                            => ERROR
 
    actual_parameter_part              goto state 76
-   aspect_specification               goto state 193
+   aspect_specification               goto state 192
 
    Minimal_Complete_Action => IS 98.2
 
 State 123:
      87.0:generic_instantiation <= PACKAGE name IS ^ NEW name SEMICOLON
 
-   NEW                                => shift and goto state 194 87.0
+   NEW                                => shift and goto state 193 87.0
    default                            => ERROR
 
    Minimal_Complete_Action => NEW 87.0
@@ -3258,7 +3254,7 @@ State 123:
 State 124:
      87.1:generic_instantiation <= PROCEDURE name IS ^ NEW name SEMICOLON
 
-   NEW                                => shift and goto state 195 87.1
+   NEW                                => shift and goto state 194 87.1
    default                            => ERROR
 
    Minimal_Complete_Action => NEW 87.1
@@ -3289,9 +3285,9 @@ State 127:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 196
+   name                               goto state 195
    selected_component                 goto state 29
-   subtype_indication                 goto state 197
+   subtype_indication                 goto state 196
 
    Minimal_Complete_Action => IDENTIFIER 95.2
 
@@ -3346,39 +3342,25 @@ State 129:
    Minimal_Complete_Action => extended_return_statement 82.0
 
 State 130:
-    140.0:nonterminal_018 <= EXCEPTION ^ nonterminal_017_list
-    140.1:nonterminal_018 <= EXCEPTION ^
-
-   END                                => reduce 1 tokens to nonterminal_018 140.1
-   WHEN                               => shift and goto state 198 78.0
-   default                            => ERROR
-
-   exception_handler                  goto state 199
-   nonterminal_017_list               goto state 200
-
-   Minimal_Complete_Action => (WHEN 78.0, nonterminal_018 140.1)
-
-State 131:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON
 
-   END                                => shift and goto state 201 64.1
+   END                                => shift and goto state 197 64.1
    default                            => ERROR
 
    Minimal_Complete_Action => END 64.1
 
-State 132:
-     88.0:handled_sequence_of_statements <= sequence_of_statements ^ nonterminal_018
-     88.1:handled_sequence_of_statements <= sequence_of_statements ^
+State 131:
+     88.0:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION nonterminal_017_list
+     88.1:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION
+     88.2:handled_sequence_of_statements <= sequence_of_statements ^
 
-   END                                => reduce 1 tokens to handled_sequence_of_statements 88.1
-   EXCEPTION                          => shift and goto state 130 140.0
+   END                                => reduce 1 tokens to handled_sequence_of_statements 88.2
+   EXCEPTION                          => shift and goto state 198 88.0
    default                            => ERROR
 
-   nonterminal_018                    goto state 202
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
-
-State 133:
+State 132:
      98.0:package_body <= PACKAGE ^ BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.1:package_body <= PACKAGE ^ BODY name aspect_specification IS declarative_part END name_opt SEMICOLON
      98.2:package_body <= PACKAGE ^ BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -3389,35 +3371,35 @@ State 133:
 
    Minimal_Complete_Action => BODY 98.0
 
-State 134:
+State 133:
     105.0:procedure_specification <= PROCEDURE ^ name parameter_profile
 
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 203
+   name                               goto state 199
    selected_component                 goto state 29
 
    Minimal_Complete_Action => IDENTIFIER 95.2
 
-State 135:
+State 134:
      85.0:full_type_declaration <= TYPE ^ IDENTIFIER IS type_definition SEMICOLON
 
-   IDENTIFIER                         => shift and goto state 204 85.0
+   IDENTIFIER                         => shift and goto state 200 85.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 85.0
 
-State 136:
+State 135:
      97.0:object_declaration <= IDENTIFIER ^ COLON subtype_indication COLON_EQUAL expression SEMICOLON
      97.1:object_declaration <= IDENTIFIER ^ COLON subtype_indication SEMICOLON
 
-   COLON                              => shift and goto state 205 97.0
+   COLON                              => shift and goto state 201 97.0
    default                            => ERROR
 
    Minimal_Complete_Action => COLON 97.0
 
-State 137:
+State 136:
      73.0:declaration <= body_g ^
 
    BEGIN                              => reduce 1 tokens to declaration 73.0
@@ -3431,7 +3413,7 @@ State 137:
 
    Minimal_Complete_Action => declaration 73.0
 
-State 138:
+State 137:
      65.1:body_g <= body_stub ^
 
    BEGIN                              => reduce 1 tokens to body_g 65.1
@@ -3445,7 +3427,7 @@ State 138:
 
    Minimal_Complete_Action => body_g 65.1
 
-State 139:
+State 138:
     128.0:nonterminal_006_list <= declaration ^
 
    BEGIN                              => reduce 1 tokens to nonterminal_006_list 128.0
@@ -3459,15 +3441,15 @@ State 139:
 
    Minimal_Complete_Action => nonterminal_006_list 128.0
 
-State 140:
+State 139:
      64.0:block_statement <= block_label_opt DECLARE declarative_part ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
 
-   BEGIN                              => shift and goto state 206 64.0
+   BEGIN                              => shift and goto state 202 64.0
    default                            => ERROR
 
    Minimal_Complete_Action => BEGIN 64.0
 
-State 141:
+State 140:
     123.0:type_declaration <= full_type_declaration ^
 
    BEGIN                              => reduce 1 tokens to type_declaration 123.0
@@ -3481,7 +3463,7 @@ State 141:
 
    Minimal_Complete_Action => type_declaration 123.0
 
-State 142:
+State 141:
      73.1:declaration <= object_declaration ^
 
    BEGIN                              => reduce 1 tokens to declaration 73.1
@@ -3495,7 +3477,7 @@ State 142:
 
    Minimal_Complete_Action => declaration 73.1
 
-State 143:
+State 142:
     106.0:proper_body <= package_body ^
 
    BEGIN                              => reduce 1 tokens to proper_body 106.0
@@ -3509,7 +3491,7 @@ State 143:
 
    Minimal_Complete_Action => proper_body 106.0
 
-State 144:
+State 143:
      65.0:body_g <= proper_body ^
 
    BEGIN                              => reduce 1 tokens to body_g 65.0
@@ -3523,7 +3505,7 @@ State 144:
 
    Minimal_Complete_Action => body_g 65.0
 
-State 145:
+State 144:
     106.1:proper_body <= subprogram_body ^
 
    BEGIN                              => reduce 1 tokens to proper_body 106.1
@@ -3537,7 +3519,7 @@ State 145:
 
    Minimal_Complete_Action => proper_body 106.1
 
-State 146:
+State 145:
      66.0:body_stub <= subprogram_body_stub ^
 
    BEGIN                              => reduce 1 tokens to body_stub 66.0
@@ -3551,7 +3533,7 @@ State 146:
 
    Minimal_Complete_Action => body_stub 66.0
 
-State 147:
+State 146:
      73.2:declaration <= subprogram_declaration ^
 
    BEGIN                              => reduce 1 tokens to declaration 73.2
@@ -3565,13 +3547,13 @@ State 147:
 
    Minimal_Complete_Action => declaration 73.2
 
-State 148:
+State 147:
     117.0:subprogram_body <= subprogram_specification ^ aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     117.1:subprogram_body <= subprogram_specification ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     118.0:subprogram_body_stub <= subprogram_specification ^ IS SEPARATE SEMICOLON
     119.0:subprogram_declaration <= subprogram_specification ^ SEMICOLON
 
-   IS                                 => shift and goto state 207 117.1
+   IS                                 => shift and goto state 203 117.1
    WITH                               => shift and goto state 78 58.0
    SEMICOLON                          => shift and goto state 79 119.0
    default                            => ERROR
@@ -3580,7 +3562,7 @@ State 148:
 
    Minimal_Complete_Action => SEMICOLON 119.0
 
-State 149:
+State 148:
      73.3:declaration <= type_declaration ^
 
    BEGIN                              => reduce 1 tokens to declaration 73.3
@@ -3594,45 +3576,45 @@ State 149:
 
    Minimal_Complete_Action => declaration 73.3
 
-State 150:
+State 149:
      74.0:declarative_part <= nonterminal_006_list ^
     128.1:nonterminal_006_list <= nonterminal_006_list ^ declaration
 
    BEGIN                              => reduce 1 tokens to declarative_part 74.0
    END                                => reduce 1 tokens to declarative_part 74.0
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 208
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 204
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
 
    Minimal_Complete_Action => declarative_part 74.0
 
-State 151:
+State 150:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements ^ END LOOP identifier_opt SEMICOLON
 
-   END                                => shift and goto state 209 93.0
+   END                                => shift and goto state 205 93.0
    default                            => ERROR
 
    Minimal_Complete_Action => END 93.0
 
-State 152:
+State 151:
      60.0:association <= IDENTIFIER ^ EQUAL_GREATER expression
      95.2:name <= IDENTIFIER ^
 
@@ -3648,7 +3630,7 @@ State 152:
    DOT                                => reduce 1 tokens to name 95.2
    DOT_DOT                            => reduce 1 tokens to name 95.2
    EQUAL                              => reduce 1 tokens to name 95.2
-   EQUAL_GREATER                      => shift and goto state 210 60.0
+   EQUAL_GREATER                      => shift and goto state 206 60.0
    GREATER                            => reduce 1 tokens to name 95.2
    GREATER_EQUAL                      => reduce 1 tokens to name 95.2
    LESS                               => reduce 1 tokens to name 95.2
@@ -3662,7 +3644,7 @@ State 152:
 
    Minimal_Complete_Action => (EQUAL_GREATER 60.0, name 95.2)
 
-State 153:
+State 152:
      61.0:association_list <= association ^
 
    IS                                 => reduce 1 tokens to association_list 61.0
@@ -3672,17 +3654,17 @@ State 153:
 
    Minimal_Complete_Action => association_list 61.0
 
-State 154:
+State 153:
      57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
      61.1:association_list <= association_list ^ COMMA association
 
-   RIGHT_PAREN                        => shift and goto state 211 57.0
-   COMMA                              => shift and goto state 212 61.1
+   RIGHT_PAREN                        => shift and goto state 207 57.0
+   COMMA                              => shift and goto state 208 61.1
    default                            => ERROR
 
    Minimal_Complete_Action => RIGHT_PAREN 57.0
 
-State 155:
+State 154:
      60.1:association <= expression ^
 
    IS                                 => reduce 1 tokens to association 60.1
@@ -3692,7 +3674,7 @@ State 155:
 
    Minimal_Complete_Action => association 60.1
 
-State 156:
+State 155:
     108.1:range_list <= range_g ^
 
    RIGHT_PAREN                        => reduce 1 tokens to range_list 108.1
@@ -3701,17 +3683,17 @@ State 156:
 
    Minimal_Complete_Action => range_list 108.1
 
-State 157:
+State 156:
      95.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
     108.0:range_list <= range_list ^ COMMA range_g
 
-   RIGHT_PAREN                        => shift and goto state 213 95.0
-   COMMA                              => shift and goto state 214 108.0
+   RIGHT_PAREN                        => shift and goto state 209 95.0
+   COMMA                              => shift and goto state 210 108.0
    default                            => ERROR
 
    Minimal_Complete_Action => 
 
-State 158:
+State 157:
     107.0:range_g <= simple_expression ^ DOT_DOT simple_expression
     109.0:relation <= simple_expression ^ relational_operator simple_expression
     109.1:relation <= simple_expression ^
@@ -3721,7 +3703,7 @@ State 158:
    RIGHT_PAREN                        => reduce 1 tokens to relation 109.1
    XOR                                => reduce 1 tokens to relation 109.1
    COMMA                              => reduce 1 tokens to relation 109.1
-   DOT_DOT                            => shift and goto state 215 107.0
+   DOT_DOT                            => shift and goto state 211 107.0
    EQUAL                              => shift and goto state 94 110.0
    GREATER                            => shift and goto state 95 110.4
    GREATER_EQUAL                      => shift and goto state 96 110.5
@@ -3734,15 +3716,15 @@ State 158:
 
    Minimal_Complete_Action => relation 109.1
 
-State 159:
+State 158:
      59.0:assignment_statement <= name COLON_EQUAL expression ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 216 59.0
+   SEMICOLON                          => shift and goto state 212 59.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 59.0
 
-State 160:
+State 159:
     111.0:selected_component <= name DOT IDENTIFIER ^
 
    AND                                => reduce 3 tokens to selected_component 111.0
@@ -3777,55 +3759,55 @@ State 160:
 
    Minimal_Complete_Action => selected_component 111.0
 
-State 161:
+State 160:
     117.1:subprogram_body <= subprogram_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
 
-   BEGIN                              => shift and goto state 217 117.1
+   BEGIN                              => shift and goto state 213 117.1
    default                            => ERROR
 
    Minimal_Complete_Action => BEGIN 117.1
 
-State 162:
+State 161:
      58.0:aspect_specification <= WITH association_list ^
      61.1:association_list <= association_list ^ COMMA association
 
    IS                                 => reduce 2 tokens to aspect_specification 58.0
-   COMMA                              => shift and goto state 212 61.1
+   COMMA                              => shift and goto state 208 61.1
    default                            => ERROR
 
    Minimal_Complete_Action => aspect_specification 58.0
 
-State 163:
+State 162:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 218
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 214
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => declarative_part 74.1
 
-State 164:
+State 163:
     102.0:paren_expression <= LEFT_PAREN expression RIGHT_PAREN ^
 
    AND                                => reduce 3 tokens to paren_expression 102.0
@@ -3854,15 +3836,15 @@ State 164:
 
    Minimal_Complete_Action => paren_expression 102.0
 
-State 165:
+State 164:
      68.0:case_statement_alternative <= WHEN ^ NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
 
-   NUMERIC_LITERAL                    => shift and goto state 219 68.0
+   NUMERIC_LITERAL                    => shift and goto state 215 68.0
    default                            => ERROR
 
    Minimal_Complete_Action => NUMERIC_LITERAL 68.0
 
-State 166:
+State 165:
     126.0:nonterminal_004_list <= case_statement_alternative ^
 
    END                                => reduce 1 tokens to nonterminal_004_list 126.0
@@ -3871,19 +3853,19 @@ State 166:
 
    Minimal_Complete_Action => nonterminal_004_list 126.0
 
-State 167:
+State 166:
      67.0:case_statement <= CASE expression IS nonterminal_004_list ^ END CASE SEMICOLON
     126.1:nonterminal_004_list <= nonterminal_004_list ^ case_statement_alternative
 
-   END                                => shift and goto state 220 67.0
-   WHEN                               => shift and goto state 165 68.0
+   END                                => shift and goto state 216 67.0
+   WHEN                               => shift and goto state 164 68.0
    default                            => ERROR
 
-   case_statement_alternative         goto state 221
+   case_statement_alternative         goto state 217
 
    Minimal_Complete_Action => END 67.0
 
-State 168:
+State 167:
     131.0:nonterminal_010 <= AND relation ^
 
    AND                                => reduce 2 tokens to nonterminal_010 131.0
@@ -3896,7 +3878,7 @@ State 168:
 
    Minimal_Complete_Action => nonterminal_010 131.0
 
-State 169:
+State 168:
     133.0:nonterminal_012 <= OR relation ^
 
    IS                                 => reduce 2 tokens to nonterminal_012 133.0
@@ -3909,7 +3891,7 @@ State 169:
 
    Minimal_Complete_Action => nonterminal_012 133.0
 
-State 170:
+State 169:
     135.0:nonterminal_014 <= XOR relation ^
 
    IS                                 => reduce 2 tokens to nonterminal_014 135.0
@@ -3922,7 +3904,7 @@ State 170:
 
    Minimal_Complete_Action => nonterminal_014 135.0
 
-State 171:
+State 170:
     132.1:nonterminal_009_list <= nonterminal_009_list nonterminal_010 ^
 
    AND                                => reduce 2 tokens to nonterminal_009_list 132.1
@@ -3935,7 +3917,7 @@ State 171:
 
    Minimal_Complete_Action => nonterminal_009_list 132.1
 
-State 172:
+State 171:
     134.1:nonterminal_011_list <= nonterminal_011_list nonterminal_012 ^
 
    IS                                 => reduce 2 tokens to nonterminal_011_list 134.1
@@ -3948,7 +3930,7 @@ State 172:
 
    Minimal_Complete_Action => nonterminal_011_list 134.1
 
-State 173:
+State 172:
     136.1:nonterminal_013_list <= nonterminal_013_list nonterminal_014 ^
 
    IS                                 => reduce 2 tokens to nonterminal_013_list 136.1
@@ -3961,7 +3943,7 @@ State 173:
 
    Minimal_Complete_Action => nonterminal_013_list 136.1
 
-State 174:
+State 173:
     109.0:relation <= simple_expression relational_operator simple_expression ^
 
    AND                                => reduce 3 tokens to relation 109.0
@@ -3976,39 +3958,39 @@ State 174:
 
    Minimal_Complete_Action => relation 109.0
 
-State 175:
+State 174:
     122.1:term <= term ^ multiplying_operator factor
-    144.0:nonterminal_023 <= binary_adding_operator term ^
+    143.0:nonterminal_022 <= binary_adding_operator term ^
 
-   AND                                => reduce 2 tokens to nonterminal_023 144.0
-   IS                                 => reduce 2 tokens to nonterminal_023 144.0
-   LOOP                               => reduce 2 tokens to nonterminal_023 144.0
-   OR                                 => reduce 2 tokens to nonterminal_023 144.0
-   RIGHT_PAREN                        => reduce 2 tokens to nonterminal_023 144.0
-   THEN                               => reduce 2 tokens to nonterminal_023 144.0
-   XOR                                => reduce 2 tokens to nonterminal_023 144.0
-   AMPERSAND                          => reduce 2 tokens to nonterminal_023 144.0
-   COLON_EQUAL                        => reduce 2 tokens to nonterminal_023 144.0
-   COMMA                              => reduce 2 tokens to nonterminal_023 144.0
-   DOT_DOT                            => reduce 2 tokens to nonterminal_023 144.0
-   EQUAL                              => reduce 2 tokens to nonterminal_023 144.0
-   GREATER                            => reduce 2 tokens to nonterminal_023 144.0
-   GREATER_EQUAL                      => reduce 2 tokens to nonterminal_023 144.0
-   LESS                               => reduce 2 tokens to nonterminal_023 144.0
-   LESS_EQUAL                         => reduce 2 tokens to nonterminal_023 144.0
-   MINUS                              => reduce 2 tokens to nonterminal_023 144.0
-   PLUS                               => reduce 2 tokens to nonterminal_023 144.0
-   SEMICOLON                          => reduce 2 tokens to nonterminal_023 144.0
+   AND                                => reduce 2 tokens to nonterminal_022 143.0
+   IS                                 => reduce 2 tokens to nonterminal_022 143.0
+   LOOP                               => reduce 2 tokens to nonterminal_022 143.0
+   OR                                 => reduce 2 tokens to nonterminal_022 143.0
+   RIGHT_PAREN                        => reduce 2 tokens to nonterminal_022 143.0
+   THEN                               => reduce 2 tokens to nonterminal_022 143.0
+   XOR                                => reduce 2 tokens to nonterminal_022 143.0
+   AMPERSAND                          => reduce 2 tokens to nonterminal_022 143.0
+   COLON_EQUAL                        => reduce 2 tokens to nonterminal_022 143.0
+   COMMA                              => reduce 2 tokens to nonterminal_022 143.0
+   DOT_DOT                            => reduce 2 tokens to nonterminal_022 143.0
+   EQUAL                              => reduce 2 tokens to nonterminal_022 143.0
+   GREATER                            => reduce 2 tokens to nonterminal_022 143.0
+   GREATER_EQUAL                      => reduce 2 tokens to nonterminal_022 143.0
+   LESS                               => reduce 2 tokens to nonterminal_022 143.0
+   LESS_EQUAL                         => reduce 2 tokens to nonterminal_022 143.0
+   MINUS                              => reduce 2 tokens to nonterminal_022 143.0
+   PLUS                               => reduce 2 tokens to nonterminal_022 143.0
+   SEMICOLON                          => reduce 2 tokens to nonterminal_022 143.0
    SLASH                              => shift and goto state 104 94.1
-   SLASH_EQUAL                        => reduce 2 tokens to nonterminal_023 144.0
+   SLASH_EQUAL                        => reduce 2 tokens to nonterminal_022 143.0
    STAR                               => shift and goto state 105 94.0
    default                            => ERROR
 
    multiplying_operator               goto state 107
 
-   Minimal_Complete_Action => nonterminal_023 144.0
+   Minimal_Complete_Action => nonterminal_022 143.0
 
-State 176:
+State 175:
     122.1:term <= term multiplying_operator factor ^
 
    AND                                => reduce 3 tokens to term 122.1
@@ -4037,36 +4019,36 @@ State 176:
 
    Minimal_Complete_Action => term 122.1
 
-State 177:
-    145.1:nonterminal_022_list <= nonterminal_022_list nonterminal_023 ^
+State 176:
+    144.1:nonterminal_021_list <= nonterminal_021_list nonterminal_022 ^
 
-   AND                                => reduce 2 tokens to nonterminal_022_list 145.1
-   IS                                 => reduce 2 tokens to nonterminal_022_list 145.1
-   LOOP                               => reduce 2 tokens to nonterminal_022_list 145.1
-   OR                                 => reduce 2 tokens to nonterminal_022_list 145.1
-   RIGHT_PAREN                        => reduce 2 tokens to nonterminal_022_list 145.1
-   THEN                               => reduce 2 tokens to nonterminal_022_list 145.1
-   XOR                                => reduce 2 tokens to nonterminal_022_list 145.1
-   AMPERSAND                          => reduce 2 tokens to nonterminal_022_list 145.1
-   COLON_EQUAL                        => reduce 2 tokens to nonterminal_022_list 145.1
-   COMMA                              => reduce 2 tokens to nonterminal_022_list 145.1
-   DOT_DOT                            => reduce 2 tokens to nonterminal_022_list 145.1
-   EQUAL                              => reduce 2 tokens to nonterminal_022_list 145.1
-   GREATER                            => reduce 2 tokens to nonterminal_022_list 145.1
-   GREATER_EQUAL                      => reduce 2 tokens to nonterminal_022_list 145.1
-   LESS                               => reduce 2 tokens to nonterminal_022_list 145.1
-   LESS_EQUAL                         => reduce 2 tokens to nonterminal_022_list 145.1
-   MINUS                              => reduce 2 tokens to nonterminal_022_list 145.1
-   PLUS                               => reduce 2 tokens to nonterminal_022_list 145.1
-   SEMICOLON                          => reduce 2 tokens to nonterminal_022_list 145.1
-   SLASH_EQUAL                        => reduce 2 tokens to nonterminal_022_list 145.1
+   AND                                => reduce 2 tokens to nonterminal_021_list 144.1
+   IS                                 => reduce 2 tokens to nonterminal_021_list 144.1
+   LOOP                               => reduce 2 tokens to nonterminal_021_list 144.1
+   OR                                 => reduce 2 tokens to nonterminal_021_list 144.1
+   RIGHT_PAREN                        => reduce 2 tokens to nonterminal_021_list 144.1
+   THEN                               => reduce 2 tokens to nonterminal_021_list 144.1
+   XOR                                => reduce 2 tokens to nonterminal_021_list 144.1
+   AMPERSAND                          => reduce 2 tokens to nonterminal_021_list 144.1
+   COLON_EQUAL                        => reduce 2 tokens to nonterminal_021_list 144.1
+   COMMA                              => reduce 2 tokens to nonterminal_021_list 144.1
+   DOT_DOT                            => reduce 2 tokens to nonterminal_021_list 144.1
+   EQUAL                              => reduce 2 tokens to nonterminal_021_list 144.1
+   GREATER                            => reduce 2 tokens to nonterminal_021_list 144.1
+   GREATER_EQUAL                      => reduce 2 tokens to nonterminal_021_list 144.1
+   LESS                               => reduce 2 tokens to nonterminal_021_list 144.1
+   LESS_EQUAL                         => reduce 2 tokens to nonterminal_021_list 144.1
+   MINUS                              => reduce 2 tokens to nonterminal_021_list 144.1
+   PLUS                               => reduce 2 tokens to nonterminal_021_list 144.1
+   SEMICOLON                          => reduce 2 tokens to nonterminal_021_list 144.1
+   SLASH_EQUAL                        => reduce 2 tokens to nonterminal_021_list 144.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_022_list 145.1
+   Minimal_Complete_Action => nonterminal_021_list 144.1
 
-State 178:
-    113.0:simple_expression <= unary_adding_operator term nonterminal_022_list ^
-    145.1:nonterminal_022_list <= nonterminal_022_list ^ nonterminal_023
+State 177:
+    113.0:simple_expression <= unary_adding_operator term nonterminal_021_list ^
+    144.1:nonterminal_021_list <= nonterminal_021_list ^ nonterminal_022
 
    AND                                => reduce 3 tokens to simple_expression 113.0
    IS                                 => reduce 3 tokens to simple_expression 113.0
@@ -4091,11 +4073,11 @@ State 178:
    default                            => ERROR
 
    binary_adding_operator             goto state 106
-   nonterminal_023                    goto state 177
+   nonterminal_022                    goto state 176
 
    Minimal_Complete_Action => simple_expression 113.0
 
-State 179:
+State 178:
      79.2:exit_statement <= EXIT WHEN expression SEMICOLON ^
 
    BEGIN                              => reduce 4 tokens to exit_statement 79.2
@@ -4120,15 +4102,15 @@ State 179:
 
    Minimal_Complete_Action => exit_statement 79.2
 
-State 180:
+State 179:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN expression ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 222 79.0
+   SEMICOLON                          => shift and goto state 218 79.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 79.0
 
-State 181:
+State 180:
      92.0:iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition ^
 
    LOOP                               => reduce 4 tokens to iteration_scheme 92.0
@@ -4136,7 +4118,7 @@ State 181:
 
    Minimal_Complete_Action => iteration_scheme 92.0
 
-State 182:
+State 181:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
     103.2:primary <= name ^
@@ -4145,10 +4127,10 @@ State 182:
     121.1:subtype_indication <= name ^
 
    AND                                => reduce 1 tokens to primary 103.2
-   LEFT_PAREN                         => shift and goto state 223 57.0
+   LEFT_PAREN                         => shift and goto state 219 57.0
    LOOP                               => reduce 1 tokens to subtype_indication 121.1
    OR                                 => reduce 1 tokens to primary 103.2
-   RANGE                              => shift and goto state 224 72.0
+   RANGE                              => shift and goto state 220 72.0
    RIGHT_PAREN                        => reduce 1 tokens to primary 103.2,
                                          reduce 1 tokens to subtype_indication 121.1
    XOR                                => reduce 1 tokens to primary 103.2
@@ -4169,12 +4151,12 @@ State 182:
    default                            => ERROR
 
    actual_parameter_part              goto state 76
-   constraint                         goto state 225
-   index_constraint                   goto state 226
+   constraint                         goto state 221
+   index_constraint                   goto state 222
 
    Minimal_Complete_Action => (primary 103.2, RANGE 72.0, subtype_indication 121.1)
 
-State 183:
+State 182:
      75.1:discrete_subtype_definition <= range_g ^
 
    LOOP                               => reduce 1 tokens to discrete_subtype_definition 75.1
@@ -4182,15 +4164,15 @@ State 183:
 
    Minimal_Complete_Action => discrete_subtype_definition 75.1
 
-State 184:
+State 183:
     107.0:range_g <= simple_expression ^ DOT_DOT simple_expression
 
-   DOT_DOT                            => shift and goto state 215 107.0
+   DOT_DOT                            => shift and goto state 211 107.0
    default                            => ERROR
 
    Minimal_Complete_Action => DOT_DOT 107.0
 
-State 185:
+State 184:
      75.0:discrete_subtype_definition <= subtype_indication ^
 
    LOOP                               => reduce 1 tokens to discrete_subtype_definition 75.0
@@ -4199,7 +4181,7 @@ State 185:
 
    Minimal_Complete_Action => discrete_subtype_definition 75.0
 
-State 186:
+State 185:
      60.0:association <= IDENTIFIER ^ EQUAL_GREATER expression
      95.2:name <= IDENTIFIER ^
     101.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression
@@ -4211,12 +4193,12 @@ State 186:
    RIGHT_PAREN                        => reduce 1 tokens to name 95.2
    XOR                                => reduce 1 tokens to name 95.2
    AMPERSAND                          => reduce 1 tokens to name 95.2
-   COLON                              => shift and goto state 227 101.0
+   COLON                              => shift and goto state 223 101.0
    COMMA                              => reduce 1 tokens to name 95.2
    DOT                                => reduce 1 tokens to name 95.2
    DOT_DOT                            => reduce 1 tokens to name 95.2
    EQUAL                              => reduce 1 tokens to name 95.2
-   EQUAL_GREATER                      => shift and goto state 210 60.0
+   EQUAL_GREATER                      => shift and goto state 206 60.0
    GREATER                            => reduce 1 tokens to name 95.2
    GREATER_EQUAL                      => reduce 1 tokens to name 95.2
    LESS                               => reduce 1 tokens to name 95.2
@@ -4230,20 +4212,20 @@ State 186:
 
    Minimal_Complete_Action => (EQUAL_GREATER 60.0, name 95.2, COLON 101.0)
 
-State 187:
+State 186:
      84.0:formal_part <= LEFT_PAREN parameter_specification ^ nonterminal_015_list RIGHT_PAREN
      84.1:formal_part <= LEFT_PAREN parameter_specification ^ RIGHT_PAREN
 
-   RIGHT_PAREN                        => shift and goto state 228 84.1
-   SEMICOLON                          => shift and goto state 229 137.0
+   RIGHT_PAREN                        => shift and goto state 224 84.1
+   SEMICOLON                          => shift and goto state 225 137.0
    default                            => ERROR
 
-   nonterminal_016                    goto state 230
-   nonterminal_015_list               goto state 231
+   nonterminal_016                    goto state 226
+   nonterminal_015_list               goto state 227
 
    Minimal_Complete_Action => RIGHT_PAREN 84.1
 
-State 188:
+State 187:
      99.1:parameter_and_result_profile <= RETURN IDENTIFIER ^
 
    IS                                 => reduce 2 tokens to parameter_and_result_profile 99.1
@@ -4253,125 +4235,125 @@ State 188:
 
    Minimal_Complete_Action => parameter_and_result_profile 99.1
 
-State 189:
+State 188:
      99.0:parameter_and_result_profile <= formal_part RETURN ^ IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 232 99.0
+   IDENTIFIER                         => shift and goto state 228 99.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 99.0
 
-State 190:
-     90.0:if_statement <= IF expression THEN sequence_of_statements ^ nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON
-     90.1:if_statement <= IF expression THEN sequence_of_statements ^ nonterminal_019_list END IF SEMICOLON
+State 189:
+     90.0:if_statement <= IF expression THEN sequence_of_statements ^ nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON
+     90.1:if_statement <= IF expression THEN sequence_of_statements ^ nonterminal_018_list END IF SEMICOLON
      90.2:if_statement <= IF expression THEN sequence_of_statements ^ ELSE sequence_of_statements END IF SEMICOLON
      90.3:if_statement <= IF expression THEN sequence_of_statements ^ END IF SEMICOLON
 
-   ELSE                               => shift and goto state 233 90.2
-   ELSIF                              => shift and goto state 234 141.0
-   END                                => shift and goto state 235 90.3
+   ELSE                               => shift and goto state 229 90.2
+   ELSIF                              => shift and goto state 230 140.0
+   END                                => shift and goto state 231 90.3
    default                            => ERROR
 
-   nonterminal_020                    goto state 236
-   nonterminal_019_list               goto state 237
+   nonterminal_019                    goto state 232
+   nonterminal_018_list               goto state 233
 
    Minimal_Complete_Action => END 90.3
 
-State 191:
+State 190:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 89.1
-   IDENTIFIER                         => shift and goto state 238 89.0
+   IDENTIFIER                         => shift and goto state 234 89.0
    default                            => ERROR
 
-   identifier_opt                     goto state 239
+   identifier_opt                     goto state 235
 
    Minimal_Complete_Action => identifier_opt 89.1
 
-State 192:
+State 191:
      98.2:package_body <= PACKAGE BODY name IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.3:package_body <= PACKAGE BODY name IS ^ declarative_part END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    END                                => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 240
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 236
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => declarative_part 74.1
 
-State 193:
+State 192:
      98.0:package_body <= PACKAGE BODY name aspect_specification ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.1:package_body <= PACKAGE BODY name aspect_specification ^ IS declarative_part END name_opt SEMICOLON
 
-   IS                                 => shift and goto state 241 98.0
+   IS                                 => shift and goto state 237 98.0
    default                            => ERROR
 
    Minimal_Complete_Action => IS 98.0
 
-State 194:
+State 193:
      87.0:generic_instantiation <= PACKAGE name IS NEW ^ name SEMICOLON
 
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 242
+   name                               goto state 238
    selected_component                 goto state 29
 
    Minimal_Complete_Action => IDENTIFIER 95.2
 
-State 195:
+State 194:
      87.1:generic_instantiation <= PROCEDURE name IS NEW ^ name SEMICOLON
 
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 243
+   name                               goto state 239
    selected_component                 goto state 29
 
    Minimal_Complete_Action => IDENTIFIER 95.2
 
-State 196:
+State 195:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
     111.0:selected_component <= name ^ DOT IDENTIFIER
     121.0:subtype_indication <= name ^ constraint
     121.1:subtype_indication <= name ^
 
-   LEFT_PAREN                         => shift and goto state 223 57.0
-   RANGE                              => shift and goto state 224 72.0
+   LEFT_PAREN                         => shift and goto state 219 57.0
+   RANGE                              => shift and goto state 220 72.0
    COLON_EQUAL                        => reduce 1 tokens to subtype_indication 121.1
    DOT                                => shift and goto state 74 111.0
    SEMICOLON                          => reduce 1 tokens to subtype_indication 121.1
    default                            => ERROR
 
    actual_parameter_part              goto state 76
-   constraint                         goto state 225
-   index_constraint                   goto state 226
+   constraint                         goto state 221
+   index_constraint                   goto state 222
 
    Minimal_Complete_Action => (RANGE 72.0, subtype_indication 121.1)
 
-State 197:
+State 196:
      81.0:extended_return_object_declaration <= IDENTIFIER COLON subtype_indication ^
 
    SEMICOLON                          => reduce 3 tokens to extended_return_object_declaration 81.0
@@ -4379,59 +4361,31 @@ State 197:
 
    Minimal_Complete_Action => extended_return_object_declaration 81.0
 
-State 198:
-     78.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements
-
-   IDENTIFIER                         => shift and goto state 43 95.2
-   default                            => ERROR
-
-   exception_choice                   goto state 244
-   name                               goto state 245
-   selected_component                 goto state 29
-
-   Minimal_Complete_Action => IDENTIFIER 95.2
-
-State 199:
-    139.0:nonterminal_017_list <= exception_handler ^
-
-   END                                => reduce 1 tokens to nonterminal_017_list 139.0
-   WHEN                               => reduce 1 tokens to nonterminal_017_list 139.0
-   default                            => ERROR
-
-   Minimal_Complete_Action => nonterminal_017_list 139.0
-
-State 200:
-    139.1:nonterminal_017_list <= nonterminal_017_list ^ exception_handler
-    140.0:nonterminal_018 <= EXCEPTION nonterminal_017_list ^
-
-   END                                => reduce 2 tokens to nonterminal_018 140.0
-   WHEN                               => shift and goto state 198 78.0
-   default                            => ERROR
-
-   exception_handler                  goto state 246
-
-   Minimal_Complete_Action => nonterminal_018 140.0
-
-State 201:
+State 197:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 89.1
-   IDENTIFIER                         => shift and goto state 238 89.0
+   IDENTIFIER                         => shift and goto state 234 89.0
    default                            => ERROR
 
-   identifier_opt                     goto state 247
+   identifier_opt                     goto state 240
 
    Minimal_Complete_Action => identifier_opt 89.1
 
-State 202:
-     88.0:handled_sequence_of_statements <= sequence_of_statements nonterminal_018 ^
+State 198:
+     88.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^ nonterminal_017_list
+     88.1:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^
 
-   END                                => reduce 2 tokens to handled_sequence_of_statements 88.0
+   END                                => reduce 2 tokens to handled_sequence_of_statements 88.1
+   WHEN                               => shift and goto state 241 78.0
    default                            => ERROR
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.0
+   exception_handler                  goto state 242
+   nonterminal_017_list               goto state 243
 
-State 203:
+   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+
+State 199:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
     105.0:procedure_specification <= PROCEDURE name ^ parameter_profile
@@ -4450,28 +4404,28 @@ State 203:
 
    Minimal_Complete_Action => parameter_profile 100.1
 
-State 204:
+State 200:
      85.0:full_type_declaration <= TYPE IDENTIFIER ^ IS type_definition SEMICOLON
 
-   IS                                 => shift and goto state 248 85.0
+   IS                                 => shift and goto state 244 85.0
    default                            => ERROR
 
    Minimal_Complete_Action => IS 85.0
 
-State 205:
+State 201:
      97.0:object_declaration <= IDENTIFIER COLON ^ subtype_indication COLON_EQUAL expression SEMICOLON
      97.1:object_declaration <= IDENTIFIER COLON ^ subtype_indication SEMICOLON
 
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 196
+   name                               goto state 195
    selected_component                 goto state 29
-   subtype_indication                 goto state 249
+   subtype_indication                 goto state 245
 
    Minimal_Complete_Action => IDENTIFIER 95.2
 
-State 206:
+State 202:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4494,54 +4448,54 @@ State 206:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 250
+   handled_sequence_of_statements     goto state 246
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-State 207:
+State 203:
     117.1:subprogram_body <= subprogram_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     118.0:subprogram_body_stub <= subprogram_specification IS ^ SEPARATE SEMICOLON
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   SEPARATE                           => shift and goto state 251 118.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   SEPARATE                           => shift and goto state 247 118.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 161
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 160
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => SEPARATE 118.0
 
-State 208:
+State 204:
     128.1:nonterminal_006_list <= nonterminal_006_list declaration ^
 
    BEGIN                              => reduce 2 tokens to nonterminal_006_list 128.1
@@ -4555,15 +4509,15 @@ State 208:
 
    Minimal_Complete_Action => nonterminal_006_list 128.1
 
-State 209:
+State 205:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
 
-   LOOP                               => shift and goto state 252 93.0
+   LOOP                               => shift and goto state 248 93.0
    default                            => ERROR
 
    Minimal_Complete_Action => LOOP 93.0
 
-State 210:
+State 206:
      60.0:association <= IDENTIFIER EQUAL_GREATER ^ expression
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -4575,7 +4529,7 @@ State 210:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 253
+   expression                         goto state 249
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -4588,7 +4542,7 @@ State 210:
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 211:
+State 207:
      57.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^
 
    AND                                => reduce 3 tokens to actual_parameter_part 57.0
@@ -4623,7 +4577,7 @@ State 211:
 
    Minimal_Complete_Action => actual_parameter_part 57.0
 
-State 212:
+State 208:
      61.1:association_list <= association_list COMMA ^ association
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -4632,11 +4586,11 @@ State 212:
    PLUS                               => shift and goto state 40 125.0
    STRING_LITERAL                     => shift and goto state 41 103.1
    NUMERIC_LITERAL                    => shift and goto state 42 103.0
-   IDENTIFIER                         => shift and goto state 152 60.0
+   IDENTIFIER                         => shift and goto state 151 60.0
    default                            => ERROR
 
-   association                        goto state 254
-   expression                         goto state 155
+   association                        goto state 250
+   expression                         goto state 154
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -4649,7 +4603,7 @@ State 212:
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 213:
+State 209:
      95.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^
 
    AND                                => reduce 4 tokens to name 95.0
@@ -4684,7 +4638,7 @@ State 213:
 
    Minimal_Complete_Action => name 95.0
 
-State 214:
+State 210:
     108.0:range_list <= range_list COMMA ^ range_g
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -4700,15 +4654,15 @@ State 214:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 255
+   range_g                            goto state 251
    selected_component                 goto state 29
-   simple_expression                  goto state 184
+   simple_expression                  goto state 183
    term                               goto state 51
    unary_adding_operator              goto state 52
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 215:
+State 211:
     107.0:range_g <= simple_expression DOT_DOT ^ simple_expression
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -4725,13 +4679,13 @@ State 215:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   simple_expression                  goto state 256
+   simple_expression                  goto state 252
    term                               goto state 51
    unary_adding_operator              goto state 52
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 216:
+State 212:
      59.0:assignment_statement <= name COLON_EQUAL expression SEMICOLON ^
 
    BEGIN                              => reduce 4 tokens to assignment_statement 59.0
@@ -4756,7 +4710,7 @@ State 216:
 
    Minimal_Complete_Action => assignment_statement 59.0
 
-State 217:
+State 213:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4779,46 +4733,46 @@ State 217:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 257
+   handled_sequence_of_statements     goto state 253
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-State 218:
+State 214:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
 
-   BEGIN                              => shift and goto state 258 117.0
+   BEGIN                              => shift and goto state 254 117.0
    default                            => ERROR
 
    Minimal_Complete_Action => BEGIN 117.0
 
-State 219:
+State 215:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL ^ EQUAL_GREATER sequence_of_statements
 
-   EQUAL_GREATER                      => shift and goto state 259 68.0
+   EQUAL_GREATER                      => shift and goto state 255 68.0
    default                            => ERROR
 
    Minimal_Complete_Action => EQUAL_GREATER 68.0
 
-State 220:
+State 216:
      67.0:case_statement <= CASE expression IS nonterminal_004_list END ^ CASE SEMICOLON
 
-   CASE                               => shift and goto state 260 67.0
+   CASE                               => shift and goto state 256 67.0
    default                            => ERROR
 
    Minimal_Complete_Action => CASE 67.0
 
-State 221:
+State 217:
     126.1:nonterminal_004_list <= nonterminal_004_list case_statement_alternative ^
 
    END                                => reduce 2 tokens to nonterminal_004_list 126.1
@@ -4827,7 +4781,7 @@ State 221:
 
    Minimal_Complete_Action => nonterminal_004_list 126.1
 
-State 222:
+State 218:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN expression SEMICOLON ^
 
    BEGIN                              => reduce 5 tokens to exit_statement 79.0
@@ -4852,7 +4806,7 @@ State 222:
 
    Minimal_Complete_Action => exit_statement 79.0
 
-State 223:
+State 219:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
      91.0:index_constraint <= LEFT_PAREN ^ discrete_subtype_definition RIGHT_PAREN
      95.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN
@@ -4863,29 +4817,29 @@ State 223:
    PLUS                               => shift and goto state 40 125.0
    STRING_LITERAL                     => shift and goto state 41 103.1
    NUMERIC_LITERAL                    => shift and goto state 42 103.0
-   IDENTIFIER                         => shift and goto state 152 60.0
+   IDENTIFIER                         => shift and goto state 151 60.0
    default                            => ERROR
 
-   association                        goto state 153
-   association_list                   goto state 154
-   discrete_subtype_definition        goto state 261
-   expression                         goto state 155
+   association                        goto state 152
+   association_list                   goto state 153
+   discrete_subtype_definition        goto state 257
+   expression                         goto state 154
    factor                             goto state 45
-   name                               goto state 182
+   name                               goto state 181
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 262
-   range_list                         goto state 157
+   range_g                            goto state 258
+   range_list                         goto state 156
    relation                           goto state 49
    selected_component                 goto state 29
-   simple_expression                  goto state 158
-   subtype_indication                 goto state 185
+   simple_expression                  goto state 157
+   subtype_indication                 goto state 184
    term                               goto state 51
    unary_adding_operator              goto state 52
 
    Minimal_Complete_Action => (NUMERIC_LITERAL 103.0, IDENTIFIER 60.0)
 
-State 224:
+State 220:
      72.0:constraint <= RANGE ^ range_g
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -4901,15 +4855,15 @@ State 224:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 263
+   range_g                            goto state 259
    selected_component                 goto state 29
-   simple_expression                  goto state 184
+   simple_expression                  goto state 183
    term                               goto state 51
    unary_adding_operator              goto state 52
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 225:
+State 221:
     121.0:subtype_indication <= name constraint ^
 
    LOOP                               => reduce 2 tokens to subtype_indication 121.0
@@ -4920,7 +4874,7 @@ State 225:
 
    Minimal_Complete_Action => subtype_indication 121.0
 
-State 226:
+State 222:
      72.1:constraint <= index_constraint ^
 
    LOOP                               => reduce 1 tokens to constraint 72.1
@@ -4931,16 +4885,16 @@ State 226:
 
    Minimal_Complete_Action => constraint 72.1
 
-State 227:
+State 223:
     101.0:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER COLON_EQUAL expression
     101.1:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 264 101.0
+   IDENTIFIER                         => shift and goto state 260 101.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 101.0
 
-State 228:
+State 224:
      84.1:formal_part <= LEFT_PAREN parameter_specification RIGHT_PAREN ^
 
    IS                                 => reduce 3 tokens to formal_part 84.1
@@ -4951,17 +4905,17 @@ State 228:
 
    Minimal_Complete_Action => formal_part 84.1
 
-State 229:
+State 225:
     137.0:nonterminal_016 <= SEMICOLON ^ parameter_specification
 
-   IDENTIFIER                         => shift and goto state 265 101.0
+   IDENTIFIER                         => shift and goto state 261 101.0
    default                            => ERROR
 
-   parameter_specification            goto state 266
+   parameter_specification            goto state 262
 
    Minimal_Complete_Action => IDENTIFIER 101.0
 
-State 230:
+State 226:
     138.0:nonterminal_015_list <= nonterminal_016 ^
 
    RIGHT_PAREN                        => reduce 1 tokens to nonterminal_015_list 138.0
@@ -4970,19 +4924,19 @@ State 230:
 
    Minimal_Complete_Action => nonterminal_015_list 138.0
 
-State 231:
+State 227:
      84.0:formal_part <= LEFT_PAREN parameter_specification nonterminal_015_list ^ RIGHT_PAREN
     138.1:nonterminal_015_list <= nonterminal_015_list ^ nonterminal_016
 
-   RIGHT_PAREN                        => shift and goto state 267 84.0
-   SEMICOLON                          => shift and goto state 229 137.0
+   RIGHT_PAREN                        => shift and goto state 263 84.0
+   SEMICOLON                          => shift and goto state 225 137.0
    default                            => ERROR
 
-   nonterminal_016                    goto state 268
+   nonterminal_016                    goto state 264
 
    Minimal_Complete_Action => RIGHT_PAREN 84.0
 
-State 232:
+State 228:
      99.0:parameter_and_result_profile <= formal_part RETURN IDENTIFIER ^
 
    IS                                 => reduce 3 tokens to parameter_and_result_profile 99.0
@@ -4992,7 +4946,7 @@ State 232:
 
    Minimal_Complete_Action => parameter_and_result_profile 99.0
 
-State 233:
+State 229:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE ^ sequence_of_statements END IF SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5020,16 +4974,16 @@ State 233:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 269
+   sequence_of_statements             goto state 265
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
-State 234:
-    141.0:nonterminal_020 <= ELSIF ^ expression THEN sequence_of_statements
+State 230:
+    140.0:nonterminal_019 <= ELSIF ^ expression THEN sequence_of_statements
 
    LEFT_PAREN                         => shift and goto state 37 102.0
    NOT                                => shift and goto state 38 83.1
@@ -5040,7 +4994,7 @@ State 234:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 270
+   expression                         goto state 266
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -5053,39 +5007,39 @@ State 234:
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 235:
+State 231:
      90.3:if_statement <= IF expression THEN sequence_of_statements END ^ IF SEMICOLON
 
-   IF                                 => shift and goto state 271 90.3
+   IF                                 => shift and goto state 267 90.3
    default                            => ERROR
 
    Minimal_Complete_Action => IF 90.3
 
-State 236:
-    142.0:nonterminal_019_list <= nonterminal_020 ^
+State 232:
+    141.0:nonterminal_018_list <= nonterminal_019 ^
 
-   ELSE                               => reduce 1 tokens to nonterminal_019_list 142.0
-   ELSIF                              => reduce 1 tokens to nonterminal_019_list 142.0
-   END                                => reduce 1 tokens to nonterminal_019_list 142.0
+   ELSE                               => reduce 1 tokens to nonterminal_018_list 141.0
+   ELSIF                              => reduce 1 tokens to nonterminal_018_list 141.0
+   END                                => reduce 1 tokens to nonterminal_018_list 141.0
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_019_list 142.0
+   Minimal_Complete_Action => nonterminal_018_list 141.0
 
-State 237:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ^ ELSE sequence_of_statements END IF SEMICOLON
-     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ^ END IF SEMICOLON
-    142.1:nonterminal_019_list <= nonterminal_019_list ^ nonterminal_020
+State 233:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ^ ELSE sequence_of_statements END IF SEMICOLON
+     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ^ END IF SEMICOLON
+    141.1:nonterminal_018_list <= nonterminal_018_list ^ nonterminal_019
 
-   ELSE                               => shift and goto state 272 90.0
-   ELSIF                              => shift and goto state 234 141.0
-   END                                => shift and goto state 273 90.1
+   ELSE                               => shift and goto state 268 90.0
+   ELSIF                              => shift and goto state 230 140.0
+   END                                => shift and goto state 269 90.1
    default                            => ERROR
 
-   nonterminal_020                    goto state 274
+   nonterminal_019                    goto state 270
 
    Minimal_Complete_Action => END 90.1
 
-State 238:
+State 234:
      89.0:identifier_opt <= IDENTIFIER ^
 
    SEMICOLON                          => reduce 1 tokens to identifier_opt 89.0
@@ -5093,57 +5047,57 @@ State 238:
 
    Minimal_Complete_Action => identifier_opt 89.0
 
-State 239:
+State 235:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 275 93.1
+   SEMICOLON                          => shift and goto state 271 93.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 93.1
 
-State 240:
+State 236:
      98.2:package_body <= PACKAGE BODY name IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.3:package_body <= PACKAGE BODY name IS declarative_part ^ END name_opt SEMICOLON
 
-   BEGIN                              => shift and goto state 276 98.2
-   END                                => shift and goto state 277 98.3
+   BEGIN                              => shift and goto state 272 98.2
+   END                                => shift and goto state 273 98.3
    default                            => ERROR
 
    Minimal_Complete_Action => END 98.3
 
-State 241:
+State 237:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.1:package_body <= PACKAGE BODY name aspect_specification IS ^ declarative_part END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to declarative_part 74.1
    END                                => reduce 0 tokens to declarative_part 74.1
    FUNCTION                           => shift and goto state 4 86.0
-   PACKAGE                            => shift and goto state 133 98.0
-   PROCEDURE                          => shift and goto state 134 105.0
-   TYPE                               => shift and goto state 135 85.0
-   IDENTIFIER                         => shift and goto state 136 97.0
+   PACKAGE                            => shift and goto state 132 98.0
+   PROCEDURE                          => shift and goto state 133 105.0
+   TYPE                               => shift and goto state 134 85.0
+   IDENTIFIER                         => shift and goto state 135 97.0
    default                            => ERROR
 
-   body_g                             goto state 137
-   body_stub                          goto state 138
-   declaration                        goto state 139
-   declarative_part                   goto state 278
-   full_type_declaration              goto state 141
+   body_g                             goto state 136
+   body_stub                          goto state 137
+   declaration                        goto state 138
+   declarative_part                   goto state 274
+   full_type_declaration              goto state 140
    function_specification             goto state 20
-   object_declaration                 goto state 142
-   package_body                       goto state 143
+   object_declaration                 goto state 141
+   package_body                       goto state 142
    procedure_specification            goto state 28
-   proper_body                        goto state 144
-   subprogram_body                    goto state 145
-   subprogram_body_stub               goto state 146
-   subprogram_declaration             goto state 147
-   subprogram_specification           goto state 148
-   type_declaration                   goto state 149
-   nonterminal_006_list               goto state 150
+   proper_body                        goto state 143
+   subprogram_body                    goto state 144
+   subprogram_body_stub               goto state 145
+   subprogram_declaration             goto state 146
+   subprogram_specification           goto state 147
+   type_declaration                   goto state 148
+   nonterminal_006_list               goto state 149
 
    Minimal_Complete_Action => declarative_part 74.1
 
-State 242:
+State 238:
      87.0:generic_instantiation <= PACKAGE name IS NEW name ^ SEMICOLON
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
@@ -5151,14 +5105,14 @@ State 242:
 
    LEFT_PAREN                         => shift and goto state 72 57.0
    DOT                                => shift and goto state 74 111.0
-   SEMICOLON                          => shift and goto state 279 87.0
+   SEMICOLON                          => shift and goto state 275 87.0
    default                            => ERROR
 
    actual_parameter_part              goto state 76
 
    Minimal_Complete_Action => SEMICOLON 87.0
 
-State 243:
+State 239:
      87.1:generic_instantiation <= PROCEDURE name IS NEW name ^ SEMICOLON
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
@@ -5166,102 +5120,103 @@ State 243:
 
    LEFT_PAREN                         => shift and goto state 72 57.0
    DOT                                => shift and goto state 74 111.0
-   SEMICOLON                          => shift and goto state 280 87.1
+   SEMICOLON                          => shift and goto state 276 87.1
    default                            => ERROR
 
    actual_parameter_part              goto state 76
 
    Minimal_Complete_Action => SEMICOLON 87.1
 
-State 244:
-     78.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements
-
-   EQUAL_GREATER                      => shift and goto state 281 78.0
-   default                            => ERROR
-
-   Minimal_Complete_Action => EQUAL_GREATER 78.0
-
-State 245:
-     77.0:exception_choice <= name ^
-     95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
-     95.1:name <= name ^ actual_parameter_part
-    111.0:selected_component <= name ^ DOT IDENTIFIER
-
-   LEFT_PAREN                         => shift and goto state 72 57.0
-   DOT                                => shift and goto state 74 111.0
-   EQUAL_GREATER                      => reduce 1 tokens to exception_choice 77.0
-   default                            => ERROR
-
-   actual_parameter_part              goto state 76
-
-   Minimal_Complete_Action => exception_choice 77.0
-
-State 246:
-    139.1:nonterminal_017_list <= nonterminal_017_list exception_handler ^
-
-   END                                => reduce 2 tokens to nonterminal_017_list 139.1
-   WHEN                               => reduce 2 tokens to nonterminal_017_list 139.1
-   default                            => ERROR
-
-   Minimal_Complete_Action => nonterminal_017_list 139.1
-
-State 247:
+State 240:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 282 64.1
+   SEMICOLON                          => shift and goto state 277 64.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 64.1
 
-State 248:
-     85.0:full_type_declaration <= TYPE IDENTIFIER IS ^ type_definition SEMICOLON
+State 241:
+     78.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements
 
-   LEFT_PAREN                         => shift and goto state 283 76.0
+   IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   enumeration_type_definition        goto state 284
-   type_definition                    goto state 285
+   exception_choice                   goto state 278
+   name                               goto state 279
+   selected_component                 goto state 29
+
+   Minimal_Complete_Action => IDENTIFIER 95.2
+
+State 242:
+    139.0:nonterminal_017_list <= exception_handler ^
+
+   END                                => reduce 1 tokens to nonterminal_017_list 139.0
+   WHEN                               => reduce 1 tokens to nonterminal_017_list 139.0
+   default                            => ERROR
+
+   Minimal_Complete_Action => nonterminal_017_list 139.0
+
+State 243:
+     88.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION nonterminal_017_list ^
+    139.1:nonterminal_017_list <= nonterminal_017_list ^ exception_handler
+
+   END                                => reduce 3 tokens to handled_sequence_of_statements 88.0
+   WHEN                               => shift and goto state 241 78.0
+   default                            => ERROR
+
+   exception_handler                  goto state 280
+
+   Minimal_Complete_Action => handled_sequence_of_statements 88.0
+
+State 244:
+     85.0:full_type_declaration <= TYPE IDENTIFIER IS ^ type_definition SEMICOLON
+
+   LEFT_PAREN                         => shift and goto state 281 76.0
+   default                            => ERROR
+
+   enumeration_type_definition        goto state 282
+   type_definition                    goto state 283
 
    Minimal_Complete_Action => LEFT_PAREN 76.0
 
-State 249:
+State 245:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication ^ COLON_EQUAL expression SEMICOLON
      97.1:object_declaration <= IDENTIFIER COLON subtype_indication ^ SEMICOLON
 
-   COLON_EQUAL                        => shift and goto state 286 97.0
-   SEMICOLON                          => shift and goto state 287 97.1
+   COLON_EQUAL                        => shift and goto state 284 97.0
+   SEMICOLON                          => shift and goto state 285 97.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 97.1
 
-State 250:
+State 246:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON
 
-   END                                => shift and goto state 288 64.0
+   END                                => shift and goto state 286 64.0
    default                            => ERROR
 
    Minimal_Complete_Action => END 64.0
 
-State 251:
+State 247:
     118.0:subprogram_body_stub <= subprogram_specification IS SEPARATE ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 289 118.0
+   SEMICOLON                          => shift and goto state 287 118.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 118.0
 
-State 252:
+State 248:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 89.1
-   IDENTIFIER                         => shift and goto state 238 89.0
+   IDENTIFIER                         => shift and goto state 234 89.0
    default                            => ERROR
 
-   identifier_opt                     goto state 290
+   identifier_opt                     goto state 288
 
    Minimal_Complete_Action => identifier_opt 89.1
 
-State 253:
+State 249:
      60.0:association <= IDENTIFIER EQUAL_GREATER expression ^
 
    IS                                 => reduce 3 tokens to association 60.0
@@ -5271,7 +5226,7 @@ State 253:
 
    Minimal_Complete_Action => association 60.0
 
-State 254:
+State 250:
      61.1:association_list <= association_list COMMA association ^
 
    IS                                 => reduce 3 tokens to association_list 61.1
@@ -5281,7 +5236,7 @@ State 254:
 
    Minimal_Complete_Action => association_list 61.1
 
-State 255:
+State 251:
     108.0:range_list <= range_list COMMA range_g ^
 
    RIGHT_PAREN                        => reduce 3 tokens to range_list 108.0
@@ -5290,7 +5245,7 @@ State 255:
 
    Minimal_Complete_Action => range_list 108.0
 
-State 256:
+State 252:
     107.0:range_g <= simple_expression DOT_DOT simple_expression ^
 
    LOOP                               => reduce 3 tokens to range_g 107.0
@@ -5302,15 +5257,15 @@ State 256:
 
    Minimal_Complete_Action => range_g 107.0
 
-State 257:
+State 253:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
 
-   END                                => shift and goto state 291 117.1
+   END                                => shift and goto state 289 117.1
    default                            => ERROR
 
    Minimal_Complete_Action => END 117.1
 
-State 258:
+State 254:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5333,22 +5288,22 @@ State 258:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 292
+   handled_sequence_of_statements     goto state 290
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-State 259:
+State 255:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5377,31 +5332,31 @@ State 259:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 293
+   sequence_of_statements             goto state 291
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
-State 260:
+State 256:
      67.0:case_statement <= CASE expression IS nonterminal_004_list END CASE ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 294 67.0
+   SEMICOLON                          => shift and goto state 292 67.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 67.0
 
-State 261:
+State 257:
      91.0:index_constraint <= LEFT_PAREN discrete_subtype_definition ^ RIGHT_PAREN
 
-   RIGHT_PAREN                        => shift and goto state 295 91.0
+   RIGHT_PAREN                        => shift and goto state 293 91.0
    default                            => ERROR
 
    Minimal_Complete_Action => RIGHT_PAREN 91.0
 
-State 262:
+State 258:
      75.1:discrete_subtype_definition <= range_g ^
     108.1:range_list <= range_g ^
 
@@ -5412,7 +5367,7 @@ State 262:
 
    Minimal_Complete_Action => (discrete_subtype_definition 75.1, range_list 108.1)
 
-State 263:
+State 259:
      72.0:constraint <= RANGE range_g ^
 
    LOOP                               => reduce 2 tokens to constraint 72.0
@@ -5423,27 +5378,27 @@ State 263:
 
    Minimal_Complete_Action => constraint 72.0
 
-State 264:
+State 260:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^ COLON_EQUAL expression
     101.1:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^
 
    RIGHT_PAREN                        => reduce 3 tokens to parameter_specification 101.1
-   COLON_EQUAL                        => shift and goto state 296 101.0
+   COLON_EQUAL                        => shift and goto state 294 101.0
    SEMICOLON                          => reduce 3 tokens to parameter_specification 101.1
    default                            => ERROR
 
    Minimal_Complete_Action => (COLON_EQUAL 101.0, parameter_specification 101.1)
 
-State 265:
+State 261:
     101.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression
     101.1:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER
 
-   COLON                              => shift and goto state 227 101.0
+   COLON                              => shift and goto state 223 101.0
    default                            => ERROR
 
    Minimal_Complete_Action => COLON 101.0
 
-State 266:
+State 262:
     137.0:nonterminal_016 <= SEMICOLON parameter_specification ^
 
    RIGHT_PAREN                        => reduce 2 tokens to nonterminal_016 137.0
@@ -5452,7 +5407,7 @@ State 266:
 
    Minimal_Complete_Action => nonterminal_016 137.0
 
-State 267:
+State 263:
      84.0:formal_part <= LEFT_PAREN parameter_specification nonterminal_015_list RIGHT_PAREN ^
 
    IS                                 => reduce 4 tokens to formal_part 84.0
@@ -5463,7 +5418,7 @@ State 267:
 
    Minimal_Complete_Action => formal_part 84.0
 
-State 268:
+State 264:
     138.1:nonterminal_015_list <= nonterminal_015_list nonterminal_016 ^
 
    RIGHT_PAREN                        => reduce 2 tokens to nonterminal_015_list 138.1
@@ -5472,32 +5427,32 @@ State 268:
 
    Minimal_Complete_Action => nonterminal_015_list 138.1
 
-State 269:
+State 265:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements ^ END IF SEMICOLON
 
-   END                                => shift and goto state 297 90.2
+   END                                => shift and goto state 295 90.2
    default                            => ERROR
 
    Minimal_Complete_Action => END 90.2
 
-State 270:
-    141.0:nonterminal_020 <= ELSIF expression ^ THEN sequence_of_statements
+State 266:
+    140.0:nonterminal_019 <= ELSIF expression ^ THEN sequence_of_statements
 
-   THEN                               => shift and goto state 298 141.0
+   THEN                               => shift and goto state 296 140.0
    default                            => ERROR
 
-   Minimal_Complete_Action => THEN 141.0
+   Minimal_Complete_Action => THEN 140.0
 
-State 271:
+State 267:
      90.3:if_statement <= IF expression THEN sequence_of_statements END IF ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 299 90.3
+   SEMICOLON                          => shift and goto state 297 90.3
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 90.3
 
-State 272:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE ^ sequence_of_statements END IF SEMICOLON
+State 268:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE ^ sequence_of_statements END IF SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1 67.0
@@ -5524,33 +5479,33 @@ State 272:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 300
+   sequence_of_statements             goto state 298
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
-State 273:
-     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END ^ IF SEMICOLON
+State 269:
+     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list END ^ IF SEMICOLON
 
-   IF                                 => shift and goto state 301 90.1
+   IF                                 => shift and goto state 299 90.1
    default                            => ERROR
 
    Minimal_Complete_Action => IF 90.1
 
-State 274:
-    142.1:nonterminal_019_list <= nonterminal_019_list nonterminal_020 ^
+State 270:
+    141.1:nonterminal_018_list <= nonterminal_018_list nonterminal_019 ^
 
-   ELSE                               => reduce 2 tokens to nonterminal_019_list 142.1
-   ELSIF                              => reduce 2 tokens to nonterminal_019_list 142.1
-   END                                => reduce 2 tokens to nonterminal_019_list 142.1
+   ELSE                               => reduce 2 tokens to nonterminal_018_list 141.1
+   ELSIF                              => reduce 2 tokens to nonterminal_018_list 141.1
+   END                                => reduce 2 tokens to nonterminal_018_list 141.1
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_019_list 142.1
+   Minimal_Complete_Action => nonterminal_018_list 141.1
 
-State 275:
+State 271:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^
 
    BEGIN                              => reduce 6 tokens to loop_statement 93.1
@@ -5575,7 +5530,7 @@ State 275:
 
    Minimal_Complete_Action => loop_statement 93.1
 
-State 276:
+State 272:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5598,45 +5553,45 @@ State 276:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 302
+   handled_sequence_of_statements     goto state 300
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-State 277:
+State 273:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 304
+   name                               goto state 301
+   name_opt                           goto state 302
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 278:
+State 274:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part ^ END name_opt SEMICOLON
 
-   BEGIN                              => shift and goto state 305 98.0
-   END                                => shift and goto state 306 98.1
+   BEGIN                              => shift and goto state 303 98.0
+   END                                => shift and goto state 304 98.1
    default                            => ERROR
 
    Minimal_Complete_Action => END 98.1
 
-State 279:
+State 275:
      87.0:generic_instantiation <= PACKAGE name IS NEW name SEMICOLON ^
 
    BEGIN                              => reduce 6 tokens to generic_instantiation 87.0
@@ -5656,7 +5611,7 @@ State 279:
 
    Minimal_Complete_Action => generic_instantiation 87.0
 
-State 280:
+State 276:
      87.1:generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON ^
 
    BEGIN                              => reduce 6 tokens to generic_instantiation 87.1
@@ -5676,44 +5631,7 @@ State 280:
 
    Minimal_Complete_Action => generic_instantiation 87.1
 
-State 281:
-     78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements
-
-   BEGIN                              => reduce 0 tokens to block_label_opt 63.1
-   CASE                               => shift and goto state 1 67.0
-   DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements 112.1
-   EXIT                               => shift and goto state 2 79.0
-   FOR                                => shift and goto state 3 92.0
-   IF                                 => shift and goto state 5 90.0
-   LOOP                               => shift and goto state 6 93.1
-   RETURN                             => shift and goto state 9 82.0
-   WHEN                               => reduce 0 tokens to sequence_of_statements 112.1
-   IDENTIFIER                         => shift and goto state 10 63.0
-   default                            => ERROR
-
-   assignment_statement               goto state 11
-   block_label_opt                    goto state 12
-   block_statement                    goto state 13
-   case_statement                     goto state 14
-   compound_statement                 goto state 17
-   exit_statement                     goto state 18
-   extended_return_statement          goto state 19
-   if_statement                       goto state 22
-   iteration_scheme                   goto state 23
-   loop_statement                     goto state 24
-   name                               goto state 25
-   procedure_call_statement           goto state 27
-   selected_component                 goto state 29
-   sequence_of_statements             goto state 307
-   simple_return_statement            goto state 30
-   simple_statement                   goto state 31
-   statement                          goto state 60
-   nonterminal_021_list               goto state 61
-
-   Minimal_Complete_Action => sequence_of_statements 112.1
-
-State 282:
+State 277:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^
 
    BEGIN                              => reduce 6 tokens to block_statement 64.1
@@ -5738,16 +5656,48 @@ State 282:
 
    Minimal_Complete_Action => block_statement 64.1
 
-State 283:
+State 278:
+     78.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements
+
+   EQUAL_GREATER                      => shift and goto state 305 78.0
+   default                            => ERROR
+
+   Minimal_Complete_Action => EQUAL_GREATER 78.0
+
+State 279:
+     77.0:exception_choice <= name ^
+     95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
+     95.1:name <= name ^ actual_parameter_part
+    111.0:selected_component <= name ^ DOT IDENTIFIER
+
+   LEFT_PAREN                         => shift and goto state 72 57.0
+   DOT                                => shift and goto state 74 111.0
+   EQUAL_GREATER                      => reduce 1 tokens to exception_choice 77.0
+   default                            => ERROR
+
+   actual_parameter_part              goto state 76
+
+   Minimal_Complete_Action => exception_choice 77.0
+
+State 280:
+    139.1:nonterminal_017_list <= nonterminal_017_list exception_handler ^
+
+   END                                => reduce 2 tokens to nonterminal_017_list 139.1
+   WHEN                               => reduce 2 tokens to nonterminal_017_list 139.1
+   default                            => ERROR
+
+   Minimal_Complete_Action => nonterminal_017_list 139.1
+
+State 281:
      76.0:enumeration_type_definition <= LEFT_PAREN ^ IDENTIFIER nonterminal_007_list RIGHT_PAREN
      76.1:enumeration_type_definition <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN
 
-   IDENTIFIER                         => shift and goto state 308 76.0
+   IDENTIFIER                         => shift and goto state 306 76.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 76.0
 
-State 284:
+State 282:
     124.0:type_definition <= enumeration_type_definition ^
 
    SEMICOLON                          => reduce 1 tokens to type_definition 124.0
@@ -5755,15 +5705,15 @@ State 284:
 
    Minimal_Complete_Action => type_definition 124.0
 
-State 285:
+State 283:
      85.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 309 85.0
+   SEMICOLON                          => shift and goto state 307 85.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 85.0
 
-State 286:
+State 284:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL ^ expression SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -5775,7 +5725,7 @@ State 286:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 310
+   expression                         goto state 308
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -5788,7 +5738,7 @@ State 286:
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 287:
+State 285:
      97.1:object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON ^
 
    BEGIN                              => reduce 4 tokens to object_declaration 97.1
@@ -5802,18 +5752,18 @@ State 287:
 
    Minimal_Complete_Action => object_declaration 97.1
 
-State 288:
+State 286:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 89.1
-   IDENTIFIER                         => shift and goto state 238 89.0
+   IDENTIFIER                         => shift and goto state 234 89.0
    default                            => ERROR
 
-   identifier_opt                     goto state 311
+   identifier_opt                     goto state 309
 
    Minimal_Complete_Action => identifier_opt 89.1
 
-State 289:
+State 287:
     118.0:subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON ^
 
    BEGIN                              => reduce 4 tokens to subprogram_body_stub 118.0
@@ -5827,36 +5777,36 @@ State 289:
 
    Minimal_Complete_Action => subprogram_body_stub 118.0
 
-State 290:
+State 288:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 312 93.0
+   SEMICOLON                          => shift and goto state 310 93.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 93.0
 
-State 291:
+State 289:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 313
+   name                               goto state 301
+   name_opt                           goto state 311
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 292:
+State 290:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
 
-   END                                => shift and goto state 314 117.0
+   END                                => shift and goto state 312 117.0
    default                            => ERROR
 
    Minimal_Complete_Action => END 117.0
 
-State 293:
+State 291:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements ^
 
    END                                => reduce 4 tokens to case_statement_alternative 68.0
@@ -5865,7 +5815,7 @@ State 293:
 
    Minimal_Complete_Action => case_statement_alternative 68.0
 
-State 294:
+State 292:
      67.0:case_statement <= CASE expression IS nonterminal_004_list END CASE SEMICOLON ^
 
    BEGIN                              => reduce 7 tokens to case_statement 67.0
@@ -5890,7 +5840,7 @@ State 294:
 
    Minimal_Complete_Action => case_statement 67.0
 
-State 295:
+State 293:
      91.0:index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^
 
    LOOP                               => reduce 3 tokens to index_constraint 91.0
@@ -5901,7 +5851,7 @@ State 295:
 
    Minimal_Complete_Action => index_constraint 91.0
 
-State 296:
+State 294:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL ^ expression
 
    LEFT_PAREN                         => shift and goto state 37 102.0
@@ -5913,7 +5863,7 @@ State 296:
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   expression                         goto state 315
+   expression                         goto state 313
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -5926,16 +5876,16 @@ State 296:
 
    Minimal_Complete_Action => NUMERIC_LITERAL 103.0
 
-State 297:
+State 295:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END ^ IF SEMICOLON
 
-   IF                                 => shift and goto state 316 90.2
+   IF                                 => shift and goto state 314 90.2
    default                            => ERROR
 
    Minimal_Complete_Action => IF 90.2
 
-State 298:
-    141.0:nonterminal_020 <= ELSIF expression THEN ^ sequence_of_statements
+State 296:
+    140.0:nonterminal_019 <= ELSIF expression THEN ^ sequence_of_statements
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1 67.0
@@ -5964,15 +5914,15 @@ State 298:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 317
+   sequence_of_statements             goto state 315
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
    Minimal_Complete_Action => sequence_of_statements 112.1
 
-State 299:
+State 297:
      90.3:if_statement <= IF expression THEN sequence_of_statements END IF SEMICOLON ^
 
    BEGIN                              => reduce 7 tokens to if_statement 90.3
@@ -5997,31 +5947,31 @@ State 299:
 
    Minimal_Complete_Action => if_statement 90.3
 
-State 300:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements ^ END IF SEMICOLON
+State 298:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements ^ END IF SEMICOLON
 
-   END                                => shift and goto state 318 90.0
+   END                                => shift and goto state 316 90.0
    default                            => ERROR
 
    Minimal_Complete_Action => END 90.0
 
-State 301:
-     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END IF ^ SEMICOLON
+State 299:
+     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list END IF ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 319 90.1
+   SEMICOLON                          => shift and goto state 317 90.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 90.1
 
-State 302:
+State 300:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
 
-   END                                => shift and goto state 320 98.2
+   END                                => shift and goto state 318 98.2
    default                            => ERROR
 
    Minimal_Complete_Action => END 98.2
 
-State 303:
+State 301:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
      95.1:name <= name ^ actual_parameter_part
      96.0:name_opt <= name ^
@@ -6036,15 +5986,15 @@ State 303:
 
    Minimal_Complete_Action => name_opt 96.0
 
-State 304:
+State 302:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 321 98.3
+   SEMICOLON                          => shift and goto state 319 98.3
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 98.3
 
-State 305:
+State 303:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -6067,57 +6017,85 @@ State 305:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 322
+   handled_sequence_of_statements     goto state 320
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 132
+   sequence_of_statements             goto state 131
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 60
-   nonterminal_021_list               goto state 61
+   nonterminal_020_list               goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Action => handled_sequence_of_statements 88.2
 
-State 306:
+State 304:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 323
+   name                               goto state 301
+   name_opt                           goto state 321
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 307:
-     78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements ^
+State 305:
+     78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements
 
-   END                                => reduce 4 tokens to exception_handler 78.0
-   WHEN                               => reduce 4 tokens to exception_handler 78.0
+   BEGIN                              => reduce 0 tokens to block_label_opt 63.1
+   CASE                               => shift and goto state 1 67.0
+   DECLARE                            => reduce 0 tokens to block_label_opt 63.1
+   END                                => reduce 0 tokens to sequence_of_statements 112.1
+   EXIT                               => shift and goto state 2 79.0
+   FOR                                => shift and goto state 3 92.0
+   IF                                 => shift and goto state 5 90.0
+   LOOP                               => shift and goto state 6 93.1
+   RETURN                             => shift and goto state 9 82.0
+   WHEN                               => reduce 0 tokens to sequence_of_statements 112.1
+   IDENTIFIER                         => shift and goto state 10 63.0
    default                            => ERROR
 
-   Minimal_Complete_Action => exception_handler 78.0
+   assignment_statement               goto state 11
+   block_label_opt                    goto state 12
+   block_statement                    goto state 13
+   case_statement                     goto state 14
+   compound_statement                 goto state 17
+   exit_statement                     goto state 18
+   extended_return_statement          goto state 19
+   if_statement                       goto state 22
+   iteration_scheme                   goto state 23
+   loop_statement                     goto state 24
+   name                               goto state 25
+   procedure_call_statement           goto state 27
+   selected_component                 goto state 29
+   sequence_of_statements             goto state 322
+   simple_return_statement            goto state 30
+   simple_statement                   goto state 31
+   statement                          goto state 60
+   nonterminal_020_list               goto state 61
 
-State 308:
+   Minimal_Complete_Action => sequence_of_statements 112.1
+
+State 306:
      76.0:enumeration_type_definition <= LEFT_PAREN IDENTIFIER ^ nonterminal_007_list RIGHT_PAREN
      76.1:enumeration_type_definition <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN
 
-   RIGHT_PAREN                        => shift and goto state 324 76.1
-   COMMA                              => shift and goto state 325 129.0
+   RIGHT_PAREN                        => shift and goto state 323 76.1
+   COMMA                              => shift and goto state 324 129.0
    default                            => ERROR
 
-   nonterminal_008                    goto state 326
-   nonterminal_007_list               goto state 327
+   nonterminal_008                    goto state 325
+   nonterminal_007_list               goto state 326
 
    Minimal_Complete_Action => RIGHT_PAREN 76.1
 
-State 309:
+State 307:
      85.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition SEMICOLON ^
 
    BEGIN                              => reduce 5 tokens to full_type_declaration 85.0
@@ -6131,23 +6109,23 @@ State 309:
 
    Minimal_Complete_Action => full_type_declaration 85.0
 
-State 310:
+State 308:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 328 97.0
+   SEMICOLON                          => shift and goto state 327 97.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 97.0
 
-State 311:
+State 309:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 329 64.0
+   SEMICOLON                          => shift and goto state 328 64.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 64.0
 
-State 312:
+State 310:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^
 
    BEGIN                              => reduce 7 tokens to loop_statement 93.0
@@ -6172,28 +6150,28 @@ State 312:
 
    Minimal_Complete_Action => loop_statement 93.0
 
-State 313:
+State 311:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 330 117.1
+   SEMICOLON                          => shift and goto state 329 117.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 117.1
 
-State 314:
+State 312:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 331
+   name                               goto state 301
+   name_opt                           goto state 330
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 315:
+State 313:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression ^
 
    RIGHT_PAREN                        => reduce 5 tokens to parameter_specification 101.0
@@ -6202,34 +6180,34 @@ State 315:
 
    Minimal_Complete_Action => parameter_specification 101.0
 
-State 316:
+State 314:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 332 90.2
+   SEMICOLON                          => shift and goto state 331 90.2
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 90.2
 
-State 317:
-    141.0:nonterminal_020 <= ELSIF expression THEN sequence_of_statements ^
+State 315:
+    140.0:nonterminal_019 <= ELSIF expression THEN sequence_of_statements ^
 
-   ELSE                               => reduce 4 tokens to nonterminal_020 141.0
-   ELSIF                              => reduce 4 tokens to nonterminal_020 141.0
-   END                                => reduce 4 tokens to nonterminal_020 141.0
+   ELSE                               => reduce 4 tokens to nonterminal_019 140.0
+   ELSIF                              => reduce 4 tokens to nonterminal_019 140.0
+   END                                => reduce 4 tokens to nonterminal_019 140.0
    default                            => ERROR
 
-   Minimal_Complete_Action => nonterminal_020 141.0
+   Minimal_Complete_Action => nonterminal_019 140.0
 
-State 318:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END ^ IF SEMICOLON
+State 316:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END ^ IF SEMICOLON
 
-   IF                                 => shift and goto state 333 90.0
+   IF                                 => shift and goto state 332 90.0
    default                            => ERROR
 
    Minimal_Complete_Action => IF 90.0
 
-State 319:
-     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list END IF SEMICOLON ^
+State 317:
+     90.1:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list END IF SEMICOLON ^
 
    BEGIN                              => reduce 8 tokens to if_statement 90.1
    CASE                               => reduce 8 tokens to if_statement 90.1
@@ -6253,20 +6231,20 @@ State 319:
 
    Minimal_Complete_Action => if_statement 90.1
 
-State 320:
+State 318:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 334
+   name                               goto state 301
+   name_opt                           goto state 333
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 321:
+State 319:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 8 tokens to package_body 98.3
@@ -6288,23 +6266,32 @@ State 321:
 
    Minimal_Complete_Action => package_body 98.3
 
-State 322:
+State 320:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
 
-   END                                => shift and goto state 335 98.0
+   END                                => shift and goto state 334 98.0
    default                            => ERROR
 
    Minimal_Complete_Action => END 98.0
 
-State 323:
+State 321:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 336 98.1
+   SEMICOLON                          => shift and goto state 335 98.1
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 98.1
 
-State 324:
+State 322:
+     78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements ^
+
+   END                                => reduce 4 tokens to exception_handler 78.0
+   WHEN                               => reduce 4 tokens to exception_handler 78.0
+   default                            => ERROR
+
+   Minimal_Complete_Action => exception_handler 78.0
+
+State 323:
      76.1:enumeration_type_definition <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^
 
    SEMICOLON                          => reduce 3 tokens to enumeration_type_definition 76.1
@@ -6312,15 +6299,15 @@ State 324:
 
    Minimal_Complete_Action => enumeration_type_definition 76.1
 
-State 325:
+State 324:
     129.0:nonterminal_008 <= COMMA ^ IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 337 129.0
+   IDENTIFIER                         => shift and goto state 336 129.0
    default                            => ERROR
 
    Minimal_Complete_Action => IDENTIFIER 129.0
 
-State 326:
+State 325:
     130.0:nonterminal_007_list <= nonterminal_008 ^
 
    RIGHT_PAREN                        => reduce 1 tokens to nonterminal_007_list 130.0
@@ -6329,19 +6316,19 @@ State 326:
 
    Minimal_Complete_Action => nonterminal_007_list 130.0
 
-State 327:
+State 326:
      76.0:enumeration_type_definition <= LEFT_PAREN IDENTIFIER nonterminal_007_list ^ RIGHT_PAREN
     130.1:nonterminal_007_list <= nonterminal_007_list ^ nonterminal_008
 
-   RIGHT_PAREN                        => shift and goto state 338 76.0
-   COMMA                              => shift and goto state 325 129.0
+   RIGHT_PAREN                        => shift and goto state 337 76.0
+   COMMA                              => shift and goto state 324 129.0
    default                            => ERROR
 
-   nonterminal_008                    goto state 339
+   nonterminal_008                    goto state 338
 
    Minimal_Complete_Action => RIGHT_PAREN 76.0
 
-State 328:
+State 327:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON ^
 
    BEGIN                              => reduce 6 tokens to object_declaration 97.0
@@ -6355,7 +6342,7 @@ State 328:
 
    Minimal_Complete_Action => object_declaration 97.0
 
-State 329:
+State 328:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^
 
    BEGIN                              => reduce 8 tokens to block_statement 64.0
@@ -6380,7 +6367,7 @@ State 329:
 
    Minimal_Complete_Action => block_statement 64.0
 
-State 330:
+State 329:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 8 tokens to subprogram_body 117.1
@@ -6402,15 +6389,15 @@ State 330:
 
    Minimal_Complete_Action => subprogram_body 117.1
 
-State 331:
+State 330:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 340 117.0
+   SEMICOLON                          => shift and goto state 339 117.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 117.0
 
-State 332:
+State 331:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON ^
 
    BEGIN                              => reduce 9 tokens to if_statement 90.2
@@ -6435,36 +6422,36 @@ State 332:
 
    Minimal_Complete_Action => if_statement 90.2
 
-State 333:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF ^ SEMICOLON
+State 332:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 341 90.0
+   SEMICOLON                          => shift and goto state 340 90.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 90.0
 
-State 334:
+State 333:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 342 98.2
+   SEMICOLON                          => shift and goto state 341 98.2
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 98.2
 
-State 335:
+State 334:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
 
    SEMICOLON                          => reduce 0 tokens to name_opt 96.1
    IDENTIFIER                         => shift and goto state 43 95.2
    default                            => ERROR
 
-   name                               goto state 303
-   name_opt                           goto state 343
+   name                               goto state 301
+   name_opt                           goto state 342
    selected_component                 goto state 29
 
    Minimal_Complete_Action => name_opt 96.1
 
-State 336:
+State 335:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 9 tokens to package_body 98.1
@@ -6486,7 +6473,7 @@ State 336:
 
    Minimal_Complete_Action => package_body 98.1
 
-State 337:
+State 336:
     129.0:nonterminal_008 <= COMMA IDENTIFIER ^
 
    RIGHT_PAREN                        => reduce 2 tokens to nonterminal_008 129.0
@@ -6495,7 +6482,7 @@ State 337:
 
    Minimal_Complete_Action => nonterminal_008 129.0
 
-State 338:
+State 337:
      76.0:enumeration_type_definition <= LEFT_PAREN IDENTIFIER nonterminal_007_list RIGHT_PAREN ^
 
    SEMICOLON                          => reduce 4 tokens to enumeration_type_definition 76.0
@@ -6503,7 +6490,7 @@ State 338:
 
    Minimal_Complete_Action => enumeration_type_definition 76.0
 
-State 339:
+State 338:
     130.1:nonterminal_007_list <= nonterminal_007_list nonterminal_008 ^
 
    RIGHT_PAREN                        => reduce 2 tokens to nonterminal_007_list 130.1
@@ -6512,7 +6499,7 @@ State 339:
 
    Minimal_Complete_Action => nonterminal_007_list 130.1
 
-State 340:
+State 339:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 9 tokens to subprogram_body 117.0
@@ -6534,8 +6521,8 @@ State 340:
 
    Minimal_Complete_Action => subprogram_body 117.0
 
-State 341:
-     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_019_list ELSE sequence_of_statements END IF SEMICOLON ^
+State 340:
+     90.0:if_statement <= IF expression THEN sequence_of_statements nonterminal_018_list ELSE sequence_of_statements END IF SEMICOLON ^
 
    BEGIN                              => reduce 10 tokens to if_statement 90.0
    CASE                               => reduce 10 tokens to if_statement 90.0
@@ -6559,7 +6546,7 @@ State 341:
 
    Minimal_Complete_Action => if_statement 90.0
 
-State 342:
+State 341:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 10 tokens to package_body 98.2
@@ -6581,15 +6568,15 @@ State 342:
 
    Minimal_Complete_Action => package_body 98.2
 
-State 343:
+State 342:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
 
-   SEMICOLON                          => shift and goto state 344 98.0
+   SEMICOLON                          => shift and goto state 343 98.0
    default                            => ERROR
 
    Minimal_Complete_Action => SEMICOLON 98.0
 
-State 344:
+State 343:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
 
    BEGIN                              => reduce 11 tokens to package_body 98.0
@@ -6611,8 +6598,8 @@ State 344:
 
    Minimal_Complete_Action => package_body 98.0
 
-States with conflicts: 64 182 262
+States with conflicts: 64 181 258
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 2 reduce/reduce conflicts
 
- 89 rules, 18 user actions, 19 checks, 345 states
+ 88 rules, 18 user actions, 19 checks, 344 states

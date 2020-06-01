@@ -195,7 +195,6 @@ package body WisiToken.Parse.LR.AUnit is
       Expected : in Parse_Error)
    is
       use WisiToken.AUnit;
-      use WisiToken.Syntax_Trees.AUnit_Public;
    begin
       Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
       Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);

@@ -2,7 +2,7 @@
 --
 --  Run one WisiToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,7 +24,7 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Strings.Unbounded;
-with Test_Partial_Parse;
+with BNF_WY_Test;
 with WisiToken;
 procedure Test_One_Harness
 is
@@ -52,7 +52,7 @@ is
    is begin
       return Ada.Strings.Unbounded.String_Access'(new String'(Item));
    end "+";
-   pragma Unreferenced ("+");
+   --  pragma Unreferenced ("+");
 begin
    Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
 
@@ -78,11 +78,11 @@ begin
       end;
    end case;
 
-   WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-   WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
+   WisiToken.Trace_Generate_Table := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+   WisiToken.Trace_Parse          := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+   WisiToken.Trace_Action         := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite")));
 
    Run (Suite, Options, Result, Status);
 

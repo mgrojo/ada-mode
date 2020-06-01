@@ -33,11 +33,10 @@ tests :: test_all_harness.diff
 
 # generated code used by test_bnf_suite.adb and others.
 # If add to this, add to wisitoken_test.gpr
+EBNF_ONLY ?= false
+ifeq ($(EBNF_ONLY),false)
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
-gen :: ada_lite_ebnf_re2c.c
 gen :: ada_lite_re2c.c
 gen :: body_instantiation_conflict_re2c.c
 gen :: case_expression_re2c.c
@@ -52,18 +51,24 @@ gen :: empty_production_5_re2c.c
 gen :: empty_production_6_re2c.c
 gen :: empty_production_7_re2c.c
 gen :: empty_production_8_re2c.c
+gen :: range_conflict_re2c.c
+gen :: skip_to_grammar_re2c.c
+gen :: warth_left_recurse_expr_1_re2c.c
+endif
+
+gen :: ada_lite_ebnf_re2c.c
+gen :: identifier_list_name_conflict_re2c.c
+# gen :: java_ebnf_re2c.c not a valid grammar
 gen :: java_enum_ch19_re2c.c
 gen :: java_expressions_antlr_re2c.c
 gen :: java_expressions_ch19_re2c.c
 gen :: java_types_ch19_re2c.c
-gen :: identifier_list_name_conflict_re2c.c
 gen :: lalr_generator_bug_01_re2c.c
 gen :: nested_ebnf_optional_re2c.c
-gen :: range_conflict_re2c.c
-gen :: skip_to_grammar_re2c.c
 gen :: subprograms_re2c.c
 gen :: three_action_conflict_re2c.c
-gen :: warth_left_recurse_expr_1_re2c.c
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables
 

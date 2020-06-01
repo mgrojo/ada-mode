@@ -2,7 +2,7 @@
 --
 --  Public AUnit checks for parent
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,16 +18,7 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
-with SAL.AUnit;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.Syntax_Trees.AUnit_Public is
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
-
-   package Valid_Node_Index_Arrays_AUnit is new Valid_Node_Index_Arrays.Gen_AUnit
-     (Check_Index   => SAL.AUnit.Check,
-      Check_Element => Check);
 
    procedure Check
      (Label    : in String;

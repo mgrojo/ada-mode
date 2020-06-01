@@ -18,24 +18,24 @@ t_one :: test_one_harness.run
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
+t_bnf :: ENBF_ONLY ?= false
 t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
 
 t_mck :: wisitoken-bnf-generate.exe
+#t_mck :: GENERATE_ARGS := -v 0 0 4
 t_mck :: ada_lite_re2c.c
 t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
 one-clean :
-	rm -rf debug*
+	touch ../test/bnf/empty_production_2.wy
 
 #one :: one-clean
-one :: wisitoken-bnf-generate.exe
-one :: java_expressions_ch19_re2c.c
-one :: RUN_ARGS := -v 1 -m 3 -t 1 ../Test/bnf/java_expressions_ch19.input > debug.log
-one :: java_expressions_ch19_lr1_run.run
+one :: wisitoken-to_tree_sitter.exe
+	./wisitoken-to_tree_sitter.exe ../test/bnf/three_action_conflict.wy debug
 
 two :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb ada_lite_lalr_run.exe
 	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite

@@ -23,7 +23,7 @@ package Warth_Left_Recurse_Expr_1_Runtime is
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       Lexer     : WisiToken.Lexer.Handle;
-      Terminals : WisiToken.Base_Token_Array_Access;
+      Terminals : WisiToken.Base_Token_Array_Access_Constant;
       Stack     : Integer_Stacks.Stack;
    end record;
 
@@ -31,7 +31,7 @@ package Warth_Left_Recurse_Expr_1_Runtime is
    procedure Set_Lexer_Terminals
      (User_Data : in out User_Data_Type;
       Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     WisiToken.Base_Token_Array_Access);
+      Terminals : in     WisiToken.Base_Token_Array_Access_Constant);
 
    overriding procedure Reset (Data : in out User_Data_Type);
 

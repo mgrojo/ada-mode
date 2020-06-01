@@ -222,10 +222,14 @@ rhs_item
 
 rhs_group_item
   : LEFT_PAREN rhs_alternative_list RIGHT_PAREN
+  ;; rhs_alternative_list is _not_ marked as an EBNF node; translating
+  ;; rhs_group_item handles it.
   ;
 
 rhs_optional_item
   : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
+  ;; rhs_alternative_list is _not_ marked as an EBNF node; translating
+  ;; rhs_optional_item handles it.
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
   | IDENTIFIER QUESTION
   | STRING_LITERAL_2 QUESTION
