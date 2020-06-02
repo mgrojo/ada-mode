@@ -25,11 +25,12 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
-with WisiToken.Generate;
 with WisiToken.BNF;
+with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
@@ -152,14 +153,14 @@ package body BNF_WY_Test is
                  (Wisitoken_Grammar_Actions.Descriptor,
                   Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
             end if;
-            WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
+            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
             if WisiToken.Trace_Generate_EBNF > WisiToken.Outline then
                Ada.Text_IO.New_Line;
                Tree.Print_Tree
                  (Wisitoken_Grammar_Actions.Descriptor,
                   Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
             end if;
-            WisiToken_Grammar_Runtime.Print_Source (BNF_Name, Tree, Input_Data);
+            WisiToken_Grammar_Editing.Print_Source (BNF_Name, Tree, Input_Data);
             Dos2unix (BNF_Name);
          end;
       end case;

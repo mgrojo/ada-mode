@@ -23,9 +23,7 @@ update-wisitoken_grammar
  current work
 recognize more canonical lists
     ada_lite_ebnf.wy
-    simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
-        recognize term_list
-            _not_ just add parens
+        enumeration_type_definition lost separator = comma
 
     java_types_ch19.wy Dims
 

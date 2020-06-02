@@ -40,6 +40,7 @@ with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
@@ -346,7 +347,7 @@ begin
                         Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
                   end if;
 
-                  WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
+                  WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
 
                   if Trace_Generate_EBNF > Detail then
                      Ada.Text_IO.New_Line;
@@ -357,7 +358,7 @@ begin
                   end if;
 
                   if Output_BNF then
-                     WisiToken_Grammar_Runtime.Print_Source (-BNF_File_Name, Tree, Input_Data);
+                     WisiToken_Grammar_Editing.Print_Source (-BNF_File_Name, Tree, Input_Data);
                   end if;
 
                   if WisiToken.Generate.Error then

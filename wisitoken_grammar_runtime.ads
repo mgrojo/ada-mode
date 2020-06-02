@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Runtime utils for wisi_grammar.wy actions.
+--  Runtime utils for wisitoken_grammar.wy actions.
 --
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
@@ -133,34 +133,27 @@ package WisiToken_Grammar_Runtime is
       Tokens    : in     WisiToken.Valid_Node_Index_Array;
       Token     : in     WisiToken.Positive_Index_Type);
 
+   ----------
+   --  Visible for WisiToken_Grammar_Editing
+
+   function Get_Line
+     (Data : in User_Data_Type;
+      Tree : in WisiToken.Syntax_Trees.Tree;
+      Node : in WisiToken.Valid_Node_Index)
+     return WisiToken.Line_Number_Type;
+
+   function Get_Text
+     (Data         : in User_Data_Type;
+      Tree         : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index   : in WisiToken.Valid_Node_Index;
+      Strip_Quotes : in Boolean := False)
+     return String;
+
    procedure Raise_Programmer_Error
      (Label : in String;
       Data  : in User_Data_Type;
       Tree  : in WisiToken.Syntax_Trees.Tree;
       Node  : in WisiToken.Node_Index);
    pragma No_Return (Raise_Programmer_Error);
-
-   function Find_Declaration
-     (Data : in     User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree;
-      Name : in     String)
-     return WisiToken.Node_Index;
-   --  Return the node that declares Name, Invalid_Node_Index if none.
-   --  The node is either a declaration or a nonterminal.
-
-   procedure Translate_EBNF_To_BNF
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Data : in out User_Data_Type);
-   --  Process EBNF nonterms, adding new nonterms as needed, resulting in
-   --  a BNF tree.
-   --
-   --  Generator.LR.*_Generate requires a BNF grammar.
-
-   procedure Print_Source
-     (File_Name : in String;
-      Tree      : in WisiToken.Syntax_Trees.Tree;
-      Data      : in User_Data_Type);
-   --  Print the wisitoken grammar source represented by Tree, Terminals
-   --  to a new file File_Name.
 
 end WisiToken_Grammar_Runtime;
