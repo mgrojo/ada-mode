@@ -545,6 +545,13 @@ The actions are written in output-language code; for @code{Ada_Emacs}
 output, this is elisp (a hold-over from when WisiToken only output
 elisp code).
 
+If using BNF:
+@verbatim
+rhs_item : token ;
+@end verbatim
+Where @code{token} is defined by a token declaration.
+
+if using EBNF:
 @verbatim
 rhs_item
   : token
@@ -554,7 +561,7 @@ rhs_item
   | '(' rhs {| rhs} ')'
   ;
 @end verbatim
-The first option is a token, either defined by a token
+Here @code{token} is either defined by a token
 declaration, or the token value contained in single quotes.
 
 The second option is an attribute, as defined by ANTLR; these are
@@ -582,8 +589,8 @@ rhs_multiple_item
   | token '*'
   ;
 @end verbatim
-'{}', '()*', and 'token*' mean the content is present zero or more
-times. '{}-', '()+', and 'token+' mean the content is present one or
+''@{@}'', ''()*'', and ''token*'' mean the content is present zero or more
+times. ''@{@}-'', ''()+'', and ''token+'' mean the content is present one or
 more times.
 
 @node Conditional code

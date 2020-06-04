@@ -317,7 +317,7 @@ package WisiToken is
    --  Index matches Valid_Node_Index_Array.
 
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser. The parser only needs ID and Tree_Node;
+      --  Base_Token is used in the core parser. The parser only needs ID and Tree_Index;
       --  semantic checks need Byte_Region to compare names. Line, Col, and
       --  Char_Region are included for error messages.
 
