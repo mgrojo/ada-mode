@@ -4,7 +4,7 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.w.s-1/o.s_l.sal): work;
+o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
@@ -43,8 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-test/ada_mode-fatal_error_1.adb
-
 ada-format-param-list take option to convert from single line to multi-line
     and vice-versa?
     requires passing that option to Ada reformat code; changes elisp-ada API
@@ -54,6 +52,13 @@ gpr-query: mode line Symbols > 100%
 eldoc
     use gpr_query to provide info
     see eglot
+
+ada_annex_p.wy
+    reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
+        simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
+            recognize term_list
+            _not_ just add parens
+
 
 compare ada LR1 generate time
     o.e.a:
@@ -70,10 +75,6 @@ compare ada LR1 generate time
             0 accept/reduce conflicts, 97411 shift/reduce conflicts, 422574 reduce/reduce conflicts
             396 rules, 0 user actions, 0 checks, 299492 states
             make wisi-bnf-gen faster: o.w.s-1
-            reduce conflicts; o.e.a, use LALR
-simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
-    recognize term_list
-        _not_ just add parens
 
     7.0.1
         LALR re2c generate time: 0.689046474
@@ -88,13 +89,6 @@ simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
         LR1 re2c generate time: 61.987758850
 
 indent bugs
-      declare
-         Pos : Integer := GNAT.Regexp.Match (Start_Stop, Line);
-      begin
-         if Pos = Line'First - 1 then
-      --  no match
-      null;
-
     State.Kernel (I) :=
       (Production        => Item.Prod,
        Recursion         =>
@@ -133,31 +127,10 @@ ada-mode language_fix 'extra begin'
 LEFT_SQUARE_BRACKET is equiv to LEFT_PAREN at least for aggregates
     update all refs to paren in wisi.adb? wisi-ada.adb? -mckenzie_recover-ada.adb?
 
-use undo-list to update positions in parser response
-    post to emacs-devel
-
-lsp-mode has mechanism to download and install servers
-    adapt that for compiled wisi exes?
-
 when move to new gnat, need to fix compilation errors
     assume wisitoken is broken
     need different compile-env for compiler, xref
     improve wisi-prj
-
-could elminate wisi.parse_data_type.terminals
-    always search syntax tree
-        provide iterator that returns all_terminals
-
-    search is less efficient
-    more portable to other parsers
-
-    replace line_begin_pos, line_paren_state by line_begin_token?
-        fetch aug to get data
-
-    delete package Augmented_Token_Arrays?
-
-lsp-mode has mechanism to download and install servers
-    adapt that for compiled wisi exes?
 
 fix "string not terminated by end of line" bug
     use parser to fontify strings
@@ -165,25 +138,10 @@ fix "string not terminated by end of line" bug
     same for unterminated placeholder; use parser to fontify comments
         ada_mode-placeholders.adb
 
-try adding elisp access to BEG_UNCHANGED, END_UNCHANGED
-    allows moving wisi-after-change actions into wisi--post-change?
-
-recover hits enqueue_limit
-    parse 1 "wisitoken-generate-lr.adb" 43571 44808 44077 43571 1085 1116
-    can't reproduce with smaller file
-    copied full file to test/debug.adb
-    no error on full file parse
-
-
 move EXE_EXT, GNAT_EXE, INSTALL_BIN into makefile.conf
 
 fix blinking fringe mark when type "--"
     delay the display of the fringe mark (using a timer), without delaying font-lock itself
-
-wisitoken user guide
-    c:/Projects/org.wisitoken/Docs/wisitoken-user_guide.texinfo
-    add EBNF
-    mention in wisi.html; add section on changing ada grammar
 
 paper_2019.latex
     ada-mode use of wisitoken parser
@@ -208,22 +166,6 @@ paper_2019.latex
         recover_deleted_procedure_1: libadalang deletes lots of code
         recover_end_1: libadalang deletes 'procedure'
         recover_string_quote_1, 2, 3: libadalang does better
-
-error recover bug:
-        lalr c:/Projects/org.emacs.ada-mode/build/wisitoken-tokens/ada_mode-recover_02.adb.tokens has 'end; end;'
-            dump with verbosity > 0:
-ada_mode-recover_02.adb:38:0: syntax error:
-    recovered: ((INSERT, RIGHT_PAREN, 75), (INSERT, SEMICOLON, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75))
-ada_mode-recover_02.adb:40:0: syntax error:
-   recovered: ((PUSH_BACK, declaration, 75), (INSERT, END, 75), (INSERT, SEMICOLON, 75)) ;; say what?
-ada_mode-recover_02.adb:45:0: syntax error:
-   recovered: ((INSERT, IDENTIFIER, 102), (INSERT, COLON, 102), (INSERT, BEGIN, 102))
-ada_mode-recover_02.adb:55:0: syntax error:
-   recovered: ((INSERT, PACKAGE, 128), (INSERT, BODY, 128), (INSERT, IDENTIFIER, 128), (INSERT, IS, 128))
-        => bug in explore
-
-eliminate dependence on manual gnatcoll install to simplify wisi use for other languages.
-    copy the code into wisi, if all else fails
 
 Do spark on mckenzie-base
 
@@ -279,39 +221,18 @@ bugs/suboptimal:
 
         missing 'end' inserted _after_ 'end check_rhs_order'; should be before
 
-delete Local Variables: wisi-mckenzie-task-count: 1 in tests/*.ad? ; set in run-indent-test?
-
-doc symptom of -dominating in dependent project
-    gprbuild command line has no -P<gpr file>
-
 ada-build.el
-    error if run gprbuild with no gpr_file?
-        but want to support simple Ada projects
-
     add spark commands: prove { project | file | function/procedure | assertion at point}
 
-process_overridden should return method def for all ancestor types, not just parent
+gpr_query.adb process_overridden should return method def for all ancestor types, not just parent
 
 figure out how gnatfind finds ada_mode-separate_procedure body
     report bug: -f not respected (test/ada_mode.ads)
     improve gpr_query to find separate body
 
-rename "semantic checks" to "in-parse actions", others to "post-parse actions".
-
 move dvc-kill-all-review/workspace to wisi?
     add delete projects in the workspace?
     delete project call wisi-kill-xref, wisi-kill-parser
-
-xref-find-definitions
-    add <>() to completion-pcm-word-delimiters?
-        (setq completion-pcm-word-delimiters "-_./:| <>()") doesn't work
-        see uniquify-files
-        should be property of completion-table
-
-    wisi.adb Put
-        C-u M-.
-        shows all in file, but with wrong type; wisi.ada.parse_data_type
-            ie missing wisi.parse_data_type on same line
 
 gpr_query does not see libraries?
     need clear example; libadalang mains vs langkit?
@@ -350,53 +271,43 @@ libadalang/lsp backend
         ebooks/Parsing/Wager, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
         new error correction metric; minimize tree change span
 
-    ada-process.el missing TICK_2 on debian o.e.a.s-5
-        because generated by External
-        should be ada-process-external.el!
+ada-process.el missing TICK_2 on debian o.e.a.s-5
+    because generated by External
+    should be ada-process-external.el!
 
-    AdaCore tickets:
-        Q406-078 2017-Aug : AdaCore (Nicolas Setton, Arnaud Charlet)
-            mentions not fixing old GPS engine in favor of libadalang;
-            wait for libadalang to introduce new config flags. Phippe
-            Waroquiers wants GPS & Emacs indentation to be the same,
-            and match Eurocontrol style.
+AdaCore tickets:
+    Q406-078 2017-Aug : AdaCore (Nicolas Setton, Arnaud Charlet)
+        mentions not fixing old GPS engine in favor of libadalang;
+        wait for libadalang to introduce new config flags. Phippe
+        Waroquiers wants GPS & Emacs indentation to be the same,
+        and match Eurocontrol style.
 
-        R801-052 2018-Aug : Stephe mentions transforming libadalang
-            tree to wisitoken tree, using wisitoken indent code.
-            AdaCore says GPS not using libadalang for indentation yet.
+    R801-052 2018-Aug : Stephe mentions transforming libadalang
+        tree to wisitoken tree, using wisitoken indent code.
+        AdaCore says GPS not using libadalang for indentation yet.
 
-        R821-023 2018-Aug .. 2018-Dec : gnatpp using libadalang, but it is not ready for indent.
+    R821-023 2018-Aug .. 2018-Dec : gnatpp using libadalang, but it is not ready for indent.
 
-        SA31-041 2019-Oct
+    SA31-041 2019-Oct
 
-    time on huge eurocontrol files c:/eurocontrol
-        if need more than one source file, use current buffer or disk file?
-        keep one context active, for the current project?
-            see playground.adb in libadalang source
+time on huge eurocontrol files c:/eurocontrol
+    if need more than one source file, use current buffer or disk file?
+    keep one context active, for the current project?
+        see playground.adb in libadalang source
 
-    pp-command_lines.ads Name_Casing Name_Case_As_Declared - requires name resolution
-        too slow?
+pp-command_lines.ads Name_Casing Name_Case_As_Declared - requires name resolution
+    too slow?
 
-    compute reverse parse lr table, use that to extend parse backwards to find reasonable start point
+compute reverse parse lr table, use that to extend parse backwards to find reasonable start point
 
 improve test/ada_mode-recover_32.adb
     recover gets CONSTRAINT_ERROR, config ops full
 
-if there was a corrected error on a line, that is now gone, the indent
-should be recomputed, even if no prior text edited.
-
-java-ch19.wy TryStatement has optional statement-end
-    need override on previous tokens
-
 speed up lalr compile
     decrease subprog size?
 
-why is wisi-hanging specified in each use of expression instead of on expression itself?
-    change it and see what breaks
-    ada-indent-hanging-rel-exp not used consistently?
-    either way, improve example in wisi.texi
-
 replace ada.wy with ada_annex_p.wy
+    too many conflicts
     ada.wy:774: ;; FIXME: | digits_constraint
     ada.wy:775: ;; FIXME: | delta_constraint
     ada.wy:1015:;; FIXME: leaving out [renaming] [aspect_specification]
@@ -407,11 +318,6 @@ Adjust-indent loop on each token, handle 'end <keyword>'
 
 Eurocontrol/debbugs bugs
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
-    1913 non-ascii in regexp (2009!?)
-        ada-syntax-propertize assumes ASCII in character literals; wrong (ARM 3.5.2 Wide_Character, Wide_Wide_Character)
-        ada-parent-name-regexp is wrong; only used in ada-set-ff-special-constructs
-        ada-identifier-at-point is wrong; used in xref/navigation
-
     33744 indentation of subexpressions
         https://debbugs.gnu.org/cgi/bugreport.cgi?bug=33744
         need to identify subexpressions
@@ -426,120 +332,6 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
                 null;
               end if;
             end Operator_Indentation;
-
-c:/eurocontrol/query_display-flight_operations.adb
-    errors cause huge slowdown in parse speed
-        due to parallel parse, delete_dup?
-        try bounded stack for main parse
-        run under valgrind
-
-    only errors are missing end labels
-        lr1 parse face time:
-        with all fixed,      0.175579163
-        with errors present, 8.395040656
-
-        1  8.282763405
-        2  8.146287525
-        3  8.083595595
-        4  2.576497063
-        5  1.448250382
-        6  1.461459692
-        7  1.437491198
-        8  1.420267629
-        9  0.160563880
-
-        second ediff-buffers reliably hangs!
-            external process communications bug
-            update master, try -Q
-            emacs 26 ok
-
-    run with profile => recover takes 0% of time (sigh)
-
-    add put (clock) at various places
-    after recover at 15304:(PROCEDURE, (122273 . 122281)) Display_Profile line 2784
-    takes 6.5 seconds to get to 20650:(END, (170186 . 170188)) Query_Display.Flight_Operations; line 3625
-
-1. 2091:(BEGIN, (18446 . 18450))
-   (subprogram_body, (18252 . 18440))
-   1 parser, succeed 2, enqueue 2, check  2, cost:  0
-   non-ignore solution is wrong, terminated immediately
-
-2. 4143:(BEGIN, (33687 . 33691))
-   (subprogram_specification, (33286 . 33350))
-   1 parser, succeed 2, enqueue 2, check  2, cost:  0
-   extra terminated 4245:(USE, (34365 . 34367))
-
-3. 5177:(FUNCTION, (40478 . 40485))
-   (subprogram_specification, (39991 . 40026))
-   1 parser, succeed 1, enqueue 4, check  2, cost:  0
-   nested inside 4
-
-4. 5255:(BEGIN, (40951 . 40955)) Resume_Token_Goal 5259
-   (subprogram_specification, (40699 . 40726))
-   209: succeed 2, enqueue 2, check  2, cost:  0
-   extra terminated 5275:(BEGIN, (41044 . 41048))
-
-5. 5364:(BEGIN, (41705 . 41709)) Resume_Token_Goal 5368
-   (subprogram_specification, (41435 . 41488))
-   215: succeed 2, enqueue 2, check  2, cost:  0
-   extra terminated 5802:(IDENTIFIER, (45635 . 45643))
-
-6. 7439:(IDENTIFIER, (59232 . 59243)) Resume_Token_Goal 7443
-   (subprogram_specification, (59021 . 59051))
-   281: succeed 1, enqueue 4, check  2, cost:  0
-   7442:(IDENTIFIER, (59256 . 59259))
-
-7. 10700:(BEGIN, (82600 . 82604)) Resume_Token_Goal 10704
-   (subprogram_specification, (82299 . 82324))
-   340: succeed 2, enqueue 2, check  2, cost:  0
-   encounters next error before terminate extra
-
-8a. 627: 15304:(PROCEDURE, (122273 . 122281)) Resume_Token_Goal 15308
-    (subprogram_specification, (40699 . 40726))
-    627: succeed 1, enqueue 4, check  2, cost:  0
-    no terminate needed
-
-8b. 626: 15304:(PROCEDURE, (122273 . 122281)) Resume_Token_Goal 15308
-    (subprogram_specification, (82299 . 82324))
-    626: succeed 1, enqueue 4, check  2, cost:  0
-    no terminate needed
-
-9a. 957: 20650:(END, (170186 . 170188))
-Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20650:(END, (170186 . 170188))
-    957: succeed 1, enqueue 40, check  17, cost:  1
-    error due to some previous bad recovery
-
-9b. 956: 20650:(END, (170186 . 170188)) Resume_Token_Goal 20654
-Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20650:(END, (170186 . 170188))
-    956: succeed 1, enqueue 18, check  7, cost:  1
-    error due to some previous bad recovery
-
-10a. 957: 20655:(Wisi_EOI, (170222 . 170221)) Resume_Token_Goal 20659
-Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20655:(Wisi_EOI, (170222 . 170221))
-     error due to some previous bad recovery
-     957: succeed 1, enqueue 215, check  49, cost:  2
-
-10b. 956: 20655:(Wisi_EOI, (170222 . 170221)) Resume_Token_Goal 20659
-Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20655:(Wisi_EOI, (170222 . 170221))
-     error due to some previous bad recovery
-     956: succeed 1, enqueue 126, check  23, cost:  1
-
-optimize Grow of SAL.Gen_Unbounded_Definite_Vectors?
-    run-time parameter and/or generic parameter giving initial size
-    output max size, accumulate in Emacs session
-
-    go thru all uses
-        wisitoken.syntax_tree.s.node_arrays
-
-    similar for parse_stack?
-
-enforce unix line endings
-    run dos2unix in a mtn pre-commit hook?
-
-time lex with no lex debug
-
-move gnatcoll install instructions to wisi elpa package, for reference
-    from wisitoken-grammar-mode.
 
 do module interface
     see if it's faster
@@ -621,6 +413,14 @@ wisi-generate
         LALR re2c generate time: 0.480273867
         LR1 re2c generate time: 31.820868201
 
+    30 Jan 2020 ada-mode 7.0.1
+        LALR re2c generate time: 0.689046474
+        LR1 re2c generate time: 37.564196185
+
+    14 May 2020 ada-mode 7.1.1
+        LALR re2c generate time: 0.520925872
+        LR1 re2c generate time: 62.148224014
+
 mckenzie recover
     ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0
 
@@ -673,6 +473,12 @@ mckenzie recover
     spark bounded_stack, suppress (all_checks)
         0.475089053, 0.471345331, 0.470334167 yes!
 
+    14 Jun 2020 ada-mode 7.1.3
+    ;;  1: fail; total enqueue limit ( 120000 cost 9)
+    ;;  1: fail, enqueue 57219, check  5433, max shared_token  64
+    ;;  0: succeed 2, enqueue 62819, check  6409, cost:  7
+        0.315512031
+
 navigate, face, indent
     make -r benchmark
         uses gnatcoll-xref.adb
@@ -706,12 +512,17 @@ navigate, face, indent
         face     1.490733 seconds 8 gcs 2151 responses 0.215659 wait
         indent   1.382439 seconds 3 gcs 7252 responses 0.241366 wait
 
+    4 Jun 2020 ada-mode 7.1.3
+        navigate 1.292225 seconds 5 gcs 6249 responses 0.254697 wait
+        face     1.401879 seconds 7 gcs 2151 responses 0.215092 wait
+        indent   1.286356 seconds 2 gcs 7252 responses 0.223322 wait
+
  wisi work
 
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
     on post-self-insert-hook
-        use that for ada-mode capitalization
+        use that for ada-mode capitalization?
 
 ada-goto-declaration-start
     fails on task declaration
@@ -746,57 +557,7 @@ ada-goto-declaration-start
 add "show all overloads" in navigate
     leave out file, line, col from gpr-query id
 
-completion
-    (info "(elisp)Completion")
-    http://emacswiki.org/emacs/CategoryCompletion
-    autocomplete package
-
-    examples:
-        Ada.Text_IO.<tab> => Put, Put_line, Get, etc
-            needs new query; all symbols that match prefix
-            better as an ASIS query?
-
-        what does GPS do?
-            works on non-compiled, bad syntax code
-            type 'with '; puts up a list of all packages in the project.
-            type 'with Ada.'; list of all children of Ada
-                requires scroll, <ret> to select
-                while scrolling, puts up help text next to list
-
-            type 'Put', puts up a list of all simple names in project matching that prefix
-            type 'Put (', puts up a list of all params of all Puts (_not_ filtered by current context clause)
-
-            does _not_ handle 'foo_io.put', where 'foo_io' is an instance of A.Tio.float_io.
-                maybe it would if foo_io is:
-                    a library package instantiation
-                    a local instantiation, but was previously compiled
-
-            find the GPS source code
-
-    match GPS behavior
-        get completion candidates from gpr_query
-        all names in scope at point
-
-    built-in pcomplete
-        completion-at-point-functions
-
-    http://elpa.gnu.org/packages/company.html
-        including C++ parameters, class members
-
-    MELPA package auto-complete
-    https://github.com/auto-complete/auto-complete
-    https://github.com/capitaomorte/yasnippet
-
-c:/Archive/Emacs/slime-2.10.1.tar.gz
-
-move stuff out of ada-mode-keys.el
-    ada-make-package-spec
-        skel default to (ada-name-from-file-name (buffer-file-name))?
-
-different casing for identifiers (uppercase) and attributes (mixed)
-
 refactoring
-
     rename entity:
         use xref to rename all uses (with/without confirm)
 
@@ -813,9 +574,6 @@ refactoring
         highlight lines of source
         prompt for name
         it guesses parameter_result_profile
-
-support for "Adadoc"?
-    formatted comments that mention parameters; check that they are all mentioned, spelled correctly
 
  debug hints, relevant files
 https://debbugs.gnu.org/Developer.html
@@ -971,6 +729,8 @@ in ~/.gitconfig:
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
+update benchmarks above
+
 (dvc-status ".")
 
 # uninstall elpa packages before change version
@@ -1027,13 +787,13 @@ compare:
         install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-3.0.1" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.1" "/Projects/elpa/packages/wisi" nil)
         NEWS-wisi.text
             copyright date
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.0.1" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.1.2" "/Projects/elpa/packages/ada-mode" nil)
         NEWS-ada-mode.text
             add release date
             add new features

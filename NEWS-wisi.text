@@ -6,7 +6,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi ?
+* wisi 3.1.2
+4 Jun 2020
 
 ** New dispatching function wisi-xref-completion-delim-regex for
    setting completion delimiters; example use in gpr-query.el.

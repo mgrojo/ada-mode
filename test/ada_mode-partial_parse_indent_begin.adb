@@ -2,7 +2,7 @@
 
 --EMACSCMD:(progn (end-of-line 4)(delete-char 1)(wisi-indent-newline-indent)(current-column))
 --EMACSRESULT: 3
-procedure Ada_Mode.Partial_Parse.Indent_Begin
+procedure Ada_Mode.Partial_Parse_Indent_Begin
 is
 
    --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
@@ -11,8 +11,8 @@ is
 
    procedure Foo
    is
-   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-   --EMACSRESULT: 6
+      --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
+      --EMACSRESULT: 6
    begin
 
       --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
@@ -30,7 +30,7 @@ begin
    Foo;
 
 
-end Ada_Mode.Partial_Parse.Indent_Begin;
+end Ada_Mode.Partial_Parse_Indent_Begin;
 -- Local Variables:
 -- wisi-partial-parse-threshold: 0
 -- End:

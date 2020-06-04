@@ -52,7 +52,7 @@ package Ada_Mode.Parens is
    --  GNAT GPL 2014 accepts this without parens around the enitre
    --  expression, but that's a compiler bug.
    function Expression_Function_1 (V : Integer) return Boolean
-     is ((V = V and then True)
-           or else True);
+   is ((V = V and then True)
+         or else True);
 
 end Ada_Mode.Parens;

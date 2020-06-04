@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 7.1.1
-;; package-requires: ((uniquify-files "1.0.1") (wisi "3.1.0") (emacs "25.0"))
+;; Version: 7.1.3
+;; package-requires: ((uniquify-files "1.0.1") (wisi "3.1.2") (emacs "25.0"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "7.1.1"))
+  (let ((version-string "7.1.3"))
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -547,6 +547,7 @@ See `ff-other-file-alist'.")
     subtype_declaration
     task_body
     task_type_declaration
+    use_clause
     )
   "wisi-cache nonterminal symbols that are Ada declarations.")
 

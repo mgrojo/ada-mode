@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 3.1.0
+;; Version: 3.1.2
 ;; package-requires: ((emacs "25.0") (seq "2.20"))
 ;; URL: http://stephe-leake.org/ada/wisitoken.html
 ;;
@@ -468,13 +468,15 @@ Used to ignore whitespace changes in before/after change hooks.")
     ;; don't have to do it again in wisi-after-change.
     (setq wisi--change-beg (min wisi--change-beg begin))
 
+    ;; `buffer-base-buffer' deals with edits in indirect buffers
+    ;; created by ediff-regions-*
+
     (cond
      ((null wisi--change-end)
-      (setq wisi--change-end (copy-marker end)))
+      (setq wisi--change-end (make-marker))
+      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
 
      ((> end wisi--change-end)
-      ;; `buffer-base-buffer' deals with edits in indirect buffers
-      ;; created by ediff-regions-*
       (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
      )
 

@@ -6,7 +6,7 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* Ada Mode ?
+* Ada Mode 7.1.3
 
 ** Indentation of 'is' in expression functions is restored to 7.0.1
    behavior.

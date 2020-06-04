@@ -9,7 +9,6 @@ gpr_file=ada_mode_wisi_parse.gpr
 casing=libadalang.casing
 casing=$WISITOKEN/build/emacs_case_exceptions
 casing=$SAL/build/sal.casing
-casing=../../org.stephe_leake.aunit_ext/build/aunit.casing
 
 -- for *.wy
 src_dir=../

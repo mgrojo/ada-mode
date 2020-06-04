@@ -25,7 +25,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title Ada Mode Version 7.1.0
+@title Ada Mode Version 7.1.3
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -37,7 +37,7 @@ developing GNU and promoting software freedom.''
 @node Top, Overview, (dir), (dir)
 @top Top
 
-Ada Mode Version 7.1.0
+Ada Mode Version 7.1.3
 @end ifnottex
 
 @menu
@@ -228,7 +228,7 @@ on the @code{PATH}. If you are running Windows, use mingw64
 @code{bash} to run these commands.
 
 On linux, some versions of the @code{GNATCOLL.iconv} package (used by
-@code{gpr_query}, but not the parser) explicity
+@code{gpr_query}, but not the parser) explicitly
 require the @file{libiconv.so} library. GNAT provides the
 @file{libiconv.so} library in @file{<gnat>/lib64/libiconv.so}. On
 Debian, that directory is not in the standard load path, and iconv is

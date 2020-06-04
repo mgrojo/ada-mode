@@ -1,4 +1,4 @@
-;; ada-xref.el --- Dummy file to hide obsolete bundled version  -*- lexical-binding:t -*-
+;;; ada-xref.el --- Dummy file to hide obsolete bundled version  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2020  Free Software Foundation, Inc.
 ;; see xref-ada.el for Emacs 25 xref minor mode for ada-mode

@@ -1,6 +1,10 @@
+(package-initialize)
+
+(require 'ada-mode)
+
 (set-default 'wisi-size-threshold most-positive-fixnum); before open buffer
 (setq ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe")
-(find-file "c:/tmp/gnatcoll-xref.adb")
+(find-file "c:/eurocontrol/gnatcoll-xref.adb")
 (wisi-parse-buffer 'indent) ; time with warm caches.
 (message "navigate")
 (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 4 t); t for process stats

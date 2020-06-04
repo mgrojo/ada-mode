@@ -18,9 +18,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 7.1.2
+export ADA_MODE_VERSION       := 7.1.3
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 3.1.1
+export WISI_VERSION           := 3.1.2
 export UNIQUIFY_FILES_VERSION := 1.0.2
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
@@ -444,7 +444,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	gprbuild -p ../ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c # ../ada_annex_p_re2c.c force
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
