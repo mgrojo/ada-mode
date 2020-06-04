@@ -1,6 +1,6 @@
 # gnu make file for SAL
 
-ZIP_VERSION := 3.4
+ZIP_VERSION := 3.5
 
 all : prove_all test_all_harness.diff
 
