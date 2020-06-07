@@ -36,7 +36,9 @@ package WisiToken.Generate.LR1_Items is
 
    use all type Interfaces.Integer_16;
 
-   subtype Lookahead is Token_ID_Set;
+   subtype Lookahead_Index_Type is Token_ID range 0 .. 127;
+   type Lookahead is array (Lookahead_Index_Type) of Boolean with Pack;
+   for Lookahead'Size use 128;
    --  Picking a type for Lookahead is not straight-forward. The
    --  operations required are (called numbers are for LR1 generate
    --  ada_lite):
@@ -74,16 +76,15 @@ package WisiToken.Generate.LR1_Items is
    --
    --  We've tried:
    --
-   --  (1) Token_ID_Set (unconstrained array of boolean, allocated directly) - fastest
+   --  (1) Token_ID_Set (unconstrained array of boolean, allocated directly) - slower than (4)
    --
-   --     Allocates more memory than (2), but everything else is fast,
-   --     and it's not enough memory to matter.
+   --      Allocates more memory than (2), but everything else is fast,
+   --      and it's not enough memory to matter.
    --
-   --     Loop over lookaheads is awkward:
-   --     for tok_id in lookaheads'range loop
+   --      Loop over lookaheads is awkward:
+   --      for tok_id in lookaheads'range loop
    --        if lookaheads (tok_id) then
    --           ...
-   --     But apparently it's fast enough.
    --
    --  (2) Instantiation of SAL.Gen_Unbounded_Definite_Vectors (token_id_arrays) - slower than (1).
    --
@@ -92,23 +93,21 @@ package WisiToken.Generate.LR1_Items is
    --      does sort and insert internally. Insert is inherently slow.
    --
    --  (3) Instantiation of SAL.Gen_Definite_Doubly_Linked_Lists_Sorted - slower than (2)
+   --
+   --  (4) Fixed length constrained array of Boolean, packed to 128 bits - fastest
+   --      Big enough for Ada, Java, Python. Fastest because in large
+   --      grammars the time is dominated by Include, and GNAT optimizes it
+   --      to use register compare of 64 bits at a time.
+
+   Null_Lookahead : constant Lookahead := (others => False);
 
    type Item is record
       Prod       : Production_ID;
       Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index; -- token after item Dot
-      Lookaheads : Token_ID_Set_Access := null;
-      --  Programmer must remember to copy Item.Lookaheads.all, not
-      --  Item.Lookaheads. Wrapping this in Ada.Finalization.Controlled
-      --  would just slow it down.
-      --
-      --  We don't free Lookaheads; we assume the user is running
-      --  wisi-generate, and not keeping LR1_Items around.
+      Lookaheads : Lookahead := (others => False);
    end record;
 
-   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Lookahead;
-
-   function Contains (Item : in Lookahead; ID : in Token_ID) return Boolean
-     is (Item (ID));
+   function To_Lookahead (Item : in Token_ID) return Lookahead;
 
    function Lookahead_Image (Item : in Lookahead; Descriptor : in WisiToken.Descriptor) return String;
    --  Returns the format used in parse table output.
@@ -133,7 +132,7 @@ package WisiToken.Generate.LR1_Items is
      (Item  : in out LR1_Items.Item;
       Value : in     Lookahead;
       Added :    out Boolean);
-   --  Add Value to Item.Lookahead, if not already present.
+   --  Add Value to Item.Lookahead.
    --
    --  Added is True if Value was not already present.
    --
@@ -142,16 +141,15 @@ package WisiToken.Generate.LR1_Items is
    procedure Include
      (Item       : in out LR1_Items.Item;
       Value      : in     Lookahead;
+      Added      :    out Boolean;
       Descriptor : in     WisiToken.Descriptor);
-   --  Add Value to Item.Lookahead. Does not check if already present.
-   --  Excludes Propagate_ID.
+   --  Add Value to Item.Lookahead, excluding Propagate_ID.
 
    procedure Include
      (Item       : in out LR1_Items.Item;
       Value      : in     Lookahead;
-      Added      :    out Boolean;
       Descriptor : in     WisiToken.Descriptor);
-   --  Add Value to Item.Lookahead.
+   --  Add Value to Item.Lookahead, excluding Propagate_ID.
 
    type Goto_Item is record
       Symbol : Token_ID;
@@ -239,6 +237,7 @@ package WisiToken.Generate.LR1_Items is
 
    function To_Item_Set_Tree_Key
      (Item_Set           : in LR1_Items.Item_Set;
+      Descriptor         : in WisiToken.Descriptor;
       Include_Lookaheads : in Boolean)
      return Item_Set_Tree_Key;
 
@@ -258,6 +257,7 @@ package WisiToken.Generate.LR1_Items is
    function Find
      (New_Item_Set     : in Item_Set;
       Item_Set_Tree    : in Item_Set_Trees.Tree;
+      Descriptor       : in WisiToken.Descriptor;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index;
    --  Return the State of an element in Item_Set_Tree matching

@@ -506,7 +506,7 @@ package body WisiToken.Generate is
                Time_End : constant Time := Clock;
             begin
                Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error, "compute partial recursion time:" &
+                 (Ada.Text_IO.Standard_Error, "compute full recursion time:" &
                     Duration'Image (To_Duration (Time_End - Time_Start)));
             end;
          end if;
@@ -571,7 +571,7 @@ package body WisiToken.Generate is
                Time_End : constant Time := Clock;
             begin
                Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error, "compute full recursion time:" &
+                 (Ada.Text_IO.Standard_Error, "compute partial recursion time:" &
                     Duration'Image (To_Duration (Time_End - Time_Start)));
             end;
          end if;

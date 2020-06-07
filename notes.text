@@ -25,6 +25,11 @@ delete descriptor.case_insensitive?
     used in regexp lexer?
     move to lexer?
 
+speed up lr1 for ada_annex_p
+    build/Makefile generate_ada_lr1.gprof
+
+    parallelize?
+
 recognize more canonical lists
     ada_lite_ebnf.wy
     simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
