@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
 package body WisiToken.Generate.LR1_Items.AUnit is
 
@@ -34,7 +33,7 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Check (Label & ".Prod", Computed.Prod, Expected.Prod);
       Check (Label & ".Dot", Computed.Dot, Expected.Dot);
       if Match_Lookaheads then
-         Check (Label & ".Lookaheads", Computed.Lookaheads.all, Expected.Lookaheads.all);
+         Check (Label & ".Lookaheads", Computed.Lookaheads, Expected.Lookaheads);
       end if;
    end Check;
 
@@ -138,7 +137,7 @@ package body WisiToken.Generate.LR1_Items.AUnit is
          (if Dot > Tokens.Last_Index
           then Token_ID_Arrays.No_Index
           else Dot),
-         new Token_ID_Set'(Lookaheads));
+         Lookaheads);
    end Get_Item;
 
    function "+" (Item : in LR1_Items.Item) return Item_Set

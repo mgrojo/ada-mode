@@ -2,7 +2,7 @@
 --
 --  AUnit routines useful in WisiToken tests
 --
---  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,9 +18,18 @@
 
 pragma License (GPL);
 
+with AUnit.Checks;
+with WisiToken.AUnit;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
 package WisiToken.Generate.LR1_Items.AUnit is
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Boolean,
+      Index_Type  => Lookahead_Index_Type,
+      Array_Type  => Lookahead,
+      Check_Index => WisiToken.AUnit.Check,
+      Check_Item  => Standard.AUnit.Checks.Check);
 
    procedure Check
      (Label            : in String;

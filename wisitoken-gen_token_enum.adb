@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018, 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -112,9 +112,10 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end To_Nonterminal_Array_Terminal_Set;
 
-   function "+" (Item : in Token_Array) return WisiToken.Token_ID_Set
+   function "+" (Item : in Token_Array) return WisiToken.Generate.LR1_Items.Lookahead
    is
-      Result : Token_ID_Set := (LR1_Descriptor.First_Terminal .. LR1_Descriptor.Last_Terminal => False);
+      use Generate.LR1_Items;
+      Result : Lookahead := Null_Lookahead;
    begin
       for I in Item'Range loop
          Result (+Item (I)) := True;
@@ -122,7 +123,7 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end "+";
 
-   function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID_Set
+   function "+" (Item : in Token_Enum_ID) return WisiToken.Generate.LR1_Items.Lookahead
    is begin
       return +Token_Array'(1 => Item);
    end "+";
