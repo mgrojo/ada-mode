@@ -18,7 +18,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
 delete descriptor.case_insensitive?
@@ -27,6 +27,12 @@ delete descriptor.case_insensitive?
 
 speed up lr1 for ada_annex_p
     build/Makefile generate_ada_lr1.gprof
+    generate ada_annex_p:
+    Goto_Item_Lists as doubly_linked_lists: LR1 re2c generate time: 286.589280637
+    Goto_Item_Lists as red_black_tree:  LR1 re2c generate time: 285.941202390
+
+    cache results of closure?
+        never run the same one twice
 
     parallelize?
 

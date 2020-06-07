@@ -158,18 +158,25 @@ package WisiToken.Generate.LR1_Items is
       State  : State_Index;
    end record;
 
-   function Goto_Item_Compare (Left, Right : in Goto_Item) return SAL.Compare_Result is
-     (if Left.Symbol > Right.Symbol then SAL.Greater
-      elsif Left.Symbol < Right.Symbol then SAL.Less
+   function Symbol (Item : in Goto_Item) return Token_ID is (Item.Symbol);
+   function Token_ID_Compare (Left, Right : in Token_ID) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left < Right then SAL.Less
       else SAL.Equal);
    --  Sort Goto_Item_Lists in ascending order of Symbol.
 
-   package Goto_Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted
-     (Goto_Item, Goto_Item_Compare);
+   package Goto_Item_Lists is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
+     (Element_Type => Goto_Item,
+      Key_Type     => Token_ID,
+      Key          => Symbol,
+      Key_Compare  => Token_ID_Compare);
+   subtype Goto_Item_List is Goto_Item_Lists.Tree;
+   --  Goto_Item_Lists don't get very long, so red_black_trees is only
+   --  barely faster than doubly_linked_lists_sorted.
 
    type Item_Set is record
       Set       : Item_Lists.List;
-      Goto_List : Goto_Item_Lists.List;
+      Goto_List : Goto_Item_List;
       Dot_IDs   : Token_ID_Arrays.Vector;
       State     : Unknown_State_Index := Unknown_State;
    end record;
@@ -276,7 +283,7 @@ package WisiToken.Generate.LR1_Items is
 
    function Is_In
      (Item      : in Goto_Item;
-      Goto_List : in Goto_Item_Lists.List)
+      Goto_List : in Goto_Item_List)
      return Boolean;
    --  Return True if a goto on Symbol to State is found in Goto_List
 
@@ -324,7 +331,7 @@ package WisiToken.Generate.LR1_Items is
 
    procedure Put
      (Descriptor : in WisiToken.Descriptor;
-      List       : in Goto_Item_Lists.List);
+      List       : in Goto_Item_List);
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor;

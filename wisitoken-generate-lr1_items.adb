@@ -321,7 +321,7 @@ package body WisiToken.Generate.LR1_Items is
 
    function Is_In
      (Item      : in Goto_Item;
-      Goto_List : in Goto_Item_Lists.List)
+      Goto_List : in Goto_Item_List)
      return Boolean
    is begin
       for List_Item of Goto_List loop
@@ -508,7 +508,7 @@ package body WisiToken.Generate.LR1_Items is
 
    procedure Put
      (Descriptor : in WisiToken.Descriptor;
-      List       : in Goto_Item_Lists.List)
+      List       : in Goto_Item_List)
    is
       use Ada.Text_IO;
    begin
