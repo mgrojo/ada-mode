@@ -293,6 +293,38 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Object.Root      := Object.Nil;
    end Initialize;
 
+   overriding procedure Adjust (Object : in out Tree)
+   is
+      Old_Nil : constant Node_Access := Object.Nil;
+      New_Nil : constant Node_Access := new Node;
+
+      function Copy_Subtree
+        (Node   : in Node_Access;
+         Parent : in Node_Access)
+        return Node_Access
+      is
+         New_Node : constant Node_Access := new Pkg.Node'(Node.Element, Parent, New_Nil, New_Nil, Node.Color);
+      begin
+         if Node.Left /= Old_Nil then
+            New_Node.Left := Copy_Subtree (Node.Left, New_Node);
+         end if;
+
+         if Node.Right /= Old_Nil then
+            New_Node.Right := Copy_Subtree (Node.Right, New_Node);
+         end if;
+
+         return New_Node;
+      end Copy_Subtree;
+   begin
+      Object.Nil       := New_Nil;
+      Object.Nil.Color := Black;
+      if Object.Root = Old_Nil then
+         Object.Root := New_Nil;
+      else
+         Object.Root := Copy_Subtree (Object.Root, New_Nil);
+      end if;
+   end Adjust;
+
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean
    is begin
       return Cursor.Node /= null;
@@ -318,12 +350,12 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         --  WORKAROUND: GNAT Community 2019 requires .all here, GNAT Pro 21.0w
-         --  20200426 requires it _not_ be here. The code is technically legal
-         --  either way, so both compilers have a bug. Keeping .all for now;
-         --  just delete it if you are using 21.0w. Hopefully 21 will fix the
-         --  bug. AdaCore ticket T503-001 on Eurocontrol support contract.
-         return (Element => Node.all.Element'Access, Dummy => 1);
+         --  WORKAROUND: GNAT Community 2019 requires Element.all here, GNAT
+         --  Community 2020 and GNAT Pro 21.0w 20200426 require .all _not_ be
+         --  here. The code is technically legal either way, so both compilers
+         --  have a bug. Matching 2020 for now. Hopefully 21 will fix the bug.
+         --  AdaCore ticket T503-001 on Eurocontrol support contract.
+         return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Constant_Reference;
 
@@ -349,7 +381,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          raise Not_Found;
       else
          --  WORKAROUND: see note in Constant_Reference
-         return (Element => Node.all.Element'Access, Dummy => 1);
+         return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Variable_Reference;
 

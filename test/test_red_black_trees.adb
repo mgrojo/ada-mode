@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -46,8 +46,6 @@ package body Test_Red_Black_Trees is
    package Tree_Test is new Trees.Gen_Test (Integer'Image);
    use Tree_Test;
 
-   Tree : Trees.Tree;
-
    Red   : constant Boolean := True;
    Black : constant Boolean := False;
 
@@ -63,6 +61,7 @@ package body Test_Red_Black_Trees is
 
    procedure Check
      (Label        : in String;
+      Tree         : in Trees.Tree;
       Cursor       : in Trees.Cursor;
       Expected_Pos : in Integer;
       Expect_Red   : in Boolean)
@@ -120,6 +119,8 @@ package body Test_Red_Black_Trees is
       use AUnit.Checks.Containers;
       use AUnit.Checks;
       use Trees;
+      Tree : Trees.Tree;
+
       I : Cursor;
    begin
       --  Build and check a tree, covering all cases of the insert position
@@ -127,7 +128,7 @@ package body Test_Red_Black_Trees is
       Tree.Insert ((Pos => 3)); -- insert into null tree
       Tree.Insert ((Pos => 7)); -- insert to right
       I := Tree.Insert ((Pos => 10)); -- insert to right, fixup
-      Check ("0", I, 10, Red);
+      Check ("0", Tree, I, 10, Red);
 
       --              7 b
       --          3 r     10 r
@@ -135,12 +136,12 @@ package body Test_Red_Black_Trees is
       Validate ("1", Tree);
       I := Root (Tree);
       Check ("1.bh", Black_Height (Tree, I), 0);
-      Check ("1.0", I, 7, Black);
+      Check ("1.0", Tree, I, 7, Black);
       I := Left (I);
-      Check ("1.1", I, 3, Red);
+      Check ("1.1", Tree, I, 3, Red);
       I := Parent (I);
       I := Right (I);
-      Check ("1.2", I, 10, Red);
+      Check ("1.2", Tree, I, 10, Red);
 
       Check_Sorted ("1", Tree, (3, 7, 10), Ascending => True);
 
@@ -152,14 +153,14 @@ package body Test_Red_Black_Trees is
       Validate ("2", Tree);
       I := Root (Tree);
       Check ("2.bh", Black_Height (Tree, I), 1);
-      Check ("2.0", I, 7, Black);
+      Check ("2.0", Tree, I, 7, Black);
       I := Left (I);
-      Check ("2.1", I, 3, Black);
+      Check ("2.1", Tree, I, 3, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("2.2", I, 10, Black);
+      Check ("2.2", Tree, I, 10, Black);
       I := Right (I);
-      Check ("2.3", I, 12, Red);
+      Check ("2.3", Tree, I, 12, Red);
 
       Tree.Insert ((Pos => 14));
       --              7b
@@ -169,17 +170,17 @@ package body Test_Red_Black_Trees is
       Validate ("3", Tree);
       I := Root (Tree);
       Check ("3.bh", Black_Height (Tree, I), 1);
-      Check ("3.0", I, 7, Black);
+      Check ("3.0", Tree, I, 7, Black);
       I := Left (I);
-      Check ("3.1", I, 3, Black);
+      Check ("3.1", Tree, I, 3, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("3.2", I, 12, Black);
+      Check ("3.2", Tree, I, 12, Black);
       I := Left (I);
-      Check ("3.3", I, 10, Red);
+      Check ("3.3", Tree, I, 10, Red);
       I := Parent (I);
       I := Right (I);
-      Check ("3.4", I, 14, Red);
+      Check ("3.4", Tree, I, 14, Red);
 
       Tree.Insert ((Pos => 16));
       --              7b
@@ -192,19 +193,19 @@ package body Test_Red_Black_Trees is
       Check ("4.bh", Black_Height (Tree, I), 1);
       Check ("4.l.bh", Black_Height (Tree, Left (I)), 0);
       Check ("4.r.bh", Black_Height (Tree, Right (I)), 1);
-      Check ("4.0", I, 7, Black);
+      Check ("4.0", Tree, I, 7, Black);
       I := Left (I);
-      Check ("4.1", I, 3, Black);
+      Check ("4.1", Tree, I, 3, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("4.2", I, 12, Red);
+      Check ("4.2", Tree, I, 12, Red);
       I := Left (I);
-      Check ("4.3", I, 10, Black);
+      Check ("4.3", Tree, I, 10, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("4.4", I, 14, Black);
+      Check ("4.4", Tree, I, 14, Black);
       I := Right (I);
-      Check ("4.4", I, 16, Red);
+      Check ("4.4", Tree, I, 16, Red);
 
       Tree.Insert ((Pos => 15));
       --             7b
@@ -215,22 +216,22 @@ package body Test_Red_Black_Trees is
       Validate ("5", Tree);
       I := Root (Tree);
       Check ("5.bh", Black_Height (Tree, I), 1);
-      Check ("5.0", I, 7, Black);
+      Check ("5.0", Tree, I, 7, Black);
       I := Left (I);
-      Check ("5.1", I, 3, Black);
+      Check ("5.1", Tree, I, 3, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("5.2", I, 12, Red);
+      Check ("5.2", Tree, I, 12, Red);
       I := Left (I);
-      Check ("5.3", I, 10, Black);
+      Check ("5.3", Tree, I, 10, Black);
       I := Parent (I);
       I := Right (I);
-      Check ("5.4", I, 15, Black);
+      Check ("5.4", Tree, I, 15, Black);
       I := Left (I);
-      Check ("5.5", I, 14, Red);
+      Check ("5.5", Tree, I, 14, Red);
       I := Parent (I);
       I := Right (I);
-      Check ("5.6", I, 16, Red);
+      Check ("5.6", Tree, I, 16, Red);
 
       Check_Sorted ("5", Tree, (3, 7, 10, 12, 14, 15, 16), Ascending => True);
 
@@ -242,13 +243,13 @@ package body Test_Red_Black_Trees is
       Check ("6.count", Tree.Count, 8);
       Validate ("6", Tree);
       I := Root (Tree);
-      Check ("6.0", I, 12, Black);
+      Check ("6.0", Tree, I, 12, Black);
       I := Right (I);
-      Check ("6.1", I, 15, Red);
+      Check ("6.1", Tree, I, 15, Red);
       I := Right (I);
-      Check ("6.2", I, 16, Black);
+      Check ("6.2", Tree, I, 16, Black);
       I := Right (I);
-      Check ("6.3", I, 17, Red);
+      Check ("6.3", Tree, I, 17, Red);
 
       Tree.Insert ((Pos => 2));
       --              12b
@@ -258,13 +259,13 @@ package body Test_Red_Black_Trees is
       Check ("7.count", Tree.Count, 9);
       Validate ("7", Tree);
       I := Root (Tree);
-      Check ("7.0", I, 12, Black);
+      Check ("7.0", Tree, I, 12, Black);
       I := Left (I);
-      Check ("7.1", I, 7, Red);
+      Check ("7.1", Tree, I, 7, Red);
       I := Left (I);
-      Check ("7.2", I, 3, Black);
+      Check ("7.2", Tree, I, 3, Black);
       I := Left (I);
-      Check ("7.3", I, 2, Red);
+      Check ("7.3", Tree, I, 2, Red);
 
       Tree.Insert ((Pos => 1));
       --              12b
@@ -274,13 +275,13 @@ package body Test_Red_Black_Trees is
       Check ("8.count", Tree.Count, 10);
       Validate ("8", Tree);
       I := Root (Tree);
-      Check ("8.0", I, 12, Black);
+      Check ("8.0", Tree, I, 12, Black);
       I := Left (I);
-      Check ("8.1", I, 7, Red);
+      Check ("8.1", Tree, I, 7, Red);
       I := Left (I);
-      Check ("8.2", I, 2, Black);
+      Check ("8.2", Tree, I, 2, Black);
       I := Left (I);
-      Check ("8.3", I, 1, Red);
+      Check ("8.3", Tree, I, 1, Red);
 
       Tree.Insert ((Pos => 9));
       --                12b
@@ -290,13 +291,13 @@ package body Test_Red_Black_Trees is
       Check ("9.count", Tree.Count, 11);
       Validate ("9", Tree);
       I := Root (Tree);
-      Check ("9.0", I, 12, Black);
+      Check ("9.0", Tree, I, 12, Black);
       I := Left (I);
-      Check ("9.1", I, 7, Red);
+      Check ("9.1", Tree, I, 7, Red);
       I := Right (I);
-      Check ("9.2", I, 10, Black);
+      Check ("9.2", Tree, I, 10, Black);
       I := Left (I);
-      Check ("9.3", I, 9, Red);
+      Check ("9.3", Tree, I, 9, Red);
 
       Check_Sorted ("9a", Tree, (1, 2, 3, 7, 9, 10, 12, 14, 15, 16, 17), Ascending => True);
       Check_Sorted ("9b", Tree, (17, 16, 15, 14, 12, 10, 9, 7, 3, 2, 1), Ascending => False);
@@ -305,22 +306,22 @@ package body Test_Red_Black_Trees is
       Check ("present 14", Tree.Present (14), True);
       Check ("present 13", Tree.Present (13), False);
 
-      Check ("find 10", Find (Tree.Iterate, 10, Unknown), 10, Black);
-      Check ("find 14", Find (Tree.Iterate, 14, Unknown), 14, Black);
+      Check ("find 10", Tree, Find (Tree.Iterate, 10, Unknown), 10, Black);
+      Check ("find 14", Tree, Find (Tree.Iterate, 14, Unknown), 14, Black);
       Check ("find 13", Has_Element (Find (Tree.Iterate, 13, Unknown)), False);
 
       Check ("index 10", Tree (10).Element.all, (Pos => 10));
 
       I := Previous (Tree.Iterate, 11);
-      Check ("prev 11", I, 10, Black);
+      Check ("prev 11", Tree, I, 10, Black);
       I := Previous (Tree.Iterate, I);
-      Check ("prev cursor", I, 9, Red);
+      Check ("prev cursor", Tree, I, 9, Red);
 
-      Check ("in_range 1", Find_In_Range (Tree.Iterate, Ascending, 10, 15), 10, Black);
-      Check ("in_range 2", Find_In_Range (Tree.Iterate, Ascending, 11, 15), 12, Black);
+      Check ("in_range 1", Tree, Find_In_Range (Tree.Iterate, Ascending, 10, 15), 10, Black);
+      Check ("in_range 2", Tree, Find_In_Range (Tree.Iterate, Ascending, 11, 15), 12, Black);
 
-      Check ("in_range 3", Find_In_Range (Tree.Iterate, Descending, 10, 15), 15, Red);
-      Check ("in_range 4", Find_In_Range (Tree.Iterate, Descending, 10, 13), 12, Black);
+      Check ("in_range 3", Tree, Find_In_Range (Tree.Iterate, Descending, 10, 15), 15, Red);
+      Check ("in_range 4", Tree, Find_In_Range (Tree.Iterate, Descending, 10, 13), 12, Black);
 
       Check_Null ("in_range not found", Find_In_Range (Tree.Iterate, Ascending, 4, 5));
 
@@ -333,11 +334,11 @@ package body Test_Red_Black_Trees is
       --      2b     9b    14b   16b
       --    1r  3r                  17r
       I := Root (Tree);
-      Check ("delete 10.0", I, 12, Black);
+      Check ("delete 10.0", Tree, I, 12, Black);
       I := Left (I);
-      Check ("delete 10.1", I, 7, Red);
+      Check ("delete 10.1", Tree, I, 7, Red);
       I := Right (I);
-      Check ("delete 10.2", I, 9, Black);
+      Check ("delete 10.2", Tree, I, 9, Black);
       Validate ("delete 10", Tree);
 
       I := Find (Tree.Iterate, 7, Unknown);
@@ -347,13 +348,13 @@ package body Test_Red_Black_Trees is
       --      1b     9b    14b   16b
       --           3r               17r
       I := Root (Tree);
-      Check ("delete 7.0", I, 12, Black);
+      Check ("delete 7.0", Tree, I, 12, Black);
       I := Left (I);
-      Check ("delete 7.1", I, 2, Red);
+      Check ("delete 7.1", Tree, I, 2, Red);
       I := Right (I);
-      Check ("delete 7.2", I, 9, Black);
+      Check ("delete 7.2", Tree, I, 9, Black);
       I := Left (I);
-      Check ("delete 7.3", I, 3, Red);
+      Check ("delete 7.3", Tree, I, 3, Red);
       Validate ("delete 7", Tree);
 
       I := Find (Tree.Iterate, 17, Unknown);
@@ -377,6 +378,51 @@ package body Test_Red_Black_Trees is
       Validate ("delete 15", Tree);
    end Nominal;
 
+   procedure Test_Copy (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Trees;
+      Tree : Trees.Tree;
+   begin
+      --  Copy and finalize an empty tree; no exceptions;
+      declare
+         Tree_2 : constant Trees.Tree := Tree;
+      begin
+         Validate ("0 valid", Tree_2);
+         Check_Sorted ("0", Tree, (1 .. 0 => 1), Ascending => True);
+      end;
+
+      --  Build and copy a tree.
+      Tree.Insert ((Pos => 3));
+      Tree.Insert ((Pos => 7));
+      Tree.Insert ((Pos => 10));
+      Tree.Insert ((Pos => 12));
+      --              7 b
+      --           3 b   10 b
+      --                     12 r
+      Validate ("1 valid", Tree);
+      Check_Sorted ("1", Tree, (3, 7, 10, 12), Ascending => True);
+
+      declare
+         Tree_2 : constant Trees.Tree := Tree;
+      begin
+         Validate ("2 valid", Tree_2);
+
+         Check_Sorted ("2", Tree, (3, 7, 10, 12), Ascending => True);
+
+         --  Add to tree does not affect tree_2
+         Tree.Insert ((Pos => 17));
+
+         Validate ("3a valid", Tree_2);
+
+         Check_Sorted ("3a", Tree_2, (3, 7, 10, 12), Ascending => True);
+
+         Validate ("3b valid", Tree);
+
+         Check_Sorted ("3b", Tree, (3, 7, 10, 12, 17), Ascending => True);
+      end;
+   end Test_Copy;
+
    ----------
    --  Public routines
 
@@ -385,6 +431,7 @@ package body Test_Red_Black_Trees is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Copy'Access, "Test_Copy");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

@@ -35,7 +35,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Pkg renames Gen_Unbounded_Definite_Red_Black_Trees;
 
-   type Tree is new Ada.Finalization.Limited_Controlled with private
+   type Tree is new Ada.Finalization.Controlled with private
    with
      Constant_Indexing => Constant_Reference,
      Variable_Indexing => Variable_Reference,
@@ -44,6 +44,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    overriding procedure Finalize (Object : in out Tree);
    overriding procedure Initialize (Object : in out Tree);
+   overriding procedure Adjust (Object : in out Tree);
 
    type Direction_Type is (Ascending, Descending, Unknown);
    subtype Known_Direction_Type is Direction_Type range Ascending .. Descending;
@@ -153,7 +154,7 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   type Tree is new Ada.Finalization.Limited_Controlled with record
+   type Tree is new Ada.Finalization.Controlled with record
       Root : Node_Access;
       Nil  : Node_Access;
       --  Nil is the node pointed to by all links that would otherwise be
