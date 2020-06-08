@@ -135,7 +135,7 @@ exe-clean ::
 	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
 	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
-	rm -f ../ada_mode_wisi_parse.gpr
+	rm -f ../ada_mode_wisi_parse.gpr ../wisi.gpr
 	rm -rf ../run_ada_*_parse$(EXE_EXT)
 	rm -rf ../run_gpr_parse$(EXE_EXT)
 

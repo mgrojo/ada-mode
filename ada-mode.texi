@@ -265,18 +265,19 @@ release branch (or the one that matches your compiler), click on the
 ``clone or download'' button, select ``Download ZIP''.
 
 Similarly, download gnatcoll-bindings from
-@url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for gnatcoll-iconv).
+@url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for
+gnatcoll-iconv; not needed for GNAT Community 2020 on Windows).
 
 Then unpack, build, and install the required components:
 
 @example
-tar xf ~/Downloads/gnatcoll-bindings-20.2.zip
+unzip ~/Downloads/gnatcoll-bindings-20.2.zip
 cd gnatcoll-bindings-20.2
 cd iconv
 ./setup.py build
 ./setup.py install
 
-tar xf ~/Downloads/gnatcoll-db-20.2.zip
+unzip ~/Downloads/gnatcoll-db-20.2.zip
 cd gnatcoll-db-20.2
 make -C sql
 make -C sql install

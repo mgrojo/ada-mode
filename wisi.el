@@ -1,4 +1,4 @@
-;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
+;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LR parser -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
 ;;
@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 3.1.2
+;; Version: 3.1.3
 ;; package-requires: ((emacs "25.0") (seq "2.20"))
 ;; URL: http://stephe-leake.org/ada/wisitoken.html
 ;;
@@ -64,7 +64,7 @@
 ;;
 ;; For font-lock, we only parse the portion of the file requested by
 ;; font-lock, so we keep a list of regions, and edit that list when
-;; the buffer is changed..
+;; the buffer is changed.
 ;;
 ;; For indenting, we expect fast results, and can tolerate some
 ;; inaccuracy until the editing is done, so we allow partial parse. We

@@ -20,7 +20,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -77,8 +77,14 @@ compare ada LR1 generate time
             make wisi-bnf-gen faster: o.w.s-1
 
     7.0.1
+        ../ada-mode-releases/org.wisitoken-1.3.1/build/Makefile
+        timed?
         LALR re2c generate time: 0.689046474
         LR1 re2c generate time: 37.564196185
+
+        timed 6 June 2020:
+        LALR re2c generate time: 0.979680499
+        LR1 re2c generate time: 65.663078392
 
     2020_05_22 (pre fix 'Unrestricted_Access)
         LALR re2c generate time: 0.520925872
@@ -87,6 +93,21 @@ compare ada LR1 generate time
     2020_04_22 (pre use virtual in indent)
         LALR re2c generate time: 0.519115752
         LR1 re2c generate time: 61.987758850
+
+    2018_07_26
+        timed then (from benchmarks, below) gnat 2018?
+        LALR re2c generate time: 0.450525800
+        LR1 re2c generate time: 31.202567095
+
+        timed now, gnat 2019:
+        LALR re2c generate time: 0.511612680
+        LR1 re2c generate time: 68.728940913
+
+
+    old compiler generated faster code?
+        gnat 2018,2018_07_26: LR1 re2c generate time: 68.036990818
+
+    computer got slower!?
 
 indent bugs
     State.Kernel (I) :=
@@ -383,8 +404,8 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
     copied to c:/tmp/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
-wisi-generate
-    $WISI_WISITOKEN/wisi-generate.exe --time ada.wy
+wisitoken-bnf-generate
+    $WISITOKEN/wisitoken-bnf-generate.exe --time ada.wy
 
     04 mar 2018
         o.e.a.s-2 12.919s
@@ -986,8 +1007,6 @@ after Gnu ELPA updated, test install from GNU ELPA
 (dvc-state-one ".")
 build/Makefile tag zip
 
-~/bin/mtn_sync_ada_france.sh
-
 in cygwin console for gpg prompts:
     cd /Projects/org.emacs.ada-mode/build/
     ls *.tar*
@@ -1017,30 +1036,18 @@ commit savannah
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
 -------------------
-Gnu Emacs Ada mode 7.1.1 released.
+Gnu Emacs Ada mode 7.1.3 released.
 -------------------
 
-Gnu Emacs Ada mode 7.1.1 is now available in GNU ELPA.
+Gnu Emacs Ada mode 7.1.3 is now available in GNU ELPA.
 
-Relative to the previous Ada mode release (7.0.1), this is a
-minor feature release.
+Relative to the previous Ada mode release (7.1.2), this is a
+bug fix release.
 
-* ada-mode fully supports non-ASCII text (the few remaining
-  ASCII-only regular expressions have been fixed).
+* There was a bug in wisi--before-change that made it miss many buffer
+  changes.
 
-* gpr_query now starts in the background, and provides a completion
-  table of all symbols in the project.
-
-* keystroke C-M-i is bound to `completion-at-point', and uses the
-  symbol table provided by gpr-query.
-
-* Commands that prompt for a symbol (ie C-u C-c C-d
-  wisi-goto-spec/body and C-u M-. xref-find-definitions) use the
-  completion table provided by gpr_query. With a single C-u, all
-  symbols in the project are used; with two C-u, only
-  symbols defined in the current file are used.
-
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.1 and wisi-3.1.1,
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.3 and wisi-3.1.3,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
@@ -1050,6 +1057,15 @@ cd ~/.emacs.d/elpa/ada-mode-7.1.1
 ./build.sh
 ./install.sh
 
+If you get an error like:
+
+sal-gen_unbounded_definite_red_black_trees.adb:326:29: access
+discriminant in return aggregate would be a dangling reference
+
+it is due to a bug in all recent versions of GNAT. Edit the file in
+~/.emacs.d/elpa/wisi-3.1.3; see the WORKAROUND comment there.
+Different versions of GNAT either require the .all or forbid it.
+
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
 --------------------
@@ -1058,7 +1074,7 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.1
+        subject: closed by ada-mode version 7.1.3
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 

@@ -6,6 +6,11 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 3.1.3
+5 Jun 2020
+
+** Fix packaging bug.
+
 * wisi 3.1.2
 4 Jun 2020
 

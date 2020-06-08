@@ -1325,7 +1325,8 @@ package body Wisi is
                Line                 => Name_Token.Line,
                Column               => Name_Token.Column,
                Message              => Tree.Image
-                 (Tokens (Name), Data.Descriptor.all,
+                 (Node              => Tokens (Name),
+                  Descriptor        => Data.Descriptor.all,
                   Node_Numbers      => WisiToken.Trace_Action > Extra,
                   Include_RHS_Index => WisiToken.Trace_Action > Extra)
                  & ": wisi-name-action: name set twice.");

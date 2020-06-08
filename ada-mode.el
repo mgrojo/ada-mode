@@ -435,8 +435,8 @@ button was clicked."
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
-    (modify-syntax-entry ?-  ". 124" table); operator, double hyphen as comment
-    (modify-syntax-entry ?. "." table)
+    (modify-syntax-entry ?-  ". 12" table); double hyphen as comment start
+    (modify-syntax-entry ?.  "." table)
     (modify-syntax-entry ?/  "." table)
     (modify-syntax-entry ?:  "." table)
     (modify-syntax-entry ?<  "." table)
@@ -446,7 +446,7 @@ button was clicked."
     (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
     (modify-syntax-entry ?\; "." table)
     (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings
-    (modify-syntax-entry ?\|  "." table)
+    (modify-syntax-entry ?\| "." table)
 
     ;; \f and \n end a comment.
     (modify-syntax-entry ?\f  ">" table)
