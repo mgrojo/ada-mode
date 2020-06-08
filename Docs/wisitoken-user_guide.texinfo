@@ -523,19 +523,75 @@ associated production rules and actions.
 The syntax of a nonterminal statement is:
 
 @verbatim
-{nonterminal} : {token} ... [ %( post-parse action )% [ %( in-parse action )% ]] [| {token} ... [ %(
-action code )% ] ... ;
+nonterminal : rhs {| rhs} ;
 @end verbatim
+A nonterminal is defined by a list of alternate right hand sides.
 
-Each nonterminal gives the expansion of a nonterminal token into a
-list of tokens (both terminal and nonterminal); optional productions
-are separated by ``|''. Each list of tokens is followed by zero to two
-actions, one executed after the parse is complete, one during the
-parse when the production is reduced. in-parse actions can add
-semantic checks that help during error recovery. post-parse actions
-typically build an abstract syntax tree. The actions are written in
-output-language code; for @code{Ada_Emacs} output, this is elisp (a
-hold-over from when WisiToken only output elisp code).
+@verbatim
+rhs : {rhs_item} [action [action]] ;
+@end verbatim
+Each right hand side is a list of items, followed by zero to two
+actions; the first is the post-parse action, the second the in-parse
+action.
+
+In-parse actions are exeuted during the parse, when the production is
+reduced; they can add semantic checks that help during error recovery.
+
+Post-parse actions are executed after the parse is complete, when a
+node produced by this production is visited during the tree traversal;
+they typically build an abstract syntax tree.
+
+The actions are written in output-language code; for @code{Ada_Emacs}
+output, this is elisp (a hold-over from when WisiToken only output
+elisp code).
+
+If using BNF:
+@verbatim
+rhs_item : token ;
+@end verbatim
+Where @code{token} is defined by a token declaration.
+
+if using EBNF:
+@verbatim
+rhs_item
+  : token
+  | < identifier = identifier >
+  | rhs_optional_item
+  | rhs_multiple_item
+  | '(' rhs {| rhs} ')'
+  ;
+@end verbatim
+Here @code{token} is either defined by a token
+declaration, or the token value contained in single quotes.
+
+The second option is an attribute, as defined by ANTLR; these are
+ignored in wisitoken.
+
+Parentheses are used to group items.
+
+@verbatim
+rhs_optional_item
+  : '[' rhs {| rhs} ']'
+  | '(' rhs {| rhs} ')' '?'
+  | token '?'
+  ;
+@end verbatim
+These options all mean the same thing; the content is present zero or
+one times.
+
+@verbatim
+rhs_multiple_item
+  : '{' rhs {| rhs} '}'
+  | '{' rhs {| rhs} '}-'
+  | '(' rhs {| rhs} ')+'
+  | '(' rhs {| rhs} ')*'
+  | token '+'
+  | token '*'
+  ;
+@end verbatim
+''@{@}'', ''()*'', and ''token*'' mean the content is present zero or more
+times. ''@{@}-'', ''()+'', and ''token+'' mean the content is present one or
+more times.
 
 @node Conditional code
 @section Conditional code

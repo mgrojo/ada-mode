@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - misc devel for o.w, o.e.a
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - speed up lr1
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canonical lists
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -18,9 +18,24 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+delete descriptor.case_insensitive?
+    used in regexp lexer?
+    move to lexer?
+
+speed up lr1 for ada_annex_p
+    build/Makefile generate_ada_lr1.gprof
+    generate ada_annex_p:
+    Goto_Item_Lists as doubly_linked_lists: LR1 re2c generate time: 286.589280637
+    Goto_Item_Lists as red_black_tree:  LR1 re2c generate time: 285.941202390
+
+    cache results of closure?
+        never run the same one twice
+
+    parallelize?
+
 recognize more canonical lists
     ada_lite_ebnf.wy
         enumeration_type_definition not recognized
@@ -60,6 +75,8 @@ redesign parse table to speed recovery
     group identical reduce actions
         ada_mode-recover_02.adb
         only do each reduce once, then insert lots of terminals
+
+rename "semantic checks" to "in-parse actions", others to "post-parse actions".
 
 error_correction_algorithm.tex
     full vs partial_recursion
@@ -150,63 +167,8 @@ task 0 3: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817
 task 0 2: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (23 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
     should have terminated one!
 
-If state has multiple identicle reduce, just reduce - don't try all reduce, shift; most waste of time.
-    Use different action representation?
-
-Parse for font wants a faster error correction algorithm
-    do push back & delete nonterm
-
-recover.Explore.Insert_From_Action_List
-    if multiple identical reductions, just reduce
-        test_mckenzie_recover.adb Zombie_In_Resume
-
-ada_lite LALR state 149 inserts recursive token!
-    String_Quote_4 got a lot more enqueue
-            because it doesn't know it's the recursive token
-            length_after_dot is correct
-            if change to Other, it will be done at runtime anyway
-
-            following inserts make it more expensive, but don't follow recursion, because it's not minimal
-
-        recursion loop:
-        60.0: association_opt <= IDENTIFIER EQUAL_GREATER expression_opt ; ( 3 => Other_Right)
-        88.0: expression_opt <= expression ; ( 1 => Other_Left)
-        87.0: expression <= relation ; ( 1 => Other_Left)
-        122.1: relation <= simple_expression ; ( 1 => Other_Left)
-        127.1: simple_expression <= term_list ; ( 1 => Other_Left)
-        137.1: term_list <= term ; ( 1 => Other_Left)
-        136.1: term <= factor ; ( 1 => Other_Left)
-        91.0: factor <= primary ; ( 1 => Other_Left)
-        113.2: primary <= name ; ( 1 => Other_Left)
-        103.1: name <= name actual_parameter_part ; ( 1 => Direct_Left,  2 => Direct_Right)
-        57.0: actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ; ( 2 => Other)
-        61.1: association_list <= association_opt ; ( 1 => Other_Left)
-
-        break recursion - look for alternate RHS for each LHS in recursion:
-        60.2: association_opt <=
-        88.1: expression_opt <=
-        113.0: primary <= NUMERIC_LITERAL
-        149: 103.2:name <= IDENTIFIER ^
-
-    ada_lite 154 all left recursive
-
-    ada_lite_ebnf_lalr.parse_table same
-        state 110, 130, 152, 186, 264
-
-        state 157 currently has no action; should be 95.0
-
-    case_expression_lalr_re2c.parse_table, _lr1
-        state 4, 9
-
-    body_instantiation_conflict_lr1.parse_table
-        state 7, 17
-
-    java_expressions_antlr_lr1.parse_table
-        state 19 should drop 32.0
-        state 28 29.x reduces to primary; 31.3 ultimately shorter
-        state 97 all direct_left
-        state 140 keep 31.4?
-
+java-ch19.wy TryStatement has optional statement-end
+    need override on previous tokens
 
 improve mismatched paren checks in actions
     maybe just in wisitoken_grammar_mode?
@@ -222,13 +184,17 @@ allow undo_reduce after insert/fast_forward
         if no useful test cases, delete Try_Undo_Reduce, and doc why.
         or add None_At_All (Insert) to try_Undo_Reduce.
 
-check should check all conflicts, enqueue conflicts on success
-    otherwise we are ignoring possible solutions.
-
 test_mckenzie use lr-parser-gen_aunit
 
 change to incremental parse
     integrate with tree-sitter?
+
+    change syntax tree; store lists in a single node
+        needs syntax in .wy to indicate a list
+            ebnf recognize canonical list might be enough
+        fewer nodes in syntax tree; should be faster (for large files)
+            push_back part of a list?
+        simplifies syntax tree editing (translate_ebnf)
 
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1

@@ -52,10 +52,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                  --  accept production.
                  Symbol /= Descriptor.EOI_ID
                then
-                  Goto_Set.Set.Insert
-                    ((Item.Prod,
-                      To_Index (Next (Dot)),
-                      new Token_ID_Set'(Item.Lookaheads.all)));
+                  Goto_Set.Set.Insert ((Item.Prod, To_Index (Next (Dot)), Item.Lookaheads));
                end if;
             end;
          end if;
@@ -99,7 +96,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
               Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
-              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOI_ID, Descriptor)))),
+              Lookaheads => To_Lookahead (Descriptor.EOI_ID))),
           Goto_List      => <>,
           Dot_IDs        => <>,
           State          => First_State_Index),
@@ -135,7 +132,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
             if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
-               Found_State := Find (New_Item_Set, C_Tree, Match_Lookaheads => True); -- 'not in C'
+               Found_State := Find (New_Item_Set, C_Tree, Descriptor, Match_Lookaheads => True); -- 'not in C'
 
                if Found_State = Unknown_State then
                   New_Item_Set.State := C.Last_Index + 1;
@@ -322,14 +319,14 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LR1 unknown conflicts:");
          Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LR1 excess known conflicts:");
          Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;

@@ -65,15 +65,10 @@ package body WisiToken.Generate.LR.LALR_Generate is
      is (LR1_Items.Item_Lists.Variable_Ref
            (LR1_Items.Find (Prod => (ID.LHS, ID.RHS), Dot => ID.Dot, Set => Kernels (ID.State))));
 
-   function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return Token_ID_Set_Access
+   function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return LR1_Items.Lookahead
    is begin
-      return new Token_ID_Set'(LR1_Items.To_Lookahead (Descriptor.Last_Lookahead, Descriptor));
+      return LR1_Items.To_Lookahead (Descriptor.Last_Lookahead);
    end Propagate_Lookahead;
-
-   function Null_Lookahead (Descriptor : in WisiToken.Descriptor) return Token_ID_Set_Access
-   is begin
-      return new Token_ID_Set'(Descriptor.First_Terminal .. Descriptor.Last_Lookahead => False);
-   end Null_Lookahead;
 
    ----------
    --  Debug output
@@ -127,7 +122,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
                   Goto_Set.Set.Insert
                     ((Prod       => Item.Prod,
                       Dot        => To_Index (Next_Dot),
-                      Lookaheads => new Token_ID_Set'(Item.Lookaheads.all)));
+                      Lookaheads => Item.Lookaheads));
 
                   if Trace_Generate_Table > Detail then
                      Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 1 " & Image (Symbol, Descriptor));
@@ -155,7 +150,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
                                  Goto_Set.Set.Insert
                                    ((Prod       => P_ID,
                                      Dot        => To_Index (Next_Dot_2),
-                                     Lookaheads => Null_Lookahead (Descriptor)));
+                                     Lookaheads => Null_Lookahead));
 
                                  --  else already in goto set
                               end if;
@@ -196,7 +191,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
            (Set               => Item_Lists.To_List
               ((Prod          => (Grammar.First_Index, 0),
                 Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
-                Lookaheads    => Null_Lookahead (Descriptor))),
+                Lookaheads    => Null_Lookahead)),
             Goto_List         => <>,
             Dot_IDs           => <>,
             State             => First_State_Index),
@@ -227,7 +222,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
             begin
                if New_Item_Set.Set.Length > 0 then
 
-                  Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
+                  Found_State := Find (New_Item_Set, Kernel_Tree, Descriptor, Match_Lookaheads => False);
 
                   if Found_State = Unknown_State then
                      New_Item_Set.State := Kernels.Last_Index + 1;
@@ -364,10 +359,10 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
                if Trace_Generate_Table > Outline then
                   Spontaneous_Count := Spontaneous_Count + 1;
-                  Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
+                  Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads, Descriptor));
                end if;
 
-               LR1_Items.Include (Variable_Ref (To_Item), Closure_Item.Lookaheads.all, Descriptor);
+               LR1_Items.Include (Variable_Ref (To_Item), Closure_Item.Lookaheads, Descriptor);
             end;
          end if;
       end;
@@ -389,7 +384,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          for Map of Propagations loop
             for ID of Map.To loop
                LR1_Items.Include
-                 (Item_Ref (Kernels, ID), Item_Ref (Kernels, Map.From).Lookaheads.all, Added_One, Descriptor);
+                 (Item_Ref (Kernels, ID), Item_Ref (Kernels, Map.From).Lookaheads, Added_One, Descriptor);
 
                More_To_Check := More_To_Check or Added_One;
             end loop;
@@ -592,14 +587,14 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LALR unknown conflicts:");
          Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LALR excess known conflicts:");
          Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;

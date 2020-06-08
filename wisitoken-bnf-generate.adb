@@ -51,7 +51,7 @@ is
       use Ada.Text_IO;
       First : Boolean := True;
    begin
-      Put_Line (Standard_Error, "version 2.0"); -- matches release version in Docs/wisitoken.html
+      Put_Line (Standard_Error, "version 2.1"); -- matches release version in Docs/wisitoken.html
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
@@ -134,8 +134,6 @@ is
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
    Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-
-   Do_Time : Boolean := False;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -261,7 +259,7 @@ begin
 
          elsif Argument (Arg_Next) = "--time" then
             Arg_Next := Arg_Next + 1;
-            Do_Time  := True;
+            WisiToken.Trace_Time := True;
 
          else
             raise User_Error with "invalid argument '" & Argument (Arg_Next) & "'";
@@ -477,7 +475,7 @@ begin
                      Ignore_Conflicts  => Ignore_Conflicts,
                      Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-                  if Do_Time then
+                  if WisiToken.Trace_Time then
                      Time_End := Clock;
 
                      Put_Line
@@ -511,7 +509,7 @@ begin
                      Ignore_Conflicts  => Ignore_Conflicts,
                      Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
 
-                  if Do_Time then
+                  if Trace_Time then
                      Time_End := Clock;
 
                      Put_Line

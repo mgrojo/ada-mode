@@ -127,10 +127,6 @@ package body Dragon_4_45_LALR_Test is
       Computed : constant Item_Set_List := WisiToken.Generate.LR.LALR_Generate.LALR_Kernels
         (Grammar, First, LALR_Descriptor);
 
-      Null_Lookaheads : constant WisiToken.Token_ID_Set :=
-        --  + 1 for propagate
-        (LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal + 1 => False);
-
       Expected : Item_Set_List :=
       --  [dragon] example 4.42 pg 233 shows the item sets.
       --  LALR_Kernels computes the combined kernels of these (see page
@@ -141,13 +137,13 @@ package body Dragon_4_45_LALR_Test is
       --  states is different. In this test, we accomodate that by
       --  using symbolic names matching the example state labels, and
       --  adding kernels to the list in the order we compute them.
-        (S0 + Get_Item (Grammar, (+Accept_ID, 0), 1, Null_Lookaheads)) &
-        (S36 + Get_Item (Grammar, (+Upper_C_ID, 0), 2, Null_Lookaheads)) &
-        (S47 + Get_Item (Grammar, (+Upper_C_ID, 1), 2, Null_Lookaheads)) &
-        (S1 + Get_Item (Grammar, (+Accept_ID, 0), 2, Null_Lookaheads)) &
-        (S2 + Get_Item (Grammar, (+Upper_S_ID, 0), 2, Null_Lookaheads)) &
-        (S89 + Get_Item (Grammar, (+Upper_C_ID, 0), 3, Null_Lookaheads)) &
-        (S5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, Null_Lookaheads));
+        (S0 + Get_Item (Grammar, (+Accept_ID, 0), 1, Null_Lookahead)) &
+        (S36 + Get_Item (Grammar, (+Upper_C_ID, 0), 2, Null_Lookahead)) &
+        (S47 + Get_Item (Grammar, (+Upper_C_ID, 1), 2, Null_Lookahead)) &
+        (S1 + Get_Item (Grammar, (+Accept_ID, 0), 2, Null_Lookahead)) &
+        (S2 + Get_Item (Grammar, (+Upper_S_ID, 0), 2, Null_Lookahead)) &
+        (S89 + Get_Item (Grammar, (+Upper_C_ID, 0), 3, Null_Lookahead)) &
+        (S5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, Null_Lookahead));
 
    begin
       Add_Gotos

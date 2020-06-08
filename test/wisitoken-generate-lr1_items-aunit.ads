@@ -2,7 +2,7 @@
 --
 --  AUnit routines useful in WisiToken tests
 --
---  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,9 +18,18 @@
 
 pragma License (GPL);
 
+with AUnit.Checks;
+with WisiToken.AUnit;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
 package WisiToken.Generate.LR1_Items.AUnit is
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Boolean,
+      Index_Type  => Lookahead_Index_Type,
+      Array_Type  => Lookahead,
+      Check_Index => WisiToken.AUnit.Check,
+      Check_Item  => Standard.AUnit.Checks.Check);
 
    procedure Check
      (Label            : in String;
@@ -36,8 +45,8 @@ package WisiToken.Generate.LR1_Items.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Goto_Item_Lists.List;
-      Expected : in Goto_Item_Lists.List);
+      Computed : in Goto_Item_List;
+      Expected : in Goto_Item_List);
 
    procedure Check
      (Label            : in String;
@@ -87,16 +96,16 @@ package WisiToken.Generate.LR1_Items.AUnit is
       Right : in Item_Set)
      return Item_Set_List;
 
-   function "+" (Right : in Goto_Item) return Goto_Item_Lists.List;
+   function "+" (Right : in Goto_Item) return Goto_Item_List;
    function "&"
-     (Left  : in Goto_Item_Lists.List;
+     (Left  : in Goto_Item_List;
       Right : in Goto_Item)
-     return Goto_Item_Lists.List;
+     return Goto_Item_List;
 
    procedure Add_Gotos
      (List  : in out Item_Set_List;
       State : in     WisiToken.Unknown_State_Index;
-      Gotos : in     Goto_Item_Lists.List);
+      Gotos : in     Goto_Item_List);
 
    function Get_Item_Set
      (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;
