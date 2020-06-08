@@ -28,6 +28,7 @@ with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
+with WisiToken_Grammar_Editing;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure WisiToken.To_Tree_Sitter
@@ -38,10 +39,10 @@ is
    end Put_Usage;
 
    procedure Print_Tree_Sitter
-     (Data             : in WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree             : in Syntax_Trees.Tree;
-      Output_File_Name : in String;
-      Language_Name    : in String)
+     (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree             : in out Syntax_Trees.Tree;
+      Output_File_Name : in     String;
+      Language_Name    : in     String)
    is
       use WisiToken.Syntax_Trees;
 
@@ -197,7 +198,7 @@ is
                use WisiToken_Grammar_Runtime;
 
                Ident : constant String     := Get_Text (Node);
-               Decl  : constant Node_Index := Find_Declaration (Data, Tree, Ident);
+               Decl  : constant Node_Index := WisiToken_Grammar_Editing.Find_Declaration (Data, Tree, Ident);
             begin
                if Decl = Invalid_Node_Index then
                   Raise_Programmer_Error ("decl for '" & Ident & "' not found", Data, Tree, Node);
@@ -218,10 +219,9 @@ is
                      when Wisitoken_Grammar_Actions.TOKEN_ID =>
                         declare
                            use WisiToken.Syntax_Trees.LR_Utils;
-                           Iter : constant Syntax_Trees.LR_Utils.Iterator :=
-                             Iterate (Data, Tree, Tree.Child (Decl, 4), +declaration_item_ID);
-                           Item : constant Valid_Node_Index :=
-                             Tree.Child (Syntax_Trees.LR_Utils.Node (First (Iter)), 1);
+                           List : constant Constant_List := Creators.Create_List
+                             (Tree, Tree.Child (Decl, 4), +declaration_item_list_ID, +declaration_item_ID);
+                           Item : constant Valid_Node_Index := Tree.Child (Get_Node (List.First), 1);
                         begin
                            case To_Token_Enum (Tree.ID (Item)) is
                            when REGEXP_ID =>
@@ -378,10 +378,9 @@ is
                      use Ada.Strings.Fixed;
                      use WisiToken.Syntax_Trees.LR_Utils;
                      Name : constant String := Get_Text (Tree.Child (Node, 3));
-                     Iter : constant Syntax_Trees.LR_Utils.Iterator :=
-                       WisiToken_Grammar_Runtime.Iterate (Data, Tree, Tree.Child (Node, 4), +declaration_item_ID);
-                     Item : constant Valid_Node_Index :=
-                       Tree.Child (Syntax_Trees.LR_Utils.Node (First (Iter)), 1);
+                     List : constant Constant_List := Creators.Create_List
+                        (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
+                     Item : constant Valid_Node_Index := Tree.Child (Get_Node (List.First), 1);
                   begin
                      case To_Token_Enum (Tree.ID (Item)) is
                      when REGEXP_ID =>

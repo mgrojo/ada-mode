@@ -115,7 +115,10 @@ update-wisitoken_grammar : wisitoken_grammar-clean ../wisitoken_grammar_re2c.c
 # Executables are normally compiled by the test project file, which requires AUnit
 # Override the project file for wisitoken-bnf-generate.exe, for use with Emacs Ada mode without AUnit
 wisitoken-bnf-generate.exe : force
-	gprbuild -p -j8 --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-bnf-generate $(GPRBUILD_LINK_ARGS)
+	gprbuild -p -j8 -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-bnf-generate $(GPRBUILD_LINK_ARGS)
+
+wisitoken-to_tree_sitter.exe : force
+	gprbuild -p -j8 -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-to_tree_sitter $(GPRBUILD_LINK_ARGS)
 
 test-executables : force
 	gprbuild -p -j8 --autoconf=obj/auto.cpgr -P wisitoken_test.gpr

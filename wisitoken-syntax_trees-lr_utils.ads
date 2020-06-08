@@ -423,7 +423,11 @@ private
      --  We'd prefer to have Tree be 'constant' here, but then it would
      --  also be constant in List, where we _don't_ want that. An
      --  alternative design would be to not derive List from Constant_List;
-     --  then we would would have to duplicate all operations.
+     --  then we would would have to duplicate all operations. Another
+     --  alternative design would be to derive Constant_List from List, and
+     --  tighten the constraint on Tree in Constant_List. But that doesn't
+     --  work either. Since most applications using LR_Utils are editing
+     --  the tree anyway, we live with requiring variable access.
    record
       Root       : WisiToken.Node_Index;
       List_ID    : WisiToken.Token_ID;

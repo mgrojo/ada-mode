@@ -94,6 +94,8 @@ package WisiToken.Syntax_Trees is
       Virtual_Identifier, -- text in user data, created during tree rewrite
       Nonterm             -- contains terminals/nonterminals/identifiers
      );
+   subtype Terminal_Label is Node_Label range Shared_Terminal .. Virtual_Identifier;
+   subtype Virtual_Terminal_Label is Node_Label range Virtual_Terminal .. Virtual_Identifier;
 
    type User_Data_Type is tagged limited null record;
    --  Many test languages don't need this, so we default the procedures

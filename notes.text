@@ -23,9 +23,11 @@ update-wisitoken_grammar
  current work
 recognize more canonical lists
     ada_lite_ebnf.wy
-        enumeration_type_definition lost separator = comma
+        enumeration_type_definition not recognized
 
     java_types_ch19.wy Dims
+./wisitoken-bnf-generate.exe --test_main  ../test/bnf/java_enum_ch19.wy
+SAL.PROGRAMMER_ERROR: java_enum_ch19.wy:30:0: unhandled exception SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from wisitoken-syntax_trees-lr_utils.ads:277: 0194:(rhs_multiple_item_0, (860 . 877)) <= (0078:78:(LEF
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!
