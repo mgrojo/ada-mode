@@ -94,13 +94,16 @@ package body WisiToken.Generate.LR1_Items.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Goto_Item_Lists.List;
-      Expected : in Goto_Item_Lists.List)
+      Computed : in Goto_Item_List;
+      Expected : in Goto_Item_List)
    is
       use Standard.AUnit.Checks;
       use Goto_Item_Lists;
-      Computed_I : Cursor  := Computed.First;
-      Expected_I : Cursor  := Expected.First;
+      Computed_Iter : constant Iterator := Computed.Iterate;
+      Expected_Iter : constant Iterator := Expected.Iterate;
+
+      Computed_I : Cursor  := Computed_Iter.First;
+      Expected_I : Cursor  := Expected_Iter.First;
       Index      : Integer := 1;
    begin
       if Has_Element (Computed_I) or Has_Element (Expected_I) then
@@ -115,9 +118,9 @@ package body WisiToken.Generate.LR1_Items.AUnit is
          Check (Label & Integer'Image (Index) & ".Symbol", Computed (Computed_I).Symbol, Expected (Expected_I).Symbol);
          Check (Label & Integer'Image (Index) & ".State", Computed (Computed_I).State, Expected (Expected_I).State);
          Check (Label & Integer'Image (Index) & ".Next = null",
-                not Has_Element (Next (Computed_I)), not Has_Element (Next (Expected_I)));
-         Computed_I := Next (Computed_I);
-         Expected_I := Next (Expected_I);
+                not Has_Element (Computed_Iter.Next (Computed_I)), not Has_Element (Expected_Iter.Next (Expected_I)));
+         Computed_I := Computed_Iter.Next (Computed_I);
+         Expected_I := Expected_Iter.Next (Expected_I);
          Index      := Index + 1;
          exit when not Has_Element (Computed_I);
       end loop;
@@ -209,19 +212,19 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       end return;
    end "&";
 
-   function "+" (Right : in Goto_Item) return Goto_Item_Lists.List
+   function "+" (Right : in Goto_Item) return Goto_Item_List
    is begin
-      return Result : Goto_Item_Lists.List do
+      return Result : Goto_Item_List do
          Result.Insert (Right);
       end return;
    end "+";
 
    function "&"
-     (Left  : in Goto_Item_Lists.List;
+     (Left  : in Goto_Item_List;
       Right : in Goto_Item)
-     return Goto_Item_Lists.List
+     return Goto_Item_List
    is
-      Result : Goto_Item_Lists.List := Left;
+      Result : Goto_Item_List := Left;
    begin
       Result.Insert (Right);
       return Left;
@@ -230,7 +233,7 @@ package body WisiToken.Generate.LR1_Items.AUnit is
    procedure Add_Gotos
      (List  : in out Item_Set_List;
       State : in     WisiToken.Unknown_State_Index;
-      Gotos : in     Goto_Item_Lists.List)
+      Gotos : in     Goto_Item_List)
    is begin
       List (State).Goto_List := Gotos;
    end Add_Gotos;
