@@ -22,11 +22,16 @@ with Wisitoken_Grammar_Actions;
 with WisiToken_Grammar_Runtime;
 with WisiToken.Syntax_Trees.LR_Utils;
 package WisiToken_Grammar_Editing is
+   use all type WisiToken.Node_Index;
    use all type WisiToken.Token_ID;
+   use all type WisiToken.Base_Token_Index;
+   use all type WisiToken.Base_Identifier_Index;
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
    use all type WisiToken.Syntax_Trees.Node_Label;
 
-   type Identifier_Token_Index (Label : WisiToken.Syntax_Trees.Terminal_Label) is record
+   type Identifier_Token_Index
+     (Label : WisiToken.Syntax_Trees.Terminal_Label := WisiToken.Syntax_Trees.Terminal_Label'First)
+   is record
       case Label is
       when Shared_Terminal =>
          Shared_Token : WisiToken.Token_Index;
@@ -43,6 +48,14 @@ package WisiToken_Grammar_Editing is
       end case;
    end record;
 
+   function Image (Item : in Identifier_Token_Index) return String
+   is (case Item.Label is
+       when Shared_Terminal => Trimmed_Image (Item.Shared_Token) & ":" &
+            Image (Item.Shared_ID, Wisitoken_Grammar_Actions.Descriptor),
+       when Virtual_Terminal => Image (Item.Virtual_ID, Wisitoken_Grammar_Actions.Descriptor),
+       when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";" &
+            Image (Item.Identifier_ID, Wisitoken_Grammar_Actions.Descriptor));
+
    function ID (Item : in Identifier_Token_Index) return WisiToken.Token_ID
    is (case Item.Label is
        when Shared_Terminal    => Item.Shared_ID,
@@ -58,6 +71,12 @@ package WisiToken_Grammar_Editing is
      return Identifier_Token_Index;
 
    function To_Identifier_Token
+     (Item : in WisiToken.Identifier_Index;
+      Byte_Region : in WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region)
+     return Identifier_Token_Index
+   is ((Virtual_Identifier, Item, +IDENTIFIER_ID, Byte_Region));
+
+   function To_Identifier_Token
      (Item      : in WisiToken.Valid_Node_Index;
       Tree      : in WisiToken.Syntax_Trees.Tree;
       Terminals : in WisiToken.Base_Token_Array_Access_Constant)
@@ -65,22 +84,24 @@ package WisiToken_Grammar_Editing is
    with Pre => To_Token_Enum (Tree.ID (Item)) in rhs_element_ID | rhs_item_ID | IDENTIFIER_ID;
 
    function Add_Identifier_Token
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     Identifier_Token_Index)
-     return WisiToken.Valid_Node_Index
-   with Pre => Item.Label in WisiToken.Syntax_Trees.Virtual_Terminal_Label;
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Item      : in     Identifier_Token_Index;
+      Terminals : in     WisiToken.Base_Token_Array_Access_Constant)
+     return WisiToken.Valid_Node_Index;
 
    function Add_RHS_Item
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Item : in     WisiToken.Valid_Node_Index)
      return WisiToken.Valid_Node_Index
-   with Pre => Tree.ID (Item) = +IDENTIFIER_ID;
+   with Pre => Tree.ID (Item) = +IDENTIFIER_ID,
+     Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Item : in     WisiToken.Valid_Node_Index)
      return WisiToken.Valid_Node_Index
-   with Pre => Tree.ID (Item) = +rhs_item_ID;
+   with Pre => Tree.ID (Item) = +rhs_item_ID,
+     Post => Tree.ID (Add_RHS_Element'Result) = +rhs_element_ID;
 
    function Empty_RHS_Item_List
      (Tree : aliased in out WisiToken.Syntax_Trees.Tree)
@@ -91,18 +112,24 @@ package WisiToken_Grammar_Editing is
      return WisiToken.Syntax_Trees.LR_Utils.List;
 
    function Add_RHS
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     WisiToken.Valid_Node_Index)
+     (Tree              : in out WisiToken.Syntax_Trees.Tree;
+      Item              : in     WisiToken.Valid_Node_Index;
+      Post_Parse_Action : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
+      In_Parse_Action   : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index)
      return WisiToken.Valid_Node_Index
-   with Pre => Tree.ID (Item) = +rhs_item_list_ID;
+   with Pre => Tree.ID (Item) = +rhs_item_list_ID and
+               (Post_Parse_Action = WisiToken.Invalid_Node_Index or else Tree.ID (Post_Parse_Action) = +ACTION_ID) and
+               (In_Parse_Action = WisiToken.Invalid_Node_Index or else Tree.ID (In_Parse_Action) = +ACTION_ID),
+     Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
 
    function Find_Declaration
      (Data : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree : in out WisiToken.Syntax_Trees.Tree;
       Name : in     String)
-     return WisiToken.Node_Index;
+     return WisiToken.Node_Index
+   with Post => Find_Declaration'Result = WisiToken.Invalid_Node_Index or else
+                To_Token_Enum (Tree.ID (Find_Declaration'Result)) in declaration_ID | nonterminal_ID;
    --  Return the node that declares Name, Invalid_Node_Index if none.
-   --  The node is either a declaration or a nonterminal.
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;

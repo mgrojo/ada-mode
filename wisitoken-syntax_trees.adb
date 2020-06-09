@@ -341,8 +341,8 @@ package body WisiToken.Syntax_Trees is
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Valid_Node_Index)
-     return Valid_Node_Index
+      Root : in     Node_Index)
+     return Node_Index
    is
       function Copy_Node
         (Tree   : in out Syntax_Trees.Tree;
@@ -438,7 +438,11 @@ package body WisiToken.Syntax_Trees is
       end Copy_Node;
 
    begin
-      return Copy_Node (Tree, Root, Invalid_Node_Index);
+      if Root = Invalid_Node_Index then
+         return Invalid_Node_Index;
+      else
+         return Copy_Node (Tree, Root, Invalid_Node_Index);
+      end if;
    end Copy_Subtree;
 
    function Count_IDs
@@ -1694,6 +1698,8 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       Tree.Shared_Tree.Nodes (New_Child).Parent := Parent;
+
+      --  FIXME: update cached data as in Set_Children
    end Replace_Child;
 
    function RHS_Index

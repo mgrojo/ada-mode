@@ -38,11 +38,25 @@ speed up lr1 for ada_annex_p
 
 recognize more canonical lists
     ada_lite_ebnf.wy
-        enumeration_type_definition not recognized
+        recognizing lists in expression causes more conflicts.
+            don't recognize lists in multiple RHS
 
-    java_types_ch19.wy Dims
-./wisitoken-bnf-generate.exe --test_main  ../test/bnf/java_enum_ch19.wy
-SAL.PROGRAMMER_ERROR: java_enum_ch19.wy:30:0: unhandled exception SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from wisitoken-syntax_trees-lr_utils.ads:277: 0194:(rhs_multiple_item_0, (860 . 877)) <= (0078:78:(LEF
+    translation of:
+        declarative_part : {declaration} ;
+
+    is:
+        declaration_list
+          : declaration
+          | declaration_list declaration
+          ;
+        declarative_part
+          : declaration_list
+          | ;; empty
+          ;
+
+to_tree_sitter
+    detect, implement no empty nonterm
+    output Execute_Actions
 
 wisitoken-generate-lr.adb Add_Actions FIXME:
     doesn't use Goto_List for terminals!
@@ -190,6 +204,7 @@ change to incremental parse
     integrate with tree-sitter?
 
     change syntax tree; store lists in a single node
+        what does tree_sitter do?
         needs syntax in .wy to indicate a list
             ebnf recognize canonical list might be enough
         fewer nodes in syntax tree; should be faster (for large files)

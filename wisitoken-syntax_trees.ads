@@ -196,11 +196,13 @@ package WisiToken.Syntax_Trees is
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Valid_Node_Index)
-     return Valid_Node_Index
+      Root : in     Node_Index)
+     return Node_Index
    with Pre => Tree.Flushed and Tree.Parents_Set;
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
    --  of new subtree; it has no parent.
+   --
+   --  If Root is Invalid_Node_Index, returns Invalid_Node_Index
    --
    --  Parents of new child nodes are set. Node index order is preserved.
    --  References to objects external to tree are shallow copied

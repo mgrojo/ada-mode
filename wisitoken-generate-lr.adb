@@ -693,8 +693,9 @@ package body WisiToken.Generate.LR is
             end loop;
             This_Count := Count (All_Seq_Set);
             if This_Count = Last_Seq_Count then
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Image (All_Seq_Set, Descriptor, Inverted => True));
-               raise Grammar_Error with "sequences not resolved";
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "terminal sequences not resolved:");
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (All_Seq_Set, Descriptor, Inverted => True));
+               raise Grammar_Error with "terminal sequences not resolved";
             end if;
             Last_Seq_Count := This_Count;
          end loop;

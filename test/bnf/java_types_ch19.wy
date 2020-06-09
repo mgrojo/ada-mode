@@ -57,9 +57,7 @@ ArrayType:
 
 Dims: {Annotation} '[' ']' {{Annotation} '[' ']'} ;
 
-PrimitiveType:
-    {Annotation} NumericType
-  ;
+PrimitiveType: {Annotation} NumericType ;
 
 NumericType: 'byte' | 'short' | 'int' | 'long' | 'char' ;
 

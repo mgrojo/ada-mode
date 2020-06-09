@@ -78,12 +78,14 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Result := Root;
             loop
                declare
-                  Children : constant Valid_Node_Index_Array := Tree.Children (Result);
+                  Child : constant Valid_Node_Index := Tree.Child (Result, 1);
                begin
-                  if Tree.ID (Children (1)) = List_ID then
-                     Result := Children (1);
-                  elsif Tree.ID (Children (1)) = Element_ID then
-                     Result := Children (1);
+                  if Child = Deleted_Child then
+                     raise SAL.Programmer_Error with "deleted child";
+                  elsif Tree.ID (Child) = List_ID then
+                     Result := Child;
+                  elsif Tree.ID (Child) = Element_ID then
+                     Result := Child;
                      exit;
                   else
                      raise SAL.Programmer_Error;
