@@ -148,6 +148,16 @@ package WisiToken_Grammar_Runtime is
       Tree_Index   : in WisiToken.Valid_Node_Index;
       Strip_Quotes : in Boolean := False)
      return String;
+   --  Return source text for Tree_Index.
+
+   function Get_Item_Text
+     (Data         : in User_Data_Type;
+      Tree         : in WisiToken.Syntax_Trees.Tree;
+      Node         : in WisiToken.Valid_Node_Index;
+      Strip_Quotes : in Boolean := False)
+     return String;
+   --  Find first descendant of Node that has rhs_item_ID, return source
+   --  text for it.
 
    procedure Raise_Programmer_Error
      (Label : in String;

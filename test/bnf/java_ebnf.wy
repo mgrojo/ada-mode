@@ -75,7 +75,7 @@ expressionList
     %((wisi-indent-action [(T1 . (wisi-indent-hanging 0 java-indent-broken))
                            (T2 . 0)
                            (T3 . [(wisi-indent-hanging 0 java-indent-broken)
-                                  (wisi-indent-hanging 0 java-indent-broken))]))%
+                                  (wisi-indent-hanging 0 java-indent-broken))]]))%
   ;
 
 ;; Start test of previous bug in searching for single-element list

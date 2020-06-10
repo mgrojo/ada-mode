@@ -115,6 +115,16 @@ package body WisiToken_Grammar_Runtime is
       end case;
    end Get_Text;
 
+   function Get_Item_Text
+     (Data         : in User_Data_Type;
+      Tree         : in WisiToken.Syntax_Trees.Tree;
+      Node         : in WisiToken.Valid_Node_Index;
+      Strip_Quotes : in Boolean := False)
+     return String
+   is begin
+      return Get_Text (Data, Tree, Tree.Find_Descendant (Node, +rhs_item_ID), Strip_Quotes);
+   end Get_Item_Text;
+
    function Get_Child_Text
      (Data         : in User_Data_Type;
       Tree         : in Syntax_Trees.Tree;
