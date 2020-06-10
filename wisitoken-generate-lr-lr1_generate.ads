@@ -32,6 +32,7 @@ package WisiToken.Generate.LR.LR1_Generate is
    function Generate
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
+      Grammar_File_Name     : in     String;
       Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Parse_Table_File_Name : in     String              := "";

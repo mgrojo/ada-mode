@@ -472,6 +472,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
    function Generate
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
+      Grammar_File_Name     : in     String;
       Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Parse_Table_File_Name : in     String              := "";
@@ -496,7 +497,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
          else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
-        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
+        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Grammar_File_Name);
 
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);

@@ -27,6 +27,7 @@ package WisiToken.Generate.LR.LALR_Generate is
    function Generate
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
+      Grammar_File_Name     : in     String;
       Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Parse_Table_File_Name : in     String              := "";
@@ -46,6 +47,8 @@ package WisiToken.Generate.LR.LALR_Generate is
    --
    --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
    --  are unknown conflicts.
+   --
+   --  Grammar_File_Name is used for error messages.
 
    ----------
    --  Visible for unit tests

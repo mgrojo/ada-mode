@@ -139,7 +139,7 @@ DIFF_OPT := -u -w
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 %.re2c : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --test_main $(GENERATE_ARGS) $<
+	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**
 
 %.exe : force; gprbuild -p -j8 --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
@@ -149,7 +149,7 @@ DIFF_OPT := -u -w
 	dos2unix $*_re2c.c
 
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf $@ --generate None $<
+	./wisitoken-bnf-generate.exe --output_bnf --generate None $<
 
 # clean rules
 source-clean ::

@@ -146,12 +146,17 @@ package WisiToken.Generate.LR is
    type Minimal_Sequence_Array is array (Token_ID range <>) of Minimal_Sequence_Item;
 
    function Compute_Minimal_Terminal_Sequences
-     (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
+     (Descriptor        : in WisiToken.Descriptor;
+      Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      Grammar_File_Name : in String)
      return Minimal_Sequence_Array;
    --  For each production in Grammar, compute the minimal sequence of
    --  terminals that will complete it. Result is an empty sequence if
    --  the production may be empty.
+   --
+   --  If some minimal sequences cannot be computed due to bad grammar
+   --  structure, an error message using Grammar_File_Name is put to
+   --  Current_Error, and Parse_Error is raised.
 
    function Compute_Minimal_Terminal_First
      (Descriptor                 : in WisiToken.Descriptor;

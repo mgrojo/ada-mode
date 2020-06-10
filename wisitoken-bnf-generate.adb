@@ -112,7 +112,7 @@ is
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
       Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
-      Put_Line (Standard_Error, "  --output_bnf <file_name> : output translated BNF source to file_name");
+      Put_Line (Standard_Error, "  --output_bnf : output translated EBNF source to <grammar file name base>_bnf.wy");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error, "  --ignore_conflicts; ignore excess/unknown conflicts");
       Put_Line (Standard_Error,
@@ -124,7 +124,6 @@ is
    Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
    Output_File_Name_Root : Ada.Strings.Unbounded.Unbounded_String;
    Suffix                : Ada.Strings.Unbounded.Unbounded_String;
-   BNF_File_Name         : Ada.Strings.Unbounded.Unbounded_String;
    Output_BNF            : Boolean := False;
    Ignore_Conflicts      : Boolean := False;
    Test_Main             : Boolean := False;
@@ -243,10 +242,8 @@ begin
             end;
 
          elsif Argument (Arg_Next) = "--output_bnf" then
-            Output_BNF    := True;
-            Arg_Next      := Arg_Next + 1;
-            BNF_File_Name := +Argument (Arg_Next);
-            Arg_Next      := Arg_Next + 1;
+            Output_BNF := True;
+            Arg_Next   := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--suffix" then
             Arg_Next := Arg_Next + 1;
@@ -356,7 +353,7 @@ begin
                   end if;
 
                   if Output_BNF then
-                     WisiToken_Grammar_Editing.Print_Source (-BNF_File_Name, Tree, Input_Data);
+                     WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", Tree, Input_Data);
                   end if;
 
                   if WisiToken.Generate.Error then
@@ -467,6 +464,7 @@ begin
                   Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.Descriptor.all,
+                     Input_Data.Grammar_Lexer.File_Name,
                      Generate_Utils.To_Conflicts
                        (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                      Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
@@ -501,6 +499,7 @@ begin
                   Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LR1_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.Descriptor.all,
+                     Input_Data.Grammar_Lexer.File_Name,
                      Generate_Utils.To_Conflicts
                        (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                      Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),

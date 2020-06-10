@@ -660,8 +660,9 @@ package body WisiToken.Generate.LR is
    end Min;
 
    function Compute_Minimal_Terminal_Sequences
-     (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
+     (Descriptor        : in WisiToken.Descriptor;
+      Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      Grammar_File_Name : in String)
      return Minimal_Sequence_Array
    is
       --  Result (ID).Sequence.Length = 0 is a valid result (ie the
@@ -692,10 +693,22 @@ package body WisiToken.Generate.LR is
                Terminal_Sequence (Grammar, Descriptor, Result, All_Seq_Set, RHS_Seq_Set, Recursing, P.LHS);
             end loop;
             This_Count := Count (All_Seq_Set);
+
             if This_Count = Last_Seq_Count then
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "terminal sequences not resolved:");
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (All_Seq_Set, Descriptor, Inverted => True));
-               raise Grammar_Error with "terminal sequences not resolved";
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Current_Error,
+                  Error_Message
+                    (File_Name => Grammar_File_Name,
+                     File_Line => Line_Number_Type'First,
+                     Message   => "terminal sequences not resolved:"));
+
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Current_Error,
+                  Error_Message
+                    (File_Name => Grammar_File_Name,
+                     File_Line => Line_Number_Type'First,
+                     Message   => Image (All_Seq_Set, Descriptor, Inverted => True)));
+               raise Parse_Error;
             end if;
             Last_Seq_Count := This_Count;
          end loop;

@@ -37,8 +37,13 @@ speed up lr1 for ada_annex_p
     parallelize?
 
 recognize more canonical lists
-    ada_lite_ebnf.wy
-        AND_relation_list: inline AND_relation
+    java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
+        but first fix non-recognized case; lost empty AnnotationList
+
+0150:
+0098:     Annotation_list LEFT_BRACKET RIGHT_BRACKET Annotation_list_LEFT_BRACKET_list
+0149: BAR
+0148:     Annotation_list LEFT_BRACKET RIGHT_BRACKET
 
 to_tree_sitter
     detect, implement no empty nonterm

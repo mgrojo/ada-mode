@@ -144,25 +144,10 @@ package body BNF_WY_Test is
          null;
 
       when EBNF_Syntax =>
-         declare
-            Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
-            BNF_Name : constant String := BNF_File_Name (Root_Name);
-         begin
-            if WisiToken.Trace_Generate_EBNF > WisiToken.Outline then
-               Tree.Print_Tree
-                 (Wisitoken_Grammar_Actions.Descriptor,
-                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
-            end if;
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
-            if WisiToken.Trace_Generate_EBNF > WisiToken.Outline then
-               Ada.Text_IO.New_Line;
-               Tree.Print_Tree
-                 (Wisitoken_Grammar_Actions.Descriptor,
-                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
-            end if;
-            WisiToken_Grammar_Editing.Print_Source (BNF_Name, Tree, Input_Data);
-            Dos2unix (BNF_Name);
-         end;
+         --  The BNF file is output by rules.make, and debugged separately. We
+         --  need to translate this here in order to set McKenzie_Recover.
+         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
+           (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
       end case;
 
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;

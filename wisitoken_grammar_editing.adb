@@ -608,7 +608,7 @@ package body WisiToken_Grammar_Editing is
       begin
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("Insert_Optional_RHS start:");
+            Ada.Text_IO.Put_Line ("Insert_Optional_RHS start: " & Get_Text (Data, Tree, Container));
             Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container);
          end if;
 
@@ -693,7 +693,8 @@ package body WisiToken_Grammar_Editing is
                   Ada.Text_IO.Put_Line ("Insert_Optional_RHS duplicate '" & Get_Text (Data, Tree, New_RHS_AC) & "'");
                else
                   if Container_ID = +rhs_ID then
-                     Ada.Text_IO.Put_Line ("Insert_Optional_RHS old rhs, new rhs:");
+                     Ada.Text_IO.Put_Line
+                       ("Insert_Optional_RHS old rhs, new rhs: " & Get_Text (Data, Tree, Container_List.Root));
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container_List.Root);
                   else
                      Ada.Text_IO.Put_Line ("Insert_Optional_RHS edited rhs_alternative_list:");
@@ -1076,6 +1077,9 @@ package body WisiToken_Grammar_Editing is
                Separator_ID => Invalid_Token_ID));
          --  The first rhs_item_list of the rhs_multiple_item.
 
+         Container_List_Root : Node_Index := Invalid_Node_Index;
+         --  Updated by Insert_Optional_RHS.
+
          function List_Matches
            (N                 : in Valid_Node_Index;
             Separator_Content : in String;
@@ -1199,6 +1203,8 @@ package body WisiToken_Grammar_Editing is
             Element_1 : constant Node_Index := Get_Node (RHS_Item_List_Iter.Previous (Element_2));
             --  The rhs_element containing the list element
 
+            Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Index and Tree.RHS_Index (B) in 0 | 3;
+
             procedure Do_Simple_Named (List_Element : in Valid_Node_Index)
             is
                pragma Assert (Tree.ID (RHS) = +rhs_ID);
@@ -1264,8 +1270,6 @@ package body WisiToken_Grammar_Editing is
 
                Post_Parse_Action : constant Node_Index := Tree.Child (RHS, 2); --  deleted by first Add_RHS
                In_Parse_Action   : constant Node_Index := Tree.Child (RHS, 3);
-
-               Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Index and Tree.RHS_Index (B) in 0 | 3;
 
                List_Element_RHS_Item : constant Valid_Node_Index := Tree.Find_Descendant (List_Element, +rhs_item_ID);
 
@@ -1403,6 +1407,11 @@ package body WisiToken_Grammar_Editing is
                    else Element_1));
                Done := True;
                return;
+            elsif Can_Be_Empty then
+               --  use cases for this Insert_Optional_RHS:
+               --  yes: java_types_ch19.wy Dims
+               --  no: ada_lite_ebnf.wy enumeration_type_definition simple_expression
+               Container_List_Root := Insert_Optional_RHS (B);
             end if;
 
             declare
@@ -1454,6 +1463,9 @@ package body WisiToken_Grammar_Editing is
 
                else
                   List_Nonterm_Name := To_Identifier_Token (Name_Node, Tree, Data.Terminals);
+                  if Trace_Generate_EBNF > Extra then
+                     Ada.Text_IO.Put_Line ("use " & Get_Text (Data, Tree, Name_Node));
+                  end if;
                end if;
 
                if Element_1 /= Invalid_Node_Index then
@@ -1497,7 +1509,6 @@ package body WisiToken_Grammar_Editing is
             end loop;
          end Find_List_Nonterminal_2;
 
-         Container_List_Root : Node_Index := Invalid_Node_Index;
       begin
          --  Check if this is a recognized pattern
          Check_Canonical_List;
@@ -1628,13 +1639,16 @@ package body WisiToken_Grammar_Editing is
          Clear_EBNF_Node (B);
 
          if Trace_Generate_EBNF > Extra then
-            Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("Translate_RHS_Multiple_Item edited:");
-            Tree.Print_Tree
-              (Wisitoken_Grammar_Actions.Descriptor,
-               (if Container_List_Root = Invalid_Node_Index
-                then Tree.Parent (Parent_RHS_Item)
-                else Container_List_Root));
+            declare
+               Item : constant Valid_Node_Index :=
+                 (if Container_List_Root = Invalid_Node_Index
+                  then Tree.Parent (Parent_RHS_Item)
+                  else Container_List_Root);
+            begin
+               Ada.Text_IO.New_Line;
+               Ada.Text_IO.Put_Line ("Translate_RHS_Multiple_Item edited: " & Get_Text (Data, Tree, Item));
+               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Item);
+            end;
          end if;
       end Translate_RHS_Multiple_Item;
 
