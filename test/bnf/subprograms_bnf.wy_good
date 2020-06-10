@@ -121,7 +121,7 @@ name_list
       (wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
                            (T2 . 0)
                            (T3 . (wisi-hanging 0 java-indent-broken))]))%
-  | name_list=name_list T2=COMMA T3=name
+  | name_list T2=COMMA T3=name
     %((wisi-mmmify-token [T3])
       (wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
                            (T2 . 0)

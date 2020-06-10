@@ -32,7 +32,7 @@ classOrInterfaceType
   ;
 
 block
-  : LBRACE nonterminal_014_list RBRACE
+  : LBRACE statement_list RBRACE
   | LBRACE RBRACE
   ;
 
@@ -54,7 +54,7 @@ lambdaExpression
 lambdaParameters
   : LPAREN IDENTIFIER RPAREN
   ;
-nonterminal_014_list
+statement_list
   : statement
-  | nonterminal_014_list statement
+  | statement_list statement
   ;

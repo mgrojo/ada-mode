@@ -1,6 +1,8 @@
 ;; Examples of EBNF syntax used in the Java grammar file
 ;; https://github.com/antlr/grammars-v4/tree/master/java
 ;;
+;; Also syntax that revealed bugs discovered during development.
+;;
 ;; Note that the only *.*_good file is java_ebnf_bnf.wy_good, and that
 ;; this file does not declare all used tokens; we are only testing the
 ;; translation from EBNF to BNF.
@@ -139,5 +141,11 @@ typeParameter
 
 ;; Recognize this as a canonical list
 SwitchLabels: SwitchLabel {SwitchLabel} ;
+
+;; The first list was identified incorrectly
+BadList_1
+  : ('[' ']')* arrayInitializer
+  | expression ('[' ']')*
+  ;
 
 ;; end of file

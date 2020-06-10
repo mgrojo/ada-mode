@@ -144,7 +144,7 @@ primary
   ;
 
 typeType
-  : typnam=primitiveType nonterminal_033_list
+  : typnam=primitiveType LBRACK_RBRACK_list
   | typnam=primitiveType
   ;
 
@@ -177,10 +177,7 @@ nonterminal_032
   : ADD
   | SUB
   ;
-nonterminal_034
+LBRACK_RBRACK_list
   : LBRACK RBRACK
-  ;
-nonterminal_033_list
-  : nonterminal_034
-  | nonterminal_033_list nonterminal_034
+  | LBRACK_RBRACK_list LBRACK RBRACK
   ;

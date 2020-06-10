@@ -37,9 +37,16 @@ speed up lr1 for ada_annex_p
     parallelize?
 
 recognize more canonical lists
-    java_ebnf expressList is simple_named
+    use maybe_new_nonterminal_list in more places
+
+    java_ebnf.wy Bad_list_1
+        first list identified incorrectly.
+
+    java_types_ch19.wy Dims has 'list_025'
 
     java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
+        requires adding 'empty' to Annotation_list instead of inserting optional rhs
+        or first phase of extracting common sequences.
 
 to_tree_sitter
     detect, implement no empty nonterm
