@@ -630,12 +630,9 @@ exception_handler_list
   : exception_handler
   | exception_handler_list exception_handler
   ;
-ELSIF_expression
-  : ELSIF expression THEN sequence_of_statements
-  ;
 ELSIF_expression_list
-  : ELSIF_expression
-  | ELSIF_expression_list ELSIF_expression
+  : ELSIF expression THEN sequence_of_statements
+  | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
   ;
 statement_list
   : statement
