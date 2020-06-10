@@ -751,7 +751,7 @@ package body WisiToken_Grammar_Editing is
             List.Append (Comp_Unit);
          end if;
 
-         if Trace_Generate_EBNF > Detail then
+         if Trace_Generate_EBNF > Outline then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("new " & Label & ":" & Comp_Unit'Image & ": '" & Get_Text (Data, Tree, Unit) & "'");
             if Trace_Generate_EBNF > Extra then
@@ -1157,10 +1157,13 @@ package body WisiToken_Grammar_Editing is
             --
             --  Handling this no separator case specially does not eliminate any
             --  conflicts, but it does reduce the number of added nonterminals,
-            --  and keep the names simpler.
+            --  and keeps the names simpler.
 
             List_Nonterm_Decl : constant Valid_Node_Index := Tree.Find_Ancestor (B, +nonterminal_ID);
-            RHS_List_Root  : constant Valid_Node_Index := Tree.Child (List_Nonterm_Decl, 3);
+            RHS_List_Root     : constant Valid_Node_Index := Tree.Child (List_Nonterm_Decl, 3);
+
+            RHS_List : List := Create_List
+              (Tree, RHS_List_Root, +rhs_list_ID, +rhs_ID, Separator_ID => +BAR_ID);
 
             RHS : constant Valid_Node_Index := Tree.Find_Ancestor
               (B, (+rhs_ID, +rhs_alternative_list_ID));
@@ -1185,28 +1188,61 @@ package body WisiToken_Grammar_Editing is
             is
                pragma Assert (Tree.ID (RHS) = +rhs_ID);
 
-               --  The existing nonterminal declaration:
+               --  The existing nonterminal declaration is one of:
                --
-               --  list_name
-               --    : list_element {separator list_element}
-               --      %( action? )%
-               --    ;
+               --  1a) list_name
+               --       : list_element {separator list_element}
+               --         %( action? )%
+               --       ;
                --
-               --  or
+               --  2a) nonterm_name
+               --      : {list_element}
+               --        %( action? )%
+               --      ;
                --
-               --  list_name
-               --    : {list_element}
-               --      %( action? )%
-               --    ;
+               --  Rewrite 1a) to:
                --
-               --  Rewrite to:
+               --  1b) list_name
+               --        : list_element
+               --          %( action? )%
+               --        | list_name separator list_element
+               --          %( action? )%
+               --        ;
                --
-               --  list_name
-               --    : list_element
-               --      %( action? )%
-               --    | list_name separator? list_element
-               --      %( action? )%
-               --    | empty?
+               --  If 2a) can be empty, rewrite to:
+               --
+               --  2b) list_element_list
+               --        : list_element
+               --          %( action? )%
+               --        | list_element_list list_element
+               --          %( action? )%
+               --        ;
+               --
+               --      nonterm_name
+               --        : list_name
+               --          %( action? )%
+               --        | empty
+               --        ;
+               --
+               --  If instead we do the shortcut:
+               --      list_element_list
+               --        : list_element
+               --        | list_element_list list_element
+               --        | empty
+               --        ;
+               --  and list_element starts with a nullable nonterm, then there is a
+               --  conflict between reducing 0 tokens to an empty list_element_list
+               --  or to the nullable nonterm; see ada_lite_ebnf.wy declarative_part.
+               --  We have not computed Nullable yet, so we assume it is true.
+               --
+               --  otherwise rewrite to:
+               --
+               --  2c) nonterm_name
+               --        : list_element
+               --          %( action? )%
+               --        | nonterm_name list_element
+               --          %( action? )%
+               --        ;
 
                RHS_Item_List_1 : List := Empty_RHS_Item_List (Tree);
                New_RHS_List    : List := Empty_RHS_List (Tree);
@@ -1214,21 +1250,34 @@ package body WisiToken_Grammar_Editing is
                Post_Parse_Action : constant Node_Index := Tree.Child (RHS, 2); --  deleted by first Add_RHS
                In_Parse_Action   : constant Node_Index := Tree.Child (RHS, 3);
 
+               Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Index and Tree.RHS_Index (B) in 0 | 3;
+
+               List_Element_RHS_Item : constant Valid_Node_Index := Tree.Find_Descendant (List_Element, +rhs_item_ID);
+
+               List_Element_String : constant String := Get_Text (Data, Tree, List_Element_RHS_Item);
+
+               List_Name : constant Identifier_Token_Index :=
+                 (if Can_Be_Empty
+                  then To_Identifier_Token (New_Identifier (List_Element_String & "_list"))
+                  else To_Identifier_Token (Tree.Child (List_Nonterm_Decl, 1), Tree, Data.Terminals));
             begin
                RHS_Item_List_1.Append (List_Element);
+
                New_RHS_List.Append
                  (Add_RHS
                     (Tree, RHS_Item_List_1.Root,
                      Post_Parse_Action => Post_Parse_Action,
                      In_Parse_Action   => In_Parse_Action));
+
                B_Alt_List_Item_List.Prepend
                  (Add_RHS_Element
                     (Tree, Add_RHS_Item
                        (Tree,
                         Add_Identifier_Token
                           (Tree,
-                           To_Identifier_Token (Tree.Child (List_Nonterm_Decl, 1), Tree, Data.Terminals),
+                           List_Name,
                            Data.Terminals))));
+
                New_RHS_List.Append
                  (Add_RHS
                     (Tree,
@@ -1236,16 +1285,37 @@ package body WisiToken_Grammar_Editing is
                      Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action),
                      In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action)));
 
-               if Element_1 = Invalid_Node_Index and Tree.RHS_Index (B) in 0 | 3 then
-                  New_RHS_List.Append (Empty_RHS (Tree));
-               end if;
+               if Can_Be_Empty then
+                  Add_Compilation_Unit
+                    ("canonical list",
+                     Tree_Add_Nonterminal
+                       (Child_1 => Add_Identifier_Token (Tree, List_Name, Data.Terminals),
+                        Child_2 => Tree.Add_Terminal (+COLON_ID),
+                        Child_3 => New_RHS_List.Root,
+                        Child_4 => Tree.Add_Nonterm
+                          ((+semicolon_opt_ID, 0),
+                           (1   => Tree.Add_Terminal (+SEMICOLON_ID)))));
 
-               Tree.Replace_Child
-                 (Parent               => List_Nonterm_Decl,
-                  Child_Index          => 3,
-                  Old_Child            => RHS_List_Root,
-                  New_Child            => New_RHS_List.Root,
-                  Old_Child_New_Parent => Invalid_Node_Index);
+                  Tree.Replace_Child
+                    (Parent               => Tree.Find_Descendant (Get_Node (RHS_List.First), +rhs_item_list_ID),
+                     Child_Index          => 1,
+                     New_Child            => Add_RHS_Element
+                       (Tree,
+                        Add_RHS_Item
+                          (Tree, Add_Identifier_Token (Tree, List_Name, Data.Terminals))),
+                     Old_Child            => Get_Node (Element_2),
+                     Old_Child_New_Parent => Invalid_Node_Index);
+
+                  RHS_List.Append (Empty_RHS (Tree));
+
+               else
+                  Tree.Replace_Child
+                    (Parent               => List_Nonterm_Decl,
+                     Child_Index          => 3,
+                     Old_Child            => RHS_List_Root,
+                     New_Child            => New_RHS_List.Root,
+                     Old_Child_New_Parent => Invalid_Node_Index);
+               end if;
 
                Clear_EBNF_Node (B);
 
@@ -1258,12 +1328,14 @@ package body WisiToken_Grammar_Editing is
 
             Simple_Named : Boolean := False;
          begin
-            --  IMPROVEME: handle any case that Find_List_Nonterminal_2 can handle.
-
             if Is_Invalid (B_Alt_List_Item_List) or else
               Tree.RHS_Index (Get_Node (Element_2)) /= 0 or else
               Tree.RHS_Index (Tree.Child (Get_Node (B_Alt_List_Item_List.Last), 1)) /= 0
             then
+               return;
+            end if;
+
+            if not (Tree.RHS_Index (B) in 4 .. 5 or else B_Alt_List_Item_List.Count in 1 .. 2) then
                return;
             end if;
 
@@ -1278,7 +1350,15 @@ package body WisiToken_Grammar_Editing is
                return;
             end if;
 
-            if not (Tree.RHS_Index (B) in 4 .. 5 or else B_Alt_List_Item_List.Count in 1 .. 2) then
+            if Duplicate
+              (RHS_List,
+               (if Element_1 = Invalid_Node_Index
+                then Tree.Find_Descendant (Get_Node (B_Alt_List_Item_List.Last), +rhs_item_ID)
+                else Element_1))
+            then
+               --  See ada_lite_ebnf.wy expression; recognizing this would cause
+               --  conflicts between reducing a relation to expression or one of the
+               --  lists.
                return;
             end if;
 
@@ -1917,6 +1997,11 @@ package body WisiToken_Grammar_Editing is
             Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
             RHS_Index : constant Natural                := Tree.RHS_Index (Node);
          begin
+            if (for some Child of Children => Child = Deleted_Child) then
+               Put_Error ("deleted child");
+               return;
+            end if;
+
             case To_Token_Enum (Tree.ID (Node)) is
             when nonterminal_ID =>
                null;

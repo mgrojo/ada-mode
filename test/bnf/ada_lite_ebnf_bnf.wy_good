@@ -298,8 +298,7 @@ declaration
   ;
 
 declarative_part
-  : declaration
-  | declarative_part declaration
+  : declaration_list
   | ;; empty
   ;
 
@@ -329,9 +328,9 @@ exit_statement
 
 expression
   : relation
-  | relation_AND_list
-  | relation_OR_list
-  | relation_XOR_list
+  | relation AND_relation_list
+  | relation OR_relation_list
+  | relation XOR_relation_list
   ;
 
 extended_return_object_declaration
@@ -517,8 +516,7 @@ selected_component
   ;
 
 sequence_of_statements
-  : statement
-  | sequence_of_statements statement
+  : statement_list
   | ;; empty
   ;
 
@@ -604,21 +602,25 @@ case_statement_alternative_list
   : case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
   ;
+declaration_list
+  : declaration
+  | declaration_list declaration
+  ;
 IDENTIFIER_COMMA_list
   : IDENTIFIER
   | IDENTIFIER_COMMA_list COMMA IDENTIFIER
   ;
-relation_AND_list
-  : relation
-  | relation_AND_list AND relation
+AND_relation_list
+  : AND relation
+  | AND_relation_list AND relation
   ;
-relation_OR_list
-  : relation
-  | relation_OR_list OR relation
+OR_relation_list
+  : OR relation
+  | OR_relation_list OR relation
   ;
-relation_XOR_list
-  : relation
-  | relation_XOR_list XOR relation
+XOR_relation_list
+  : XOR relation
+  | XOR_relation_list XOR relation
   ;
 parameter_specification_SEMICOLON_list
   : parameter_specification
@@ -634,6 +636,10 @@ ELSIF_expression
 ELSIF_expression_list
   : ELSIF_expression
   | ELSIF_expression_list ELSIF_expression
+  ;
+statement_list
+  : statement
+  | statement_list statement
   ;
 term_binary_adding_operator_list
   : term

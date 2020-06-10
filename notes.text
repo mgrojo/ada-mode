@@ -38,21 +38,7 @@ speed up lr1 for ada_annex_p
 
 recognize more canonical lists
     ada_lite_ebnf.wy
-        recognizing lists in expression causes more conflicts.
-            don't recognize lists in multiple RHS
-
-    translation of:
-        declarative_part : {declaration} ;
-
-    is:
-        declaration_list
-          : declaration
-          | declaration_list declaration
-          ;
-        declarative_part
-          : declaration_list
-          | ;; empty
-          ;
+        AND_relation_list: inline AND_relation
 
 to_tree_sitter
     detect, implement no empty nonterm

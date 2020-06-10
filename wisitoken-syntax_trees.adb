@@ -533,26 +533,31 @@ package body WisiToken.Syntax_Trees is
       Message   : in String)
      return String
    is
-      First_Terminal : constant Valid_Node_Index  := Tree.First_Terminal (Node);
-      Line           : Line_Number_Type  := Line_Number_Type'First;
-      Column         : Ada.Text_IO.Count := Ada.Text_IO.Count'First;
+      First_Terminal : constant Node_Index := Tree.First_Terminal (Node);
+      Line           : Line_Number_Type    := Line_Number_Type'First;
+      Column         : Ada.Text_IO.Count   := Ada.Text_IO.Count'First;
    begin
-      case Tree.Label (First_Terminal) is
-      when Shared_Terminal =>
-         declare
-            Token : Base_Token renames Terminals.all (Tree.First_Shared_Terminal (First_Terminal));
-         begin
-            Line   := Token.Line;
-            Column := Token.Column;
-         end;
-
-      when Virtual_Terminal | Virtual_Identifier =>
+      if First_Terminal = Invalid_Node_Index then
          Line   := Line_Number_Type'First;
-         Column := Ada.Text_IO.Count (Tree.Byte_Region (First_Terminal).First);
+         Column := Ada.Text_IO.Count (Tree.Byte_Region (Node).First);
+      else
+         case Tree.Label (First_Terminal) is
+         when Shared_Terminal =>
+            declare
+               Token : Base_Token renames Terminals.all (Tree.First_Shared_Terminal (First_Terminal));
+            begin
+               Line   := Token.Line;
+               Column := Token.Column;
+            end;
 
-      when others =>
-         null;
-      end case;
+         when Virtual_Terminal | Virtual_Identifier =>
+            Line   := Line_Number_Type'First;
+            Column := Ada.Text_IO.Count (Tree.Byte_Region (First_Terminal).First);
+
+         when others =>
+            null;
+         end case;
+      end if;
       return WisiToken.Error_Message (File_Name, Line, Column, Message);
    end Error_Message;
 
@@ -900,14 +905,16 @@ package body WisiToken.Syntax_Trees is
             return Index;
          when Nonterm =>
             for C of N.Children loop
-               --  Encountering Deleted_Child here is an error in the user algorithm.
-               declare
-                  Term : constant Node_Index := First_Terminal (Tree, C);
-               begin
-                  if Term /= Invalid_Node_Index then
-                     return Term;
-                  end if;
-               end;
+               --  This may be called from Error_Message; tolerate Deleted_Child.
+               if C /= Deleted_Child then
+                  declare
+                     Term : constant Node_Index := First_Terminal (Tree, C);
+                  begin
+                     if Term /= Invalid_Node_Index then
+                        return Term;
+                     end if;
+                  end;
+               end if;
             end loop;
             return Invalid_Node_Index;
          end case;
