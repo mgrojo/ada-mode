@@ -3514,6 +3514,24 @@ package body Ada_Process_Actions is
       end case;
    end primary_4;
 
+   procedure primary_5
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 2)));
+      when Indent =>
+         null;
+      end case;
+   end primary_5;
+
    procedure private_extension_declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;

@@ -58,3 +58,5 @@ ada_annex_p_process_actions.ads
 ada_annex_p_process_main.adb
 ada_annex_p_process_main.ads
 ada_annex_p_re2c_c.ads
+ada_annex_p_bnf.wy
+ada_annex_p_re2c.c
