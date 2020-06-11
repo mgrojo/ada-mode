@@ -79,8 +79,8 @@ recover: succeed, parser count 2
  0: 74: (RIGHT_PAREN) : reduce 3 tokens to LambdaExpression
 (LambdaExpression, (123 . 123)) <= (6:(Identifier, (123 . 123)), (MINUS_GREATER), (Identifier))
  ... goto state 24
- 1: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 125)) <= ((Statement, (105 . 125)))
+ 1: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to Statement_list
+(Statement_list, (105 . 125)) <= ((Statement, (105 . 125)))
  ... goto state 4
  0: 24: (RIGHT_PAREN) : reduce 1 tokens to Expression
 (Expression, (123 . 123)) <= ((LambdaExpression, (123 . 123)))
@@ -117,8 +117,8 @@ recover: succeed, parser count 2
  0: 16: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 3 tokens to Statement
 (Statement, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
  ... goto state 3
- 0: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 125)) <= ((Statement, (105 . 125)))
+ 0: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to Statement_list
+(Statement_list, (105 . 125)) <= ((Statement, (105 . 125)))
  ... goto state 4
  0: 4: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : shift and goto state 1
  1: 15: 11:(Identifier, (278 . 278)) : shift and goto state 22
@@ -205,11 +205,11 @@ recover: succeed, parser count 2
  1: 49: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 4 tokens to Statement
 (Statement, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
  ... goto state 14
- 2: 14: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 281)) <= ((nonterminal_022_list, (105 . 125)), (Statement, (264 . 281)))
+ 2: 14: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to Statement_list
+(Statement_list, (105 . 281)) <= ((Statement_list, (105 . 125)), (Statement, (264 . 281)))
  ... goto state 4
- 1: 14: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 281)) <= ((nonterminal_022_list, (105 . 125)), (Statement, (264 . 281)))
+ 1: 14: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to Statement_list
+(Statement_list, (105 . 281)) <= ((Statement_list, (105 . 125)), (Statement, (264 . 281)))
  ... goto state 4
  2: 4: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : shift and goto state 1
  1: 4: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : shift and goto state 1
@@ -250,8 +250,8 @@ recover: succeed, parser count 2
  2: 49: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : reduce 4 tokens to Statement
 (Statement, (343 . 349)) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
  ... goto state 14
- 2: 14: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : reduce 2 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 349)) <= ((nonterminal_022_list, (105 . 281)), (Statement, (343 . 349)))
+ 2: 14: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : reduce 2 tokens to Statement_list
+(Statement_list, (105 . 349)) <= ((Statement_list, (105 . 281)), (Statement, (343 . 349)))
  ... goto state 4
  2: 4: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : shift and goto state 1
  2: 1: 20:(Identifier, (413 . 413)) : shift and goto state 5
@@ -300,11 +300,11 @@ recover: succeed, parser count 1
  2: 16: 23:(Wisi_EOI, (434 . 433)) : reduce 3 tokens to Statement
 (Statement, (411 . 417)) <= (19:(LEFT_CURLY_BRACKET, (411 . 411)), (Assignment, (413 . 415)), 22:(RIGHT_CURLY_BRACKET, (417 . 417)))
  ... goto state 14
- 2: 14: 23:(Wisi_EOI, (434 . 433)) : reduce 2 tokens to nonterminal_022_list
-(nonterminal_022_list, (105 . 417)) <= ((nonterminal_022_list, (105 . 349)), (Statement, (411 . 417)))
+ 2: 14: 23:(Wisi_EOI, (434 . 433)) : reduce 2 tokens to Statement_list
+(Statement_list, (105 . 417)) <= ((Statement_list, (105 . 349)), (Statement, (411 . 417)))
  ... goto state 4
  2: 4: 23:(Wisi_EOI, (434 . 433)) : reduce 1 tokens to CompilationUnit
-(CompilationUnit, (105 . 417)) <= ((nonterminal_022_list, (105 . 417)))
+(CompilationUnit, (105 . 417)) <= ((Statement_list, (105 . 417)))
  ... goto state 2
  2: 2: 23:(Wisi_EOI, (434 . 433)) : accept it
 (wisitoken_accept, (105 . 417)) <= ((CompilationUnit, (105 . 417)))

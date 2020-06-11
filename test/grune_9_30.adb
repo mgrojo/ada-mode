@@ -157,7 +157,7 @@ package body Grune_9_30 is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
-         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
+         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

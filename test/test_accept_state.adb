@@ -95,7 +95,7 @@ package body Test_Accept_State is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

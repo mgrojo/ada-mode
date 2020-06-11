@@ -37,19 +37,16 @@ speed up lr1 for ada_annex_p
     parallelize?
 
 recognize more canonical lists
-    use maybe_new_nonterminal_list in more places
+    all tests pass; do commit
 
-    java_ebnf.wy Bad_list_1
-        first list identified incorrectly.
+    ada_annex_p.wy
 
-    java_types_ch19.wy Dims has 'list_025'
-
-    java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
-        requires adding 'empty' to Annotation_list instead of inserting optional rhs
-        or first phase of extracting common sequences.
+java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
+    requires adding 'empty' to Annotation_list instead of inserting optional rhs
+    or first phase of extracting common sequences.
 
 to_tree_sitter
-    detect, implement no empty nonterm
+    detect and/or implement no empty nonterm
     output Execute_Actions
 
 wisitoken-generate-lr.adb Add_Actions FIXME:

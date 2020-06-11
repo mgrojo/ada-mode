@@ -17,12 +17,12 @@ Tokens:
  15 => expression
  16 => lambdaExpression
  17 => lambdaParameters
- 18 => nonterminal_014_list
+ 18 => statement_list
 
 Productions:
 11.0: wisitoken_accept <= block Wisi_EOI
 12.0: classOrInterfaceType <= IDENTIFIER
-13.0: block <= LBRACE nonterminal_014_list RBRACE ; (2 => Other)
+13.0: block <= LBRACE statement_list RBRACE ; (2 => Other)
 13.1: block <= LBRACE RBRACE
 14.0: statement <= expression SEMI ; (1 => Other_Left)
 15.0: expression <= LPAREN expression RPAREN ; (2 => Other)
@@ -31,8 +31,8 @@ Productions:
 15.3: expression <= lambdaExpression ; (1 => Other_Left)
 16.0: lambdaExpression <= lambdaParameters ARROW block ; (3 => Other_Right)
 17.0: lambdaParameters <= LPAREN IDENTIFIER RPAREN
-18.0: nonterminal_014_list <= statement ; (1 => Other_Left)
-18.1: nonterminal_014_list <= nonterminal_014_list statement ; (1 => Direct_Left, 2 => Other_Right)
+18.0: statement_list <= statement ; (1 => Other_Left)
+18.1: statement_list <= statement_list statement ; (1 => Direct_Left, 2 => Other_Right)
 
 Recursions:
 1 => (13 (0) -> 18 (0, 1) -> 14 (0) -> 15 (3) -> 16 (0) -> )
@@ -74,7 +74,7 @@ McKenzie:
  expression           => 4,
  lambdaExpression     => 4,
  lambdaParameters     => 4,
- nonterminal_014_list => 4)
+ statement_list       => 4)
 (Undo_Reduce =>
  wisitoken_accept     => 4,
  classOrInterfaceType => 4,
@@ -83,7 +83,7 @@ McKenzie:
  expression           => 4,
  lambdaExpression     => 4,
  lambdaParameters     => 4,
- nonterminal_014_list => 4)
+ statement_list       => 4)
 Minimal_Complete_Cost_Delta => -1
 Fast_Forward      =>  0
 Matching_Begin    =>  0
@@ -105,7 +105,7 @@ State 0:
    Minimal_Complete_Action => 
 
 State 1:
-     13.0:block <= LBRACE ^ nonterminal_014_list RBRACE
+     13.0:block <= LBRACE ^ statement_list RBRACE
      13.1:block <= LBRACE ^ RBRACE
 
    LPAREN               => shift and goto state 3 15.0
@@ -117,7 +117,7 @@ State 1:
    expression           goto state 7
    lambdaExpression     goto state 8
    lambdaParameters     goto state 9
-   nonterminal_014_list goto state 10
+   statement_list       goto state 10
 
    Minimal_Complete_Action => RBRACE 13.1
 
@@ -165,14 +165,14 @@ State 5:
    Minimal_Complete_Action => expression 15.1
 
 State 6:
-     18.0:nonterminal_014_list <= statement ^
+     18.0:statement_list <= statement ^
 
-   LPAREN               => reduce 1 tokens to nonterminal_014_list 18.0
-   RBRACE               => reduce 1 tokens to nonterminal_014_list 18.0
-   IDENTIFIER           => reduce 1 tokens to nonterminal_014_list 18.0
+   LPAREN               => reduce 1 tokens to statement_list 18.0
+   RBRACE               => reduce 1 tokens to statement_list 18.0
+   IDENTIFIER           => reduce 1 tokens to statement_list 18.0
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_014_list 18.0
+   Minimal_Complete_Action => statement_list 18.0
 
 State 7:
      14.0:statement <= expression ^ SEMI
@@ -200,8 +200,8 @@ State 9:
    Minimal_Complete_Action => ARROW 16.0
 
 State 10:
-     13.0:block <= LBRACE nonterminal_014_list ^ RBRACE
-     18.1:nonterminal_014_list <= nonterminal_014_list ^ statement
+     13.0:block <= LBRACE statement_list ^ RBRACE
+     18.1:statement_list <= statement_list ^ statement
 
    LPAREN               => shift and goto state 3 15.0
    RBRACE               => shift and goto state 16 13.0
@@ -264,7 +264,7 @@ State 15:
    Minimal_Complete_Action => LBRACE 13.0
 
 State 16:
-     13.0:block <= LBRACE nonterminal_014_list RBRACE ^
+     13.0:block <= LBRACE statement_list RBRACE ^
 
    RPAREN               => reduce 3 tokens to block 13.0
    SEMI                 => reduce 3 tokens to block 13.0
@@ -274,14 +274,14 @@ State 16:
    Minimal_Complete_Action => block 13.0
 
 State 17:
-     18.1:nonterminal_014_list <= nonterminal_014_list statement ^
+     18.1:statement_list <= statement_list statement ^
 
-   LPAREN               => reduce 2 tokens to nonterminal_014_list 18.1
-   RBRACE               => reduce 2 tokens to nonterminal_014_list 18.1
-   IDENTIFIER           => reduce 2 tokens to nonterminal_014_list 18.1
+   LPAREN               => reduce 2 tokens to statement_list 18.1
+   RBRACE               => reduce 2 tokens to statement_list 18.1
+   IDENTIFIER           => reduce 2 tokens to statement_list 18.1
    default              => ERROR
 
-   Minimal_Complete_Action => nonterminal_014_list 18.1
+   Minimal_Complete_Action => statement_list 18.1
 
 State 18:
      17.0:lambdaParameters <= LPAREN IDENTIFIER RPAREN ^

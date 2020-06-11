@@ -227,7 +227,8 @@ package body Dragon_4_43_LR1_Test is
       use WisiToken.Parse.LR;
       use WisiToken.Parse.LR.AUnit;
 
-      Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor);
+      Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LR1_Generate.Generate
+        (Grammar, LR1_Descriptor, Grammar_File_Name => "");
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -297,7 +298,7 @@ package body Dragon_4_43_LR1_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
-         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
+         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
