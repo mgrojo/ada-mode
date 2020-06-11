@@ -19,6 +19,7 @@ with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Productions;
 with WisiToken.Text_IO_Trace;
+with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
@@ -33,11 +34,13 @@ is
       Put_Line ("wisitoken-followed_by <grammar file> <token a> <token b>");
    end Put_Usage;
 
-   function Last
+   function Immediate_Last
      (Grammar              : in Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
       First_Terminal       : in Token_ID)
      return Token_Array_Token_Set
+   --  Result (LHS) is the set of terminals and nonterminals that directly appear as
+   --  the last token in any production for LHS.
    is
       function Last
         (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -45,6 +48,66 @@ is
          First_Terminal       : in Token_ID;
          Non_Terminal         : in Token_ID)
         return Token_ID_Set
+      --  Result is the set of terminals and nonterminals that directly appear as
+      --  the last token in any production for Non_Terminal.
+      is begin
+         return Result : Token_ID_Set := (First_Terminal .. Grammar.Last_Index => False) do
+            declare
+               Prod : WisiToken.Productions.Instance renames Grammar (Non_Terminal);
+            begin
+               for RHS of Prod.RHSs loop
+                  for ID of reverse RHS.Tokens loop
+                     Result (ID) := True;
+
+                     if ID in Has_Empty_Production'Range and then Has_Empty_Production (ID) then
+                        null;
+                     else
+                        exit;
+                     end if;
+                  end loop;
+               end loop;
+            end;
+         end return;
+      end Last;
+
+      procedure Set_Slice (Result : in out Token_Array_Token_Set; I : Token_ID; Value : in Token_ID_Set)
+      is begin
+         for J in Result'Range (2) loop
+            Result (I, J) := Value (J);
+         end loop;
+      end Set_Slice;
+
+   begin
+      return Result : Token_Array_Token_Set :=
+        (Grammar.First_Index .. Grammar.Last_Index =>
+           (First_Terminal .. Grammar.Last_Index => False))
+      do
+         for I in Result'Range loop
+            declare
+               Slice : constant Token_ID_Set := Last (Grammar, Has_Empty_Production, First_Terminal, I);
+            begin
+               Set_Slice (Result, I, Slice);
+            end;
+         end loop;
+      end return;
+   end Immediate_Last;
+
+   function Transitive_Last
+     (Grammar              : in Productions.Prod_Arrays.Vector;
+      Has_Empty_Production : in Token_ID_Set;
+      First_Terminal       : in Token_ID)
+     return Token_Array_Token_Set
+   --  Result (LHS) is the set of terminals and nonterminals that may be
+   --  the last token in any production for LHS.
+   is
+      function Last
+        (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+         Has_Empty_Production : in Token_ID_Set;
+         First_Terminal       : in Token_ID;
+         Non_Terminal         : in Token_ID)
+        return Token_ID_Set
+      --  Result is the set of terminals and nonterminals that may be
+      --  the last token in any production for Non_Terminal.
       is
          Search_Tokens : Token_ID_Set := (Grammar.First_Index .. Grammar.Last_Index => False);
       begin
@@ -97,10 +160,14 @@ is
            (First_Terminal .. Grammar.Last_Index => False))
       do
          for I in Result'Range loop
-            Set_Slice (Result, I, Last (Grammar, Has_Empty_Production, First_Terminal, I));
+            declare
+               Slice : constant Token_ID_Set := Last (Grammar, Has_Empty_Production, First_Terminal, I);
+            begin
+               Set_Slice (Result, I, Slice);
+            end;
          end loop;
       end return;
-   end Last;
+   end Transitive_Last;
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
@@ -117,7 +184,7 @@ begin
    declare
       use Ada.Command_Line;
    begin
-      if Argument_Count /= 3 then
+      if Argument_Count not in 3 .. 4 then
          Put_Usage;
       end if;
 
@@ -131,7 +198,7 @@ begin
    Grammar_Parser.Execute_Actions; -- Meta phase.
 
    if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
-      WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
+      WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
       if WisiToken.Generate.Error then
          raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
       end if;
@@ -148,60 +215,104 @@ begin
         WisiToken.BNF.Generate_Utils.Initialize (Input_Data, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
+      Token_A : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);
+      Token_B : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_B_Name);
+
+      Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+
       Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Generate_Data.Grammar);
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
 
-      First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
-        (Generate_Data.Grammar, Has_Empty_Production, Generate_Data.Descriptor.First_Terminal);
+      First_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
+        (Generate_Data.Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
-      Last_Nonterm_Set : constant Token_Array_Token_Set := Last
-        (Generate_Data.Grammar, Has_Empty_Production, Generate_Data.Descriptor.First_Terminal);
+      Immediate_Last_Nonterm_Set : constant Token_Array_Token_Set := Immediate_Last
+        (Generate_Data.Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
-      Token_A    : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);
-      Token_B    : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_B_Name);
-      Need_Comma : Boolean           := False;
+      Transitive_Last_Nonterm_Set : constant Token_Array_Token_Set := Transitive_Last
+        (Generate_Data.Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
-      procedure Put (LHS : in Token_ID; RHS : in Natural)
-      is
-      begin
+      function Followed_By (Token_A, Token_B : in Token_ID) return Production_ID
+      is begin
+         for LHS in Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index loop
+            declare
+               use WisiToken.Productions;
+               Prod : Instance renames Generate_Data.Grammar (LHS);
+            begin
+               for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+                  declare
+                     Tokens : Token_ID_Arrays.Vector renames Prod.RHSs (I).Tokens;
+                  begin
+                     for J in Tokens.First_Index .. Tokens.Last_Index loop
+                        if Tokens (J) = Token_A or
+                          (Tokens (J) in Transitive_Last_Nonterm_Set'Range (1) and then
+                             Transitive_Last_Nonterm_Set (Tokens (J), Token_A))
+                        then
+                           if J < Tokens.Last_Index then
+                              if Tokens (J + 1) in First_Set'Range (1) then
+                                 if First_Set (Tokens (J + 1), Token_B) then
+                                    return (LHS, I);
+                                 end if;
+                              elsif Tokens (J + 1) = Token_B then
+                                 return (LHS, I);
+                              end if;
+                           end if;
+                        end if;
+                     end loop;
+                  end;
+               end loop;
+            end;
+         end loop;
+         return Invalid_Production_ID;
+      end Followed_By;
+
+      Need_Comma : Boolean := False;
+
+      procedure Put_Comma
+      is begin
          if Need_Comma then
             Put (", ");
          else
             Need_Comma := True;
          end if;
-         Put (Trimmed_Image ((LHS, RHS)));
-      end Put;
+      end Put_Comma;
 
    begin
-      for LHS in Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index loop
-         declare
-            use WisiToken.Productions;
-            Prod : Instance renames Generate_Data.Grammar (LHS);
-         begin
-            for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
+      New_Line;
+      Put_Line ("Last path of " & Image (Token_A, Descriptor) & " " & Image (Token_B, Descriptor) & ":");
+      declare
+         Last_Set     : Token_ID_Set (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index)
+           := (others => False);
+         New_Last_Set : Token_ID_Set (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index)
+           := (others => False);
+      begin
+         Last_Set (Token_A) := True;
+         loop
+            New_Last_Set := (others => False);
+
+            for LHS in Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index loop
                declare
-                  Tokens : Token_ID_Arrays.Vector renames Prod.RHSs (I).Tokens;
+                  F : constant Production_ID := Followed_By (LHS, Token_B);
                begin
-                  for J in Tokens.First_Index .. Tokens.Last_Index loop
-                     if Tokens (J) = Token_A or
-                       (Tokens (J) in Last_Nonterm_Set'Range (1) and then
-                          Last_Nonterm_Set (Tokens (J), Token_A))
-                     then
-                        if J < Tokens.Last_Index then
-                           if Tokens (J + 1) in First_Nonterm_Set'Range (1) then
-                              if First_Nonterm_Set (Tokens (J + 1), Token_B) then
-                                 Put (LHS, I);
-                              end if;
-                           elsif Tokens (J + 1) = Token_B then
-                              Put (LHS, I);
-                           end if;
-                        end if;
-                     end if;
-                  end loop;
+                  if F /= Invalid_Production_ID and then
+                    (for some L in Last_Set'Range =>
+                       Last_Set (L) and Immediate_Last_Nonterm_Set (LHS, L))
+                  then
+                     New_Last_Set (LHS) := True;
+                     Put_Comma;
+                     Put
+                       (Image (F.LHS, Descriptor) & "." &
+                          Trimmed_Image (F.RHS) & " " & Image (LHS, Descriptor));
+                  end if;
                end;
             end loop;
-         end;
-      end loop;
-   end;
+            New_Line;
+            Need_Comma := False;
+            exit when (for all I of New_Last_Set => not I);
+            exit when New_Last_Set (Token_A);
 
+            Last_Set := New_Last_Set;
+         end loop;
+      end;
+   end;
 end WisiToken.Followed_By;
