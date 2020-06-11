@@ -49,13 +49,20 @@ endif
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
-	cd ./$(<D); $(WISITOKEN_GENERATE) --time --output_bnf $(*F)-bnf.wy $(<F)
+	cd ./$(<D); $(WISITOKEN_GENERATE) --time --output_bnf $(<F)
 	cd ./$(<D); dos2unix -q $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 	cd ./$(<D); dos2unix -q $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	cd ./$(<D); dos2unix -q $(*F)_re2c.c
+
+followed-by : ARGS := ../ada_annex_p.wy term_list REM 1
+followed-by : $(WISITOKEN)/build/wisitoken-followed_by.exe
+	$(WISITOKEN)/build/wisitoken-followed_by.exe $(ARGS)
+
+$(WISITOKEN)/build/wisitoken-followed_by.exe : force
+	cd $(WISITOKEN)/build; make -r wisitoken-followed_by.exe
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"../autoloads.el\"))(update-directory-autoloads \"../\"))"

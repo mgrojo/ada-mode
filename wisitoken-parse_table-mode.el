@@ -26,6 +26,9 @@
 
 (require 'xref)
 
+(defvar wisitoken-parse_table-last-buffer nil
+  "Last buffer in which a wisitoken-parse_table operation was performed")
+
 (defun wisitoken-parse_table--xref-backend () 'wisitoken-parse_table)
 
 (cl-defgeneric xref-backend-identifier-completion-table ((_backend (eql wisitoken-parse_table)))
@@ -43,6 +46,7 @@
   ;;
   ;; - 'reduce n tokens to <nonterminal> <prod_id>'
   ;; => return 'prod_id: name'
+  (setq wisitoken-parse_table-last-buffer (current-buffer))
   (cond
    ((save-excursion
       (beginning-of-line)
@@ -60,6 +64,7 @@
 
 (cl-defgeneric xref-backend-definitions ((_backend (eql wisitoken-parse_table)) identifier)
   ;; IDENTIFIER is from xref-back-identifier-at-point; a state number or a nonterminal
+  (setq wisitoken-parse_table-last-buffer (current-buffer))
   (let ((state-p (string-match "\\`[0-9]+\\'" identifier))
 	(prod_id-p (string-match "\\`[0-9.]+: " identifier)))
     (save-excursion
@@ -76,6 +81,13 @@
        )
       (list (xref-make identifier (xref-make-buffer-location (current-buffer) (match-beginning 0))))
       )))
+
+(defun wisitoken-parse_table-goto ()
+  "Get symbol at point, switch to `wisitoken-parse_table-last-buffer', goto symbol's definition."
+  (interactive)
+  (let ((symbol (thing-at-point 'symbol)))
+    (pop-to-buffer wisitoken-parse_table-last-buffer)
+    (xref-find-definitions symbol)))
 
 ;;;###autoload
 (define-minor-mode wisitoken-parse_table-mode

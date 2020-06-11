@@ -57,10 +57,8 @@ eldoc
 
 ada_annex_p.wy
     reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
-        simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
-            recognize term_list
-            _not_ just add parens
-
+    propagate to main
+%conflict SHIFT/REDUCE in state name, primary on token LEFT_PAREN ( 173)
 
 compare ada LR1 generate time
     o.e.a:

@@ -339,10 +339,11 @@ package body Ada_Process_LR1_Main is
             Acts (260)(0) := (pragma_g_0'Access, null);
             Acts (260)(1) := (pragma_g_1'Access, null);
             Acts (260)(2) := (pragma_g_2'Access, null);
-            Acts (261).Set_First_Last (0, 4);
+            Acts (261).Set_First_Last (0, 5);
             Acts (261)(0) := (primary_0'Access, null);
             Acts (261)(2) := (primary_2'Access, null);
             Acts (261)(4) := (primary_4'Access, null);
+            Acts (261)(5) := (primary_5'Access, null);
             Acts (262).Set_First_Last (0, 0);
             Acts (262)(0) := (private_extension_declaration_0'Access, null);
             Acts (263).Set_First_Last (0, 0);
