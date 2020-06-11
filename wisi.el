@@ -422,6 +422,13 @@ Truncate any region that overlaps POS."
   "Force a parse."
   (interactive)
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
+
+  (setq wisi--change-beg most-positive-fixnum)
+  (setq wisi--change-end nil)
+  (setq wisi--deleted-syntax nil)
+  (setq wisi-indenting-p nil)
+  (setq wisi--last-parse-action nil)
+
   (setq wisi--cached-regions ;; necessary instead of wisi-invalidate after ediff-regions
 	(list
 	 (cons 'face nil)

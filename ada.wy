@@ -2408,7 +2408,7 @@ subprogram_body
     %((wisi-statement-action [1 statement-start 2 statement-override 4 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 2 4 6 [7 WHEN] 10])
       (wisi-face-apply-action [9 font-lock-function-name-face font-lock-function-name-face])
-      (wisi-indent-action [nil [nil ada-indent] nil nil [ada-indent ada-indent]
+      (wisi-indent-action [nil nil nil nil [ada-indent ada-indent]
                              nil [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 2 9))%
   ;

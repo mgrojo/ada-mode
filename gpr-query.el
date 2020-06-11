@@ -145,11 +145,25 @@ Must match gpr_query.adb Version.")
   ;; We assume only one gpr-query symbols process is active at a time
   "For `mode-line-misc-info'.")
 
+(defconst gpr-query--symbol-char "[-+*/=<>&[:alnum:]_.]")
+
+(defconst gpr-query-completion-regexp
+  (concat "\\(" gpr-query--symbol-char "+\\)\\((.*)\\)?<.*<[0-9]+>>")
+  "Regexp matching completion item from gpr-query--read-symbols.")
+
 (defun gpr-query--update-progress ()
   ;; separate for debugging
-  (setf (gpr-query--session-symbols-count-current gpr-query--local-session)
-	(+ (gpr-query--session-symbols-count-current gpr-query--local-session)
-	   (count-lines (point) (point-max))))
+  (let ((count 0))
+    ;; don't count partial lines
+    (goto-char (line-beginning-position))
+    (while (looking-at gpr-query-completion-regexp)
+      (setq count (1+ count))
+      (forward-line 1))
+
+    (setf (gpr-query--session-symbols-count-current gpr-query--local-session)
+	  (+ (gpr-query--session-symbols-count-current gpr-query--local-session)
+	     count)))
+
   (let ((percent
 	 (/
 	  (* 100 (gpr-query--session-symbols-count-current gpr-query--local-session))
@@ -456,12 +470,6 @@ Uses `gpr_query'. Returns new list."
   (concat wisi-file-line-col-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-(defconst gpr-query--symbol-char "[-+*/=<>&[:alnum:]_.]")
-
-(defconst gpr-query-completion-regexp
-  (concat "\\(" gpr-query--symbol-char "+\\)\\((.*)\\)?<.*<[0-9]+>>")
-  "Regexp matching completion item from gpr-query--read-symbols.")
-
 (defun gpr-query--read-symbols (session)
   "Read result of gpr_query 'complete' command, store completion table in SESSION."
   (let ((symbol-locs nil)
@@ -490,6 +498,8 @@ Uses `gpr_query'. Returns new list."
     (while (not (eobp))
       (cond
        ;; FIXME: dispatch on language
+
+       ;; We don't use gpr-query-completion-regexp here because we need finer groups.
        ((looking-at (concat "\\(" gpr-query--symbol-char "+\\)"    ;; 1: prefix
 			    "\\.\\(" gpr-query--symbol-char "+\\)" ;; 2: simple name
 			    "\\((.*)\\)? "                         ;; 3: args,

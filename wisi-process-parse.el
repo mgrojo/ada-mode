@@ -189,7 +189,7 @@ parse region."
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (position-bytes begin)
 		      (position-bytes send-end)
-		      (position-bytes parse-end)
+		      (position-bytes (min (point-max) parse-end))
 		      begin ;; char_pos
 		      (line-number-at-pos begin)
 		      (line-number-at-pos send-end)
