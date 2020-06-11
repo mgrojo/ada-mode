@@ -1660,9 +1660,12 @@ package body WisiToken_Grammar_Editing is
                if List_Nonterm_Name = Invalid_Identifier_Token then
                   declare
                      List_Element_Name_String : constant String :=
-                       Get_Item_Text (Data, Tree, Get_Node (B_Alt_List_Item_List.First)) & "_" &
-                       Get_Item_Text
-                         (Data, Tree, Get_Node (B_Alt_List_Item_List.Iterate.Next (B_Alt_List_Item_List.First)));
+                       Get_Item_Text (Data, Tree, Get_Node (B_Alt_List_Item_List.First)) &
+                       (if B_Alt_List_Item_List.Count > 1
+                        then "_" & Get_Item_Text
+                          (Data, Tree, Get_Node (B_Alt_List_Item_List.Iterate.Next (B_Alt_List_Item_List.First)))
+                        else "_" & Get_Item_Text
+                          (Data, Tree, Get_Node (B_Alt_List_List.Iterate_Constant.Next (B_Alt_List_List.First))));
 
                      List_Nonterm_Name_String : constant String := List_Element_Name_String & "_list";
 

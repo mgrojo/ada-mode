@@ -1,0 +1,15 @@
+;; Examples of EBNF syntax used in the ada_annex_p grammar file
+;; ../../org.emacs.ada/ada_annex_p.wy
+;;
+;; Also syntax that revealed bugs discovered during development.
+;;
+;; Note that the only *.*_good file is java_ebnf_bnf.wy_good, and that
+;; this file does not declare all used tokens; we are only testing the
+;; translation from EBNF to BNF.
+%meta_syntax EBNF
+
+%generate None
+
+generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause}
+
+;; end of file

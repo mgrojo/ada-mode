@@ -21,6 +21,14 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+improve bnf generation
+    java_ebnf.wy Statement
+        inline expand ()
+
+    java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
+        requires adding 'empty' to Annotation_list instead of inserting optional rhs
+        or first phase of extracting common sequences.
+
 delete descriptor.case_insensitive?
     used in regexp lexer?
     move to lexer?
@@ -35,15 +43,6 @@ speed up lr1 for ada_annex_p
         never run the same one twice
 
     parallelize?
-
-recognize more canonical lists
-    all tests pass; do commit
-
-    ada_annex_p.wy
-
-java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
-    requires adding 'empty' to Annotation_list instead of inserting optional rhs
-    or first phase of extracting common sequences.
 
 to_tree_sitter
     detect and/or implement no empty nonterm

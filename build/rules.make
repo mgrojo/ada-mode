@@ -56,9 +56,10 @@ gen :: skip_to_grammar_re2c.c
 gen :: warth_left_recurse_expr_1_re2c.c
 endif
 
+gen :: ada_ebnf_bnf.wy # not a valid grammar
 gen :: ada_lite_ebnf_re2c.c
 gen :: identifier_list_name_conflict_re2c.c
-# gen :: java_ebnf_re2c.c not a valid grammar
+gen :: java_ebnf_bnf.wy # not a valid grammar
 gen :: java_enum_ch19_re2c.c
 gen :: java_expressions_antlr_re2c.c
 gen :: java_expressions_ch19_re2c.c
@@ -150,6 +151,7 @@ DIFF_OPT := -u -w
 
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --generate None $<
+	dos2unix -q $@
 
 # clean rules
 source-clean ::

@@ -63,6 +63,7 @@ begin
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null)));
    end if;
 
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite")));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_enum_ch19", null)));
