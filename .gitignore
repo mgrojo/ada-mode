@@ -11,3 +11,4 @@ wisitoken_grammar_1.re2c
 wisitoken_grammar_1_bnf.wy
 wisitoken_grammar_1_lr1.parse_table
 *.exe
+obj_pro/

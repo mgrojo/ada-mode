@@ -6,8 +6,7 @@
 
 #export Standard_Common_Build := Debug
 
-export WISITOKEN_GRAMMAR_MODE_VERSION := 1.1.0
-export WISI_VERSION                   := 3.1.1
+export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
 
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
@@ -31,14 +30,18 @@ one :: build_executables
 one :: RUNTEST := run-indent-test-grammar.el
 one :: $(ONE_TEST_FILE).diff
 
-two :: RUN_ARGS ?= --verbosity 0 0 2
-#two :: RUN_ARGS ?= --repeat_count 5
-#two :: RUN_LOG := > debug.log
+two :: RUN_ARGS ?= parse navigate test/slow_parse.wy --debug_mode --verbosity 3 0 0 > slow_parse.parse
 two :: build_executables
-	./run_wisitoken_grammar_parse.exe test/nominal.wy Indent $(RUN_ARGS) $(RUN_LOG)
+	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
+
+two_pro : GRAMMAR := ada_annex_p_bnf
+two_pro : export Standard_Common_Profile := On
+two_pro : build_executables
+	./exec_pro/run_wisitoken_grammar_parse.exe Parse navigate ../org.emacs.ada-mode/$(GRAMMAR).wy
+	gprof ./exec_pro/run_wisitoken_grammar_parse.exe > $(GRAMMAR).profile
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf $(*F)_bnf.wy $(<F)
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 

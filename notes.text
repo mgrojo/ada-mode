@@ -44,15 +44,17 @@ bump version
 
     Makefile
         WISITOKEN_GRAMMAR_MODE_VERSION
-        WISI_VERSION
 
     build.sh
         wisi dir in GPR_PROJECT_PATH
 
+    install-elpa.el
+        wisi version to install; latest in elpa
+
 update, test ELPA
     Makefile pub install-elpa
 
-    cd ~/.emacs.d/elpa/wisitoken-grammar-mode-1.1.0; ./build.sh
+    cd ~/.emacs.d/elpa/wisitoken-grammar-mode-1.2.0; ./build.sh
 
 commit ELPA
     (dvc-state-one "/Projects/elpa-externals/wisitoken-grammar-mode")

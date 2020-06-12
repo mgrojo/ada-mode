@@ -5,7 +5,7 @@
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
-;; Version: 1.1.0
+;; Version: 1.2.0
 ;; package-requires: ((wisi "3.1.1") (emacs "25.0") (mmm-mode "0.5.7"))
 ;; url: http://www.nongnu.org/ada-mode/
 

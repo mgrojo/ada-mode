@@ -1,4 +1,4 @@
-WisiToken grammar mode version 1.1.1
+WisiToken grammar mode version 1.2.0
 
 WisiToken grammar mode provides fontification, navigation, and
 indentation for WisiToken grammar source code files, using a parser.

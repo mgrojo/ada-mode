@@ -1,0 +1,53 @@
+;; This grammar causes the parser to always have more than one parser
+;; running for the entire file, causing really slow parsing (due to
+;; copying the entire syntax tree) in larger grammars like
+;; ada_annex_p_bnf.wy
+
+;; translate to BNF ensures there's a terminating ";" on every nonterminal
+%meta_syntax EBNF
+
+
+%mckenzie_cost_insert END 3
+
+;; %conflict REDUCE/REDUCE in state defining_identifier_list, direct_name on token COLON
+;; %conflict REDUCE/REDUCE in state name, direct_name on token USE
+
+pragma_g
+  : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_COMMA_list RIGHT_PAREN SEMICOLON
+  | PRAGMA IDENTIFIER SEMICOLON
+pragma_argument_association
+  : IDENTIFIER EQUAL_GREATER name
+  | name
+  | IDENTIFIER EQUAL_GREATER expression
+  | expression
+  | aspect_mark EQUAL_GREATER name
+  | aspect_mark EQUAL_GREATER expression
+  ;
+
+compilation
+  : compilation_unit_list
+  | ;; empty
+  ;; no terminating ; on some nonterms, to see what effect that has on the parser.
+
+compilation_unit
+  : with_clause
+  | PRIVATE declarative_item
+  | declarative_item
+  | statement
+;;  | library_item ;; All are in declarative_item
+  | subunit
+  
+
+task_body_stub
+  : TASK BODY IDENTIFIER IS SEPARATE aspect_specification SEMICOLON
+  | TASK BODY IDENTIFIER IS SEPARATE SEMICOLON
+  ;
+
+protected_body_stub
+  : PROTECTED BODY IDENTIFIER IS SEPARATE aspect_specification SEMICOLON
+  | PROTECTED BODY IDENTIFIER IS SEPARATE SEMICOLON
+  ;
+
+subunit
+  : SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body
+  ;

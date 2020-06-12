@@ -7,7 +7,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisitoken-grammar-mode 1.1.1
+* wisitoken-grammar-mode 1.2.0
 6 Jun 2020
 
 ** Apply font-lock-constant-face to string literal tokens.

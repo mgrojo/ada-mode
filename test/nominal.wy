@@ -1,4 +1,4 @@
-%generate LALR elisp elisp
+%generate LALR Ada re2c
 
 %mckenzie_minimal_complete_cost_delta -3
 
@@ -6,7 +6,7 @@ Literal : ;; not empty
   ;; another comment line
     IntegerLiteral
   | Long RHS Split
-    Over Two Lines
+      Over Two Lines
   | ;; comment
     First Line
   ;

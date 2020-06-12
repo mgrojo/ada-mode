@@ -8,7 +8,7 @@
 (setq byte-compile-error-on-warn t)
 
 (setq wisitoken-grammar-mode-version (getenv "WISITOKEN_GRAMMAR_MODE_VERSION"))
-(setq wisi-version (getenv "WISI_VERSION"))
+(setq wisi-version "3.1.3")
 
 (defun pkg-dir (name version)
   (concat (locate-user-emacs-file "elpa") "/" name "-" version))

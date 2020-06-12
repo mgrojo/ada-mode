@@ -118,7 +118,18 @@
 %mckenzie_cost_default 2 2 2 2
 %mckenzie_cost_insert SEMICOLON 1
 %mckenzie_enqueue_limit 10_000
-%mckenzie_check_limit 4
+
+;; Because of the conflict rhs_element, a new parser is spawned for
+;; every identifier in an rhs; one parser becomes a zombie immediately
+;; on "=" or identifier, and on "| ; ( { [". However, they are not
+;; terminated until after %mckenzie_check_limit more tokens, by which
+;; time more have been spawned, so the count does not get to 1 unless
+;; check_limit is 3 and there are terminating semicolons or EBNF
+;; syntax. We need the parser count to get to 1 periodically to keep
+;; the copied syntax trees in each parser small.
+;; wisitoken-bnf-generate --output_bnf ensures there are terminating
+;; semicolons.
+%mckenzie_check_limit 3
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
