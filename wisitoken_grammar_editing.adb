@@ -20,6 +20,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.Regexp;
 with SAL.Generic_Decimal_Image;
@@ -2895,13 +2896,14 @@ package body WisiToken_Grammar_Editing is
 
                Put_RHS_List (Children (3), First, Virtual);
 
-               if Tree.Children (Children (4))'Length > 0 then
-                  if Virtual then
-                     Put_Line (File, "  ;");
-                  else
-                     Put (File, "  ;");
-                     Put_Comments (Children (4));
-                  end if;
+               --  We force a terminating ";" here, to speed parsing in _bnf.wy files.
+               if Tree.RHS_Index (Children (4)) = 1 then
+                  --  Empty
+                  Put_Line (File, "  ;");
+               else
+                  --  ";" present, including trailing newline, unless virtual.
+                  Put (File, "  ;");
+                  Put_Comments (Children (4), Force_New_Line => True);
                end if;
             end;
 
@@ -2914,7 +2916,26 @@ package body WisiToken_Grammar_Editing is
       end Process_Node;
    begin
       Create (File, Out_File, File_Name);
-      Put_Line (File, ";;; generated from " & Data.Grammar_Lexer.File_Name & " -*- buffer-read-only:t -*-");
+      declare
+         use all type Ada.Containers.Count_Type;
+         use Ada.Strings.Fixed;
+         First_Comment : constant String :=
+           (if Data.Leading_Non_Grammar.Length > 0
+            then Data.Grammar_Lexer.Buffer_Text (Data.Leading_Non_Grammar (1).Byte_Region)
+            else "");
+         Local_Var_Start   : constant Integer := Index (First_Comment, "-*-");
+         Local_Var_End     : constant Integer := Index
+           (First_Comment (Local_Var_Start + 3 .. First_Comment'Last), "-*-");
+         Local_Var_Default : constant String  := "buffer-read-only:t";
+      begin
+         Put_Line
+           (File, ";;; generated from " & Data.Grammar_Lexer.File_Name & " -*- " &
+              Local_Var_Default &
+              (if Local_Var_Start > First_Comment'First and Local_Var_End > First_Comment'First
+               then First_Comment (Local_Var_Start + 3 .. Local_Var_End - 1)
+               else "") &
+              " -*-");
+      end;
       Put_Line (File, ";;;");
 
       for Token of Data.Leading_Non_Grammar loop

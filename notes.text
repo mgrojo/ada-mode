@@ -33,6 +33,9 @@ delete descriptor.case_insensitive?
     used in regexp lexer?
     move to lexer?
 
+syntax_trees.Replace_Child
+    update cached data as in Set_Children
+
 speed up lr1 for ada_annex_p
     build/Makefile generate_ada_lr1.gprof
     generate ada_annex_p:
@@ -129,11 +132,12 @@ error_correction_algorithm.tex
     test and/or prove Nullable
 
     redo compare using lr1 for wisitoken-tokens
+        wisitoken both ada.wy and ada_annex_p.wy
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
         add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
             has python parser
             java?
-            add ada parser
+            add ada parser, both ada.wy and ada_annex_p.wy
 
     compare size of ada_lr1.txt
 

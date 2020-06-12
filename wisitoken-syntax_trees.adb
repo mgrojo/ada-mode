@@ -1988,6 +1988,13 @@ package body WisiToken.Syntax_Trees is
       return Tree.Shared_Tree.Traversing;
    end Traversing;
 
+   function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String
+   is begin
+      return Tree.Shared_Tree.Nodes.Length'Image & " " &
+        Tree.Last_Shared_Node'Image & " " &
+        Tree.Branched_Nodes.Length'Image;
+   end Tree_Size_Image;
+
    function Recover_Token
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)

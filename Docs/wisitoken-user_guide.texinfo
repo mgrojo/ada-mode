@@ -345,7 +345,7 @@ The number of tokens past the error point that must be parsed
 successfully for a solution to be deemed successful. Smaller values
 give faster recovery; larger values give better solutions. Too large a
 value risks encountering another user error, making a solution
-impossible. 3 or 4 works well in practice.
+impossible. 3 or 4 works well in practice; default is 4.
 
 @item mckenzie_check_delta_limit <limit>
 When error recovery is entered with multiple parsers active, once a

@@ -66,6 +66,7 @@ gen :: java_expressions_ch19_re2c.c
 gen :: java_types_ch19_re2c.c
 gen :: lalr_generator_bug_01_re2c.c
 gen :: nested_ebnf_optional_re2c.c
+gen :: python_ebnf_bnf.wy # not a valid grammar
 gen :: subprograms_re2c.c
 gen :: three_action_conflict_re2c.c
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb

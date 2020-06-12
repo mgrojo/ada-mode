@@ -580,7 +580,7 @@ package body WisiToken.Parse.LR.Parser is
 
                   if Trace_Parse > Extra then
                      Trace.Put_Line
-                       (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
+                       (Integer'Image (Parser_State.Label) & ": current_token " & Parser_State.Tree.Image
                           (Parser_State.Current_Token, Trace.Descriptor.all));
                   end if;
                end if;
@@ -995,6 +995,9 @@ package body WisiToken.Parse.LR.Parser is
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
                                       "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
                                       Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                                 if Debug_Mode then
+                                    Trace.Put_Line ("tree size: " & Parser_State.Tree.Tree_Size_Image);
+                                 end if;
                               end;
                            end if;
 

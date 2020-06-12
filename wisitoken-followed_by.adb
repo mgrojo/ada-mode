@@ -285,6 +285,7 @@ begin
            := (others => False);
          New_Last_Set : Token_ID_Set (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index)
            := (others => False);
+         Prod         : Production_ID := Invalid_Production_ID;
       begin
          Last_Set (Token_A) := True;
          loop
@@ -301,8 +302,15 @@ begin
                      New_Last_Set (LHS) := True;
                      Put_Comma;
                      Put
-                       (Image (F.LHS, Descriptor) & "." &
-                          Trimmed_Image (F.RHS) & " " & Image (LHS, Descriptor));
+                       ((if Prod = Invalid_Production_ID or F /= Prod
+                         then Image (F.LHS, Descriptor) & "." & Trimmed_Image (F.RHS) & " "
+                         else "") &
+                          Image (LHS, Descriptor));
+
+                     if Prod = Invalid_Production_ID then
+                        --  So far, there is mostly only one production_id involved
+                        Prod := F;
+                     end if;
                   end if;
                end;
             end loop;

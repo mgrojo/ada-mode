@@ -673,6 +673,9 @@ package WisiToken.Syntax_Trees is
    --  Image_Augmented is called if it is not null and node.augmented is
    --  not null.
 
+   function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
+   --  For debugging; node counts in shared and branched trees.
+
 private
    use all type Ada.Containers.Count_Type;
 
