@@ -780,7 +780,7 @@ constant_opt
 constraint
   : RANGE range_g ;; range_constraint
  ;; FIXME: | digits_constraint
- ;; FIXME: | delta_constraint
+  | delta_constraint
   | index_constraint
  ;; | discriminant_constraint same as aspect_specification
   ;
@@ -843,6 +843,11 @@ delay_statement
   | DELAY expression_opt SEMICOLON
     %((wisi-statement-action [1 statement-start 3 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken]))%
+  ;
+
+delta_constraint
+  : DELTA simple_expression RANGE range_g
+  | DELTA simple_expression
   ;
 
 derived_type_definition

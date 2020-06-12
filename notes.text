@@ -57,8 +57,17 @@ eldoc
 
 ada_annex_p.wy
     reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
-    propagate to main
-%conflict SHIFT/REDUCE in state name, primary on token LEFT_PAREN ( 173)
+    change conflict name algorithm?
+        LHS.RHS of all productions involved
+            more likely to be the same between ada.wy and ada_annex_p.wy
+            also store all states it occurs in
+        in o.e.a.s-2/o.w.s-2
+
+%conflict REDUCE/REDUCE in state name, allocator on token DO ( 341)
+    180.9:name <= qualified_expression ^
+    224.3:allocator <= NEW qualified_expression ^
+
+    substitute allocator into primary; just changes conflict name to name, primary
 
 compare ada LR1 generate time
     o.e.a:

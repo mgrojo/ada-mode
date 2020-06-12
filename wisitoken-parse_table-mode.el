@@ -32,8 +32,15 @@
 (defun wisitoken-parse_table--xref-backend () 'wisitoken-parse_table)
 
 (cl-defgeneric xref-backend-identifier-completion-table ((_backend (eql wisitoken-parse_table)))
-  ;; could complete on nonterms, find productions
-  nil)
+  (let ((names nil))
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward "Productions:")
+      (forward-line)
+      (while (looking-at "[0-9.]+: \\([a-z_]+\\) <=")
+	(push (cons (match-string 1) (list (buffer-file-name) (line-number-at-pos) 0)) names)
+	(forward-line))
+      names)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisitoken-parse_table)))
   ;; if we are on one of:

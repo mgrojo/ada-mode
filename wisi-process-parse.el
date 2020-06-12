@@ -568,6 +568,11 @@ complete."
 	     start-wait-time)
 
 	(set-buffer response-buffer)
+
+	;; User will set wisi-process-time-out in source-buffer, but
+	;; we reference it from response-buffer.
+	(setq-local wisi-process-time-out (with-current-buffer source-buffer wisi-process-time-out))
+
 	(setq sexp-start (point-min))
 
 	;; process responses until prompt received

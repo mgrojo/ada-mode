@@ -235,8 +235,6 @@ tick : TICK_1 | TICK_2 ;
 
 ;; accepted conflicts
 %conflict REDUCE/REDUCE in state defining_identifier_list, direct_name on token COLON ( 34)
-%conflict REDUCE/REDUCE in state name, direct_name on token TICK_1 ( 35)
-%conflict REDUCE/REDUCE in state name, direct_name on token TICK_2 ( 35)
 %conflict REDUCE/REDUCE in state name, direct_name on token USE ( 35)
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS ( 75)
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION ( 8)
@@ -248,121 +246,20 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token REM ( 184)
 %conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token SLASH ( 184)
 %conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token STAR ( 184)
-
-;; unreviewed conflicts:
 %conflict SHIFT/REDUCE in state name, primary on token LEFT_PAREN ( 173)
 %conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR ( 186)
 %conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token PLUS ( 190)
 %conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token MINUS ( 190)
 %conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token AMPERSAND ( 190)
-%conflict REDUCE/REDUCE in state name, defining_program_unit_name on token LEFT_PAREN ( 224)
-%conflict SHIFT/REDUCE in state explicit_dereference, parent_unit_name on token DOT ( 225)
-%conflict SHIFT/REDUCE in state attribute_reference, local_name on token TICK_1 ( 250)
-%conflict SHIFT/REDUCE in state attribute_reference, local_name on token TICK_2 ( 250)
-%conflict REDUCE/REDUCE in state name, defining_designator on token LEFT_PAREN ( 257)
 %conflict SHIFT/REDUCE in state generic_instantiation, procedure_specification on token IS ( 260)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token RAISE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token SEPARATE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token SELECT ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token DELAY ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ABORT ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token REQUEUE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ACCEPT ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token GENERIC ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token EXCEPTION ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token USE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token OVERRIDING ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token PRIVATE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token PACKAGE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token RETURN ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token GOTO ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token EXIT ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token BEGIN ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token DECLARE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token WHILE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token LOOP ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token FOR ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ELSIF ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token IF ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token ELSE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token OR ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token THEN ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token NOT ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token FUNCTION ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token PROCEDURE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token PROTECTED ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token TASK ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token WITH ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token WHEN ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token CASE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token NULL ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token END ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token LIMITED ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token SUBTYPE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token TYPE ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token PRAGMA ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token LESS_LESS ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token IDENTIFIER ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token STRING_LITERAL ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token CHARACTER_LITERAL ( 282)
-%conflict REDUCE/REDUCE in state procedure_call_statement, entry_call_statement on token Wisi_EOI ( 282)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token LEFT_PAREN ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token COLON_EQUAL ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token DOT ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token SEMICOLON ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token TICK_1 ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token TICK_2 ( 286)
-%conflict SHIFT/REDUCE in state procedure_call_statement, name on token SEMICOLON ( 286)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token AT ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token RENAMES ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token USE ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token DO ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token LOOP ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token ELSIF ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token REM ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token ABS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token IN ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token XOR ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token ELSE ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token OR ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token THEN ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token NOT ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token WITH ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token WHEN ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token NULL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token OF ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token DELTA ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token DIGITS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token MOD ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token RANGE ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token AND ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token NEW ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token IS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token RIGHT_PAREN ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token AMPERSAND ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token BAR ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token COMMA ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token DOT_DOT ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token EQUAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token EQUAL_GREATER ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token GREATER ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token GREATER_EQUAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token LESS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token LESS_EQUAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token MINUS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token PLUS ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token SLASH ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token SLASH_EQUAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token STAR ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token STAR_STAR ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token NUMERIC_LITERAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token IDENTIFIER ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token STRING_LITERAL ( 315)
-%conflict REDUCE/REDUCE in state name, generalized_indexing on token CHARACTER_LITERAL ( 315)
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH ( 332)
 %conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token RANGE ( 340)
 %conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token DIGITS ( 340)
 %conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token LEFT_PAREN ( 340)
+
+;; provisionally accepted conflicts
+
+;; unreviewed conflicts:
 %conflict REDUCE/REDUCE in state name, allocator on token DO ( 341)
 %conflict REDUCE/REDUCE in state name, allocator on token LOOP ( 341)
 %conflict REDUCE/REDUCE in state name, allocator on token ELSIF ( 341)
@@ -465,7 +362,6 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT/REDUCE in state choice_expression, relation on token AND ( 366)
 %conflict SHIFT/REDUCE in state choice_expression, relation on token OR ( 366)
 %conflict SHIFT/REDUCE in state range_g, choice_relation on token NOT ( 367)
-%conflict SHIFT/REDUCE in state package_body_stub, defining_program_unit_name on token IS ( 427)
 %conflict SHIFT/REDUCE in state full_type_declaration, discriminant_part on token IS ( 484)
 %conflict REDUCE/REDUCE in state subtype_indication, primary on token RIGHT_PAREN ( 507)
 %conflict REDUCE/REDUCE in state subtype_indication, primary on token COMMA ( 507)
@@ -529,6 +425,10 @@ tick : TICK_1 | TICK_2 ;
 %conflict REDUCE/REDUCE in state formal_package_association, generic_association_COMMA_list on token COMMA ( 2267)
 %conflict REDUCE/REDUCE in state primary, explicit_generic_actual_parameter on token RIGHT_PAREN ( 2304)
 %conflict REDUCE/REDUCE in state explicit_actual_parameter, explicit_generic_actual_parameter on token RIGHT_PAREN ( 2305)
+%conflict SHIFT/REDUCE in state procedure_call_statement, name on token SEMICOLON ( 276)
+%conflict SHIFT/REDUCE in state package_body_stub, name on token IS ( 417)
+%conflict SHIFT/REDUCE in state attribute_definition_clause, attribute_reference on token USE ( 704)
+%conflict REDUCE/REDUCE in state defining_identifier_list, name on token COMMA ( 711)
 
 ;;; grammar rules
 
@@ -763,7 +663,7 @@ name ::=
   | CHARACTER_LITERAL
   | qualified_expression
 ;;  | generalized_reference
-  | generalized_indexing
+;;  | generalized_indexing ;; redundant with name actual_parameter_part
 
 direct_name ::= IDENTIFIER | STRING_LITERAL
 
@@ -788,7 +688,7 @@ attribute_designator ::=
 
 ;; generalized_reference ::= name
 
-generalized_indexing ::= name actual_parameter_part
+;; generalized_indexing ::= name actual_parameter_part ;; redundant with name
 
 aggregate ::= record_aggregate | extension_aggregate | array_aggregate
 
@@ -921,7 +821,7 @@ simple_statement ::= null_statement
   | goto_statement
   | procedure_call_statement
   | simple_return_statement
-  | entry_call_statement
+;;  | entry_call_statement ;; redundant with procedure_call_statement
   | requeue_statement
   | delay_statement
   | abort_statement
@@ -998,19 +898,21 @@ subprogram_specification ::=
   procedure_specification
   | function_specification
 
-procedure_specification ::= 'procedure' defining_program_unit_name [formal_part]
+procedure_specification ::= 'procedure' name [formal_part]
 
-function_specification ::= 'function' defining_designator parameter_and_result_profile
+function_specification ::= 'function' name parameter_and_result_profile
 
-designator ::= [parent_unit_name  '.'] IDENTIFIER | STRING_LITERAL
+;; designator ::= [name  '.'] IDENTIFIER | STRING_LITERAL ;; redundant with name
 
-defining_designator ::= defining_program_unit_name | STRING_LITERAL
+;; defining_designator ::= name | STRING_LITERAL
 
-defining_program_unit_name ::= [parent_unit_name  '.'] IDENTIFIER
+;; defining_program_unit_name ::= [name  '.'] IDENTIFIER ;; redundant with IDENTIFIER, selected_component in name
 
 ;; operator_symbol ::= STRING_LITERAL
 
 ;; defining_operator_symbol ::= STRING_LITERAL
+
+;; parameter_profile ::= [formal_part]
 
 parameter_and_result_profile ::=
     [formal_part] 'return' [null_exclusion] name
@@ -1031,7 +933,7 @@ subprogram_body ::=
   [declarative_part]
   'begin'
   handled_sequence_of_statements
-  'end' [designator]';'
+  'end' [name]';'
 
 procedure_call_statement ::= name [actual_parameter_part] ';'
 
@@ -1061,12 +963,12 @@ expression_function_declaration ::=
 package_declaration ::= package_specification';'
 
 package_specification ::=
-    'package' defining_program_unit_name [aspect_specification] 'is' {basic_declarative_item}
-    ['private' {basic_declarative_item}] 'end' [[parent_unit_name '.' ] IDENTIFIER]
+    'package' name [aspect_specification] 'is' {basic_declarative_item}
+    ['private' {basic_declarative_item}] 'end' [[name '.' ] IDENTIFIER]
 
 package_body ::=
-    'package' 'body' defining_program_unit_name [aspect_specification] 'is' [declarative_part]
-    ['begin' handled_sequence_of_statements] 'end' [[parent_unit_name '.' ] IDENTIFIER] ';'
+    'package' 'body' name [aspect_specification] 'is' [declarative_part]
+    ['begin' handled_sequence_of_statements] 'end' [[name '.' ] IDENTIFIER] ';'
 
 private_type_declaration ::=
     'type' IDENTIFIER [discriminant_part] 'is'
@@ -1097,15 +999,15 @@ object_renaming_declaration ::=
 
 exception_renaming_declaration ::= IDENTIFIER ':' 'exception' 'renames' name [aspect_specification]';'
 
-package_renaming_declaration ::= 'package' defining_program_unit_name 'renames' name [aspect_specification]';'
+package_renaming_declaration ::= 'package' name 'renames' name [aspect_specification]';'
 
 subprogram_renaming_declaration ::=
     [overriding_indicator] subprogram_specification 'renames' name [aspect_specification]';'
 
 generic_renaming_declaration ::=
-    'generic' 'package' defining_program_unit_name 'renames' name [aspect_specification]';'
-  | 'generic' 'procedure' defining_program_unit_name 'renames' name [aspect_specification]';'
-  | 'generic' 'function' defining_program_unit_name 'renames' name [aspect_specification]';'
+    'generic' 'package' name 'renames' name [aspect_specification]';'
+  | 'generic' 'procedure' name 'renames' name [aspect_specification]';'
+  | 'generic' 'function' name 'renames' name [aspect_specification]';'
 
 task_type_declaration ::=
     'task' 'type' IDENTIFIER [known_discriminant_part] [aspect_specification]
@@ -1172,7 +1074,7 @@ entry_barrier ::= 'when' condition
 
 entry_index_specification ::= 'for' IDENTIFIER 'in' discrete_subtype_definition
 
-entry_call_statement ::= name [actual_parameter_part] ';'
+;; entry_call_statement ::= name [actual_parameter_part] ';' ;; redundant with procedure_call_statement
 
 requeue_statement ::= 'requeue' name ['with' 'abort'] ';'
 
@@ -1207,19 +1109,19 @@ terminate_alternative ::= 'terminate' ';'
 
 timed_entry_call ::= 'select' entry_call_alternative 'or' delay_alternative 'end' 'select' ';'
 
-entry_call_alternative ::= procedure_or_entry_call [sequence_of_statements]
+entry_call_alternative ::= procedure_call_statement [sequence_of_statements]
 
-procedure_or_entry_call ::= procedure_call_statement | entry_call_statement
+;; procedure_or_entry_call ::= procedure_call_statement | entry_call_statement ;; just use procedure_call_statement
 
 conditional_entry_call ::= 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
 
 asynchronous_select ::= 'select' triggering_alternative 'then' 'abort' abortable_part 'end' 'select' ';'
 
 triggering_alternative ::=
-    procedure_or_entry_call [sequence_of_statements]
+    procedure_call_statement [sequence_of_statements]
   | delay_statement [sequence_of_statements]
 
-;; triggering_statement ::= procedure_or_entry_call | delay_statement
+;; triggering_statement ::= procedure_or_entry_call | delay_statement ;; redundant with triggering_alternative
 
 abortable_part ::= sequence_of_statements
 
@@ -1254,7 +1156,7 @@ compilation_unit ::=
 
 ;; library_unit_body ::= subprogram_body | package_body
 
-parent_unit_name ::= name
+;; parent_unit_name ::= name
 
 ;; with_clause merged into compilation_unit; use_clause is already there via declarative_item
 ;; context_clause ::= context_item+
@@ -1281,7 +1183,7 @@ task_body_stub ::= 'task' 'body' IDENTIFIER 'is' 'separate' [aspect_specificatio
 
 protected_body_stub ::= 'protected' 'body' IDENTIFIER 'is' 'separate' [aspect_specification] ';'
 
-subunit ::= 'separate' '('parent_unit_name')' proper_body
+subunit ::= 'separate' '(' name ')' proper_body
 
 exception_declaration ::= defining_identifier_list ':' 'exception' [aspect_specification]';'
 
@@ -1315,11 +1217,9 @@ generic_formal_parameter_declaration ::=
   | formal_package_declaration
 
 generic_instantiation ::=
-    'package' defining_program_unit_name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
-  | [overriding_indicator] 'procedure' defining_program_unit_name 'is' 'new' name [generic_actual_part]
-    [aspect_specification] ';'
-  | [overriding_indicator] 'function' defining_designator 'is' 'new' name [generic_actual_part]
-    [aspect_specification] ';'
+    'package' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+  | [overriding_indicator] 'procedure' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+  | [overriding_indicator] 'function' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
 
 generic_actual_part ::= '(' generic_association {',' generic_association} ')'
 
@@ -1408,10 +1308,9 @@ aspect_clause ::=
   | record_representation_clause
   | at_clause
 
-local_name ::=
-;;    direct_name redundant with name
-    direct_name tick attribute_designator
-  | name
+;; local_name ::=
+;;     direct_name tick attribute_designator ;; redundant with attribute_designator in name
+;;   | name
 
 aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] }
 
@@ -1420,17 +1319,17 @@ aspect_mark ::= IDENTIFIER [tick 'Class']
 aspect_definition ::= name | expression | IDENTIFIER
 
 attribute_definition_clause ::=
-    'for' local_name tick attribute_designator 'use' expression';'
-  | 'for' local_name tick attribute_designator 'use' name';'
+    'for' name tick attribute_designator 'use' expression';'
+  | 'for' name tick attribute_designator 'use' name';'
 
-enumeration_representation_clause ::= 'for' local_name 'use' enumeration_aggregate';'
+enumeration_representation_clause ::= 'for' name 'use' enumeration_aggregate';'
 
 enumeration_aggregate ::= array_aggregate
 
-record_representation_clause ::= 'for' local_name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' ';'
+record_representation_clause ::= 'for' name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' ';'
 
 component_clause ::=
-  local_name 'at' position 'range' first_bit '..' last_bit ';'
+  name 'at' position 'range' first_bit '..' last_bit ';'
 
 position ::= expression
 
@@ -1446,4 +1345,8 @@ at_clause ::= 'for' direct_name 'use' 'at' expression ';'
 
 mod_clause ::= 'at' 'mod' expression ';'
 
-  ;; end of file
+;; ada_annex_p_bnf.wy takes a long time to parse
+;; Local Variables:
+;; wisi-process-time-out: 25.0
+;; End:
+;; end of file
