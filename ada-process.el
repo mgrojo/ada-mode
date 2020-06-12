@@ -184,6 +184,7 @@
    declarative_part_opt
    delay_alternative
    delay_statement
+   delta_constraint
    derived_type_definition
    direct_name
    direct_name_opt

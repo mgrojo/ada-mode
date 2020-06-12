@@ -234,201 +234,51 @@ tick : TICK_1 | TICK_2 ;
 %end_names_optional_option End_Names_Optional
 
 ;; accepted conflicts
-%conflict REDUCE/REDUCE in state defining_identifier_list, direct_name on token COLON ( 34)
-%conflict REDUCE/REDUCE in state name, direct_name on token USE ( 35)
-%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS ( 75)
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION ( 8)
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE ( 8)
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE ( 8)
-%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS ( 74)
-%conflict SHIFT/REDUCE in state object_renaming_declaration, defining_identifier_list on token COLON ( 34)
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token MOD ( 184)
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token REM ( 184)
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token SLASH ( 184)
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token STAR ( 184)
-%conflict SHIFT/REDUCE in state name, primary on token LEFT_PAREN ( 173)
-%conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR ( 186)
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token PLUS ( 190)
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token MINUS ( 190)
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token AMPERSAND ( 190)
-%conflict SHIFT/REDUCE in state generic_instantiation, procedure_specification on token IS ( 260)
-%conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH ( 332)
-%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token RANGE ( 340)
-%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token DIGITS ( 340)
-%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token LEFT_PAREN ( 340)
+%conflict REDUCE/REDUCE in state defining_identifier_list, direct_name on token COLON
+%conflict REDUCE/REDUCE in state name, direct_name on token USE
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION 
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE 
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE 
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS 
+%conflict SHIFT/REDUCE in state object_renaming_declaration, defining_identifier_list on token COLON 
+%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token MOD 
+%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token REM 
+%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token SLASH 
+%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token STAR 
+%conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR 
+%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token PLUS 
+%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token MINUS 
+%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token AMPERSAND 
+%conflict SHIFT/REDUCE in state generic_instantiation, procedure_specification on token IS 
+%conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH 
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token RANGE 
+%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token DIGITS 
 
 ;; provisionally accepted conflicts
 
-;; unreviewed conflicts:
-%conflict REDUCE/REDUCE in state name, allocator on token DO ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token LOOP ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token ELSIF ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token REM ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token ABS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token IN ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token XOR ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token ELSE ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token OR ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token THEN ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token NOT ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token WITH ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token NULL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token OF ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token DIGITS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token MOD ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token RANGE ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token AND ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token NEW ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token IS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token LEFT_PAREN ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token RIGHT_PAREN ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token AMPERSAND ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token BAR ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token COLON_EQUAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token COMMA ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token DOT_DOT ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token EQUAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token EQUAL_GREATER ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token GREATER ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token GREATER_EQUAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token LESS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token LESS_EQUAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token MINUS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token PLUS ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token SEMICOLON ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token SLASH ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token SLASH_EQUAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token STAR ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token STAR_STAR ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token NUMERIC_LITERAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token IDENTIFIER ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token STRING_LITERAL ( 341)
-%conflict REDUCE/REDUCE in state name, allocator on token CHARACTER_LITERAL ( 341)
-%conflict REDUCE/REDUCE in state discrete_choice, component_choice_list on token EQUAL_GREATER ( 346)
-%conflict REDUCE/REDUCE in state name, selector_name on token BAR ( 349)
-%conflict REDUCE/REDUCE in state name, selector_name on token EQUAL_GREATER ( 349)
-%conflict REDUCE/REDUCE in state ancestor_part, primary on token WITH ( 356)
-%conflict SHIFT/REDUCE in state subtype_indication, primary on token LEFT_PAREN ( 356)
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token BAR ( 356)
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token EQUAL_GREATER ( 356)
-%conflict REDUCE/REDUCE in state range_g, name on token DO ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token LOOP ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token ELSIF ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token REM ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token ABS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token IN ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token XOR ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token ELSE ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token OR ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token THEN ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token NOT ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token WITH ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token NULL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token DIGITS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token MOD ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token RANGE ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token AND ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token NEW ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token IS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token LEFT_PAREN ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token RIGHT_PAREN ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token AMPERSAND ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token BAR ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token COMMA ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token DOT_DOT ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token EQUAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token EQUAL_GREATER ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token GREATER ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token GREATER_EQUAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token LESS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token LESS_EQUAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token MINUS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token PLUS ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token SEMICOLON ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token SLASH ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token SLASH_EQUAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token STAR ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token STAR_STAR ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token NUMERIC_LITERAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token IDENTIFIER ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token STRING_LITERAL ( 358)
-%conflict REDUCE/REDUCE in state range_g, name on token CHARACTER_LITERAL ( 358)
-%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token RIGHT_PAREN ( 364)
-%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token COMMA ( 364)
-%conflict REDUCE/REDUCE in state relation, choice_relation_OR_list on token OR ( 366)
-%conflict REDUCE/REDUCE in state relation, choice_relation_XOR_list on token XOR ( 366)
-%conflict REDUCE/REDUCE in state choice_relation_OR_list, choice_relation_XOR_list on token BAR ( 366)
-%conflict REDUCE/REDUCE in state choice_relation_OR_list, choice_relation_XOR_list on token EQUAL_GREATER ( 366)
-%conflict SHIFT/REDUCE in state choice_expression, relation on token AND ( 366)
-%conflict SHIFT/REDUCE in state choice_expression, relation on token OR ( 366)
-%conflict SHIFT/REDUCE in state range_g, choice_relation on token NOT ( 367)
-%conflict SHIFT/REDUCE in state full_type_declaration, discriminant_part on token IS ( 484)
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token RIGHT_PAREN ( 507)
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token COMMA ( 507)
-%conflict SHIFT/REDUCE in state type_conversion, subtype_indication on token RIGHT_PAREN ( 507)
-%conflict SHIFT/REDUCE in state type_conversion, explicit_actual_parameter on token RIGHT_PAREN ( 507)
-%conflict REDUCE/REDUCE in state subtype_indication, explicit_actual_parameter on token COMMA ( 507)
-%conflict SHIFT/REDUCE in state attribute_designator, attribute_designator on token LEFT_PAREN ( 520)
-%conflict REDUCE/REDUCE in state null_exclusion, primary on token IDENTIFIER ( 595)
-%conflict REDUCE/REDUCE in state null_exclusion, primary on token STRING_LITERAL ( 595)
-%conflict REDUCE/REDUCE in state null_exclusion, primary on token CHARACTER_LITERAL ( 595)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token DO ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token LOOP ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token ELSIF ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token XOR ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token ELSE ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token OR ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token THEN ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token WITH ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token DIGITS ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token RANGE ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token AND ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token IS ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token RIGHT_PAREN ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token BAR ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token COMMA ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token EQUAL_GREATER ( 632)
-%conflict REDUCE/REDUCE in state membership_choice, primary on token SEMICOLON ( 632)
-%conflict REDUCE/REDUCE in state subtype_indication, iterator_specification on token LOOP ( 708)
-%conflict REDUCE/REDUCE in state subtype_indication, iterator_specification on token EQUAL_GREATER ( 708)
-%conflict SHIFT/REDUCE in state aspect_mark, name on token TICK_1 ( 812)
-%conflict SHIFT/REDUCE in state aspect_mark, name on token TICK_2 ( 812)
-%conflict SHIFT/REDUCE in state pragma_argument_association, aspect_mark on token EQUAL_GREATER ( 812)
-%conflict REDUCE/REDUCE in state pragma_argument_association, primary on token RIGHT_PAREN ( 814)
-%conflict REDUCE/REDUCE in state pragma_argument_association, primary on token COMMA ( 814)
-%conflict SHIFT/REDUCE in state qualified_expression, record_component_association on token RIGHT_PAREN ( 855)
-%conflict SHIFT/REDUCE in state qualified_expression, expression_COMMA_list on token RIGHT_PAREN ( 855)
-%conflict SHIFT/REDUCE in state expression_function_declaration, record_component_association on token RIGHT_PAREN ( 880)
-%conflict SHIFT/REDUCE in state expression_function_declaration, expression_COMMA_list on token RIGHT_PAREN ( 880)
-%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token RANGE ( 920)
-%conflict SHIFT/REDUCE in state digits_constraint, digits_constraint on token RANGE ( 921)
-%conflict SHIFT/REDUCE in state slice, discrete_range_COMMA_list on token RIGHT_PAREN ( 923)
-%conflict SHIFT/REDUCE in state parameter_association, selector_name_BAR_list on token EQUAL_GREATER ( 925)
-%conflict SHIFT/REDUCE in state type_conversion, discriminant_association on token RIGHT_PAREN ( 926)
-%conflict REDUCE/REDUCE in state discriminant_association, explicit_actual_parameter on token COMMA ( 926)
-%conflict SHIFT/REDUCE in state choice_expression, choice_relation_OR_list on token OR ( 937)
-%conflict SHIFT/REDUCE in state derived_type_definition, derived_type_definition on token WITH ( 1186)
-%conflict REDUCE/REDUCE in state primary, explicit_actual_parameter on token RIGHT_PAREN ( 1271)
-%conflict REDUCE/REDUCE in state primary, explicit_actual_parameter on token COMMA ( 1271)
-%conflict REDUCE/REDUCE in state name, aspect_definition on token IS ( 1286)
-%conflict REDUCE/REDUCE in state name, aspect_definition on token COMMA ( 1286)
-%conflict REDUCE/REDUCE in state name, aspect_definition on token SEMICOLON ( 1286)
-%conflict REDUCE/REDUCE in state primary, aspect_definition on token IS ( 1287)
-%conflict REDUCE/REDUCE in state primary, aspect_definition on token COMMA ( 1287)
-%conflict REDUCE/REDUCE in state primary, aspect_definition on token SEMICOLON ( 1287)
-%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH ( 1388)
-%conflict SHIFT/REDUCE in state attribute_definition_clause, primary on token SEMICOLON ( 1469)
-%conflict SHIFT/REDUCE in state type_conversion, explicit_generic_actual_parameter on token RIGHT_PAREN ( 1791)
-%conflict REDUCE/REDUCE in state primary, explicit_generic_actual_parameter on token COMMA ( 1791)
-%conflict REDUCE/REDUCE in state explicit_actual_parameter, explicit_generic_actual_parameter on token COMMA ( 1793)
-%conflict REDUCE/REDUCE in state formal_package_association, generic_association_COMMA_list on token RIGHT_PAREN ( 2267)
-%conflict REDUCE/REDUCE in state formal_package_association, generic_association_COMMA_list on token COMMA ( 2267)
-%conflict REDUCE/REDUCE in state primary, explicit_generic_actual_parameter on token RIGHT_PAREN ( 2304)
-%conflict REDUCE/REDUCE in state explicit_actual_parameter, explicit_generic_actual_parameter on token RIGHT_PAREN ( 2305)
-%conflict SHIFT/REDUCE in state procedure_call_statement, name on token SEMICOLON ( 276)
-%conflict SHIFT/REDUCE in state package_body_stub, name on token IS ( 417)
-%conflict SHIFT/REDUCE in state attribute_definition_clause, attribute_reference on token USE ( 704)
-%conflict REDUCE/REDUCE in state defining_identifier_list, name on token COMMA ( 711)
+%conflict REDUCE/REDUCE in state discrete_choice, component_choice_list on token EQUAL_GREATER
+%conflict REDUCE/REDUCE in state name, selector_name on token BAR 
+%conflict REDUCE/REDUCE in state name, selector_name on token EQUAL_GREATER
+;; ada.wy uses discrete_choice_list for record_aggregate = aggregate
+
+%conflict REDUCE/REDUCE in state subtype_indication, primary on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state subtype_indication, primary on token BAR
+%conflict REDUCE/REDUCE in state subtype_indication, primary on token COMMA
+%conflict REDUCE/REDUCE in state subtype_indication, primary on token EQUAL_GREATER
+;; ada.wy has fewer of these
+
+%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token RIGHT_PAREN ( 351)
+%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token COMMA ( 351)
+;; expression_COMMA_list in positional_array_aggregate; conflict is only on the first element.
+
+%conflict SHIFT/REDUCE in state choice_expression, relation on token AND ( 353)
+%conflict SHIFT/REDUCE in state choice_expression, relation on token OR ( 353)
+%conflict SHIFT/REDUCE in state choice_expression, relation on token XOR ( 353)
+;; ada.wy just has relation. happens on each 'and/or/xor'.
+
+%conflict SHIFT/REDUCE in state package_body_stub, name on token IS ( 412)
+;; happens on each 'package body'
 
 ;;; grammar rules
 
@@ -511,7 +361,7 @@ derived_type_definition ::=
 range_constraint ::= 'range' range_g
 
 range_g ::=
-    attribute_reference
+    range_attribute_reference
   | simple_expression '..' simple_expression
 
 enumeration_type_definition ::= '(' enumeration_literal_specification {',' enumeration_literal_specification} ')'
@@ -685,6 +535,14 @@ attribute_reference ::= name tick attribute_designator
 
 attribute_designator ::=
     IDENTIFIER ['(' expression ')']
+  | 'access'
+  | 'delta'
+  | 'digits'
+  | 'mod'
+
+range_attribute_reference ::= name tick range_attribute_designator
+
+range_attribute_designator ::= 'range' ['(' expression ')']
 
 ;; generalized_reference ::= name
 
@@ -692,23 +550,21 @@ attribute_designator ::=
 
 aggregate ::= record_aggregate | extension_aggregate | array_aggregate
 
-record_aggregate ::= '('record_component_association_list')'
+record_aggregate ::= '(' record_component_association_list ')'
 
 record_component_association_list ::=
     record_component_association {',' record_component_association}
   | 'null' 'record'
 
 record_component_association ::=
-  [component_choice_list '=>'] expression
+    [component_choice_list '=>'] expression
   | component_choice_list '=>' '<>'
 
-component_choice_list ::=
-    selector_name {'|' selector_name}
-  | 'others'
+component_choice_list ::= selector_name {'|' selector_name} | 'others'
 
-extension_aggregate ::= '(' ancestor_part 'with' record_component_association_list ')'
+extension_aggregate ::= '(' expression 'with' record_component_association_list ')'
 
-ancestor_part ::= expression | name
+;; ancestor_part ::= expression | name ;; redundant
 
 array_aggregate ::=
   positional_array_aggregate | named_array_aggregate
@@ -734,14 +590,13 @@ expression ::=
 
 choice_expression ::=
     choice_relation
-    choice_relation {'and' choice_relation}-
+  | choice_relation {'and' choice_relation}-
   | choice_relation {'or' choice_relation}-
   | choice_relation {'xor' choice_relation}-
   | choice_relation {'and' 'then' choice_relation}-
   | choice_relation {'or' 'else' choice_relation}-
 
-choice_relation ::=
-  simple_expression [relational_operator simple_expression]
+choice_relation ::= simple_expression [relational_operator simple_expression]
 
 relation ::=
     choice_relation
@@ -790,8 +645,8 @@ case_expression ::= 'case' expression 'is' case_expression_alternative { ',' cas
 
 case_expression_alternative ::= 'when' discrete_choice_list '=>' expression
 
-quantified_expression ::= 'for' quantifier
-  loop_parameter_specification '=>' predicate
+quantified_expression ::=
+    'for' quantifier loop_parameter_specification '=>' predicate
   | 'for' quantifier iterator_specification '=>' predicate
 
 quantifier ::= 'all' | 'some'
@@ -806,7 +661,7 @@ qualified_expression ::= name tick '(' expression ')' | name tick aggregate
 
 allocator ::=
     'new' [subpool_specification] subtype_indication
-  | 'new' [subpool_specification] qualified_expression
+;;  | 'new' [subpool_specification] qualified_expression ;; redundant with name in subtype_indication
 
 subpool_specification ::= '(' name ')'
 
@@ -866,7 +721,8 @@ loop_statement ::=
   sequence_of_statements
   'end' 'loop' [IDENTIFIER] ';'
 
-iteration_scheme ::= 'while' condition
+iteration_scheme ::=
+    'while' condition
   | 'for' loop_parameter_specification
   | 'for' iterator_specification
 
@@ -935,7 +791,7 @@ subprogram_body ::=
   handled_sequence_of_statements
   'end' [name]';'
 
-procedure_call_statement ::= name [actual_parameter_part] ';'
+procedure_call_statement ::= name ';' ;; [actual_parameter_part] redundant with name
 
 actual_parameter_part ::= '(' parameter_association {',' parameter_association} ')'
 
@@ -1345,8 +1201,4 @@ at_clause ::= 'for' direct_name 'use' 'at' expression ';'
 
 mod_clause ::= 'at' 'mod' expression ';'
 
-;; ada_annex_p_bnf.wy takes a long time to parse
-;; Local Variables:
-;; wisi-process-time-out: 25.0
-;; End:
 ;; end of file

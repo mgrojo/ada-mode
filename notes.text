@@ -57,17 +57,21 @@ eldoc
 
 ada_annex_p.wy
     reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
+    make -r ../ada_annex_p.re2c IGNORE_CONFLICTS=--ignore_conflicts
+
+%conflict SHIFT/REDUCE in state type_conversion, subtype_indication on token RIGHT_PAREN ( 490)
+%conflict SHIFT/REDUCE in state type_conversion, explicit_actual_parameter on token RIGHT_PAREN ( 490)
+%conflict REDUCE/REDUCE in state subtype_indication, explicit_actual_parameter on token COMMA ( 490)
+
+
+
     change conflict name algorithm?
         LHS.RHS of all productions involved
+            immediately obvious when conflict is > 2 way
             more likely to be the same between ada.wy and ada_annex_p.wy
             also store all states it occurs in
+            in .parse_table, report "n states with conflicts: ..."
         in o.e.a.s-2/o.w.s-2
-
-%conflict REDUCE/REDUCE in state name, allocator on token DO ( 341)
-    180.9:name <= qualified_expression ^
-    224.3:allocator <= NEW qualified_expression ^
-
-    substitute allocator into primary; just changes conflict name to name, primary
 
 compare ada LR1 generate time
     o.e.a:

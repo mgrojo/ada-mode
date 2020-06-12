@@ -316,6 +316,7 @@
 %conflict SHIFT/REDUCE in state block_label, identifier_list  on token COLON
 %conflict SHIFT/REDUCE in state compilation, compilation  on token FOR
 %conflict SHIFT/REDUCE in state declaration, declaration  on token CONSTANT
+%conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token RANGE ( 605)
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR ( 137)
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
