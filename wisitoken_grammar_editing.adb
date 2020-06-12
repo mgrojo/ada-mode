@@ -2895,13 +2895,14 @@ package body WisiToken_Grammar_Editing is
 
                Put_RHS_List (Children (3), First, Virtual);
 
-               if Tree.Children (Children (4))'Length > 0 then
-                  if Virtual then
-                     Put_Line (File, "  ;");
-                  else
-                     Put (File, "  ;");
-                     Put_Comments (Children (4));
-                  end if;
+               --  We force a terminating ";" here, to speed parsing in _bnf.wy files.
+               if Tree.RHS_Index (Children (4)) = 1 then
+                  --  Empty
+                  Put_Line (File, "  ;");
+               else
+                  --  ";" present, including trailing newline.
+                  Put (File, "  ;");
+                  Put_Comments (Children (4), Force_New_Line => True);
                end if;
             end;
 

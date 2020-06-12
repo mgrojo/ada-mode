@@ -16,6 +16,7 @@
 generic_formal_part
   : GENERIC generic_formal_parameter_declaration_use_clause_list
   | GENERIC
+  ;
 generic_formal_parameter_declaration_use_clause
   : generic_formal_parameter_declaration
   | use_clause
