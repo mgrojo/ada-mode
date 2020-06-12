@@ -23,23 +23,30 @@
 
 test
   : expr
+  ;
 star_expr
   : STAR expr
+  ;
 expr
   : atom
+  ;
 atom
   : NAME
   | NUMBER
 
 ;; This nonterminal matches part of dictorsetmaker
+  ;
 testlist_comp
   : nonterminal_023 nonterminal_025
+  ;
 dictorsetmaker
   : nonterminal_031
 
+  ;
 comp_for
   : FOR expr IN test
 
+  ;
 expr_stmt
   : testlist_star_expr nonterminal_035
   | testlist_star_expr

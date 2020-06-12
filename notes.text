@@ -21,9 +21,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+error when shared_tree grows too large/parser count not zero for long time.
+
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes
         ada_ebnf.wy ";; end of file"
+        python_ebnf_bnf.wy
+            atom: forced terminating semicolon should be before trailing comment
 
     java_ebnf.wy Statement
         inline expand ()
