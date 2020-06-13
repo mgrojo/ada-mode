@@ -1,1 +1,8 @@
 build/*.info
+build/*.html
+build/*.txt
+build/*.texinfo
+build/arm_form.exe
+build/dir
+build/objects/
+build/*.stamp

@@ -22,7 +22,7 @@
 # Specific targets generate every $document$year.$format combination.
 # Ex: make arm2012.pdf
 AVAILABLE_DOCUMENTS := aarm arm
-AVAILABLE_YEARS     := 2005 2012
+AVAILABLE_YEARS     := 2005 2012 2020
 AVAILABLE_FORMATS   := html info texinfo txt pdf
 
 # 'all' builds all versions except pdf; to build a subset, override these on the command line.
@@ -132,7 +132,7 @@ trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
 # year is latest standard; bump trailing digit for any change.
-ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).4
+ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).1
 
 INFO_ARCHIVE := arm_info-$(ZIP_VERSION).tar.gz
 SOURCE_ARCHIVE  := arm_info-$(ZIP_VERSION)-src.tar.gz
@@ -161,6 +161,7 @@ clean::
 update_upstream : source_ada.clean         source_ada.stamp
 update_upstream : source_scribe_2005.clean source_scribe_2005.stamp
 update_upstream : source_scribe_2012.clean source_scribe_2012.stamp
+update_upstream : source_scribe_2020.clean source_scribe_2020.stamp
 
 # download.py does not convert to unix line endings here to minimize
 # the diff with upstream; the Ada compiler can handle DOS line endings
@@ -183,9 +184,16 @@ source_ada.clean :
 # and arm_form does as well; upstream only runs on Windows, which
 # ignores case in filenames, so the file names in the sources are not
 # consistently cased.
-source_scribe_%.stamp :
+source_scribe_%_downloaded.stamp :
 	rm -rf ../../org.adaic.arm_form.upstream/source_$*
 	cd ../../org.adaic.arm_form.upstream; $(PYTHON) ../org.adaic.arm_form/build/download.py $*
+
+# download.py often times out, so we need to run it multiple times,
+# then manually mark it done. Then make source_scribe_%.stamp
+mark_%_downloaded :
+	touch source_scribe_$*_downloaded.stamp
+
+source_scribe_%.stamp : source_scribe_%_downloaded.stamp
 	mv ../../org.adaic.arm_form.upstream/source ../../org.adaic.arm_form.upstream/source_$*
 	touch source_scribe_$*.stamp
 

@@ -58,9 +58,8 @@ upstream source; that is run from build/Makefile.
 Usage
 =====
 
-There are two monotone branches in the ada-france monotone server at
-www.ada-france.org (contact Ludovic Brenta <ludovic at ludovic dash
-brenta dot org> for access):
+There are two branches in the Gnu savannah server
+(git.sv.gnu.org:/srv/git/ada-mode.git):
 
 org.adaic.arm_form.upstream
 
@@ -88,6 +87,20 @@ build/Makefile
         otherwise, reset digit to 1
 
     update_upstream
+
+        If download.py reports non-zero failed downloads, run it in a
+        shell repeatedly (for one year), until it reports no failed
+        downloads.
+
+        If download.py reports non-zero no such tag (should only
+        happen with draft versions), run 'download.py HEAD', after all
+        tagged files are succesfully downloaded.
+
+        Then make:
+            mark_%_downloaded
+            source_scribe_%.stamp
+
+        repeat for each year, and 'progs'.
 
 (dvc-status "../org.adaic.arm_form.upstream")
     commit message "update from upstream"
