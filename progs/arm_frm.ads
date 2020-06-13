@@ -439,7 +439,7 @@ private
 	Attr_Prefix_Text_Change_Kind : ARM_Database.Paragraph_Change_Kind_Type;
 	Attr_Version : ARM_Contents.Change_Version_Type;
 	Attr_Initial_Version : ARM_Contents.Change_Version_Type;
-	Attr_Omit : Boolean; -- Omit Attr from the attribute annex.
+	Attr_Omit : Boolean := False; -- Omit Attr from the attribute annex.
 	    -- The above ten items are used only when processing Attribute
 	    -- and Attribute_Leading commands.
 

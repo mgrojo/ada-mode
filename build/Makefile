@@ -65,12 +65,14 @@ TEXI_PDF_OPTS := --quiet
 
 SOURCE_DIR_2005 := ../source_2005
 SOURCE_DIR_2012 := ../source_2012
+SOURCE_DIR_2020 := ../source_2020
 
 # See progs/command.txt.
 CHANGES      := New-Only
-# See arm_form.exe help for possible values
+# See arm_form.ada comment before Get_Commands for possible values
 VERSION_2005 := 2
 VERSION_2012 := 4
+VERSION_2020 := 5
 
 # Mapping from document acronyms to Randy's file names
 MASTER_arm  := rm.msm
@@ -79,6 +81,7 @@ MASTER_aarm := aarm.msm
 # Rough dependency, but Scribe files should not change often.
 SOURCES_2005 := $(wildcard $(SOURCE_DIR_2005)/*.ms[ms])
 SOURCES_2012 := $(wildcard $(SOURCE_DIR_2012)/*.ms[ms])
+SOURCES_2020 := $(wildcard $(SOURCE_DIR_2020)/*.ms[ms])
 define doc_year_build
 
   # Non-unique intermediate paths would create a race condition, so we
@@ -129,7 +132,7 @@ clean::
 	rm -f -r objects __pycache__
 
 trace :
-	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
+	addr2line -e arm_form.exe 0x52f218 0x54d4de 0x402123 0x405c6e 0x401393 0x4014f9 0x7ffd98271410 0x7ffd990454f2
 
 # year is latest standard; bump trailing digit for any change.
 ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).1
@@ -149,10 +152,9 @@ $(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
 clean::
 	rm -f $(INFO_ARCHIVE)
 
-ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
-  *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude aarm2005.html \
-  aarm2005.txt aarm2012.html aarm2012.txt arm2005.html arm2005.txt arm2012.html \
-  arm2012.txt objects __pycache__
+ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc aarm* arm* \
+  *.stamp *.zip arm_form.exe _MTN .gitignore .dvc-exclude \
+  objects __pycache__
 $(SOURCE_ARCHIVE):
 	tar cf - -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form | gzip $(GZIP) -c > $@
 clean::
@@ -200,7 +202,7 @@ source_scribe_%.stamp : source_scribe_%_downloaded.stamp
 source_scribe_%.clean :
 	rm -f source_scribe_$*.stamp
 
-# These sources do not match the correpsonding CVS tag, although they are close.
+# These sources do not match the corresponding CVS tag, although they are close.
 ARM_SRC.ZIP ARM_FORM.ZIP ARM_FSRC.ZIP 2005-SRC.zip 2012-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/$@
 
@@ -216,7 +218,7 @@ info-clean :
 
 .PHONY : force
 
-VPATH = ../source_2005 ../source_2012 ../progs
+VPATH = ../source_2005 ../source_2012 ../source_2020 ../progs
 
 #Local Variables:
 #eval: (delete '("\\.mss\\'" . scribe-mode) auto-mode-alist)

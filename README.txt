@@ -83,6 +83,11 @@ NEWS
 
 build/Makefile
     if necessary, update AVAILABLE_YEARS for latest version
+        also all other occurances of 2012 in Makefile
+
+        a new year will have a new change version; update
+        progs.arm_texi.adb 'case Change_Version'
+
     if no new version, bump trailing digit in ZIP_VERSION
         otherwise, reset digit to 1
 

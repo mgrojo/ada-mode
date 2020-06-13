@@ -1,8 +1,9 @@
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -724,17 +725,19 @@ package body ARM_Texinfo is
       case Change_Version is
          when '2' =>
             Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2005).");
-            Put_Line (Output_Object.File, "* Annotated ARM: (arm2005).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (aarm2005).");
          when '3' =>
             Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2012).");
-            Put_Line (Output_Object.File, "* Annotated ARM: (arm2012).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (aarm2012).");
          when '4' =>
             Put_Line (Output_Object.File, "* Ada Reference Manual TC1: (arm2012).");
-            Put_Line (Output_Object.File, "* Annotated ARM TC1: (arm2012).");
+            Put_Line (Output_Object.File, "* Annotated ARM TC1: (aarm2012).");
+         when '5' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2020).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (aarm2020).");
          when others =>
-            Ada.Exceptions.Raise_Exception
-              (ARM_Output.Not_Valid_Error'Identity,
-               "unsupported Change_Version");
+            Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+            raise ARM_Output.Not_Valid_Error with "arm_texi.adb: unsupported Change_Version" & Change_Version'Image;
       end case;
       Put_Line (Output_Object.File, "@end direntry");
 
