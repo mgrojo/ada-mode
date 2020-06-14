@@ -97,6 +97,8 @@ package WisiToken.BNF is
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
+   function Is_Valid_Interface (Item : in String) return Boolean;
+
    type Generate_Tuple is record
       Gen_Alg        : Generate_Algorithm := None;
       Out_Lang       : Output_Language    := Ada_Lang;
@@ -261,10 +263,8 @@ package WisiToken.BNF is
 
    type Conflict is record
       Source_Line : WisiToken.Line_Number_Type;
-      Action_A    : Ada.Strings.Unbounded.Unbounded_String;
-      LHS_A       : Ada.Strings.Unbounded.Unbounded_String;
-      Action_B    : Ada.Strings.Unbounded.Unbounded_String;
-      LHS_B       : Ada.Strings.Unbounded.Unbounded_String;
+      Items       : String_Pair_Lists.List;
+      --  Item (I).Name = action, .Value = lhs_rhs
       On          : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

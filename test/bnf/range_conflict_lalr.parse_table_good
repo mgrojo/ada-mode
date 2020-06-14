@@ -300,7 +300,7 @@ State 22:
 
    Minimal_Complete_Action => range_g 15.0
 
-States with conflicts: 17
+1 states with conflicts: 17
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
 

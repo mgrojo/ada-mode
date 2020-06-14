@@ -175,20 +175,15 @@ package body WisiToken.Generate.LR.LR1_Generate is
    end LR1_Item_Sets;
 
    procedure Add_Actions
-     (Item_Sets            : in     LR1_Items.Item_Set_List;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      :    out Conflict_Count_Lists.List;
-      Conflicts            :    out Conflict_Lists.List;
-      Table                : in out Parse_Table;
-      Descriptor           : in     WisiToken.Descriptor)
+     (Item_Sets  : in     LR1_Items.Item_Set_List;
+      Table      : in out Parse_Table;
+      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
    begin
       for Item_Set of Item_Sets loop
-         Add_Actions
-           (Item_Set, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
+         Add_Actions (Item_Set, Table, Grammar, Descriptor);
       end loop;
 
       if Trace_Generate_Table > Outline then
@@ -200,7 +195,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
       Grammar_File_Name     : in     String;
-      Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Known_Conflicts       : in     Conflict_Lists.Tree := Conflict_Lists.Empty_Tree;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
@@ -238,9 +233,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-      Conflict_Counts      : Conflict_Count_Lists.List;
-      Unknown_Conflicts    : Conflict_Lists.List;
-      Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
+      Conflict_Counts      : Conflict_Count_Lists.Vector;
+      Unknown_Conflicts    : Conflict_Lists.Tree;
+      Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
    begin
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.New_Line;
@@ -282,9 +277,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Add_Actions
-        (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set,
-         Conflict_Counts, Unknown_Conflicts, Table.all, Descriptor);
+      Add_Actions (Item_Sets, Table.all, Grammar, Descriptor);
 
       for State in Table.States'Range loop
          if Trace_Generate_Minimal_Complete > Extra then
@@ -295,6 +288,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
             LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access),
             Descriptor, Grammar, Nullable, Minimal_Terminal_Sequences, Minimal_Terminal_First);
       end loop;
+
+      Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
 
       if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table
@@ -317,7 +312,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end loop;
       end if;
 
-      Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
+      Delete_Matching (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LR1 unknown conflicts:");

@@ -162,7 +162,7 @@ State 14:
 
    Minimal_Complete_Action => statement 10.0
 
-States with conflicts: 1 5
+2 states with conflicts: 1 5
 
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
 

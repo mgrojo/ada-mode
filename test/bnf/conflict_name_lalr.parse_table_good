@@ -164,7 +164,7 @@ State 11:
 
    Minimal_Complete_Action => aggregate 7.0
 
-States with conflicts: 9
+1 states with conflicts: 9
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
 

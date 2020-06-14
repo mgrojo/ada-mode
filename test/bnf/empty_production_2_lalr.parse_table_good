@@ -129,7 +129,7 @@ State 8:
 
    Minimal_Complete_Action => body 9.0
 
-States with conflicts: 0 1 3 5
+4 states with conflicts: 0 1 3 5
 
  1 accept/reduce conflicts, 5 shift/reduce conflicts, 0 reduce/reduce conflicts
 

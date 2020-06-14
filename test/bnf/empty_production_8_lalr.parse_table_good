@@ -155,7 +155,7 @@ State 12:
 
    Minimal_Complete_Action => object_declaration 9.1
 
-States with conflicts: 1
+1 states with conflicts: 1
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
 

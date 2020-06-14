@@ -108,7 +108,10 @@ package WisiToken.Parse.LR is
 
    function To_Key (Item : in Action_Node) return Token_ID is (Item.Symbol);
 
-   function Compare (Left, Right : in Token_ID) return SAL.Compare_Result;
+   function Compare (Left, Right : in Token_ID) return SAL.Compare_Result
+   is (if Left < Right then SAL.Less
+       elsif Left = Right then SAL.Equal
+       else SAL.Greater);
 
    package Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
      (Action_Node, Token_ID, To_Key, Compare);

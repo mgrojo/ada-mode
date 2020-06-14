@@ -551,7 +551,7 @@ State 46:
 
    Minimal_Complete_Action => compilation_unit 21.0
 
-States with conflicts: 10 28
+2 states with conflicts: 10 28
 
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
 

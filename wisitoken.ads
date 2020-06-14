@@ -231,6 +231,9 @@ package WisiToken is
    function Image (Item : in Production_ID) return String;
    --  Ada positional aggregate syntax, for code generation.
 
+   function Image (Item : in Production_ID; Descriptor : in WisiToken.Descriptor) return String;
+   --  Nonterm_name_rhs_index, for messages.
+
    function Trimmed_Image (Item : in Production_ID) return String;
    --  Nonterm.rhs_index, both integers, no leading or trailing space;
    --  for parse table output and diagnostics.

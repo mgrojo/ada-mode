@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,6 +23,15 @@ with Ada.Directories;
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
 package body WisiToken.BNF is
+
+   function Is_Valid_Interface (Item : in String) return Boolean
+   is
+      Lower_Item : constant String := To_Lower (Item);
+   begin
+      return
+        Lower_Item = "process" or
+        Lower_Item = "module";
+   end Is_Valid_Interface;
 
    procedure Add
      (Set   : in out Generate_Set_Access;

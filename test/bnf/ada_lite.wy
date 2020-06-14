@@ -149,11 +149,12 @@
 ;; keywords.
 %mckenzie_cost_delete STRING_LITERAL 2
 
-%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
-%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body  on token IS
+%conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS ( 67)
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS ( 68)
+%conflict SHIFT subprogram_body_stub | REDUCE aspect_specification_opt on token IS ( 146)
+%conflict REDUCE association_opt | REDUCE parameter_specification on token RIGHT_PAREN ( 112)
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN ( 249)
+%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN ( 175)
 
 ;;;; grammar rules
 

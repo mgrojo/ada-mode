@@ -26,11 +26,11 @@
 ;; not first nonterminal
 %start compilation
 
-%conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
-%conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN
-%conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
-%conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
-%conflict REDUCE/REDUCE in state identifier_list, name on token Wisi_EOI
+%conflict REDUCE identifier_list | REDUCE name on token LEFT_PAREN (3)
+%conflict REDUCE identifier_list | REDUCE name on token COMMA (3)
+%conflict REDUCE identifier_list | REDUCE name on token STRING_LITERAL (3)
+%conflict REDUCE identifier_list | REDUCE name on token IDENTIFIER (3)
+%conflict REDUCE identifier_list | REDUCE name on token Wisi_EOI (3)
 
 association
   : selector_name EQUAL_GREATER name

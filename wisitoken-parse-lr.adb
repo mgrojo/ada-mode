@@ -109,17 +109,6 @@ package body WisiToken.Parse.LR is
       return False;
    end Is_In;
 
-   function Compare (Left, Right : in Token_ID) return SAL.Compare_Result
-   is begin
-      if Left < Right then
-         return SAL.Less;
-      elsif Left = Right then
-         return SAL.Equal;
-      else
-         return SAL.Greater;
-      end if;
-   end Compare;
-
    procedure Add
      (List   : in out Action_Arrays.Vector;
       Symbol : in     Token_ID;

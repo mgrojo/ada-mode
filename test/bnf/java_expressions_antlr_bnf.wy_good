@@ -98,15 +98,16 @@ BOOL_LITERAL
 
 %token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
 
-%conflict SHIFT/REDUCE in state expression, expression on token LBRACK
-%conflict SHIFT/REDUCE in state expression, expression on token DOT
-%conflict SHIFT/REDUCE in state expression, expression on token INC
-%conflict SHIFT/REDUCE in state expression, expression on token DEC
-%conflict SHIFT/REDUCE in state expression, expression on token MUL
-%conflict SHIFT/REDUCE in state expression, expression on token DIV
-%conflict SHIFT/REDUCE in state expression, expression on token MOD
-%conflict SHIFT/REDUCE in state expression, expression on token ADD
-%conflict SHIFT/REDUCE in state expression, expression on token SUB
+%conflict SHIFT expression | REDUCE expression on token LBRACK
+%conflict SHIFT expression | REDUCE expression on token DOT
+
+%conflict SHIFT nonterminal_029 | REDUCE expression on token INC
+%conflict SHIFT nonterminal_029 | REDUCE expression on token DEC
+%conflict SHIFT nonterminal_032 | REDUCE expression on token ADD
+%conflict SHIFT nonterminal_032 | REDUCE expression on token SUB
+%conflict SHIFT nonterminal_031 | REDUCE expression on token MUL
+%conflict SHIFT nonterminal_031 | REDUCE expression on token DIV
+%conflict SHIFT nonterminal_031 | REDUCE expression on token MOD
 
 literal
   : DECIMAL_LITERAL

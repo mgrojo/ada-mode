@@ -201,6 +201,11 @@ package body WisiToken is
       return '(' & Trimmed_Image (Item.LHS) & ',' & Natural'Image (Item.RHS) & ')';
    end Image;
 
+   function Image (Item : in Production_ID; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      return Image (Item.LHS, Descriptor) & '_' & Trimmed_Image (Item.RHS);
+   end Image;
+
    function Trimmed_Image (Item : in Production_ID) return String
    is begin
       return Trimmed_Image (Item.LHS) & '.' & Trimmed_Image (Item.RHS);

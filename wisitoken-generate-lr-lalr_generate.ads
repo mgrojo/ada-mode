@@ -28,7 +28,7 @@ package WisiToken.Generate.LR.LALR_Generate is
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
       Grammar_File_Name     : in     String;
-      Known_Conflicts       : in     Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Known_Conflicts       : in     Conflict_Lists.Tree := Conflict_Lists.Empty_Tree;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
@@ -80,10 +80,7 @@ package WisiToken.Generate.LR.LALR_Generate is
      (Kernels                 : in     LR1_Items.Item_Set_List;
       Grammar                 : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production    : in     Token_ID_Set;
-      First_Nonterm_Set       : in     Token_Array_Token_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
-      Conflict_Counts         :    out Conflict_Count_Lists.List;
-      Conflicts               :    out Conflict_Lists.List;
       Table                   : in out Parse_Table;
       Descriptor              : in     WisiToken.Descriptor);
 

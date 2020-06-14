@@ -17,7 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
+with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
+with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Parse.LR;
 with WisiToken.Productions;
@@ -25,104 +26,120 @@ package WisiToken.Generate.LR is
    use WisiToken.Parse.LR;
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
+   type Conflict_Item is record
+      Action : Conflict_Parse_Actions;
+      LHS    : Token_ID;
+   end record;
+
+   function Conflict_Item_Compare (Left, Right : in Conflict_Item) return SAL.Compare_Result
+   is (if Left.Action > Right.Action
+       then SAL.Greater
+       elsif Left.Action < Right.Action
+       then SAL.Less
+       else
+         (if Left.LHS > Right.LHS
+          then SAL.Greater
+          elsif Left.LHS < Right.LHS
+          then SAL.Less
+          else SAL.Equal));
+
+   function To_Key (Item : in Conflict_Item) return Conflict_Item
+   is (Item);
+
+   package Conflict_Item_Lists is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
+     (Element_type => Conflict_Item,
+      Key_Type     => Conflict_Item,
+      To_Key       => To_Key,
+      Key_Compare  => Conflict_Item_Compare);
+
    type Conflict is record
-      --  A typical conflict is:
+      --  In the parse table, a "conflict" occurs when there are two or more
+      --  actions for one token in a state:
       --
-      --  SHIFT/REDUCE in state: 11 on token IS
+      --  RIGHT_PAREN => shift and goto state 833 222.1,
+      --                 reduce 1 tokens to explicit_actual_parameter 256.1,
+      --                 reduce 1 tokens to subtype_indication 118.3,
+      --                 reduce 1 tokens to primary 209.3
       --
-      --  State numbers change with minor changes in the grammar, so we
-      --  attempt to identify the state by the LHS of the two productions
-      --  involved; this is _not_ guarranteed to be unique, but is good
-      --  enough for our purposes. We also store the state number for
-      --  generated conflicts (not for known conflicts from the grammar
-      --  definition file), for debugging.
-      Action_A    : Conflict_Parse_Actions;
-      LHS_A       : Token_ID;
-      Action_B    : Conflict_Parse_Actions;
-      LHS_B       : Token_ID;
-      State_Index : Unknown_State_Index;
-      On          : Token_ID;
+      --  The same conflict can occur in multiple states.
+      --
+      --  The user must declare all known conflicts in the grammar file;
+      --  this helps them eliminate unnecessary conflicts, which can
+      --  significantly slow both normal parsing and error recovery.
+      --
+      --  We identify the conflict by the token, and the action and LHS of
+      --  all the productions involved. We also store all the states it
+      --  occurs in, for debugging.
+      On     : Token_ID;
+      Items  : Conflict_Item_Lists.Vector;
+      States : State_Index_Arrays.Vector;
    end record;
 
-   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+   function Image (Conflict : in LR.Conflict; Descriptor : in WisiToken.Descriptor) return String;
 
-   type Conflict_Count is record
-      State : State_Index;
-      Accept_Reduce : Integer             := 0;
-      Shift_Reduce  : Integer             := 0;
-      Reduce_Reduce : Integer             := 0;
-   end record;
+   function Conflict_Compare (Left, Right : in Conflict) return SAL.Compare_Result;
+   --  Sort on On, Items.
 
-   package Conflict_Count_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict_Count);
+   function To_Key (Item : in Conflict) return Conflict
+   is (Item);
+
+   package Conflict_Lists is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
+     (Element_Type => Conflict,
+      Key_Type     => Conflict,
+      Key          => To_Key,
+      Key_Compare  => Conflict_Compare);
 
    procedure Put
-     (Item       : in Conflict_Lists.List;
+     (Item       : in Conflict_Lists.Tree;
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor);
 
+   procedure Delete_Matching
+     (Found_Conflicts : in out Conflict_Lists.Tree;
+      Known_Conflicts : in out Conflict_Lists.Tree);
+   --  Delete matching Known_Conflicts from Conflicts, and vice versa;
+   --  Known_Conflicts is left with user-declared conflicts that are not
+   --  present in the grammar, and Conflicts with conflicts that are
+   --  present in the grammar but not declared by the user..
+
+   type Conflict_Count is record
+      Accept_Reduce : Integer := 0;
+      Shift_Reduce  : Integer := 0;
+      Reduce_Reduce : Integer := 0;
+   end record;
+
+   package Conflict_Count_Lists is new SAL.Gen_Unbounded_Definite_Vectors
+     (State_Index, Conflict_Count, Default_Element => (others => <>));
+
+   procedure Collect_Conflicts
+     (Table           : in Parse_Table;
+      Conflicts       : in out Conflict_Lists.Tree;
+      Conflict_Counts : in out Conflict_Count_Lists.Vector);
+
+   ----------
+   --  Build parse table
+
    procedure Add_Action
-     (Symbol               : in     Token_ID;
-      Action               : in     Parse_Action_Rec;
-      Action_List          : in out Action_Arrays.Vector;
-      Closure              : in     LR1_Items.Item_Set;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor);
-   --  Add (Symbol, Action) to Action_List; check for conflicts
-   --
-   --  Closure .. Conflicts are for conflict reporting
+     (Symbol      : in     Token_ID;
+      Action      : in     Parse_Action_Rec;
+      Action_List : in out Action_Arrays.Vector;
+      Descriptor  : in     WisiToken.Descriptor);
+   --  Add (Symbol, Action) to Action_List
 
    procedure Add_Actions
-     (Closure              : in     LR1_Items.Item_Set;
-      Table                : in out Parse_Table;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor);
-   --  Add actions for Closure to Table. Has_Empty_Production, First,
-   --  Conflicts used for conflict reporting.
+     (Closure    : in     LR1_Items.Item_Set;
+      Table      : in out Parse_Table;
+      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor);
+   --  Add actions for Closure to Table.
 
    procedure Add_Lookahead_Actions
-     (Item                 : in     LR1_Items.Item;
-      Action_List          : in out Action_Arrays.Vector;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Closure              : in     LR1_Items.Item_Set;
-      Descriptor           : in     WisiToken.Descriptor);
+     (Item        : in     LR1_Items.Item;
+      Action_List : in out Action_Arrays.Vector;
+      Grammar     : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor  : in     WisiToken.Descriptor);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
-   --  Has_Empty_Production .. Closure used for conflict reporting.
-
-   procedure Delete_Known
-     (Conflicts       : in out Conflict_Lists.List;
-      Known_Conflicts : in out Conflict_Lists.List);
-   --  Delete Known_Conflicts from Conflicts.
-
-   function Find
-     (Closure              : in LR1_Items.Item_Set;
-      Action               : in Parse_Action_Rec;
-      Lookahead            : in Token_ID;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Descriptor           : in WisiToken.Descriptor)
-     return Token_ID;
-   --  Return the LHS of a production in kernel of Closure, for an Action
-   --  conflict on Lookahead; for naming a Conflict object.
-
-   function Image (Item : in Conflict; Descriptor : in WisiToken.Descriptor) return String;
-
-   function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean;
-
-   function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
    ----------
    --  Minimal terminal sequences.
@@ -211,7 +228,7 @@ package WisiToken.Generate.LR is
       Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
       Recursions            : in Generate.Recursions;
       Kernels               : in LR1_Items.Item_Set_List;
-      Conflicts             : in Conflict_Count_Lists.List;
+      Conflicts             : in Conflict_Count_Lists.Vector;
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False);
    --  "Extra" is recursions.

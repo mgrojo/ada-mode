@@ -3898,7 +3898,7 @@ State 185:
 
    Minimal_Complete_Action => expression 30.2
 
-States with conflicts: 53 69 103 104 117 118 119 136 149 151 165 166 177 178 180 183
+16 states with conflicts: 53 69 103 104 117 118 119 136 149 151 165 166 177 178 180 183
 
  0 accept/reduce conflicts, 144 shift/reduce conflicts, 0 reduce/reduce conflicts
 

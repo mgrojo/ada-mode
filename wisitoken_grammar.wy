@@ -111,12 +111,12 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; interactive use, and to keep wisitoken-bnf-generate independent of
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
-%conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT
-%conflict SHIFT/REDUCE in state rhs_item_list, rhs  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER
+%conflict SHIFT rhs_list_2 | REDUCE semicolon_opt_1 on token PERCENT ( 45, 54)
+%conflict SHIFT declaration_item_2 | REDUCE declaration_0 on token IDENTIFIER ( 61)
+%conflict SHIFT declaration_item_2 | REDUCE declaration_2 on token IDENTIFIER ( 36)
+%conflict SHIFT declaration_item_2 | REDUCE declaration_3 on token IDENTIFIER ( 13)
+%conflict SHIFT rhs_element_1 | REDUCE rhs_0 on token IDENTIFIER ( 15, 16, 72)
+%conflict SHIFT rhs_element_1 | REDUCE rhs_1 on token IDENTIFIER ( 49)
 
 ;;;; grammar rules, no particular order
 
@@ -152,7 +152,8 @@ declaration_item_list
   ;
 
 declaration_item
-  : COMMA
+  : BAR
+  | COMMA
   | IDENTIFIER
   | EQUAL
   | LEFT_PAREN
@@ -163,7 +164,7 @@ declaration_item
   | STRING_LITERAL_1
   | STRING_LITERAL_2
   | TOKEN
-  ;; ",", "token", "/", "(", ")" appear in %conflict declarations
+  ;; "|", ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
 
 nonterminal

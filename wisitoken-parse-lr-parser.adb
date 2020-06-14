@@ -984,6 +984,23 @@ package body WisiToken.Parse.LR.Parser is
                            end;
 
                         else
+                           if Debug_Mode then
+                              if Current_Parser.State_Ref.Tree.Shared_Tree_Node_Count >
+                                Shared_Parser.Shared_Tree_Node_Count_Threshold
+                              then
+                                 declare
+                                    Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                                    Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);
+                                 begin
+                                    raise WisiToken.Parse_Error with Error_Message
+                                      (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
+                                       "shared syntax tree growing too large (>" &
+                                         Shared_Parser.Shared_Tree_Node_Count_Threshold'Image &
+                                         "); improve grammar or increase Parser.Shared_Tree_Node_Count_Threshold.");
+                                 end;
+                              end if;
+                           end if;
+
                            if Trace_Parse > Outline then
                               declare
                                  Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;

@@ -17,8 +17,7 @@
 
 %start compilation_unit
 
-%conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state sequence_of_statements, sequence_of_statements  on token IDENTIFIER
+%conflict SHIFT label_opt | REDUCE label_opt on token IDENTIFIER (1, 5)
 
 compilation_unit
   : BEGIN sequence_of_statements END SEMICOLON

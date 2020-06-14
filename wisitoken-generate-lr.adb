@@ -30,6 +30,20 @@ package body WisiToken.Generate.LR is
    ----------
    --  Body subprograms, alphabetical
 
+   function Count (Actions : Parse_Action_Node_Ptr) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Node : Parse_Action_Node_Ptr := Actions;
+   begin
+      return Result : Count_Type := 0 do
+         loop
+            exit when Node = null;
+            Result  := @ + 1;
+            Node    := Node.Next;
+         end loop;
+      end return;
+   end Count;
+
    function Min
      (Item    : in RHS_Sequence_Arrays.Vector;
       RHS_Set : in LR.RHS_Set.Vector)
@@ -190,11 +204,117 @@ package body WisiToken.Generate.LR is
       end if;
    end Terminal_Sequence;
 
+   function To_Conflict
+     (Action_Node : in Parse.LR.Action_Node;
+      State       : in State_Index)
+     return Conflict
+   is
+      Node : Parse_Action_Node_Ptr := Action_Node.Actions;
+   begin
+      return Result : Conflict do
+         Result.On := Action_Node.Symbol;
+         Result.States.Append (State);
+         loop
+            Result.Items.Insert ((Node.Item.Verb, Node.Item.Production.LHS));
+            Node := Node.Next;
+            exit when Node = null;
+         end loop;
+      end return;
+   end To_Conflict;
+
    ----------
    --  Public subprograms, declaration order
 
+   function Image (Conflict : in LR.Conflict; Descriptor : in WisiToken.Descriptor) return String
+   is
+      use Ada.Strings.Unbounded;
+      use all type Ada.Containers.Count_Type;
+
+      --  Must match wisitoken_grammar_runtime.adb Add_Declaration
+      --  "conflict"; see there for comment with format.
+
+      Result   : Unbounded_String := +"%conflict ";
+      Need_Bar : Boolean          := False;
+
+      function Image (Item : in Conflict_Parse_Actions) return String
+      --  WORKAROUND: subtype_object'Image GNAT Community 2020 with -gnat2020
+      --  returns integer, not name.
+      is (case Item is
+          when Shift => "SHIFT",
+          when Reduce => "REDUCE",
+          when Accept_It => "ACCEPT_IT");
+   begin
+      for Item of Conflict.Items loop
+         if Need_Bar then
+            Result := Result & " | ";
+         else
+            Need_Bar := True;
+         end if;
+
+         Result := Result & Image (Item.Action) & " " & Image (Item.LHS, Descriptor);
+      end loop;
+
+      Result := Result & " on token " & Image (Conflict.On, Descriptor);
+
+      Need_Bar := False;
+
+      if Conflict.States.Length > 0 then
+         Result := Result & " (";
+         for State of Conflict.States loop
+            if Need_Bar then
+               Result := Result & "," & State'Image;
+            else
+               Need_Bar := True;
+               Result := Result & Trimmed_Image (State);
+            end if;
+         end loop;
+
+         Result := Result & ")";
+      end if;
+      return -Result;
+   end Image;
+
+   function Conflict_Compare (Left, Right : in Conflict) return SAL.Compare_Result
+   is
+      use all type SAL.Compare_Result;
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Left.On > Right.On then
+         return Greater;
+      elsif Left.On < Right.On then
+         return Less;
+      else
+         declare
+            I : SAL.Peek_Type := Left.Items.First_Index;
+            J : SAL.Peek_Type := Right.Items.First_Index;
+         begin
+            loop
+               case Conflict_Item_Compare (Left.Items (I), Right.Items (J)) is
+               when Greater =>
+                  return Greater;
+               when Less =>
+                  return Less;
+               when Equal =>
+                  I := I + 1;
+                  J := J + 1;
+
+                  if I > Left.Items.Last_Index and J > Right.Items.Last_Index then
+                     return Equal;
+                  elsif I > Left.Items.Last_Index then
+                     return Greater;
+                  elsif J > Right.Items.Last_Index then
+                     return Less;
+                  else
+                     null;
+                  end if;
+               end case;
+            end loop;
+         end;
+      end if;
+   end Conflict_Compare;
+
    procedure Put
-     (Item       : in Conflict_Lists.List;
+     (Item       : in Conflict_Lists.Tree;
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor)
    is begin
@@ -203,19 +323,101 @@ package body WisiToken.Generate.LR is
       end loop;
    end Put;
 
-   procedure Add_Action
-     (Symbol               : in     Token_ID;
-      Action               : in     Parse_Action_Rec;
-      Action_List          : in out Action_Arrays.Vector;
-      Closure              : in     LR1_Items.Item_Set;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor)
+   procedure Collect_Conflicts
+     (Table           : in Parse_Table;
+      Conflicts       : in out Conflict_Lists.Tree;
+      Conflict_Counts : in out Conflict_Count_Lists.Vector)
    is
-      Matching_Action : constant Action_Arrays.Find_Reference_Type := Action_List.Find (Symbol);
+      use all type Ada.Containers.Count_Type;
+   begin
+      Conflict_Counts.Set_First_Last (Table.States'First, Table.States'Last);
+
+      for State in Table.States'Range loop
+         declare
+            Counts : Conflict_Count renames Conflict_Counts (State);
+         begin
+
+            for Action_Node of Table.States (State).Action_List loop
+               if Count (Action_Node.Actions) > 1 then
+                  declare
+                     use Conflict_Lists;
+
+                     New_Conflict : constant Conflict := To_Conflict (Action_Node, State);
+
+                     Existing_Conflict : constant Cursor := Conflicts.Iterate.Find (New_Conflict);
+                  begin
+                     if Existing_Conflict = No_Element then
+                        Conflicts.Insert (New_Conflict);
+                     else
+                        Conflicts.Variable_Reference (Existing_Conflict).States.Append (State);
+                     end if;
+
+                     if Action_Node.Actions.Item.Verb = Shift then
+                        Counts.Shift_Reduce := @ + 1;
+                     elsif New_Conflict.Items (New_Conflict.Items.Last_Index).Action = Accept_It then
+                        Counts.Accept_Reduce := @ + 1;
+                     else
+                        Counts.Reduce_Reduce := @ + 1;
+                     end if;
+                  end;
+               end if;
+            end loop;
+         end;
+      end loop;
+   end Collect_Conflicts;
+
+   procedure Delete_Matching
+     (Found_Conflicts : in out Conflict_Lists.Tree;
+      Known_Conflicts : in out Conflict_Lists.Tree)
+   is
+      use Conflict_Lists;
+      use all type SAL.Compare_Result;
+
+      Known_Iter : constant Iterator := Known_Conflicts.Iterate;
+      Known      : Cursor   := Known_Iter.First;
+
+      Found_Iter : constant Iterator := Found_Conflicts.Iterate;
+      Found      : Cursor   := Found_Iter.First;
+
+   begin
+      loop
+         exit when Known = No_Element or Found = No_Element;
+
+         case Conflict_Compare
+           (Known_Conflicts.Constant_Reference (Known),
+            Found_Conflicts.Constant_Reference (Found))
+         is
+         when Greater =>
+            Found := Found_Iter.Next (Found);
+
+         when Less =>
+            Known := Known_Iter.Next (Known);
+
+         when Equal =>
+            declare
+               Temp : Cursor := Known;
+            begin
+               Known := Known_Iter.Next (Known);
+               Known_Conflicts.Delete (Temp);
+
+               Temp  := Found;
+               Found := Found_Iter.Next (Found);
+               Found_Conflicts.Delete (Temp);
+            end;
+         end case;
+      end loop;
+   end Delete_Matching;
+
+   ----------
+   --  Build parse table
+
+   procedure Add_Action
+     (Symbol      : in     Token_ID;
+      Action      : in     Parse_Action_Rec;
+      Action_List : in out Action_Arrays.Vector;
+      Descriptor  : in     WisiToken.Descriptor)
+   is
+      Matching_Action_Node : constant Action_Arrays.Find_Reference_Type := Action_List.Find (Symbol);
    begin
       if Trace_Generate_Table > Detail then
          Ada.Text_IO.Put (Image (Symbol, Descriptor) & " => ");
@@ -223,102 +425,18 @@ package body WisiToken.Generate.LR is
          Ada.Text_IO.New_Line;
       end if;
 
-      if Matching_Action.Element /= null then
-         if Is_In (Action, Matching_Action.Actions) then
-            --  Action is already in the list.
+      if Matching_Action_Node.Element /= null then
+         if Is_In (Action, Matching_Action_Node.Actions) then
             if Trace_Generate_Table > Detail then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
             return;
          else
-            --  There is a conflict. Report it and add it, so the
-            --  generalized parser can follow all paths
-            declare
-               --  Enforce canonical Shift/Reduce or Accept/Reduce order, to simplify
-               --  searching and code generation. There can be only one Shift in the
-               --  list of conflicting actions, so we keep it the first item in the
-               --  list; no order in the rest of the list.
-               Action_A : constant Parse_Action_Rec :=
-                 (if Action.Verb in Shift | Accept_It then Action else Matching_Action.Actions.Item);
-
-               Action_B : constant Parse_Action_Rec :=
-                 (if Action.Verb in Shift | Accept_It then Matching_Action.Actions.Item else Action);
-
-               New_Conflict : constant Conflict :=
-                 (Action_A    => Action_A.Verb,
-                  Action_B    => Action_B.Verb,
-                  LHS_A       => Find
-                    (Closure, Action_A, Symbol, Grammar, Has_Empty_Production, First_Nonterm_Set, Descriptor),
-                  LHS_B       => Find
-                    (Closure, Action_B, Symbol, Grammar, Has_Empty_Production, First_Nonterm_Set, Descriptor),
-                  State_Index => Closure.State,
-                  On          => Symbol);
-
-               Counts : Conflict_Count_Lists.Cursor;
-            begin
-               for Cur in Conflict_Counts.Iterate loop
-                  if Conflict_Counts (Cur).State = Closure.State then
-                     Counts := Cur;
-                     exit;
-                  end if;
-               end loop;
-
-               if not Conflict_Count_Lists.Has_Element (Counts) then
-                  Conflict_Counts.Append ((Closure.State, others => 0));
-                  Counts := Conflict_Counts.Last;
-               end if;
-
-               declare
-                  use Conflict_Count_Lists;
-                  Counts_Ref : constant Reference_Type := Reference (Conflict_Counts, Counts);
-               begin
-                  case Action_A.Verb is
-                  when Shift =>
-                     case Action_B.Verb is
-                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
-                        raise SAL.Programmer_Error;
-                     when Reduce =>
-                        Counts_Ref.Shift_Reduce := Counts_Ref.Shift_Reduce + 1;
-                     end case;
-                  when Reduce =>
-                     case Action_B.Verb is
-                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
-                        raise SAL.Programmer_Error;
-                     when Reduce =>
-                        Counts_Ref.Reduce_Reduce := Counts_Ref.Reduce_Reduce + 1;
-                     end case;
-                  when Accept_It =>
-                     case Action_B.Verb is
-                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
-                        raise SAL.Programmer_Error;
-                     when Reduce =>
-                        Counts_Ref.Accept_Reduce := Counts_Ref.Accept_Reduce + 1;
-                     end case;
-                  when WisiToken.Parse.LR.Error =>
-                     raise SAL.Programmer_Error;
-                  end case;
-               end;
-
-               if not Is_Present (New_Conflict, Conflicts) then
-                  --  The same conflict may occur in a different
-                  --  item set. Only add it to conflicts once.
-                  Conflicts.Append (New_Conflict);
-
-                  if Trace_Generate_Table > Detail then
-                     Ada.Text_IO.Put_Line (" - conflict added: " & Image (New_Conflict, Descriptor));
-                  end if;
-               else
-                  if Trace_Generate_Table > Detail then
-                     Ada.Text_IO.Put_Line (" - conflict duplicate: " & Image (New_Conflict, Descriptor));
-                  end if;
-               end if;
-
-               if Action.Verb = Shift then
-                  Matching_Action.Actions := new Parse_Action_Node'(Action, Matching_Action.Actions);
-               else
-                  Matching_Action.Actions.Next := new Parse_Action_Node'(Action, Matching_Action.Actions.Next);
-               end if;
-            end;
+            if Action.Verb = Shift then
+               Matching_Action_Node.Actions := new Parse_Action_Node'(Action, Matching_Action_Node.Actions);
+            else
+               Matching_Action_Node.Actions.Next := new Parse_Action_Node'(Action, Matching_Action_Node.Actions.Next);
+            end if;
          end if;
       else
          WisiToken.Parse.LR.Add (Action_List, Symbol, Action);
@@ -326,14 +444,10 @@ package body WisiToken.Generate.LR is
    end Add_Action;
 
    procedure Add_Actions
-     (Closure              : in     LR1_Items.Item_Set;
-      Table                : in out Parse_Table;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor)
+     (Closure    : in     LR1_Items.Item_Set;
+      Table      : in out Parse_Table;
+      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
    is
       use Token_ID_Arrays;
 
@@ -349,9 +463,7 @@ package body WisiToken.Generate.LR is
               (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
          begin
             if not Has_Element (Dot) then
-               Add_Lookahead_Actions
-                 (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
-                  Conflict_Counts, Conflicts, Closure, Descriptor);
+               Add_Lookahead_Actions (Item, Table.States (State).Action_List, Grammar, Descriptor);
 
             elsif Element (Dot) in
               Descriptor.First_Terminal .. Descriptor.Last_Terminal
@@ -377,8 +489,7 @@ package body WisiToken.Generate.LR is
                            (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
                            --  EOF is not pushed on stack in parser, because the action for EOF
                            --  is Accept, not Shift.
-                           Table.States (State).Action_List, Closure,
-                           Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
+                           Table.States (State).Action_List, Descriptor);
                      end;
                   else
                      if Goto_State /= Unknown_State then
@@ -386,8 +497,7 @@ package body WisiToken.Generate.LR is
                           (Dot_ID,
                            (Shift, P_ID, Goto_State),
                            Table.States (State).Action_List,
-                           Closure, Grammar, Has_Empty_Production, First_Nonterm_Set,
-                           Conflict_Counts, Conflicts, Descriptor);
+                           Descriptor);
                      end if;
                   end if;
                end;
@@ -413,15 +523,10 @@ package body WisiToken.Generate.LR is
    end Add_Actions;
 
    procedure Add_Lookahead_Actions
-     (Item                 : in     LR1_Items.Item;
-      Action_List          : in out Action_Arrays.Vector;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First_Nonterm_Set    : in     Token_Array_Token_Set;
-      Conflict_Counts      : in out Conflict_Count_Lists.List;
-      Conflicts            : in out Conflict_Lists.List;
-      Closure              : in     LR1_Items.Item_Set;
-      Descriptor           : in     WisiToken.Descriptor)
+     (Item        : in     LR1_Items.Item;
+      Action_List : in out Action_Arrays.Vector;
+      Grammar     : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor  : in     WisiToken.Descriptor)
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
@@ -437,191 +542,11 @@ package body WisiToken.Generate.LR is
             if Lookahead = Descriptor.First_Nonterminal then
                null;
             else
-               Add_Action
-                 (Lookahead, Action, Action_List, Closure, Grammar,
-                  Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
+               Add_Action (Lookahead, Action, Action_List, Descriptor);
             end if;
          end if;
       end loop;
    end Add_Lookahead_Actions;
-
-   procedure Delete_Known
-     (Conflicts       : in out Conflict_Lists.List;
-      Known_Conflicts : in out Conflict_Lists.List)
-   is
-      --  Delete all elements in Conflicts that match an element in
-      --  Known_Conflicts. There can be more than one Conflict that
-      --  match one Known_Conflict.
-      use Conflict_Lists;
-      Known      : Cursor  := Known_Conflicts.First;
-      Next_Known : Cursor;
-   begin
-      loop
-         exit when Known = No_Element;
-         Next_Known := Next (Known);
-         declare
-            I      : Cursor  := Conflicts.First;
-            Next_I : Cursor;
-            Used   : Boolean := False;
-         begin
-            loop
-               exit when I = No_Element;
-               Next_I := Next (I);
-               if Match (Element (Known), Conflicts.Constant_Reference (I)) then
-                  Delete (Conflicts, I);
-                  Used := True;
-               end if;
-               I := Next_I;
-            end loop;
-
-            if Used then
-               Delete (Known_Conflicts, Known);
-            end if;
-         end;
-         Known := Next_Known;
-      end loop;
-   end Delete_Known;
-
-   function Find
-     (Closure              : in LR1_Items.Item_Set;
-      Action               : in Parse_Action_Rec;
-      Lookahead            : in Token_ID;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Descriptor           : in WisiToken.Descriptor)
-     return Token_ID
-   is
-      use WisiToken.Token_ID_Arrays;
-   begin
-      case Action.Verb is
-      when Reduce | Accept_It =>
-         --  If the nonterm produced by the reduce is the LHS of the state
-         --  production, use it.
-         for Item of Closure.Set loop
-            if LR1_Items.In_Kernel (Grammar, Descriptor, Item) and
-              Action.Production.LHS = Item.Prod.LHS
-            then
-               return Item.Prod.LHS;
-            end if;
-         end loop;
-
-         --  The reduce nonterm is after Dot in a state production; find which
-         --  one, use that.
-         for Item of Closure.Set loop
-            if LR1_Items.In_Kernel (Grammar, Descriptor, Item) then
-               declare
-                  Dot : Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-                    (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
-               begin
-                  loop
-                     if not Has_Element (Dot) then
-                        if Item.Lookaheads (Lookahead) then
-                           return Item.Prod.LHS;
-                        end if;
-                     else
-                        declare
-                           Dot_ID : constant Token_ID := Element (Dot);
-                        begin
-                           if Dot_ID = Lookahead or
-                             (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                                First (Dot_ID, Lookahead))
-                           then
-                              return Item.Prod.LHS;
-                           end if;
-                           exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                             not Has_Empty_Production (Dot_ID);
-                        end;
-                     end if;
-
-                     exit when not Has_Element (Dot);
-                     Next (Dot);
-                  end loop;
-               end;
-            end if;
-         end loop;
-
-      when Shift =>
-
-         for Item of Closure.Set loop
-            --  Lookahead (the token shifted) is starting a nonterm in a state
-            --  production; it is in First of that nonterm.
-            if LR1_Items.In_Kernel (Grammar, Descriptor, Item) then
-               declare
-                  Dot : Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-                    (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
-               begin
-                  loop
-                     exit when not Has_Element (Dot);
-                     declare
-                        Dot_ID : constant Token_ID := Element (Dot);
-                     begin
-                        if Dot_ID = Lookahead or
-                          (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                             First (Dot_ID, Lookahead))
-                        then
-                           return Item.Prod.LHS;
-                        end if;
-
-                        exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                          not Has_Empty_Production (Dot_ID);
-                     end;
-
-                     Next (Dot);
-                  end loop;
-               end;
-            end if;
-         end loop;
-
-      when WisiToken.Parse.LR.Error =>
-         raise SAL.Programmer_Error;
-      end case;
-
-      Ada.Text_IO.Put_Line
-        ("item for " & Image (Action, Descriptor) & " on " & Image (Lookahead, Descriptor) & " not found in");
-      LR1_Items.Put (Grammar, Descriptor, Closure, Kernel_Only => True);
-      raise SAL.Programmer_Error;
-   end Find;
-
-   function Image (Item : in Conflict; Descriptor : in WisiToken.Descriptor) return String
-   is begin
-      return
-        ("%conflict " &
-           Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
-           Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
-           Image (Item.LHS_A, Descriptor) & ", " &
-           Image (Item.LHS_B, Descriptor) &
-           " on token " & Image (Item.On, Descriptor) &
-           " (" & State_Index'Image (Item.State_Index) & ")"); -- state number last for easier delete
-   end Image;
-
-   function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean
-   is
-      use Conflict_Lists;
-      I : Cursor := Conflicts.First;
-   begin
-      loop
-         exit when I = No_Element;
-         if Match (Item, Conflicts.Constant_Reference (I)) then
-            return True;
-         end if;
-         I := Next (I);
-      end loop;
-      return False;
-   end Is_Present;
-
-   function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean
-   is begin
-      --  Ignore State_Index. Actions are in canonical order; enforced
-      --  in Add_Action above. For reduce/reduce, LHS_A, LHS_B are not
-      --  in canonical order.
-      return
-        Known.Action_A = Item.Action_A and
-        Known.Action_B = Item.Action_B and
-        ((Known.LHS_A = Item.LHS_A and Known.LHS_B = Item.LHS_B) or
-           (Known.LHS_B = Item.LHS_A and Known.LHS_A = Item.LHS_B)) and
-        Known.On = Item.On;
-   end Match;
 
    ----------
    --  Minimal terminal sequences.
@@ -1154,7 +1079,8 @@ package body WisiToken.Generate.LR is
                Node_J : Parse_Action_Node_Ptr := Node_I.Actions;
             begin
                loop
-                  Put (File, Node_J.Item.Verb'Image);
+                  --  WORKAROUND: subtype'Image in GNAT Community 2020 produces integer.
+                  Put (File, All_Parse_Action_Verbs'Image (All_Parse_Action_Verbs (Node_J.Item.Verb)));
                   Put (File, Node_J.Item.Production.LHS'Image & Node_J.Item.Production.RHS'Image);
 
                   case Node_J.Item.Verb is
@@ -1230,7 +1156,8 @@ package body WisiToken.Generate.LR is
             Put (File, Count_Type'Image (State.Minimal_Complete_Actions.Last_Index));
             for Action of State.Minimal_Complete_Actions loop
                Put (File, " ");
-               Put (File, Action.Verb'Image);
+               --  WORKAROUND: subtype'Image in GNAT Community 2020 produces integer.
+               Put (File, All_Parse_Action_Verbs'Image (All_Parse_Action_Verbs (Action.Verb)));
                Put (File, Action.Production.LHS'Image & Action.Production.RHS'Image);
                case Action.Verb is
                when Shift =>
@@ -1431,11 +1358,10 @@ package body WisiToken.Generate.LR is
       Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
       Recursions            : in Generate.Recursions;
       Kernels               : in LR1_Items.Item_Set_List;
-      Conflicts             : in Conflict_Count_Lists.List;
+      Conflicts             : in Conflict_Count_Lists.Vector;
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False)
    is
-      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       Parse_Table_File : File_Type;
    begin
@@ -1489,34 +1415,42 @@ package body WisiToken.Generate.LR is
          end if;
       end loop;
 
-      if Conflicts.Length > 0 then
-         declare
-            use Ada.Strings.Unbounded;
-            Line          : Unbounded_String := +"States with conflicts:";
-            Accept_Reduce : Integer          := 0;
-            Shift_Reduce  : Integer          := 0;
-            Reduce_Reduce : Integer          := 0;
-         begin
-            for Count of Conflicts loop
-               Line          := Line & State_Index'Image (Count.State);
-               Accept_Reduce := Accept_Reduce + Count.Accept_Reduce;
-               Shift_Reduce  := Shift_Reduce + Count.Shift_Reduce;
-               Reduce_Reduce := Reduce_Reduce + Count.Reduce_Reduce;
-            end loop;
+      declare
+         use Ada.Strings.Unbounded;
+         Line          : Unbounded_String := +"states with conflicts:";
+         State_Count   : Integer          := 0;
+         Accept_Reduce : Integer          := 0;
+         Shift_Reduce  : Integer          := 0;
+         Reduce_Reduce : Integer          := 0;
+      begin
+         for State in Conflicts.Iterate loop
+            if Conflicts (State).Accept_Reduce > 0 or
+              Conflicts (State).Shift_Reduce > 0 or
+              Conflicts (State).Reduce_Reduce > 0
+            then
+               State_Count   := State_Count + 1;
+               Line          := Line & Conflict_Count_Lists.To_Index (State)'Image;
+               Accept_Reduce := @ + Conflicts (State).Accept_Reduce;
+               Shift_Reduce  := @ + Conflicts (State).Shift_Reduce;
+               Reduce_Reduce := @ + Conflicts (State).Reduce_Reduce;
+            end if;
+         end loop;
 
+         if State_Count > 0 then
+            Line := Trimmed_Image (State_Count) & " " & Line;
             New_Line;
             Indent_Wrap (-Line);
 
             New_Line;
             Put_Line
-              (Integer'Image (Accept_Reduce) & " accept/reduce conflicts," &
-                 Integer'Image (Shift_Reduce) & " shift/reduce conflicts," &
-                 Integer'Image (Reduce_Reduce) & " reduce/reduce conflicts");
-         end;
-      else
-         New_Line;
-         Put_Line (" 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts");
-      end if;
+              (Accept_Reduce'Image & " accept/reduce conflicts," &
+                 Shift_Reduce'Image & " shift/reduce conflicts," &
+                 Reduce_Reduce'Image & " reduce/reduce conflicts");
+         else
+            New_Line;
+            Put_Line (" 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts");
+         end if;
+      end;
       Set_Output (Standard_Output);
       Close (Parse_Table_File);
    end Put_Parse_Table;

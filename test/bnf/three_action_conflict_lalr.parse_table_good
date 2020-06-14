@@ -331,8 +331,8 @@ State 22:
 
    Minimal_Complete_Action => expression 15.2
 
-States with conflicts: 11
+1 states with conflicts: 11
 
- 0 accept/reduce conflicts, 1 shift/reduce conflicts, 1 reduce/reduce conflicts
+ 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
 
  7 rules, 0 user actions, 0 checks, 23 states

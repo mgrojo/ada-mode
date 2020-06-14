@@ -622,23 +622,24 @@ package body WisiToken.BNF.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     WisiToken.BNF.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.Generate.LR.Conflict_Lists.List
+     return WisiToken.Generate.LR.Conflict_Lists.Tree
    is
       use WisiToken.Generate.LR;
-      Result   : WisiToken.Generate.LR.Conflict_Lists.List;
-      Conflict : WisiToken.Generate.LR.Conflict;
+      Result   : WisiToken.Generate.LR.Conflict_Lists.Tree;
    begin
       for Item of Conflicts loop
+         declare
+            Conflict : WisiToken.Generate.LR.Conflict;
          begin
-            Conflict :=
-              (Conflict_Parse_Actions'Value (-Item.Action_A),
-               Find_Token_ID (Data, -Item.LHS_A),
-               Conflict_Parse_Actions'Value (-Item.Action_B),
-               Find_Token_ID (Data, -Item.LHS_B),
-               -1,
-               Find_Token_ID (Data, -Item.On));
+            for I of Item.Items loop
+               Conflict.Items.Insert
+                 ((Action => Conflict_Parse_Actions'Value (-I.Name),
+                   LHS    => Find_Token_ID (Data, -I.Value)));
+            end loop;
 
-            Result.Append (Conflict);
+            Conflict.On := Find_Token_ID (Data, -Item.On);
+
+            Result.Insert (Conflict);
          exception
          when E : Not_Found =>
             if not Data.Ignore_Conflicts then

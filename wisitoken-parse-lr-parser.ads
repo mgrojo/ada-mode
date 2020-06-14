@@ -103,6 +103,13 @@ package WisiToken.Parse.LR.Parser is
       --  See WisiToken.LR.Parser_Lists Parser_State for more discussion of
       --  Shared_Tree.
 
+      Shared_Tree_Node_Count_Threshold : Ada.Containers.Count_Type := 1000;
+      --  When Wisitoken.Debug_Mode, raise Parse_Error if Shared_Tree
+      --  Shared_Nodes length > threshold; this indicates the tree is not
+      --  being flushed because the parser count is not getting down to 1,
+      --  which significantly slows parsing due to the time it takes to copy
+      --  a large syntax tree.
+
       Parsers : aliased Parser_Lists.List;
 
       Max_Parallel            : SAL.Base_Peek_Type;

@@ -436,10 +436,7 @@ package body WisiToken_Grammar_Runtime is
                               elsif (for some I of WisiToken.BNF.Lexer_Image => Text = I.all) then
                                  Tuple.Lexer := WisiToken.BNF.To_Lexer (Text);
 
-                              elsif (for some I in WisiToken.BNF.Valid_Interface =>
-                                       WisiToken.BNF.To_Lower (Text) = WisiToken.BNF.To_Lower
-                                         (WisiToken.BNF.Valid_Interface'Image (I)))
-                              then
+                              elsif WisiToken.BNF.Is_Valid_Interface (Text) then
                                  Tuple.Interface_Kind := WisiToken.BNF.Valid_Interface'Value (Text);
                               else
                                  declare
@@ -636,16 +633,49 @@ package body WisiToken_Grammar_Runtime is
                   declare
                      Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals
                        (Tokens (3));
+
+                     --  Old format:
                      --   %conflict <action_a>/<action_b> in state <LHS_A>, <LHS_B> on token <on>
                      --              1        2 3         4  5      6     7  8      9  10     11
+
+                     --  New format:
+                     --  %conflict action LHS.rhs [| action LHS.rsh]* 'on token' on
+                     --            1      2
+
+                     Conflict : BNF.Conflict;
                   begin
-                     Data.Conflicts.Append
-                       ((Source_Line => Data.Terminals.all (Tree.Terminal (Tree_Indices (1))).Line,
-                         Action_A    => +Get_Text (Data, Tree, Tree_Indices (1)),
-                         LHS_A       => +Get_Text (Data, Tree, Tree_Indices (6)),
-                         Action_B    => +Get_Text (Data, Tree, Tree_Indices (3)),
-                         LHS_B       => +Get_Text (Data, Tree, Tree_Indices (8)),
-                         On          => +Get_Text (Data, Tree, Tree_Indices (11))));
+                     Conflict.Source_Line := Data.Terminals.all (Tree.Terminal (Tree_Indices (1))).Line;
+
+                     if Tree.ID (Tree_Indices (2)) = +SLASH_ID then
+                        --  old format
+                        Conflict.Items.Append
+                          ((Name  => +Get_Text (Data, Tree, Tree_Indices (1)),
+                            Value => +Get_Text (Data, Tree, Tree_Indices (6))));
+
+                        Conflict.Items.Append
+                          ((Name  => +Get_Text (Data, Tree, Tree_Indices (3)),
+                            Value => +Get_Text (Data, Tree, Tree_Indices (8))));
+
+                        Conflict.On := +Get_Text (Data, Tree, Tree_Indices (11));
+                     else
+                        --  new format
+                        declare
+                           use all type SAL.Base_Peek_Type;
+                           I : SAL.Peek_Type := 1;
+                        begin
+                           loop
+                              Conflict.Items.Append
+                                ((Name  => +Get_Text (Data, Tree, Tree_Indices (I)),
+                                  Value => +Get_Text (Data, Tree, Tree_Indices (I + 1))));
+
+                              I := I + 2;
+                              exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
+                              I := I + 1;
+                           end loop;
+                           Conflict.On := +Get_Text (Data, Tree, Tree_Indices (I + 2));
+                        end;
+                     end if;
+                     Data.Conflicts.Append (Conflict);
                   end;
 
                elsif Kind = "end" then

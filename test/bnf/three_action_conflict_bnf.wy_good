@@ -10,8 +10,7 @@
 %mckenzie_cost_default 4 4 4 4
 %no_language_runtime
 
-%conflict REDUCE/REDUCE in state classOrInterfaceType, expression on token RPAREN
-%conflict SHIFT/REDUCE in state lambdaParameters, classOrInterfaceType on token RPAREN
+%conflict SHIFT lambdaParameters | REDUCE classOrInterfaceType | REDUCE expression on token RPAREN (11)
 
 %token <punctuation> LPAREN '('
 %token <punctuation> RPAREN ')'

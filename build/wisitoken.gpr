@@ -33,6 +33,12 @@ project WisiToken is
            Standard_Common.Compiler.Debug_Switches &
            Standard_Common.Compiler.Style_Checks;
 
+         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
+         --  returns integer; no source workaround for generic parameter.
+         for Switches ("wisitoken-gen_token_enum.adb") use
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &

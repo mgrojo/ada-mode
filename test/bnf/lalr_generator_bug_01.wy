@@ -59,7 +59,7 @@
 
 %no_language_runtime
 
-%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER ( 105)
+%conflict SHIFT association | REDUCE unary_adding_operator_opt on token IDENTIFIER (10, 28)
 
 ;;;; grammar rules
 

@@ -1963,6 +1963,11 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Set_Name_Region;
 
+   function Shared_Tree_Node_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
+   is begin
+      return Tree.Shared_Tree.Nodes.Length;
+   end Shared_Tree_Node_Count;
+
    function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
    is
       N : Valid_Node_Index := Node;

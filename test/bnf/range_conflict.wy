@@ -36,7 +36,7 @@
 
 %start compilation_unit
 
-%conflict SHIFT/REDUCE in state range_g, range_g on token LEFT_PAREN
+%conflict SHIFT range_g | REDUCE range_g on token LEFT_PAREN (17)
 
 compilation_unit
   : membership_choice range_g

@@ -337,7 +337,7 @@ State 25:
 
    Minimal_Complete_Action => association 10.0
 
-States with conflicts: 3
+1 states with conflicts: 3
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 5 reduce/reduce conflicts
 

@@ -21,7 +21,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-error when shared_tree grows too large/parser count not zero for long time.
+change conflict name algorithm
+    delete visible declarations that are only used in body
+
+    factor out common parts of lalr_, lr1_generate?
+        conflicts at least
 
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes

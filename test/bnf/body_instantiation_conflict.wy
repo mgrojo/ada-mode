@@ -50,12 +50,12 @@
 
 %start compilation_unit
 
-;; don't actually need this %if, but we are testing it.
+;; don't actually need this %if (the states are ignored), but we are testing it.
 %if parser = LALR
-%conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
+%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS ( 7)
 %end if
 %if parser = LR1
-%conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
+%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS ( 7, 17)
 %end if
 
 compilation_unit

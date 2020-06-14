@@ -49,7 +49,7 @@ package WisiToken.BNF.Generate_Utils is
       --  splitting them out.
 
       Ignore_Conflicts   : Boolean                       := False;
-      Conflicts          : WisiToken.Generate.LR.Conflict_Lists.List;
+      Conflicts          : WisiToken.Generate.LR.Conflict_Lists.Tree;
       LR_Parse_Table     : WisiToken.Parse.LR.Parse_Table_Ptr;
       Parser_State_Count : WisiToken.Unknown_State_Index := 0;
    end record;
@@ -140,8 +140,8 @@ package WisiToken.BNF.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     WisiToken.BNF.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.Generate.LR.Conflict_Lists.List;
-   --  Not included in Initialize because algorithms have no conflicts.
+     return WisiToken.Generate.LR.Conflict_Lists.Tree;
+   --  Not included in Initialize.
 
    function To_Nonterminal_ID_Set
      (Data : aliased in Generate_Data;
