@@ -46,6 +46,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    overriding procedure Initialize (Object : in out Tree);
    overriding procedure Adjust (Object : in out Tree);
 
+   Empty_Tree : constant Tree;
+
    type Direction_Type is (Ascending, Descending, Unknown);
    subtype Known_Direction_Type is Direction_Type range Ascending .. Descending;
    --  Direction of Iterators.
@@ -77,6 +79,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    type Variable_Reference_Type (Element : not null access Element_Type) is private with
      Implicit_Dereference => Element;
+   --  User must not change value of Key thru this reference; if Key is
+   --  changed, use Delete, Insert.
 
    function Variable_Reference
      (Container : aliased in Tree;
@@ -128,6 +132,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  those for any element that Next or Previous returns.
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
+   function Length (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
+   renames Count;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean;
 
@@ -158,7 +164,7 @@ private
       Root : Node_Access;
       Nil  : Node_Access;
       --  Nil is the node pointed to by all links that would otherwise be
-      --  'null'. This simplifies several algorithm (for example,
+      --  'null'. This simplifies several algorithms (for example,
       --  Node.Left.Color is always valid). Its parent, left, right links
       --  are used as temp storage for some algorithms (especially Delete).
       --  Nil.Color is Black.
@@ -183,6 +189,8 @@ private
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
+
+   Empty_Tree : constant Tree := (Ada.Finalization.Controlled with null, null);
 
    No_Element : constant Cursor :=
      (Node       => null,

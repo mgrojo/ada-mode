@@ -56,19 +56,19 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
       --  We'd like to use this:
       --
-      --  New_Array (New_First .. Old_First - 1) := (others => <>);
+      --  New_Array (New_First .. Old_First - 1) := (others => Default_Element);
       --
       --  but that can overflow the stack, since the aggregate is allocated
       --  on the stack.
 
       for I in New_First .. Old_First - 1 loop
-         New_Array (I .. I) := (others => <>);
+         New_Array (I) := Default_Element;
       end loop;
 
       New_Array (Old_First .. Old_Last) := Elements.all;
 
       for I in Old_Last + 1 .. New_Last loop
-         New_Array (I .. I) := (others => <>);
+         New_Array (I) := Default_Element;
       end loop;
 
       Free (Elements);
@@ -368,7 +368,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
       if Container.Last >= First then
          if Container.Elements = null then
-            Container.Elements := new Array_Type'(J .. To_Peek_Type (Container.Last) => Default_Element);
+            --  We can't fill the aggregate with Default_Element here; it is
+            --  allocated on the stack.
+            Container.Elements := new Array_Type (J .. To_Peek_Type (Container.Last));
+            for I in Container.Elements'Range loop
+               Container.Elements (I) := Default_Element;
+            end loop;
 
          elsif Container.Elements'First > J then
             Grow (Container.Elements, J);
@@ -387,7 +392,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
       if Last >= Container.First then
          if Container.Elements = null then
-            Container.Elements := new Array_Type'(To_Peek_Type (Container.First) .. J => Default_Element);
+            --  We can't fill the aggregate with Default_Element here; it is
+            --  allocated on the stack.
+            Container.Elements := new Array_Type (To_Peek_Type (Container.First) .. J);
+            for I in Container.Elements'Range loop
+               Container.Elements (I) := Default_Element;
+            end loop;
 
          elsif Container.Elements'Last < J then
             Grow (Container.Elements, J);
@@ -408,7 +418,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    is
       J : constant Peek_Type := To_Peek_Type (Index);
    begin
-      Container.Elements (J .. J) := (J => <>);
+      Container.Elements (J) := Default_Element;
       if Index = Container.Last then
          Container.Last := Container.Last - 1;
       end if;
