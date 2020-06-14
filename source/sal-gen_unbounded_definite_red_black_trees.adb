@@ -350,7 +350,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         --  WORKAROUND: GNAT Community 2019 requires Element.all here, GNAT
+         --  WORKAROUND: GNAT Community 2019 requires Node.all.Element here, GNAT
          --  Community 2020 and GNAT Pro 21.0w 20200426 require .all _not_ be
          --  here. The code is technically legal either way, so both compilers
          --  have a bug. Matching 2020 for now. Hopefully 21 will fix the bug.
