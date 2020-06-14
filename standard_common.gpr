@@ -49,7 +49,6 @@ project Standard_Common is
         (
          "-fstack-check",
          "-g",
-         "-gnat2012",
          "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
          "-gnatw.d", -- warnings about tags
          "-gnatwaBCeJL", -- wa = most warnings, wB = no warn on bad fixed values, wC = no warn on conditionals
@@ -59,7 +58,7 @@ project Standard_Common is
 
       --  -gnatVa causes some inline procedures to be non-inlineable;
       --  suppress that warning with -gnatwP.
-      Debug_Switches := Common_Switches &
+      Base_Debug_Switches := Common_Switches &
         (
          "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
          "-gnata",  -- assertions, pre/post-conditions
@@ -67,6 +66,10 @@ project Standard_Common is
          "-gnateE", -- extra info in exceptions
          "-gnatwaP" -- no warn on Inline
         );
+
+      Debug_Switches := Base_Debug_Switches &
+        ("-gnat2020", -- @
+         "-gnatX"); -- reduction expressions
 
       --  -O3 is measurably faster than -O2 for wisitoken generate
       --  LR1. We include -fstack-check because it catches
@@ -82,7 +85,10 @@ project Standard_Common is
 
       Inlining := ("-gnatn");
 
-      Release_Switches := Base_Release_Switches & Inlining;
+      Release_Switches := Base_Release_Switches & Inlining &
+        "-gnat2020" & -- @
+        "-gnatX" -- reduction expressions
+      ;
 
       -- No -ansi; GNAT 7.1 compiler C header files are mingw 64, which don't support -ansi
       Debug_Switches_C := ("-Wall", "-Wstrict-prototypes", "-pedantic", "-Werror", "-g", "-O0", "-funwind-tables");
