@@ -75,7 +75,7 @@
 
 (defun wisitoken-update-good ()
   (interactive)
-  ;; point is on a file in a diff test fail message:
+  ;; point is after FAIL in a diff test fail message, or somewhere on that line:
   ;;
   ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
   ;;     ^empty_production_2_lalr.parse_table:91
@@ -85,6 +85,8 @@
   ;; (thing-at-point ’filename) includes the trailing line number, so
   ;; we need to strip it off.
 
+  (forward-line 1)
+  (forward-word 1)
   (let* ((filename-line (thing-at-point 'filename))
      (end (string-match ":[0-9]+$" filename-line))
      (filename (if end (substring filename-line 0 end) filename-line))

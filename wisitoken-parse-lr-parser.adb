@@ -774,7 +774,10 @@ package body WisiToken.Parse.LR.Parser is
 
                         Put (Shared_Parser.Recover_Log_File, '(');
                         for Parser of Shared_Parser.Parsers loop
-                           Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
+                           if Parser.Recover.Results.Count > 0 then
+                              --  Count can be 0 when error recovery fails
+                              Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
+                           end if;
                            Put
                              (Shared_Parser.Recover_Log_File,
                               Integer'Image (Parser.Recover.Enqueue_Count) &
