@@ -135,7 +135,7 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Default_Element value.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
-   --  Replace Index element contents with default. If Index =
+   --  Replace Index element contents with Default_Element. If Index =
    --  Container.Last_Index, Container.Last_Index is decremented.
 
    function Contains (Container : in Vector; Element : in Element_Type) return Boolean;
