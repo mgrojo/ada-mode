@@ -476,8 +476,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Partial_Recursion     : in     Boolean             := True)
      return Parse_Table_Ptr
    is
-      use all type Ada.Containers.Count_Type;
-
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
@@ -581,21 +579,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Include_Extra);
       end if;
 
-      Delete_Matching (Unknown_Conflicts, Known_Conflicts_Edit);
-
-      if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LALR unknown conflicts:");
-         Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
-      end if;
-
-      if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LALR excess known conflicts:");
-         Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
-      end if;
+      Check_Conflicts
+        (Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Ignore_Unknown_Conflicts);
 
       return Table;
    end Generate;

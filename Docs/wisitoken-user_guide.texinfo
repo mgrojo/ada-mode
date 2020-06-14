@@ -408,7 +408,7 @@ Declare a known conflict.
 
 Example conflict declaration:
 @verbatim
-%conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
+%conflict REDUCE abstract_limited_opt | REDUCE abstract_limited_synchronized_opt on token NEW
 @end verbatim
 
 The conflict description is output by @code{wisitoken-bnf-generate}
@@ -418,6 +418,12 @@ source file, so it will be ignored next time around.
 
 Resolving conflicts in the grammar can be difficult, but leaving them
 in can increase parse time and cause ambiguous parses.
+
+In Emacs, @code{wisitoken-parse_table-mode} provides a command
+@code{wisitoken-parse_table-conflict-goto} that will find a conflict
+in the parse table file, which has more information that might help
+resolve the conflict. @code{wisitoken-grammar-mode} binds that command
+to @key{^c .}.
 
 @item %elisp_face <name>
 Declare a name for an elisp face constant.

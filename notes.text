@@ -21,11 +21,7 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-change conflict name algorithm
-    delete visible declarations that are only used in body
-
-    factor out common parts of lalr_, lr1_generate?
-        conflicts at least
+python.wy broken
 
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes

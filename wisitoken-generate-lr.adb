@@ -323,6 +323,67 @@ package body WisiToken.Generate.LR is
       end loop;
    end Put;
 
+   procedure Check_Conflicts
+     (Found_Conflicts  : in out Conflict_Lists.Tree;
+      Known_Conflicts  : in out Conflict_Lists.Tree;
+      File_Name        : in     String;
+      Descriptor       : in     WisiToken.Descriptor;
+      Ignore_Conflicts : in     Boolean)
+   is
+      use Conflict_Lists;
+      use all type SAL.Compare_Result;
+      use all type Ada.Containers.Count_Type;
+
+      Known_Iter : constant Iterator := Known_Conflicts.Iterate;
+      Known      : Cursor   := Known_Iter.First;
+
+      Found_Iter : constant Iterator := Found_Conflicts.Iterate;
+      Found      : Cursor   := Found_Iter.First;
+
+   begin
+      loop
+         exit when Known = No_Element or Found = No_Element;
+
+         case Conflict_Compare
+           (Known_Conflicts.Constant_Reference (Known),
+            Found_Conflicts.Constant_Reference (Found))
+         is
+         when Greater =>
+            Found := Found_Iter.Next (Found);
+
+         when Less =>
+            Known := Known_Iter.Next (Known);
+
+         when Equal =>
+            declare
+               Temp : Cursor := Known;
+            begin
+               Known := Known_Iter.Next (Known);
+               Known_Conflicts.Delete (Temp);
+
+               Temp  := Found;
+               Found := Found_Iter.Next (Found);
+               Found_Conflicts.Delete (Temp);
+            end;
+         end case;
+      end loop;
+
+      if Found_Conflicts.Length > 0 then
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, "LR1 unknown conflicts:"));
+         Put (Found_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
+      end if;
+
+      if Known_Conflicts.Length > 0 then
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, "LR1 excess known conflicts:"));
+         Put (Known_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
+      end if;
+
+   end Check_Conflicts;
+
    procedure Collect_Conflicts
      (Table           : in Parse_Table;
       Conflicts       : in out Conflict_Lists.Tree;
@@ -365,48 +426,6 @@ package body WisiToken.Generate.LR is
          end;
       end loop;
    end Collect_Conflicts;
-
-   procedure Delete_Matching
-     (Found_Conflicts : in out Conflict_Lists.Tree;
-      Known_Conflicts : in out Conflict_Lists.Tree)
-   is
-      use Conflict_Lists;
-      use all type SAL.Compare_Result;
-
-      Known_Iter : constant Iterator := Known_Conflicts.Iterate;
-      Known      : Cursor   := Known_Iter.First;
-
-      Found_Iter : constant Iterator := Found_Conflicts.Iterate;
-      Found      : Cursor   := Found_Iter.First;
-
-   begin
-      loop
-         exit when Known = No_Element or Found = No_Element;
-
-         case Conflict_Compare
-           (Known_Conflicts.Constant_Reference (Known),
-            Found_Conflicts.Constant_Reference (Found))
-         is
-         when Greater =>
-            Found := Found_Iter.Next (Found);
-
-         when Less =>
-            Known := Known_Iter.Next (Known);
-
-         when Equal =>
-            declare
-               Temp : Cursor := Known;
-            begin
-               Known := Known_Iter.Next (Known);
-               Known_Conflicts.Delete (Temp);
-
-               Temp  := Found;
-               Found := Found_Iter.Next (Found);
-               Found_Conflicts.Delete (Temp);
-            end;
-         end case;
-      end loop;
-   end Delete_Matching;
 
    ----------
    --  Build parse table

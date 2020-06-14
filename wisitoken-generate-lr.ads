@@ -94,13 +94,14 @@ package WisiToken.Generate.LR is
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor);
 
-   procedure Delete_Matching
-     (Found_Conflicts : in out Conflict_Lists.Tree;
-      Known_Conflicts : in out Conflict_Lists.Tree);
-   --  Delete matching Known_Conflicts from Conflicts, and vice versa;
-   --  Known_Conflicts is left with user-declared conflicts that are not
-   --  present in the grammar, and Conflicts with conflicts that are
-   --  present in the grammar but not declared by the user..
+   procedure Check_Conflicts
+     (Found_Conflicts  : in out Conflict_Lists.Tree;
+      Known_Conflicts  : in out Conflict_Lists.Tree;
+      File_Name        : in     String;
+      Descriptor       : in     WisiToken.Descriptor;
+      Ignore_Conflicts : in     Boolean);
+   --  Compare Found and Known Conflicts. If they differ, and
+   --  Ignore_Conflicts is false, output appropriate error messages.
 
    type Conflict_Count is record
       Accept_Reduce : Integer := 0;

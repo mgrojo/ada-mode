@@ -5,7 +5,7 @@
 ZIP_VERSION := 2.1
 #w-$(shell date +%Y-%m-%d)
 
-all : test-clean tests recover_stats.exe doc
+all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
 # export Standard_Common_Build := Debug
 
@@ -34,11 +34,11 @@ one-clean :
 	touch ../test/bnf/empty_production_2.wy
 
 #one :: one-clean
-one :: wisitoken-to_tree_sitter.exe
-	./wisitoken-to_tree_sitter.exe ../test/bnf/three_action_conflict.wy debug
+one :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --time ../../org.emacs.ada-mode/ada.wy
 
-two :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb ada_lite_lalr_run.exe
-	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite
+two :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --output_bnf ../test/bnf/debug.wy
 
 three :: ada_lite_lalr_run.exe
 	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite > debug.log

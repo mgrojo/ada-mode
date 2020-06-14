@@ -33,6 +33,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
+   --  'goto' from [dragon] algorithm 4.9
    is
       use all type Ada.Containers.Count_Type;
       use Token_ID_Arrays;
@@ -203,8 +204,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Partial_Recursion     : in     Boolean             := True)
      return Parse_Table_Ptr
    is
-      use type Ada.Containers.Count_Type;
-
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
@@ -312,21 +311,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end loop;
       end if;
 
-      Delete_Matching (Unknown_Conflicts, Known_Conflicts_Edit);
-
-      if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LR1 unknown conflicts:");
-         Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
-      end if;
-
-      if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "LR1 excess known conflicts:");
-         Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
-      end if;
+      Check_Conflicts
+        (Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Ignore_Unknown_Conflicts);
 
       WisiToken.Generate.Error := WisiToken.Generate.Error or (Unused_Tokens and not Ignore_Unused_Tokens);
 
