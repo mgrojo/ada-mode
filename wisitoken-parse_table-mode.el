@@ -89,12 +89,89 @@
       (list (xref-make identifier (xref-make-buffer-location (current-buffer) (match-beginning 0))))
       )))
 
+;;;###autoload
 (defun wisitoken-parse_table-goto ()
-  "Get symbol at point, switch to `wisitoken-parse_table-last-buffer', goto symbol's definition."
+  "Get symbol at point, switch to `wisitoken-parse_table-last-buffer', goto symbol's definition.
+Symbol can be a nonterminal name, or a state number."
   (interactive)
   (let ((symbol (thing-at-point 'symbol)))
     (pop-to-buffer wisitoken-parse_table-last-buffer)
     (xref-find-definitions symbol)))
+
+(defun wisitok-p_t-nonterm-alist ()
+  (let ((names nil))
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward "Productions:")
+      (forward-line)
+      (while (looking-at "\\([0-9]+\\.[0-9]+\\): \\([a-z_]+\\) <=")
+	(push (cons (match-string 1) (match-string 2)) names)
+	(forward-line))
+      names)))
+
+(defconst wisitok-p_t-conflict-reduce-regexp
+  "\\(reduce\\) [0-9]+ tokens to \\([[:alnum:]_]+\\)")
+
+(defun wisitok-p_t-conflict-alist ()
+  (let ((conflicts nil)
+	(nonterms (wisitok-p_t-nonterm-alist))
+	line)
+
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward "Parse Table:")
+      (while (search-forward-regexp (concat "^ +" wisitok-p_t-conflict-reduce-regexp) nil t)
+	(let ((conflict (concat "REDUCE " (match-string 2)))
+	      (on-token nil))
+	  (goto-char (line-beginning-position 0))
+	    (setq line (line-number-at-pos))
+	    (back-to-indentation)
+	    (looking-at "\\([A-Z]+\\) +=> ")
+	    (setq on-token (match-string 1))
+	    (goto-char (match-end 0))
+	    (looking-at
+	     (concat "\\(?:" wisitok-p_t-conflict-reduce-regexp
+		     "\\)\\|\\(?:\\(shift\\) and goto state [0-9]+ \\([0-9]+\\.[0-9]+\\)\\)"))
+	    (cond
+	     ((match-beginning 1)
+	      (setq conflict (concat "REDUCE " (match-string 2) " | " conflict)))
+	     ((match-beginning 3)
+	      (setq conflict (concat "SHIFT " (cdr (assoc (match-string 4) nonterms)) " | " conflict)))
+	     )
+
+	    (forward-line 2)
+	    (while (looking-at (concat "^ +" wisitok-p_t-conflict-reduce-regexp))
+	      (setq conflict (concat conflict " | REDUCE " (match-string 2)))
+	      (forward-line 1))
+
+	    (setq conflict (concat conflict " on token " on-token))
+
+	    (push (cons conflict (list (buffer-file-name) line 0)) conflicts)
+	    )))
+      conflicts))
+
+(defconst wisitok-p_t-action-nonterm-regexp "\\(?:SHIFT\\|REDUCE\\) [[:alnum:]_]+")
+
+(defun wisitoken-parse_table--get-conflict ()
+  (save-excursion
+    (goto-char (line-beginning-position))
+    (when (looking-at "%conflict ")
+     (goto-char (match-end 0))
+     (looking-at
+      (concat
+       wisitok-p_t-action-nonterm-regexp
+       "\\(?: | " wisitok-p_t-action-nonterm-regexp "\\)+ on token [[:alnum:]_]+"))
+     (match-string-no-properties 0))))
+
+;;;###autoload
+(defun wisitoken-parse_table-conflict-goto ()
+  "Get conflict at point, switch to `wisitoken-parse_table-last-buffer', goto first occurance."
+  (interactive)
+  (let ((conflict (wisitoken-parse_table--get-conflict)))
+    (pop-to-buffer wisitoken-parse_table-last-buffer)
+    ;; IMPROVEME: we may need to cache the completion table in a large buffer
+    (let ((loc (cdr (assoc conflict (wisitok-p_t-conflict-alist)))))
+      (wisi-goto-source (nth 0 loc) (nth 1 loc) (nth 2 loc)))))
 
 ;;;###autoload
 (define-minor-mode wisitoken-parse_table-mode

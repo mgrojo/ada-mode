@@ -67,6 +67,7 @@
    OUT
    OVERRIDING
    PACKAGE
+   PARALLEL
    PRAGMA
    PRIVATE
    PROCEDURE
@@ -164,6 +165,7 @@
    case_statement
    case_statement_alternative
    case_statement_alternative_list
+   chunk_specification
    compilation_unit
    compilation
    component_clause
@@ -252,6 +254,7 @@
    index_subtype_definition_list
    interface_list
    interface_type_definition
+   iterated_element_association
    iteration_scheme
    iterator_specification
    iterator_specification_opt
@@ -305,6 +308,9 @@
    real_range_specification_opt
    record_definition
    record_representation_clause
+   reduction_attribute_designator
+   reduction_attribute_reference
+   reduction_specification
    relation_and_list
    relation_and_then_list
    relation_or_list
@@ -350,6 +356,7 @@
    triggering_alternative
    type_declaration
    type_definition
+   value_sequence
    variant_part
    variant_list
    variant
@@ -413,6 +420,7 @@
    (OUT . "out")
    (OVERRIDING . "overriding")
    (PACKAGE . "package")
+   (PARALLEL . "parallel")
    (PRAGMA . "pragma")
    (PRIVATE . "private")
    (PROCEDURE . "procedure")

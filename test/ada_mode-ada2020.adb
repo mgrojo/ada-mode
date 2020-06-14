@@ -13,7 +13,7 @@ package body Ada_Mode.Ada2020 is
    type Task_Array is array (Worker_Indexes) of Worker;
 
    --  [1] ai12-0061-1.txt
-   --  [2 Language Changes] array aggregate index parameter
+   --  [2] 0.2 Language Changes array aggregate index parameter
    --  [2] 4.3.3 5.1 iterated_component_association with discrete_choice_list
    --  [2] 5.5 parallel in iteration_scheme
    Worker_Tasks : Task_Array :=
@@ -33,4 +33,10 @@ begin
      (@ with delta
       4 => Creator_2 (4),
       7 => Creator_1 (7));
+
+   --  [2] 0.2 Language Changes reduction expressions
+   --  [2] 4.5.10 reduction expression
+   --
+   --  Count items in A
+   A := [for Item in Iterator => 1]'Reduce ("+", 0);
 end Ada_Mode.Ada2020;

@@ -43,6 +43,25 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+recent changes to ada.wy made LR1 generation _much_ slower:
+    current ada.wy
+        LR1 re2c generate time: 265.863642165
+        lr1.parse table 613 megabytes:
+        0 accept/reduce conflicts, 51793 shift/reduce conflicts, 27 reduce/reduce conflicts
+        231 rules, 233 user actions, 37 checks, 464233 states
+
+    2020_04_22 ada.wy
+        LR1 re2c generate time: 66.798466340
+        lr1.parse table 213 megabytes:
+        0 accept/reduce conflicts, 5374 shift/reduce conflicts, 27 reduce/reduce conflicts
+        224 rules, 232 user actions, 37 checks, 151571 states
+
+    but no change to the declared %conflicts!
+        new conflict naming:
+        LR1 re2c generate time: 149.562007162
+
+        compare conflicts in new format for current, 2020_04_22
+
 Separate set of McKenzie params for face parse
 
 ada-format-param-list take option to convert from single line to multi-line
@@ -206,7 +225,9 @@ Do spark on mckenzie-base
 other ada 202x syntax
     http://www.ada-auth.org/standards/ada2x.html /5
     http://www.ada-auth.org/standards/2xrm/html/RM-0-2.html Language Changes
-        put not-yet supported features in ada_mode-ada2020_more.adb, move that to -ada2020.adb when available
+        test/ada_mode-ada2020.adb
+        put features not supported in Ada Community 2020 (if any?) in ada_mode-ada2020_more.adb,
+            move them to -ada2020.adb when Ada Community 2021 available
 
         parallel
              parallel loops 5.5 3/5, 4/5 [parallel [chunck]] for

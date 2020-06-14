@@ -105,9 +105,9 @@ one-clean :: force
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
@@ -444,10 +444,11 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
 %$(EXE_EXT) : %.adb force
-	gprbuild -p ../ada_mode_wisi_parse.gpr $*.adb
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
-	gprbuild -p ../ada_mode_wisi_parse.gpr
+# ../ada_annex_p_re2c.c
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c  force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

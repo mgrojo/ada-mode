@@ -7,9 +7,9 @@
 ;;
 ;; Copied from Ada Language Reference Manual Annex P:
 ;;
-;; (info "(aarm2012)Annex P" "*info Annex P*")
-;; file:///C:/Projects/arm_info/org.adaic.arm_form/build/html/aarm2012/AA-P.html
-;; https://www.adaic.org/ada-resources/standards/ Ada 2012 annex P
+;; (info "(aarm2020)Annex P" "*info Annex P*")
+;; file:///C:/Projects/arm_info/org.adaic.arm_form/build/html/aarm2020/AA-P.html
+;; https://www.adaic.org/ada-resources/standards/ Ada 2020 annex P
 ;;
 ;; but listed in alphabetical order. Repeating and optional constructs
 ;; are implemented with extra productions. Most names are simplified
@@ -98,6 +98,7 @@
 %keyword OUT "out"
 %keyword OVERRIDING "overriding"
 %keyword PACKAGE "package"
+%keyword PARALLEL "parallel"
 %keyword PRAGMA "pragma"
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
@@ -293,13 +294,9 @@
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
-%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state aggregate, aggregate on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state derived_type_definition, derived_type_definition  on token WITH
 %conflict REDUCE/REDUCE in state discrete_choice, discrete_subtype_definition on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state discrete_choice, subtype_indication on token EQUAL_GREATER
-%conflict REDUCE/REDUCE in state full_type_declaration, full_type_declaration  on token NEW
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
@@ -307,45 +304,48 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state abstract_subprogram_declaration, abstract_subprogram_declaration  on token IS
-%conflict SHIFT/REDUCE in state accept_statement, accept_statement  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aggregate, expression_opt on token WITH
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_designator, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state block_label, identifier_list  on token COLON
-%conflict SHIFT/REDUCE in state compilation, compilation  on token FOR
-%conflict SHIFT/REDUCE in state declaration, declaration  on token CONSTANT
 %conflict SHIFT/REDUCE in state delta_constraint, delta_constraint on token RANGE ( 605)
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR ( 137)
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token FUNCTION
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PACKAGE
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PROCEDURE
 %conflict SHIFT/REDUCE in state membership_choice_list, relation  on token BAR
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list  on token COLON
-%conflict SHIFT/REDUCE in state package_body, package_body  on token IS
-%conflict SHIFT/REDUCE in state parameter_specification, parameter_specification  on token NOT
-%conflict SHIFT/REDUCE in state primary, primary on token RANGE ( 257)
-%conflict SHIFT/REDUCE in state protected_body, protected_body  on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
 %conflict SHIFT/REDUCE in state relation_and_list, expression  on token AND
 %conflict SHIFT/REDUCE in state relation_and_then_list, expression  on token AND
 %conflict SHIFT/REDUCE in state relation_or_else_list, expression  on token OR
 %conflict SHIFT/REDUCE in state relation_or_list, expression  on token OR
 %conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
-%conflict SHIFT/REDUCE in state task_body, task_body  on token IS
-%conflict SHIFT/REDUCE in state term, term_list on token MOD ( 146)
-%conflict SHIFT/REDUCE in state term, term_list on token REM ( 146)
-%conflict SHIFT/REDUCE in state term, term_list on token SLASH ( 146)
-%conflict SHIFT/REDUCE in state term, term_list on token STAR ( 146)
-%conflict SHIFT/REDUCE in state term_list, simple_expression on token AMPERSAND ( 147)
-%conflict SHIFT/REDUCE in state term_list, simple_expression on token MINUS ( 147)
-%conflict SHIFT/REDUCE in state term_list, simple_expression on token PLUS ( 147)
-%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token FOR
+
+%conflict SHIFT declaration | REDUCE aliased_opt on token CONSTANT (241)
+%conflict SHIFT aspect_clause | REDUCE block_label_opt on token FOR (0, 51)
+%conflict SHIFT abstract_subprogram_declaration | REDUCE aspect_specification_opt on token IS (256)
+%conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS (186)
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS (441)
+%conflict SHIFT package_body_stub | REDUCE aspect_specification_opt on token IS (344)
+%conflict SHIFT protected_body_stub | REDUCE aspect_specification_opt on token IS (356)
+%conflict SHIFT task_body_stub | REDUCE aspect_specification_opt on token IS (384)
+%conflict SHIFT multiplying_operator | REDUCE term_list on token MOD (149, 499)
+%conflict SHIFT null_exclusion_opt | REDUCE mode_opt on token NOT (840)
+%conflict SHIFT constraint | REDUCE primary on token RANGE (264)
+%conflict SHIFT multiplying_operator | REDUCE term_list on token REM (149, 499)
+%conflict REDUCE and_interface_list_opt | REDUCE constraint_opt on token WITH (1118)
+%conflict SHIFT actual_parameter_part | REDUCE actual_parameter_part_opt on token LEFT_PAREN (122)
+%conflict REDUCE association_opt | REDUCE parameter_specification on token RIGHT_PAREN (328)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token AMPERSAND (150, 316)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token MINUS (150, 316)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token PLUS (150, 316)
+%conflict SHIFT multiplying_operator | REDUCE term_list on token SLASH (149, 499)
+%conflict SHIFT multiplying_operator | REDUCE term_list on token STAR (149, 499)
 
 ;;; grammar rules
 
@@ -574,7 +574,10 @@ at_clause
     %((wisi-statement-action [1 statement-start 6 statement-end]))%
   ;
 
-attribute_reference : name tick attribute_designator ;
+attribute_reference
+  : name tick attribute_designator
+  | reduction_attribute_reference
+  ;
 
 attribute_designator
   : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN
@@ -673,6 +676,11 @@ case_statement_alternative_list
 ;; choice_expression use 'expression' to avoid conflicts
 
 ;; choice_relation* - use 'relation*', to avoid conflicts
+
+chunk_specification  
+  : simple_expression
+  | IDENTIFIER IN discrete_subtype_definition
+  ;
 
 ;; Since we allow multiple compilation units in one parse, and don't
 ;; require a library_item in order to be user friendly, we don't need
@@ -1517,6 +1525,11 @@ interface_type_definition
   | INTERFACE
 ;
 
+iterated_element_association
+  : FOR iterator_specification USE expression EQUAL_GREATER expression
+  | FOR iterator_specification EQUAL_GREATER expression
+  ;
+
 iteration_scheme
   : WHILE expression_opt
     %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
@@ -2176,6 +2189,15 @@ record_representation_clause
                            ada-indent-broken ada-indent-broken]))%
   ;
 
+reduction_attribute_designator : IDENTIFIER LEFT_PAREN reduction_specification RIGHT_PAREN ;
+
+reduction_attribute_reference 
+  : value_sequence tick reduction_attribute_designator
+  | name tick reduction_attribute_designator
+  ;
+
+reduction_specification : name COMMA expression ;
+
 relation_and_list
   : relation_and_list AND relation
   | relation AND relation
@@ -2609,6 +2631,13 @@ type_definition
   | access_definition ;; access_type_definition
   | derived_type_definition
   | interface_type_definition
+  ;
+
+value_sequence
+  : LEFT_SQUARE_BRACKET PARALLEL LEFT_PAREN chunk_specification RIGHT_PAREN
+      iterated_element_association RIGHT_SQUARE_BRACKET
+  | LEFT_SQUARE_BRACKET PARALLEL iterated_element_association RIGHT_SQUARE_BRACKET
+  | LEFT_SQUARE_BRACKET iterated_element_association RIGHT_SQUARE_BRACKET
   ;
 
 variant_part
