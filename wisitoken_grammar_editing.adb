@@ -126,7 +126,7 @@ package body WisiToken_Grammar_Editing is
    function To_RHS_Item_List
      (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
       List_Element :         in     Valid_Node_Index)
-     return WisiToken.Syntax_Trees.LR_Utils.Constant_List
+     return WisiToken.Syntax_Trees.LR_Utils.List
    with Pre => Tree.ID (List_Element) = +rhs_element_ID
    is
       use WisiToken.Syntax_Trees.LR_Utils;
@@ -138,7 +138,7 @@ package body WisiToken_Grammar_Editing is
          Separator_ID      => Invalid_Token_ID);
    begin
       Result.Append (List_Element);
-      return Constant_List (Result);
+      return Result;
    end To_RHS_Item_List;
 
    function Empty_RHS_List
@@ -1031,19 +1031,15 @@ package body WisiToken_Grammar_Editing is
       end Find_List_Nonterminal_1;
 
       function Maybe_New_Nonterminal_List
-        (List_Nonterm_String   : in String;
-         Element               : in Valid_Node_Index;
-         Erase_EBNF_In_Element : in Boolean;
-         Separator             : in Node_Index)
+        (List_Nonterm_String : in String;
+         Element             : in Valid_Node_Index;
+         Separator           : in Node_Index)
         return Identifier_Token_Index
       with Pre => To_Token_Enum (Tree.ID (Element)) in rhs_item_list_ID | rhs_element_ID | rhs_item_ID | IDENTIFIER_ID
       --  If there is an existing nonterminal matching List_Nonterm_String,
       --  Element_Content, Separator, return an identifier_token for it.
       --  Otherwise, create a new list nonterminal, return an
       --  identifier_token for that.
-      --
-      --  If Erase_EBNF_In_Element, and an existing list is returned,
-      --  Ease_Deleted_EBNF_Nodes is called on Element.
       is
          Existing_Decl : constant Node_Index := Find_Declaration (Data, Tree, List_Nonterm_String);
 
@@ -1103,9 +1099,7 @@ package body WisiToken_Grammar_Editing is
             else
                List_Nonterm_Name := To_Identifier_Token (Name_Node, Tree, Data.Terminals);
 
-               if Erase_EBNF_In_Element then
-                  Erase_Deleted_EBNF_Nodes (Element);
-               end if;
+               Erase_Deleted_EBNF_Nodes (Element);
 
                if Trace_Generate_EBNF > Extra then
                   Ada.Text_IO.Put_Line ("use " & Get_Text (Data, Tree, Name_Node));
@@ -1311,19 +1305,23 @@ package body WisiToken_Grammar_Editing is
 
             RHS_Item_List_List : List := Create_List
               (Tree, RHS_Item_List_Root, +rhs_item_list_ID, +rhs_element_ID, Separator_ID => Invalid_Token_ID);
+            --  The rhs_item_list containing the rhs_multiple_item
 
             RHS_Item_List_Iter : constant Constant_Iterator := RHS_Item_List_List.Iterate_Constant;
 
             Element_2 : constant Cursor := RHS_Item_List_List.To_Cursor (Tree.Parent (B, 2));
             --  The rhs_element containing the rhs_multiple_item
 
-            Element_1 : constant Node_Index := Get_Node (RHS_Item_List_Iter.Previous (Element_2));
-            --  The rhs_element containing the list element
+            Element_1 : constant Node_Index :=
+              (if Tree.RHS_Index (B) in 4 .. 5
+               then Invalid_Node_Index
+               else Get_Node (RHS_Item_List_Iter.Previous (Element_2)));
+            --  The rhs_element containing the first list element
 
             Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Index and Tree.RHS_Index (B) in 0 | 3;
 
             procedure Do_Simple_Named (List_Elements : in Valid_Node_Index)
-            with Pre => To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID
+            with Pre => To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID | IDENTIFIER_ID
             is
                pragma Assert (Tree.ID (RHS) = +rhs_ID);
 
@@ -1336,6 +1334,11 @@ package body WisiToken_Grammar_Editing is
                --
                --  2a) nonterm_name
                --      : {list_element}
+               --        %( action? )%
+               --      ;
+               --
+               --  3a) nonterm_name
+               --      : list_element+ ;; list_element ID is IDENTIFIER_ID
                --        %( action? )%
                --      ;
                --
@@ -1382,13 +1385,21 @@ package body WisiToken_Grammar_Editing is
                --        | nonterm_name list_element
                --          %( action? )%
                --        ;
+               --
+               --  3a is similar to 2a.
 
-               RHS_Item_List_1 : constant Constant_List :=
+               RHS_Item_List_1 : List :=
                  (case To_Token_Enum (Tree.ID (List_Elements)) is
                   when rhs_element_ID   => To_RHS_Item_List (Tree, List_Elements),
                   when rhs_item_list_ID => Creators.Create_List
-                    (Tree, List_Elements, +rhs_item_list_ID, +rhs_element_ID),
+                    (Tree, List_Elements, +rhs_item_list_ID, +rhs_element_ID, Invalid_Token_ID),
+                  when IDENTIFIER_ID    => Empty_List (Tree, +rhs_item_list_ID, 1, +rhs_element_ID, Invalid_Token_ID),
                   when others           => raise SAL.Programmer_Error);
+
+               RHS_Item_List_2 : List :=
+                 (if B_Alt_List_Item_List.Is_Invalid
+                  then Empty_List (Tree, +rhs_item_list_ID, 1, +rhs_element_ID, Invalid_Token_ID)
+                  else B_Alt_List_Item_List);
 
                New_RHS_List : List := Empty_RHS_List (Tree);
 
@@ -1399,16 +1410,28 @@ package body WisiToken_Grammar_Editing is
                  (if Can_Be_Empty
                   then To_Identifier_Token
                     (New_Identifier
-                       (Get_Text (Data, Tree, Tree.Find_Descendant (List_Elements, +rhs_item_ID)) & "_list"))
+                       (Get_Text
+                          (Data, Tree,
+                           (if Tree.ID (List_Elements) = +IDENTIFIER_ID
+                            then List_Elements
+                            else Tree.Find_Descendant (List_Elements, +rhs_item_ID)))
+                          & "_list"))
                   else To_Identifier_Token (Tree.Child (List_Nonterm_Decl, 1), Tree, Data.Terminals));
             begin
+               if Tree.ID (List_Elements) = +IDENTIFIER_ID then
+                  RHS_Item_List_1.Append
+                    (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements))));
+
+                  RHS_Item_List_2.Append (Add_RHS_Element (Tree, Add_RHS_Item (Tree, List_Elements)));
+               end if;
+
                New_RHS_List.Append
                  (Add_RHS
                     (Tree, RHS_Item_List_1.Root,
                      Post_Parse_Action => Post_Parse_Action,
                      In_Parse_Action   => In_Parse_Action));
 
-               B_Alt_List_Item_List.Prepend
+               RHS_Item_List_2.Prepend
                  (Add_RHS_Element
                     (Tree, Add_RHS_Item
                        (Tree,
@@ -1420,7 +1443,7 @@ package body WisiToken_Grammar_Editing is
                New_RHS_List.Append
                  (Add_RHS
                     (Tree,
-                     B_Alt_List_Item_List.Root,
+                     RHS_Item_List_2.Root,
                      Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action),
                      In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action)));
 
@@ -1473,16 +1496,19 @@ package body WisiToken_Grammar_Editing is
                Ada.Text_IO.Put_Line ("Check_Canonical_List start: B " & Get_Text (Data, Tree, B));
             end if;
 
-            if Is_Invalid (B_Alt_List_Item_List) then
+            if not B_Alt_List_List.Is_Invalid and then B_Alt_List_List.Count /= 1 then
                return;
             end if;
 
             if Element_1 = Invalid_Node_Index then
                Has_Separator := False;
             else
-               if (Tree.RHS_Index (B) in 4 .. 5 or else B_Alt_List_Item_List.Count in 1 .. 2) and then
-                  Get_Item_Text (Data, Tree, Element_1) =
-                  Get_Item_Text (Data, Tree, Get_Node (B_Alt_List_Item_List.Last))
+               if Tree.RHS_Index (B) in 4 .. 5 then
+                  Has_Separator := False;
+
+               elsif B_Alt_List_Item_List.Count in 1 .. 2 and then
+                 Get_Item_Text (Data, Tree, Element_1) =
+                 Get_Item_Text (Data, Tree, Get_Node (B_Alt_List_Item_List.Last))
                then
                   Has_Separator := B_Alt_List_Item_List.Count = 2;
                else
@@ -1490,13 +1516,14 @@ package body WisiToken_Grammar_Editing is
                end if;
             end if;
 
-            if Duplicate
-              (RHS_List,
-               Tree.Find_Descendant
-                 ((if Element_1 = Invalid_Node_Index
-                   then Get_Node (B_Alt_List_Item_List.Last)
-                   else Element_1),
-                  +rhs_item_ID))
+            if not B_Alt_List_List.Is_Invalid and then
+              Duplicate
+                (RHS_List,
+                 Tree.Find_Descendant
+                   ((if Element_1 = Invalid_Node_Index
+                     then Get_Node (B_Alt_List_Item_List.Last)
+                     else Element_1),
+                    +rhs_item_ID))
             then
                --  See ada_lite_ebnf.wy expression; recognizing this would cause
                --  conflicts between reducing a relation to expression or one of the
@@ -1504,15 +1531,20 @@ package body WisiToken_Grammar_Editing is
                return;
             end if;
 
-            Canonical_List := True;
-
-            if ((RHS_Item_List_List.Count = 1 and B_Alt_List_Item_List.Count = 1) or
-                  (RHS_Item_List_List.Count = 2 and Element_2 = RHS_Item_List_List.Last)) and
-              Tree.ID (RHS) = +rhs_ID and
-              RHS_List.Count = 1
+            if (RHS_List.Count = 1 and Tree.ID (RHS) = +rhs_ID) and then
+              ((RHS_Item_List_List.Count = 1 and
+                  (B_Alt_List_List.Is_Invalid or else B_Alt_List_Item_List.Count = 1)) or
+                 (RHS_Item_List_List.Count = 2 and Element_2 = RHS_Item_List_List.Last))
             then
                Simple_Named := True;
             end if;
+
+            if Tree.RHS_Index (B) in 4 .. 5 and not Simple_Named then
+               --   Handled below
+               return;
+            end if;
+
+            Canonical_List := True;
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line
@@ -1524,7 +1556,9 @@ package body WisiToken_Grammar_Editing is
                declare
                   List_Elements : constant Node_Index :=
                     (if Element_1 = Invalid_Node_Index
-                     then Tree.Copy_Subtree (B_Alt_List_Item_List.Root)
+                     then (if B_Alt_List_Item_List.Is_Invalid
+                           then Tree.Child (B, 1)
+                           else Tree.Copy_Subtree (B_Alt_List_Item_List.Root))
                      else Element_1);
                begin
                   Do_Simple_Named (List_Elements);
@@ -1564,10 +1598,9 @@ package body WisiToken_Grammar_Editing is
                List_Nonterm_Name := Maybe_New_Nonterminal_List
                  (List_Nonterm_String   => List_Nonterm_String,
                   Element               =>
-                    (if Element_1 = Invalid_Node_Index
-                     then B_Alt_List_Item_List.Root
-                     else Tree.Find_Descendant (Element_1, +rhs_item_ID)),
-                  Erase_EBNF_In_Element => True,
+                    (if Element_1 /= Invalid_Node_Index
+                     then Tree.Find_Descendant (Element_1, +rhs_item_ID)
+                     else B_Alt_List_Item_List.Root),
                   Separator             => Separator);
 
                if Element_1 /= Invalid_Node_Index then
@@ -1646,9 +1679,8 @@ package body WisiToken_Grammar_Editing is
                        else "_" & Get_Item_Text
                          (Data, Tree, Get_Node (B_Alt_List_Item_List.Iterate.Next (B_Alt_List_Item_List.First)))) &
                       "_list",
-                  Element               => B_Alt_List_Item_List.Root,
-                  Erase_EBNF_In_Element => True,
-                  Separator             => Invalid_Node_Index);
+                  Element   => B_Alt_List_Item_List.Root,
+                  Separator => Invalid_Node_Index);
 
             else
                --  IMPROVEME: handle separator here? need test case
@@ -1697,10 +1729,9 @@ package body WisiToken_Grammar_Editing is
             --  IDENTIFIER + | *
 
             List_Nonterm_Name := Maybe_New_Nonterminal_List
-              (List_Nonterm_String   => Get_Text (Data, Tree, Tree.Child (B, 1)) & "_list",
-               Element               => Tree.Child (B, 1),
-               Erase_EBNF_In_Element => True, -- irrelevant
-               Separator             => Invalid_Node_Index);
+              (List_Nonterm_String => Get_Text (Data, Tree, Tree.Child (B, 1)) & "_list",
+               Element             => Tree.Child (B, 1),
+               Separator           => Invalid_Node_Index);
 
             if Tree.RHS_Index (B) = 5 then
                Container_List_Root := Insert_Optional_RHS (B);
@@ -2056,14 +2087,20 @@ package body WisiToken_Grammar_Editing is
          when others =>
             Raise_Programmer_Error ("unimplemented EBNF node", Data, Tree, Node);
          end case;
+
       exception
       when SAL.Programmer_Error =>
          raise;
       when E : others =>
-         Raise_Programmer_Error
-           ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-              Ada.Exceptions.Exception_Message (E),
-            Data, Tree, Node);
+         if Debug_Mode then
+            --  The traceback from a failed precondition is most useful
+            raise;
+         else
+            Raise_Programmer_Error
+              ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                 Ada.Exceptions.Exception_Message (E),
+               Data, Tree, Node);
+         end if;
       end Process_Node;
 
       EBNF_Allowed : Boolean := True;
@@ -2955,4 +2992,5 @@ package body WisiToken_Grammar_Editing is
 end WisiToken_Grammar_Editing;
 --  Local Variables:
 --  ada-which-func-parse-size: 50000
+--  ada-case-strict: nil
 --  End:

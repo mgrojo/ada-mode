@@ -118,6 +118,7 @@ is
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
+      Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
 
    end Put_Usage;
 
@@ -189,6 +190,10 @@ begin
             Arg_Next  := Arg_Next + 1;
             WisiToken.Trace_Generate_Minimal_Complete := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--debug_mode" then
+            WisiToken.Debug_Mode := True;
+            Arg_Next             := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--ignore_conflicts" then
             Ignore_Conflicts := True;

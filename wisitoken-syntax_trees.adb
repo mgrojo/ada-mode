@@ -1146,11 +1146,15 @@ package body WisiToken.Syntax_Trees is
       Node_Numbers      : in Boolean := False)
      return String
    is begin
-      return Tree.Image
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)),
-         Node, Descriptor, Include_Children, Include_RHS_Index, Node_Numbers);
+      if Node = Deleted_Child then
+         return "<deleted>";
+      else
+         return Tree.Image
+           ((if Node <= Tree.Last_Shared_Node
+             then Tree.Shared_Tree.Nodes (Node)
+             else Tree.Branched_Nodes (Node)),
+            Node, Descriptor, Include_Children, Include_RHS_Index, Node_Numbers);
+      end if;
    end Image;
 
    function Image

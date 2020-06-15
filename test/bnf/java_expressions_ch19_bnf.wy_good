@@ -55,7 +55,8 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 CompilationUnit
-  : Statement_list
+  : Statement
+  | CompilationUnit Statement
   ;
 
 Statement
@@ -134,7 +135,4 @@ StatementExpression
 
 
 ;; end of file
-Statement_list
-  : Statement
-  | Statement_list Statement
-  ;
+

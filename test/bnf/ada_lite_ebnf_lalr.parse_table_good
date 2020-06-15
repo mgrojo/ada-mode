@@ -6492,7 +6492,7 @@ State 335:
 
    Minimal_Complete_Action => package_body 98.0
 
-States with conflicts: 64 174 252
+3 states with conflicts: 64 174 252
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 2 reduce/reduce conflicts
 

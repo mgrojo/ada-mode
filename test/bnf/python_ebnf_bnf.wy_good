@@ -63,6 +63,15 @@ nonlocal_stmt
   : NONLOCAL NAME_COMMA_list
   ;
 
+file_input
+  : NEWLINE_stmt_list
+  | ;; empty
+  ;
+decorators
+  : decorator
+  | decorators decorator
+  ;
+
 ;; end of file
 nonterminal_023
   : test
@@ -128,4 +137,12 @@ nonterminal_037
 NAME_COMMA_list
   : NAME
   | NAME_COMMA_list COMMA NAME
+  ;
+NEWLINE_stmt
+  : NEWLINE
+  | stmt
+  ;
+NEWLINE_stmt_list
+  : NEWLINE_stmt
+  | NEWLINE_stmt_list NEWLINE_stmt
   ;

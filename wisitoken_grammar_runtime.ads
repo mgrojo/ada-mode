@@ -24,6 +24,7 @@ with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
 with WisiToken.Syntax_Trees.LR_Utils;
 package WisiToken_Grammar_Runtime is
+   use all type WisiToken.Node_Index;
 
    type Meta_Syntax is (Unknown, BNF_Syntax, EBNF_Syntax);
    --  Syntax used in grammar file.
@@ -155,7 +156,8 @@ package WisiToken_Grammar_Runtime is
       Tree         : in WisiToken.Syntax_Trees.Tree;
       Node         : in WisiToken.Valid_Node_Index;
       Strip_Quotes : in Boolean := False)
-     return String;
+     return String
+   with Pre => Tree.Is_Nonterm (Node);
    --  Find first descendant of Node that has rhs_item_ID, return source
    --  text for it.
 
