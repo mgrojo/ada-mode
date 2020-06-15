@@ -30,7 +30,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
@@ -78,19 +78,13 @@ ada_annex_p.wy
     reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
     make -r ../ada_annex_p.re2c IGNORE_CONFLICTS=--ignore_conflicts
 
-%conflict SHIFT/REDUCE in state type_conversion, subtype_indication on token RIGHT_PAREN ( 490)
-%conflict SHIFT/REDUCE in state type_conversion, explicit_actual_parameter on token RIGHT_PAREN ( 490)
-%conflict REDUCE/REDUCE in state subtype_indication, explicit_actual_parameter on token COMMA ( 490)
+    ada.wy LALR:
+     0 accept/reduce conflicts, 50 shift/reduce conflicts, 19 reduce/reduce conflicts
+     224 rules, 233 user actions, 37 checks, 1304 states
 
-
-
-    change conflict name algorithm?
-        LHS.RHS of all productions involved
-            immediately obvious when conflict is > 2 way
-            more likely to be the same between ada.wy and ada_annex_p.wy
-            also store all states it occurs in
-            in .parse_table, report "n states with conflicts: ..."
-        in o.e.a.s-2/o.w.s-2
+    ada_annex_p.wy LALR:
+     0 accept/reduce conflicts, 66 shift/reduce conflicts, 27 reduce/reduce conflicts
+     321 rules, 0 user actions, 0 checks, 2612 states
 
 compare ada LR1 generate time
     o.e.a:
