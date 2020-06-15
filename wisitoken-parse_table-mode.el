@@ -124,31 +124,31 @@ Symbol can be a nonterminal name, or a state number."
 	(let ((conflict (concat "REDUCE " (match-string 2)))
 	      (on-token nil))
 	  (goto-char (line-beginning-position 0))
-	    (setq line (line-number-at-pos))
-	    (back-to-indentation)
-	    (looking-at "\\([A-Z]+\\) +=> ")
-	    (setq on-token (match-string 1))
-	    (goto-char (match-end 0))
-	    (looking-at
-	     (concat "\\(?:" wisitok-p_t-conflict-reduce-regexp
-		     "\\)\\|\\(?:\\(shift\\) and goto state [0-9]+ \\([0-9]+\\.[0-9]+\\)\\)"))
-	    (cond
-	     ((match-beginning 1)
-	      (setq conflict (concat "REDUCE " (match-string 2) " | " conflict)))
-	     ((match-beginning 3)
-	      (setq conflict (concat "SHIFT " (cdr (assoc (match-string 4) nonterms)) " | " conflict)))
-	     )
+	  (setq line (line-number-at-pos))
+	  (back-to-indentation)
+	  (looking-at "\\([A-Z_]+\\) +=> ")
+	  (setq on-token (match-string 1))
+	  (goto-char (match-end 0))
+	  (looking-at
+	   (concat "\\(?:" wisitok-p_t-conflict-reduce-regexp
+		   "\\)\\|\\(?:\\(shift\\) and goto state [0-9]+ \\([0-9]+\\.[0-9]+\\)\\)"))
+	  (cond
+	   ((match-beginning 1)
+	    (setq conflict (concat "REDUCE " (match-string 2) " | " conflict)))
+	   ((match-beginning 3)
+	    (setq conflict (concat "SHIFT " (cdr (assoc (match-string 4) nonterms)) " | " conflict)))
+	   )
 
-	    (forward-line 2)
-	    (while (looking-at (concat "^ +" wisitok-p_t-conflict-reduce-regexp))
-	      (setq conflict (concat conflict " | REDUCE " (match-string 2)))
-	      (forward-line 1))
+	  (forward-line 2)
+	  (while (looking-at (concat "^ +" wisitok-p_t-conflict-reduce-regexp))
+	    (setq conflict (concat conflict " | REDUCE " (match-string 2)))
+	    (forward-line 1))
 
-	    (setq conflict (concat conflict " on token " on-token))
+	  (setq conflict (concat conflict " on token " on-token))
 
-	    (push (cons conflict (list (buffer-file-name) line 0)) conflicts)
-	    )))
-      conflicts))
+	  (push (cons conflict (list (buffer-file-name) line 0)) conflicts)
+	  )))
+    conflicts))
 
 (defconst wisitok-p_t-action-nonterm-regexp "\\(?:SHIFT\\|REDUCE\\) [[:alnum:]_]+")
 
@@ -171,7 +171,9 @@ Symbol can be a nonterminal name, or a state number."
     (pop-to-buffer wisitoken-parse_table-last-buffer)
     ;; IMPROVEME: we may need to cache the completion table in a large buffer
     (let ((loc (cdr (assoc conflict (wisitok-p_t-conflict-alist)))))
-      (wisi-goto-source (nth 0 loc) (nth 1 loc) (nth 2 loc)))))
+      (if loc
+	  (wisi-goto-source (nth 0 loc) (nth 1 loc) (nth 2 loc))
+	(user-error "conflict not found")))))
 
 ;;;###autoload
 (define-minor-mode wisitoken-parse_table-mode

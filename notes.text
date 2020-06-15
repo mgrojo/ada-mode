@@ -75,22 +75,11 @@ eldoc
     see eglot
 
 ada_annex_p.wy
-    reduce conflicts; o.w.s-2/o.e.a.s-2, use LALR
-    make -r ../ada_annex_p.re2c IGNORE_CONFLICTS=--ignore_conflicts
+    lr1 text_rep _smaller_ than ada.wy ; transition to this
+    add actions
+    write code to diff with annex P
+    add ada2020
 
-%conflict SHIFT/REDUCE in state type_conversion, subtype_indication on token RIGHT_PAREN ( 490)
-%conflict SHIFT/REDUCE in state type_conversion, explicit_actual_parameter on token RIGHT_PAREN ( 490)
-%conflict REDUCE/REDUCE in state subtype_indication, explicit_actual_parameter on token COMMA ( 490)
-
-
-
-    change conflict name algorithm?
-        LHS.RHS of all productions involved
-            immediately obvious when conflict is > 2 way
-            more likely to be the same between ada.wy and ada_annex_p.wy
-            also store all states it occurs in
-            in .parse_table, report "n states with conflicts: ..."
-        in o.e.a.s-2/o.w.s-2
 
 compare ada LR1 generate time
     o.e.a:
@@ -456,25 +445,30 @@ wisitoken-bnf-generate
         LALR elisp generate time: 3.290167687
         LALR re2c generate time: 3.309398246
         LR1 re2c generate time: 602.235431713
+        lr1 text_rep size:
 
     26  Jul 2018
         don't loop on all token_ids; loop on set
         LALR elisp generate time: 0.445727505
         LALR re2c generate time: 0.450525800
         LR1 re2c generate time: 31.202567095
+        lr1 text_rep size:
 
     1 Aug 2018 replace Constrain_Terminals with Minimal_Complete_Actions
         LALR elisp generate time: 0.472614643
         LALR re2c generate time: 0.480273867
         LR1 re2c generate time: 31.820868201
+        lr1 text_rep size:
 
     30 Jan 2020 ada-mode 7.0.1
         LALR re2c generate time: 0.689046474
         LR1 re2c generate time: 37.564196185
+        lr1 text_rep size:
 
     14 May 2020 ada-mode 7.1.1
         LALR re2c generate time: 0.520925872
         LR1 re2c generate time: 62.148224014
+        lr1 text_rep size:
 
 mckenzie recover
     ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0
