@@ -324,7 +324,8 @@ package body WisiToken.Generate.LR is
    end Put;
 
    procedure Check_Conflicts
-     (Found_Conflicts  : in out Conflict_Lists.Tree;
+     (Label            : in     String;
+      Found_Conflicts  : in out Conflict_Lists.Tree;
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;
@@ -369,14 +370,15 @@ package body WisiToken.Generate.LR is
       end loop;
 
       if Found_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, "LR1 unknown conflicts:"));
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " unknown conflicts:"));
          Put (Found_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
       end if;
 
       if Known_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, "LR1 excess known conflicts:"));
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " excess known conflicts:"));
          Put (Known_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
@@ -451,10 +453,30 @@ package body WisiToken.Generate.LR is
             end if;
             return;
          else
+            --  New conflict. Sort to match Conflict_Item_Compare order
             if Action.Verb = Shift then
                Matching_Action_Node.Actions := new Parse_Action_Node'(Action, Matching_Action_Node.Actions);
             else
-               Matching_Action_Node.Actions.Next := new Parse_Action_Node'(Action, Matching_Action_Node.Actions.Next);
+               declare
+                  Node : Parse_Action_Node_Ptr := Matching_Action_Node.Actions;
+                  Prev : Parse_Action_Node_Ptr := null;
+               begin
+                  if Node.Item.Verb = Shift then
+                     Prev := Node;
+                     Node := Node.Next;
+                  end if;
+                  loop
+                     exit when Node = null or else Node.Item.Production.LHS > Action.Production.LHS;
+                     Prev := Node;
+                     Node := Node.Next;
+                  end loop;
+
+                  if Prev = null then
+                     Matching_Action_Node.Actions := new Parse_Action_Node'(Action, Matching_Action_Node.Actions);
+                  else
+                     Prev.Next := new Parse_Action_Node'(Action, Node);
+                  end if;
+               end;
             end if;
          end if;
       else

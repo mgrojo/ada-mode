@@ -95,7 +95,8 @@ package WisiToken.Generate.LR is
       Descriptor : in WisiToken.Descriptor);
 
    procedure Check_Conflicts
-     (Found_Conflicts  : in out Conflict_Lists.Tree;
+     (Label            : in     String;
+      Found_Conflicts  : in out Conflict_Lists.Tree;
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;

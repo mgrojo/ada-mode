@@ -21,19 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-python.wy broken
-    decorated: decorators (classdef | funcdef | async_funcdef)
-        expand group locally
-        helps if user needs to copy bnf output to .wy for actions
-
-    testlist_star_expr use names from alt_list for nonterminal
-
-    try_stmt: indent +1 for paren
-
-    classdef: don't copy newline in insert_optional?
-
-write INDENT, DEDENT as re2c code
-
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes
         ada_ebnf.wy ";; end of file"
@@ -46,6 +33,24 @@ improve bnf generation
     java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
         requires adding 'empty' to Annotation_list instead of inserting optional rhs
         or first phase of extracting common sequences.
+
+    python.wy
+        decorated: decorators (classdef | funcdef | async_funcdef)
+            expand group locally
+            helps if user needs to copy bnf output to .wy for actions
+
+        testlist_star_expr use names from alt_list for nonterminal
+
+        try_stmt: indent +1 for paren
+
+        classdef: don't copy newline in insert_optional?
+
+separate pass to eliminate single-token productions
+    ada_annex_p explicit_generic_actual_parameter ::= expression
+    also have to edit conflicts, or user will be confused
+    output substitutions so user can do them
+
+write INDENT, DEDENT as re2c code
 
 delete descriptor.case_insensitive?
     used in regexp lexer?

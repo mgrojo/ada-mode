@@ -312,7 +312,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       end if;
 
       Check_Conflicts
-        (Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Ignore_Unknown_Conflicts);
+        ("LR1", Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Ignore_Unknown_Conflicts);
 
       WisiToken.Generate.Error := WisiToken.Generate.Error or (Unused_Tokens and not Ignore_Unused_Tokens);
 
