@@ -63,9 +63,8 @@
    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
-;; FIXME: keeping this at LALR for speed while working on conflicts
-;; %generate LR1 Ada_Emacs text_rep re2c Process
 %generate LALR Ada_Emacs re2c Process
+%generate LR1 Ada_Emacs text_rep re2c Process
 
 %case_insensitive
 %start compilation
@@ -234,61 +233,85 @@ tick : TICK_1 | TICK_2 ;
 %end_names_optional_option End_Names_Optional
 
 ;; accepted conflicts
-%conflict REDUCE/REDUCE in state defining_identifier_list, direct_name on token COLON
-%conflict REDUCE/REDUCE in state name, direct_name on token USE
-%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION 
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE 
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE 
-%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS 
-%conflict SHIFT/REDUCE in state object_renaming_declaration, defining_identifier_list on token COLON 
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token MOD 
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token REM 
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token SLASH 
-%conflict SHIFT/REDUCE in state term, term_binary_adding_operator_list on token STAR 
-%conflict SHIFT/REDUCE in state factor, factor on token STAR_STAR 
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token PLUS 
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token MINUS 
-%conflict SHIFT/REDUCE in state term_binary_adding_operator_list, simple_expression on token AMPERSAND 
-%conflict SHIFT/REDUCE in state generic_instantiation, procedure_specification on token IS 
-%conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH 
-%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token RANGE 
-%conflict SHIFT/REDUCE in state subtype_indication, subtype_indication on token DIGITS 
+%conflict REDUCE defining_identifier_list | REDUCE selector_name on token COMMA (623)
+%conflict REDUCE direct_name | REDUCE selector_name on token USE (36, 231, 242)
+%conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER (333)
+%conflict REDUCE discriminant_association | REDUCE explicit_actual_parameter on token COMMA (908)
+%conflict REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token RIGHT_PAREN
+%conflict REDUCE name | REDUCE selector_name_BAR_list on token BAR (342)
+%conflict REDUCE name | REDUCE selector_name_BAR_list on token EQUAL_GREATER (342)
+%conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER (691, 1054)
+%conflict REDUCE subtype_indication | REDUCE iterator_specification on token LOOP (691, 1056)
+%conflict REDUCE subtype_indication | REDUCE primary on token BAR (343)
+%conflict REDUCE subtype_indication | REDUCE primary on token COMMA (341, 487)
+%conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER (343)
+%if parser = LALR
+%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN (343)
+%end if
+%conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE (700)
+%conflict SHIFT attribute_designator | REDUCE attribute_designator on token LEFT_PAREN (506)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token AMPERSAND (186, 386)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token MINUS (186, 386)
+%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token PLUS (186, 386)
+%conflict SHIFT digits_constraint | REDUCE subtype_indication on token DIGITS (328, 561)
+%conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS (77, 290)
+%conflict SHIFT factor | REDUCE factor on token STAR_STAR (182)
+%conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH (1379, 1733, 1738, 1742, 2047, 2051)
+%conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS (466)
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS (249, 527)
+%conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token FUNCTION (8)
+%conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PACKAGE (8)
+%conflict SHIFT generic_renaming_declaration | REDUCE generic_formal_part on token PROCEDURE (8)
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token MOD (180, 624)
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token REM (180, 624)
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token SLASH (180, 624)
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token STAR (180, 624)
+%conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS (76, 289)
+%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON (217)
+%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list | REDUCE direct_name on token COLON (35)
+%conflict SHIFT package_body_stub | REDUCE selector_name on token IS (409)
+%conflict SHIFT parameter_association | REDUCE selector_name_BAR_list on token EQUAL_GREATER (901)
+%conflict SHIFT pragma_argument_association | REDUCE aspect_mark on token EQUAL_GREATER (795)
+%conflict SHIFT raise_expression | REDUCE raise_expression on token WITH (320)
+%conflict SHIFT range_constraint | REDUCE delta_constraint on token RANGE (903)
+%conflict SHIFT range_constraint | REDUCE digits_constraint on token RANGE (904)
+%conflict SHIFT range_constraint | REDUCE subtype_indication on token RANGE (328, 561)
+%conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH (1174, 1565, 1570, 1593, 1918, 1940, 1942, 2198)
+%conflict SHIFT slice | REDUCE discrete_range_COMMA_list on token RIGHT_PAREN (906)
+%conflict SHIFT tick | REDUCE selector_name on token TICK_1 (795)
+%conflict SHIFT tick | REDUCE selector_name on token TICK_2 (795)
+%conflict SHIFT type_conversion | REDUCE discriminant_association | REDUCE explicit_actual_parameter on token RIGHT_PAREN (909)
+%conflict SHIFT type_conversion | REDUCE explicit_actual_parameter on token RIGHT_PAREN (491)
+%conflict SHIFT type_conversion | REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN (1780)
 
-;; provisionally accepted conflicts
+%conflict REDUCE formal_package_association | REDUCE generic_association_COMMA_list on token RIGHT_PAREN (2246)
+;; Could just add "selector_name '=>' '<>'" to generic_association,
+;; use generic_actual_part instead of formal_package_actual_part
 
-%conflict REDUCE/REDUCE in state discrete_choice, component_choice_list on token EQUAL_GREATER
-%conflict REDUCE/REDUCE in state name, selector_name on token BAR 
-%conflict REDUCE/REDUCE in state name, selector_name on token EQUAL_GREATER
-;; ada.wy uses discrete_choice_list for record_aggregate = aggregate
+%conflict REDUCE formal_package_association | REDUCE generic_association_COMMA_list on token COMMA (2246)
+%conflict REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token COMMA (1774, 2283)
+%conflict SHIFT type_conversion | REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token RIGHT_PAREN (1774)
+;; ada.wy uses parameter_association_list in name to cover generic instantiation parameters.
 
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token BAR
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token COMMA
-%conflict REDUCE/REDUCE in state subtype_indication, primary on token EQUAL_GREATER
-;; ada.wy has fewer of these
-
-%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token RIGHT_PAREN ( 351)
-%conflict REDUCE/REDUCE in state record_component_association, expression_COMMA_list on token COMMA ( 351)
+%conflict SHIFT qualified_expression | REDUCE record_component_association | REDUCE expression_COMMA_list on token RIGHT_PAREN (838)
+%conflict SHIFT expression_function_declaration | REDUCE record_component_association | REDUCE expression_COMMA_list on token RIGHT_PAREN (863, 1302)
+%conflict REDUCE record_component_association | REDUCE expression_COMMA_list on token COMMA (350, 837, 862, 1298)
+%conflict REDUCE record_component_association | REDUCE expression_COMMA_list on token RIGHT_PAREN (350)
 ;; expression_COMMA_list in positional_array_aggregate; conflict is only on the first element.
 
-%conflict SHIFT/REDUCE in state choice_expression, relation on token AND ( 353)
-%conflict SHIFT/REDUCE in state choice_expression, relation on token OR ( 353)
-%conflict SHIFT/REDUCE in state choice_expression, relation on token XOR ( 353)
+%conflict SHIFT XOR_choice_relation_list | REDUCE relation on token XOR (352)
+%conflict SHIFT OR_choice_relation_list | REDUCE relation on token OR (352)
+%conflict SHIFT AND_choice_relation_list | REDUCE relation on token AND (352)
 ;; ada.wy just has relation. happens on each 'and/or/xor'.
-
-%conflict SHIFT/REDUCE in state package_body_stub, name on token IS ( 412)
-;; happens on each 'package body'
 
 ;;; grammar rules
 
 pragma_g ::=
   'pragma' IDENTIFIER ['(' pragma_argument_association {',' pragma_argument_association} ')'] ';'
 
-pragma_argument_association ::=
-  [IDENTIFIER '=>'] name
-  | [IDENTIFIER '=>'] expression
-  | aspect_mark '=>'  name
+pragma_argument_association ::= ;; [IDENTIFIER '=>'] name redundant with expression
+    [IDENTIFIER '=>'] expression
+  ;;  | aspect_mark '=>'  name redundant with expression
   | aspect_mark '=>'  expression
 
 basic_declaration ::=
@@ -502,7 +525,7 @@ proper_body ::=
   subprogram_body | package_body | task_body | protected_body
 
 name ::=
-    IDENTIFIER | STRING_LITERAL ;; direct_name
+    selector_name ;; IDENTIFIER | STRING_LITERAL  | CHARACTER_LITERAL ;; conflicts with direct_name, selector_name
   | explicit_dereference
 ;;  | indexed_component - redundant with 'name actual_parameter_part'
   | slice
@@ -510,7 +533,6 @@ name ::=
   | attribute_reference
   | type_conversion
   | name actual_parameter_part
-  | CHARACTER_LITERAL
   | qualified_expression
 ;;  | generalized_reference
 ;;  | generalized_indexing ;; redundant with name actual_parameter_part
@@ -605,7 +627,8 @@ relation ::=
 
 membership_choice_list ::= membership_choice {'|' membership_choice}
 
-membership_choice ::= simple_expression | range_g | name
+membership_choice ::= simple_expression | range_g
+  ;; | name redundant with simple_expression
 
 simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
 
@@ -797,7 +820,7 @@ actual_parameter_part ::= '(' parameter_association {',' parameter_association} 
 
 parameter_association ::= [selector_name '=>'] explicit_actual_parameter
 
-explicit_actual_parameter ::= expression | name
+explicit_actual_parameter ::= expression ;; | name redundant with expression
 
 simple_return_statement ::= 'return' [expression]';'
 
@@ -1081,7 +1104,7 @@ generic_actual_part ::= '(' generic_association {',' generic_association} ')'
 
 generic_association ::= [selector_name '=>'] explicit_generic_actual_parameter
 
-explicit_generic_actual_parameter ::= expression | name | name
+explicit_generic_actual_parameter ::= expression ;; | name | name redundant with expression
 
 formal_object_declaration ::=
     defining_identifier_list ':' [mode] [null_exclusion] name [':=' default_expression] [aspect_specification]';'
@@ -1172,11 +1195,13 @@ aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {',' aspect
 
 aspect_mark ::= IDENTIFIER [tick 'Class']
 
-aspect_definition ::= name | expression | IDENTIFIER
+aspect_definition ::= ;; name redundant with expression
+  | expression
+  ;; | IDENTIFIER redundant with expression
 
 attribute_definition_clause ::=
-    'for' name tick attribute_designator 'use' expression';'
-  | 'for' name tick attribute_designator 'use' name';'
+    'for' name tick attribute_designator 'use' expression ';'
+;;  | 'for' name tick attribute_designator 'use' name ';' ;; redundant with expression
 
 enumeration_representation_clause ::= 'for' name 'use' enumeration_aggregate';'
 

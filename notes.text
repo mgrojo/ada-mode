@@ -30,7 +30,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
@@ -80,6 +80,13 @@ ada_annex_p.wy
     write code to diff with annex P
     add ada2020
 
+    ada.wy LALR:
+     0 accept/reduce conflicts, 50 shift/reduce conflicts, 19 reduce/reduce conflicts
+     224 rules, 233 user actions, 37 checks, 1304 states
+
+    ada_annex_p.wy LALR:
+     0 accept/reduce conflicts, 66 shift/reduce conflicts, 27 reduce/reduce conflicts
+     321 rules, 0 user actions, 0 checks, 2612 states
 
 compare ada LR1 generate time
     o.e.a:
