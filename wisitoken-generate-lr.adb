@@ -1458,7 +1458,7 @@ package body WisiToken.Generate.LR is
 
       declare
          use Ada.Strings.Unbounded;
-         Line          : Unbounded_String := +": ";
+         Line          : Unbounded_String;
          State_Count   : Integer          := 0;
          Accept_Reduce : Integer          := 0;
          Shift_Reduce  : Integer          := 0;
@@ -1481,10 +1481,12 @@ package body WisiToken.Generate.LR is
 
          if State_Count > 0 then
             New_Line;
-            Put (Trimmed_Image (State_Count) & "states with conflicts");
             if Include_Extra then
+               Line := Trimmed_Image (State_Count) & " states with conflicts:" & Line;
                Indent_Wrap (-Line);
                New_Line;
+            else
+               Put_Line (Trimmed_Image (State_Count) & " states with conflicts");
             end if;
 
             Put_Line

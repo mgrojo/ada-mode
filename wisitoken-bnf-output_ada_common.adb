@@ -331,7 +331,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
 
-      when External =>
+      when External | Tree_Sitter =>
          null;
       end case;
 
@@ -346,7 +346,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             LR_Process;
          when Packrat_Generate_Algorithm =>
             Packrat_Process;
-         when External =>
+         when External | Tree_Sitter =>
             null;
          end case;
 
@@ -358,7 +358,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                LR_Process;
             when Packrat_Generate_Algorithm =>
                Packrat_Process;
-            when External =>
+            when External | Tree_Sitter =>
                null;
             end case;
 

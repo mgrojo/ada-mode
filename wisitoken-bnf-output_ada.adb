@@ -315,13 +315,13 @@ is
 
       if (case Common_Data.Generate_Algorithm is
           when LR_Generate_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
-          when Packrat_Generate_Algorithm | External => Input_Data.Action_Count > 0)
+          when Packrat_Generate_Algorithm | External | Tree_Sitter => Input_Data.Action_Count > 0)
       then
          Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       end if;
 
       case Common_Data.Lexer is
-      when None | Elisp_Lexer =>
+      when None | Tree_Sitter_Lexer =>
          null;
 
       when re2c_Lexer =>
@@ -330,7 +330,7 @@ is
       end case;
 
       case Common_Data.Generate_Algorithm is
-      when LR_Generate_Algorithm =>
+      when LR_Generate_Algorithm | Tree_Sitter =>
          null;
 
       when Packrat_Gen =>
@@ -349,7 +349,7 @@ is
       New_Line;
 
       case Common_Data.Lexer is
-      when None | Elisp_Lexer =>
+      when None | Tree_Sitter_Lexer =>
          null;
 
       when re2c_Lexer =>
@@ -375,6 +375,9 @@ is
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
+
+      when Tree_Sitter =>
+         null;
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");
@@ -401,7 +404,8 @@ is
                else "Gen_LR_Parser_No_Recover_Run")),
 
          when Packrat_Generate_Algorithm => "Gen_Packrat_Parser_Run",
-         when External => raise SAL.Programmer_Error);
+         when External => raise SAL.Programmer_Error,
+         when Tree_Sitter => "Gen_Tree_Sitter_Parser_Run");
 
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
@@ -459,16 +463,6 @@ is
    end Create_Ada_Test_Main;
 
 begin
-   case Common_Data.Lexer is
-   when None | re2c_Lexer =>
-      null;
-
-   when Elisp_Lexer =>
-      raise User_Error with WisiToken.Generate.Error_Message
-        (Input_Data.Grammar_Lexer.File_Name, 1, "Ada output language does not support " & Lexer_Image
-           (Common_Data.Lexer).all & " lexer");
-   end case;
-
    case Tuple.Interface_Kind is
    when None  =>
       null;

@@ -21,6 +21,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+add tree-sitter parser, lexer
+    bnf-wy-test run tree-sitter generate, build exec, run it, get parse trace.
+    also get parse table?
+
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes
         ada_ebnf.wy ";; end of file"

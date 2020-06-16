@@ -40,6 +40,7 @@ with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Tree_Sitter;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
@@ -296,6 +297,9 @@ begin
 
       Lexer_Done : Lexer_Set := (others => False);
 
+      Saved_EBNF_Base_Tree : aliased Syntax_Trees.Base_Tree;
+      Saved_EBNF_Tree      : Syntax_Trees.Tree;
+
       --  In general, all of the data in Generate_Utils.Generate_Data
       --  depends on the generate tuple parameters. However, if
       --  'If_Lexer_Present' is false, then they don't depend on the lexer,
@@ -336,6 +340,10 @@ begin
                declare
                   Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
                begin
+                  Tree.Complete_Copy
+                    (New_Base_Tree => Saved_EBNF_Base_Tree'Unrestricted_Access,
+                     New_Tree      => Saved_EBNF_Tree);
+
                   if Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
                   end if;
@@ -557,6 +565,28 @@ begin
 
                when External =>
                   null;
+
+               when Tree_Sitter =>
+                  if Saved_EBNF_Tree.Is_Empty then
+                     declare
+                        Tree  : Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+                     begin
+                        WisiToken.Tree_Sitter.Print_Tree_Sitter
+                          (Input_Data,
+                           Tree,
+                           Output_File_Name => -Output_File_Name_Root & "_tree_sitter.js",
+                           Language_Name    => -Language_Name);
+                     end;
+                  else
+                     WisiToken.Tree_Sitter.Print_Tree_Sitter
+                       (Input_Data,
+                        Saved_EBNF_Tree,
+                        Output_File_Name => -Output_File_Name_Root & "_tree_sitter.js",
+                        Language_Name    => -Language_Name);
+                  end if;
+                  if WisiToken.Generate.Error then
+                     raise WisiToken.Grammar_Error with "errors during translating grammar to tree-sitter: aborting";
+                  end if;
                end case;
 
                if WisiToken.Generate.Error then

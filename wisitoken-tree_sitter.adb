@@ -17,26 +17,13 @@
 
 pragma License (GPL);
 
-with Ada.Command_Line;
-with Ada.Directories;
-with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with GNAT.Traceback.Symbolic;
+with WisiToken.BNF;
 with WisiToken.Syntax_Trees.LR_Utils;
-with WisiToken.Parse.LR.Parser_No_Recover;
-with WisiToken.Syntax_Trees;
-with WisiToken.Text_IO_Trace;
-with WisiToken_Grammar_Runtime;
 with WisiToken_Grammar_Editing;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
-with Wisitoken_Grammar_Main;
-procedure WisiToken.To_Tree_Sitter
-is
-   procedure Put_Usage
-   is begin
-      Put_Line ("wisitoken-to_tree_sitter [--verbosity <level] <wisitoken grammar file> <language_name>");
-   end Put_Usage;
+package body WisiToken.Tree_Sitter is
 
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
@@ -47,6 +34,8 @@ is
       use WisiToken.Syntax_Trees;
 
       File : File_Type;
+
+      Ignore_Lines : Boolean := False; --  Implements %if
 
       --  Local specs
 
@@ -349,8 +338,45 @@ is
 
       procedure Process_Node (Node : in Valid_Node_Index)
       is begin
+         if Ignore_Lines then
+            case To_Token_Enum (Tree.ID (Node)) is
+            when declaration_ID =>
+               if Tree.RHS_Index (Node) = 5 then
+                  --  | PERCENT END IF
+                  Ignore_Lines := False;
+                  if Trace_Generate_EBNF > Outline then
+                     Ada.Text_IO.Put_Line ("ignore lines false");
+                  end if;
+               end if;
+
+            when compilation_unit_ID =>
+               Process_Node (Tree.Child (Node, 1));
+
+            when compilation_unit_list_ID =>
+               declare
+                  Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+               begin
+                  case To_Token_Enum (Tree.ID (Children (1))) is
+                  when compilation_unit_list_ID =>
+                     Process_Node (Children (1));
+                     Process_Node (Children (2));
+                  when compilation_unit_ID =>
+                     Process_Node (Children (1));
+                  when others =>
+                     raise SAL.Programmer_Error;
+                  end case;
+               end;
+
+            when others =>
+               --  FIXME: handle rhs_list end if
+               null;
+            end case;
+            return;
+         end if;
+
          case To_Token_Enum (Tree.ID (Node)) is
          --  Enum_Token_ID alphabetical order
+
          when compilation_unit_ID =>
             Process_Node (Tree.Child (Node, 1));
 
@@ -379,7 +405,7 @@ is
                      use WisiToken.Syntax_Trees.LR_Utils;
                      Name : constant String := Get_Text (Tree.Child (Node, 3));
                      List : constant Constant_List := Creators.Create_List
-                        (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
+                       (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
                      Item : constant Valid_Node_Index := Tree.Child (Get_Node (List.First), 1);
                   begin
                      case To_Token_Enum (Tree.ID (Item)) is
@@ -391,6 +417,31 @@ is
                      end case;
                   end;
                end if;
+
+            when 4 =>
+               --  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+               declare
+                  use WisiToken.BNF;
+               begin
+                  if "lexer" = Get_Text (Tree.Child (Node, 3)) then
+                     Ignore_Lines := Tree_Sitter_Lexer /= To_Lexer (Get_Text (Tree.Child (Node, 5)));
+
+                     if Ignore_Lines and Trace_Generate_EBNF > Outline then
+                        Ada.Text_IO.Put_Line ("ignore lines true");
+                     end if;
+
+                  elsif "parser" = Get_Text (Tree.Child (Node, 3)) then
+                     Ignore_Lines := WisiToken.BNF.Tree_Sitter /=
+                       To_Generate_Algorithm (Get_Text (Tree.Child (Node, 5)));
+
+                     if Ignore_Lines and Trace_Generate_EBNF > Outline then
+                        Ada.Text_IO.Put_Line ("ignore lines true");
+                     end if;
+
+                  else
+                     raise SAL.Programmer_Error;
+                  end if;
+               end;
 
             when others =>
                null;
@@ -432,96 +483,4 @@ is
       Close (File);
    end Print_Tree_Sitter;
 
-   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-   Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-
-   Input_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-   Language_Name   : Ada.Strings.Unbounded.Unbounded_String;
-begin
-   Wisitoken_Grammar_Main.Create_Parser
-     (Parser    => Grammar_Parser,
-      Trace     => Trace'Unchecked_Access,
-      User_Data => Input_Data'Unchecked_Access);
-
-   declare
-      use Ada.Command_Line;
-      Arg : Integer := 1;
-   begin
-      if not (Argument_Count in 1 .. 4) then
-         Put_Usage;
-         Set_Exit_Status (Failure);
-         return;
-      end if;
-
-      loop
-         exit when Arg > Argument_Count;
-
-         if Argument (Arg) = "--verbosity" then
-            Arg := Arg + 1;
-            Trace_Generate_EBNF := Integer'Value (Argument (Arg));
-            Arg := Arg + 1;
-
-         else
-            exit;
-         end if;
-      end loop;
-
-      --  no more options
-      Input_File_Name := +Argument (Arg);
-      Arg := Arg + 1;
-      Language_Name := +Argument (Arg);
-   end;
-
-   begin
-      Grammar_Parser.Lexer.Reset_With_File (-Input_File_Name);
-   exception
-   when Ada.Text_IO.Name_Error | Ada.Text_IO.Use_Error =>
-      raise Ada.Text_IO.Name_Error with "input file '" & (-Input_File_Name) & "' could not be opened.";
-   end;
-
-   begin
-      Grammar_Parser.Parse;
-   exception
-   when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors;
-      raise;
-   end;
-
-   Grammar_Parser.Execute_Actions;
-
-   declare
-      use Ada.Directories;
-
-      Output_File_Name : constant String := Base_Name (-Input_File_Name) & ".js";
-
-      Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
-   begin
-      if Trace_Generate_EBNF > Outline then
-         Put_Line ("'" & (-Input_File_Name) & "' => '" & Output_File_Name & "'");
-      end if;
-
-      if Trace_Generate_EBNF > Detail then
-         Put_Line ("wisitoken tree:");
-         Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
-         Ada.Text_IO.New_Line;
-      end if;
-
-      Print_Tree_Sitter (Input_Data, Tree, Output_File_Name, -Language_Name);
-   end;
-
-exception
-when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
-   --  error message already output
-   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-
-when E :  others =>
-   declare
-      use Ada.Exceptions;
-      use Ada.Command_Line;
-   begin
-      Put_Line (Standard_Error, Exception_Name (E) & ": " & Exception_Message (E));
-      Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-      Set_Exit_Status (Failure);
-   end;
-end WisiToken.To_Tree_Sitter;
+end WisiToken.Tree_Sitter;

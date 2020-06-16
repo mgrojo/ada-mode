@@ -588,6 +588,18 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Finalize;
 
+   procedure Complete_Copy
+     (Tree          : in     Syntax_Trees.Tree;
+      New_Base_Tree : in     Base_Tree_Access;
+      New_Tree      :    out Syntax_Trees.Tree)
+   is begin
+      New_Base_Tree.all := Tree.Shared_Tree.all;
+      New_Tree.Initialize
+        (New_Base_Tree,
+         Root        => Tree.Root,
+         Parents_Set => Tree.Parents_Set);
+   end Complete_Copy;
+
    function Insert_After
      (User_Data            : in out User_Data_Type;
       Tree                 : in     Syntax_Trees.Tree'Class;
@@ -1195,18 +1207,18 @@ package body WisiToken.Syntax_Trees is
    procedure Initialize
      (Branched_Tree : in out Syntax_Trees.Tree;
       Shared_Tree   : in     Base_Tree_Access;
-      Flush         : in     Boolean;
-      Set_Parents   : in     Boolean := False)
+      Root          : in     Node_Index := Invalid_Node_Index;
+      Parents_Set   : in     Boolean := False)
    is begin
       Branched_Tree :=
         (Ada.Finalization.Controlled with
          Shared_Tree      => Shared_Tree,
          Last_Shared_Node => Shared_Tree.Nodes.Last_Index,
          Branched_Nodes   => <>,
-         Flush            => Flush,
-         Root             => <>);
+         Flush            => True,
+         Root             => Root);
 
-      Branched_Tree.Shared_Tree.Parents_Set := Set_Parents;
+      Branched_Tree.Shared_Tree.Parents_Set := Parents_Set;
    end Initialize;
 
    function Is_Descendant_Of
