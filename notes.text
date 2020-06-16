@@ -156,6 +156,7 @@ error_correction_algorithm.tex
 
     redo compare using lr1 for wisitoken-tokens
         wisitoken both ada.wy and ada_annex_p.wy
+        Bison?
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
         add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
             has python parser

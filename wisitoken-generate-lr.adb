@@ -1458,7 +1458,7 @@ package body WisiToken.Generate.LR is
 
       declare
          use Ada.Strings.Unbounded;
-         Line          : Unbounded_String := +"states with conflicts:";
+         Line          : Unbounded_String := +": ";
          State_Count   : Integer          := 0;
          Accept_Reduce : Integer          := 0;
          Shift_Reduce  : Integer          := 0;
@@ -1470,7 +1470,9 @@ package body WisiToken.Generate.LR is
               Conflicts (State).Reduce_Reduce > 0
             then
                State_Count   := State_Count + 1;
-               Line          := Line & Conflict_Count_Lists.To_Index (State)'Image;
+               if Include_Extra then
+                  Line := Line & Conflict_Count_Lists.To_Index (State)'Image;
+               end if;
                Accept_Reduce := @ + Conflicts (State).Accept_Reduce;
                Shift_Reduce  := @ + Conflicts (State).Shift_Reduce;
                Reduce_Reduce := @ + Conflicts (State).Reduce_Reduce;
@@ -1478,11 +1480,13 @@ package body WisiToken.Generate.LR is
          end loop;
 
          if State_Count > 0 then
-            Line := Trimmed_Image (State_Count) & " " & Line;
             New_Line;
-            Indent_Wrap (-Line);
+            Put (Trimmed_Image (State_Count) & "states with conflicts");
+            if Include_Extra then
+               Indent_Wrap (-Line);
+               New_Line;
+            end if;
 
-            New_Line;
             Put_Line
               (Accept_Reduce'Image & " accept/reduce conflicts," &
                  Shift_Reduce'Image & " shift/reduce conflicts," &

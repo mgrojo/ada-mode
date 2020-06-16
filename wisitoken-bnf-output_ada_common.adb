@@ -522,8 +522,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       use WisiToken.Parse.LR;
       use Ada.Strings.Unbounded;
 
+      --  Optimize source structure for GNAT compile time; one subroutine
+      --  with thousands of "Table.States (*) := ..." takes forever to
+      --  compile (apparently depending on available memory). But hundreds
+      --  of subroutines, containing the same lines in chunks of
+      --  Lines_Per_Subr, compiles in acceptable time.
+
       Table            : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
-      Lines_Per_Subr   : constant := 1000;
+      Lines_Per_Subr   : constant := 500;
       Subr_Count       : Integer  := 1;
       Last_Subr_Closed : Boolean  := False;
       Line             : Unbounded_String;
@@ -533,12 +539,6 @@ package body WisiToken.BNF.Output_Ada_Common is
          Line := Line & Item;
       end Append;
    begin
-      --  Optimize source structure for GNAT compile time; one subroutine
-      --  with thousands of "Table.States (*) := ..." takes forever to
-      --  compile (apparently depending on available memory). But hundreds
-      --  of subroutines, containing the same lines in chunks of 1000,
-      --  compiles in acceptable time.
-
       Indent_Line ("declare");
       Indent := Indent + 3;
 
