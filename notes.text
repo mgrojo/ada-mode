@@ -43,25 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-recent changes to ada.wy made LR1 generation _much_ slower:
-    current ada.wy
-        LR1 re2c generate time: 265.863642165
-        lr1.parse table 613 megabytes:
-        0 accept/reduce conflicts, 51793 shift/reduce conflicts, 27 reduce/reduce conflicts
-        231 rules, 233 user actions, 37 checks, 464233 states
-
-    2020_04_22 ada.wy
-        LR1 re2c generate time: 66.798466340
-        lr1.parse table 213 megabytes:
-        0 accept/reduce conflicts, 5374 shift/reduce conflicts, 27 reduce/reduce conflicts
-        224 rules, 232 user actions, 37 checks, 151571 states
-
-    but no change to the declared %conflicts!
-        new conflict naming:
-        LR1 re2c generate time: 149.562007162
-
-        compare conflicts in new format for current, 2020_04_22
-
 Separate set of McKenzie params for face parse
 
 ada-format-param-list take option to convert from single line to multi-line
@@ -470,12 +451,22 @@ wisitoken-bnf-generate
     30 Jan 2020 ada-mode 7.0.1
         LALR re2c generate time: 0.689046474
         LR1 re2c generate time: 37.564196185
-        lr1 text_rep size:
+        lr1 text_rep size: 50_322_028
 
     14 May 2020 ada-mode 7.1.1
+        GNAT Community 2019
         LALR re2c generate time: 0.520925872
         LR1 re2c generate time: 62.148224014
         lr1 text_rep size:
+        LALR   0 accept/reduce conflicts, 34 shift/reduce conflicts, 17 reduce/reduce conflicts
+             224 rules, 230 user actions, 37 checks, 1293 states
+        LR1    0 accept/reduce conflicts, 4750 shift/reduce conflicts, 24 reduce/reduce conflicts
+             224 rules, 230 user actions, 37 checks, 119354 states
+
+
+    ada_annex_p.wy LALR:
+     0 accept/reduce conflicts, 66 shift/reduce conflicts, 27 reduce/reduce conflicts
+     321 rules, 0 user actions, 0 checks, 2612 states
 
 mckenzie recover
     ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0

@@ -682,8 +682,8 @@ Called with three args: PROJECT NAME VALUE.")
       ;; ignore lines that don't have the format "name=value", put
       ;; 'name', 'value' in match-string.
       (when (looking-at "^\\([^= \n]+\\)=\\(.*\\)")
-	(let ((name (match-string 1))
-	      (value (match-string 2))
+	(let ((name (match-string-no-properties 1))
+	      (value (match-string-no-properties 2))
 	      result)
 
 	  ;; Both compiler and xref need to see some settings; eg gpr_file, env vars.

@@ -322,20 +322,27 @@ which is displayed on error."
     (setf (gnat-compiler-gnat-stub-opts compiler) value))
 
    ((string= name "gpr_file")
-    ;; The gpr file is parsed in `wisi-compiler-parse-final', so it
-    ;; sees all file environment vars. We store the absolute gpr
+    ;; The gpr file is parsed in `wisi-compiler-parse-final' below, so
+    ;; it sees all file environment vars. We store the absolute gpr
     ;; file name, so we can get the correct default-directory from
     ;; it. Note that gprbuild requires the base name be found on
     ;; GPR_PROJECT_PATH.
-    (let ((process-environment
-	   (append
-	    (wisi-prj-compile-env project)
-	    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
-      (setf (gnat-compiler-gpr-file compiler)
-	    (or
-	     (locate-file (substitute-in-file-name value)
-			  (gnat-compiler-project-path compiler))
-	     (expand-file-name (substitute-in-file-name value)))))
+    (let* ((process-environment
+	    (append
+	     (wisi-prj-compile-env project)
+	     (wisi-prj-file-env project)));; reference, for substitute-in-file-name
+	   (gpr-file (substitute-env-vars value)))
+
+      (if (= (aref gpr-file 0) ?$)
+	  ;; An environment variable that was not resolved, possibly
+	  ;; because the env var is later defined in the project file;
+	  ;; it may be resoved in `wisi-compiler-parse-final'.
+	  (setf (gnat-compiler-gpr-file compiler) gpr-file)
+
+	;; else get the absolute path
+	(setf (gnat-compiler-gpr-file compiler)
+	      (or (locate-file gpr-file (gnat-compiler-project-path compiler))
+		  (expand-file-name (substitute-env-vars gpr-file))))))
     t)
 
    ((string= name "runtime")
@@ -349,12 +356,31 @@ which is displayed on error."
 (cl-defmethod wisi-compiler-parse-final ((compiler gnat-compiler) project prj-file-name)
   (setf (gnat-compiler-run-buffer-name compiler) (gnat-run-buffer-name prj-file-name))
 
-  (if (gnat-compiler-gpr-file compiler)
-      (gnat-parse-gpr (gnat-compiler-gpr-file compiler) project compiler)
+  (let ((gpr-file (gnat-compiler-gpr-file compiler)))
+    (if gpr-file
+	(progn
+	  (when (= (aref gpr-file 0) ?$)
+	    ;; An environment variable that was not resolved earlier,
+	    ;; because the env var is defined in the project file.
+	    (let ((process-environment
+		   (append
+		    (wisi-prj-compile-env project)
+		    (wisi-prj-file-env project))));; reference, for substitute-in-file-name
 
-    ;; add the compiler libraries to project.source-path
+	      (setq gpr-file
+		    (or
+		     (locate-file (substitute-env-vars gpr-file)
+				  (gnat-compiler-project-path compiler))
+		     (expand-file-name (substitute-env-vars gpr-file))))
+
+	      (setf (gnat-compiler-gpr-file compiler) gpr-file)))
+
+	  (gnat-parse-gpr gpr-file project compiler)
+	  )
+
+    ;; else add the compiler libraries to project.source-path
     (gnat-get-paths project compiler)
-    ))
+    )))
 
 (cl-defmethod wisi-compiler-select-prj ((_compiler gnat-compiler) _project)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
