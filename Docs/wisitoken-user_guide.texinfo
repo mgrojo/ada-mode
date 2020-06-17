@@ -561,9 +561,9 @@ recovery, but it will still be robust.
 @item %start
 The start token for the grammar.
 
-@item re2c_regexp <name> <value>
-Declare a named regular expression with re2c name and syntax. The name
-may then occur in another re2c regular expression.
+@item lexer_regexp <name> <value>
+Declare a named regular expression with name and current lexer
+syntax. The name may then occur in another lexer regular expression.
 @end table
 
 @node Nonterminals
@@ -651,16 +651,18 @@ more times.
 It is sometimes necessary to include or exclude some declarations
 and portions of rules based on the choice of lexer or parser.
 
-Therefore WisiToken supports @code{%if ... %end if} in the grammar file:
+Therefore WisiToken supports @code{%if ... %elsif ... %end if} in the grammar file:
 @verbatim
 %if {lexer | parser} = {<lexer> | <generate_algorithm>}
+...
+%elsif {lexer | parser} = {<lexer> | <generate_algorithm>}
 ...
 %end if
 @end verbatim
 
-The lines between @code{%if} and @code{%end if} are ignored if the
-current lexer or parser is not the one specified in the @code{%if}
-condition.
+The lines between @code{%if, %elsif} and @code{%end if} are ignored if
+the current lexer or parser is not the one specified in the @code{%if,
+%elsif} condition.
 
 @code{%if ... %end if} cannot be nested.
 

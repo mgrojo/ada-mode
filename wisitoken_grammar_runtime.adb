@@ -259,12 +259,12 @@ package body WisiToken_Grammar_Runtime is
             Right_Hand_Sides.Append (Get_RHS (Data, Tree, Labels, Tokens (3)));
          end if;
 
-      when 2 =>
-         --  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+      when 2 | 3 =>
+         --  | rhs_list PERCENT (IF | ELSIF) IDENTIFIER EQUAL IDENTIFIER
          Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (1));
          Start_If_1 (Data, Tree, Tokens (4), Tokens (6));
 
-      when 3 =>
+      when 4 =>
          --  | rhs_list PERCENT END IF
          Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (1));
          Data.Ignore_Lines := False;
@@ -798,8 +798,8 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "start" then
                   Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
 
-               elsif Kind = "re2c_regexp" then
-                  Data.Tokens.re2c_Regexps.Append
+               elsif Kind = "lexer_regexp" then
+                  Data.Tokens.Lexer_Regexps.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
@@ -889,6 +889,10 @@ package body WisiToken_Grammar_Runtime is
    is
       Data : User_Data_Type renames User_Data_Type (User_Data);
    begin
+      if Data.EBNF_Ok then
+         return;
+      end if;
+
       case Data.Phase is
       when Meta =>
          Data.EBNF_Nodes (Tokens (Token)) := True;

@@ -112,8 +112,8 @@
 %if lexer = re2c 
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%end if
-%if lexer = tree_sitter 
+
+%elsif lexer = tree_sitter 
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 ;;

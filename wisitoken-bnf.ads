@@ -48,6 +48,7 @@ package WisiToken.BNF is
    subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Generate_Algorithm'Last;
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
+   subtype LR_Packrat_Generate_Algorithm is Generate_Algorithm range LALR .. Packrat_Proc;
 
    Generate_Algorithm_Image : constant array (Generate_Algorithm) of String_Access_Constant :=
      (None         => new String'("None"),
@@ -93,10 +94,16 @@ package WisiToken.BNF is
    type Lexer_Set is array (Lexer_Type) of Boolean;
 
    type Lexer_Generate_Algorithm_Set is array (Lexer_Type) of Generate_Algorithm_Set;
-   --  %if lexer change change the generated parse table
+   --  %if lexer changes the generated parse table
 
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
+
+   Interface_Image : constant array (Interface_Type) of String_Access_Constant :=
+     --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020 returns integer
+     (None    => new String'("none"),
+      Process => new String'("process"),
+      Module  => new String'("module"));
 
    function Is_Valid_Interface (Item : in String) return Boolean;
 
@@ -315,10 +322,10 @@ package WisiToken.BNF is
       --  in other declarations or actions. Faces, Indents only used if .wy
       --  action language is elisp and output language is not elisp.
 
-      re2c_Regexps : String_Pair_Lists.List; -- %re2c_regexp
-      Faces        : String_Lists.List;      -- %elisp_face
-      Indents      : String_Pair_Lists.List; -- %elisp_indent
-      Actions      : Elisp_Action_Maps.Map;  -- %elisp_action
+      Lexer_Regexps : String_Pair_Lists.List; -- %lexer_regexp
+      Faces         : String_Lists.List;      -- %elisp_face
+      Indents       : String_Pair_Lists.List; -- %elisp_indent
+      Actions       : Elisp_Action_Maps.Map;  -- %elisp_action
    end record;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String

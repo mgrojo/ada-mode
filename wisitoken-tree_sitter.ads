@@ -20,6 +20,7 @@ package WisiToken.Tree_Sitter is
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree             : in out WisiToken.Syntax_Trees.Tree;
+      Input_File_Name  : in     String;
       Output_File_Name : in     String;
       Language_Name    : in     String);
    --  Tree is 'in out' because we use WisiToken.Syntax_Tree.LR_Utils lists.

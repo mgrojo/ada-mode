@@ -28,6 +28,7 @@ package body WisiToken.Tree_Sitter is
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree             : in out Syntax_Trees.Tree;
+      Input_File_Name  : in     String;
       Output_File_Name : in     String;
       Language_Name    : in     String)
    is
@@ -298,11 +299,24 @@ package body WisiToken.Tree_Sitter is
       is begin
          case Tree.RHS_Index (Node) is
          when 0 =>
-            Put (File, "/* empty */,");
+            Generate.Put_Error
+              (Generate.Error_Message
+                 (Input_File_Name,
+                  WisiToken_Grammar_Runtime.Get_Line
+                    (Data, Tree,
+                     --  Locate the error message on the preceding ':' or '|'
+                     (declare
+                         RHS_List : constant Valid_Node_Index := Tree.Parent (Node);
+                      begin
+                         (case Tree.RHS_Index (RHS_List) is
+                          when 0 => RHS_List,
+                          when others => Tree.Child (RHS_List, 2)))),
+                  "empty RHS forbidden by tree-sitter"));
 
          when 1 .. 3 =>
             Put_RHS_Item_List (Tree.Child (Node, 1), First => True);
-            --  ignore actions
+            --  tree-sitter does not have actions in the grammar
+            --  FIXME: Ada code for actions generated when?
 
          when others =>
             Not_Translated ("put_rhs", Node);
@@ -341,13 +355,42 @@ package body WisiToken.Tree_Sitter is
          if Ignore_Lines then
             case To_Token_Enum (Tree.ID (Node)) is
             when declaration_ID =>
-               if Tree.RHS_Index (Node) = 5 then
+               case Tree.RHS_Index (Node) is
+               when 5 =>
+                  --  | PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
+                  declare
+                     use WisiToken.BNF;
+                  begin
+                     if "lexer" = Get_Text (Tree.Child (Node, 3)) then
+                        Ignore_Lines := Tree_Sitter_Lexer /= To_Lexer (Get_Text (Tree.Child (Node, 5)));
+
+                     elsif "parser" = Get_Text (Tree.Child (Node, 3)) then
+                        Ignore_Lines := WisiToken.BNF.Tree_Sitter /=
+                          To_Generate_Algorithm (Get_Text (Tree.Child (Node, 5)));
+
+                     else
+                        raise SAL.Programmer_Error;
+                     end if;
+
+                     if Trace_Generate_EBNF > Outline then
+                        Ada.Text_IO.Put_Line
+                          ("ignore lines " & Ignore_Lines'Image & " line" & Data.Terminals.all
+                             (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
+                     end if;
+                  end;
+
+               when 6 =>
                   --  | PERCENT END IF
                   Ignore_Lines := False;
                   if Trace_Generate_EBNF > Outline then
-                     Ada.Text_IO.Put_Line ("ignore lines false");
+                     Ada.Text_IO.Put_Line
+                       ("ignore lines false line" & Data.Terminals.all
+                          (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
                   end if;
-               end if;
+
+               when others =>
+                  null;
+               end case;
 
             when compilation_unit_ID =>
                Process_Node (Tree.Child (Node, 1));
@@ -413,34 +456,33 @@ package body WisiToken.Tree_Sitter is
                         Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Item), Both) & "/,");
 
                      when others =>
-                        null;
+                        null; --  FIXME: lexer_regexp
                      end case;
                   end;
                end if;
 
-            when 4 =>
-               --  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+            when 4 | 5 =>
+               --  | PERCENT (IF | ELSIF) IDENTIFIER EQUAL IDENTIFIER
                declare
                   use WisiToken.BNF;
                begin
                   if "lexer" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := Tree_Sitter_Lexer /= To_Lexer (Get_Text (Tree.Child (Node, 5)));
 
-                     if Ignore_Lines and Trace_Generate_EBNF > Outline then
-                        Ada.Text_IO.Put_Line ("ignore lines true");
-                     end if;
-
                   elsif "parser" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := WisiToken.BNF.Tree_Sitter /=
                        To_Generate_Algorithm (Get_Text (Tree.Child (Node, 5)));
 
-                     if Ignore_Lines and Trace_Generate_EBNF > Outline then
-                        Ada.Text_IO.Put_Line ("ignore lines true");
-                     end if;
-
                   else
                      raise SAL.Programmer_Error;
                   end if;
+
+                  if Ignore_Lines and Trace_Generate_EBNF > Outline then
+                     Ada.Text_IO.Put_Line
+                       ("ignore lines true line" & Data.Terminals.all
+                          (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
+                  end if;
+
                end;
 
             when others =>
@@ -466,6 +508,10 @@ package body WisiToken.Tree_Sitter is
          end case;
       end Process_Node;
    begin
+      if Trace_Generate_EBNF > Outline then
+         Ada.Text_IO.Put_Line ("translate to tree_sitter");
+      end if;
+
       Create (File, Out_File, Output_File_Name);
       Put_Line (File, "// generated from " & Data.Grammar_Lexer.File_Name & " -*- buffer-read-only:t -*-");
 

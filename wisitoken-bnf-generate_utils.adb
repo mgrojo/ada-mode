@@ -155,7 +155,7 @@ package body WisiToken.BNF.Generate_Utils is
                   Data.Source_Line_Map (LHS).RHS_Map (RHS_Index) := Right_Hand_Side.Source_Line;
                exception
                when E : Not_Found =>
-                  --  From "&"
+                  --  From "Find_Token"
                   Put_Error
                     (Error_Message
                        (Source_File_Name, Right_Hand_Side.Source_Line, Ada.Exceptions.Exception_Message (E)));

@@ -197,7 +197,7 @@ package body BNF_WY_Test is
               ".parse_table");
 
       when Tree_Sitter =>
-         Diff_One (Root_Name & Gen_Alg & ".js");
+         Diff_One (Root_Name & ".js");
 
       when None | Packrat_Generate_Algorithm | External =>
          null;

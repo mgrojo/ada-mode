@@ -2914,6 +2914,12 @@ package body WisiToken_Grammar_Editing is
                   Put_Comments (Node);
 
                when 5 =>
+                  Put
+                    (File,
+                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (5)));
+                  Put_Comments (Node);
+
+               when 6 =>
                   Put (File, "%end if");
                   Put_Comments (Node);
 
