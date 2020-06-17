@@ -1481,7 +1481,7 @@ package body WisiToken.Generate.LR is
 
          if State_Count > 0 then
             New_Line;
-            Put (Trimmed_Image (State_Count) & "states with conflicts");
+            Put (Trimmed_Image (State_Count) & " states with conflicts");
             if Include_Extra then
                Indent_Wrap (-Line);
                New_Line;

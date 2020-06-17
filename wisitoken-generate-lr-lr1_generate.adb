@@ -20,6 +20,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Calendar;
 with Ada.Containers;
 with Ada.Text_IO;
 with WisiToken.Generate;
@@ -217,6 +218,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
         (if Partial_Recursion
          then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
          else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
+      Recursions_Time : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
         Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Grammar_File_Name);
 
@@ -235,6 +238,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
+
+      Table_Time            : Ada.Calendar.Time;
+      Minimal_Actions_Time  : Ada.Calendar.Time;
+      Collect_Conflict_Time : Ada.Calendar.Time;
    begin
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.New_Line;
@@ -278,6 +285,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Add_Actions (Item_Sets, Table.all, Grammar, Descriptor);
 
+      if Trace_Time then
+         Table_Time := Ada.Calendar.Clock;
+         Ada.Text_IO.Put_Line
+           ("compute parse table time:" & Duration'Image (Ada.Calendar."-" (Table_Time, Recursions_Time)));
+      end if;
+
       for State in Table.States'Range loop
          if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
@@ -288,7 +301,21 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Descriptor, Grammar, Nullable, Minimal_Terminal_Sequences, Minimal_Terminal_First);
       end loop;
 
+      if Trace_Time then
+         Minimal_Actions_Time := Ada.Calendar.Clock;
+         Ada.Text_IO.Put_Line
+           ("compute minimal actions time:" & Duration'Image
+              (Ada.Calendar."-" (Minimal_Actions_Time, Table_Time)));
+      end if;
+
       Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
+
+      if Trace_Time then
+         Collect_Conflict_Time := Ada.Calendar.Clock;
+         Ada.Text_IO.Put_Line
+           ("compute minimal actions time:" & Duration'Image
+              (Ada.Calendar."-" (Collect_Conflict_Time, Minimal_Actions_Time)));
+      end if;
 
       if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table
