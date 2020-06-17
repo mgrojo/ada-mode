@@ -58,7 +58,7 @@ endif
 
 gen :: ada_ebnf_bnf.wy # not a valid grammar
 gen :: ada_lite_ebnf_re2c.c
-gen :: ada_lite_ebnf/parser.c
+# gen :: ada_lite_ebnf/parser.c ;; FIXME: need pass to eliminate empty RHS
 gen :: identifier_list_name_conflict_re2c.c
 gen :: java_ebnf_bnf.wy # not a valid grammar
 gen :: java_enum_ch19_re2c.c

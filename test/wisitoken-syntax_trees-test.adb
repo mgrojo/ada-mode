@@ -76,7 +76,7 @@ package body WisiToken.Syntax_Trees.Test is
       --  Create a tree, set the name region of shared node, thus
       --  invoking Move_Branch_Point.
 
-      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
+      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access);
 
       Terminals.Append ((+PROCEDURE_ID, Invalid_Node_Index, (1, 9), others => <>));
       Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 1
@@ -147,7 +147,7 @@ package body WisiToken.Syntax_Trees.Test is
       --
       --  Note that param_list is empty
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
+      Tree.Initialize (Shared_Tree'Unchecked_Access);
 
       Terminals.Append ((+PROCEDURE_ID, Invalid_Node_Index, (1, 9), others => <>));
       Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
@@ -219,7 +219,7 @@ package body WisiToken.Syntax_Trees.Test is
       --
       --  'end;' is inserted by error recover; the trailing name is empty
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
+      Tree.Initialize (Shared_Tree'Unchecked_Access);
 
       Terminals.Append ((+PACKAGE_ID, Invalid_Node_Index, (1, 7), others => <>));
       Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);

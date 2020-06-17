@@ -40,7 +40,7 @@ package body Wisitoken_Grammar_Main is
       use WisiToken.Parse.LR;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
-         State_Last        => 107,
+         State_Last        => 111,
          First_Terminal    => 3,
          Last_Terminal     => 37,
          First_Nonterminal => 38,
@@ -510,15 +510,16 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (75), 52, 53);
             Add_Goto (Table.States (75), 53, 54);
             Add_Goto (Table.States (75), 54, 55);
-            Table.States (76).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (76), 4, (46, 3), 94);
-            Add_Action (Table.States (76), 6, (46, 2), 95);
+            Table.States (76).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (76), 4, (46, 4), 94);
+            Add_Action (Table.States (76), 5, (46, 3), 95);
+            Add_Action (Table.States (76), 6, (46, 2), 96);
             Table.States (77).Action_List.Set_Capacity (3);
             Add_Action (Table.States (77), (24, 34, 37), (45, 0),  1, null, null);
             Table.States (78).Action_List.Set_Capacity (3);
             Add_Action (Table.States (78), (24, 34, 37), (44, 0),  4, nonterminal_0'Access, null);
             Table.States (79).Action_List.Set_Capacity (6);
-            Add_Action (Table.States (79), 12, (47, 3), 96);
+            Add_Action (Table.States (79), 12, (47, 3), 97);
             Add_Action (Table.States (79), 13, Reduce, (47, 2),  2, null, null);
             Add_Action (Table.States (79), 24, Reduce, (47, 2),  2, null, null);
             Add_Action (Table.States (79), 30, Reduce, (47, 2),  2, null, null);
@@ -547,7 +548,7 @@ package body Wisitoken_Grammar_Main is
             Table.States (86).Goto_List.Set_Capacity (7);
             Add_Goto (Table.States (86), 48, 49);
             Add_Goto (Table.States (86), 49, 50);
-            Add_Goto (Table.States (86), 50, 97);
+            Add_Goto (Table.States (86), 50, 98);
             Add_Goto (Table.States (86), 51, 52);
             Add_Goto (Table.States (86), 52, 53);
             Add_Goto (Table.States (86), 53, 54);
@@ -559,7 +560,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (87), 20, Reduce, (54, 0),  3, null, null);
             Add_Action (Table.States (87), 21, Reduce, (54, 0),  3, null, null);
             Add_Action (Table.States (87), 22, Reduce, (54, 0),  3, null, null);
-            Add_Action (Table.States (87), 23, (54, 1), 98);
+            Add_Action (Table.States (87), 23, (54, 1), 99);
             Add_Action (Table.States (87), 24, Reduce, (54, 0),  3, null, null);
             Add_Action (Table.States (87), 27, Reduce, (54, 0),  3, null, null);
             Add_Action (Table.States (87), 28, Reduce, (54, 0),  3, null, null);
@@ -579,18 +580,18 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (89), 21, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 22, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 24, Reduce, (52, 0),  3, null, null);
-            Add_Action (Table.States (89), 25, (54, 2), 99);
-            Add_Action (Table.States (89), 26, (53, 1), 100);
+            Add_Action (Table.States (89), 25, (54, 2), 100);
+            Add_Action (Table.States (89), 26, (53, 1), 101);
             Add_Action (Table.States (89), 27, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 28, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 29, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 30, Reduce, (52, 0),  3, null, null);
-            Add_Action (Table.States (89), 32, (54, 3), 101);
+            Add_Action (Table.States (89), 32, (54, 3), 102);
             Add_Action (Table.States (89), 34, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 36, Reduce, (52, 0),  3, null, null);
             Add_Action (Table.States (89), 37, Reduce, (52, 0),  3, null, null);
             Table.States (90).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (90), 34, (48, 0), 102);
+            Add_Action (Table.States (90), 34, (48, 0), 103);
             Table.States (91).Action_List.Set_Capacity (17);
             Add_Action (Table.States (91), 12, Reduce, (51, 0),  1, null, null);
             Add_Action (Table.States (91), 13, Reduce, (51, 0),  1, null, null);
@@ -615,54 +616,62 @@ package body Wisitoken_Grammar_Main is
             Table.States (93).Action_List.Set_Capacity (5);
             Add_Action (Table.States (93), (13, 24, 30, 34, 37), (46, 1),  3, null, null);
             Table.States (94).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (94), 6, (46, 3), 103);
+            Add_Action (Table.States (94), 6, (46, 4), 104);
             Table.States (95).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (95), 34, (46, 2), 104);
-            Table.States (96).Action_List.Set_Capacity (5);
-            Add_Action (Table.States (96), (13, 24, 30, 34, 37), (47, 3),  3, null, null);
-            Table.States (97).Action_List.Set_Capacity (10);
-            Add_Action (Table.States (97), 13, Reduce, (55, 1),  3, null, null);
-            Add_Action (Table.States (97), 19, (54, 0), 41);
-            Add_Action (Table.States (97), 20, (53, 0), 42);
-            Add_Action (Table.States (97), 21, (52, 0), 43);
-            Add_Action (Table.States (97), 22, (48, 0), 44);
-            Add_Action (Table.States (97), 27, Reduce, (55, 1),  3, null, null);
-            Add_Action (Table.States (97), 28, Reduce, (55, 1),  3, null, null);
-            Add_Action (Table.States (97), 29, Reduce, (55, 1),  3, null, null);
-            Add_Action (Table.States (97), 34, (49, 1), 45);
-            Add_Action (Table.States (97), 36, (51, 1), 46);
-            Table.States (97).Goto_List.Set_Capacity (6);
-            Add_Goto (Table.States (97), 48, 49);
-            Add_Goto (Table.States (97), 49, 80);
-            Add_Goto (Table.States (97), 51, 52);
-            Add_Goto (Table.States (97), 52, 53);
-            Add_Goto (Table.States (97), 53, 54);
-            Add_Goto (Table.States (97), 54, 55);
-            Table.States (98).Action_List.Set_Capacity (14);
-            Add_Action (Table.States (98), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 1),  4, null,
-            null);
+            Add_Action (Table.States (95), 34, (46, 3), 105);
+            Table.States (96).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (96), 34, (46, 2), 106);
+            Table.States (97).Action_List.Set_Capacity (5);
+            Add_Action (Table.States (97), (13, 24, 30, 34, 37), (47, 3),  3, null, null);
+            Table.States (98).Action_List.Set_Capacity (10);
+            Add_Action (Table.States (98), 13, Reduce, (55, 1),  3, null, null);
+            Add_Action (Table.States (98), 19, (54, 0), 41);
+            Add_Action (Table.States (98), 20, (53, 0), 42);
+            Add_Action (Table.States (98), 21, (52, 0), 43);
+            Add_Action (Table.States (98), 22, (48, 0), 44);
+            Add_Action (Table.States (98), 27, Reduce, (55, 1),  3, null, null);
+            Add_Action (Table.States (98), 28, Reduce, (55, 1),  3, null, null);
+            Add_Action (Table.States (98), 29, Reduce, (55, 1),  3, null, null);
+            Add_Action (Table.States (98), 34, (49, 1), 45);
+            Add_Action (Table.States (98), 36, (51, 1), 46);
+            Table.States (98).Goto_List.Set_Capacity (6);
+            Add_Goto (Table.States (98), 48, 49);
+            Add_Goto (Table.States (98), 49, 80);
+            Add_Goto (Table.States (98), 51, 52);
+            Add_Goto (Table.States (98), 52, 53);
+            Add_Goto (Table.States (98), 53, 54);
+            Add_Goto (Table.States (98), 54, 55);
             Table.States (99).Action_List.Set_Capacity (14);
-            Add_Action (Table.States (99), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 2),  4, null,
+            Add_Action (Table.States (99), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 1),  4, null,
             null);
             Table.States (100).Action_List.Set_Capacity (14);
-            Add_Action (Table.States (100), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (53, 1),  4,
+            Add_Action (Table.States (100), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 2),  4,
             null, null);
             Table.States (101).Action_List.Set_Capacity (14);
-            Add_Action (Table.States (101), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 3),  4,
+            Add_Action (Table.States (101), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (53, 1),  4,
             null, null);
-            Table.States (102).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (102), 18, (48, 0), 105);
-            Table.States (103).Action_List.Set_Capacity (5);
-            Add_Action (Table.States (103), (13, 24, 30, 34, 37), (46, 3),  4, null, null);
-            Table.States (104).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (104), 17, (46, 2), 106);
-            Table.States (105).Action_List.Set_Capacity (14);
-            Add_Action (Table.States (105), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (48, 0),  5,
+            Table.States (102).Action_List.Set_Capacity (14);
+            Add_Action (Table.States (102), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (54, 3),  4,
             null, null);
+            Table.States (103).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (103), 18, (48, 0), 107);
+            Table.States (104).Action_List.Set_Capacity (5);
+            Add_Action (Table.States (104), (13, 24, 30, 34, 37), (46, 4),  4, null, null);
+            Table.States (105).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (105), 17, (46, 3), 108);
             Table.States (106).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (106), 34, (46, 2), 107);
-            Table.States (107).Action_List.Set_Capacity (5);
-            Add_Action (Table.States (107), (13, 24, 30, 34, 37), (46, 2),  6, null, null);
+            Add_Action (Table.States (106), 17, (46, 2), 109);
+            Table.States (107).Action_List.Set_Capacity (14);
+            Add_Action (Table.States (107), (12, 13, 19, 20, 21, 22, 24, 27, 28, 29, 30, 34, 36, 37), (48, 0),  5,
+            null, null);
+            Table.States (108).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (108), 34, (46, 3), 110);
+            Table.States (109).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (109), 34, (46, 2), 111);
+            Table.States (110).Action_List.Set_Capacity (5);
+            Add_Action (Table.States (110), (13, 24, 30, 34, 37), (46, 3),  6, null, null);
+            Table.States (111).Action_List.Set_Capacity (5);
+            Add_Action (Table.States (111), (13, 24, 30, 34, 37), (46, 2),  6, null, null);
          end Subr_2;
       begin
          Subr_1;

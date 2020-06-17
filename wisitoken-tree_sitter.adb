@@ -19,6 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
+with WisiToken.Generate;
 with WisiToken.BNF;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken_Grammar_Editing;

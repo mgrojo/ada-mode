@@ -53,7 +53,9 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+
+;; FIXME: need pass to eliminate empty RHS
+;; %generate Tree_Sitter Ada tree_sitter
 
 %meta_syntax EBNF
 

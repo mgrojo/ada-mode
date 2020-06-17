@@ -183,6 +183,7 @@ rhs_list
   : rhs
   | rhs_list BAR rhs
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
   | rhs_list PERCENT END IF
   ;
 

@@ -226,7 +226,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       Result : Memo_Entry;
    begin
       Parser.Base_Tree.Clear;
-      Parser.Tree.Initialize (Parser.Base_Tree'Unchecked_Access, Flush => True);
+      Parser.Tree.Initialize (Parser.Base_Tree'Unchecked_Access);
       Parser.Lex_All;
 
       for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
