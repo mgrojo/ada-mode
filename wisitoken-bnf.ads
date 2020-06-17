@@ -44,10 +44,11 @@ package WisiToken.BNF is
    Not_Found : exception;
    --  something not found; should be handled and converted to Syntax_ or Grammar_Error
 
-   type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc, External);
+   type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc, External, Tree_Sitter);
    subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Generate_Algorithm'Last;
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
+   subtype LR_Packrat_Generate_Algorithm is Generate_Algorithm range LALR .. Packrat_Proc;
 
    Generate_Algorithm_Image : constant array (Generate_Algorithm) of String_Access_Constant :=
      (None         => new String'("None"),
@@ -55,7 +56,8 @@ package WisiToken.BNF is
       LR1          => new String'("LR1"),
       Packrat_Gen  => new String'("Packrat_Gen"),
       Packrat_Proc => new String'("Packrat_Proc"),
-      External     => new String'("External"));
+      External     => new String'("External"),
+      Tree_Sitter  => new String'("Tree_Sitter"));
    --  Suitable for Ada package names.
 
    function To_Generate_Algorithm (Item : in String) return Generate_Algorithm;
@@ -76,15 +78,15 @@ package WisiToken.BNF is
    function To_Output_Language (Item : in String) return Output_Language;
    --  Raises User_Error for invalid Item
 
-   type Lexer_Type is (None, Elisp_Lexer, re2c_Lexer);
-   subtype Valid_Lexer is Lexer_Type range Elisp_Lexer .. Lexer_Type'Last;
+   type Lexer_Type is (None, re2c_Lexer, Tree_Sitter_Lexer);
+   subtype Valid_Lexer is Lexer_Type range re2c_Lexer .. Lexer_Type'Last;
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
    Lexer_Image : constant array (Lexer_Type) of String_Access_Constant :=
-     (None        => new String'("none"),
-      Elisp_Lexer => new String'("elisp"),
-      re2c_Lexer  => new String'("re2c"));
+     (None              => new String'("none"),
+      re2c_Lexer        => new String'("re2c"),
+      Tree_Sitter_Lexer => new String'("tree_sitter"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
    --  Raises User_Error for invalid Item
@@ -92,10 +94,16 @@ package WisiToken.BNF is
    type Lexer_Set is array (Lexer_Type) of Boolean;
 
    type Lexer_Generate_Algorithm_Set is array (Lexer_Type) of Generate_Algorithm_Set;
-   --  %if lexer change change the generated parse table
+   --  %if lexer changes the generated parse table
 
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
+
+   Interface_Image : constant array (Interface_Type) of String_Access_Constant :=
+     --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020 returns integer
+     (None    => new String'("none"),
+      Process => new String'("process"),
+      Module  => new String'("module"));
 
    function Is_Valid_Interface (Item : in String) return Boolean;
 
@@ -314,10 +322,10 @@ package WisiToken.BNF is
       --  in other declarations or actions. Faces, Indents only used if .wy
       --  action language is elisp and output language is not elisp.
 
-      re2c_Regexps : String_Pair_Lists.List; -- %re2c_regexp
-      Faces        : String_Lists.List;      -- %elisp_face
-      Indents      : String_Pair_Lists.List; -- %elisp_indent
-      Actions      : Elisp_Action_Maps.Map;  -- %elisp_action
+      Lexer_Regexps : String_Pair_Lists.List; -- %lexer_regexp
+      Faces         : String_Lists.List;      -- %elisp_face
+      Indents       : String_Pair_Lists.List; -- %elisp_indent
+      Actions       : Elisp_Action_Maps.Map;  -- %elisp_action
    end record;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String

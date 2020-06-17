@@ -196,6 +196,9 @@ package body BNF_WY_Test is
                else "") &
               ".parse_table");
 
+      when Tree_Sitter =>
+         Diff_One (Root_Name & ".js");
+
       when None | Packrat_Generate_Algorithm | External =>
          null;
       end case;
@@ -294,6 +297,7 @@ package body BNF_WY_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use all type WisiToken.BNF.Generate_Algorithm;
       use all type WisiToken.BNF.Generate_Set_Access;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
 
@@ -310,7 +314,9 @@ package body BNF_WY_Test is
 
       Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
-      if Meta_Syntax = EBNF_Syntax then
+      if Meta_Syntax = EBNF_Syntax and
+        (Gen_Set /= null and then (for some Gen of Gen_Set.all => Gen.Gen_Alg /= Tree_Sitter))
+      then
          Diff_One (BNF_File_Name (Simple_Name));
       end if;
 

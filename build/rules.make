@@ -58,6 +58,7 @@ endif
 
 gen :: ada_ebnf_bnf.wy # not a valid grammar
 gen :: ada_lite_ebnf_re2c.c
+# gen :: ada_lite_ebnf/parser.c ;; FIXME: need pass to eliminate empty RHS
 gen :: identifier_list_name_conflict_re2c.c
 gen :: java_ebnf_bnf.wy # not a valid grammar
 gen :: java_enum_ch19_re2c.c
@@ -90,12 +91,7 @@ clean :: test-clean
 
 # don't delete prj.el
 test-clean :
-	rm -f *.ad? *.c *.diff *-elisp.el *-process.el *.in *.re2c *.exe *.out *.parse* *.txt *.wy
-
-source-clean ::
-	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
-	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
-	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
+	rm -f *.ad? *.c *.diff *-process.el *.in *.js *.re2c *.exe *.out *.parse* *.txt *.wy
 
 # We want the files generated for wisitoken_grammar.wy in ../, for CM,
 # and to avoid deleting them in clean. We don't include
@@ -153,11 +149,13 @@ DIFF_OPT := -u -w
 	re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
+%/parser.c : %.wy wisitoken-bnf-generate.exe
+	tree-sitter generate ./$(*F).js
+
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --generate None $<
 	dos2unix -q $@
 
-# clean rules
 source-clean ::
 	-find ../ -name "*~" -delete
 	-find ../ -name ".#*" -delete

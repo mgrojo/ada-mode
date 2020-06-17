@@ -1,7 +1,7 @@
  156 tokens lexed
  0: 0: 1:(PROCEDURE, (161 . 169)) : shift and goto state 8
- 0: 8: 2:(IDENTIFIER, (171 . 177)) : shift and goto state 42
- 0: 42: 3:(SEMICOLON, (178 . 178)) : reduce 1 tokens to name
+ 0: 8: 2:(IDENTIFIER, (171 . 177)) : shift and goto state 41
+ 0: 41: 3:(SEMICOLON, (178 . 178)) : reduce 1 tokens to name
 (name, (171 . 177)) <= (2:(IDENTIFIER, (171 . 177)))
 semantic check OK
  ... goto state 64
@@ -28,8 +28,8 @@ semantic check OK
 semantic check OK
  ... goto state 16
  0: 16: 4:(PROCEDURE, (181 . 189)) : shift and goto state 8
- 0: 8: 5:(IDENTIFIER, (191 . 197)) : shift and goto state 42
- 0: 42: 6:(IS, (199 . 200)) : reduce 1 tokens to name
+ 0: 8: 5:(IDENTIFIER, (191 . 197)) : shift and goto state 41
+ 0: 41: 6:(IS, (199 . 200)) : reduce 1 tokens to name
 (name, (191 . 197)) <= (5:(IDENTIFIER, (191 . 197)))
 semantic check OK
  ... goto state 64
@@ -53,9 +53,9 @@ semantic check OK
  0: zombie
  1: 130: 8:(COLON, (207 . 207)) : shift and goto state 195
  0: zombie
- 1: 195: 9:(IDENTIFIER, (209 . 215)) : shift and goto state 42
+ 1: 195: 9:(IDENTIFIER, (209 . 215)) : shift and goto state 41
  0: zombie
- 1: 42: 10:(COLON_EQUAL, (217 . 218)) : reduce 1 tokens to name
+ 1: 41: 10:(COLON_EQUAL, (217 . 218)) : reduce 1 tokens to name
 (name, (209 . 215)) <= (9:(IDENTIFIER, (209 . 215)))
 semantic check OK
  ... goto state 189
@@ -64,8 +64,8 @@ semantic check OK
 (subtype_indication, (209 . 215)) <= ((name, (209 . 215)))
  ... goto state 239
  1: 239: 10:(COLON_EQUAL, (217 . 218)) : shift and goto state 276
- 1: 276: 11:(NUMERIC_LITERAL, (220 . 221)) : shift and goto state 41
- 1: 41: 12:(SLASH, (223 . 223)) : reduce 1 tokens to primary
+ 1: 276: 11:(NUMERIC_LITERAL, (220 . 221)) : shift and goto state 42
+ 1: 42: 12:(SLASH, (223 . 223)) : reduce 1 tokens to primary
 (primary, (220 . 221)) <= (11:(NUMERIC_LITERAL, (220 . 221)))
  ... goto state 47
  1: 47: 12:(SLASH, (223 . 223)) : reduce 1 tokens to factor
@@ -78,8 +78,8 @@ semantic check OK
  1: 98: 13:(NUMERIC_LITERAL, (225 . 225)) : reduce 1 tokens to multiplying_operator
 (multiplying_operator, (223 . 223)) <= (12:(SLASH, (223 . 223)))
  ... goto state 100
- 1: 100: 13:(NUMERIC_LITERAL, (225 . 225)) : shift and goto state 41
- 1: 41: 14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to primary
+ 1: 100: 13:(NUMERIC_LITERAL, (225 . 225)) : shift and goto state 42
+ 1: 42: 14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to primary
 (primary, (225 . 225)) <= (13:(NUMERIC_LITERAL, (225 . 225)))
  ... goto state 47
  1: 47: 14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to factor
@@ -120,8 +120,8 @@ semantic check OK
 semantic check OK
  ... goto state 25
  1: 25: 17:(COLON_EQUAL, (239 . 240)) : shift and goto state 74
- 1: 74: 18:(IDENTIFIER, (242 . 242)) : shift and goto state 42
- 1: 42: 19:(STAR, (244 . 244)) : reduce 1 tokens to name
+ 1: 74: 18:(IDENTIFIER, (242 . 242)) : shift and goto state 41
+ 1: 41: 19:(STAR, (244 . 244)) : reduce 1 tokens to name
 (name, (242 . 242)) <= (18:(IDENTIFIER, (242 . 242)))
 semantic check OK
  ... goto state 45
@@ -138,8 +138,8 @@ semantic check OK
  1: 99: 20:(NUMERIC_LITERAL, (246 . 246)) : reduce 1 tokens to multiplying_operator
 (multiplying_operator, (244 . 244)) <= (19:(STAR, (244 . 244)))
  ... goto state 100
- 1: 100: 20:(NUMERIC_LITERAL, (246 . 246)) : shift and goto state 41
- 1: 41: 21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to primary
+ 1: 100: 20:(NUMERIC_LITERAL, (246 . 246)) : shift and goto state 42
+ 1: 42: 21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to primary
 (primary, (246 . 246)) <= (20:(NUMERIC_LITERAL, (246 . 246)))
  ... goto state 47
  1: 47: 21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to factor
@@ -196,8 +196,8 @@ semantic check OK
 semantic check OK
  ... goto state 16
  1: 16: 24:(FUNCTION, (255 . 262)) : shift and goto state 4
- 1: 4: 25:(IDENTIFIER, (264 . 269)) : shift and goto state 42
- 1: 42: 26:(LEFT_PAREN, (271 . 271)) : reduce 1 tokens to name
+ 1: 4: 25:(IDENTIFIER, (264 . 269)) : shift and goto state 41
+ 1: 41: 26:(LEFT_PAREN, (271 . 271)) : reduce 1 tokens to name
 (name, (264 . 269)) <= (25:(IDENTIFIER, (264 . 269)))
 semantic check OK
  ... goto state 57
@@ -250,8 +250,8 @@ semantic check OK
 semantic check OK
  ... goto state 16
  1: 16: 38:(FUNCTION, (321 . 328)) : shift and goto state 4
- 1: 4: 39:(IDENTIFIER, (330 . 335)) : shift and goto state 42
- 1: 42: 40:(LEFT_PAREN, (337 . 337)) : reduce 1 tokens to name
+ 1: 4: 39:(IDENTIFIER, (330 . 335)) : shift and goto state 41
+ 1: 41: 40:(LEFT_PAREN, (337 . 337)) : reduce 1 tokens to name
 (name, (330 . 335)) <= (39:(IDENTIFIER, (330 . 335)))
 semantic check OK
  ... goto state 57
@@ -320,8 +320,8 @@ semantic check OK
 (binary_adding_operator, (410 . 410)) <= (55:(PLUS, (410 . 410)))
  ... goto state 105
  1: 105: 56:(LEFT_PAREN, (412 . 412)) : shift and goto state 36
- 1: 36: 57:(IDENTIFIER, (413 . 417)) : shift and goto state 42
- 1: 42: 58:(MINUS, (419 . 419)) : reduce 1 tokens to name
+ 1: 36: 57:(IDENTIFIER, (413 . 417)) : shift and goto state 41
+ 1: 41: 58:(MINUS, (419 . 419)) : reduce 1 tokens to name
 (name, (413 . 417)) <= (57:(IDENTIFIER, (413 . 417)))
 semantic check OK
  ... goto state 45
@@ -341,8 +341,8 @@ semantic check OK
  1: 103: 59:(NUMERIC_LITERAL, (421 . 421)) : reduce 1 tokens to binary_adding_operator
 (binary_adding_operator, (419 . 419)) <= (58:(MINUS, (419 . 419)))
  ... goto state 105
- 1: 105: 59:(NUMERIC_LITERAL, (421 . 421)) : shift and goto state 41
- 1: 41: 60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to primary
+ 1: 105: 59:(NUMERIC_LITERAL, (421 . 421)) : shift and goto state 42
+ 1: 42: 60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to primary
 (primary, (421 . 421)) <= (59:(NUMERIC_LITERAL, (421 . 421)))
  ... goto state 47
  1: 47: 60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to factor
@@ -408,8 +408,8 @@ semantic check OK
 (handled_sequence_of_statements, (398 . 423)) <= ((sequence_of_statements, (398 . 423)))
  ... goto state 247
  1: 247: 62:(END, (425 . 427)) : shift and goto state 281
- 1: 281: 63:(IDENTIFIER, (429 . 434)) : shift and goto state 42
- 1: 42: 64:(SEMICOLON, (435 . 435)) : reduce 1 tokens to name
+ 1: 281: 63:(IDENTIFIER, (429 . 434)) : shift and goto state 41
+ 1: 41: 64:(SEMICOLON, (435 . 435)) : reduce 1 tokens to name
 (name, (429 . 434)) <= (63:(IDENTIFIER, (429 . 434)))
 semantic check OK
  ... goto state 294
@@ -430,8 +430,8 @@ semantic check OK
 semantic check OK
  ... goto state 16
  1: 16: 65:(PROCEDURE, (438 . 446)) : shift and goto state 8
- 1: 8: 66:(IDENTIFIER, (448 . 453)) : shift and goto state 42
- 1: 42: 67:(IS, (455 . 456)) : reduce 1 tokens to name
+ 1: 8: 66:(IDENTIFIER, (448 . 453)) : shift and goto state 41
+ 1: 41: 67:(IS, (455 . 456)) : reduce 1 tokens to name
 (name, (448 . 453)) <= (66:(IDENTIFIER, (448 . 453)))
 semantic check OK
  ... goto state 64
@@ -455,9 +455,9 @@ semantic check OK
  1: zombie
  2: 130: 69:(COLON, (463 . 463)) : shift and goto state 195
  1: zombie
- 2: 195: 70:(IDENTIFIER, (465 . 471)) : shift and goto state 42
+ 2: 195: 70:(IDENTIFIER, (465 . 471)) : shift and goto state 41
  1: zombie
- 2: 42: 71:(SEMICOLON, (472 . 472)) : reduce 1 tokens to name
+ 2: 41: 71:(SEMICOLON, (472 . 472)) : reduce 1 tokens to name
 (name, (465 . 471)) <= (70:(IDENTIFIER, (465 . 471)))
 semantic check OK
  ... goto state 189
@@ -477,8 +477,8 @@ semantic check OK
  ... goto state 144
  2: 144: 72:(IDENTIFIER, (477 . 477)) : shift and goto state 130
  2: 130: 73:(COLON, (479 . 479)) : shift and goto state 195
- 2: 195: 74:(IDENTIFIER, (481 . 487)) : shift and goto state 42
- 2: 42: 75:(SEMICOLON, (488 . 488)) : reduce 1 tokens to name
+ 2: 195: 74:(IDENTIFIER, (481 . 487)) : shift and goto state 41
+ 2: 41: 75:(SEMICOLON, (488 . 488)) : reduce 1 tokens to name
 (name, (481 . 487)) <= (74:(IDENTIFIER, (481 . 487)))
 semantic check OK
  ... goto state 189
@@ -502,8 +502,8 @@ semantic check OK
  2: 207: 77:(LOOP, (499 . 502)) : shift and goto state 6
  2: 6: 78:(EXIT, (507 . 510)) : shift and goto state 2
  2: 2: 79:(WHEN, (512 . 515)) : shift and goto state 53
- 2: 53: 80:(IDENTIFIER, (517 . 517)) : shift and goto state 42
- 2: 42: 81:(EQUAL, (519 . 519)) : reduce 1 tokens to name
+ 2: 53: 80:(IDENTIFIER, (517 . 517)) : shift and goto state 41
+ 2: 41: 81:(EQUAL, (519 . 519)) : reduce 1 tokens to name
 (name, (517 . 517)) <= (80:(IDENTIFIER, (517 . 517)))
 semantic check OK
  ... goto state 45
@@ -526,8 +526,8 @@ semantic check OK
  2: 91: 82:(NUMERIC_LITERAL, (521 . 521)) : reduce 1 tokens to relational_operator
 (relational_operator, (519 . 519)) <= (81:(EQUAL, (519 . 519)))
  ... goto state 97
- 2: 97: 82:(NUMERIC_LITERAL, (521 . 521)) : shift and goto state 41
- 2: 41: 83:(SEMICOLON, (522 . 522)) : reduce 1 tokens to primary
+ 2: 97: 82:(NUMERIC_LITERAL, (521 . 521)) : shift and goto state 42
+ 2: 42: 83:(SEMICOLON, (522 . 522)) : reduce 1 tokens to primary
 (primary, (521 . 521)) <= (82:(NUMERIC_LITERAL, (521 . 521)))
  ... goto state 47
  2: 47: 83:(SEMICOLON, (522 . 522)) : reduce 1 tokens to factor
@@ -562,8 +562,8 @@ semantic check OK
 (statement_list, (507 . 522)) <= ((statement, (507 . 522)))
  ... goto state 61
  2: 61: 84:(IF, (530 . 531)) : shift and goto state 5
- 2: 5: 85:(IDENTIFIER, (533 . 533)) : shift and goto state 42
- 2: 42: 86:(GREATER, (535 . 535)) : reduce 1 tokens to name
+ 2: 5: 85:(IDENTIFIER, (533 . 533)) : shift and goto state 41
+ 2: 41: 86:(GREATER, (535 . 535)) : reduce 1 tokens to name
 (name, (533 . 533)) <= (85:(IDENTIFIER, (533 . 533)))
 semantic check OK
  ... goto state 45
@@ -586,8 +586,8 @@ semantic check OK
  2: 92: 87:(NUMERIC_LITERAL, (537 . 537)) : reduce 1 tokens to relational_operator
 (relational_operator, (535 . 535)) <= (86:(GREATER, (535 . 535)))
  ... goto state 97
- 2: 97: 87:(NUMERIC_LITERAL, (537 . 537)) : shift and goto state 41
- 2: 41: 88:(THEN, (539 . 542)) : reduce 1 tokens to primary
+ 2: 97: 87:(NUMERIC_LITERAL, (537 . 537)) : shift and goto state 42
+ 2: 42: 88:(THEN, (539 . 542)) : reduce 1 tokens to primary
 (primary, (537 . 537)) <= (87:(NUMERIC_LITERAL, (537 . 537)))
  ... goto state 47
  2: 47: 88:(THEN, (539 . 542)) : reduce 1 tokens to factor
@@ -613,8 +613,8 @@ semantic check OK
 (sequence_of_statements) <= ()
  ... goto state 183
  2: 183: 89:(ELSIF, (550 . 554)) : shift and goto state 225
- 2: 225: 90:(IDENTIFIER, (556 . 556)) : shift and goto state 42
- 2: 42: 91:(LESS, (558 . 558)) : reduce 1 tokens to name
+ 2: 225: 90:(IDENTIFIER, (556 . 556)) : shift and goto state 41
+ 2: 41: 91:(LESS, (558 . 558)) : reduce 1 tokens to name
 (name, (556 . 556)) <= (90:(IDENTIFIER, (556 . 556)))
 semantic check OK
  ... goto state 45
@@ -637,8 +637,8 @@ semantic check OK
  2: 94: 92:(NUMERIC_LITERAL, (560 . 560)) : reduce 1 tokens to relational_operator
 (relational_operator, (558 . 558)) <= (91:(LESS, (558 . 558)))
  ... goto state 97
- 2: 97: 92:(NUMERIC_LITERAL, (560 . 560)) : shift and goto state 41
- 2: 41: 93:(THEN, (562 . 565)) : reduce 1 tokens to primary
+ 2: 97: 92:(NUMERIC_LITERAL, (560 . 560)) : shift and goto state 42
+ 2: 42: 93:(THEN, (562 . 565)) : reduce 1 tokens to primary
 (primary, (560 . 560)) <= (92:(NUMERIC_LITERAL, (560 . 560)))
  ... goto state 47
  2: 47: 93:(THEN, (562 . 565)) : reduce 1 tokens to factor
@@ -673,8 +673,8 @@ semantic check OK
 semantic check OK
  ... goto state 25
  2: 25: 96:(COLON_EQUAL, (589 . 590)) : shift and goto state 74
- 2: 74: 97:(NUMERIC_LITERAL, (592 . 592)) : shift and goto state 41
- 2: 41: 98:(SEMICOLON, (593 . 593)) : reduce 1 tokens to primary
+ 2: 74: 97:(NUMERIC_LITERAL, (592 . 592)) : shift and goto state 42
+ 2: 42: 98:(SEMICOLON, (593 . 593)) : reduce 1 tokens to primary
 (primary, (592 . 592)) <= (97:(NUMERIC_LITERAL, (592 . 592)))
  ... goto state 47
  2: 47: 98:(SEMICOLON, (593 . 593)) : reduce 1 tokens to factor
@@ -770,8 +770,8 @@ semantic check OK
 semantic check OK
  ... goto state 16
  2: 16: 107:(PROCEDURE, (628 . 636)) : shift and goto state 8
- 2: 8: 108:(IDENTIFIER, (638 . 643)) : shift and goto state 42
- 2: 42: 109:(IS, (645 . 646)) : reduce 1 tokens to name
+ 2: 8: 108:(IDENTIFIER, (638 . 643)) : shift and goto state 41
+ 2: 41: 109:(IS, (645 . 646)) : reduce 1 tokens to name
 (name, (638 . 643)) <= (108:(IDENTIFIER, (638 . 643)))
 semantic check OK
  ... goto state 64
@@ -795,9 +795,9 @@ semantic check OK
  2: zombie
  3: 130: 111:(COLON, (653 . 653)) : shift and goto state 195
  2: zombie
- 3: 195: 112:(IDENTIFIER, (655 . 661)) : shift and goto state 42
+ 3: 195: 112:(IDENTIFIER, (655 . 661)) : shift and goto state 41
  2: zombie
- 3: 42: 113:(SEMICOLON, (662 . 662)) : reduce 1 tokens to name
+ 3: 41: 113:(SEMICOLON, (662 . 662)) : reduce 1 tokens to name
 (name, (655 . 661)) <= (112:(IDENTIFIER, (655 . 661)))
 semantic check OK
  ... goto state 189
@@ -817,8 +817,8 @@ semantic check OK
  ... goto state 144
  3: 144: 114:(IDENTIFIER, (667 . 667)) : shift and goto state 130
  3: 130: 115:(COLON, (669 . 669)) : shift and goto state 195
- 3: 195: 116:(IDENTIFIER, (671 . 677)) : shift and goto state 42
- 3: 42: 117:(SEMICOLON, (678 . 678)) : reduce 1 tokens to name
+ 3: 195: 116:(IDENTIFIER, (671 . 677)) : shift and goto state 41
+ 3: 41: 117:(SEMICOLON, (678 . 678)) : reduce 1 tokens to name
 (name, (671 . 677)) <= (116:(IDENTIFIER, (671 . 677)))
 semantic check OK
  ... goto state 189
@@ -840,8 +840,8 @@ semantic check OK
  ... goto state 155
  3: 155: 118:(BEGIN, (680 . 684)) : shift and goto state 207
  3: 207: 119:(CASE, (689 . 692)) : shift and goto state 1
- 3: 1: 120:(IDENTIFIER, (694 . 694)) : shift and goto state 42
- 3: 42: 121:(IS, (696 . 697)) : reduce 1 tokens to name
+ 3: 1: 120:(IDENTIFIER, (694 . 694)) : shift and goto state 41
+ 3: 41: 121:(IS, (696 . 697)) : reduce 1 tokens to name
 (name, (694 . 694)) <= (120:(IDENTIFIER, (694 . 694)))
 semantic check OK
  ... goto state 45
@@ -871,8 +871,8 @@ semantic check OK
  3: 159: 123:(NUMERIC_LITERAL, (707 . 707)) : shift and goto state 209
  3: 209: 124:(EQUAL_GREATER, (709 . 710)) : shift and goto state 249
  3: 249: 125:(CASE, (719 . 722)) : shift and goto state 1
- 3: 1: 126:(IDENTIFIER, (724 . 724)) : shift and goto state 42
- 3: 42: 127:(IS, (726 . 727)) : reduce 1 tokens to name
+ 3: 1: 126:(IDENTIFIER, (724 . 724)) : shift and goto state 41
+ 3: 41: 127:(IS, (726 . 727)) : reduce 1 tokens to name
 (name, (724 . 724)) <= (126:(IDENTIFIER, (724 . 724)))
 semantic check OK
  ... goto state 45

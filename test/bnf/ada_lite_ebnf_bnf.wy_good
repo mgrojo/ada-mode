@@ -56,6 +56,9 @@
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
 
+;; FIXME: need pass to eliminate empty RHS
+;; %generate Tree_Sitter Ada tree_sitter
+
 %meta_syntax BNF
 
 %keyword AND "and"
@@ -110,9 +113,22 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
+%if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
-%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%elsif lexer = tree_sitter
+;; The tree-sitter grammar file requires JavaScript regular expressions; see
+;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
+;;
+;; FIXME: that only allows 16 bit code points, not 32 bit characters.
+;; See tree-sitter github issue #621.
+
+%token <string-double> STRING_LITERAL %[ ("[\x20-\x21\x23-\uFFFF]*")+ ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\uFFFF][0-9a-zA-Z_\x80-\uFFFF]* ]%
+%end if
+
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%

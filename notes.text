@@ -21,6 +21,22 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+add tree-sitter parser, lexer
+    need first pass to remove empty rhs
+
+    bnf-wy-test run tree-sitter generate, build exec, run it, get parse trace.
+    also get parse table?
+
+    time parts of generate tree_sitter; seems slow on ada_annex_p
+
+    need to_grammar for actions
+        which needs all tokens defined
+        and is done before translate_to_tree_sitter is done
+        so do subset of translate_to_bnf
+            allow to_grammar to call execute_actions and declare the tokens.
+            preserve token numbers for actions
+            build the actions
+
 improve bnf generation
     copy/preserve trailing comments on ebnf nodes
         ada_ebnf.wy ";; end of file"

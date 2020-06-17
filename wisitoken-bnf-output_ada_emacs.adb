@@ -1471,7 +1471,7 @@ is
       end if;
 
       case Common_Data.Lexer is
-      when None | Elisp_Lexer =>
+      when None | Tree_Sitter_Lexer =>
          null;
 
       when re2c_Lexer =>
@@ -1487,7 +1487,7 @@ is
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
 
-      when External =>
+      when External | Tree_Sitter =>
          null;
       end case;
 
@@ -1496,7 +1496,7 @@ is
       New_Line;
 
       case Common_Data.Lexer is
-      when None | Elisp_Lexer =>
+      when None | Tree_Sitter_Lexer =>
          null;
 
       when re2c_Lexer =>
@@ -1521,6 +1521,8 @@ is
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
+      when Tree_Sitter =>
+         null;
       end case;
 
       case Common_Data.Interface_Kind is
@@ -1846,16 +1848,6 @@ is
    end Create_Module_Aux;
 
 begin
-   case Common_Data.Lexer is
-   when None | re2c_Lexer =>
-      null;
-
-   when Elisp_Lexer =>
-      raise User_Error with WisiToken.Generate.Error_Message
-        (Input_Data.Grammar_Lexer.File_Name, 1, "Ada_Emacs output language does not support " &
-           Lexer_Image (Common_Data.Lexer).all & " lexer");
-   end case;
-
    declare
       Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         (case Common_Data.Interface_Kind is

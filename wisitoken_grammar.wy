@@ -52,6 +52,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %keyword CODE "code"
 %keyword END "end"
+%keyword ELSIF "elsif"
 %keyword IF "if"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
@@ -111,12 +112,9 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; interactive use, and to keep wisitoken-bnf-generate independent of
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
-%conflict SHIFT rhs_list_2 | REDUCE semicolon_opt_1 on token PERCENT ( 45, 54)
-%conflict SHIFT declaration_item_2 | REDUCE declaration_0 on token IDENTIFIER ( 61)
-%conflict SHIFT declaration_item_2 | REDUCE declaration_2 on token IDENTIFIER ( 36)
-%conflict SHIFT declaration_item_2 | REDUCE declaration_3 on token IDENTIFIER ( 13)
-%conflict SHIFT rhs_element_1 | REDUCE rhs_0 on token IDENTIFIER ( 15, 16, 72)
-%conflict SHIFT rhs_element_1 | REDUCE rhs_1 on token IDENTIFIER ( 49)
+%conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT 
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER 
+%conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER 
 
 ;;;; grammar rules, no particular order
 
@@ -130,6 +128,8 @@ declaration
   | PERCENT IDENTIFIER
     %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+    %(Start_If (User_Data, Tree, Tokens);)%
+  | PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
     %(Start_If (User_Data, Tree, Tokens);)%
   | PERCENT END IF
     %(End_If (User_Data);)%
@@ -183,6 +183,7 @@ rhs_list
   : rhs
   | rhs_list BAR rhs
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
   | rhs_list PERCENT END IF
   ;
 

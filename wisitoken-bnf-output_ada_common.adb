@@ -331,7 +331,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
 
-      when External =>
+      when External | Tree_Sitter =>
          null;
       end case;
 
@@ -346,7 +346,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             LR_Process;
          when Packrat_Generate_Algorithm =>
             Packrat_Process;
-         when External =>
+         when External | Tree_Sitter =>
             null;
          end case;
 
@@ -358,7 +358,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                LR_Process;
             when Packrat_Generate_Algorithm =>
                Packrat_Process;
-            when External =>
+            when External | Tree_Sitter =>
                null;
             end case;
 
@@ -1176,7 +1176,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       New_Line;
 
       --  Regexps used in definitions
-      for Pair of Input_Data.Tokens.re2c_Regexps loop
+      for Pair of Input_Data.Tokens.Lexer_Regexps loop
          Indent_Line (-Pair.Name & " = " & (-Pair.Value) & ";");
       end loop;
       New_Line;
@@ -1201,7 +1201,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             Indent_Line (Name (I) & " = '" & Strip_Quotes (Value (I)) & "';");
 
          else
-            --  Other kinds have values that are regular expressions, in re2c syntax
+            --  Other kinds have values that are regular expressions, in lexer syntax
             Indent_Line (Name (I) & " = " & Value (I) & ";");
          end if;
       end loop;

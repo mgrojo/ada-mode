@@ -58,7 +58,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       First_Parser_Label : constant := 0;
       Parser : Parser_State := (Label => First_Parser_Label, others => <>);
    begin
-      Parser.Tree.Initialize (Shared_Tree, Flush => True);
+      Parser.Tree.Initialize (Shared_Tree);
 
       return Result : List
       do

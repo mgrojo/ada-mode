@@ -26,21 +26,22 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal     => 36,
-      First_Nonterminal => 37,
-      Last_Nonterminal  => 56,
-      EOI_ID            => 36,
-      Accept_ID         => 37,
+      Last_Terminal     => 37,
+      First_Nonterminal => 38,
+      Last_Nonterminal  => 57,
+      EOI_ID            => 37,
+      Accept_ID         => 38,
       Case_Insensitive  => False,
       New_Line_ID       => 1,
-      String_1_ID       => 35,
-      String_2_ID       => 34,
+      String_1_ID       => 36,
+      String_2_ID       => 35,
       Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
          new String'("CODE"),
          new String'("END"),
+         new String'("ELSIF"),
          new String'("IF"),
          new String'("KEYWORD"),
          new String'("NON_GRAMMAR"),
@@ -95,7 +96,7 @@ package Wisitoken_Grammar_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 17,
       Image_Width          => 25,
-      Last_Lookahead       => 37);
+      Last_Lookahead       => 38);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -103,6 +104,7 @@ package Wisitoken_Grammar_Actions is
       COMMENT_ID,
       CODE_ID,
       END_ID,
+      ELSIF_ID,
       IF_ID,
       KEYWORD_ID,
       NON_GRAMMAR_ID,
@@ -190,6 +192,11 @@ package Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure declaration_5
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declaration_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;

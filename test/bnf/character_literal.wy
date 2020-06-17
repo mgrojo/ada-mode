@@ -34,7 +34,7 @@
 %token <punctuation> SEMICOLON ";"
 
 ;; GNAT-specific syntax for non-ASCII characters
-%re2c_regexp GNAT_Char_Coding %[("[\""[0-9A-Fa-f]+"\"]")]%
+%lexer_regexp GNAT_Char_Coding %[("[\""[0-9A-Fa-f]+"\"]")]%
 
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for

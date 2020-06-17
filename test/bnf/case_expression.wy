@@ -36,9 +36,6 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%if lexer = elisp
-%token <number> NUMBER_LITERAL wisi-number-p
-%end if
 %if lexer = re2c
 %token <number> NUMBER_LITERAL %[ ([0-9][0-9.]*) ]%
 %end if

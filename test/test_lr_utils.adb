@@ -147,7 +147,7 @@ package body Test_LR_Utils is
       --  06: | | separator
       --  14: | | element: Last
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
+      Tree.Initialize (Shared_Tree'Unchecked_Access, Parents_Set => True);
 
       Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (1, 1), others => <>));
       Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
@@ -338,7 +338,7 @@ package body Test_LR_Utils is
       --  06: | separator
       --  14: | element: 4, Last
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
+      Tree.Initialize (Shared_Tree'Unchecked_Access, Parents_Set => True);
 
       Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (1, 1), others => <>));
       Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
@@ -567,7 +567,7 @@ package body Test_LR_Utils is
       --  24: | element_1
       --  10: | | 10:identifier
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True, Set_Parents => True);
+      Tree.Initialize (Shared_Tree'Unchecked_Access, Parents_Set => True);
 
       Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (1, 1), others => <>));
       Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);

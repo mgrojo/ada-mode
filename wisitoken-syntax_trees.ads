@@ -68,6 +68,8 @@ package WisiToken.Syntax_Trees is
    function Is_Empty (Tree : in Base_Tree) return Boolean;
 
    type Tree is new Ada.Finalization.Controlled with private;
+   --  Note that copying Tree does _not_ copy Tree.Shared_Tree; if you
+   --  want a complete copy of both trees use Complete_Copy_Tree.
 
    type Tree_Variable_Reference (Element : not null access Tree) is null record with
      Implicit_Dereference => Element;
@@ -80,13 +82,18 @@ package WisiToken.Syntax_Trees is
    procedure Initialize
      (Branched_Tree : in out Tree;
       Shared_Tree   : in     Base_Tree_Access;
-      Flush         : in     Boolean;
-      Set_Parents   : in     Boolean := False)
-   with Pre => Branched_Tree.Is_Empty and Shared_Tree.Is_Empty;
+      Root          : in     Node_Index := Invalid_Node_Index;
+      Parents_Set   : in     Boolean    := False)
+   with Pre => Branched_Tree.Is_Empty;
    --  Set Branched_Tree to refer to Shared_Tree.
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
+
+   procedure Complete_Copy
+     (Tree          : in     Syntax_Trees.Tree;
+      New_Base_Tree : in     Base_Tree_Access;
+      New_Tree      :    out Syntax_Trees.Tree);
 
    type Node_Label is
      (Shared_Terminal,    -- text is user input, accessed via Parser.Terminals
