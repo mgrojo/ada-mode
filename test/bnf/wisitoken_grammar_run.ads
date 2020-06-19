@@ -1,0 +1,5 @@
+with Gen_LR_Parser_No_Recover_Run;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
+procedure Wisitoken_Grammar_Run is new Gen_LR_Parser_No_Recover_Run
+  (Wisitoken_Grammar_Actions.Descriptor, Wisitoken_Grammar_Main.Create_Parser);

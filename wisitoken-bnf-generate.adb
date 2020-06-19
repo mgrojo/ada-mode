@@ -426,8 +426,11 @@ begin
             declare
                procedure Translate (Tree : in out Syntax_Trees.Tree)
                is
+                  use WisiToken.Tree_Sitter;
                begin
-                  WisiToken.Tree_Sitter.Print_Tree_Sitter
+                  Eliminate_Empty_Productions (Input_Data, Tree, Input_Data.Grammar_Lexer.File_Name);
+
+                  Print_Tree_Sitter
                     (Input_Data,
                      Tree,
                      Input_File_Name  => Input_Data.Grammar_Lexer.File_Name,

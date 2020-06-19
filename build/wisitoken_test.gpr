@@ -17,10 +17,11 @@ with "aunit_ext";
 with "sal_devel";
 with "wisitoken";
 with "standard_common";
+with "tree_sitter";
 project WisiToken_Test is
 
-   type EBNF_Only_Type is ("true", "false");
-   EBNF_Only : EBNF_Only_Type := external ("EBNF_ONLY", "false");
+   type Generate_Type is ("all", "BNF", "EBNF", "Tree_Sitter");
+   Generate : Generate_Type := external ("GENERATE", "all");
 
    for Source_Dirs use
      (
@@ -85,7 +86,7 @@ project WisiToken_Test is
      );
 
    Gen_EBNF :=
-   (
+     (
       "ada_lite_ebnf_lalr_run.ads",
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
@@ -97,13 +98,22 @@ project WisiToken_Test is
       "lalr_generator_bug_01_lalr_run.ads",
       "nested_ebnf_optional_lalr_run.ads",
       "three_action_conflict_lalr_run.ads"
-   );
+     );
 
-   case EBNF_Only is
-   when "false" =>
-      for Main use Gen_BNF & Gen_EBNF;
-   when "true" =>
+   Gen_Tree_Sitter :=
+     (
+      "ada_lite_ebnf_tree_sitter_run.adb"
+     );
+
+   case Generate is
+   when "all" =>
+      for Main use Gen_BNF & Gen_EBNF & Gen_Tree_Sitter;
+   when "BNF" =>
+      for Main use Gen_BNF;
+   when "EBNF" =>
       for Main use Gen_EBNF;
+   when "Tree_Sitter" =>
+      for Main use Gen_Tree_Sitter;
    end case;
 
    case Standard_Common.Profile is
@@ -172,16 +182,6 @@ project WisiToken_Test is
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";
    end Builder;
-
-   package Linker is
-      case Standard_Common.Profile is
-      when "On" =>
-         for Linker_Options use ("-pg", "-lgmem");
-
-      when "Off" =>
-         null;
-      end case;
-   end Linker;
 
    package Binder is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");

@@ -22,10 +22,17 @@ update-wisitoken_grammar
 
  current work
 add tree-sitter parser, lexer
-    need first pass to remove empty rhs
+    ada_lite_ebnf_tree_sitter_run.adb
+        appears to run, but need to get error messages
 
-    bnf-wy-test run tree-sitter generate, build exec, run it, get parse trace.
-    also get parse table?
+    w-b-g --test_main write ada_lite_ebnf_tree_sitter_run.adb
+
+
+    ada_lite_ebnf/parser.c
+        ts_parse_table is way too small; only two states!
+
+    bnf-wy-test run tree-sitter parse exec, get parse trace.
+        also get parse table?
 
     time parts of generate tree_sitter; seems slow on ada_annex_p
 

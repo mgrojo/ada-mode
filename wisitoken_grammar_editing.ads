@@ -83,6 +83,23 @@ package WisiToken_Grammar_Editing is
      return Identifier_Token_Index
    with Pre => To_Token_Enum (Tree.ID (Item)) in rhs_element_ID | rhs_item_ID | IDENTIFIER_ID;
 
+   function Add_RHS_Group_Item
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      RHS_Index : in     Natural;
+      Content   : in     WisiToken.Valid_Node_Index)
+     return WisiToken.Valid_Node_Index
+   with Pre => Tree.ID (Content) = +rhs_alternative_list_ID,
+     Post => Tree.ID (Add_RHS_Group_Item'Result) = +rhs_group_item_ID;
+
+   function Add_RHS_Optional_Item
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      RHS_Index : in     Natural;
+      Content   : in     WisiToken.Valid_Node_Index)
+     return WisiToken.Valid_Node_Index
+   with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | IDENTIFIER_ID | STRING_LITERAL_2_ID and
+               RHS_Index <= 3,
+     Post => Tree.ID (Add_RHS_Optional_Item'Result) = +rhs_optional_item_ID;
+
    function Add_Identifier_Token
      (Tree      : in out WisiToken.Syntax_Trees.Tree;
       Item      : in     Identifier_Token_Index;

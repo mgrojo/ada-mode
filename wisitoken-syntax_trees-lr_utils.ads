@@ -103,12 +103,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
 
-   function Node (Cursor : in LR_Utils.Cursor) return Node_Index;
+   function Element (Cursor : in LR_Utils.Cursor) return Node_Index;
    --  Invalid_Node_Index if not Has_Element (Cursor).
-
-   function Get_Node (Cursor : in LR_Utils.Cursor) return Node_Index
-     renames Node;
-   --  Useful when Node is hidden by another declaration.
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
@@ -462,7 +458,7 @@ private
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean
    is (Cursor.Node /= Invalid_Node_Index);
 
-   function Node (Cursor : in LR_Utils.Cursor) return Node_Index
+   function Element (Cursor : in LR_Utils.Cursor) return Node_Index
    is (Cursor.Node);
 
    function Separator_ID (Container : in List) return Token_ID

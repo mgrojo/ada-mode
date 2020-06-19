@@ -33,45 +33,54 @@ tests :: test_all_harness.diff
 
 # generated code used by test_bnf_suite.adb and others.
 # If add to this, add to wisitoken_test.gpr
-EBNF_ONLY ?= false
-ifeq ($(EBNF_ONLY),false)
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
-gen :: ada_lite_re2c.c
-gen :: body_instantiation_conflict_re2c.c
-gen :: case_expression_re2c.c
-gen :: character_literal_re2c.c
-gen :: conflict_name_re2c.c
-gen :: dragon_4_43_re2c.c
-gen :: empty_production_1_re2c.c
-gen :: empty_production_2_re2c.c
-gen :: empty_production_3_re2c.c
-gen :: empty_production_4_re2c.c
-gen :: empty_production_5_re2c.c
-gen :: empty_production_6_re2c.c
-gen :: empty_production_7_re2c.c
-gen :: empty_production_8_re2c.c
-gen :: range_conflict_re2c.c
-gen :: skip_to_grammar_re2c.c
-gen :: warth_left_recurse_expr_1_re2c.c
-endif
+gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
+gen_BNF :: ada_lite_re2c.c
+gen_BNF :: body_instantiation_conflict_re2c.c
+gen_BNF :: case_expression_re2c.c
+gen_BNF :: character_literal_re2c.c
+gen_BNF :: conflict_name_re2c.c
+gen_BNF :: dragon_4_43_re2c.c
+gen_BNF :: empty_production_1_re2c.c
+gen_BNF :: empty_production_2_re2c.c
+gen_BNF :: empty_production_3_re2c.c
+gen_BNF :: empty_production_4_re2c.c
+gen_BNF :: empty_production_5_re2c.c
+gen_BNF :: empty_production_6_re2c.c
+gen_BNF :: empty_production_7_re2c.c
+gen_BNF :: empty_production_8_re2c.c
+gen_BNF :: range_conflict_re2c.c
+gen_BNF :: skip_to_grammar_re2c.c
+gen_BNF :: warth_left_recurse_expr_1_re2c.c
 
-gen :: ada_ebnf_bnf.wy # not a valid grammar
-gen :: ada_lite_ebnf_re2c.c
-# gen :: ada_lite_ebnf/parser.c ;; FIXME: need pass to eliminate empty RHS
-gen :: identifier_list_name_conflict_re2c.c
-gen :: java_ebnf_bnf.wy # not a valid grammar
-gen :: java_enum_ch19_re2c.c
-gen :: java_expressions_antlr_re2c.c
-gen :: java_expressions_ch19_re2c.c
-gen :: java_types_ch19_re2c.c
-gen :: lalr_generator_bug_01_re2c.c
-gen :: nested_ebnf_optional_re2c.c
-gen :: python_ebnf_bnf.wy # not a valid grammar
-gen :: subprograms_re2c.c
-gen :: three_action_conflict_re2c.c
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
+gen_EBNF :: ada_ebnf_bnf.wy # not a valid grammar
+gen_EBNF :: ada_lite_ebnf_re2c.c
+gen_EBNF :: identifier_list_name_conflict_re2c.c
+gen_EBNF :: java_ebnf_bnf.wy # not a valid grammar
+gen_EBNF :: java_enum_ch19_re2c.c
+gen_EBNF :: java_expressions_antlr_re2c.c
+gen_EBNF :: java_expressions_ch19_re2c.c
+gen_EBNF :: java_types_ch19_re2c.c
+gen_EBNF :: lalr_generator_bug_01_re2c.c
+gen_EBNF :: nested_ebnf_optional_re2c.c
+gen_EBNF :: python_ebnf_bnf.wy # not a valid grammar
+gen_EBNF :: subprograms_re2c.c
+gen_EBNF :: three_action_conflict_re2c.c
+gen_EBNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
+gen_EBNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
+
+gen_Tree_Sitter :: ada_lite_ebnf_tree_sitter.c
+
+GENERATE ?= all
+ifeq ($(GENERATE),all)
+gen : gen_BNF gen_EBNF gen_Tree_Sitter
+else ifeq ($(GENERATE),BNF)
+gen : gen_BNF
+else ifeq ($(GENERATE),EBNF)
+gen : gen_EBNF
+else ifeq ($(GENERATE),Tree_Sitter)
+gen : gen_Tree_Sitter
+endif
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables
 
@@ -149,8 +158,9 @@ DIFF_OPT := -u -w
 	re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
-%/parser.c : %.wy wisitoken-bnf-generate.exe
-	tree-sitter generate ./$(*F).js
+%_tree_sitter.c : %.wy wisitoken-bnf-generate.exe
+	tree-sitter generate ./$*.js
+	mv src/parser.c $*_tree_sitter.c
 
 %_bnf.wy : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --output_bnf --generate None $<
