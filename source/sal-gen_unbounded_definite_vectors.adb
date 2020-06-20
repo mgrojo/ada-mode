@@ -92,6 +92,13 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Adjust;
 
+   function Is_Empty (Container : in Vector) return Boolean
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      return Container.Length = 0;
+   end Is_Empty;
+
    function Length (Container : in Vector) return Ada.Containers.Count_Type
    is begin
       --  We assume the type ranges are sensible, so no exceptions occur

@@ -59,6 +59,7 @@ package SAL.Gen_Unbounded_Definite_Vectors is
      (raise Programmer_Error);
    --  Use Gen_Comparable child.
 
+   function Is_Empty (Container : in Vector) return Boolean;
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
    function Capacity (Container : in Vector) return Ada.Containers.Count_Type;
 
