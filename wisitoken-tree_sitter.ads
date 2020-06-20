@@ -34,4 +34,6 @@ package WisiToken.Tree_Sitter is
       Language_Name    : in     String);
    --  Tree is 'in out' because we use WisiToken.Syntax_Tree.LR_Utils lists.
 
+   procedure Create_Test_Main (Output_File_Name_Root : in String);
+
 end WisiToken.Tree_Sitter;

@@ -424,10 +424,10 @@ begin
 
          when Tree_Sitter =>
             declare
+               use WisiToken.Tree_Sitter;
+
                procedure Translate (Tree : in out Syntax_Trees.Tree)
-               is
-                  use WisiToken.Tree_Sitter;
-               begin
+               is begin
                   Eliminate_Empty_Productions (Input_Data, Tree, Input_Data.Grammar_Lexer.File_Name);
 
                   Print_Tree_Sitter
@@ -452,6 +452,8 @@ begin
                else
                   Translate (Saved_EBNF_Tree);
                end if;
+
+               Create_Test_Main (-Output_File_Name_Root);
             end;
 
          when LR_Packrat_Generate_Algorithm =>

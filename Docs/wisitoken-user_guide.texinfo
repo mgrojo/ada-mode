@@ -263,17 +263,22 @@ lexers recognize them by the given string.
 @node Tokens
 @subsection Tokens
 @verbatim
-%token < kind > name regexp
+%token < kind > name regexp repair_image
 @end verbatim
 
 example:
 @verbatim
-%token <symbol> IDENTIFIER %[ ... ]%
+%token <symbol> IDENTIFIER %[ ... ]% "A_Bogus_Identifier"
 %token <punctuation> TICK "'"
 @end verbatim
 
 The syntax of the regular expression is determined by the lexer
-generator. The meaning of @code{kind} is determined by the lexer
+generator.
+
+@code{repair_image} is used in error repair information; it should be
+inserted by an editor at the place of the expected but missing token.
+
+The meaning of @code{kind} is determined by the lexer
 (@code{re2c} ignores this), with the following defined by the
 WisiToken generator. Other token kinds have no effect; they may be
 used for documentation.

@@ -954,7 +954,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Set_Output (File);
       Indent := 1;
 
-      Put_File_Header (C_Comment, " -*- mode: C -*-", Use_Tuple => True, Tuple => Tuple);
+      Put_File_Header (C_Comment, "mode: C", Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (C_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 

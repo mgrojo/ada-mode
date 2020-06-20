@@ -21,7 +21,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.BNF;
+with WisiToken.BNF.Output_Ada_Common;
 with WisiToken.Generate;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken_Grammar_Editing;
@@ -670,9 +670,12 @@ package body WisiToken.Tree_Sitter is
       Output_File_Name : in     String;
       Language_Name    : in     String)
    is
+      use all type Ada.Containers.Count_Type;
       use WisiToken.Syntax_Trees;
 
       File : File_Type;
+
+      Extras : WisiToken.BNF.String_Lists.List;
 
       --  Local specs
 
@@ -1017,27 +1020,66 @@ package body WisiToken.Tree_Sitter is
          when declaration_ID =>
             case Tree.RHS_Index (Node) is
             when 0 =>
-               if Tree.ID (Tree.Child (Tree.Child (Node, 2), 1)) = +Wisitoken_Grammar_Actions.TOKEN_ID then
-                  declare
-                     use Ada.Strings;
-                     use Ada.Strings.Fixed;
-                     use WisiToken.Syntax_Trees.LR_Utils;
-                     Name : constant String := Get_Text (Tree.Child (Node, 3));
-                     List : constant Constant_List := Creators.Create_List
-                       (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
-                     Item : constant Valid_Node_Index := Tree.Child (Element (List.First), 1);
-                  begin
-                     case To_Token_Enum (Tree.ID (Item)) is
-                     when REGEXP_ID =>
-                        Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Item), Both) & "/,");
+               --  We need tokens with 'regexp' values because they are not defined
+               --  elsewhere, 'punctuation' tokens for consistent names, and
+               --  'comment' to allow comments. tree-sitter default 'extras' handles
+               --  whitespace and newline on its own, but if we define 'comment', we
+               --  also need 'new-line' and 'whitespace'.
+               declare
+                  use Ada.Strings;
+                  use Ada.Strings.Fixed;
+                  use WisiToken.Syntax_Trees.LR_Utils;
+                  Name  : constant String        := Get_Text (Tree.Child (Node, 3));
+                  Class : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Tree.Child (Tree.Child (Node, 2), 1)));
+                  Kind  : constant String        :=
+                    (if Class in NON_GRAMMAR_ID | Wisitoken_Grammar_Actions.TOKEN_ID
+                     then Get_Text (Tree.Child (Tree.Child (Node, 2), 3))
+                     else "keyword");
+                  List  : constant Constant_List    := Creators.Create_List
+                    (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
+                  Value : constant Valid_Node_Index := Tree.Child (Element (List.First), 1);
+                  --  We are ignoring any repair image
+               begin
+                  if Class = NON_GRAMMAR_ID then
+                     if List.Count > 1 then
+                        --  WORKAROUND: tree-sitter 0.16.6 treats "seq('--', /.*/)" almost correctly
+                        --  for an Ada comment, but not "/--.*/". See github tree-sitter issue 651
+                        Put (File, Name & ": $ => seq(");
+                        for Item of List loop
+                           case To_Token_Enum (Tree.ID (Tree.Child (Item, 1))) is
+                           when REGEXP_ID =>
+                              Put (File, "/" & Trim (Get_Text (Item), Both) & "/,");
 
-                     when others =>
-                        null; --  FIXME: lexer_regexp
-                     end case;
-                  end;
-               end if;
+                           when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+                              Put (File, Get_Text (Item) & ",");
+
+                           when others =>
+                              Generate.Put_Error
+                                (Generate.Error_Message
+                                   (Input_File_Name,
+                                    WisiToken_Grammar_Runtime.Get_Line (Data, Tree, Item),
+                                    "invalid " & Image (Tree.ID (Item), Wisitoken_Grammar_Actions.Descriptor) &
+                                      " item in multi-item non-grammar token"));
+                           end case;
+                        end loop;
+
+                        Put_Line (File, "),");
+                        Extras.Append ("$." & Name);
+                     else
+                        Extras.Append ("/" & Trim (Get_Text (Value), Both) & "/");
+                     end if;
+
+                  elsif Kind = "punctuation" then
+                     Put_Line (File, Name & ": $ => " & Get_Text (Value) & ",");
+
+                  elsif To_Token_Enum (Tree.ID (Value)) = REGEXP_ID then
+                     Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Value), Both) & "/,");
+
+                  end if;
+               end;
 
             when 1 | 2 | 3 =>
+               --  FIXME: lexer_regexp
                null;
 
             when 4 | 5 | 6 =>
@@ -1084,9 +1126,59 @@ package body WisiToken.Tree_Sitter is
 
       Process_Node (Tree.Root);
 
-      Put_Line (File, "  }");
+      if Extras.Length = 0 then
+         Put_Line (File, "  }");
+
+      else
+         Put_Line (File, "  },");
+         Put_Line (File, "  extras: $ => [");
+         for Item of Extras loop
+            Put_Line (File, "    " & Item & ",");
+         end loop;
+         Put_Line (File, "  ],");
+      end if;
+
       Put_Line (File, "});");
       Close (File);
    end Print_Tree_Sitter;
 
+   procedure Create_Test_Main (Output_File_Name_Root : in String)
+   is
+      use WisiToken.BNF;
+
+      Ada_Name_Root : constant String := Output_Ada_Common.File_Name_To_Ada (Output_File_Name_Root);
+      Unit_Name     : constant String := Ada_Name_Root & "_Tree_Sitter_Run";
+
+      File_Name : constant String := To_Lower (Unit_Name) & ".adb";
+
+      File : File_Type;
+
+   begin
+      Create (File, Out_File, File_Name);
+      Set_Output (File);
+
+      Put_File_Header (Ada_Comment);
+      --  no Copyright_License; just a test file
+      New_Line;
+
+      Put_Line ("with Interfaces.C.Extensions;");
+      Put_Line ("with Gen_Tree_Sitter_Parser_Run;");
+      Put_Line ("procedure " & Unit_Name);
+      Put_Line ("is");
+      Put_Line ("   function Tree_Sitter_" & Ada_Name_Root & " return Interfaces.C.Extensions.void_ptr");
+      Put_Line ("   with Import     => True,");
+      Put_Line ("     External_Name => ""tree_sitter_" & Ada_Name_Root & """,");
+      Put_Line ("     Convention    => C;");
+      Put_Line ("   procedure Parse_Run is new Gen_Tree_Sitter_Parser_Run");
+      Put_Line ("     (Tree_Sitter_Language => Tree_Sitter_" & Ada_Name_Root & ");");
+      Put_Line ("begin");
+      Put_Line ("   Parse_Run;");
+      Put_Line ("end " & Unit_Name & ";");
+      Close (File);
+      Set_Output (Standard_Output);
+   end Create_Test_Main;
+
 end WisiToken.Tree_Sitter;
+--  Local Variables:
+--  ada-case-strict: nil
+--  End:

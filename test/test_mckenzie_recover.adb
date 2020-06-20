@@ -2009,7 +2009,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +EQUAL_ID,
          Error_Token_Byte_Region => (23, 23),
          Ops                     => +(Insert, +WHEN_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4) &
-           (Insert, +EQUAL_GREATER_ID, 4) & (Insert, +IF_ID, 4) & (Insert, +IDENTIFIER_ID, 4),
+           (Insert, +EQUAL_GREATER_ID, 4) & (Insert, +IF_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4),
          Strategy_Counts         => (Minimal_Complete => 3, Insert => 2, others => 0),
          Cost                    => 11);
 
@@ -2313,7 +2313,7 @@ package body Test_McKenzie_Recover is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("test_mckenzie_recover.adb " & T.Alg'Image);
+      return new String'("test_mckenzie_recover.adb " & WisiToken.BNF.Generate_Algorithm_Image (T.Alg).all);
    end Name;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

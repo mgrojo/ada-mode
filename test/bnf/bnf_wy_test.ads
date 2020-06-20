@@ -2,7 +2,7 @@
 --
 --  Test one .wy file; compare to known good output files.
 --
---  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,14 +19,19 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
+with WisiToken.BNF;
 package BNF_WY_Test is
 
    type Test_Case
      (Root_Name  : not null access String;
-      Input_Name : access String)
+      Input_Name : access String;
+      Gen_Alg    : WisiToken.BNF.Generate_Algorithm)
      is new AUnit.Test_Cases.Test_Case with null record;
    --  Always parse <Root_Name>.input. If Input_Name is non-null, also
    --  parse <Input_Name>.input.
+   --
+   --  If Gen_Alg is None, test all generate algorithms given in input
+   --  file. Otherwise only test Gen_Alg.
 
    type Test_Case_Access is access all Test_Case;
 

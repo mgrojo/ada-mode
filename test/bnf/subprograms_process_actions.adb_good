@@ -1,4 +1,4 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 

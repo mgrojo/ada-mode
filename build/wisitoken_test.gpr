@@ -51,6 +51,7 @@ project WisiToken_Test is
       "dragon_4_43_lalr_run.ads",
       "dragon_4_43_packrat_gen_run.ads",
       "dragon_4_43_packrat_proc_run.ads",
+      "dragon_4_43_tree_sitter_run.adb",
       "empty_production_1_lalr_run.ads",
       "empty_production_1_packrat_gen_run.ads",
       "empty_production_1_packrat_proc_run.ads",
@@ -102,7 +103,9 @@ project WisiToken_Test is
 
    Gen_Tree_Sitter :=
      (
-      "ada_lite_ebnf_tree_sitter_run.adb"
+      "ada_lite_ebnf_tree_sitter_run.adb",
+      "ada_lite_tree_sitter_run.adb",
+      "dragon_4_43_tree_sitter_run.adb"
      );
 
    case Generate is
@@ -138,7 +141,7 @@ project WisiToken_Test is
 
       case Standard_Common.Build is
       when "Debug" =>
-         for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic;
+         for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic & "-save-temps";
 
          --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
          --  returns integer; no source workaround for generic parameter.

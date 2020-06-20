@@ -22,17 +22,15 @@ update-wisitoken_grammar
 
  current work
 add tree-sitter parser, lexer
-    ada_lite_ebnf_tree_sitter_run.adb
-        appears to run, but need to get error messages
+    do commit
 
-    w-b-g --test_main write ada_lite_ebnf_tree_sitter_run.adb
+    propagate?
 
+    translate tree-sitter parse tree to wisitoken?
+        api.h has root, node_children,  etc.
 
-    ada_lite_ebnf/parser.c
-        ts_parse_table is way too small; only two states!
-
-    bnf-wy-test run tree-sitter parse exec, get parse trace.
-        also get parse table?
+    tree-sitter still not getting comments right
+        try updating tree-sitter from github
 
     time parts of generate tree_sitter; seems slow on ada_annex_p
 
