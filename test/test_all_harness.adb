@@ -63,7 +63,7 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only => False);
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only => False, Limit_Gen_Alg => WisiToken.BNF.None);
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;

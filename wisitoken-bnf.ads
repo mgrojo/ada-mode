@@ -182,10 +182,10 @@ package WisiToken.BNF is
    --  Otherwise output all lines.
 
    procedure Put_File_Header
-     (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String         := "";
-      Use_Tuple      : in Boolean        := False;
-      Tuple          : in Generate_Tuple := (others => <>));
+     (Comment_Syntax   : in String_2;
+      Emacs_Local_Vars : in String         := "";
+      Use_Tuple        : in Boolean        := False;
+      Tuple            : in Generate_Tuple := (others => <>));
    --  Output "parser support file <emacs_mode> /n command line: " comment to Ada.Text_IO.Current_Output.
 
    type String_Pair_Type is record

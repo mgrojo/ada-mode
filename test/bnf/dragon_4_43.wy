@@ -1,4 +1,4 @@
-;;  wisi grammar for Red Dragon Book example 4.43.
+;;  wisitoken grammar for Red Dragon Book example 4.43.
 
 %code copyright_license %{
 ;;  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
@@ -20,6 +20,7 @@
 %generate Packrat_Gen Ada re2c
 %generate LALR Ada re2c
 %generate Packrat_Proc Ada re2c
+%generate Tree_Sitter Ada tree_sitter
 
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"

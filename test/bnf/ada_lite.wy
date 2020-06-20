@@ -42,6 +42,7 @@
 ;; Declare all variants tested by wisi_wy_test.adb
 %generate LALR Ada re2c
 %generate LR1 Ada re2c text_rep
+%generate Tree_Sitter Ada tree_sitter
 ;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
 
 %keyword AND "and"
@@ -96,13 +97,28 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
+%if lexer = re2c 
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
-%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
+%elsif lexer = tree_sitter 
+;; The tree-sitter grammar file requires JavaScript regular expressions; see
+;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
+;;
+;; FIXME: that only allows 16 bit code points, not 32 bit characters.
+;; And even then, it still complains about non-Unicode chars; limiting
+;; to ASCII + π (see ada_lite.input) for now. See tree-sitter github
+;; issue #621.
+
+%token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
+%token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
+%non_grammar <comment> COMMENT %[ --[^\n\x04]* ]%
+%end if
+
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
 %start compilation_unit_list
 

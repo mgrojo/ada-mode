@@ -25,7 +25,6 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
-with WisiToken.BNF;
 with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
@@ -55,12 +54,16 @@ package body BNF_WY_Test is
          AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
       end if;
 
-      if WisiToken.Trace_Action > WisiToken.Outline then
+      if WisiToken.Trace_Parse > WisiToken.Outline then
          Put (Standard_Error, Program);
          for Str_Acc of Args loop
             Put (Standard_Error, " ");
             Put (Standard_Error, Str_Acc.all);
          end loop;
+         if Output_File /= "" then
+            Put (Standard_Error, " > " & Output_File);
+         end if;
+
          New_Line (Standard_Error);
       end if;
 
@@ -104,14 +107,16 @@ package body BNF_WY_Test is
 
    procedure Get_Gen_Set
      (Root_Name        : in     String;
+      Limit_Gen_Alg    : in     WisiToken.BNF.Generate_Algorithm;
       Generate_Set     :    out WisiToken.BNF.Generate_Set_Access;
       If_Lexer_Present :    out Boolean;
       McKenzie_Recover :    out Boolean;
       Meta_Syntax      :    out WisiToken_Grammar_Runtime.Meta_Syntax)
    is
+      use AUnit.Checks;
       use all type WisiToken.Line_Number_Type;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      use AUnit.Checks;
+      use all type WisiToken.BNF.Generate_Algorithm;
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
@@ -135,7 +140,18 @@ package body BNF_WY_Test is
 
       Check ("grammar parse meta error", WisiToken.Generate.Error, False);
 
-      Generate_Set     := Input_Data.Generate_Set;
+      if Limit_Gen_Alg = None then
+         Generate_Set     := Input_Data.Generate_Set;
+      else
+         Generate_Set := null;
+
+         for Tuple of Input_Data.Generate_Set.all loop
+            if Tuple.Gen_Alg = Limit_Gen_Alg then
+               Generate_Set := new WisiToken.BNF.Generate_Set'(1 => Tuple);
+            end if;
+         end loop;
+      end if;
+
       If_Lexer_Present := Input_Data.If_Lexer_Present;
       Meta_Syntax      := Input_Data.Meta_Syntax;
 
@@ -198,6 +214,7 @@ package body BNF_WY_Test is
 
       when Tree_Sitter =>
          Diff_One (Root_Name & ".js");
+         Diff_One (Root_Name & "_tree_sitter.c");
 
       when None | Packrat_Generate_Algorithm | External =>
          null;
@@ -312,7 +329,7 @@ package body BNF_WY_Test is
       --  wisi-generate, re2c, gprbuild are run from the Makefile, since
       --  some of the generated files are shared with other tests.
 
-      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
+      Get_Gen_Set (Simple_Name, Test.Gen_Alg, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
       if Meta_Syntax = EBNF_Syntax and
         (Gen_Set /= null and then (for some Gen of Gen_Set.all => Gen.Gen_Alg /= Tree_Sitter))

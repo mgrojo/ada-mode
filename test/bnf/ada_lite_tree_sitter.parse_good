@@ -1,0 +1,7 @@
+new_parse
+process version:0, version_count:1, state:1, row:1, col:0
+lex_internal state:4, row:1, column:0
+lex_internal state:0, row:1, column:0
+lexed_lookahead sym:-, size:1
+recover_eof
+done

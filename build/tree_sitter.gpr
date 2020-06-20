@@ -1,0 +1,9 @@
+--  For using externally built tree-sitter library
+library project Tree_Sitter is
+   for Languages    use ("C");
+   for Source_Dirs  use ("c:/Projects/tree-sitter/lib/include");
+   for Library_Dir  use "c:/Projects/tree-sitter";
+   for Library_Kind use "static";
+   for Library_Name use "tree-sitter";
+   for Externally_Built use "true";
+end Tree_Sitter;

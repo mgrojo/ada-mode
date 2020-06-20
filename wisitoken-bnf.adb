@@ -159,14 +159,15 @@ package body WisiToken.BNF is
    end Put_Raw_Code;
 
    procedure Put_File_Header
-     (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String         := "";
-      Use_Tuple      : in Boolean        := False;
-      Tuple          : in Generate_Tuple := (others => <>))
+     (Comment_Syntax   : in String_2;
+      Emacs_Local_Vars : in String         := "";
+      Use_Tuple        : in Boolean        := False;
+      Tuple            : in Generate_Tuple := (others => <>))
    is
       use Ada.Text_IO;
    begin
-      Put_Line (Comment_Syntax & "  generated parser support file." & Emacs_Mode);
+      Put_Line
+        (Comment_Syntax & "  generated parser support file. -*- buffer-read-only:t " & Emacs_Local_Vars & " -*-");
       Put_Command_Line  (Comment_Syntax & "  ", Use_Tuple, Tuple);
       Put_Line (Comment_Syntax);
    end Put_File_Header;

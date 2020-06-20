@@ -24,12 +24,12 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Environment_Variables;
 with Test_BNF_Suite;
-with WisiToken;
+with WisiToken.BNF;
 procedure Test_BNF_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> root_name trace_generate trace_parse
-   --  1         2         3              4
+   --  <verbose> root_name trace_generate trace_parse limit_gen_alg
+   --  1         2         3              4           5
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
@@ -44,7 +44,12 @@ is
      Ada.Environment_Variables.Exists ("EBNF_ONLY") and then
      Ada.Environment_Variables.Value ("EBNF_ONLY") = "true";
 
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only);
+   Limit_Gen_Alg : constant WisiToken.BNF.Generate_Algorithm :=
+     (if Argument_Count >= 5
+      then WisiToken.BNF.Generate_Algorithm'Value (Argument (5))
+      else WisiToken.BNF.None);
+
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only, Limit_Gen_Alg);
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;

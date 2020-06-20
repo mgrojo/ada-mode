@@ -22,10 +22,15 @@ update-wisitoken_grammar
 
  current work
 add tree-sitter parser, lexer
-    need first pass to remove empty rhs
+    do commit
 
-    bnf-wy-test run tree-sitter generate, build exec, run it, get parse trace.
-    also get parse table?
+    propagate?
+
+    translate tree-sitter parse tree to wisitoken?
+        api.h has root, node_children,  etc.
+
+    tree-sitter still not getting comments right
+        try updating tree-sitter from github
 
     time parts of generate tree_sitter; seems slow on ada_annex_p
 

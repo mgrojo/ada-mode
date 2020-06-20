@@ -1,0 +1,26 @@
+new_parse
+process version:0, version_count:1, state:1, row:1, col:0
+lex_internal state:89, row:1, column:0
+lexed_lookahead sym:COMMENT, size:87
+shift_extra
+process version:0, version_count:1, state:1, row:1, col:87
+lex_internal state:89, row:1, column:87
+lexed_lookahead sym:NEW_LINE, size:1
+shift_extra
+process version:0, version_count:1, state:1, row:2, col:0
+lex_internal state:89, row:2, column:0
+lexed_lookahead sym:COMMENT, size:70
+shift_extra
+process version:0, version_count:1, state:1, row:2, col:70
+lex_internal state:89, row:2, column:70
+lexed_lookahead sym:NEW_LINE, size:1
+shift_extra
+process version:0, version_count:1, state:1, row:3, col:0
+lex_internal state:89, row:3, column:0
+lexed_lookahead sym:NEW_LINE, size:1
+shift_extra
+process version:0, version_count:1, state:1, row:4, col:0
+lex_internal state:89, row:4, column:0
+lex_internal state:0, row:4, column:0
+lexed_lookahead sym:procedure, size:9
+

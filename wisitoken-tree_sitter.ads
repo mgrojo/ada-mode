@@ -17,6 +17,15 @@ with WisiToken_Grammar_Runtime;
 with WisiToken.Syntax_Trees;
 package WisiToken.Tree_Sitter is
 
+   procedure Eliminate_Empty_Productions
+     (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree             : in out WisiToken.Syntax_Trees.Tree;
+      Input_File_Name  : in     String);
+   --  Edit Tree to eliminate productions that can be empty, which are
+   --  forbidden by the tree-sitter generator.
+   --
+   --  Also processes %if, so subsequent passes don't have to.
+
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree             : in out WisiToken.Syntax_Trees.Tree;
@@ -24,5 +33,7 @@ package WisiToken.Tree_Sitter is
       Output_File_Name : in     String;
       Language_Name    : in     String);
    --  Tree is 'in out' because we use WisiToken.Syntax_Tree.LR_Utils lists.
+
+   procedure Create_Test_Main (Output_File_Name_Root : in String);
 
 end WisiToken.Tree_Sitter;

@@ -44,7 +44,7 @@ package body Test_LR_Utils is
       Check (Label & ".count", Computed.Count, Ada.Containers.Count_Type (Expected'Length));
 
       for I in Expected'Range loop
-         Check (Label & "." & I'Image, Get_Node (Cur), Expected (I));
+         Check (Label & "." & I'Image, Element (Cur), Expected (I));
          if Computed in List then
             declare
                Computed_List : List renames List (Computed);
@@ -52,7 +52,7 @@ package body Test_LR_Utils is
                if Computed_List.Separator_ID /= Invalid_Token_ID and I > Expected'First then
                   Check
                     (Label & "." & I'Image & ".separator",
-                     Computed.Tree.ID (Computed.Tree.Child (Computed.Tree.Parent (Get_Node (Cur)), 2)),
+                     Computed.Tree.ID (Computed.Tree.Child (Computed.Tree.Parent (Element (Cur)), 2)),
                      Computed_List.Separator_ID);
                end if;
             end;

@@ -1,0 +1,12 @@
+// generated from dragon_4_43.wy -*- buffer-read-only:t -*-
+module.exports = grammar({
+  name: 'Dragon_4_43',
+  rules: {
+upper_s: $ => seq($.upper_c, $.upper_c),
+upper_c: $ => choice(seq("c", $.upper_c),"d"),
+  },
+  extras: $ => [
+    /[ \t]/,
+    /[\x0a]|[\x0d][\x0a]/,
+  ],
+});
