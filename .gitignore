@@ -27,3 +27,5 @@ wisitoken_grammar.re2c
 wisitoken_grammar_lalr.parse_table
 build/*.js
 build/.gdbinit
+build/binding.gyp
+build/src/

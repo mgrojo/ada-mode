@@ -239,10 +239,16 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
-      Table_Time            : Ada.Calendar.Time;
-      Minimal_Actions_Time  : Ada.Calendar.Time;
-      Collect_Conflict_Time : Ada.Calendar.Time;
+      Initial_Item_Sets_Time : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+
+      Add_Actions_Time       : Ada.Calendar.Time;
+      Minimal_Actions_Time   : Ada.Calendar.Time;
+      Collect_Conflict_Time  : Ada.Calendar.Time;
    begin
+      if Trace_Time then
+         Ada.Text_IO.Put_Line
+           ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Initial_Item_Sets_Time, Recursions_Time)));
+      end if;
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR1_Generate:");
@@ -286,9 +292,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Add_Actions (Item_Sets, Table.all, Grammar, Descriptor);
 
       if Trace_Time then
-         Table_Time := Ada.Calendar.Clock;
+         Add_Actions_Time := Ada.Calendar.Clock;
          Ada.Text_IO.Put_Line
-           ("compute parse table time:" & Duration'Image (Ada.Calendar."-" (Table_Time, Recursions_Time)));
+           ("add_actions time:" & Duration'Image (Ada.Calendar."-" (Add_Actions_Time, Initial_Item_Sets_Time)));
       end if;
 
       for State in Table.States'Range loop
@@ -305,7 +311,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Minimal_Actions_Time := Ada.Calendar.Clock;
          Ada.Text_IO.Put_Line
            ("compute minimal actions time:" & Duration'Image
-              (Ada.Calendar."-" (Minimal_Actions_Time, Table_Time)));
+              (Ada.Calendar."-" (Minimal_Actions_Time, Add_Actions_Time)));
       end if;
 
       Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
@@ -313,7 +319,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       if Trace_Time then
          Collect_Conflict_Time := Ada.Calendar.Clock;
          Ada.Text_IO.Put_Line
-           ("compute minimal actions time:" & Duration'Image
+           ("compute conflicts time:" & Duration'Image
               (Ada.Calendar."-" (Collect_Conflict_Time, Minimal_Actions_Time)));
       end if;
 
