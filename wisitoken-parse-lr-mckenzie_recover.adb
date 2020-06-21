@@ -35,7 +35,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
         (ID     : in Integer;
          Super  : in Supervisor_Access;
          Shared : in Shared_Access);
-      --  Start getting parser/configs to check from Config_Store. Stop when
+      --  Start getting parser/configs to check from Super. Stop when
       --  Super reports All_Done;
 
       entry Done;

@@ -44,6 +44,7 @@ package body WisiToken.Generate.LR1_Items is
       use Item_Lists;
       IDs : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal) := (others => False);
    begin
+      --  Note that this algorithm eliminates duplicate Dot_IDs
       for Item of Set loop
          declare
             use Token_ID_Arrays;
@@ -317,6 +318,24 @@ package body WisiToken.Generate.LR1_Items is
       Item_Set_Vector.Append (New_Item_Set);
       Item_Set_Vector (Item_Set_Vector.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
       Item_Set_Tree.Insert ((Key, New_Item_Set.State));
+   end Add;
+
+   procedure Add
+     (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      New_Item_Set       : in     Item_Set;
+      Item_Set_Vector    : in out Item_Set_List;
+      Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Descriptor         : in     WisiToken.Descriptor;
+      Include_Lookaheads : in     Boolean;
+      Worker_C_Tree      : in out Item_Set_Trees.Tree)
+   is
+      use Item_Set_Trees;
+      Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, Descriptor, Include_Lookaheads);
+   begin
+      Item_Set_Vector.Append (New_Item_Set);
+      Item_Set_Vector (Item_Set_Vector.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
+      Item_Set_Tree.Insert ((Key, New_Item_Set.State));
+      Worker_C_Tree.Insert ((Key, New_Item_Set.State));
    end Add;
 
    function Is_In

@@ -133,7 +133,7 @@ package WisiToken.Generate.LR is
       Table      : in out Parse_Table;
       Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor);
-   --  Add actions for Closure to Table.
+   --  Add actions in Closure to Table.
 
    procedure Add_Lookahead_Actions
      (Item        : in     LR1_Items.Item;

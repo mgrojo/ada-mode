@@ -169,12 +169,9 @@ is
       end return;
    end Transitive_Last;
 
-   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-   Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-
-   Token_A_Name : Ada.Strings.Unbounded.Unbounded_String;
-   Token_B_Name : Ada.Strings.Unbounded.Unbounded_String;
+   Grammar_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+   Token_A_Name      : Ada.Strings.Unbounded.Unbounded_String;
+   Token_B_Name      : Ada.Strings.Unbounded.Unbounded_String;
 begin
    Wisitoken_Grammar_Main.Create_Parser
      (Parser    => Grammar_Parser,
@@ -188,31 +185,16 @@ begin
          Put_Usage;
       end if;
 
-      Grammar_Parser.Lexer.Reset_With_File (Argument (1));
-
-      Token_A_Name := +Argument (2);
-      Token_B_Name := +Argument (3);
+      Grammar_File_Name := +Argument (1);
+      Token_A_Name      := +Argument (2);
+      Token_B_Name      := +Argument (3);
    end;
-
-   Grammar_Parser.Parse;
-   Grammar_Parser.Execute_Actions; -- Meta phase.
-
-   if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
-      WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
-      if WisiToken.Generate.Error then
-         raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
-      end if;
-   end if;
-
-   Input_Data.Reset;
-   Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
-   Grammar_Parser.Execute_Actions; -- populates Input_Data.Tokens
 
    declare
       use Ada.Text_IO;
 
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-        WisiToken.BNF.Generate_Utils.Initialize (Input_Data, Ignore_Conflicts => True);
+        WisiToken.BNF.Generate_Utils.Parse_Grammar_File (-Grammar_File_Name, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Token_A : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);

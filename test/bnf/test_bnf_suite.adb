@@ -22,6 +22,7 @@ with AUnit.Test_Cases; use AUnit.Test_Cases;
 with Ada.Strings.Unbounded;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
+with Test_LR1_Parallel;
 with BNF_WY_Test;
 with WisiToken.BNF;
 function Test_BNF_Suite
@@ -50,6 +51,7 @@ begin
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null, Limit_Gen_Alg)));
       Add_Test
         (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null, Limit_Gen_Alg)));
+      Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"case_expression", null, Limit_Gen_Alg)));
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"character_literal", null, Limit_Gen_Alg)));
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"conflict_name", null, Limit_Gen_Alg)));
@@ -77,6 +79,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_antlr", null, Limit_Gen_Alg)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_ch19", null, Limit_Gen_Alg)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null, Limit_Gen_Alg)));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null, Limit_Gen_Alg)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null, Limit_Gen_Alg)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null, Limit_Gen_Alg)));

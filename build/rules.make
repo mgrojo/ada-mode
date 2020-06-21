@@ -154,8 +154,10 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
+# task_count 1 for repeatable results when comparing .parse_table_good etc.
+# task_count 0 is tested in test_lr1_parallel.adb via test_bnf_suite.adb
 %.re2c : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
+	./wisitoken-bnf-generate.exe --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**
 
 %.exe : force; gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*

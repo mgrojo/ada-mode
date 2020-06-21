@@ -28,6 +28,7 @@ with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with System.Multiprocessors;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.BNF.Output_Ada;
 with WisiToken.BNF.Output_Ada_Common;
@@ -120,15 +121,17 @@ is
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
       Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
-
+      Put_Line (Standard_Error,
+                "  --task_count n; number of tasks used to compute LR1 items; 0 (the default) means CPU count");
    end Put_Usage;
 
    Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
    Output_File_Name_Root : Ada.Strings.Unbounded.Unbounded_String;
    Suffix                : Ada.Strings.Unbounded.Unbounded_String;
-   Output_BNF            : Boolean := False;
-   Ignore_Conflicts      : Boolean := False;
-   Test_Main             : Boolean := False;
+   Output_BNF            : Boolean                          := False;
+   Ignore_Conflicts      : Boolean                          := False;
+   Test_Main             : Boolean                          := False;
+   Task_Count            : System.Multiprocessors.CPU_Range := System.Multiprocessors.Number_Of_CPUs;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
@@ -253,6 +256,18 @@ begin
             Arg_Next := Arg_Next + 1;
             Suffix   := +Argument (Arg_Next);
             Arg_Next := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--task_count" then
+            Arg_Next   := @ + 1;
+            declare
+               use System.Multiprocessors;
+            begin
+               Task_Count := CPU_Range'Value (Argument (Arg_Next));
+               if Task_Count = 0 then
+                  Task_Count := Number_Of_CPUs;
+               end if;
+            end;
+            Arg_Next   := @ + 1;
 
          elsif Argument (Arg_Next) = "--test_main" then
             Arg_Next  := Arg_Next + 1;
@@ -561,7 +576,8 @@ begin
                         Parse_Table_File_Name,
                         Include_Extra     => Test_Main,
                         Ignore_Conflicts  => Ignore_Conflicts,
-                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
+                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion,
+                        Task_Count        => Task_Count);
 
                      if Trace_Time then
                         Time_End := Clock;

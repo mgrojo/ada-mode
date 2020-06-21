@@ -346,8 +346,8 @@ package body WisiToken.Generate.LR is
          exit when Known = No_Element or Found = No_Element;
 
          case Conflict_Compare
-           (Known_Conflicts.Constant_Reference (Known),
-            Found_Conflicts.Constant_Reference (Found))
+           (Known_Conflicts.Constant_Ref (Known),
+            Found_Conflicts.Constant_Ref (Found))
          is
          when Greater =>
             Found := Found_Iter.Next (Found);
@@ -412,7 +412,7 @@ package body WisiToken.Generate.LR is
                      if Existing_Conflict = No_Element then
                         Conflicts.Insert (New_Conflict);
                      else
-                        Conflicts.Variable_Reference (Existing_Conflict).States.Append (State);
+                        Conflicts.Variable_Ref (Existing_Conflict).States.Append (State);
                      end if;
 
                      if Action_Node.Actions.Item.Verb = Shift then
@@ -495,7 +495,7 @@ package body WisiToken.Generate.LR is
       State : constant State_Index := Closure.State;
    begin
       if Trace_Generate_Table > Detail then
-         Ada.Text_IO.Put_Line ("adding actions for state" & State_Index'Image (State));
+         Ada.Text_IO.Put_Line ("setting table actions for state" & State_Index'Image (State));
       end if;
 
       for Item of Closure.Set loop
@@ -557,8 +557,10 @@ package body WisiToken.Generate.LR is
 
       for Item of Closure.Goto_List loop
          if Item.Symbol in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
-            --  FIXME: Goto_List has terminals; either don't need to add those, or can use that instead of above code.
-            Add_Goto (Table.States (State), Item.Symbol, Item.State); -- note list is already sorted.
+            --  Goto_List also has terminals, used above in Goto_State. We can't just
+            --  use Goto_List to create actions for terminals; they don't contain
+            --  enough information.
+            Add_Goto (Table.States (State), Item.Symbol, Item.State);
          end if;
       end loop;
    end Add_Actions;

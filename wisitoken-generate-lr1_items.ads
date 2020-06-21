@@ -165,6 +165,10 @@ package WisiToken.Generate.LR1_Items is
       else SAL.Equal);
    --  Sort Goto_Item_Lists in ascending order of Symbol.
 
+   package Goto_Item_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Goto_Item, (Token_ID'Last, State_Index'Last));
+   --  For temporary lists
+
    package Goto_Item_Lists is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (Element_Type => Goto_Item,
       Key_Type     => Token_ID,
@@ -239,8 +243,11 @@ package WisiToken.Generate.LR1_Items is
 
    type Item_Set_Tree_Node is record
       Key   : Item_Set_Tree_Key;
-      State : Unknown_State_Index;
+      State : Unknown_State_Index := Unknown_State;
    end record;
+
+   package Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
 
    function To_Item_Set_Tree_Key
      (Item_Set           : in LR1_Items.Item_Set;
@@ -278,8 +285,19 @@ package WisiToken.Generate.LR1_Items is
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
       Descriptor         : in     WisiToken.Descriptor;
-      Include_Lookaheads : in     Boolean);
+      Include_Lookaheads : in     Boolean)
+   with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
+   procedure Add
+     (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      New_Item_Set       : in     Item_Set;
+      Item_Set_Vector    : in out Item_Set_List;
+      Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Descriptor         : in     WisiToken.Descriptor;
+      Include_Lookaheads : in     Boolean;
+      Worker_C_Tree      : in out Item_Set_Trees.Tree)
+   with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
    --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree
+   --  In version with Worker_C_Tree, add New_Item_Set to it as well.
 
    function Is_In
      (Item      : in Goto_Item;

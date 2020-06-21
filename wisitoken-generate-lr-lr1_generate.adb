@@ -22,6 +22,7 @@ pragma License (Modified_GPL);
 
 with Ada.Calendar;
 with Ada.Containers;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Generate;
 package body WisiToken.Generate.LR.LR1_Generate is
@@ -71,30 +72,369 @@ package body WisiToken.Generate.LR.LR1_Generate is
      (Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor              : in WisiToken.Descriptor)
+      Descriptor              : in WisiToken.Descriptor;
+      Task_Count              : in System.Multiprocessors.CPU_Range)
      return LR1_Items.Item_Set_List
    is
+      use LR1_Items;
       use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
+      use all type System.Multiprocessors.CPU_Range;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
       --  "items", with some optimizations.
 
-      use LR1_Items;
+      protected Supervisor is
+
+         procedure Initialize (First_Item_Set : in Item_Set);
+
+         entry Get
+           (Worker_ID     : in     Integer;
+            Set           :    out Item_Set;
+            Worker_C_Tree : in out Item_Set_Trees.Tree);
+         --  Get a new state to check. Available when there is a state to
+         --  check, or when all states have been checked and all workers are
+         --  inactive; then Set.State is Invalid_State_Index.
+         --
+         --  If returning a valid state, add new sets from other workers to
+         --  C_Tree, and increment active worker count.
+
+         procedure Update
+           (Worker_ID           : in     Integer;
+            From_State          : in     State_Index;
+            New_Item_Sets       : in     Item_Set_List;
+            Existing_Goto_Items : in     Goto_Item_Arrays.Vector;
+            New_Goto_Items      : in out Goto_Item_Arrays.Vector;
+            Worker_C_Tree       : in out Item_Set_Trees.Tree);
+         --  Add New_Item_Sets (may be empty) to C.
+         --  Add New_Goto_Items (may be empty) to C (State).Goto_List.
+         --
+         --  Decrement active worker count.
+
+         procedure Fatal_Error
+           (Exception_ID : in Ada.Exceptions.Exception_Id;
+            Message      : in String);
+         --  Worker encountered an exception; record it for Done, decrement
+         --  active worker count.
+
+         entry Done
+           (ID      : out Ada.Exceptions.Exception_Id;
+            Message : out Ada.Strings.Unbounded.Unbounded_String);
+         --  Available when all states have been checked, and all workers
+         --  inactive.
+
+         function Get_C return Item_Set_List;
+
+      private
+         C               : Item_Set_List;       -- result
+         C_Tree          : Item_Set_Trees.Tree; -- for fast find
+         States_To_Check : State_Index_Queues.Queue;
+         --  [dragon] specifies 'until no more items can be added', but we use
+         --  a queue to avoid checking unecessary states. Ada LR1 has over
+         --  100,000 states, so this is a significant gain (reduced time from
+         --  600 seconds to 40).
+
+         Active_Workers : Natural := 0;
+         Fatal          : Boolean := False;
+
+         Error_ID       : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
+         Error_Message  : Ada.Strings.Unbounded.Unbounded_String;
+      end Supervisor;
+
+      protected body Supervisor is
+
+         procedure Initialize (First_Item_Set : in Item_Set)
+         is
+            First_State_Index : constant State_Index := First_Item_Set.State;
+         begin
+            C.Set_First_Last (First_State_Index, First_State_Index - 1);
+
+            Add (Grammar, First_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
+
+            States_To_Check.Put (First_State_Index);
+         end Initialize;
+
+         entry Get
+           (Worker_ID     : in     Integer;
+            Set           :    out Item_Set;
+            Worker_C_Tree : in out Item_Set_Trees.Tree)
+           when Fatal or States_To_Check.Length > 0 or Active_Workers = 0
+         is begin
+            if States_To_Check.Length > 0 then
+               Set := C (States_To_Check.Get);
+
+               if Trace_Generate_Table > Outline then
+                  Ada.Text_IO.Put ("(worker" & Worker_ID'Image & ") Checking ");
+                  Put (Grammar, Descriptor, Set, Show_Lookaheads => True, Show_Goto_List => True);
+               end if;
+
+               --  FIXME: cache New_States from other workers, to avoid traversing
+               --  the whole tree
+               declare
+                  use Item_Set_Trees;
+                  use Int_Arrays_Comparable;
+                  use all type SAL.Compare_Result;
+
+                  Super_Iter  : constant Item_Set_Trees.Iterator := Supervisor.C_Tree.Iterate;
+                  Worker_Iter : constant Item_Set_Trees.Iterator := Worker_C_Tree.Iterate;
+
+                  Super_Cur  : Item_Set_Trees.Cursor := Super_Iter.First;
+                  Worker_Cur : Item_Set_Trees.Cursor := Worker_Iter.First;
+                  New_States : Item_Set_Tree_Node_Arrays.Vector;
+               begin
+                  loop
+                     exit when not Has_Element (Super_Cur);
+                     exit when not Has_Element (Worker_Cur);
+                     if Compare (Key (Super_Cur), Key (Worker_Cur)) /= Equal then
+                        New_States.Append (Supervisor.C_Tree.Constant_Ref (Super_Cur));
+                     end if;
+                     Super_Cur  := Super_Iter.Next (@);
+                     Worker_Cur := Worker_Iter.Next (@);
+                  end loop;
+
+                  if Has_Element (Super_Cur) and not Has_Element (Worker_Cur) then
+                     loop
+                        New_States.Append (Supervisor.C_Tree.Constant_Ref (Super_Cur));
+                        Super_Cur  := Super_Iter.Next (@);
+                        exit when not Has_Element (Super_Cur);
+                     end loop;
+                  end if;
+
+                  for Item of New_States loop
+                     Worker_C_Tree.Insert (Item);
+                  end loop;
+               end;
+
+               Active_Workers := @ + 1;
+            else
+               Set := (others => <>);
+            end if;
+
+            if Trace_Generate_Table > Outline then
+               Ada.Text_IO.Put_Line ("(super) States_To_Check remaining:" & States_To_Check.Length'Image);
+            end if;
+         end Get;
+
+         procedure Update
+           (Worker_ID           : in     Integer;
+            From_State          : in     State_Index;
+            New_Item_Sets       : in     Item_Set_List;
+            Existing_Goto_Items : in     Goto_Item_Arrays.Vector;
+            New_Goto_Items      : in out Goto_Item_Arrays.Vector;
+            Worker_C_Tree       : in out Item_Set_Trees.Tree)
+         is
+            use Goto_Item_Lists;
+            Goto_List : Goto_Item_List renames C (From_State).Goto_List;
+            Base_State : constant State_Index := C.Last_Index;
+         begin
+            for Item of Existing_Goto_Items loop
+               if not Has_Element (Goto_List.Iterate.Find (Item.Symbol)) then
+                  Goto_List.Insert (Item);
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line
+                       ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
+                          Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+                  end if;
+               end if;
+            end loop;
+
+            for Item of New_Goto_Items loop
+               if not Has_Element (Goto_List.Iterate.Find (Item.Symbol)) then
+                  Item.State := Base_State + Item.State;
+                  Goto_List.Insert (Item);
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line
+                       ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
+                          Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+                  end if;
+               end if;
+            end loop;
+
+            if Trace_Generate_Table > Outline and then New_Item_Sets.Length > 0 then
+               Ada.Text_IO.Put_Line ("(worker" & Worker_ID'Image & ") adding states from state" & From_State'Image);
+            end if;
+            for Item_Set_Cur in New_Item_Sets.Iterate loop
+               declare
+                  New_State      : constant State_Index := C.Last_Index + 1;
+                  Const_Item_Set : Item_Set renames New_Item_Sets.Constant_Ref (Item_Set_Cur).Element.all;
+               begin
+                  New_Item_Sets.Variable_Ref (Item_Set_Cur).State := New_State;
+
+                  States_To_Check.Put (New_State);
+
+                  for Cur in Const_Item_Set.Goto_List.Iterate loop
+                     Const_Item_Set.Goto_List.Variable_Ref (Cur).State := New_State;
+                  end loop;
+
+                  Add (Grammar, Const_Item_Set, Supervisor.C, Supervisor.C_Tree, Descriptor,
+                       Include_Lookaheads => True,
+                       Worker_C_Tree      => Worker_C_Tree);
+
+                  if Trace_Generate_Table > Outline then
+                     Put (Grammar, Descriptor, Const_Item_Set, Show_Lookaheads => True, Show_Goto_List => True);
+                  end if;
+               end;
+            end loop;
+
+            Active_Workers := @ - 1;
+         exception
+         when E : others =>
+
+            Active_Workers := @ - 1;
+            Fatal          := True;
+            States_To_Check.Clear; -- force an early end.
+            declare
+               use Ada.Text_IO;
+               use Ada.Exceptions;
+            begin
+               Error_ID       := Exception_Identity (E);
+               Error_Message  := +Exception_Message (E);
+               Put_Line
+                 (Standard_Error, "(super) Update exception: " & Exception_Name (E) & ": " & Exception_Message (E));
+            end;
+         end Update;
+
+         procedure Fatal_Error
+           (Exception_ID : in Ada.Exceptions.Exception_Id;
+            Message      : in String)
+         is begin
+            Supervisor.Error_ID      := Exception_ID;
+            Supervisor.Error_Message := +Message;
+
+            States_To_Check.Clear; -- force an early end.
+            Fatal          := True;
+            Active_Workers := @ - 1;
+         end Fatal_Error;
+
+         entry Done
+           (ID      : out Ada.Exceptions.Exception_Id;
+            Message : out Ada.Strings.Unbounded.Unbounded_String)
+           when Fatal or (Active_Workers = 0 and States_To_Check.Is_Empty)
+         is begin
+            ID      := Supervisor.Error_ID;
+            Message := Supervisor.Error_Message;
+         end Done;
+
+         function Get_C return Item_Set_List
+         is begin
+            return C;
+         end Get_C;
+
+      end Supervisor;
+
+      task type Worker_Task
+      is
+         entry Start (ID : in Integer);
+         --  Start states from Supervisor. Stop when Supervisor returns
+         --  Invalid_State_Index;
+      end Worker_Task;
+
+      task body Worker_Task
+      is
+         ID : Integer;
+
+         C_Tree : Item_Set_Trees.Tree; -- Local copy for fast find
+         C_I    : Item_Set;            --  C (I) from Supervisor
+
+         procedure Check_State
+         is
+            Found_State  : Unknown_State_Index;
+
+            New_Item_Set  : Item_Set; --  current working set
+            New_Item_Sets : Item_Set_Arrays.Vector;
+
+            Existing_Goto_List : Goto_Item_Arrays.Vector;
+            --  From C_I.state to an existing state.
+
+            New_Goto_List : Goto_Item_Arrays.Vector;
+            --  From C_I.state to a new state. New state is numbered from 1; add
+            --  that to the real state index.
+
+            New_State : State_Index := 1;
+         begin
+            for Dot_ID_I in C_I.Dot_IDs.First_Index .. C_I.Dot_IDs.Last_Index loop
+               declare
+                  Symbol : Token_ID renames C_I.Dot_IDs (Dot_ID_I);
+               begin
+                  --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
+                  --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
+
+                  New_Item_Set := LR1_Goto_Transitions
+                    (C_I, Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+
+                  if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
+
+                     Found_State := Find (New_Item_Set, C_Tree, Descriptor, Match_Lookaheads => True); -- 'not in C'
+
+                     if Found_State = Unknown_State then
+                        declare
+                           Found_Cur : Item_Set_Arrays.Cursor := New_Item_Sets.No_Element;
+                        begin
+                           for Cur in New_Item_Sets.Iterate loop
+                              if New_Item_Sets.Constant_Ref (Cur) = New_Item_Set then
+                                 Found_Cur := Cur;
+                                 exit;
+                              end if;
+                           end loop;
+
+                           if Item_Set_Arrays.Has_Element (Found_Cur) then
+                              New_Goto_List.Append ((Symbol, New_Item_Sets.Constant_Ref (Found_Cur).State));
+                           else
+                              New_Goto_List.Append ((Symbol, New_State));
+
+                              New_Item_Sets.Append (New_Item_Set);
+                           end if;
+
+                           New_State := New_State + 1;
+                        end;
+                     else
+                        if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
+                           Existing_Goto_List.Append ((Symbol, Found_State));
+                        end if;
+                     end if;
+                  end if;
+               end;
+            end loop;
+
+            Supervisor.Update (ID, C_I.State, New_Item_Sets, Existing_Goto_List, New_Goto_List, C_Tree);
+         end Check_State;
+      begin
+         select
+            accept Start (ID : in Integer)
+
+            do
+               Worker_Task.ID := ID;
+            end Start;
+         or
+            terminate;
+         end select;
+
+         loop
+            Supervisor.Get (ID, C_I, C_Tree);
+            exit when C_I.State = Unknown_State;
+            Check_State;
+         end loop;
+
+         if Trace_Generate_Table > Outline then
+            Ada.Text_IO.Put_Line ("(worker" & ID'Image & ") terminate");
+         end if;
+      exception
+      when E : others =>
+         Supervisor.Fatal_Error (Ada.Exceptions.Exception_Identity (E), Ada.Exceptions.Exception_Message (E));
+         if Trace_Generate_Table > Outline then
+            Ada.Text_IO.Put_Line ("(worker" & ID'Image & ") terminate on exception");
+         end if;
+      end Worker_Task;
+
+      Worker_Tasks : array
+        (1 .. System.Multiprocessors.CPU_Range'Min
+           (Task_Count,
+            System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs)))
+        of Worker_Task;
 
       First_State_Index : constant State_Index := 0;
 
-      C               : LR1_Items.Item_Set_List;       -- result
-      C_Tree          : LR1_Items.Item_Set_Trees.Tree; -- for fast find
-      States_To_Check : State_Index_Queues.Queue;
-      --  [dragon] specifies 'until no more items can be added', but we use
-      --  a queue to avoid checking unecessary states. Ada LR1 has over
-      --  100,000 states, so this is a significant gain (reduced time from
-      --  600 seconds to 40).
-
-      I       : State_Index;
-      Dot_IDs : Token_ID_Arrays.Vector;
-
-      New_Item_Set : Item_Set := Closure
+      First_Item_Set : constant Item_Set := Closure
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
               Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
@@ -102,78 +442,39 @@ package body WisiToken.Generate.LR.LR1_Generate is
           Goto_List      => <>,
           Dot_IDs        => <>,
           State          => First_State_Index),
-        Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-
-      Found_State  : Unknown_State_Index;
-
+         Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    begin
-      C.Set_First_Last (First_State_Index, First_State_Index - 1);
-
-      Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
-
-      States_To_Check.Put (First_State_Index);
-      loop
-         exit when States_To_Check.Is_Empty;
-         I := States_To_Check.Get;
-
-         if Trace_Generate_Table > Outline then
-            Ada.Text_IO.Put ("Checking ");
-            Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
-         end if;
-
-         Dot_IDs := C (I).Dot_IDs;
-         --  We can't iterate on C (I).Dot_IDs when the loop adds items to C;
-         --  it might be reallocated to grow.
-
-         for Symbol of Dot_IDs loop
-            --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
-            --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
-
-            New_Item_Set := LR1_Goto_Transitions
-              (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-
-            if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
-
-               Found_State := Find (New_Item_Set, C_Tree, Descriptor, Match_Lookaheads => True); -- 'not in C'
-
-               if Found_State = Unknown_State then
-                  New_Item_Set.State := C.Last_Index + 1;
-
-                  States_To_Check.Put (New_Item_Set.State);
-
-                  Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
-
-                  if Trace_Generate_Table > Outline then
-                     Ada.Text_IO.Put_Line
-                       ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
-                          Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
-                     Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
-                  end if;
-
-                  C (I).Goto_List.Insert ((Symbol, C.Last_Index));
-               else
-
-                  --  If there's not already a goto entry between these two sets, create one.
-                  if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                     if Trace_Generate_Table > Outline then
-                        Ada.Text_IO.Put_Line
-                          ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                             Unknown_State_Index'Image (Found_State));
-
-                     end if;
-
-                     C (I).Goto_List.Insert ((Symbol, Found_State));
-                  end if;
-               end if;
-            end if;
-         end loop;
-      end loop;
+      Supervisor.Initialize (First_Item_Set);
 
       if Trace_Generate_Table > Outline then
-         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line (Worker_Tasks'Length'Image & " lr1_items worker tasks");
       end if;
 
-      return C;
+      for I in Worker_Tasks'Range loop
+         Worker_Tasks (I).Start (Integer (I));
+      end loop;
+
+      declare
+         use Ada.Exceptions;
+         ID      : Exception_Id;
+         Message : Ada.Strings.Unbounded.Unbounded_String;
+      begin
+         Supervisor.Done (ID, Message); -- Wait for all states to be checked
+
+         if ID /= Null_Id then
+            for I in Worker_Tasks'Range loop
+               if not Worker_Tasks (I)'Terminated then
+                  abort Worker_Tasks (I);
+               end if;
+            end loop;
+            Raise_Exception (ID, -Message);
+         else
+            if Trace_Generate_Table > Outline then
+               Ada.Text_IO.Put_Line ("super reports done");
+            end if;
+         end if;
+      end;
+      return Supervisor.Get_C;
    end LR1_Item_Sets;
 
    procedure Add_Actions
@@ -197,12 +498,13 @@ package body WisiToken.Generate.LR.LR1_Generate is
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
       Grammar_File_Name     : in     String;
-      Known_Conflicts       : in     Conflict_Lists.Tree := Conflict_Lists.Empty_Tree;
-      McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
-      Parse_Table_File_Name : in     String              := "";
-      Include_Extra         : in     Boolean             := False;
-      Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True)
+      Known_Conflicts       : in     Conflict_Lists.Tree              := Conflict_Lists.Empty_Tree;
+      McKenzie_Param        : in     McKenzie_Param_Type              := Default_McKenzie_Param;
+      Parse_Table_File_Name : in     String                           := "";
+      Include_Extra         : in     Boolean                          := False;
+      Ignore_Conflicts      : in     Boolean                          := False;
+      Partial_Recursion     : in     Boolean                          := True;
+      Task_Count            : in     System.Multiprocessors.CPU_Range := 1)
      return Parse_Table_Ptr
    is
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
@@ -233,7 +535,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count);
 
       Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
@@ -256,6 +558,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Ada.Text_IO.Put_Line ("Item_Sets:");
             LR1_Items.Put (Grammar, Descriptor, Item_Sets);
          end if;
+         Ada.Text_IO.New_Line;
       end if;
 
       Table := new Parse_Table

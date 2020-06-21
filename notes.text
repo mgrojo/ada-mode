@@ -21,11 +21,71 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+speed up lr1 for ada_annex_p
+o.w     o.e.a ada.wy LR1:
+compute partial recursion time: 0.002063858
+initial item_sets time: 199.223001549
+add_actions time: 2.037258551
+compute minimal actions time: 1.819765908
+compute conflicts time: 0.406810200
+
+    parallelize Lr1_generate.lr1_item_sets
+        compare build/dragon_4_43-generate.log to o.w; good
+        compare ada_lite.parse_table; same
+
+        run t_bnf with task_count = 1 (default) => fine
+
+        try ada_lite task_count = 8
+            hangs
+
+    try in increasing size:
+  -rw-rw-rw-  1 stephe None    1502 04-17 11:59 warth_left_recurse_expr_1_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None    2779 06-21 07:56 dragon_4_43_lr1.parse_table_good
+  ok
+  -rw-rw-rw-  1 stephe None    4508 04-17 12:06 java_enum_ch19_lr1.parse_table_good
+  ok
+  -rw-rw-rw-  1 stephe None    5656 04-17 12:06 skip_to_grammar_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None    6090 04-17 12:06 case_expression_lr1_re2c.parse_table_good
+  ok
+  -rw-rw-rw-  1 stephe None    8581 04-17 12:06 character_literal_lr1_re2c.parse_table_good
+  -rw-rw-rw-  1 stephe None   12634 06-20 03:54 body_instantiation_conflict_lr1.parse_table_good
+  same number of states, but different order
+    write code to sort that out:
+    call lr1_generate twice, find mapping, compare tables
+
+  -rw-rw-rw-  1 stephe None   13616 04-17 11:59 identifier_list_name_conflict_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None   19025 04-17 11:59 range_conflict_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None   49850 06-20 03:54 java_types_ch19_lr1.parse_table_good
+    different number of states
+    split out 'parse grammar file' into -lr-generate_utils
+    add command-line version of test_lr1_parallel
+        show additional states, so can find where they come from in log
+item_sets_1 state 65 not found
+item_sets_1 state 75 not found
+item_sets_1 state 81 not found
+extra states: 70 81 83 84 85 86
+
+    search in supervisor.c_tree for new_states
+
+  -rw-rw-rw-  1 stephe None   59824 06-20 03:54 java_expressions_ch19_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None  160601 06-20 03:54 java_expressions_antlr_lr1.parse_table_good
+  -rw-rw-rw-  1 stephe None 2577949 06-20 03:54 ada_lite_lr1_re2c.parse_table_good
+
+        time ada.wy with task_count = 8
+
+        run t_bnf with task_count = 8?
+
+
+
+    cache results of closure?
+        never run the same one twice
+        i don't think we do
+        only way to tell it create a cache, see how many hits it gets.?
+
+    set prod_id in goto_item in LALR
+        or just move old code into LALR_Generate.
+
 add tree-sitter parser, lexer
-    do commit
-
-    propagate?
-
     translate tree-sitter parse tree to wisitoken?
         api.h has root, node_children,  etc.
 
@@ -79,26 +139,6 @@ delete descriptor.case_insensitive?
 
 syntax_trees.Replace_Child
     update cached data as in Set_Children
-
-speed up lr1 for ada_annex_p
-    build/Makefile generate_ada_lr1.gprof
-    generate ada_annex_p:
-    Goto_Item_Lists as doubly_linked_lists: LR1 re2c generate time: 286.589280637
-    Goto_Item_Lists as red_black_tree:  LR1 re2c generate time: 285.941202390
-
-    cache results of closure?
-        never run the same one twice
-
-    parallelize?
-
-to_tree_sitter
-    detect and/or implement no empty nonterm
-    output Execute_Actions
-
-wisitoken-generate-lr.adb Add_Actions FIXME:
-    doesn't use Goto_List for terminals!
-    Goto_List _does_ contain terminals
-        use them instead of other code in Add_Actions
 
 -explore.check
          --  FIXME: if there were conflicts, enqueue them; they might yield a
