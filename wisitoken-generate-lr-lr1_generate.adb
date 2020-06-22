@@ -73,7 +73,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor;
-      Task_Count              : in System.Multiprocessors.CPU_Range)
+      Task_Count              : in System.Multiprocessors.CPU_Range;
+      State_Limit             : in Unknown_State_Index := 0)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
@@ -102,7 +103,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
          procedure Update
            (Worker_ID           : in     Integer;
             From_State          : in     State_Index;
-            New_Item_Sets       : in     Item_Set_List;
+            New_C               : in out Item_Set_List;
+            New_C_Tree          : in     Item_Set_Trees.Tree;
             Existing_Goto_Items : in     Goto_Item_Arrays.Vector;
             New_Goto_Items      : in out Goto_Item_Arrays.Vector;
             Worker_C_Tree       : in out Item_Set_Trees.Tree);
@@ -139,6 +141,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
          Error_ID       : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
          Error_Message  : Ada.Strings.Unbounded.Unbounded_String;
+
+         Summary_Last_Output : State_Index := 0;
       end Supervisor;
 
       protected body Supervisor is
@@ -147,6 +151,11 @@ package body WisiToken.Generate.LR.LR1_Generate is
          is
             First_State_Index : constant State_Index := First_Item_Set.State;
          begin
+            C_Tree.Trace_Iterators (WisiToken.Trace_Generate_Table > Detail);
+            if Debug_Mode then
+               C_Tree.Control_Iterators (Item_Set_Trees.Single);
+            end if;
+
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
 
             Add (Grammar, First_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
@@ -159,16 +168,18 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Set           :    out Item_Set;
             Worker_C_Tree : in out Item_Set_Trees.Tree)
            when Fatal or States_To_Check.Length > 0 or Active_Workers = 0
-         is begin
+         is
+            New_States : Item_Set_Tree_Node_Arrays.Vector; -- Outside scope of Worker_Iter
+         begin
             if States_To_Check.Length > 0 then
                Set := C (States_To_Check.Get);
 
-               if Trace_Generate_Table > Outline then
+               if Trace_Generate_Table > Detail then
                   Ada.Text_IO.Put ("(worker" & Worker_ID'Image & ") Checking ");
                   Put (Grammar, Descriptor, Set, Show_Lookaheads => True, Show_Goto_List => True);
                end if;
 
-               --  FIXME: cache New_States from other workers, to avoid traversing
+               --  FIXME: cache New_C from other workers, to avoid traversing
                --  the whole tree
                declare
                   use Item_Set_Trees;
@@ -180,7 +191,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                   Super_Cur  : Item_Set_Trees.Cursor := Super_Iter.First;
                   Worker_Cur : Item_Set_Trees.Cursor := Worker_Iter.First;
-                  New_States : Item_Set_Tree_Node_Arrays.Vector;
                begin
                   loop
                      exit when not Has_Element (Super_Cur);
@@ -199,82 +209,101 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         exit when not Has_Element (Super_Cur);
                      end loop;
                   end if;
-
-                  for Item of New_States loop
-                     Worker_C_Tree.Insert (Item);
-                  end loop;
                end;
+               for Item of New_States loop
+                  Worker_C_Tree.Insert (Item);
+               end loop;
 
                Active_Workers := @ + 1;
             else
                Set := (others => <>);
             end if;
 
-            if Trace_Generate_Table > Outline then
-               Ada.Text_IO.Put_Line ("(super) States_To_Check remaining:" & States_To_Check.Length'Image);
+            if Trace_Generate_Table > Outline and then
+              C.Last_Index > Summary_Last_Output + 500
+            then
+               Ada.Text_IO.Put_Line
+                 ("(super) states:" & C.Last_Index'Image & " States_To_Check:" & States_To_Check.Length'Image);
+               Summary_Last_Output := C.Last_Index;
             end if;
          end Get;
 
          procedure Update
            (Worker_ID           : in     Integer;
             From_State          : in     State_Index;
-            New_Item_Sets       : in     Item_Set_List;
+            New_C               : in out Item_Set_List;
+            New_C_Tree          : in     Item_Set_Trees.Tree;
             Existing_Goto_Items : in     Goto_Item_Arrays.Vector;
             New_Goto_Items      : in out Goto_Item_Arrays.Vector;
             Worker_C_Tree       : in out Item_Set_Trees.Tree)
          is
-            use Goto_Item_Lists;
-            Goto_List : Goto_Item_List renames C (From_State).Goto_List;
-            Base_State : constant State_Index := C.Last_Index;
          begin
-            for Item of Existing_Goto_Items loop
-               if not Has_Element (Goto_List.Iterate.Find (Item.Symbol)) then
-                  Goto_List.Insert (Item);
-                  if Trace_Generate_Table > Detail then
-                     Ada.Text_IO.Put_Line
-                       ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
-                          Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+            declare
+               use Goto_Item_Lists;
+               From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
+            begin
+               for Item of Existing_Goto_Items loop
+                  if not Has_Element (From_Goto_List.Iterate.Find (Item.Symbol)) then
+                     From_Goto_List.Insert (Item);
+                     if Trace_Generate_Table > Detail then
+                        Ada.Text_IO.Put_Line
+                          ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
+                             Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+                     end if;
                   end if;
-               end if;
-            end loop;
+               end loop;
+            end;
 
-            for Item of New_Goto_Items loop
-               if not Has_Element (Goto_List.Iterate.Find (Item.Symbol)) then
-                  Item.State := Base_State + Item.State;
-                  Goto_List.Insert (Item);
-                  if Trace_Generate_Table > Detail then
-                     Ada.Text_IO.Put_Line
-                       ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
-                          Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
-                  end if;
-               end if;
-            end loop;
-
-            if Trace_Generate_Table > Outline and then New_Item_Sets.Length > 0 then
-               Ada.Text_IO.Put_Line ("(worker" & Worker_ID'Image & ") adding states from state" & From_State'Image);
+            if Trace_Generate_Table > Detail and then New_C.Length > 0 then
+               Ada.Text_IO.Put_Line
+                 ("(worker" & Worker_ID'Image & ") adding" & New_C.Length'Image & " states from state" &
+                    From_State'Image);
             end if;
-            for Item_Set_Cur in New_Item_Sets.Iterate loop
+            for New_C_Node of New_C_Tree loop
                declare
-                  New_State      : constant State_Index := C.Last_Index + 1;
-                  Const_Item_Set : Item_Set renames New_Item_Sets.Constant_Ref (Item_Set_Cur).Element.all;
+                  use Item_Set_Trees;
+
+                  From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
+
+                  Found_Cur : constant Cursor := Supervisor.C_Tree.Iterate.Find (New_C_Node.Key);
+
+                  New_State    : constant State_Index         := C.Last_Index + 1;
+                  Worker_State : constant Positive_Index_Type := Positive_Index_Type (New_C_Node.State);
                begin
-                  New_Item_Sets.Variable_Ref (Item_Set_Cur).State := New_State;
+                  if Has_Element (Found_Cur) then
+                     New_Goto_Items (Worker_State).State := Supervisor.C_Tree.Constant_Ref (Found_Cur).State;
+                     From_Goto_List.Insert (New_Goto_Items (Worker_State));
 
-                  States_To_Check.Put (New_State);
+                  else
+                     New_Goto_Items (Worker_State).State := New_State;
+                     From_Goto_List.Insert (New_Goto_Items (Worker_State));
 
-                  for Cur in Const_Item_Set.Goto_List.Iterate loop
-                     Const_Item_Set.Goto_List.Variable_Ref (Cur).State := New_State;
-                  end loop;
+                     New_C (New_C_Node.State).State := New_State;
 
-                  Add (Grammar, Const_Item_Set, Supervisor.C, Supervisor.C_Tree, Descriptor,
-                       Include_Lookaheads => True,
-                       Worker_C_Tree      => Worker_C_Tree);
+                     States_To_Check.Put (New_State);
 
-                  if Trace_Generate_Table > Outline then
-                     Put (Grammar, Descriptor, Const_Item_Set, Show_Lookaheads => True, Show_Goto_List => True);
+                     Add (Grammar, New_C (New_C_Node.State), New_C_Node.Key, Supervisor.C, Supervisor.C_Tree,
+                          Descriptor, Worker_C_Tree);
+
+                     if Trace_Generate_Table > Detail then
+                        Put (Grammar, Descriptor, New_C (New_C_Node.State),
+                             Show_Lookaheads => True,
+                             Show_Goto_List  => True);
+                     end if;
+                  end if;
+
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line
+                       ("    state" & From_State'Image & " adding goto on " &
+                          Image (New_Goto_Items (Worker_State).Symbol, Descriptor) & " to state" &
+                          New_Goto_Items (Worker_State).State'Image);
                   end if;
                end;
             end loop;
+
+            if State_Limit /= 0 and then State_Limit < C.Last_Index then
+               raise SAL.Programmer_Error with "state_limit exceeded";
+            end if;
 
             Active_Workers := @ - 1;
          exception
@@ -338,65 +367,83 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
          procedure Check_State
          is
-            Found_State  : Unknown_State_Index;
+            New_C : Item_Set_Arrays.Vector;
+            --  New states, numbered from 1 (the local new state number); add that
+            --  to the real state index.
 
-            New_Item_Set  : Item_Set; --  current working set
-            New_Item_Sets : Item_Set_Arrays.Vector;
+            New_C_Tree : Item_Set_Trees.Tree;
+            --  For searching
 
             Existing_Goto_List : Goto_Item_Arrays.Vector;
-            --  From C_I.state to an existing state.
+            --  From C_I.state to an existing state (found in C_Tree).
 
-            New_Goto_List : Goto_Item_Arrays.Vector;
-            --  From C_I.state to a new state. New state is numbered from 1; add
-            --  that to the real state index.
+            New_Goto_Items : Goto_Item_Arrays.Vector;
+            --  For each new state, there is one Goto from C_I to the new state.
+            --  It is stored in New_Goto_Items, which is indexed by the local new
+            --  state number. This simplifies finding the actual state number in
+            --  Supervisor.C_Tree; see Supervisor.Update.
 
             New_State : State_Index := 1;
          begin
-            for Dot_ID_I in C_I.Dot_IDs.First_Index .. C_I.Dot_IDs.Last_Index loop
-               declare
-                  Symbol : Token_ID renames C_I.Dot_IDs (Dot_ID_I);
-               begin
-                  --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
-                  --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
+            New_Goto_Items.Set_First_Last
+              (First => Positive_Index_Type (New_State),
+               Last  => Positive_Index_Type (New_State) - 1);
 
-                  New_Item_Set := LR1_Goto_Transitions
+            New_C.Set_First_Last (First => New_State, Last => New_State - 1);
+
+            for Dot_ID_I in C_I.Dot_IDs.First_Index .. C_I.Dot_IDs.Last_Index loop
+               --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
+               --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
+
+               declare
+                  Symbol       : Token_ID renames C_I.Dot_IDs (Dot_ID_I);
+                  New_Item_Set : Item_Set := LR1_Goto_Transitions
                     (C_I, Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
+               begin
                   if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
+                     declare
+                        use Item_Set_Trees;
+                        New_Item_Set_Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
+                          (New_Item_Set, Descriptor, True);
 
-                     Found_State := Find (New_Item_Set, C_Tree, Descriptor, Match_Lookaheads => True); -- 'not in C'
+                        --  First search in Worker.C_Tree
+                        Found_Cur : Cursor := C_Tree.Iterate.Find (New_Item_Set_Key);
 
-                     if Found_State = Unknown_State then
-                        declare
-                           Found_Cur : Item_Set_Arrays.Cursor := New_Item_Sets.No_Element;
-                        begin
-                           for Cur in New_Item_Sets.Iterate loop
-                              if New_Item_Sets.Constant_Ref (Cur) = New_Item_Set then
-                                 Found_Cur := Cur;
-                                 exit;
-                              end if;
-                           end loop;
+                        Found_State : constant Unknown_State_Index :=
+                          (if Has_Element (Found_Cur)
+                           then C_Tree.Constant_Ref (Found_Cur).State
+                           else Unknown_State);
+                     begin
+                        if Found_State = Unknown_State then
+                           Found_Cur := New_C_Tree.Iterate.Find (New_Item_Set_Key);
 
-                           if Item_Set_Arrays.Has_Element (Found_Cur) then
-                              New_Goto_List.Append ((Symbol, New_Item_Sets.Constant_Ref (Found_Cur).State));
+                           if Has_Element (Found_Cur) then
+                              --  There is already a goto from C_I to New_State.
+                              null;
                            else
-                              New_Goto_List.Append ((Symbol, New_State));
+                              New_Goto_Items.Append ((Symbol, New_State));
+                              pragma Assert (New_State = State_Index (New_Goto_Items.Last_Index));
 
-                              New_Item_Sets.Append (New_Item_Set);
+                              New_Item_Set.State := New_State;
+                              New_C.Append (New_Item_Set);
+                              pragma Assert (New_State = State_Index (New_C.Last_Index));
+
+                              New_C_Tree.Insert ((New_Item_Set_Key, New_State));
+
+                              New_State := New_State + 1;
                            end if;
-
-                           New_State := New_State + 1;
-                        end;
-                     else
-                        if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
-                           Existing_Goto_List.Append ((Symbol, Found_State));
+                        else
+                           if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
+                              Existing_Goto_List.Append ((Symbol, Found_State));
+                           end if;
                         end if;
-                     end if;
+                     end;
                   end if;
                end;
             end loop;
 
-            Supervisor.Update (ID, C_I.State, New_Item_Sets, Existing_Goto_List, New_Goto_List, C_Tree);
+            Supervisor.Update (ID, C_I.State, New_C, New_C_Tree, Existing_Goto_List, New_Goto_Items, C_Tree);
          end Check_State;
       begin
          select

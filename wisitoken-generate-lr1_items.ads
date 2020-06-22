@@ -290,10 +290,10 @@ package WisiToken.Generate.LR1_Items is
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
       New_Item_Set       : in     Item_Set;
+      New_Item_Set_Key   : in     Item_Set_Tree_Key;
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
       Descriptor         : in     WisiToken.Descriptor;
-      Include_Lookaheads : in     Boolean;
       Worker_C_Tree      : in out Item_Set_Trees.Tree)
    with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
    --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree

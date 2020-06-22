@@ -59,7 +59,12 @@ package WisiToken.BNF.Generate_Utils is
       Ignore_Conflicts :         in Boolean := False)
      return Generate_Data;
 
-   function Parse_Grammar_File (Grammar_File_Name : in String; Ignore_Conflicts : in Boolean) return Generate_Data;
+   function Parse_Grammar_File
+     (Grammar_File_Name  : in String;
+      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in WisiToken.BNF.Lexer_Type;
+      Ignore_Conflicts   : in Boolean)
+     return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
 
