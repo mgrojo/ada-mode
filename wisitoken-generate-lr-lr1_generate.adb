@@ -153,7 +153,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          begin
             C_Tree.Trace_Iterators (WisiToken.Trace_Generate_Table > Detail);
             if Debug_Mode then
-               C_Tree.Control_Iterators (Item_Set_Trees.Single);
+               C_Tree.Control_Iterators (Item_Set_Trees.Counted);
             end if;
 
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
@@ -243,7 +243,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
             begin
                for Item of Existing_Goto_Items loop
-                  if not Has_Element (From_Goto_List.Iterate.Find (Item.Symbol)) then
+                  if not Has_Element (From_Goto_List.Find (Item.Symbol)) then
                      From_Goto_List.Insert (Item);
                      if Trace_Generate_Table > Detail then
                         Ada.Text_IO.Put_Line
@@ -265,7 +265,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                   From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
 
-                  Found_Cur : constant Cursor := Supervisor.C_Tree.Iterate.Find (New_C_Node.Key);
+                  Found_Cur : constant Cursor := Supervisor.C_Tree.Find (New_C_Node.Key);
 
                   New_State    : constant State_Index         := C.Last_Index + 1;
                   Worker_State : constant Positive_Index_Type := Positive_Index_Type (New_C_Node.State);
@@ -408,7 +408,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                           (New_Item_Set, Descriptor, True);
 
                         --  First search in Worker.C_Tree
-                        Found_Cur : Cursor := C_Tree.Iterate.Find (New_Item_Set_Key);
+                        Found_Cur : Cursor := C_Tree.Find (New_Item_Set_Key);
 
                         Found_State : constant Unknown_State_Index :=
                           (if Has_Element (Found_Cur)
@@ -416,7 +416,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                            else Unknown_State);
                      begin
                         if Found_State = Unknown_State then
-                           Found_Cur := New_C_Tree.Iterate.Find (New_Item_Set_Key);
+                           Found_Cur := New_C_Tree.Find (New_Item_Set_Key);
 
                            if Has_Element (Found_Cur) then
                               --  There is already a goto from C_I to New_State.

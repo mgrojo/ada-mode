@@ -22,12 +22,17 @@ update-wisitoken_grammar
 
  current work
 speed up lr1 for ada_annex_p
-o.w     o.e.a ada.wy LR1:
-compute partial recursion time: 0.002063858
-initial item_sets time: 199.223001549
-add_actions time: 2.037258551
-compute minimal actions time: 1.819765908
-compute conflicts time: 0.406810200
+    o.w     o.e.a ada.wy LR1:
+    compute partial recursion time: 0.002063858
+    initial item_sets time: 199.223001549, 190.326535244
+    add_actions time: 2.037258551
+    compute minimal actions time: 1.819765908
+    compute conflicts time: 0.406810200
+
+    time o.w.s_2 ada.wy with red_black controlled iterators
+        initial item_sets time: 181.146628582; lost in the noise
+       if slower, change Iterate to allocate Control, ignore memory leak
+       or just delete; mostly not helpful.
 
     parallelize Lr1_generate.lr1_item_sets
         compare build/dragon_4_43-generate.log to o.w; good
@@ -83,9 +88,6 @@ task_count 8 time: 140.565159113
 
         time ada.wy with task_count = 8
 
-        time o.w.s_2 ada.wy with red_black controlled iterators
-            if slower, change Iterate to allocate Control, ignore memory leak
-            or just delete; mostly not helpful.
 
         run t_bnf with task_count = 8?
 
