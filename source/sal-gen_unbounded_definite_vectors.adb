@@ -507,6 +507,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Prev;
 
+   function No_Element (Container : aliased in Vector) return Cursor
+   is begin
+      return (Container'Access, Invalid_Peek_Index);
+   end No_Element;
+
    function To_Cursor
      (Container : aliased in Vector;
       Index     :         in Extended_Index)

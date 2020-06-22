@@ -165,6 +165,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    function Prev (Position : in Cursor) return Cursor;
    procedure Prev (Position : in out Cursor);
 
+   function No_Element (Container : aliased in Vector) return Cursor;
+
    function To_Cursor
      (Container : aliased in Vector;
       Index     :         in Extended_Index)

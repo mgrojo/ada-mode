@@ -37,8 +37,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    type Tree is new Ada.Finalization.Controlled with private
    with
-     Constant_Indexing => Constant_Reference,
-     Variable_Indexing => Variable_Reference,
+     Constant_Indexing => Constant_Ref,
+     Variable_Indexing => Variable_Ref,
      Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
@@ -46,7 +46,43 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    overriding procedure Initialize (Object : in out Tree);
    overriding procedure Adjust (Object : in out Tree);
 
-   Empty_Tree : constant Tree;
+   function Empty_Tree return Pkg.Tree;
+
+   procedure Trace_Iterators (Tree : in out Pkg.Tree; Enable_Trace : in Boolean);
+   --  If Enable_Trace, Iterator init/adjust/finalize print messages to
+   --  text_IO.current_output.
+
+   type Control_Label is (None, Counted, Single);
+
+   procedure Control_Iterators (Tree : in out Pkg.Tree; Enable_Control : in Control_Label);
+   --  If Enable_Control is
+   --
+   --  - Counted: Iterators active on a tree are counted, and
+   --  insert/delete raise Programmer_Error when any are active. The
+   --  error message does not indicate which iterator is active. This
+   --  relies on Finalization, which sometimes has surprising effects. In
+   --  particular, consider this code:
+   --
+   --  declare
+   --     Found : Cursor := Tree.Iterate.Find (3);
+   --     --  The iterator survives until the end of the block
+   --  begin
+   --     Tree.Insert (4); -- Programmer_Error
+   --  end;
+   --  declare
+   --     Found : Cursor := Tree.Find (3);
+   --     --  The iterator survives until the end of Find
+   --  begin
+   --     Tree.Insert (4); -- ok
+   --  end;
+   --
+   --  - Single: First/Last clears a modified flag in the tree,
+   --  Insert/Delete sets it, Next or Prev raise Programmer_Error when
+   --  the flag is set.
+   --
+   --  - None: no checks are done.
+   --
+   --  Default is None for speed.
 
    type Direction_Type is (Ascending, Descending, Unknown);
    subtype Known_Direction_Type is Direction_Type range Ascending .. Descending;
@@ -60,17 +96,20 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    No_Element : constant Cursor;
 
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
+   function Direction (Cursor : in Pkg.Cursor) return Direction_Type;
+
+   function Key (Cursor : in Pkg.Cursor) return Key_Type;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
      return Constant_Reference_Type with
      Inline, Pre => Has_Element (Position);
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
      return Constant_Reference_Type with
@@ -82,13 +121,13 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  User must not change value of Key thru this reference; if Key is
    --  changed, use Delete, Insert.
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
      return Variable_Reference_Type with
      Inline, Pre => Has_Element (Position);
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
      return Variable_Reference_Type with
@@ -97,14 +136,16 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator is new Iterators.Reversible_Iterator with private;
+   type Iterator (<>) is new Iterators.Reversible_Iterator with private;
 
-   function Iterate (Tree : in Pkg.Tree'Class) return Iterator;
+   function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator;
 
    overriding function First (Iterator : in Pkg.Iterator) return Cursor;
-   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor;
+   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
+   with Pre => Has_Element (Position) and Direction (Position) /= Unknown;
    overriding function Last (Iterator : in Pkg.Iterator) return Cursor;
-   overriding function Previous (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor;
+   overriding function Previous (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
+   with Pre => Has_Element (Position) and Direction (Position) /= Unknown;
 
    function Previous (Iterator : in Pkg.Iterator; Key : in Key_Type) return Cursor;
    --  Initialise Iterator to descending, starting at element with
@@ -117,6 +158,15 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Direction : in Direction_Type := Ascending)
      return Cursor;
    --  Has_Element is False if Key is not in Container.
+
+   function Find
+     (Container : in Tree;
+      Key       : in Key_Type;
+      Direction : in Direction_Type := Ascending)
+     return Cursor;
+   --  Creates (and Finalizes) an Iterator internally, so if
+   --  Control_Iterators is Counted, the count goes to zero when Find
+   --  returns.
 
    function Find_In_Range
      (Iterator    : in Pkg.Iterator;
@@ -139,7 +189,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type);
    function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
-   --  Result points to newly inserted element.
+   --  Result points to newly inserted element, with Direction Unknown.
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
    --  Delete element at Position, set Position to No_Element.
@@ -160,6 +210,12 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
+   type Natural_Access is access Natural;
+   procedure Free is new Ada.Unchecked_Deallocation (Natural, Natural_Access);
+
+   type Boolean_Access is access Boolean;
+   procedure Free is new Ada.Unchecked_Deallocation (Boolean, Boolean_Access);
+
    type Tree is new Ada.Finalization.Controlled with record
       Root : Node_Access;
       Nil  : Node_Access;
@@ -168,6 +224,13 @@ private
       --  Node.Left.Color is always valid). Its parent, left, right links
       --  are used as temp storage for some algorithms (especially Delete).
       --  Nil.Color is Black.
+
+      Iterators_Active          : Natural_Access;
+      Modified_After_First_Last : Boolean_Access;
+      --  'access' so Tree can be constant while Iterators_Active is not.
+
+      Trace_Iterators   : Boolean       := False;
+      Control_Iterators : Control_Label := None;
    end record;
 
    type Cursor is record
@@ -180,6 +243,15 @@ private
       Right_Done : Boolean := True;
    end record;
 
+   function Has_Element (Cursor : in Pkg.Cursor) return Boolean
+   is (Cursor.Node /= null);
+
+   function Direction (Cursor : in Pkg.Cursor) return Direction_Type
+   is (Cursor.Direction);
+
+   function Key (Cursor : in Pkg.Cursor) return Key_Type
+   is (Key (Cursor.Node.Element));
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
@@ -190,18 +262,32 @@ private
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
-   Empty_Tree : constant Tree := (Ada.Finalization.Controlled with null, null);
-
    No_Element : constant Cursor :=
      (Node       => null,
       Direction  => Unknown,
       Left_Done  => True,
       Right_Done => True);
 
-   type Iterator is new Iterators.Reversible_Iterator with
+   type Iterator_Control (Container : access constant Tree) is new Ada.Finalization.Controlled with record
+      ID : Integer := 0; --  For debugging
+   end record;
+
+   overriding procedure Finalize (Object : in out Iterator_Control);
+   overriding procedure Initialize (Object : in out Iterator_Control);
+   overriding procedure Adjust (Object : in out Iterator_Control);
+
+   type Iterator (Container : access constant Tree) is new Iterators.Reversible_Iterator with
    record
-      Root : Node_Access;
-      Nil  : Node_Access;
+      --  We'd like to have no Controlled subprograms called when
+      --  Tree.Control_Iterators is None. That would require allocating
+      --  Control, which would require another layer of Controlled to avoid
+      --  a memory leak. Or just tolerate the leak; only using non-None
+      --  during debugging. However, testing shows the time to call the
+      --  Controlled subpgrograms is negligible (wisitoken lr1 generate of
+      --  ada.wy).
+      Control : Iterator_Control (Container);
+      Root    : Node_Access;
+      Nil     : Node_Access;
    end record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;
