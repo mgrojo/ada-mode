@@ -64,11 +64,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end;
       end loop;
 
-      if Goto_Set.Set.Length > 0 then
-         return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-      else
-         return Goto_Set;
-      end if;
+      pragma Assert (Goto_Set.Set.Length > 0);
+      return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    end LR1_Goto_Transitions;
 
    function LR1_Item_Sets
@@ -88,9 +85,17 @@ package body WisiToken.Generate.LR.LR1_Generate is
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
       --  "items", with some optimizations.
 
+      package Key_State_Queues is new SAL.Gen_Unbounded_Definite_Queues (Item_Set_Tree_Node);
+      package Key_State_Queue_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+        (Element_Type    => Key_State_Queues.Queue,
+         Index_Type      => Positive,
+         Default_Element => Key_State_Queues.Empty_Queue);
+
       protected Supervisor is
 
-         procedure Initialize (First_Item_Set : in Item_Set);
+         procedure Initialize
+           (Worker_Count   : in Integer;
+            First_Item_Set : in Item_Set);
 
          entry Get
            (Worker_ID     : in     Integer;
@@ -142,6 +147,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Active_Workers : Natural := 0;
          Fatal          : Boolean := False;
 
+         New_States_For_Worker : Key_State_Queue_Arrays.Vector;
+         --  Indexed by worker ID
+
          Error_ID       : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
          Error_Message  : Ada.Strings.Unbounded.Unbounded_String;
 
@@ -150,10 +158,14 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       protected body Supervisor is
 
-         procedure Initialize (First_Item_Set : in Item_Set)
+         procedure Initialize
+           (Worker_Count   : in Integer;
+            First_Item_Set : in Item_Set)
          is
             First_State_Index : constant State_Index := First_Item_Set.State;
          begin
+            New_States_For_Worker.Set_First_Last (1, Worker_Count);
+
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
 
             Add (Grammar, First_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
@@ -166,9 +178,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Set           :    out Item_Set;
             Worker_C_Tree : in out Item_Set_Trees.Tree)
            when Fatal or States_To_Check.Length > 0 or Active_Workers = 0
-         is
-            New_States : Item_Set_Tree_Node_Arrays.Vector; -- Outside scope of Worker_Iter
-         begin
+         is begin
             if States_To_Check.Length > 0 then
                Set := C (States_To_Check.Get);
 
@@ -177,39 +187,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
                   Put (Grammar, Descriptor, Set, Show_Lookaheads => True, Show_Goto_List => True);
                end if;
 
-               --  FIXME: cache New_C from other workers, to avoid traversing
-               --  the whole tree
-               declare
-                  use Item_Set_Trees;
-                  use Int_Arrays_Comparable;
-                  use all type SAL.Compare_Result;
-
-                  Super_Iter  : constant Item_Set_Trees.Iterator := Supervisor.C_Tree.Iterate;
-                  Worker_Iter : constant Item_Set_Trees.Iterator := Worker_C_Tree.Iterate;
-
-                  Super_Cur  : Item_Set_Trees.Cursor := Super_Iter.First;
-                  Worker_Cur : Item_Set_Trees.Cursor := Worker_Iter.First;
-               begin
-                  loop
-                     exit when not Has_Element (Super_Cur);
-                     exit when not Has_Element (Worker_Cur);
-                     if Compare (Key (Super_Cur), Key (Worker_Cur)) /= Equal then
-                        New_States.Append (Supervisor.C_Tree.Constant_Ref (Super_Cur));
-                     end if;
-                     Super_Cur  := Super_Iter.Next (@);
-                     Worker_Cur := Worker_Iter.Next (@);
-                  end loop;
-
-                  if Has_Element (Super_Cur) and not Has_Element (Worker_Cur) then
-                     loop
-                        New_States.Append (Supervisor.C_Tree.Constant_Ref (Super_Cur));
-                        Super_Cur  := Super_Iter.Next (@);
-                        exit when not Has_Element (Super_Cur);
-                     end loop;
-                  end if;
-               end;
-               for Item of New_States loop
-                  Worker_C_Tree.Insert (Item);
+               loop
+                  exit when New_States_For_Worker (Worker_ID).Is_Empty;
+                  Worker_C_Tree.Insert (New_States_For_Worker (Worker_ID).Get);
                end loop;
 
                Active_Workers := @ + 1;
@@ -278,6 +258,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
                      Add (Grammar, New_C (New_C_Node.State), New_C_Node.Key, Supervisor.C, Supervisor.C_Tree,
                           Descriptor, Worker_C_Tree);
+
+                     for ID in New_States_For_Worker.First_Index .. New_States_For_Worker.Last_Index  loop
+                        if ID /= Worker_ID then
+                           New_States_For_Worker (ID).Put ((New_C_Node.Key, New_State));
+                        end if;
+                     end loop;
 
                      if Trace_Generate_Table > Detail then
                         Put (Grammar, Descriptor, New_C (New_C_Node.State),
@@ -395,45 +381,43 @@ package body WisiToken.Generate.LR.LR1_Generate is
                     (C_I, Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
                begin
-                  if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
-                     declare
-                        use Item_Set_Trees;
-                        New_Item_Set_Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
-                          (New_Item_Set, Descriptor, True);
+                  declare
+                     use Item_Set_Trees;
+                     New_Item_Set_Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
+                       (New_Item_Set, Descriptor, True);
 
-                        --  First search in Worker.C_Tree
-                        Found_Cur : Cursor := C_Tree.Find (New_Item_Set_Key);
+                     --  First search in Worker.C_Tree
+                     Found_Cur : Cursor := C_Tree.Find (New_Item_Set_Key);
 
-                        Found_State : constant Unknown_State_Index :=
-                          (if Has_Element (Found_Cur)
-                           then C_Tree.Constant_Ref (Found_Cur).State
-                           else Unknown_State);
-                     begin
-                        if Found_State = Unknown_State then
-                           Found_Cur := New_C_Tree.Find (New_Item_Set_Key);
+                     Found_State : constant Unknown_State_Index :=
+                       (if Has_Element (Found_Cur)
+                        then C_Tree.Constant_Ref (Found_Cur).State
+                        else Unknown_State);
+                  begin
+                     if Found_State = Unknown_State then
+                        Found_Cur := New_C_Tree.Find (New_Item_Set_Key);
 
-                           if Has_Element (Found_Cur) then
-                              --  There is already a goto from C_I to New_State.
-                              null;
-                           else
-                              New_Goto_Items.Append ((Symbol, New_State));
-                              pragma Assert (New_State = State_Index (New_Goto_Items.Last_Index));
-
-                              New_Item_Set.State := New_State;
-                              New_C.Append (New_Item_Set);
-                              pragma Assert (New_State = State_Index (New_C.Last_Index));
-
-                              New_C_Tree.Insert ((New_Item_Set_Key, New_State));
-
-                              New_State := New_State + 1;
-                           end if;
+                        if Has_Element (Found_Cur) then
+                           --  There is already a goto from C_I to New_State.
+                           null;
                         else
-                           if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
-                              Existing_Goto_List.Append ((Symbol, Found_State));
-                           end if;
+                           New_Goto_Items.Append ((Symbol, New_State));
+                           pragma Assert (New_State = State_Index (New_Goto_Items.Last_Index));
+
+                           New_Item_Set.State := New_State;
+                           New_C.Append (New_Item_Set);
+                           pragma Assert (New_State = State_Index (New_C.Last_Index));
+
+                           New_C_Tree.Insert ((New_Item_Set_Key, New_State));
+
+                           New_State := New_State + 1;
                         end if;
-                     end;
-                  end if;
+                     else
+                        if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
+                           Existing_Goto_List.Append ((Symbol, Found_State));
+                        end if;
+                     end if;
+                  end;
                end;
             end loop;
 
@@ -485,7 +469,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
           State          => First_State_Index),
          Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    begin
-      Supervisor.Initialize (First_Item_Set);
+      Supervisor.Initialize (Integer (Worker_Tasks'Last), First_Item_Set);
 
       if Trace_Generate_Table > Outline then
          Ada.Text_IO.Put_Line (Worker_Tasks'Length'Image & " lr1_items worker tasks");

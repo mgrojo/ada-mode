@@ -30,12 +30,14 @@ update-wisitoken_grammar
 speed up lr1 for ada_annex_p
     o.w     o.e.a ada.wy LR1:
     compute partial recursion time: 0.002063858
-    initial item_sets time: 199.223001549, 190.326535244, 181.146628582
+    initial item_sets time: 182.785572261
     add_actions time: 2.037258551
     compute minimal actions time: 1.819765908
     compute conflicts time: 0.406810200
 
-    copy lr1_items_closure changes to o.w.s-2; should be faster
+    o.w ada_lite      initial item_sets time: 0.225666808
+    o.w ada_lite_ebnf initial item_sets time: 0.182028666
+
 
     parallelize Lr1_generate.lr1_item_sets
         compare build/dragon_4_43-generate.log to o.w; good
@@ -43,54 +45,24 @@ speed up lr1 for ada_annex_p
 
         run t_bnf with task_count = 1 (default) => fine
 
-        try ada_lite task_count = 8
-            hangs
-
-    try in increasing size:
-  -rw-rw-rw-  1 stephe None    1502 04-17 11:59 warth_left_recurse_expr_1_lr1.parse_table_good
-  -rw-rw-rw-  1 stephe None    2779 06-21 07:56 dragon_4_43_lr1.parse_table_good
-  ok
-  -rw-rw-rw-  1 stephe None    4508 04-17 12:06 java_enum_ch19_lr1.parse_table_good
-  ok
-  -rw-rw-rw-  1 stephe None    5656 04-17 12:06 skip_to_grammar_lr1.parse_table_good
-  -rw-rw-rw-  1 stephe None    6090 04-17 12:06 case_expression_lr1_re2c.parse_table_good
-  ok
-  -rw-rw-rw-  1 stephe None    8581 04-17 12:06 character_literal_lr1_re2c.parse_table_good
-  -rw-rw-rw-  1 stephe None   12634 06-20 03:54 body_instantiation_conflict_lr1.parse_table_good
-  ok
-
-  -rw-rw-rw-  1 stephe None   13616 04-17 11:59 identifier_list_name_conflict_lr1.parse_table_good
-  -rw-rw-rw-  1 stephe None   19025 04-17 11:59 range_conflict_lr1.parse_table_good
-  -rw-rw-rw-  1 stephe None   49850 06-20 03:54 java_types_ch19_lr1.parse_table_good
-    ok
-
-                different check; iterator used after tree modified
-                    getting different error; in goto_list tree
-                    Update.from_goto_list => supervisor.C (From_State).Goto_List;
-                    modified_after_first_last is a bad address
-                    nil, iterators_active have bogus values.
-                    C was grown, so c (from_state).goto_list got reallocated!
-                    add check for that?
-                        renames uses constant_ref; that would have to be Controlled.
-                        same problem if goto_list is a vector
-
-
-  -rw-rw-rw-  1 stephe None   59824 06-20 03:54 java_expressions_ch19_lr1.parse_table_good
-  -rw-rw-rw-  1 stephe None  160601 06-20 03:54 java_expressions_antlr_lr1.parse_table_good
   -rw-rw-rw-  1 stephe None 2577949 06-20 03:54 ada_lite_lr1_re2c.parse_table_good
     Windows task Manager reports only 1 cpu busy
         ie, all the time is spent in Supervisor.
         add time to supervisor summary; takes longer to add later states.
         finished, reports correct
-task_count 1 time: 10.366278262
-task_count 8 time: 140.565159113
-            holy crap!
-            cache new states
+task_count 1 time: 0.717322650
+task_count 8 time: 0.309003036
+    yeah!
+
+    ada_lite_ebnf
+task_count 1 time: 0.646181903
+task_count 1 max state: 2915
+task_count 8 time: 0.308103639
 
             allocate chunk of states to workers
 
         time ada.wy with task_count = 8
-
+cache new states for each worker: initial item_sets time: 184.235532238 no faster, but no slower :(
 
         run t_bnf with task_count = 8?
 
