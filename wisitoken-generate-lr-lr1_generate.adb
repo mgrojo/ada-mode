@@ -54,7 +54,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
                  --  accept production.
                  Symbol /= Descriptor.EOI_ID
                then
-                  Goto_Set.Set.Insert ((Item.Prod, Item.Dot + 1, Item.Lookaheads));
+                  Goto_Set.Set.Insert
+                    ((Item.Prod,
+                      (if Item.Dot = Item_Tokens.Last_Index then No_Index else Item.Dot + 1),
+                      Item.Lookaheads));
                end if;
             end if;
          end;

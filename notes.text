@@ -30,6 +30,7 @@ update-wisitoken_grammar
 add tree-sitter parser, lexer
     tree-sitter still not getting comments right
         try updating tree-sitter from github
+        try 'tree-sitter parse'
 
     tree-sitter generate supposed to report conflicts
         then w-b-g needs to declare conflicts with 'conflicts:' in grammar
