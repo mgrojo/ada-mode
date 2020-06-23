@@ -108,15 +108,16 @@ task_count 8 time: 140.565159113
         i don't think we do
         only way to tell it create a cache, see how many hits it gets.?
 
-    set prod_id in goto_item in LALR
-        or just move old code into LALR_Generate.
-
 add tree-sitter parser, lexer
-    translate tree-sitter parse tree to wisitoken?
-        api.h has root, node_children,  etc.
-
     tree-sitter still not getting comments right
         try updating tree-sitter from github
+        try 'tree-sitter parse'
+
+    tree-sitter generate supposed to report conflicts
+        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
+
+    translate tree-sitter parse tree to wisitoken?
+        api.h has root, node_children,  etc.
 
     time parts of generate tree_sitter; seems slow on ada_annex_p
 

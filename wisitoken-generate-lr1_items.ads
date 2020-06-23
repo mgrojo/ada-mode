@@ -103,8 +103,9 @@ package WisiToken.Generate.LR1_Items is
 
    type Item is record
       Prod       : Production_ID;
-      Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index; -- token after item Dot
-      Lookaheads : Lookahead := (others => False);
+      Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index;
+      --  Token after item Dot. If after last token, value is No_Index.
+      Lookaheads : Lookahead                      := (others => False);
    end record;
 
    function To_Lookahead (Item : in Token_ID) return Lookahead;

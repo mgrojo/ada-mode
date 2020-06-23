@@ -500,14 +500,13 @@ package body WisiToken.Generate.LR is
 
       for Item of Closure.Set loop
          declare
-            Dot : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-              (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
+            Item_Tokens : Token_ID_Arrays.Vector renames Productions.Constant_Ref_RHS
+              (Grammar, Item.Prod).Tokens;
          begin
-            if not Has_Element (Dot) then
+            if Item.Dot not in Item_Tokens.First_Index .. Item_Tokens.Last_Index then
                Add_Lookahead_Actions (Item, Table.States (State).Action_List, Grammar, Descriptor);
 
-            elsif Element (Dot) in
-              Descriptor.First_Terminal .. Descriptor.Last_Terminal
+            elsif Item_Tokens (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal
             then
                --  Dot is before a terminal token.
                declare
@@ -515,7 +514,7 @@ package body WisiToken.Generate.LR is
 
                   P_ID : constant Production_ID := Item.Prod;
 
-                  Dot_ID : constant Token_ID := Element (Dot);
+                  Dot_ID : constant Token_ID := Item_Tokens (Item.Dot);
                   --  ID of token after Item.Dot
 
                   Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (Closure, Dot_ID);
@@ -545,7 +544,7 @@ package body WisiToken.Generate.LR is
             else
                --  Dot is before a non-terminal token; no action.
                if Trace_Generate_Table > Detail then
-                  Ada.Text_IO.Put_Line (Image (Element (Dot), Descriptor) & " => no action");
+                  Ada.Text_IO.Put_Line (Image (Item_Tokens (Item.Dot), Descriptor) & " => no action");
                end if;
             end if;
          end;

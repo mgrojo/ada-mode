@@ -51,7 +51,7 @@ package body WisiToken.Generate.LR1_Items is
             RHS : WisiToken.Productions.Right_Hand_Side renames
               WisiToken.Productions.Constant_Ref_RHS (Grammar, Item.Prod);
          begin
-            if Item.Dot /= No_Index then
+            if Item.Dot in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index then
                if RHS.Tokens (Item.Dot) /= Descriptor.EOI_ID then
                   IDs (RHS.Tokens (Item.Dot)) := True;
                end if;
@@ -390,71 +390,72 @@ package body WisiToken.Generate.LR1_Items is
       loop
          declare
             Item : LR1_Items.Item renames I.Set (Item_I);
+            Item_Tokens : Token_ID_Arrays.Vector renames Constant_Ref_RHS (Grammar, Item.Prod).Tokens;
+            Item_Dot_ID : constant Token_ID :=
+              (if Item.Dot in Item_Tokens.First_Index .. Item_Tokens.Last_Index
+               then Item_Tokens (Item.Dot)
+               else Invalid_Token_ID);
          begin
             --  An item has the structure [A -> alpha Dot B Beta, a].
             --
             --  If B is a nonterminal, find its productions and place
             --  them in the set with lookaheads from FIRST(Beta a).
-            if Item.Dot /= No_Index then
+
+            if Item_Dot_ID /= Invalid_Token_ID and
+              Item_Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal
+            then
                declare
-                  Item_Tokens : Token_ID_Arrays.Vector renames Constant_Ref_RHS (Grammar, Item.Prod).Tokens;
-                  Item_Dot_ID : constant Token_ID := Item_Tokens (Item.Dot);
+                  Prod : WisiToken.Productions.Instance renames Grammar (Item_Dot_ID);
                begin
-                  if Item_Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
+                  For_Each_RHS :
+                  for J in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
-                        Prod : WisiToken.Productions.Instance renames Grammar (Item_Dot_ID);
+                        RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (J);
+                        P_ID : constant Production_ID := (Prod.LHS, J);
+                        Beta : Integer := (if Item.Dot = Item_Tokens.Last_Index then No_Index else Item.Dot + 1);
+                        --  Tokens after Item nonterminal, null if No_Index
                      begin
-                        For_Each_RHS :
-                        for J in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
-                           declare
-                              RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (J);
-                              P_ID : constant Production_ID := (Prod.LHS, J);
-                              Beta : Integer := (if Item.Dot = Item_Tokens.Last_Index then No_Index else Item.Dot + 1);
-                              --  Tokens after Item nonterminal, null if No_Index
-                           begin
-                              --  Compute FIRST (<tail of right hand side> a); loop
-                              --  until find a terminal, a nonterminal that
-                              --  cannot be empty, or end of production, adding
-                              --  items on the way.
+                        --  Compute FIRST (<tail of right hand side> a); loop
+                        --  until find a terminal, a nonterminal that
+                        --  cannot be empty, or end of production, adding
+                        --  items on the way.
 
-                              First_Tail :
-                              loop
-                                 if Beta = No_Index then
-                                    --  Use FIRST (a); a = Item.Lookaheads.
-                                    --  Lookaheads are all terminals, so
-                                    --  FIRST (a) = a.
-                                    Added_Item := Added_Item or
-                                      Merge (P_ID, To_Index (RHS.Tokens.First), Item.Lookaheads, I);
-                                    exit First_Tail;
+                        First_Tail :
+                        loop
+                           if Beta = No_Index then
+                              --  Use FIRST (a); a = Item.Lookaheads.
+                              --  Lookaheads are all terminals, so
+                              --  FIRST (a) = a.
+                              Added_Item := Added_Item or
+                                Merge (P_ID, RHS.Tokens.First_Index (No_Index_If_Empty => True), Item.Lookaheads, I);
+                              exit First_Tail;
 
-                                 elsif Item_Tokens (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                                    --  FIRST (Beta) = Beta
-                                    Added_Item := Added_Item or Merge
-                                      (P_ID, To_Index (RHS.Tokens.First), Item_Tokens (Beta), I);
-                                    exit First_Tail;
+                           elsif Item_Tokens (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                              --  FIRST (Beta) = Beta
+                              Added_Item := Added_Item or Merge
+                                (P_ID, RHS.Tokens.First_Index (No_Index_If_Empty => True), Item_Tokens (Beta), I);
+                              exit First_Tail;
 
-                                 else
-                                    --  Beta is a nonterminal; use FIRST (Beta)
-                                    for Terminal of First_Terminal_Sequence (Item_Tokens (Beta)) loop
-                                       Added_Item := Added_Item or
-                                         Merge (P_ID, RHS.Tokens.First_Index, Terminal, I);
-                                    end loop;
+                           else
+                              --  Beta is a nonterminal; use FIRST (Beta)
+                              for Terminal of First_Terminal_Sequence (Item_Tokens (Beta)) loop
+                                 Added_Item := Added_Item or
+                                   Merge (P_ID, RHS.Tokens.First_Index (No_Index_If_Empty => True), Terminal, I);
+                              end loop;
 
-                                    if Has_Empty_Production (Item_Tokens (Beta)) then
-                                       --  Process the next token in the tail, or "a"
-                                       Beta := (if Beta = Item_Tokens.Last_Index then No_Index else Beta + 1);
+                              if Has_Empty_Production (Item_Tokens (Beta)) then
+                                 --  Process the next token in the tail, or "a"
+                                 Beta := (if Beta = Item_Tokens.Last_Index then No_Index else Beta + 1);
 
-                                    else
-                                       exit First_Tail;
-                                    end if;
-                                 end if;
-                              end loop First_Tail;
-                           end;
-                        end loop For_Each_RHS;
+                              else
+                                 exit First_Tail;
+                              end if;
+                           end if;
+                        end loop First_Tail;
                      end;
-                  end if; -- Dot is at non-terminal
+                  end loop For_Each_RHS;
                end;
-            end if;
+            end if; -- Dot is at non-terminal
          end;
 
          if not Has_Element (Item_Lists.Next (Item_I)) then

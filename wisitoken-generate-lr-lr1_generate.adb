@@ -44,21 +44,24 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Goto_Set : Item_Set;
    begin
       for Item of Set.Set loop
-         if Item.Dot /= No_Index then
-            declare
-               Dot : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-                 (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
-            begin
-               if Element (Dot) = Symbol and
+         declare
+            Item_Tokens : Token_ID_Arrays.Vector renames Productions.Constant_Ref_RHS
+              (Grammar, Item.Prod).Tokens;
+         begin
+            if Item.Dot in Item_Tokens.First_Index .. Item_Tokens.Last_Index then
+               if Item_Tokens (Item.Dot) = Symbol and
                  --  We don't need a state with dot after EOI in the
                  --  accept production. EOI should only appear in the
                  --  accept production.
                  Symbol /= Descriptor.EOI_ID
                then
-                  Goto_Set.Set.Insert ((Item.Prod, To_Index (Next (Dot)), Item.Lookaheads));
+                  Goto_Set.Set.Insert
+                    ((Item.Prod,
+                      (if Item.Dot = Item_Tokens.Last_Index then No_Index else Item.Dot + 1),
+                      Item.Lookaheads));
                end if;
-            end;
-         end if;
+            end if;
+         end;
       end loop;
 
       if Goto_Set.Set.Length > 0 then

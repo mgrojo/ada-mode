@@ -191,7 +191,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Add (Grammar,
            (Set               => Item_Lists.To_List
               ((Prod          => (Grammar.First_Index, 0),
-                Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
+                Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index (No_Index_If_Empty => True),
                 Lookaheads    => Null_Lookahead)),
             Goto_List         => <>,
             Dot_IDs           => <>,
