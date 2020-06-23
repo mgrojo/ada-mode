@@ -322,7 +322,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
-      Tree.Finalize;
+      Tree.Nodes.Clear;
    end Clear;
 
    procedure Clear (Tree : in out Syntax_Trees.Tree)
@@ -334,7 +334,7 @@ package body WisiToken.Syntax_Trees is
             end if;
          end loop;
       end if;
-      Tree.Shared_Tree.Finalize;
+      Tree.Shared_Tree.Clear;
       Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
    end Clear;

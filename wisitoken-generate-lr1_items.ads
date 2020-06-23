@@ -103,8 +103,11 @@ package WisiToken.Generate.LR1_Items is
 
    type Item is record
       Prod       : Production_ID;
-      Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index; -- token after item Dot
-      Lookaheads : Lookahead := (others => False);
+      Dot        : Token_ID_Arrays.Extended_Index := Token_ID_Arrays.No_Index;
+      --  Token after item Dot. If after last token, value is either
+      --  No_Index or > tokens.Last_Index; use Item.Dot in
+      --  tokens.First_Index .. tokens.Last_Index to test.
+      Lookaheads : Lookahead                      := (others => False);
    end record;
 
    function To_Lookahead (Item : in Token_ID) return Lookahead;
@@ -278,7 +281,8 @@ package WisiToken.Generate.LR1_Items is
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
       Descriptor         : in     WisiToken.Descriptor;
-      Include_Lookaheads : in     Boolean);
+      Include_Lookaheads : in     Boolean)
+   with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
    --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree
 
    function Is_In

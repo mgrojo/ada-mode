@@ -51,7 +51,6 @@ project WisiToken_Test is
       "dragon_4_43_lalr_run.ads",
       "dragon_4_43_packrat_gen_run.ads",
       "dragon_4_43_packrat_proc_run.ads",
-      "dragon_4_43_tree_sitter_run.adb",
       "empty_production_1_lalr_run.ads",
       "empty_production_1_packrat_gen_run.ads",
       "empty_production_1_packrat_proc_run.ads",

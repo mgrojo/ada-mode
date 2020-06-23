@@ -43,8 +43,10 @@ is
    Suite : constant Access_Test_Suite := new Test_Suite;
 begin
    --  test error handling when generate fails
-   Add_Test (Suite, Test_Case_Access'(new Test_Generate_Errors.Test_Case
-                                        (+"../test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
+   Add_Test
+     (Suite, Test_Case_Access'
+        (new Test_Generate_Errors.Test_Case
+           (+"../test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
 
    if not EBNF_Only then
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null, Limit_Gen_Alg)));

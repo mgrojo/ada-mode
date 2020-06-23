@@ -11,6 +11,12 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
   (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.wisitoken")))
 
+(dvc-state-multiple
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-1")))
+
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
@@ -22,15 +28,14 @@ update-wisitoken_grammar
 
  current work
 add tree-sitter parser, lexer
-    do commit
+    tree-sitter still not getting comments right
+        try updating tree-sitter from github
 
-    propagate?
+    tree-sitter generate supposed to report conflicts
+        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
 
     translate tree-sitter parse tree to wisitoken?
         api.h has root, node_children,  etc.
-
-    tree-sitter still not getting comments right
-        try updating tree-sitter from github
 
     time parts of generate tree_sitter; seems slow on ada_annex_p
 
@@ -94,11 +99,6 @@ speed up lr1 for ada_annex_p
 to_tree_sitter
     detect and/or implement no empty nonterm
     output Execute_Actions
-
-wisitoken-generate-lr.adb Add_Actions FIXME:
-    doesn't use Goto_List for terminals!
-    Goto_List _does_ contain terminals
-        use them instead of other code in Add_Actions
 
 -explore.check
          --  FIXME: if there were conflicts, enqueue them; they might yield a
