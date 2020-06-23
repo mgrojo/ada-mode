@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
 package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    --  Local declarations (alphabetical order)
@@ -41,29 +40,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    ----------
    --  local bodies (alphabetical order)
-
-   procedure Check_Iterators (Tree : in out Pkg.Tree)
-   is begin
-      case Tree.Control_Iterators is
-      when None =>
-         return;
-      when Counted =>
-         if Tree.Iterators_Active.all /= 0 then
-            raise Programmer_Error with "Red_Black_Tree Insert/Delete with" & Tree.Iterators_Active.all'Image &
-              " iterators active";
-         end if;
-
-      when Single =>
-         Tree.Modified_After_First_Last.all := True;
-      end case;
-   end Check_Iterators;
-
-   procedure Check_Modified (Tree : in Pkg.Tree)
-   is begin
-      if Tree.Control_Iterators = Single and Tree.Modified_After_First_Last.all then
-         raise Programmer_Error with "Red_Black_Tree Insert/Delete after First/Last";
-      end if;
-   end Check_Modified;
 
    function Count_Tree (Item : in Node_Access; Nil : in Node_Access) return Ada.Containers.Count_Type
    is
@@ -145,30 +121,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end loop;
       X.Color := Black;
    end Delete_Fixup;
-
-   Package_Iterator_ID : Integer := 0;
-
-   procedure Do_Iterator_Initialize (Object : in out Iterator_Control)
-   is begin
-      if Object.Container.Control_Iterators /= Counted then return; end if;
-      Package_Iterator_ID := @ + 1;
-      Object.ID := Package_Iterator_ID;
-      Object.Container.Iterators_Active.all := @ + 1;
-      if Object.Container.Trace_Iterators then
-         Ada.Text_IO.Put_Line
-           ("iterator" & Object.ID'Image & " initialize; active" & Object.Container.Iterators_Active.all'Image);
-      end if;
-   end Do_Iterator_Initialize;
-
-   procedure Do_Tree_Initialize (Object : in out Tree)
-   is begin
-      Object.Nil       := new Node;
-      Object.Nil.Color := Black;
-      Object.Root      := Object.Nil;
-
-      Object.Iterators_Active := new Natural'(0);
-      Object.Modified_After_First_Last := new Boolean'(False);
-   end Do_Tree_Initialize;
 
    function Find (Root : in Node_Access; Key : in Key_Type; Nil : in Node_Access) return Node_Access
    is
@@ -331,14 +283,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
             Free_Tree (Object.Root, Object.Nil);
             Free (Object.Nil);
          end if;
-         Free (Object.Iterators_Active);
-         Free (Object.Modified_After_First_Last);
       end if;
    end Finalize;
 
    overriding procedure Initialize (Object : in out Tree)
    is begin
-      Do_Tree_Initialize (Object);
+      Object.Nil       := new Node;
+      Object.Nil.Color := Black;
+      Object.Root      := Object.Nil;
    end Initialize;
 
    overriding procedure Adjust (Object : in out Tree)
@@ -371,26 +323,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       else
          Object.Root := Copy_Subtree (Object.Root, New_Nil);
       end if;
-      Object.Iterators_Active := new Natural'(Object.Iterators_Active.all);
-      Object.Modified_After_First_Last := new Boolean'(Object.Modified_After_First_Last.all);
    end Adjust;
-
-   function Empty_Tree return Pkg.Tree
-   is begin
-      return Result : Tree := (Ada.Finalization.Controlled with others => <>) do
-         Do_Tree_Initialize (Result);
-      end return;
-   end Empty_Tree;
-
-   procedure Trace_Iterators (Tree : in out Pkg.Tree; Enable_Trace : in Boolean)
-   is begin
-      Tree.Trace_Iterators := Enable_Trace;
-   end Trace_Iterators;
-
-   procedure Control_Iterators (Tree : in out Pkg.Tree; Enable_Control : in Control_Label)
-   is begin
-      Tree.Control_Iterators := Enable_Control;
-   end Control_Iterators;
 
    function Constant_Ref
      (Container : aliased in Tree;
@@ -428,7 +361,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       pragma Unreferenced (Container);
    begin
-      --  WORKAROUND: see note in Constant_Ref
+      --  WORKAROUND: see note in Constant_Reference
       return (Element => Position.Node.all.Element'Access, Dummy => 1);
    end Variable_Ref;
 
@@ -442,22 +375,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         --  WORKAROUND: see note in Constant_Ref
+         --  WORKAROUND: see note in Constant_Reference
          return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Variable_Ref;
 
-   function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator
-   is
-   begin
-      return Result : Iterator :=
-        (Container => Tree'Access,
-         Control   => (Ada.Finalization.Controlled with Tree'Access, ID => 0),
-         Root      => Tree.Root,
-         Nil       => Tree.Nil)
-      do
-         Do_Iterator_Initialize (Result.Control);
-      end return;
+   function Iterate (Tree : in Pkg.Tree'Class) return Iterator
+   is begin
+      return (Tree.Root, Tree.Nil);
    end Iterate;
 
    overriding function First (Iterator : in Pkg.Iterator) return Cursor
@@ -465,10 +390,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Nil  : Node_Access renames Iterator.Nil;
       Node : Node_Access := Iterator.Root;
    begin
-      if Iterator.Container.Control_Iterators = Single then
-         Iterator.Container.Modified_After_First_Last.all := False;
-      end if;
-
       if Node = Nil then
          return
            (Node       => null,
@@ -493,7 +414,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       Nil : Node_Access renames Iterator.Nil;
    begin
-      Check_Modified (Iterator.Container.all);
       if Position.Direction /= Ascending then
          raise Programmer_Error;
       end if;
@@ -568,10 +488,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Nil  : Node_Access renames Iterator.Nil;
       Node : Node_Access := Iterator.Root;
    begin
-      if Iterator.Container.Control_Iterators = Single then
-         Iterator.Container.Modified_After_First_Last.all := False;
-      end if;
-
       if Node = Nil then
          return
            (Node       => null,
@@ -595,7 +511,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       Nil : Node_Access renames Iterator.Nil;
    begin
-      Check_Modified (Iterator.Container.all);
       if Position.Direction /= Descending then
          raise Programmer_Error;
       end if;
@@ -882,7 +797,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Result      : Node_Access;
       Compare_Z_Y : Compare_Result;
    begin
-      Check_Iterators (Tree);
       Nil.Parent := null;
       Nil.Left   := null;
       Nil.Right  := null;
@@ -942,8 +856,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Y_Orig_Color : Color                := Y.Color;
       X            : Node_Access;
    begin
-      Check_Iterators (Tree);
-      --  Catch logic errors in use of Nil
+      --  Catch logic errors in use of Nil; these must all be set.
       Nil.Parent := null;
       Nil.Left   := null;
       Nil.Right  := null;
@@ -990,33 +903,5 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
       Free (Position.Node);
    end Delete;
-
-   overriding procedure Finalize (Object : in out Iterator_Control)
-   is begin
-      if Object.Container.Control_Iterators /= Counted then return; end if;
-      Object.Container.Iterators_Active.all := @ - 1;
-      if Object.Container.Trace_Iterators then
-         Ada.Text_IO.Put_Line
-           ("iterator" & Object.ID'Image & " finalize; active" & Object.Container.Iterators_Active.all'Image);
-      end if;
-   end Finalize;
-
-   overriding procedure Initialize (Object : in out Iterator_Control)
-   is begin
-      Do_Iterator_Initialize (Object);
-   end Initialize;
-
-   overriding procedure Adjust (Object : in out Iterator_Control)
-   is begin
-      if Object.Container.Control_Iterators /= Counted then return; end if;
-      Package_Iterator_ID := @ + 1;
-      Object.Container.Iterators_Active.all := @ + 1;
-      if Object.Container.Trace_Iterators then
-         Ada.Text_IO.Put_Line
-           ("iterator" & Object.ID'Image & " adjust to" & Package_Iterator_ID'Image &
-              "; active" & Object.Container.Iterators_Active.all'Image);
-      end if;
-      Object.ID := Package_Iterator_ID;
-   end Adjust;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

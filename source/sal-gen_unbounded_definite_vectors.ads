@@ -5,10 +5,20 @@
 --
 --  Prepend is as fast (in amortized time) as Append.
 --
---  It provides no checking of cursor tampering; higher level code
---  must ensure that.
---
 --  Design:
+--
+--  We provide no control of references to Vector held by various
+--  types; adding that proved buggy and very slow (Wisitoken generate
+--  time for Ada went from 200 seconds to 640 seconds). So the user
+--  must be aware of potential problems:
+--
+--  declare
+--     Object : Element_Type renames Vector.Constant_Ref (Position);
+--  begin
+--     Vector.Insert  (A); --  reallocates underlying array to grow it
+--
+--     B := Object.B; --  Invalid reference
+--  end;
 --
 --  See ARM 3.10.2 "explicitly aliased" for why we need 'aliased' in
 --  several subprogram argument modes, and why Container must be an
@@ -55,8 +65,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);
 
-   overriding function "=" (Left, Right : in Vector) return Boolean is
-     (raise Programmer_Error);
+   overriding function "=" (Left, Right : in Vector) return Boolean
+   is (raise Programmer_Error);
    --  Use Gen_Comparable child.
 
    function Is_Empty (Container : in Vector) return Boolean;
@@ -69,8 +79,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Last      : in     Extended_Index);
    --  Allocates memory, but does not change Container.First, Container.Last.
 
-   procedure Clear (Container : in out Vector)
-   renames Finalize;
+   procedure Clear (Container : in out Vector);
+   --  Free all memory, set Container to Empty.
 
    function First_Index (Container : Vector) return Extended_Index;
    --  No_Index + 1 when Container is empty, so "for I in C.First_Index
@@ -203,9 +213,6 @@ private
       First    : Extended_Index := No_Index;
       Last     : Extended_Index := No_Index;
    end record;
-
-   type Vector_Access is access constant Vector;
-   for Vector_Access'Storage_Size use 0;
 
    type Cursor (Container : not null access constant Vector) is
    record
