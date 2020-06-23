@@ -322,7 +322,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
-      Tree.Finalize;
+      Tree.Nodes.Clear;
    end Clear;
 
    procedure Clear (Tree : in out Syntax_Trees.Tree)
@@ -334,7 +334,7 @@ package body WisiToken.Syntax_Trees is
             end if;
          end loop;
       end if;
-      Tree.Shared_Tree.Finalize;
+      Tree.Shared_Tree.Clear;
       Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
    end Clear;
@@ -349,49 +349,39 @@ package body WisiToken.Syntax_Trees is
          Index  : in     Valid_Node_Index;
          Parent : in     Node_Index)
         return Valid_Node_Index
-      is begin
+      is
+         Node : constant Syntax_Trees.Node := Tree.Shared_Tree.Nodes (Index);
+      begin
          case Tree.Shared_Tree.Nodes (Index).Label is
          when Shared_Terminal =>
-            declare
-               Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Index);
-            begin
-               Tree.Shared_Tree.Nodes.Append
-                 ((Label       => Shared_Terminal,
-                   ID          => Node.ID,
-                   Byte_Region => Node.Byte_Region,
-                   Parent      => Parent,
-                   State       => Unknown_State,
-                   Augmented   => Node.Augmented,
-                   Terminal    => Node.Terminal));
-            end;
+            Tree.Shared_Tree.Nodes.Append
+              ((Label       => Shared_Terminal,
+                ID          => Node.ID,
+                Byte_Region => Node.Byte_Region,
+                Parent      => Parent,
+                State       => Unknown_State,
+                Augmented   => Node.Augmented,
+                Terminal    => Node.Terminal));
 
          when Virtual_Terminal =>
-            declare
-               Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Index);
-            begin
-               Tree.Shared_Tree.Nodes.Append
-                 ((Label       => Virtual_Terminal,
-                   ID          => Node.ID,
-                   Byte_Region => Node.Byte_Region,
-                   Parent      => Parent,
-                   State       => Unknown_State,
-                   Augmented   => Node.Augmented,
-                   Before      => Node.Before));
-            end;
+            Tree.Shared_Tree.Nodes.Append
+              ((Label       => Virtual_Terminal,
+                ID          => Node.ID,
+                Byte_Region => Node.Byte_Region,
+                Parent      => Parent,
+                State       => Unknown_State,
+                Augmented   => Node.Augmented,
+                Before      => Node.Before));
 
          when Virtual_Identifier =>
-            declare
-               Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Index);
-            begin
-               Tree.Shared_Tree.Nodes.Append
-                 ((Label       => Virtual_Identifier,
-                   ID          => Node.ID,
-                   Byte_Region => Node.Byte_Region,
-                   Parent      => Parent,
-                   State       => Unknown_State,
-                   Augmented   => Node.Augmented,
-                   Identifier  => Node.Identifier));
-            end;
+            Tree.Shared_Tree.Nodes.Append
+              ((Label       => Virtual_Identifier,
+                ID          => Node.ID,
+                Byte_Region => Node.Byte_Region,
+                Parent      => Parent,
+                State       => Unknown_State,
+                Augmented   => Node.Augmented,
+                Identifier  => Node.Identifier));
 
          when Nonterm =>
             declare
@@ -406,23 +396,19 @@ package body WisiToken.Syntax_Trees is
                   end loop;
                end if;
 
-               declare
-                  Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Index);
-               begin
-                  Tree.Shared_Tree.Nodes.Append
-                    ((Label              => Nonterm,
-                      ID                 => Node.ID,
-                      Byte_Region        => Node.Byte_Region,
-                      Parent             => Parent,
-                      State              => Unknown_State,
-                      Augmented          => Node.Augmented,
-                      Virtual            => Node.Virtual,
-                      RHS_Index          => Node.RHS_Index,
-                      Action             => Node.Action,
-                      Name               => Node.Name,
-                      Children           => New_Children,
-                      Min_Terminal_Index => Node.Min_Terminal_Index));
-               end;
+               Tree.Shared_Tree.Nodes.Append
+                 ((Label              => Nonterm,
+                   ID                 => Node.ID,
+                   Byte_Region        => Node.Byte_Region,
+                   Parent             => Parent,
+                   State              => Unknown_State,
+                   Augmented          => Node.Augmented,
+                   Virtual            => Node.Virtual,
+                   RHS_Index          => Node.RHS_Index,
+                   Action             => Node.Action,
+                   Name               => Node.Name,
+                   Children           => New_Children,
+                   Min_Terminal_Index => Node.Min_Terminal_Index));
 
                Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
                Parent := Tree.Last_Shared_Node;

@@ -151,11 +151,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
          is
             First_State_Index : constant State_Index := First_Item_Set.State;
          begin
-            C_Tree.Trace_Iterators (WisiToken.Trace_Generate_Table > Detail);
-            if Debug_Mode then
-               C_Tree.Control_Iterators (Item_Set_Trees.Counted);
-            end if;
-
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
 
             Add (Grammar, First_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
@@ -236,8 +231,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Existing_Goto_Items : in     Goto_Item_Arrays.Vector;
             New_Goto_Items      : in out Goto_Item_Arrays.Vector;
             Worker_C_Tree       : in out Item_Set_Trees.Tree)
-         is
-         begin
+         is begin
             declare
                use Goto_Item_Lists;
                From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
@@ -262,9 +256,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
             for New_C_Node of New_C_Tree loop
                declare
                   use Item_Set_Trees;
-
-                  From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
-
                   Found_Cur : constant Cursor := Supervisor.C_Tree.Find (New_C_Node.Key);
 
                   New_State    : constant State_Index         := C.Last_Index + 1;
@@ -272,11 +263,11 @@ package body WisiToken.Generate.LR.LR1_Generate is
                begin
                   if Has_Element (Found_Cur) then
                      New_Goto_Items (Worker_State).State := Supervisor.C_Tree.Constant_Ref (Found_Cur).State;
-                     From_Goto_List.Insert (New_Goto_Items (Worker_State));
+                     C (From_State).Goto_List.Insert (New_Goto_Items (Worker_State));
 
                   else
                      New_Goto_Items (Worker_State).State := New_State;
-                     From_Goto_List.Insert (New_Goto_Items (Worker_State));
+                     C (From_State).Goto_List.Insert (New_Goto_Items (Worker_State));
 
                      New_C (New_C_Node.State).State := New_State;
 

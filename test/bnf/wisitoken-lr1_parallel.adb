@@ -72,7 +72,7 @@ begin
          then Integer'Value (Ada.Command_Line.Argument (2))
          else 0);
 
-      WisiToken.Debug_Mode := True; -- red_black_tree iterator checks
+      WisiToken.Debug_Mode := True;
 
       declare
          Item_Sets_8_Array : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
