@@ -106,9 +106,9 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator is new Iterators.Reversible_Iterator with private;
+   type Iterator (<>) is new Iterators.Reversible_Iterator with private;
 
-   function Iterate (Tree : in Pkg.Tree'Class) return Iterator;
+   function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator;
 
    overriding function First (Iterator : in Pkg.Iterator) return Cursor;
    overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
@@ -225,10 +225,7 @@ private
       Left_Done  => True,
       Right_Done => True);
 
-   type Iterator is new Iterators.Reversible_Iterator
-   with record
-      Root : Node_Access;
-      Nil  : Node_Access;
-   end record;
+   type Iterator (Container : not null access constant Tree) is new Iterators.Reversible_Iterator
+   with null record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

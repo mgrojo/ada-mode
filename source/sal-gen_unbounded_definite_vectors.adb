@@ -158,9 +158,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       Container.Elements (To_Peek_Type (Index)) := New_Item;
    end Replace_Element;
 
-   function First_Index (Container : Vector) return Extended_Index
+   function First_Index (Container : Vector; No_Index_If_Empty : in Boolean := False) return Extended_Index
    is begin
-      if Container.First = No_Index then
+      if No_Index_If_Empty then
+         return Container.First;
+      elsif Container.First = No_Index then
          return No_Index + 1;
       else
          return Container.First;

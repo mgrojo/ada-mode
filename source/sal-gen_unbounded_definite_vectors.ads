@@ -82,11 +82,12 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    procedure Clear (Container : in out Vector);
    --  Free all memory, set Container to Empty.
 
-   function First_Index (Container : Vector) return Extended_Index;
-   --  No_Index + 1 when Container is empty, so "for I in C.First_Index
-   --  .. C.Last_Index loop" works.
+   function First_Index (Container : Vector; No_Index_If_Empty : in Boolean := False) return Extended_Index;
+   --  By default, No_Index + 1 when Container is empty, so "for I in
+   --  C.First_Index .. C.Last_Index loop" works.
    --
-   --  If you need No_Index for an empty Container, use To_Index (Container.First).
+   --  If you need No_Index for an empty Container, use No_Index_If_Empty
+   --  => True.
 
    function Last_Index (Container : Vector) return Extended_Index;
    --  No_Index when Container is empty.

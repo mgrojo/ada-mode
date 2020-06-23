@@ -361,7 +361,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       pragma Unreferenced (Container);
    begin
-      --  WORKAROUND: see note in Constant_Reference
+      --  WORKAROUND: see note in Constant_Ref
       return (Element => Position.Node.all.Element'Access, Dummy => 1);
    end Variable_Ref;
 
@@ -375,20 +375,20 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Node = null then
          raise Not_Found;
       else
-         --  WORKAROUND: see note in Constant_Reference
+         --  WORKAROUND: see note in Constant_Ref
          return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Variable_Ref;
 
-   function Iterate (Tree : in Pkg.Tree'Class) return Iterator
+   function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator
    is begin
-      return (Tree.Root, Tree.Nil);
+      return (Container => Tree'Access);
    end Iterate;
 
    overriding function First (Iterator : in Pkg.Iterator) return Cursor
    is
-      Nil  : Node_Access renames Iterator.Nil;
-      Node : Node_Access := Iterator.Root;
+      Nil  : Node_Access renames Iterator.Container.Nil;
+      Node : Node_Access := Iterator.Container.Root;
    begin
       if Node = Nil then
          return
@@ -412,7 +412,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
    is
-      Nil : Node_Access renames Iterator.Nil;
+      Nil : Node_Access renames Iterator.Container.Nil;
    begin
       if Position.Direction /= Ascending then
          raise Programmer_Error;
@@ -485,8 +485,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    overriding function Last (Iterator : in Pkg.Iterator) return Cursor
    is
-      Nil  : Node_Access renames Iterator.Nil;
-      Node : Node_Access := Iterator.Root;
+      Nil  : Node_Access renames Iterator.Container.Nil;
+      Node : Node_Access := Iterator.Container.Root;
    begin
       if Node = Nil then
          return
@@ -509,7 +509,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    overriding function Previous (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
    is
-      Nil : Node_Access renames Iterator.Nil;
+      Nil : Node_Access renames Iterator.Container.Nil;
    begin
       if Position.Direction /= Descending then
          raise Programmer_Error;
@@ -582,8 +582,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    function Previous (Iterator : in Pkg.Iterator; Key : in Key_Type) return Cursor
    is
-      Nil  : Node_Access renames Iterator.Nil;
-      Node : Node_Access := Iterator.Root;
+      Nil  : Node_Access renames Iterator.Container.Nil;
+      Node : Node_Access := Iterator.Container.Root;
    begin
       while Node /= Nil loop
          declare
@@ -623,8 +623,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Direction : in Direction_Type := Ascending)
      return Cursor
    is
-      Nil  : Node_Access renames Iterator.Nil;
-      Node : constant Node_Access := Find (Iterator.Root, Key, Nil);
+      Nil  : Node_Access renames Iterator.Container.Nil;
+      Node : constant Node_Access := Find (Iterator.Container.Root, Key, Nil);
    begin
       if Node = null then
          return
@@ -664,8 +664,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       First, Last : in Key_Type)
      return Cursor
    is
-      Nil       : Node_Access renames Iterator.Nil;
-      Node      : Node_Access := Iterator.Root;
+      Nil       : Node_Access renames Iterator.Container.Nil;
+      Node      : Node_Access := Iterator.Container.Root;
       Candidate : Node_Access := null; -- best result found so far
    begin
       while Node /= Nil loop
