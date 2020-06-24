@@ -45,6 +45,7 @@ LDFLAGS         :=
 # build with a simple variable override.
 
 PYTHON ?= python3
+EMACS_EXE ?= emacs
 
 .PHONY: all clean publish
 
@@ -108,9 +109,16 @@ define doc_year_build
   clean::
 	rm -f -r $(d)$(y).txt
 
+# ../progs/arm-texi-index.el adds texinfo index entries.
+  $(d)$(y).texinfo-index: $(d)$(y).texinfo
+	$(EMACS_EXE) -Q -L ../progs -l arm-texi-index.el --eval '(progn(do-index "$$<")(kill-emacs))'
+	touch $$@
+  clean::
+	rm -f $(d)$(y).texinfo-index
+
 # texi2any is from texinfo 5
-  $(d)$(y).info: $(d)$(y).texinfo
-	texi2any --info $(TEXI_INFO_OPTS) $$< -o $$@
+  $(d)$(y).info: $(d)$(y).texinfo-index
+	texi2any --info $(TEXI_INFO_OPTS) $(d)$(y).texinfo -o $$@
   clean::
 	rm -f $(d)$(y).info
 

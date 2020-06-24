@@ -376,6 +376,12 @@ package body ARM_Texinfo is
 
    procedure Index_Menu (Output_Object : in out Texinfo_Output_Type)
    is begin
+      -- In order to create a texinfo index, we would have to put @cindex
+      -- entries in each section; it then builds a searchable index. Here we
+      -- have the reverse information; an already compiled list of
+      -- references. This is done in after creating this texinfo file, by
+      -- the elisp code in arm-texi-index.el.
+      New_Line (Output_Object.File);
       Put_Line (Output_Object.File, "@menu");
       Put_Line (Output_Object.File, "* operators::");
       Put_Line (Output_Object.File, "* A::");
@@ -579,6 +585,7 @@ package body ARM_Texinfo is
          Get_Clause_Section (Clause_Number, Section_Number, Clause_Integer);
 
          if Section_Number = 0 and Clause_Integer = 1 then
+            New_Line (Output_Object.File);
             Put_Line (Output_Object.File, "@menu");
             Put_Line (Output_Object.File, "* 0.1 :: Foreword to this version of the Ada Reference Manual");
             Put_Line (Output_Object.File, "* 0.2 :: Foreword");
