@@ -42,25 +42,21 @@
   ;; Now insert all the @cindex items
   (search-backward "@chapter Index")
 
-  (let (next-search-pos
-	(processed 0))
+  (let (next-search-pos)
     (while (search-forward-regexp "@ref{ \\([0-9]+\\), \\([0-9.(/)]+\\)}" nil t)
       (setq next-search-pos (copy-marker (point))) ;; we are inserting text before this point!
 
-    ;; There can be more than one @ref on a line; they are all for the
-    ;; same entry; texinfo can handle that.
-    (let ((ref (match-string-no-properties 1))
-	  text)
-      (goto-char (line-beginning-position))
-      (when (looking-at "\\(?:@w{ }\\)*\\(.*?\\)@w{ }")
-	(setq text (match-string-no-properties 1))
-	(goto-char (point-min))
-	(search-forward (concat "@anchor{ " ref "}"))
-	(insert (concat "\n@cindex " text "\n"))
-	(setq processed (1+ processed)))
-      (when (= 0 (mod processed 100))
-	(message "processed %d" processed))
-      (goto-char next-search-pos)))))
+      ;; There can be more than one @ref on a line; they are all for the
+      ;; same entry; texinfo can handle that.
+      (let ((ref (match-string-no-properties 1))
+	    text)
+	(goto-char (line-beginning-position))
+	(when (looking-at "\\(?:@w{ }\\)*\\(.*?\\)@w{ }")
+	  (setq text (match-string-no-properties 1))
+	  (goto-char (point-min))
+	  (search-forward (concat "@anchor{ " ref "}"))
+	  (insert (concat "\n@cindex " text "\n")))
+	(goto-char next-search-pos)))))
 
 (defun do-index (filename)
   (find-file filename)
