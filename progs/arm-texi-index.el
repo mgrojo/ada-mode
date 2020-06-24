@@ -43,7 +43,7 @@
   (search-backward "@chapter Index")
 
   (let (next-search-pos
-	(inserted 0))
+	(processed 0))
     (while (search-forward-regexp "@ref{ \\([0-9]+\\), \\([0-9.(/)]+\\)}" nil t)
       (setq next-search-pos (copy-marker (point))) ;; we are inserting text before this point!
 
@@ -52,14 +52,14 @@
     (let ((ref (match-string-no-properties 1))
 	  text)
       (goto-char (line-beginning-position))
-      (when (looking-at "\\(.*?\\)@w{ }")
+      (when (looking-at "\\(?:@w{ }\\)*\\(.*?\\)@w{ }")
 	(setq text (match-string-no-properties 1))
 	(goto-char (point-min))
 	(search-forward (concat "@anchor{ " ref "}"))
 	(insert (concat "\n@cindex " text "\n"))
-	(setq inserted (1+ inserted)))
-      (when (= 0 (mod inserted 100))
-	(message "inserted %d" inserted))
+	(setq processed (1+ processed)))
+      (when (= 0 (mod processed 100))
+	(message "processed %d" processed))
       (goto-char next-search-pos)))))
 
 (defun do-index (filename)

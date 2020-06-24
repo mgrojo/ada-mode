@@ -111,7 +111,7 @@ define doc_year_build
 
 # ../progs/arm-texi-index.el adds texinfo index entries.
   $(d)$(y).texinfo-index: $(d)$(y).texinfo
-	$(EMACS_EXE) -Q -L ../progs -l arm-texi-index.el --eval '(progn(do-index "$$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -batch -L ../progs -l arm-texi-index.el --eval '(progn(do-index "$$<")(kill-emacs))'
 	touch $$@
   clean::
 	rm -f $(d)$(y).texinfo-index

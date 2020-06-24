@@ -157,7 +157,7 @@ package body ARM_Texinfo is
       procedure Put_Top_Menu is new For_Each (Put_Top_Menu_Item);
    begin
 
-      New_Line (Output_Object.File); --  Terminate unneeded "@center"
+      Put_Line (Output_Object.File, "@w{}"); --  Terminate unneeded "@center", silence warning.
 
       Put_Line (Output_Object.File, "@menu");
       Put_Line (Output_Object.File, "* Front Matter:: Copyright, Foreword, etc."); --  Not a section in ARM sources
@@ -224,6 +224,34 @@ package body ARM_Texinfo is
          Put_Line (Output_Object.File, Texinfo_Item);
       end loop;
    end Handle_Indent;
+
+   procedure Handle_Indent
+     (Output_Object   : in Texinfo_Output_Type;
+      Containing_Item : in String;
+      Final_Item      : in String;
+      Extra_Indent    : in ARM_Output.Paragraph_Indent_Type := 0)
+   is
+      use type ARM_Output.Paragraph_Indent_Type;
+   begin
+      for I in 1 .. Output_Object.Indent + Extra_Indent - 1 loop
+         Put_Line (Output_Object.File, Containing_Item);
+      end loop;
+      Put_Line (Output_Object.File, Final_Item);
+   end Handle_Indent;
+
+   procedure Handle_Indent_End
+     (Output_Object   : in Texinfo_Output_Type;
+      Containing_Item : in String;
+      Final_Item      : in String;
+      Extra_Indent    : in ARM_Output.Paragraph_Indent_Type := 0)
+   is
+      use type ARM_Output.Paragraph_Indent_Type;
+   begin
+      Put_Line (Output_Object.File, Final_Item);
+      for I in 1 .. Output_Object.Indent + Extra_Indent - 1 loop
+         Put_Line (Output_Object.File, Containing_Item);
+      end loop;
+   end Handle_Indent_End;
 
    procedure Add_To_Column_Item (Output_Object : in out Texinfo_Output_Type; Text : in String)
    is begin
@@ -897,21 +925,33 @@ package body ARM_Texinfo is
            Small_Bulleted =>
 
             New_Line (Output_Object.File);
-            Handle_Indent (Output_Object, "@end itemize");
+            if Output_Object.Paragraph_No_Prefix then
+               Handle_Indent (Output_Object, "@end quotation");
+            else
+               Handle_Indent_End (Output_Object, "@end quotation", "@end itemize");
+            end if;
             New_Line (Output_Object.File);
 
          when Nested_Bulleted |
            Small_Nested_Bulleted =>
 
             New_Line (Output_Object.File);
-            Handle_Indent (Output_Object, "@end itemize", Extra_Indent => 1);
+            if Output_Object.Paragraph_No_Prefix then
+               Handle_Indent (Output_Object, "@end quotation");
+            else
+               Handle_Indent_End (Output_Object, "@end quotation", "@end itemize", Extra_Indent => 1);
+            end if;
             New_Line (Output_Object.File);
 
          when Enumerated |
            Small_Enumerated =>
 
             New_Line (Output_Object.File);
-            Handle_Indent (Output_Object, "@end itemize");
+            if Output_Object.Paragraph_No_Prefix then
+               Handle_Indent (Output_Object, "@end quotation");
+            else
+               Handle_Indent_End (Output_Object, "@end quotation", "@end itemize");
+            end if;
             New_Line (Output_Object.File);
 
          when Giant_Hanging |
@@ -946,6 +986,7 @@ package body ARM_Texinfo is
          Unexpected_State (Output_Object);
 
       end case;
+      Output_Object.Paragraph_No_Prefix := False;
    end End_Paragraph;
 
    procedure Hard_Space (Output_Object : in out Texinfo_Output_Type)
@@ -1522,6 +1563,7 @@ package body ARM_Texinfo is
    begin
       Check_Valid (Output_Object);
       Check_Not_In_Paragraph (Output_Object);
+      Output_Object.Paragraph_No_Prefix := No_Prefix;
 
       --  Note: makeinfo will do most of the formatting, so No_Breaks,
       --  Keep_with_Next, Space_After, and Justification have no
@@ -1572,23 +1614,27 @@ package body ARM_Texinfo is
          when Bulleted |
            Small_Bulleted =>
 
-            Handle_Indent (Output_Object, "@itemize @bullet");
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
+            if No_Prefix then
+               Handle_Indent (Output_Object, "@quotation");
+            else
+               Handle_Indent (Output_Object, "@quotation", "@itemize @bullet");
+               Put_Line (Output_Object.File, "@item ");
             end if;
 
          when Nested_Bulleted |
            Small_Nested_Bulleted =>
 
-            Handle_Indent (Output_Object, "@itemize @bullet", Extra_Indent => 1);
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
+            if No_Prefix then
+               Handle_Indent (Output_Object, "@quotation");
+            else
+               Handle_Indent (Output_Object, "@quotation", "@itemize @bullet", Extra_Indent => 1);
+               Put_Line (Output_Object.File, "@item ");
             end if;
 
          when Enumerated |
            Small_Enumerated =>
 
-            Handle_Indent (Output_Object, "@itemize @w{}");
+            Handle_Indent (Output_Object, "@quotation", "@itemize @w{}");
             Put (Output_Object.File, "@item ");
 
          when Giant_Hanging |
@@ -1801,15 +1847,8 @@ package body ARM_Texinfo is
          Output_Object.Current_Column := 1;
 
       when ARM_Output.End_Table =>
-         case Output_Object.Column_Count is
-         when 2 =>
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end multitable");
-
-         when others =>
-            Put_Line (Output_Object.File, "@end multitable");
-
-         end case;
+         New_Line (Output_Object.File);
+         Put_Line (Output_Object.File, "@end multitable");
 
       end case;
    end Table_Marker;

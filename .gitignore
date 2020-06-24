@@ -6,3 +6,4 @@ build/arm_form.exe
 build/dir
 build/objects/
 build/*.stamp
+build/*.texinfo-index
