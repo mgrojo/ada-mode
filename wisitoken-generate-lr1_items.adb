@@ -27,8 +27,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
+with Ada.Unchecked_Conversion;
 package body WisiToken.Generate.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
@@ -249,29 +250,58 @@ package body WisiToken.Generate.LR1_Items is
 
    function To_Item_Set_Tree_Key
      (Item_Set           : in LR1_Items.Item_Set;
-      Descriptor         : in WisiToken.Descriptor;
       Include_Lookaheads : in Boolean)
      return Item_Set_Tree_Key
    is
       use Interfaces;
+
+      type Lookahead_Int_16 is record
+         Word_0 : Interfaces.Integer_16;
+         Word_1 : Interfaces.Integer_16;
+         Word_2 : Interfaces.Integer_16;
+         Word_3 : Interfaces.Integer_16;
+         Word_4 : Interfaces.Integer_16;
+         Word_5 : Interfaces.Integer_16;
+         Word_6 : Interfaces.Integer_16;
+         Word_7 : Interfaces.Integer_16;
+      end record;
+      for Lookahead_Int_16'Size use 128;
+
+      function To_Int_16 is new Ada.Unchecked_Conversion (Source => Lookahead, Target => Lookahead_Int_16);
+
+      Result_Length : constant Integer :=
+        (1 + Integer (Item_Set.Set.Length) * (if Include_Lookaheads then 3 + 8 else 3));
    begin
       return Result : Item_Set_Tree_Key do
+         Result.Set_Capacity (1, Result_Length);
+
          Result.Append (Integer_16 (Item_Set.Set.Length));
          --  Int_Arrays."<" compares length, but only after everything else; we
          --  want it to compare first, since it is most likely to be different.
 
          for Item of Item_Set.Set loop
-               Result.Append (Integer_16 (Item.Prod.LHS));
-               Result.Append (Integer_16 (Item.Prod.RHS));
-               Result.Append (Integer_16 (Item.Dot));
-               if Include_Lookaheads then
-                  for ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal loop
-                     if Item.Lookaheads (ID) then
-                        Result.Append (Integer_16 (ID));
-                     end if;
-                  end loop;
-               end if;
+            Result.Append (Integer_16 (Item.Prod.LHS));
+            Result.Append (Integer_16 (Item.Prod.RHS));
+            Result.Append (Integer_16 (Item.Dot));
+            if Include_Lookaheads then
+               declare
+                  Temp : constant Lookahead_Int_16 := To_Int_16 (Item.Lookaheads);
+               begin
+                  --  This faster than scanning the 128 booleans to get the token_ids,
+                  --  and shorter than some of those.
+                  Result.Append (Temp.Word_0);
+                  Result.Append (Temp.Word_1);
+                  Result.Append (Temp.Word_2);
+                  Result.Append (Temp.Word_3);
+                  Result.Append (Temp.Word_4);
+                  Result.Append (Temp.Word_5);
+                  Result.Append (Temp.Word_6);
+                  Result.Append (Temp.Word_7);
+               end;
+            end if;
          end loop;
+
+         pragma Assert (Integer (Result.Length) = Result_Length);
       end return;
    end To_Item_Set_Tree_Key;
 
@@ -283,11 +313,8 @@ package body WisiToken.Generate.LR1_Items is
       Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean)
    is
-      pragma Unreferenced (Include_Lookaheads);
-      --  FIXME: only used in LALR; inline there
       use Item_Set_Trees;
-      Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
-        (New_Item_Set, Descriptor, Include_Lookaheads => False);
+      Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads);
    begin
       Item_Set_Vector.Append (New_Item_Set);
       Item_Set_Vector (Item_Set_Vector.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);

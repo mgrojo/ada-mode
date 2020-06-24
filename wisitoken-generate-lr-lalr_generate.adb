@@ -171,6 +171,28 @@ package body WisiToken.Generate.LR.LALR_Generate is
       return Goto_Set;
    end LALR_Goto_Transitions;
 
+   function Find
+     (New_Item_Set  : in LR1_Items.Item_Set;
+      Item_Set_Tree : in LR1_Items.Item_Set_Trees.Tree)
+     return Unknown_State_Index
+   --  Return the State of an element in Item_Set_Tree matching
+   --  New_Item_Set, Unknown_State if not found.
+   is
+      use LR1_Items;
+      use all type Item_Set_Trees.Cursor;
+
+      Tree_It    : constant Item_Set_Trees.Iterator := Item_Set_Trees.Iterate (Item_Set_Tree);
+      Key        : constant Item_Set_Tree_Key       := To_Item_Set_Tree_Key
+        (New_Item_Set, Include_Lookaheads => False);
+      Found_Tree : constant Item_Set_Trees.Cursor   := Tree_It.Find (Key);
+   begin
+      if Found_Tree = Item_Set_Trees.No_Element then
+         return Unknown_State;
+      else
+         return Item_Set_Tree (Found_Tree).State;
+      end if;
+   end Find;
+
    function LALR_Kernels
      (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
       First_Nonterm_Set : in Token_Array_Token_Set;
@@ -223,7 +245,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
             begin
                if New_Item_Set.Set.Length > 0 then
 
-                  Found_State := Find (New_Item_Set, Kernel_Tree, Descriptor, Match_Lookaheads => False);
+                  Found_State := Find (New_Item_Set, Kernel_Tree);
 
                   if Found_State = Unknown_State then
                      New_Item_Set.State := Kernels.Last_Index + 1;

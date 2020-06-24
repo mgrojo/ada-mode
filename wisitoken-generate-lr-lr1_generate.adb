@@ -135,7 +135,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
             New_Item_Set.State := C.Last_Index + 1;
 
-            C_Key       := To_Item_Set_Tree_Key (New_Item_Set, Descriptor, True);
+            C_Key       := To_Item_Set_Tree_Key (New_Item_Set, True);
             Found_Cur   := C_Tree.Find_Or_Insert ((C_Key, New_Item_Set.State));
             Found_State :=
               (if C_Tree (Found_Cur).State = New_Item_Set.State

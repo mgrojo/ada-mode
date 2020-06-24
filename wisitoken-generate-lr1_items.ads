@@ -251,7 +251,6 @@ package WisiToken.Generate.LR1_Items is
 
    function To_Item_Set_Tree_Key
      (Item_Set           : in LR1_Items.Item_Set;
-      Descriptor         : in WisiToken.Descriptor;
       Include_Lookaheads : in Boolean)
      return Item_Set_Tree_Key;
 
@@ -267,17 +266,6 @@ package WisiToken.Generate.LR1_Items is
    --  iterating in state order. Item_Set_Trees.Tree holds lists of state
    --  indices sorted by LR1 item info, for fast Find in LR1_Item_Sets
    --  and LALR_Kernels.
-
-   function Find
-     (New_Item_Set     : in Item_Set;
-      Item_Set_Tree    : in Item_Set_Trees.Tree;
-      Descriptor       : in WisiToken.Descriptor;
-      Match_Lookaheads : in Boolean)
-     return Unknown_State_Index;
-   --  Return the State of an element in Item_Set_Tree matching
-   --  New_Item_Set, Unknown_State if not found.
-   --
-   --  Match_Lookaheads is True in LR1_Generate.
 
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
