@@ -27,6 +27,30 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+speed up lr1
+    hash table search is O(1)
+        start with item_set_key
+        try just add words in item_set_key
+        then fibonacci; https://en.m.wikipedia.org/wiki/Hash_function
+
+        use red_black for hash rows?
+            tolerate lower quality hash, more collisions
+            implement both, play with it
+
+    get profile
+
+    --time output cache hit, total state counts
+
+    red_black with vector storage for goto_list
+        minimize allocations
+        also try bounded_vector?
+
+Report min_complete fraction - changed when recursion blew up?
+
+lookahead key: to_int_16_array (lookahead); just the bytes, note the token ids.
+
+Syntax tree nnterm node child array in two pieces - fixed for <5 and dynamic for >5
+
 add tree-sitter parser, lexer
     tree-sitter still not getting comments right
         try updating tree-sitter from github
@@ -92,14 +116,7 @@ speed up lr1 for ada_annex_p
     Goto_Item_Lists as doubly_linked_lists: LR1 re2c generate time: 286.589280637
     Goto_Item_Lists as red_black_tree:  LR1 re2c generate time: 285.941202390
 
-    cache results of closure?
-        never run the same one twice
-
     parallelize?
-
-to_tree_sitter
-    detect and/or implement no empty nonterm
-    output Execute_Actions
 
 -explore.check
          --  FIXME: if there were conflicts, enqueue them; they might yield a

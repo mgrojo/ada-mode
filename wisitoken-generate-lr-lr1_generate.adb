@@ -21,7 +21,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Calendar;
-with Ada.Containers;
 with Ada.Text_IO;
 with WisiToken.Generate;
 package body WisiToken.Generate.LR.LR1_Generate is
@@ -34,9 +33,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
-   --  'goto' from [dragon] algorithm 4.9
+   with Pre => Set.Dot_IDs.Contains (Symbol),
+     Post => not LR1_Goto_Transitions'Result.Set.Is_Empty
+   --  'goto' from [dragon] algorithm 4.9.
    is
-      use all type Ada.Containers.Count_Type;
       use Token_ID_Arrays;
       use LR1_Items;
 
@@ -63,11 +63,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end;
       end loop;
 
-      if Goto_Set.Set.Length > 0 then
-         return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-      else
-         return Goto_Set;
-      end if;
+      return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    end LR1_Goto_Transitions;
 
    function LR1_Item_Sets
@@ -76,12 +72,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
+   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
+   --  "items", with some optimizations.
    is
-      use all type Ada.Containers.Count_Type;
-
-      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
-      --  "items", with some optimizations.
-
       use LR1_Items;
 
       First_State_Index : constant State_Index := 0;
@@ -107,8 +100,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
           State          => First_State_Index),
         Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-      Found_State  : Unknown_State_Index;
-
+      C_Key       : Item_Set_Tree_Key;
+      Found_Cur   : Item_Set_Trees.Cursor;
+      Found_State : Unknown_State_Index;
    begin
       C.Set_First_Last (First_State_Index, First_State_Index - 1);
 
@@ -119,7 +113,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          exit when States_To_Check.Is_Empty;
          I := States_To_Check.Get;
 
-         if Trace_Generate_Table > Outline then
+         if Trace_Generate_Table > Detail then
             Ada.Text_IO.Put ("Checking ");
             Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
          end if;
@@ -132,47 +126,53 @@ package body WisiToken.Generate.LR.LR1_Generate is
             --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
             --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
 
+            --  The input to LR1_Goto_Transitions is always a previous output, and
+            --  always unique. The output may not be unique; we store that in C,
+            --  and a search key in C_Tree for faster searching.
+
             New_Item_Set := LR1_Goto_Transitions
               (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-            if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
+            New_Item_Set.State := C.Last_Index + 1;
 
-               Found_State := Find (New_Item_Set, C_Tree, Descriptor, Match_Lookaheads => True); -- 'not in C'
+            C_Key       := To_Item_Set_Tree_Key (New_Item_Set, Descriptor, True);
+            Found_Cur   := C_Tree.Find_Or_Insert ((C_Key, New_Item_Set.State));
+            Found_State :=
+              (if C_Tree (Found_Cur).State = New_Item_Set.State
+               then Unknown_State
+               else C_Tree (Found_Cur).State);
 
-               if Found_State = Unknown_State then
-                  New_Item_Set.State := C.Last_Index + 1;
+            if Found_State = Unknown_State then
 
-                  States_To_Check.Put (New_Item_Set.State);
+               States_To_Check.Put (New_Item_Set.State);
 
-                  Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
+               New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
 
-                  if Trace_Generate_Table > Outline then
+               C.Append (New_Item_Set);
+
+               if Trace_Generate_Table > Detail then
+                  Ada.Text_IO.Put_Line
+                    ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
+                       Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
+                  Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
+               end if;
+
+               C (I).Goto_List.Insert ((Symbol, C.Last_Index));
+            else
+               --  If there's not already a goto entry between these two sets, create one.
+               if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
+                  C (I).Goto_List.Insert ((Symbol, Found_State));
+
+                  if Trace_Generate_Table > Detail then
                      Ada.Text_IO.Put_Line
-                       ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
-                          Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
-                     Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
-                  end if;
-
-                  C (I).Goto_List.Insert ((Symbol, C.Last_Index));
-               else
-
-                  --  If there's not already a goto entry between these two sets, create one.
-                  if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                     if Trace_Generate_Table > Outline then
-                        Ada.Text_IO.Put_Line
-                          ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                             Unknown_State_Index'Image (Found_State));
-
-                     end if;
-
-                     C (I).Goto_List.Insert ((Symbol, Found_State));
+                       ("  adding goto on " & Image (Symbol, Descriptor) & " to state" & Found_State'Image);
                   end if;
                end if;
             end if;
          end loop;
       end loop;
 
-      if Trace_Generate_Table > Outline then
+      if Trace_Generate_Table > Detail then
          Ada.Text_IO.New_Line;
       end if;
 
@@ -255,7 +255,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR1_Generate:");
-         if Trace_Generate_Table > Outline then
+         if Trace_Generate_Table > Detail then
             Ada.Text_IO.Put_Line ("Item_Sets:");
             LR1_Items.Put (Grammar, Descriptor, Item_Sets);
          end if;
@@ -332,7 +332,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Include_Extra);
       end if;
 
-      if Trace_Generate_Table > Outline then
+      if Trace_Generate_Table > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Has_Empty_Production: " & Image (Has_Empty_Production, Descriptor));
 

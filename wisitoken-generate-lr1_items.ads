@@ -175,6 +175,12 @@ package WisiToken.Generate.LR1_Items is
    --  Goto_Item_Lists don't get very long, so red_black_trees is only
    --  barely faster than doubly_linked_lists_sorted.
 
+   function Get_Dot_IDs
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Set        : in Item_Lists.List;
+      Descriptor : in WisiToken.Descriptor)
+     return Token_ID_Arrays.Vector;
+
    type Item_Set is record
       Set       : Item_Lists.List;
       Goto_List : Goto_Item_List;
