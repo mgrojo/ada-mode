@@ -158,6 +158,13 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type);
    function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
    --  Result points to newly inserted element, with Direction Unknown.
+   --
+   --  Elements with Key equal to a current element are inserted; they
+   --  can only by retrieved by traversing the tree starting at Find (Key).
+
+   function Find_Or_Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
+   --  Search for Element; if found, return a Cursor for it. Otherwise,
+   --  insert it, and return a cursor for it.
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
    --  Delete element at Position, set Position to No_Element.

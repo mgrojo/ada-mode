@@ -41,6 +41,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    Empty_List : constant List;
 
+   function Is_Empty (Container : in List) return Boolean;
+
    overriding procedure Adjust (Container : in out List);
    --  Deep copy.
 
@@ -152,6 +154,9 @@ private
       Tail  : Node_Access               := null;
       Count : Ada.Containers.Count_Type := 0;
    end record;
+
+   function Is_Empty (Container : in List) return Boolean
+   is (Container.Head = null);
 
    type Cursor (Container : not null access constant List) is
    record

@@ -26,6 +26,9 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    procedure Delete_Fixup (T : in out Tree; X : in out Node_Access);
 
+   procedure Insert_Fixup (Tree : in out Pkg.Tree; Z : in out Node_Access)
+   with Pre => Z /= null;
+
    function Find (Root : in Node_Access; Key : in Key_Type; Nil : in Node_Access) return Node_Access
    with Pre => Nil /= null;
 
@@ -138,6 +141,78 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end loop;
       return null;
    end Find;
+
+   function Find_Or_Insert
+     (Tree    : in out Pkg.Tree;
+      Element : in     Element_Type;
+      No_Find : in     Boolean)
+     return Cursor
+   is
+      --  [1] 13.3 RB-Insert (T, z), with extra return if found
+      Nil   : Node_Access renames Tree.Nil;
+      Key_Z : constant Key_Type := Key (Element);
+      Y     : Node_Access       := Nil;
+      X     : Node_Access       := Tree.Root;
+
+      Compare_Z_Y : Compare_Result;
+   begin
+      Nil.Parent := null;
+      Nil.Left   := null;
+      Nil.Right  := null;
+
+      while X /= Nil loop
+         Y := X;
+         Compare_Z_Y := Key_Compare (Key_Z, Key (X.Element));
+         case Compare_Z_Y is
+         when Less =>
+            X := X.Left;
+         when Equal =>
+            if No_Find then
+               X := X.Right;
+            else
+               return
+                 (Node       => X,
+                  Direction  => Unknown,
+                  Left_Done  => True,
+                  Right_Done => True);
+            end if;
+         when Greater =>
+            X := X.Right;
+         end case;
+      end loop;
+
+      --  Not found, or N_Find; insert.
+      declare
+         Z      : Node_Access := new Node'(Element, Nil, Nil, Nil, Red);
+         Result : Node_Access;
+      begin
+
+         Z.Parent := Y;
+         if Y = Nil then
+            Tree.Root := Z;
+         else
+            case Compare_Z_Y is
+            when Less =>
+               Y.Left := Z;
+            when Equal | Greater =>
+               Y.Right := Z;
+            end case;
+         end if;
+
+         Result := Z;
+         if Z = Tree.Root then
+            Z.Color := Black;
+         else
+            Insert_Fixup (Tree, Z);
+         end if;
+
+         return
+           (Node       => Result,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
+      end;
+   end Find_Or_Insert;
 
    procedure Free_Tree (Item : in out Node_Access; Nil : in Node_Access)
    is begin
@@ -769,73 +844,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean
    is
-      Nil  : Node_Access renames Container.Nil;
-      Node : Node_Access := Container.Root;
+      Node : constant Node_Access := Find (Container.Root, Key, Container.Nil);
    begin
-      while Node /= Nil loop
-         case Key_Compare (Key, Pkg.Key (Node.Element)) is
-         when Equal =>
-            return True;
-         when Less =>
-            Node := Node.Left;
-         when Greater =>
-            Node := Node.Right;
-         end case;
-      end loop;
-      return False;
+      return Node /= null;
    end Present;
 
    function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
-   is
-      --  [1] 13.3 RB-Insert (T, z)
-      Nil   : Node_Access renames Tree.Nil;
-      Z     : Node_Access       := new Node'(Element, Nil, Nil, Nil, Red);
-      Key_Z : constant Key_Type := Key (Z.Element);
-      Y     : Node_Access       := Nil;
-      X     : Node_Access       := Tree.Root;
-
-      Result      : Node_Access;
-      Compare_Z_Y : Compare_Result;
-   begin
-      Nil.Parent := null;
-      Nil.Left   := null;
-      Nil.Right  := null;
-
-      while X /= Nil loop
-         Y := X;
-         Compare_Z_Y := Key_Compare (Key_Z, Key (X.Element));
-         case Compare_Z_Y is
-         when Less =>
-            X := X.Left;
-         when Equal | Greater =>
-            X := X.Right;
-         end case;
-      end loop;
-
-      Z.Parent := Y;
-      if Y = Nil then
-         Tree.Root := Z;
-      else
-         case Compare_Z_Y is
-         when Less =>
-            Y.Left := Z;
-         when Equal | Greater =>
-            Y.Right := Z;
-         end case;
-      end if;
-
-      Result := Z;
-      if Z = Tree.Root then
-         Z.Color := Black;
-      else
-         Insert_Fixup (Tree, Z);
-      end if;
-
-      return
-        (Node       => Result,
-         Direction  => Unknown,
-         Left_Done  => True,
-         Right_Done => True);
+   is begin
+      return Find_Or_Insert (Tree, Element, No_Find => True);
    end Insert;
 
    procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type)
@@ -845,6 +861,11 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    begin
       null;
    end Insert;
+
+   function Find_Or_Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
+   is begin
+      return Find_Or_Insert (Tree, Element, No_Find => False);
+   end Find_Or_Insert;
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor)
    is

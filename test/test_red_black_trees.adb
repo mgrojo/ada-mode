@@ -423,6 +423,38 @@ package body Test_Red_Black_Trees is
       end;
    end Test_Copy;
 
+   procedure Test_Find_Or_Insert (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Checks;
+      use Trees;
+      Tree : Trees.Tree;
+      Found_Cur : Cursor;
+   begin
+      --  Build a tree.
+      Tree.Insert ((Pos => 3));
+      Tree.Insert ((Pos => 7));
+      Tree.Insert ((Pos => 10));
+      Tree.Insert ((Pos => 12));
+      Validate ("1 valid", Tree);
+      Check_Sorted ("1", Tree, (3, 7, 10, 12), Ascending => True);
+
+      Found_Cur := Tree.Find_Or_Insert ((Pos => 7));
+      Validate ("2 valid", Tree);
+      Check_Sorted ("2", Tree, (3, 7, 10, 12), Ascending => True);
+
+      Check ("2 cur has_element", Has_Element (Found_Cur), True);
+      Check ("2 cur value", Tree.Constant_Ref (Found_Cur).Element.all, (Pos => 7));
+
+      Found_Cur := Tree.Find_Or_Insert ((Pos => 8));
+      Validate ("3 valid", Tree);
+      Check_Sorted ("3", Tree, (3, 7, 8, 10, 12), Ascending => True);
+
+      Check ("3 cur has_element", Has_Element (Found_Cur), True);
+      Check ("3 cur value", Tree.Constant_Ref (Found_Cur).Element.all, (Pos => 8));
+
+   end Test_Find_Or_Insert;
+
    ----------
    --  Public routines
 
@@ -432,6 +464,7 @@ package body Test_Red_Black_Trees is
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Test_Copy'Access, "Test_Copy");
+      Register_Routine (T, Test_Find_Or_Insert'Access, "Test_Find_Or_Insert");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
