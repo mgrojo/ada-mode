@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -48,6 +48,13 @@ is
 
    function Last_Index (Container : Vector) return Extended_Index
    is (Container.Last);
+
+   function To_Vector (Element : in Element_Type) return Vector
+   is begin
+      return Result : Vector do
+         Append (Result, Element);
+      end return;
+   end To_Vector;
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type)
    is

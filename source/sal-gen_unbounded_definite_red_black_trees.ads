@@ -151,23 +151,44 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
    function Length (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
-   renames Count;
+     renames Count;
+   procedure Count_Depth
+     (Tree  : in     Pkg.Tree;
+      Count :    out Ada.Containers.Count_Type;
+      Depth :    out Ada.Containers.Count_Type);
+   --  Count and Count_Depth traverse the entire tree.
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean;
 
-   procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type);
-   function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
+   procedure Insert
+     (Tree                : in out Pkg.Tree;
+      Element             : in     Element_Type;
+      Insert_If_Duplicate : in     Boolean := False);
+   function Insert
+     (Tree                : in out Pkg.Tree;
+      Element             : in     Element_Type;
+      Insert_If_Duplicate : in     Boolean := False)
+     return Cursor;
    --  Result points to newly inserted element, with Direction Unknown.
    --
-   --  Elements with Key equal to a current element are inserted; they
-   --  can only by retrieved by traversing the tree starting at Find (Key).
+   --  If Insert_If_Duplicate, elements with Key equal to a current
+   --  element are inserted; they can only by retrieved using Iterate.
+   --
+   --  If not Insert_If_Duplicate, raises Duplicate_Key if Key (Element)
+   --  is found.
 
-   function Find_Or_Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
-   --  Search for Element; if found, return a Cursor for it. Otherwise,
-   --  insert it, and return a cursor for it.
+   function Find_Or_Insert
+     (Tree    : in out Pkg.Tree;
+      Element : in     Element_Type;
+      Found   :    out Boolean)
+     return Cursor;
+   --  Search for Element; if found, Found is True. If not found, insert
+   --  it. Return a Cursor to the found or inserted element. , and return
+   --  a cursor for it.
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
    --  Delete element at Position, set Position to No_Element.
+
 private
 
    type Node;

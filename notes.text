@@ -6,6 +6,9 @@ org.stephe_leake.sal.stephe-2   : spark
  current work
 build/Makefile
 
+test/test_unbounded_definite_hash_tables.adb
+    need access to hash_table internals; gen_hash_tables_aux
+
  references
 d:/Apps/GNAT-gpl_2019/share/doc/spark/pdf/spark2014_rm.pdf
 d:/Apps/GNAT-gpl_2019/share/doc/spark/pdf/spark2014_ug.pdf

@@ -21,9 +21,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    --  Local declarations (alphabetical order)
 
-   function Count_Tree (Item : in Node_Access; Nil : in Node_Access) return Ada.Containers.Count_Type
-   with Pre => Nil /= null;
-
    procedure Delete_Fixup (T : in out Tree; X : in out Node_Access);
 
    procedure Insert_Fixup (Tree : in out Pkg.Tree; Z : in out Node_Access)
@@ -44,20 +41,30 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    ----------
    --  local bodies (alphabetical order)
 
-   function Count_Tree (Item : in Node_Access; Nil : in Node_Access) return Ada.Containers.Count_Type
+   procedure Count_Tree
+     (Item           : in     not null Node_Access;
+      Nil            : in     not null Node_Access;
+      Count          : in out Ada.Containers.Count_Type;
+      Max_Depth      : in out Ada.Containers.Count_Type;
+      Sub_Tree_Depth : in     Ada.Containers.Count_Type)
+   with Pre => Item /= Nil
    is
       use all type Ada.Containers.Count_Type;
-      Result : Ada.Containers.Count_Type := 0;
+      Local_Sub_Tree_Depth : constant Ada.Containers.Count_Type := Sub_Tree_Depth + 1;
    begin
+      Count := @ + 1;
+
+      if Local_Sub_Tree_Depth > Max_Depth then
+         Max_Depth := Local_Sub_Tree_Depth;
+      end if;
+
       if Item.Left /= Nil then
-         Result := Result + Count_Tree (Item.Left, Nil);
+         Count_Tree (Item.Left, Nil, Count, Max_Depth, Local_Sub_Tree_Depth);
       end if;
 
       if Item.Right /= Nil then
-         Result := Result + Count_Tree (Item.Right, Nil);
+         Count_Tree (Item.Right, Nil, Count, Max_Depth, Local_Sub_Tree_Depth);
       end if;
-
-      return Result + 1;
    end Count_Tree;
 
    procedure Delete_Fixup (T : in out Tree; X : in out Node_Access)
@@ -143,9 +150,11 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Find;
 
    function Find_Or_Insert
-     (Tree    : in out Pkg.Tree;
-      Element : in     Element_Type;
-      No_Find : in     Boolean)
+     (Tree                : in out Pkg.Tree;
+      Element             : in     Element_Type;
+      Found               :    out Boolean;
+      Insert_If_Duplicate : in     Boolean;
+      No_Find             : in     Boolean)
      return Cursor
    is
       --  [1] 13.3 RB-Insert (T, z), with extra return if found
@@ -167,8 +176,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          when Less =>
             X := X.Left;
          when Equal =>
+            Found := True;
+
             if No_Find then
-               X := X.Right;
+               if Insert_If_Duplicate then
+                  X := X.Right;
+               else
+                  raise Duplicate_Key;
+               end if;
             else
                return
                  (Node       => X,
@@ -181,7 +196,9 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          end case;
       end loop;
 
-      --  Not found, or N_Find; insert.
+      Found := False;
+
+      --  Not found, or No_Find; insert.
       declare
          Z      : Node_Access := new Node'(Element, Nil, Nil, Nil, Red);
          Result : Node_Access;
@@ -834,13 +851,32 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Find_In_Range;
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
-   is begin
+   is
+      Count     : Ada.Containers.Count_Type := 0;
+      Max_Depth : Ada.Containers.Count_Type := 0;
+   begin
       if Tree.Root = Tree.Nil then
          return 0;
       else
-         return Count_Tree (Tree.Root, Tree.Nil);
+         Count_Tree (Tree.Root, Tree.Nil, Count, Max_Depth, 1);
+         return Count;
       end if;
    end Count;
+
+   procedure Count_Depth
+     (Tree  : in     Pkg.Tree;
+      Count :    out Ada.Containers.Count_Type;
+      Depth :    out Ada.Containers.Count_Type)
+   is begin
+      Count := 0;
+      Depth := 0;
+
+      if Tree.Root = Tree.Nil then
+         null;
+      else
+         Count_Tree (Tree.Root, Tree.Nil, Count, Depth, 1);
+      end if;
+   end Count_Depth;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean
    is
@@ -849,22 +885,35 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return Node /= null;
    end Present;
 
-   function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
-   is begin
-      return Find_Or_Insert (Tree, Element, No_Find => True);
+   function Insert
+     (Tree                : in out Pkg.Tree;
+      Element             : in     Element_Type;
+      Insert_If_Duplicate : in     Boolean := False)
+     return Cursor
+   is
+      Found : Boolean;
+   begin
+      return Find_Or_Insert (Tree, Element, Found, Insert_If_Duplicate, No_Find => True);
    end Insert;
 
-   procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type)
+   procedure Insert
+     (Tree                : in out Pkg.Tree;
+      Element             : in     Element_Type;
+      Insert_If_Duplicate : in     Boolean := False)
    is
-      Temp : Cursor := Insert (Tree, Element);
+      Temp : Cursor := Insert (Tree, Element, Insert_If_Duplicate);
       pragma Unreferenced (Temp);
    begin
       null;
    end Insert;
 
-   function Find_Or_Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
+   function Find_Or_Insert
+     (Tree    : in out Pkg.Tree;
+      Element : in     Element_Type;
+      Found   :    out Boolean)
+     return Cursor
    is begin
-      return Find_Or_Insert (Tree, Element, No_Find => False);
+      return Find_Or_Insert (Tree, Element, Found, Insert_If_Duplicate => False, No_Find => False);
    end Find_Or_Insert;
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor)
