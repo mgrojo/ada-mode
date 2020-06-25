@@ -708,6 +708,10 @@ package body WisiToken_Grammar_Runtime is
                   Data.Language_Params.Language_Runtime_Name :=
                     +Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True);
 
+               elsif Kind = "lr1_hash_table_size" then
+                  Data.Language_Params.LR1_Hash_Table_Size :=
+                    Positive'Value (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));

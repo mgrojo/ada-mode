@@ -256,14 +256,14 @@ package body WisiToken.Generate.LR1_Items is
       use Interfaces;
 
       type Lookahead_Int_16 is record
-         Word_0 : Interfaces.Integer_16;
-         Word_1 : Interfaces.Integer_16;
-         Word_2 : Interfaces.Integer_16;
-         Word_3 : Interfaces.Integer_16;
-         Word_4 : Interfaces.Integer_16;
-         Word_5 : Interfaces.Integer_16;
-         Word_6 : Interfaces.Integer_16;
-         Word_7 : Interfaces.Integer_16;
+         Word_0 : Interfaces.Unsigned_16;
+         Word_1 : Interfaces.Unsigned_16;
+         Word_2 : Interfaces.Unsigned_16;
+         Word_3 : Interfaces.Unsigned_16;
+         Word_4 : Interfaces.Unsigned_16;
+         Word_5 : Interfaces.Unsigned_16;
+         Word_6 : Interfaces.Unsigned_16;
+         Word_7 : Interfaces.Unsigned_16;
       end record;
       for Lookahead_Int_16'Size use 128;
 
@@ -275,14 +275,14 @@ package body WisiToken.Generate.LR1_Items is
       return Result : Item_Set_Tree_Key do
          Result.Set_Capacity (1, Result_Length);
 
-         Result.Append (Integer_16 (Item_Set.Set.Length));
+         Result.Append (Unsigned_16 (Item_Set.Set.Length));
          --  Int_Arrays."<" compares length, but only after everything else; we
          --  want it to compare first, since it is most likely to be different.
 
          for Item of Item_Set.Set loop
-            Result.Append (Integer_16 (Item.Prod.LHS));
-            Result.Append (Integer_16 (Item.Prod.RHS));
-            Result.Append (Integer_16 (Item.Dot));
+            Result.Append (Unsigned_16 (Item.Prod.LHS));
+            Result.Append (Unsigned_16 (Item.Prod.RHS));
+            Result.Append (Unsigned_16 (Item.Dot));
             if Include_Lookaheads then
                declare
                   Temp : constant Lookahead_Int_16 := To_Int_16 (Item.Lookaheads);
@@ -305,19 +305,32 @@ package body WisiToken.Generate.LR1_Items is
       end return;
    end To_Item_Set_Tree_Key;
 
+   function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive
+   is
+      use Interfaces;
+      Accum : Unsigned_32 := 0;
+   begin
+      for I of Key loop
+         Accum := @ + Unsigned_32 (I);
+      end loop;
+
+      Accum := 1 + (Accum mod Unsigned_32 (Rows));
+      return Positive (Accum);
+   end Hash_Sum_32;
+
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
       New_Item_Set       : in     Item_Set;
-      Item_Set_Vector    : in out Item_Set_List;
-      Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Item_Set_List      : in out LR1_Items.Item_Set_List;
+      Item_Set_Tree      : in out LR1_Items.Item_Set_Tree;
       Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean)
    is
       use Item_Set_Trees;
       Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads);
    begin
-      Item_Set_Vector.Append (New_Item_Set);
-      Item_Set_Vector (Item_Set_Vector.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
+      Item_Set_List.Append (New_Item_Set);
+      Item_Set_List (Item_Set_List.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
       Item_Set_Tree.Insert ((Key, New_Item_Set.State));
    end Add;
 

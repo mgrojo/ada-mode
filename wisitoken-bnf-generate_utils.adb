@@ -21,8 +21,13 @@ pragma License (GPL);
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Generate; use WisiToken.Generate;
+with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
+with WisiToken_Grammar_Editing;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
 package body WisiToken.BNF.Generate_Utils is
 
    --  For Constant_Reference
@@ -222,9 +227,8 @@ package body WisiToken.BNF.Generate_Utils is
 
          Result.Descriptor.Last_Lookahead       :=
            (case (Input_Data.User_Parser) is
-            when LR1    => Result.Descriptor.Last_Terminal,
             when LALR   => Result.Descriptor.First_Nonterminal,
-            when others => Invalid_Token_ID);
+            when others => Result.Descriptor.Last_Terminal);
 
          for Cursor in All_Tokens (Result).Iterate loop
             Result.Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));
@@ -244,8 +248,55 @@ package body WisiToken.BNF.Generate_Utils is
 
          To_Grammar (Result, Input_Data.Grammar_Lexer.File_Name, -Input_Data.Language_Params.Start_Token);
          Result.Ignore_Conflicts := Ignore_Conflicts;
+
+         if WisiToken.Generate.Error then
+            raise WisiToken.Grammar_Error with "errors during initializing grammar: aborting";
+         end if;
       end return;
    end Initialize;
+
+   function Parse_Grammar_File
+     (Grammar_File_Name  : in String;
+      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in WisiToken.BNF.Lexer_Type;
+      Ignore_Conflicts   : in Boolean)
+     return Generate_Data
+   is
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+      Trace             : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Input_Data        : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+      Grammar_Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   begin
+      Wisitoken_Grammar_Main.Create_Parser
+        (Parser    => Grammar_Parser,
+         Trace     => Trace'Unchecked_Access,
+         User_Data => Input_Data'Unchecked_Access);
+
+      Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
+
+      Grammar_Parser.Parse;
+      Grammar_Parser.Execute_Actions; -- Meta phase.
+
+      if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
+         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
+         if WisiToken.Generate.Error then
+            raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
+         end if;
+      end if;
+
+      Input_Data.Reset;
+      Input_Data.Phase       := WisiToken_Grammar_Runtime.Other;
+      Input_Data.User_Parser := Generate_Algorithm;
+      Input_Data.User_Lexer  := Lexer;
+
+      Grammar_Parser.Execute_Actions; -- populates Input_Data.Tokens
+
+      if WisiToken.Generate.Error then
+         raise WisiToken.Grammar_Error with "errors during parsing grammar: aborting";
+      end if;
+
+      return Initialize (Input_Data, Ignore_Conflicts);
+   end Parse_Grammar_File;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID
    is begin

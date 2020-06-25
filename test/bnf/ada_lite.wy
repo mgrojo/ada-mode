@@ -45,6 +45,9 @@
 ;; %generate Tree_Sitter Ada tree_sitter currently broken
 ;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
 
+;; We don't actually need this for speed here, but we do need to test it.
+%lr1_hash_table_size 200
+
 %keyword AND "and"
 %keyword BEGIN "begin"
 %keyword BODY "body"

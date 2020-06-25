@@ -17,7 +17,7 @@ with "aunit_ext";
 with "sal_devel";
 with "wisitoken";
 with "standard_common";
--- with "tree_sitter";
+with "tree_sitter";
 project WisiToken_Test is
 
    type Generate_Type is ("all", "BNF", "EBNF", "Tree_Sitter");

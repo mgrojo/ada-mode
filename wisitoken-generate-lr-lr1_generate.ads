@@ -38,7 +38,8 @@ package WisiToken.Generate.LR.LR1_Generate is
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
       Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True)
+      Partial_Recursion     : in     Boolean             := True;
+      Hash_Table_Size       : in     Positive            := LR1_Items.Item_Set_Trees.Default_Rows)
      return Parse_Table_Ptr
    with Pre => Descriptor.First_Nonterminal = Descriptor.Accept_ID;
    --  Generate a generalized LR1 parse table for Grammar. The
@@ -65,7 +66,8 @@ package WisiToken.Generate.LR.LR1_Generate is
      (Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor              : in WisiToken.Descriptor)
+      Descriptor              : in WisiToken.Descriptor;
+      Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 

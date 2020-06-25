@@ -366,7 +366,7 @@ package WisiToken.Parse.LR is
    --  parser, not virtual nonterms produced by recover.
 
    package Fast_Token_ID_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (SAL.Peek_Type, Token_ID, Capacity => 20);
+     (SAL.Peek_Type, Token_ID, Default_Element => Invalid_Token_ID, Capacity => 20);
 
    No_Insert_Delete : constant SAL.Base_Peek_Type := 0;
 
@@ -457,7 +457,7 @@ package WisiToken.Parse.LR is
    --  Ignore state, stack_depth
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Capacity => 80);
+     (Positive_Index_Type, Config_Op, Default_Element => (Fast_Forward, Base_Token_Index'Last), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -528,7 +528,8 @@ package WisiToken.Parse.LR is
    end record;
 
    package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Recover_Op, Capacity => 80);
+     (Positive_Index_Type, Recover_Op,
+      Default_Element => (Delete, Invalid_Token_ID, Invalid_Token_Index), Capacity => 80);
 
    package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
 

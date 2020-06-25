@@ -70,7 +70,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
      (Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor              : in WisiToken.Descriptor)
+      Descriptor              : in WisiToken.Descriptor;
+      Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
    --  "items", with some optimizations.
@@ -79,8 +80,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       First_State_Index : constant State_Index := 0;
 
-      C               : LR1_Items.Item_Set_List;       -- result
-      C_Tree          : LR1_Items.Item_Set_Trees.Tree; -- for fast find
+      C               : LR1_Items.Item_Set_List; -- result
+      C_Tree          : LR1_Items.Item_Set_Tree; -- for fast find
       States_To_Check : State_Index_Queues.Queue;
       --  [dragon] specifies 'until no more items can be added', but we use
       --  a queue to avoid checking unecessary states. Ada LR1 has over
@@ -99,12 +100,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
           Dot_IDs        => <>,
           State          => First_State_Index),
         Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-
-      C_Key       : Item_Set_Tree_Key;
-      Found_Cur   : Item_Set_Trees.Cursor;
-      Found_State : Unknown_State_Index;
    begin
       C.Set_First_Last (First_State_Index, First_State_Index - 1);
+      C_Tree.Set_Rows (Hash_Table_Size);
 
       Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
@@ -135,42 +133,57 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
             New_Item_Set.State := C.Last_Index + 1;
 
-            C_Key       := To_Item_Set_Tree_Key (New_Item_Set, True);
-            Found_Cur   := C_Tree.Find_Or_Insert ((C_Key, New_Item_Set.State));
-            Found_State :=
-              (if C_Tree (Found_Cur).State = New_Item_Set.State
-               then Unknown_State
-               else C_Tree (Found_Cur).State);
+            declare
+               C_Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, True);
 
-            if Found_State = Unknown_State then
+               Found     : Boolean;
+               Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := C_Tree.Find_Or_Insert
+                 ((C_Key, New_Item_Set.State), Found);
+            begin
+               if not Found then
+                  States_To_Check.Put (New_Item_Set.State);
 
-               States_To_Check.Put (New_Item_Set.State);
+                  New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
 
-               New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
-
-               C.Append (New_Item_Set);
-
-               if Trace_Generate_Table > Detail then
-                  Ada.Text_IO.Put_Line
-                    ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
-                       Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
-                  Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
-               end if;
-
-               C (I).Goto_List.Insert ((Symbol, C.Last_Index));
-            else
-               --  If there's not already a goto entry between these two sets, create one.
-               if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                  C (I).Goto_List.Insert ((Symbol, Found_State));
+                  C.Append (New_Item_Set);
 
                   if Trace_Generate_Table > Detail then
                      Ada.Text_IO.Put_Line
-                       ("  adding goto on " & Image (Symbol, Descriptor) & " to state" & Found_State'Image);
+                       ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
+                          Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
+                     Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
+                  end if;
+
+                  C (I).Goto_List.Insert ((Symbol, C.Last_Index));
+               else
+                  --  If there's not already a goto entry between these two sets, create one.
+                  if not Is_In ((Symbol, Found_Ref.State), Goto_List => C (I).Goto_List) then
+                     C (I).Goto_List.Insert ((Symbol, Found_Ref.State));
+
+                     if Trace_Generate_Table > Detail then
+                        Ada.Text_IO.Put_Line
+                          ("  adding goto on " & Image (Symbol, Descriptor) & " to state" & Found_Ref.State'Image);
+                     end if;
                   end if;
                end if;
-            end if;
+            end;
          end loop;
       end loop;
+
+      if Trace_Time then
+         declare
+            Elements, Max_Row_Depth, Average_Row_Depth : Ada.Containers.Count_Type;
+            Rows : Integer;
+         begin
+            C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth);
+
+            Ada.Text_IO.Put_Line
+              ("LR1 hash table states:" & Elements'Image &
+                 " rows:" & Rows'Image &
+                 " max_row_depth:" & Max_Row_Depth'Image &
+                 " average_row_depth:" & Average_Row_Depth'Image);
+         end;
+      end if;
 
       if Trace_Generate_Table > Detail then
          Ada.Text_IO.New_Line;
@@ -205,7 +218,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
       Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True)
+      Partial_Recursion     : in     Boolean             := True;
+      Hash_Table_Size       : in     Positive            := LR1_Items.Item_Set_Trees.Default_Rows)
      return Parse_Table_Ptr
    is
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
@@ -236,7 +250,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Hash_Table_Size);
 
       Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
@@ -252,7 +266,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Ada.Text_IO.Put_Line
            ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Initial_Item_Sets_Time, Recursions_Time)));
       end if;
-      if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
+      if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR1_Generate:");
          if Trace_Generate_Table > Detail then
