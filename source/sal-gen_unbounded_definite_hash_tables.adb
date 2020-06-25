@@ -19,7 +19,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Unbounded_Definite_Hash_Table is
+package body SAL.Gen_Unbounded_Definite_Hash_Tables is
 
    --  Local subprograms
 
@@ -30,22 +30,22 @@ package body SAL.Gen_Unbounded_Definite_Hash_Table is
      --  333_332.
      (113, 227, 467, 937, 1877, 3761, 7523, 15_053, 31_013, 62_039, 124_087, 248_177, 496_381);
 
+   function Find_Prime (Rows_Target : in Positive) return Positive
+   is begin
+      for P of Row_Sizes loop
+         if P > Rows_Target then
+            return P;
+         end if;
+      end loop;
+      raise Programmer_Error with Rows_Target'Image & " not found in Primes table (max" &
+        Row_Sizes (Row_Sizes'Last)'Image & "); need better hash function, or more primes";
+   end Find_Prime;
+
    procedure Grow (Table : in out Hash_Table; New_Rows : in Positive := Positive'First)
    is
       Rows_Target : constant Positive := (if New_Rows = Positive'First then 2 * Table.Table.Last_Index else New_Rows);
 
-      function Find_Prime return Positive
-      is begin
-         for P of Row_Sizes loop
-            if P > Rows_Target then
-               return P;
-            end if;
-         end loop;
-         raise Programmer_Error with Rows_Target'Image & " not found in Primes table (max" &
-           Row_Sizes (Row_Sizes'Last)'Image & "); need better hash function, or more primes";
-      end Find_Prime;
-
-      Prime_New_Rows : constant Positive := Find_Prime;
+      Prime_New_Rows : constant Positive := Find_Prime (Rows_Target);
 
       New_Table : Hash_Table;
    begin
@@ -68,7 +68,12 @@ package body SAL.Gen_Unbounded_Definite_Hash_Table is
       Rows  : in     Positive)
    is begin
       if Table.Table.Is_Empty then
-         Table.Table.Set_First_Last (1, Rows);
+         Table.Table.Set_First_Last (1, Find_Prime (Rows));
+
+      elsif Table.Table.Last_Index = Rows then
+         --  No change
+         null;
+
       else
          Grow (Table, Rows);
       end if;
@@ -162,4 +167,4 @@ package body SAL.Gen_Unbounded_Definite_Hash_Table is
       Average_Row_Depth := @ / Count_Type (Rows);
    end Sizes;
 
-end SAL.Gen_Unbounded_Definite_Hash_Table;
+end SAL.Gen_Unbounded_Definite_Hash_Tables;

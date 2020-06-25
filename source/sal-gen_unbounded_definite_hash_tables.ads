@@ -45,9 +45,11 @@ generic
 
    Default_Init_Rows : Positive := 113;
 
-package SAL.Gen_Unbounded_Definite_Hash_Table is
+package SAL.Gen_Unbounded_Definite_Hash_Tables is
 
-   package Pkg renames Gen_Unbounded_Definite_Hash_Table;
+   package Pkg renames Gen_Unbounded_Definite_Hash_Tables;
+
+   Default_Rows : constant Positive := Pkg.Default_Init_Rows;
 
    type Hash_Table is tagged private;
 
@@ -104,4 +106,4 @@ private
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
-end SAL.Gen_Unbounded_Definite_Hash_Table;
+end SAL.Gen_Unbounded_Definite_Hash_Tables;
