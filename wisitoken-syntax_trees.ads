@@ -189,8 +189,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree);
    procedure Clear (Tree : in out Syntax_Trees.Tree);
-   --  Delete all Elements and free associated memory; keep results of
-   --  Initialize.
+   --  Delete all Elements; keep results of Initialize.
 
    procedure Flush (Tree : in out Syntax_Trees.Tree);
    --  Move all nodes in branched part to shared tree, set Flush mode

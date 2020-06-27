@@ -143,7 +143,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       Message   : in     String;
       Trace     : in out WisiToken.Trace'Class;
       Terminals : in     Base_Token_Arrays.Vector);
-   --  Terminate Current. Current is set to no element.
+   --  Terminate Current. Current is set to next element.
    --
    --  Terminals is used to report the current token in the message.
 

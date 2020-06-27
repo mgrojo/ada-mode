@@ -30,6 +30,13 @@ is
    --     Put_Line ("wisitoken-lr1_parallel <grammar file> [verbosity]");
    --  end Put_Usage;
 begin
+      WisiToken.Trace_Generate_Table :=
+        (if Ada.Command_Line.Argument_Count > 1
+         then Integer'Value (Ada.Command_Line.Argument (2))
+         else 0);
+
+      WisiToken.Debug_Mode := True;
+
    declare
       --  Catch exceptions
       Grammar_File_Name : constant String := Ada.Command_Line.Argument (1);
@@ -67,13 +74,6 @@ begin
       Put_Line ("task_count 1 time:" & Duration'Image (Ada.Calendar."-" (Time_1, Time_Start)));
       Put_Line ("task_count 1 max state:" & Item_Sets_1.Last_Index'Image);
 
-      WisiToken.Trace_Generate_Table :=
-        (if Ada.Command_Line.Argument_Count > 1
-         then Integer'Value (Ada.Command_Line.Argument (2))
-         else 0);
-
-      WisiToken.Debug_Mode := True;
-
       declare
          Item_Sets_8_Array : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
            (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor,
@@ -82,7 +82,7 @@ begin
 
          Time_8 : constant Ada.Calendar.Time := Ada.Calendar.Clock;
 
-         Item_Sets_8_Tree : Item_Set_Trees.Tree;
+         Item_Sets_8_Tree : Item_Set_Tree;
 
          Map    : array (State_Index range Item_Sets_1.First_Index .. Item_Sets_1.Last_Index) of State_Index;
          Mapped : array (State_Index range Item_Sets_8_Array.First_Index .. Item_Sets_8_Array.Last_Index) of Boolean :=
@@ -94,14 +94,15 @@ begin
 
          for I in Map'Range loop
             Item_Sets_8_Tree.Insert
-              ((To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Descriptor, Include_Lookaheads => True),
-                I));
+              ((To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Include_Lookaheads => True),
+                I),
+              Ignore_Duplicate => True);
          end loop;
 
          for I in Map'Range loop
             begin
                Map (I) := Item_Sets_8_Tree.Constant_Ref
-                 (To_Item_Set_Tree_Key (Item_Sets_1 (I), Descriptor, Include_Lookaheads => True)).State;
+                 (To_Item_Set_Tree_Key (Item_Sets_1 (I), Include_Lookaheads => True)).State;
                Mapped (Map (I)) := True;
             exception
             when SAL.Not_Found =>
@@ -109,13 +110,30 @@ begin
             end;
          end loop;
 
-         Put ("extra states:");
-
-         for I in Mapped'Range loop
-            if not Mapped (I) then
-               Put (I'Image);
-            end if;
+         Put_Line ("from 1 task:");
+         for Set of Item_Sets_1 loop
+            Put (Set.State'Image);
          end loop;
+         New_Line;
+
+         Put_Line ("from 8 tasks:");
+         for Set of Item_Sets_8_Array loop
+            Put (Set.State'Image);
+         end loop;
+         New_Line;
+
+         if Mapped'Length < Map'Length then
+            Put_Line ("missing states" & State_Index'Image (Mapped'Last + 1) & Map'Last'Image);
+
+         else
+            Put ("extra states:");
+
+            for I in Mapped'Range loop
+               if not Mapped (I) then
+                  Put (I'Image);
+               end if;
+            end loop;
+         end if;
       end;
    end;
 exception

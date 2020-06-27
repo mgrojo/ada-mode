@@ -28,57 +28,33 @@ update-wisitoken_grammar
 
  current work
 speed up lr1 for ada_annex_p
-    o.w     o.e.a ada.wy LR1:
-    compute partial recursion time: 0.002063858
-    initial item_sets time: 182.785572261
-    add_actions time: 2.037258551
-    compute minimal actions time: 1.819765908
-    compute conflicts time: 0.406810200
-
-    o.w ada_lite      initial item_sets time: 0.225666808
-    o.w ada_lite_ebnf initial item_sets time: 0.182028666
-
+    o.w     o.e.a ada.wy LR1: 469463 states
+    initial item_sets time: 163.506717162
 
     parallelize Lr1_generate.lr1_item_sets
-        compare build/dragon_4_43-generate.log to o.w; good
-        compare ada_lite.parse_table; same
+        hash_table should use Duplicate_Action_Type
 
-        run t_bnf with task_count = 1 (default) => fine
-
-  -rw-rw-rw-  1 stephe None 2577949 06-20 03:54 ada_lite_lr1_re2c.parse_table_good
-    Windows task Manager reports only 1 cpu busy
-        ie, all the time is spent in Supervisor.
-        add time to supervisor summary; takes longer to add later states.
-        finished, reports correct
-task_count 1 time: 0.717322650
-task_count 8 time: 0.309003036
-    yeah!
-
-    ada_lite_ebnf
-task_count 1 time: 0.646181903
-task_count 1 max state: 2915
-task_count 8 time: 0.308103639
-
-            allocate chunk of states to workers
+        don't copy Item_set, just move a pointer to it.
+            copy involves lots of small allocs
 
         time ada.wy with task_count = 8
-cache new states for each worker: initial item_sets time: 184.235532238 no faster, but no slower :(
-
-        run t_bnf with task_count = 8?
+            cache new states for each worker: initial item_sets time: 184.235532238 no faster, but no slower :(
 
     alternate red_black_tree implementation
         nodes are in an array, grow the array
             => amortized 0 allocation time
             slower search time? far more important
 
-    change goto_lists back to vectors
-        fixed length vector?
-        avoid iterator check on tree
+    change goto_lists back to fixed length vector?
 
-    cache results of closure?
-        never run the same one twice
-        i don't think we do
-        only way to tell it create a cache, see how many hits it gets.?
+algorithm.tex:
+    super needs C_Tree to compute unique state numbers.
+    w workers
+    worker gets N states, returns M new
+    of which Md are also found by other workers before wi are processed
+    super searches/inserts M states in 1 trees, (M - Md) in w trees.
+    when average M << N (later in process), worker search dominates super insert => parallel wins,
+    when average M >> N, super insert into w workers dominates worker search
 
 add tree-sitter parser, lexer
     tree-sitter still not getting comments right

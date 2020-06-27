@@ -29,12 +29,12 @@ pragma License (Modified_GPL);
 
 with Interfaces;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
+with SAL.Gen_Unbounded_Definite_Hash_Tables;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Comparable;
 with WisiToken.Productions;
 package WisiToken.Generate.LR1_Items is
-
-   use all type Interfaces.Integer_16;
+   use all type Interfaces.Unsigned_16;
 
    subtype Lookahead_Index_Type is Token_ID range 0 .. 127;
    type Lookahead is array (Lookahead_Index_Type) of Boolean with Pack;
@@ -179,6 +179,12 @@ package WisiToken.Generate.LR1_Items is
    --  Goto_Item_Lists don't get very long, so red_black_trees is only
    --  barely faster than doubly_linked_lists_sorted.
 
+   function Get_Dot_IDs
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Set        : in Item_Lists.List;
+      Descriptor : in WisiToken.Descriptor)
+     return Token_ID_Arrays.Vector;
+
    type Item_Set is record
       Set       : Item_Lists.List;
       Goto_List : Goto_Item_List;
@@ -226,16 +232,16 @@ package WisiToken.Generate.LR1_Items is
      (State_Index, Item_Set, Default_Element => (others => <>));
    subtype Item_Set_List is Item_Set_Arrays.Vector;
 
-   package Int_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive, Interfaces.Integer_16, Default_Element => Interfaces.Integer_16'Last);
-   function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
+   package Unsigned_16_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive, Interfaces.Unsigned_16, Default_Element => Interfaces.Unsigned_16'Last);
+   function Compare_Unsigned_16 (Left, Right : in Interfaces.Unsigned_16) return SAL.Compare_Result is
      (if Left > Right then SAL.Greater
       elsif Left < Right then SAL.Less
       else SAL.Equal);
 
-   package Int_Arrays_Comparable is new Int_Arrays.Gen_Comparable (Compare_Integer_16);
+   package Unsigned_16_Arrays_Comparable is new Unsigned_16_Arrays.Gen_Comparable (Compare_Unsigned_16);
 
-   subtype Item_Set_Tree_Key is Int_Arrays_Comparable.Vector;
+   subtype Item_Set_Tree_Key is Unsigned_16_Arrays_Comparable.Vector;
    --  We want a key that is fast to compare, and has enough info to
    --  significantly speed the search for an item set. So we convert all
    --  relevant data in an item into a string of integers. We need 16 bit
@@ -243,7 +249,7 @@ package WisiToken.Generate.LR1_Items is
    --  LALR keys do not.
 
    type Item_Set_Tree_Node is record
-      Key   : Item_Set_Tree_Key;
+      Key   : Item_Set_Tree_Key   := Unsigned_16_Arrays_Comparable.Empty_Vector;
       State : Unknown_State_Index := Unknown_State;
    end record;
 
@@ -252,53 +258,36 @@ package WisiToken.Generate.LR1_Items is
 
    function To_Item_Set_Tree_Key
      (Item_Set           : in LR1_Items.Item_Set;
-      Descriptor         : in WisiToken.Descriptor;
       Include_Lookaheads : in Boolean)
      return Item_Set_Tree_Key;
 
    function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key is
      (Node.Key);
 
-   package Item_Set_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
+   function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive;
+
+   package Item_Set_Trees is new SAL.Gen_Unbounded_Definite_Hash_Tables
      (Element_Type => Item_Set_Tree_Node,
       Key_Type     => Item_Set_Tree_Key,
       Key          => To_Item_Set_Tree_Key,
-      Key_Compare  => Int_Arrays_Comparable.Compare);
+      Key_Compare  => Unsigned_16_Arrays_Comparable.Compare,
+      Hash         => Hash_Sum_32);
    --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
-   --  iterating in state order. Item_Set_Trees.Tree holds lists of state
-   --  indices sorted by LR1 item info, for fast Find in LR1_Item_Sets
+   --  iterating in state order. Item_Set_Trees holds state
+   --  indices sorted by Item_Set_Tree_Key, for fast Find in LR1_Item_Sets
    --  and LALR_Kernels.
 
-   function Find
-     (New_Item_Set     : in Item_Set;
-      Item_Set_Tree    : in Item_Set_Trees.Tree;
-      Descriptor       : in WisiToken.Descriptor;
-      Match_Lookaheads : in Boolean)
-     return Unknown_State_Index;
-   --  Return the State of an element in Item_Set_Tree matching
-   --  New_Item_Set, Unknown_State if not found.
-   --
-   --  Match_Lookaheads is True in LR1_Generate.
+   subtype Item_Set_Tree is Item_Set_Trees.Hash_Table;
 
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
       New_Item_Set       : in     Item_Set;
-      Item_Set_Vector    : in out Item_Set_List;
-      Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Item_Set_List      : in out LR1_Items.Item_Set_List;
+      Item_Set_Tree      : in out LR1_Items.Item_Set_Tree;
       Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean)
-   with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
-   procedure Add
-     (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
-      New_Item_Set       : in     Item_Set;
-      New_Item_Set_Key   : in     Item_Set_Tree_Key;
-      Item_Set_Vector    : in out Item_Set_List;
-      Item_Set_Tree      : in out Item_Set_Trees.Tree;
-      Descriptor         : in     WisiToken.Descriptor;
-      Worker_C_Tree      : in out Item_Set_Trees.Tree)
-   with Pre => New_Item_Set.State = Item_Set_Vector.Last_Index + 1;
+   with Pre => New_Item_Set.State = Item_Set_List.Last_Index + 1;
    --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree
-   --  In version with Worker_C_Tree, add New_Item_Set to it as well.
 
    function Is_In
      (Item      : in Goto_Item;
