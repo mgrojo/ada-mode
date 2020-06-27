@@ -2,7 +2,7 @@
 --
 --  Instantiation allow Spark proof.
 --
---  Copyright (C) 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2019, 2020 Free Software Foundation, Inc.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -23,6 +23,7 @@ with Ada.Containers;
 with SAL.Gen_Bounded_Definite_Vectors;
 with Prove_Aux; use Prove_Aux;
 package Prove_Bounded_Definite_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-  (Index_Type   => Index_Type,
-   Element_Type => Positive,
-   Capacity     => Ada.Containers.Count_Type (Index_Type'Last - Index_Type'First + 1));
+  (Index_Type      => Index_Type,
+   Element_Type    => Positive,
+   Default_Element => 1,
+   Capacity        => Ada.Containers.Count_Type (Index_Type'Last - Index_Type'First + 1));

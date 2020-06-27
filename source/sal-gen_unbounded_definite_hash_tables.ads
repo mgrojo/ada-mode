@@ -40,8 +40,11 @@ generic
    with function Key (Element : in Element_Type) return Key_Type is <>;
    with function Key_Compare (Left, Right : in Key_Type) return Compare_Result;
 
-   with function Hash (Key : Key_Type; Rows : Positive) return Positive
-     with Post => Hash'Result in 1 .. Rows;
+   with function Hash (Key : Key_Type; Rows : Positive) return Positive;
+   --  WORKAROUND: GNAT community 2019 doesn't allow 'with post' here
+   --  with Release compilation switches.
+   --  with Post => Hash'Result in 1 .. Rows;
+   --
    --  1 + (Some_hash (Key) mod Rows) works.
 
    Default_Init_Rows : Positive := 113;
