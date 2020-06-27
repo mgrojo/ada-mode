@@ -24,11 +24,23 @@ project Sal_Test is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler'Default_Switches ("Ada");
 
+         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
+         --  returns integer; no source workaround for generic parameter.
+         for Switches ("test-config_files-base_tests.adb") use
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler'Default_Switches ("Ada");
+
+         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
+         --  returns integer; no source workaround for generic parameter.
+         for Switches ("test-config_files-base_tests.adb") use
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
 
          -- As of gnatpro 19.0, optimization -O1, -O2, -O3 takes
          -- advantage of LRM 11.6(5), which gives permission to omit a
@@ -36,9 +48,9 @@ project Sal_Test is
          -- doesn't have some effect on the external interactions of
          -- the program.
          for Switches ("test-config_files-error_message.adb") use
-           Standard_Common.Compiler.Debug_Switches &
-           Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler'Default_Switches ("Ada");
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
       end case;
    end Compiler;
 

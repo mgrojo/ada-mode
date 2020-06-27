@@ -68,10 +68,10 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    --  Set Table to empty.
 
    procedure Insert
-     (Table            : in out Hash_Table;
-      Element          : in     Element_Type;
-      Ignore_Duplicate : in     Boolean := True);
-   --  If Key (Element) is already in Table: if Ignore_Duplicate, does
+     (Table     : in out Hash_Table;
+      Element   : in     Element_Type;
+      Duplicate : in     Ignore_Error_Type);
+   --  If Key (Element) is already in Table: if Duplicate is Ignore, does
    --  nothing; otherwise, raises Duplicate_Key.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with

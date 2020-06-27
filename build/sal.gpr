@@ -34,11 +34,29 @@ project SAL is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler'Default_Switches ("Ada");
 
+         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
+         --  returns integer; no source workaround for generic parameter.
+         for Switches ("sal-config_files.adb") use
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
+         --  FIXME: this setting is not applied; report bug
+         for Switches ("sal-config_files-boolean.ads") use
+           Standard_Common.Compiler.Base_Debug_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler'Default_Switches ("Ada");
+
+         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
+         --  returns integer; no source workaround for generic parameter.
+         for Switches ("sal-config_files.adb") use
+           Standard_Common.Compiler.Base_Release_Switches &
+           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
+
       end case;
    end Compiler;
 

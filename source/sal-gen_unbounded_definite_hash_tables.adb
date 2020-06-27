@@ -53,7 +53,7 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
 
       for Row of Table.Table loop
          for Element of Row loop
-            New_Table.Insert (Element);
+            New_Table.Insert (Element, Duplicate => Error);
          end loop;
       end loop;
 
@@ -91,27 +91,27 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
    end Clear;
 
    procedure Insert
-     (Table            : in out Hash_Table;
-      Element          : in     Element_Type;
-      Ignore_Duplicate : in     Boolean := True)
-   is
-      Found : Boolean;
-   begin
+     (Table     : in out Hash_Table;
+      Element   : in     Element_Type;
+      Duplicate : in     Ignore_Error_Type)
+   is begin
       if Table.Table.Is_Empty then
          Set_Rows (Table, Default_Init_Rows);
       end if;
 
       declare
+         Found    : Boolean;
          Tree_Cur : constant Element_Trees.Cursor := Table.Table (Hash (Pkg.Key (Element), Table.Table.Last_Index))
            .Find_Or_Insert (Element, Found);
          pragma Unreferenced (Tree_Cur);
       begin
          if Found then
-            if Ignore_Duplicate then
+            case Duplicate is
+            when Ignore =>
                null;
-            else
+            when Error =>
                raise Duplicate_Key;
-            end if;
+            end case;
          end if;
       end;
    end Insert;

@@ -430,6 +430,7 @@ package body Test_Red_Black_Trees is
       use Trees;
       Tree : Trees.Tree;
       Found_Cur : Cursor;
+      Found : Boolean;
    begin
       --  Build a tree.
       Tree.Insert ((Pos => 3));
@@ -439,17 +440,19 @@ package body Test_Red_Black_Trees is
       Validate ("1 valid", Tree);
       Check_Sorted ("1", Tree, (3, 7, 10, 12), Ascending => True);
 
-      Found_Cur := Tree.Find_Or_Insert ((Pos => 7));
+      Found_Cur := Tree.Find_Or_Insert ((Pos => 7), Found);
       Validate ("2 valid", Tree);
       Check_Sorted ("2", Tree, (3, 7, 10, 12), Ascending => True);
 
+      Check ("2 found", Found, True);
       Check ("2 cur has_element", Has_Element (Found_Cur), True);
       Check ("2 cur value", Tree.Constant_Ref (Found_Cur).Element.all, (Pos => 7));
 
-      Found_Cur := Tree.Find_Or_Insert ((Pos => 8));
+      Found_Cur := Tree.Find_Or_Insert ((Pos => 8), Found);
       Validate ("3 valid", Tree);
       Check_Sorted ("3", Tree, (3, 7, 8, 10, 12), Ascending => True);
 
+      Check ("3 found", Found, False);
       Check ("3 cur has_element", Has_Element (Found_Cur), True);
       Check ("3 cur value", Tree.Constant_Ref (Found_Cur).Element.all, (Pos => 8));
 

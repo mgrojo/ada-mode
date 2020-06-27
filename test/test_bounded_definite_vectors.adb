@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017, 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2019, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,9 +21,10 @@ with SAL.Gen_Bounded_Definite_Vectors;
 package body Test_Bounded_Definite_Vectors
 is
    package Integer_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-     (Index_Type   => Positive,
-      Element_Type => Integer,
-      Capacity     => 5);
+     (Index_Type      => Positive,
+      Element_Type    => Integer,
+      Default_Element => 0,
+      Capacity        => 5);
    use Integer_Vectors;
 
    type Check_Array_Type is array (Positive range <>) of Integer;
