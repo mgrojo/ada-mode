@@ -30,12 +30,7 @@ is
    --     Put_Line ("wisitoken-lr1_parallel <grammar file> [verbosity]");
    --  end Put_Usage;
 begin
-      WisiToken.Trace_Generate_Table :=
-        (if Ada.Command_Line.Argument_Count > 1
-         then Integer'Value (Ada.Command_Line.Argument (2))
-         else 0);
-
-      WisiToken.Debug_Mode := True;
+   WisiToken.Debug_Mode := True;
 
    declare
       --  Catch exceptions
@@ -74,6 +69,11 @@ begin
       Put_Line ("task_count 1 time:" & Duration'Image (Ada.Calendar."-" (Time_1, Time_Start)));
       Put_Line ("task_count 1 max state:" & Item_Sets_1.Last_Index'Image);
 
+      WisiToken.Trace_Generate_Table :=
+        (if Ada.Command_Line.Argument_Count > 1
+         then Integer'Value (Ada.Command_Line.Argument (2))
+         else 0);
+
       declare
          Item_Sets_8_Array : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
            (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor,
@@ -96,7 +96,7 @@ begin
             Item_Sets_8_Tree.Insert
               ((To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Include_Lookaheads => True),
                 I),
-              Ignore_Duplicate => True);
+              Duplicate => SAL.Error);
          end loop;
 
          for I in Map'Range loop

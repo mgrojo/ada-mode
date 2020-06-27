@@ -32,18 +32,30 @@ speed up lr1 for ada_annex_p
     initial item_sets time: 163.506717162
 
     parallelize Lr1_generate.lr1_item_sets
-        hash_table should use Duplicate_Action_Type
+        clean up, pass multiple states:
+            ada_lite.wy LALR getting programmer_error in Set_Minimal_Complete_Actions
 
-        don't copy Item_set, just move a pointer to it.
-            copy involves lots of small allocs
+        need gnat trace util
+            output all options in --help
 
         time ada.wy with task_count = 8
             cache new states for each worker: initial item_sets time: 184.235532238 no faster, but no slower :(
+            clean up, pass multiple states:
+
+        hash_table should use Duplicate_Action_Type
+
+        store hash pre-modulo with key
+            hash_tables.hash just does modulo
+            or include modulo; we know we are not going to call set_rows.
+
+        don't copy Item_set, just move a pointer to it.
+            copy involves lots of small allocs
 
     alternate red_black_tree implementation
         nodes are in an array, grow the array
             => amortized 0 allocation time
             slower search time? far more important
+            faster to copy for goto_item_lists
 
     change goto_lists back to fixed length vector?
 

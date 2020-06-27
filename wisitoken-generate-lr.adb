@@ -746,7 +746,8 @@ package body WisiToken.Generate.LR is
                end case;
             end if;
          end loop;
-         raise SAL.Programmer_Error;
+         raise SAL.Programmer_Error with
+           "Set_Minimal_Complete_Actions: action for " & Image (ID, Descriptor) & " not found";
       end Find_Action;
 
       function Compute_Action (ID : in Token_ID) return Minimal_Action

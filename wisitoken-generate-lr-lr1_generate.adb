@@ -129,7 +129,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          --  inactive; then Sets is empty.
          --
          --  If Sets_To_Check is not empty, Keys_To_Store contains keys from
-         --  other workers to store worker's C_Tree; increment active worker
+         --  other workers to store in worker's C_Tree; increment active worker
          --  count.
 
          procedure Update
@@ -208,7 +208,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
             C.Append (First_Item_Set);
             C (First_State_Index).Dot_IDs := Get_Dot_IDs (Grammar, First_Item_Set.Set, Descriptor);
-            C_Tree.Insert ((Key, First_Item_Set.State));
+            C_Tree.Insert ((Key, First_Item_Set.State), Duplicate => SAL.Error);
 
             States_To_Check.Put ((Key, First_State_Index));
          end Initialize;
@@ -230,6 +230,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
                   Keys_To_Check.Append (States_To_Check.Get);
                end loop;
 
+               Keys_To_Store := New_States_For_Worker (Worker_ID);
+               New_States_For_Worker (Worker_ID).Clear;
+
                if Trace_Generate_Table > Detail then
                   Ada.Text_IO.Put
                     ("(worker" & Worker_ID'Image & ") Checking" & Sets_To_Check.Length'Image & " states");
@@ -242,10 +245,14 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         Put (Grammar, Descriptor, Set, Show_Lookaheads => True, Show_Goto_List => True);
                      end loop;
                   end if;
-               end if;
 
-               Keys_To_Store := New_States_For_Worker (Worker_ID);
-               New_States_For_Worker (Worker_ID).Clear;
+                  Ada.Text_IO.Put
+                    ("(worker" & Worker_ID'Image & ") storing" & Keys_To_Store.Length'Image & " states");
+                  for Node of Keys_To_Store loop
+                     Ada.Text_IO.Put (Node.State'Image);
+                  end loop;
+                  Ada.Text_IO.New_Line;
+               end if;
 
                Active_Workers := @ + 1;
             end if;
@@ -266,9 +273,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
          is begin
             if Trace_Generate_Table > Detail then
                Ada.Text_IO.Put
-                 ("(worker" & Worker_ID'Image & ") adding" & New_C.Length'Image & " states from states");
-               for Node of New_C loop
-                  Ada.Text_IO.Put (Node.State'Image);
+                 ("(super) adding" & New_C.Length'Image & " states from worker" & Worker_ID'Image & "; states");
+               for Data of Worker_Data loop
+                  Ada.Text_IO.Put (Data.From_State'Image);
                end loop;
                Ada.Text_IO.New_Line;
             end if;
@@ -284,7 +291,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                   for Item of Worker_Data.Existing_Goto_Lists loop
                      From_Goto_List.Insert (Item, Duplicate => SAL.Ignore);
 
-                     if Trace_Generate_Table > Detail and then
+                     if Trace_Generate_Table > Extra and then
                        not Has_Element (From_Goto_List.Find (Item.Symbol))
                      then
                         Ada.Text_IO.Put_Line
@@ -329,7 +336,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                               end if;
                            end loop;
 
-                           if Trace_Generate_Table > Detail then
+                           if Trace_Generate_Table > Extra then
                               Put (Grammar, Descriptor, New_Item_Set,
                                    Show_Lookaheads => True,
                                    Show_Goto_List  => True);
@@ -337,7 +344,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         end;
                      end if;
 
-                     if Trace_Generate_Table > Detail and then
+                     if Trace_Generate_Table > Extra and then
                        not Goto_Item_Lists.Has_Element
                          (C (Found_Ref.State).Goto_List.Find (Worker_Data.New_Goto_Item.Symbol))
                      then
@@ -471,7 +478,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                            pragma Assert (New_C.Last_Index = Local_New_State);
                            Worker_Data.New_C_Keys.Append ((New_Item_Set_Key, Local_New_State));
 
-                           New_C_Tree.Insert ((New_Item_Set_Key, Local_New_State));
+                           New_C_Tree.Insert ((New_Item_Set_Key, Local_New_State), Duplicate => SAL.Error);
 
                            Local_New_State := Local_New_State + 1;
                         end if;
@@ -503,10 +510,15 @@ package body WisiToken.Generate.LR.LR1_Generate is
                Supervisor.Get (ID, C, C_Keys, Keys_To_Store);
 
                for Node of C_Keys loop
-                  C_Tree.Insert (Node, Ignore_Duplicate => False);
+                  --  C_Keys are for C, which are all new states to check, but they may
+                  --  have been in a previous Keys_To_Store.
+                  C_Tree.Insert (Node, Duplicate => SAL.Ignore);
                end loop;
                for Node of Keys_To_Store loop
-                  C_Tree.Insert (Node, Ignore_Duplicate => True);
+                  --  States are added to Keys_To_Store when they are new in
+                  --  Supervisor.C_Tree, before they are given to any worker to check;
+                  --  they may also be in C_Keys
+                  C_Tree.Insert (Node, Duplicate => SAL.Ignore);
                end loop;
             end;
 
@@ -524,6 +536,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             C.Clear;
 
             Supervisor.Update (ID, New_C, Worker_Data);
+            --  FIXME: worker_Data.new_C_Keys.state updated; insert into C_Tree.
          end loop;
 
          if Trace_Generate_Table > Outline then

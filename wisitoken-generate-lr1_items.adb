@@ -331,7 +331,7 @@ package body WisiToken.Generate.LR1_Items is
    begin
       Item_Set_List.Append (New_Item_Set);
       Item_Set_List (Item_Set_List.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
-      Item_Set_Tree.Insert ((Key, New_Item_Set.State));
+      Item_Set_Tree.Insert ((Key, New_Item_Set.State), Duplicate => SAL.Error);
    end Add;
 
    function Is_In
