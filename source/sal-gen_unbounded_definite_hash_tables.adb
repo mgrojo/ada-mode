@@ -33,7 +33,7 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
    function Find_Prime (Rows_Target : in Positive) return Positive
    is begin
       for P of Row_Sizes loop
-         if P > Rows_Target then
+         if P >= Rows_Target then
             return P;
          end if;
       end loop;
@@ -79,9 +79,21 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
       end if;
    end Set_Rows;
 
+   procedure Clear (Table : in out Hash_Table)
+   is begin
+      if Table.Table.Is_Empty then
+         return;
+      else
+         for Row of Table.Table loop
+            Row.Clear;
+         end loop;
+      end if;
+   end Clear;
+
    procedure Insert
-     (Table   : in out Hash_Table;
-      Element : in     Element_Type)
+     (Table            : in out Hash_Table;
+      Element          : in     Element_Type;
+      Ignore_Duplicate : in     Boolean := True)
    is
       Found : Boolean;
    begin
@@ -95,7 +107,11 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
          pragma Unreferenced (Tree_Cur);
       begin
          if Found then
-            raise Duplicate_Key;
+            if Ignore_Duplicate then
+               null;
+            else
+               raise Duplicate_Key;
+            end if;
          end if;
       end;
    end Insert;
@@ -134,6 +150,79 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
          end;
       end if;
    end Constant_Ref;
+
+   function Has_Element (Cursor : in Pkg.Cursor) return Boolean
+   is begin
+      return Cursor /= No_Element;
+   end Has_Element;
+
+   function Constant_Ref
+     (Table    : aliased in Hash_Table;
+      Position :         in Cursor)
+     return Constant_Reference_Type
+   is
+      Tree     : Element_Trees.Tree renames Table.Table (Position.Row);
+      Tree_Ref : Element_Trees.Constant_Reference_Type renames Tree.Constant_Ref (Position.Cur);
+   begin
+      return (Tree_Ref.Element, 0);
+   end Constant_Ref;
+
+   function Find
+     (Table : aliased in Hash_Table;
+      Key   :         in Key_Type)
+     return Cursor
+   is begin
+      if Table.Table.Is_Empty then
+         return No_Element;
+      end if;
+
+      declare
+         Row : constant Positive := Hash (Key, Table.Table.Last_Index);
+         Tree : Element_Trees.Tree renames Table.Table (Row);
+         Tree_Cur : constant Element_Trees.Cursor := Tree.Find (Key);
+      begin
+         if Element_Trees.Has_Element (Tree_Cur) then
+            return (Row, Tree_Cur);
+         else
+            return No_Element;
+         end if;
+      end;
+   end Find;
+
+   function Iterate (Table : aliased in Pkg.Hash_Table'Class) return Iterator
+   is begin
+      return (Table => Table'Access);
+   end Iterate;
+
+   overriding function First (Iterator : in Pkg.Iterator) return Cursor
+   is begin
+      for Row in Iterator.Table.Table.First_Index .. Iterator.Table.Table.Last_Index loop
+         declare
+            Iter     : constant Element_Trees.Iterator := Iterator.Table.Table (Row).Iterate;
+            Tree_Cur : constant Element_Trees.Cursor   := Iter.First;
+         begin
+            if Element_Trees.Has_Element (Tree_Cur) then
+               return (Iterator.Table.Table.First_Index, Tree_Cur);
+            end if;
+         end;
+      end loop;
+      return No_Element;
+   end First;
+
+   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
+   is
+      Iter      : Element_Trees.Iterator        := Iterator.Table.Table (Position.Row).Iterate;
+      Tree_Next : constant Element_Trees.Cursor := Iter.Next (Position.Cur);
+   begin
+      if Element_Trees.Has_Element (Tree_Next) then
+         return (Position.Row, Tree_Next);
+      elsif Position.Row < Iterator.Table.Table.Last_Index then
+         Iter := Iterator.Table.Table (Position.Row + 1).Iterate;
+         return (Position.Row + 1, Iter.First);
+      else
+         return No_Element;
+      end if;
+   end Next;
 
    procedure Sizes
      (Table             : in     Hash_Table;

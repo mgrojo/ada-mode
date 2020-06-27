@@ -107,8 +107,10 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       --  here.
       if Container.Elements = null then
          return 0;
+      elsif Container.Last = No_Index and Container.First = No_Index then
+         return 0;
       else
-         return Ada.Containers.Count_Type (To_Peek_Type (Container.Last) - Container.Elements'First + 1);
+         return Ada.Containers.Count_Type (To_Peek_Type (Container.Last) - To_Peek_Type (Container.First) + 1);
       end if;
    end Length;
 
@@ -141,9 +143,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Set_Capacity;
 
-   procedure Clear (Container : in out Vector)
+   procedure Clear (Container : in out Vector; Free_Memory : in Boolean := False)
    is begin
-      Free (Container.Elements);
+      if Free_Memory then
+         Free (Container.Elements);
+      end if;
       Container.First := No_Index;
       Container.Last  := No_Index;
    end Clear;
@@ -313,7 +317,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       use all type Ada.Containers.Count_Type;
    begin
       if Source.Length = 0 then
-         Source.Clear;
+         null;
 
       elsif Target.Length = 0 then
          Target := Source;

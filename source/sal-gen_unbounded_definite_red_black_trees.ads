@@ -55,6 +55,9 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    Empty_Tree : constant Tree;
 
+   procedure Clear (Tree : in out Pkg.Tree);
+   --  Set Tree to empty.
+
    type Direction_Type is (Ascending, Descending, Unknown);
    subtype Known_Direction_Type is Direction_Type range Ascending .. Descending;
    --  Direction of Iterators.
@@ -161,21 +164,24 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Present (Container : in Tree; Key : in Key_Type) return Boolean;
 
    procedure Insert
-     (Tree                : in out Pkg.Tree;
-      Element             : in     Element_Type;
-      Insert_If_Duplicate : in     Boolean := False);
+     (Tree      : in out Pkg.Tree;
+      Element   : in     Element_Type;
+      Duplicate : in     Duplicate_Action_Type := Error);
    function Insert
-     (Tree                : in out Pkg.Tree;
-      Element             : in     Element_Type;
-      Insert_If_Duplicate : in     Boolean := False)
+     (Tree      : in out Pkg.Tree;
+      Element   : in     Element_Type;
+      Duplicate : in     Duplicate_Action_Type := Error)
      return Cursor;
    --  Result points to newly inserted element, with Direction Unknown.
    --
-   --  If Insert_If_Duplicate, elements with Key equal to a current
-   --  element are inserted; they can only by retrieved using Iterate.
+   --  If Key (Element) is found, and Duplicate is:
    --
-   --  If not Insert_If_Duplicate, raises Duplicate_Key if Key (Element)
-   --  is found.
+   --  - Allow, Element is inserted; it can only by retrieved using
+   --  Iterate.
+   --
+   --  - Ignore, Element is not inserted.
+   --
+   --  - Error, raises Duplicate_Key.
 
    function Find_Or_Insert
      (Tree    : in out Pkg.Tree;
@@ -254,6 +260,6 @@ private
       Right_Done => True);
 
    type Iterator (Container : not null access constant Tree) is new Iterators.Reversible_Iterator
-   with null record;
+     with null record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

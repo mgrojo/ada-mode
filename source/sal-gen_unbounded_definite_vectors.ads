@@ -79,8 +79,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Last      : in     Extended_Index);
    --  Allocates memory, but does not change Container.First, Container.Last.
 
-   procedure Clear (Container : in out Vector);
-   --  Free all memory, set Container to Empty.
+   procedure Clear (Container : in out Vector; Free_Memory : in Boolean := False);
+   --  Set Container to Empty. If Free_Memory, free all memory, .
 
    function First_Index (Container : Vector; No_Index_If_Empty : in Boolean := False) return Extended_Index;
    --  By default, No_Index + 1 when Container is empty, so "for I in

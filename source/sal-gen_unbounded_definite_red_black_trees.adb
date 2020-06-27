@@ -150,11 +150,11 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Find;
 
    function Find_Or_Insert
-     (Tree                : in out Pkg.Tree;
-      Element             : in     Element_Type;
-      Found               :    out Boolean;
-      Insert_If_Duplicate : in     Boolean;
-      No_Find             : in     Boolean)
+     (Tree      : in out Pkg.Tree;
+      Element   : in     Element_Type;
+      Found     :    out Boolean;
+      Duplicate : in     Duplicate_Action_Type := Error;
+      No_Find   : in     Boolean)
      return Cursor
    is
       --  [1] 13.3 RB-Insert (T, z), with extra return if found
@@ -179,11 +179,18 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
             Found := True;
 
             if No_Find then
-               if Insert_If_Duplicate then
+               case Duplicate is
+               when Allow =>
                   X := X.Right;
-               else
+               when Ignore =>
+                  return
+                    (Node       => X,
+                     Direction  => Unknown,
+                     Left_Done  => True,
+                     Right_Done => True);
+               when Error =>
                   raise Duplicate_Key;
-               end if;
+               end case;
             else
                return
                  (Node       => X,
@@ -416,6 +423,12 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          Object.Root := Copy_Subtree (Object.Root, New_Nil);
       end if;
    end Adjust;
+
+   procedure Clear (Tree : in out Pkg.Tree)
+   is begin
+      Finalize (Tree);
+      Initialize (Tree);
+   end Clear;
 
    function Constant_Ref
      (Container : aliased in Tree;
@@ -886,22 +899,22 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Present;
 
    function Insert
-     (Tree                : in out Pkg.Tree;
-      Element             : in     Element_Type;
-      Insert_If_Duplicate : in     Boolean := False)
+     (Tree      : in out Pkg.Tree;
+      Element   : in     Element_Type;
+      Duplicate : in     Duplicate_Action_Type := Error)
      return Cursor
    is
       Found : Boolean;
    begin
-      return Find_Or_Insert (Tree, Element, Found, Insert_If_Duplicate, No_Find => True);
+      return Find_Or_Insert (Tree, Element, Found, Duplicate, No_Find => True);
    end Insert;
 
    procedure Insert
-     (Tree                : in out Pkg.Tree;
-      Element             : in     Element_Type;
-      Insert_If_Duplicate : in     Boolean := False)
+     (Tree      : in out Pkg.Tree;
+      Element   : in     Element_Type;
+      Duplicate : in     Duplicate_Action_Type := Error)
    is
-      Temp : Cursor := Insert (Tree, Element, Insert_If_Duplicate);
+      Temp : Cursor := Insert (Tree, Element, Duplicate);
       pragma Unreferenced (Temp);
    begin
       null;
@@ -913,7 +926,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Found   :    out Boolean)
      return Cursor
    is begin
-      return Find_Or_Insert (Tree, Element, Found, Insert_If_Duplicate => False, No_Find => False);
+      return Find_Or_Insert (Tree, Element, Found, Duplicate => Ignore, No_Find => False);
    end Find_Or_Insert;
 
    procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor)

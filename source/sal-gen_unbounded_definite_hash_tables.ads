@@ -31,6 +31,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers;
+with Ada.Iterator_Interfaces;
 private with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 private with SAL.Gen_Unbounded_Definite_Vectors;
 generic
@@ -51,7 +52,11 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
 
    Default_Rows : constant Positive := Pkg.Default_Init_Rows;
 
-   type Hash_Table is tagged private;
+   type Hash_Table is tagged private
+   with
+     Constant_Indexing => Constant_Ref,
+     Default_Iterator  => Iterate,
+     Iterator_Element  => Element_Type;
 
    procedure Set_Rows
      (Table : in out Hash_Table;
@@ -59,10 +64,15 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    --  Set the hash table size. If Table is not empty, all hashes are
    --  recomputed; this renders any Constant_Refs invalid.
 
+   procedure Clear (Table : in out Hash_Table);
+   --  Set Table to empty.
+
    procedure Insert
-     (Table   : in out Hash_Table;
-      Element : in     Element_Type);
-   --  Raises Duplicate_Key if Key (Element) is already in Table
+     (Table            : in out Hash_Table;
+      Element          : in     Element_Type;
+      Ignore_Duplicate : in     Boolean := True);
+   --  If Key (Element) is already in Table: if Ignore_Duplicate, does
+   --  nothing; otherwise, raises Duplicate_Key.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
@@ -78,6 +88,34 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
       Key   :         in Key_Type)
      return Constant_Reference_Type;
    --  Raises SAL.Not_Found if Key is not found
+
+   type Cursor is private;
+
+   No_Element : constant Cursor;
+
+   function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
+
+   function Constant_Ref
+     (Table    : aliased in Hash_Table;
+      Position :         in Cursor)
+     return Constant_Reference_Type
+   with Inline, Pre => Has_Element (Position);
+
+   function Find
+     (Table : aliased in Hash_Table;
+      Key   :         in Key_Type)
+     return Cursor;
+   --  Result is No_Element if Key is not in Table.
+
+   package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
+
+   type Iterator (<>) is new Iterators.Forward_Iterator with private;
+
+   function Iterate (Table : aliased in Pkg.Hash_Table'Class) return Iterator;
+
+   overriding function First (Iterator : in Pkg.Iterator) return Cursor;
+   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
+   with Pre => Has_Element (Position);
 
    procedure Sizes
      (Table             : in     Hash_Table;
@@ -105,5 +143,15 @@ private
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
+
+   type Cursor is record
+      Row : Integer              := Hash_Arrays.No_Index; --  index into Table.Table.
+      Cur : Element_Trees.Cursor := Element_Trees.No_Element;
+   end record;
+
+   No_Element : constant Cursor := (others => <>);
+
+   type Iterator (Table : not null access constant Hash_Table) is new Iterators.Forward_Iterator
+     with null record;
 
 end SAL.Gen_Unbounded_Definite_Hash_Tables;
