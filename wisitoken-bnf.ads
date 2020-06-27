@@ -133,13 +133,14 @@ package WisiToken.BNF is
       --  Set by grammar file declarations or command line options. Error
       --  recover parameters are in McKenzie_Recover_Param_Type below.
       Case_Insensitive          : Boolean := False;
-      End_Names_Optional_Option : Ada.Strings.Unbounded.Unbounded_String;
-      Use_Language_Runtime      : Boolean := True;
-      Language_Runtime_Name     : Ada.Strings.Unbounded.Unbounded_String;
       Declare_Enums             : Boolean := True;
+      End_Names_Optional_Option : Ada.Strings.Unbounded.Unbounded_String;
       Error_Recover             : Boolean := False;
-      Start_Token               : Ada.Strings.Unbounded.Unbounded_String;
+      LR1_Hash_Table_Size       : Positive;
+      Language_Runtime_Name     : Ada.Strings.Unbounded.Unbounded_String;
       Partial_Recursion         : Boolean := False;
+      Start_Token               : Ada.Strings.Unbounded.Unbounded_String;
+      Use_Language_Runtime      : Boolean := True;
    end record;
 
    type Raw_Code_Location is

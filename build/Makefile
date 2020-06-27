@@ -18,7 +18,6 @@ t_one :: test_one_harness.run
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
-t_bnf :: ENBF_ONLY ?= false
 t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
@@ -31,17 +30,19 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
 one-clean :
-	touch ../test/bnf/empty_production_2.wy
+	touch ../wisitoken-bnf-generate_utils.adb
 
 #one :: one-clean
 one :: wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --time ../../org.emacs.ada-mode/ada.wy
 
+two :: GRAMMAR := ada_lite
 two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf ../test/bnf/debug.wy
+	./wisitoken-bnf-generate.exe --test_main --output_bnf --time --generate LR1 Ada re2c -v 0 2 0 ../test/bnf/$(GRAMMAR).wy > generate-$(GRAMMAR).log
 
-three :: ada_lite_lalr_run.exe
-	./ada_lite_lalr_run.exe -v 2 -m 3 -t 1 -disable_fixes $(RUN_ARGS) debug.ada_lite > debug.log
+three :: VERBOSITY := -v 1 -m 1
+three :: ada_lite_ebnf_lalr_run.exe
+	./ada_lite_ebnf_lalr_run.exe -t 1 $(VERBOSITY) ../test/bnf/ada_lite.input > debug.log
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make

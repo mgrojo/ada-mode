@@ -182,7 +182,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       First_State_Index : constant State_Index := 0;
       Kernels           : LR1_Items.Item_Set_List;
-      Kernel_Tree       : LR1_Items.Item_Set_Trees.Tree; -- for fast find
+      Kernel_Tree       : LR1_Items.Item_Set_Tree; -- for fast find
       States_To_Check   : State_Index_Queues.Queue;
       Checking_State    : State_Index;
    begin
@@ -219,44 +219,50 @@ package body WisiToken.Generate.LR.LALR_Generate is
             declare
                New_Item_Set : Item_Set := LALR_Goto_Transitions
                  (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
-               Found_State : Unknown_State_Index;
             begin
                if New_Item_Set.Set.Length > 0 then
 
-                  Found_State := Find (New_Item_Set, Kernel_Tree, Descriptor, Match_Lookaheads => False);
+                  New_Item_Set.State := Kernels.Last_Index + 1;
 
-                  if Found_State = Unknown_State then
-                     New_Item_Set.State := Kernels.Last_Index + 1;
+                  declare
+                     Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
+                       (New_Item_Set, Include_Lookaheads => False);
 
-                     States_To_Check.Put (New_Item_Set.State);
+                     Found     : Boolean;
+                     Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := Kernel_Tree.Find_Or_Insert
+                       ((Key, New_Item_Set.State), Found);
+                  begin
+                     if not Found then
+                        States_To_Check.Put (New_Item_Set.State);
 
-                     Add (Grammar, New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
+                        Kernels.Append (New_Item_Set);
 
-                     if Trace_Generate_Table > Detail then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
-
-                        Ada.Text_IO.Put_Line
-                          ("  state" & Unknown_State_Index'Image (Checking_State) &
-                             " adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                             Unknown_State_Index'Image (Kernels.Last_Index));
-                     end if;
-
-                     Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
-                  else
-
-                     --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
                         if Trace_Generate_Table > Detail then
+                           Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+
                            Ada.Text_IO.Put_Line
                              ("  state" & Unknown_State_Index'Image (Checking_State) &
                                 " adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                                Unknown_State_Index'Image (Found_State));
-
+                                Unknown_State_Index'Image (Kernels.Last_Index));
                         end if;
 
-                        Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_State));
+                        Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
+                     else
+
+                        --  If there's not already a goto entry between these two sets, create one.
+                        if not Is_In ((Symbol, Found_Ref.State), Kernels (Checking_State).Goto_List) then
+                           if Trace_Generate_Table > Detail then
+                              Ada.Text_IO.Put_Line
+                                ("  state" & Unknown_State_Index'Image (Checking_State) &
+                                   " adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                                   Unknown_State_Index'Image (Found_Ref.State));
+
+                           end if;
+
+                           Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_Ref.State));
+                        end if;
                      end if;
-                  end if;
+                  end;
                end if;
             end;
          end loop;

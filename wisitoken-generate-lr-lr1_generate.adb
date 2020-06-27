@@ -35,9 +35,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
-   --  'goto' from [dragon] algorithm 4.9
+   with Pre => Set.Dot_IDs.Contains (Symbol),
+     Post => not LR1_Goto_Transitions'Result.Set.Is_Empty
+   --  'goto' from [dragon] algorithm 4.9.
    is
-      use all type Ada.Containers.Count_Type;
       use Token_ID_Arrays;
       use LR1_Items;
 
@@ -74,8 +75,11 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor;
       Task_Count              : in System.Multiprocessors.CPU_Range;
-      State_Limit             : in Unknown_State_Index := 0)
+      State_Limit             : in Unknown_State_Index := 0;
+      Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List
+   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
+   --  "items", with some optimizations.
    is
       use LR1_Items;
       use all type Ada.Containers.Count_Type;
@@ -628,7 +632,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Include_Extra         : in     Boolean                          := False;
       Ignore_Conflicts      : in     Boolean                          := False;
       Partial_Recursion     : in     Boolean                          := True;
-      Task_Count            : in     System.Multiprocessors.CPU_Range := 1)
+      Task_Count            : in     System.Multiprocessors.CPU_Range := 1;
+      Hash_Table_Size       : in     Positive            := LR1_Items.Item_Set_Trees.Default_Rows)
      return Parse_Table_Ptr
    is
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
@@ -659,7 +664,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count, Hash_Table_Size);
 
       Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
@@ -675,10 +680,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Ada.Text_IO.Put_Line
            ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Initial_Item_Sets_Time, Recursions_Time)));
       end if;
-      if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then
+      if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR1_Generate:");
-         if Trace_Generate_Table > Outline then
+         if Trace_Generate_Table > Detail then
             Ada.Text_IO.Put_Line ("Item_Sets:");
             LR1_Items.Put (Grammar, Descriptor, Item_Sets);
          end if;
@@ -756,7 +761,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Include_Extra);
       end if;
 
-      if Trace_Generate_Table > Outline then
+      if Trace_Generate_Table > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Has_Empty_Production: " & Image (Has_Empty_Production, Descriptor));
 

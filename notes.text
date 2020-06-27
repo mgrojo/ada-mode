@@ -15,7 +15,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -30,6 +30,24 @@ update-wisitoken_grammar
 speed up lr1 for ada_annex_p
     o.w     o.e.a ada.wy LR1: 469463 states
     initial item_sets time: 163.506717162
+
+speed up lr1
+    ada.wy states: 469_463
+        rows:     113; initial item sets time: 178.?
+        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
+        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
+        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
+        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
+        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
+
+    get profile
+
+    --time output cache hit, total state counts
+
+    red_black with vector storage for goto_list
+        minimize allocations
+            same as unbounded_vector; lost in the noise
+        try bounded_vector?
 
     parallelize Lr1_generate.lr1_item_sets
         clean up, pass multiple states:
@@ -67,6 +85,14 @@ algorithm.tex:
     super searches/inserts M states in 1 trees, (M - Md) in w trees.
     when average M << N (later in process), worker search dominates super insert => parallel wins,
     when average M >> N, super insert into w workers dominates worker search
+
+output min_complete fraction in .parse_table - changed when recursion blew up?
+
+Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
+
+
+need gnat-prep for tree-sitter
+    most devels won't have it
 
 add tree-sitter parser, lexer
     tree-sitter still not getting comments right

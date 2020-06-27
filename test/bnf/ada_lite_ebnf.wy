@@ -53,7 +53,7 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter currently broken
 
 %meta_syntax EBNF
 
@@ -109,12 +109,12 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
-%if lexer = re2c 
+%if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 %non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
-%elsif lexer = tree_sitter 
+%elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 ;;

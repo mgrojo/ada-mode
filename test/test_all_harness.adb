@@ -44,7 +44,6 @@ with Test_Skip_To;
 with Trivial_Productions_Test;
 with Warth_Left_Recurse_Expr_1;
 with WisiToken.BNF;
-with WisiToken.Generate.Packrat.Test;
 with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
@@ -121,7 +120,6 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Warth_Left_Recurse_Expr_1.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new WisiToken.Generate.Packrat.Test.Test_Case));
 
    --  end test cases
 

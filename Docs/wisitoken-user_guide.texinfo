@@ -405,6 +405,7 @@ normally negative.
 @node Other declarations
 @subsection Other declarations
 @table @code
+@c alphabetical by declaration name
 @item %case_insensitive
 If present, keywords are case insensitive in the lexer.
 
@@ -451,7 +452,7 @@ Ada.
 The term ``elisp'' here is historical; the name is not actually used
 by elisp in the current implementation.
 
-@item end_names_optional_option <name>
+@item %end_names_optional_option <name>
 When generating Ada code for Emacs, the name of the Ada variable
 determining whether end block names are optional.
 
@@ -469,7 +470,7 @@ These names are optional in the Ada standard. Making them required
 improves error recovery; the recovery algorithm can use matching names
 to isolate the error.
 
-@item generate <generate_algorithm> <output_language>
+@item %generate <generate_algorithm> <output_language>
 
 @code{<generate_algorithm>} is one of @code{LALR | LR1 | Packrat_Gen |
 Packrat_Proc | External | Tree_Sitter}.
@@ -537,6 +538,12 @@ supported).
 Specify an alternate name for the language runtime package; the
 default is @code{Wisi.<language_name>}.
 
+@item %lr1_hash_table_size <integer>
+Specify the size of the hash table used when generating an LR1 parse
+table. The default size is 113; larger size can decrease generate time
+on larger languages, but only by 10%. A prime larger than the
+requested size is used.
+
 @item %meta_syntax [BNF | EBNF]
 Declares the syntax used by the grammar file. BNF is a minor extension
 of standard Backus Naur Form; EBNF is a large extension. The default
@@ -563,10 +570,10 @@ hard; @code{%partial_recursion} tells WisiToken to use a simpler
 approximate calculation. This will affect the quality of the error
 recovery, but it will still be robust.
 
-@item %start
+@item %start <nontermininal>
 The start token for the grammar.
 
-@item lexer_regexp <name> <value>
+@item %lexer_regexp <name> <value>
 Declare a named regular expression with name and current lexer
 syntax. The name may then occur in another lexer regular expression.
 @end table

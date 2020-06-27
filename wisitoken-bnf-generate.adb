@@ -36,6 +36,7 @@ with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
@@ -123,6 +124,11 @@ is
       Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
       Put_Line (Standard_Error,
                 "  --task_count n; number of tasks used to compute LR1 items; 0 (the default) means CPU count");
+      Put_Line
+        (Standard_Error,
+         "  --lr1_hash_table_size n; default" &
+           WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows'Image &
+           "; bigger should be faster");
    end Put_Usage;
 
    Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
@@ -173,6 +179,8 @@ is
    end Use_Input_File;
 
 begin
+   Input_Data.Language_Params.LR1_Hash_Table_Size := WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows;
+
    declare
       use Ada.Command_Line;
       Arg_Next : Integer := 1;
@@ -247,6 +255,13 @@ begin
                end if;
                Add (Command_Generate_Set, Tuple);
             end;
+
+         elsif Argument (Arg_Next) = "--lr1_hash_table_size" then
+            Arg_Next := Arg_Next + 1;
+
+            Input_Data.Language_Params.LR1_Hash_Table_Size := Positive'Value (Argument (Arg_Next));
+
+            Arg_Next := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--output_bnf" then
             Output_BNF := True;
@@ -577,7 +592,8 @@ begin
                         Include_Extra     => Test_Main,
                         Ignore_Conflicts  => Ignore_Conflicts,
                         Partial_Recursion => Input_Data.Language_Params.Partial_Recursion,
-                        Task_Count        => Task_Count);
+                        Task_Count        => Task_Count,
+                        Hash_Table_Size   => Input_Data.Language_Params.LR1_Hash_Table_Size);
 
                      if Trace_Time then
                         Time_End := Clock;

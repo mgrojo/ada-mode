@@ -42,8 +42,11 @@
 ;; Declare all variants tested by wisi_wy_test.adb
 %generate LALR Ada re2c
 %generate LR1 Ada re2c text_rep
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter currently broken
 ;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
+
+;; We don't actually need this for speed here, but we do need to test it.
+%lr1_hash_table_size 200
 
 %keyword AND "and"
 %keyword BEGIN "begin"
@@ -97,12 +100,12 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
-%if lexer = re2c 
+%if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 %non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
 
-%elsif lexer = tree_sitter 
+%elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 ;;
