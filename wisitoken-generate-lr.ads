@@ -201,7 +201,7 @@ package WisiToken.Generate.LR is
    --  is nothing useful to do; the accept state, or one where all
    --  productions are recursive.
    --
-   --  Also set State.Kernels; used to resolve multiple reduce actions at
+   --  Also set State.Kernel; used to resolve multiple reduce actions at
    --  runtime.
 
    ----------

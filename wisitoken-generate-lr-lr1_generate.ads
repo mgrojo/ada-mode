@@ -73,7 +73,6 @@ package WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor;
       Task_Count              : in System.Multiprocessors.CPU_Range;
-      State_Limit             : in Unknown_State_Index := 0;
       Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"

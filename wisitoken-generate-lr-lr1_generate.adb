@@ -65,7 +65,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end;
       end loop;
 
-      pragma Assert (Goto_Set.Set.Length > 0);
       return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    end LR1_Goto_Transitions;
 
@@ -75,7 +74,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor              : in WisiToken.Descriptor;
       Task_Count              : in System.Multiprocessors.CPU_Range;
-      State_Limit             : in Unknown_State_Index := 0;
       Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
@@ -106,7 +104,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          From_State          : State_Index := State_Index'Last;
          New_C_Keys          : Item_Set_Tree_Node_Arrays.Vector;
          Existing_Goto_Lists : Goto_Item_Arrays.Vector;
-         New_Goto_Item       : Goto_Item := (Invalid_Token_ID, State_Index'Last);
+         New_Goto_Items      : Goto_Item_Arrays.Vector;
       end record;
 
       package State_Array_Worker_Data is new SAL.Gen_Unbounded_Definite_Vectors
@@ -149,12 +147,11 @@ package body WisiToken.Generate.LR.LR1_Generate is
          --  state numbers; sets are in New_C. States are updated to supervisor
          --  state numbers; worker should add those to worker's C_Tree.
          --
-         --     Existing_Goto_Lists: gotos from state I in supervisor C to
-         --  another state in supervisor C (which worker found in C_Tree); add
-         --  to state I in supervisor C.
+         --     Existing_Goto_Lists: from C (I) to some state in supervisor
+         --  C (which worker found in C_Tree); add to supervisor C (I).
          --
-         --     New_Goto_Item: for each new state generated from C (I), there
-         --  is one Goto from C (I) to the new state. Add to supervisor C (I).
+         --     New_Goto_Items: From C (I) to some state in New_C (given by
+         --  worker new state number). Add to supervisor C (I).
          --
          --  Decrement active worker count.
 
@@ -209,6 +206,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             New_States_For_Worker.Set_First_Last (1, Worker_Count);
 
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
+            C_Tree.Set_Rows (Hash_Table_Size);
 
             C.Append (First_Item_Set);
             C (First_State_Index).Dot_IDs := Get_Dot_IDs (Grammar, First_Item_Set.Set, Descriptor);
@@ -274,65 +272,52 @@ package body WisiToken.Generate.LR.LR1_Generate is
            (Worker_ID   : in     LR1_Item_Sets.Worker_ID;
             New_C       : in out Item_Set_Arrays.Vector;
             Worker_Data : in out State_Array_Worker_Data.Vector)
-         is begin
+         is
+            State_Map : array (New_C.First_Index .. New_C.Last_Index) of State_Index;
+            --  Indexed by worker new state number, contains super state number
+
+         begin
             if Trace_Generate_Table > Detail then
-               Ada.Text_IO.Put
-                 ("(super) adding" & New_C.Length'Image & " states from worker" & Worker_ID'Image & "; states");
+               Ada.Text_IO.Put ("(super) Update from worker" & Worker_ID'Image & "; new states:");
                for Data of Worker_Data loop
-                  Ada.Text_IO.Put (Data.From_State'Image);
+                  for Node of Data.New_Goto_Items loop
+                     Ada.Text_IO.Put
+                       (Data.From_State'Image & "." & Image (Node.Symbol, Descriptor) & "." &
+                          Trimmed_Image (Node.State));
+                  end loop;
+                  Ada.Text_IO.Put (" | ");
                end loop;
                Ada.Text_IO.New_Line;
             end if;
 
             for Worker_Data of Update.Worker_Data loop
-               declare
-                  use Goto_Item_Lists;
-                  From_State     : constant State_Index := Worker_Data.From_State;
-                  From_Goto_List : Goto_Item_List renames C (From_State).Goto_List;
-               begin
-                  --  IMPROVEME: move this into a supervisor task? Supervisor should
-                  --  just copy data to/from worker, assign state numbers.
-                  for Item of Worker_Data.Existing_Goto_Lists loop
-                     From_Goto_List.Insert (Item, Duplicate => SAL.Ignore);
-
-                     if Trace_Generate_Table > Extra and then
-                       not Has_Element (From_Goto_List.Find (Item.Symbol))
-                     then
-                        Ada.Text_IO.Put_Line
-                          ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
-                             Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
-                     end if;
-                  end loop;
-               end;
-
                for New_C_Node of Worker_Data.New_C_Keys loop
                   declare
                      use Item_Set_Trees;
 
-                     New_State : constant State_Index := C.Last_Index + 1;
-                     Found     : Boolean;
-                     Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := C_Tree.Find_Or_Insert
-                       ((New_C_Node.Key, New_State), Found);
+                     Worker_New_State : constant State_Index := New_C_Node.State;
+                     Super_New_State  : constant State_Index := C.Last_Index + 1;
+
+                     Found      : Boolean;
+                     Found_Ref  : constant Item_Set_Trees.Constant_Reference_Type := C_Tree.Find_Or_Insert
+                       ((New_C_Node.Key, Super_New_State), Found);
                   begin
                      if Found then
-                        Worker_Data.New_Goto_Item.State := Found_Ref.State;
-                        C (Found_Ref.State).Goto_List.Insert (Worker_Data.New_Goto_Item, Duplicate => SAL.Ignore);
+                        State_Map (Worker_New_State) := Found_Ref.State;
 
                      else
-                        States_To_Check.Put ((New_C_Node.Key, New_State));
+                        States_To_Check.Put ((New_C_Node.Key, Super_New_State));
 
-                        Worker_Data.New_Goto_Item.State := New_State;
+                        State_Map (Worker_New_State) := Super_New_State;
 
                         declare
                            New_Item_Set : LR1_Items.Item_Set renames New_C (New_C_Node.State);
                         begin
-                           New_C_Node.State   := New_State;
-                           New_Item_Set.State := New_State;
+                           New_C_Node.State   := Super_New_State;
+                           New_Item_Set.State := Super_New_State;
 
                            C.Append (New_Item_Set);
-                           pragma Assert (C.Last_Index = New_State);
-
-                           C (New_State).Goto_List.Insert (Worker_Data.New_Goto_Item, Duplicate => SAL.Error);
+                           pragma Assert (C.Last_Index = Super_New_State);
 
                            for ID in New_States_For_Worker.First_Index .. New_States_For_Worker.Last_Index  loop
                               if ID /= Worker_ID then
@@ -347,25 +332,43 @@ package body WisiToken.Generate.LR.LR1_Generate is
                            end if;
                         end;
                      end if;
-
-                     if Trace_Generate_Table > Extra and then
-                       not Goto_Item_Lists.Has_Element
-                         (C (Found_Ref.State).Goto_List.Find (Worker_Data.New_Goto_Item.Symbol))
-                     then
-                        Ada.Text_IO.Put_Line
-                          ("    state" & Found_Ref.State'Image & " adding goto on " &
-                             Image (Worker_Data.New_Goto_Item.Symbol, Descriptor) & " to state" &
-                             Worker_Data.New_Goto_Item.State'Image);
-                     end if;
-
                   end;
                end loop;
 
-               --  FIXME: not need when algorithm works; delete
-               if State_Limit /= 0 and then State_Limit < C.Last_Index then
-                  raise SAL.Programmer_Error with "state_limit exceeded";
-               end if;
+               --  Now we have State_Map, we can process the gotos.
+               declare
+                  use Goto_Item_Lists;
+                  From_State : constant State_Index := Worker_Data.From_State;
+               begin
+                  --  IMPROVEME: move this into a supervisor task? Supervisor should
+                  --  just copy data to/from worker, assign state numbers.
+                  for Item of Worker_Data.Existing_Goto_Lists loop
+                     if Trace_Generate_Table > Extra and then
+                       not Has_Element (C (From_State).Goto_List.Find (Item.Symbol))
+                     then
+                        Ada.Text_IO.Put_Line
+                          ("(worker" & Worker_ID'Image & ") state" & From_State'Image & " adding goto on " &
+                             Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+                     end if;
 
+                     C (From_State).Goto_List.Insert (Item, Duplicate => SAL.Ignore);
+                  end loop;
+
+                  for Item of Worker_Data.New_Goto_Items loop
+                     Item.State := State_Map (Item.State);
+
+                     if Trace_Generate_Table > Extra and then
+                       not Goto_Item_Lists.Has_Element
+                         (C (From_State).Goto_List.Find (Item.Symbol))
+                     then
+                        Ada.Text_IO.Put_Line
+                          ("    state" & From_State'Image & " adding goto on " &
+                             Image (Item.Symbol, Descriptor) & " to state" & Item.State'Image);
+                     end if;
+
+                     C (From_State).Goto_List.Insert (Item, Duplicate => SAL.Ignore);
+                  end loop;
+               end;
             end loop;
 
             Active_Workers := @ - 1;
@@ -439,11 +442,16 @@ package body WisiToken.Generate.LR.LR1_Generate is
          is
             C_I : Item_Set renames C (C_Index);
             Worker_Data : LR1_Item_Sets.Worker_Data renames Worker_Task.Worker_Data (C_Index);
+            Pos_Local_New_State : constant Positive_Index_Type := Positive_Index_Type (Local_New_State);
          begin
             Worker_Data.From_State := C_I.State;
+            Worker_Data.New_C_Keys.Set_First_Last
+              (First => Pos_Local_New_State,
+               Last  => Pos_Local_New_State - 1);
             Worker_Data.Existing_Goto_Lists.Set_First_Last
-              (First => Positive_Index_Type (Local_New_State),
-               Last  => Positive_Index_Type (Local_New_State) - 1);
+              (First => Pos_Local_New_State,
+               Last  => Pos_Local_New_State - 1);
+            Worker_Data.New_Goto_Items.Clear;
 
             for Dot_ID_I in C_I.Dot_IDs.First_Index .. C_I.Dot_IDs.Last_Index loop
                --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
@@ -471,10 +479,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         Found_Cur := New_C_Tree.Find (New_Item_Set_Key);
 
                         if Has_Element (Found_Cur) then
-                           --  There is already a goto from C_I to Local_New_State.
-                           null;
+                           --  Local_New_State was previously generated from some other state we
+                           --  are checking.
+                           Worker_Data.New_Goto_Items.Append ((Symbol, C_Tree.Constant_Ref (Found_Cur).State));
+
                         else
-                           Worker_Data.New_Goto_Item := (Symbol, Local_New_State);
+                           Worker_Data.New_Goto_Items.Append ((Symbol, Local_New_State));
 
                            New_Item_Set.State := Local_New_State;
                            New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
@@ -540,7 +550,14 @@ package body WisiToken.Generate.LR.LR1_Generate is
             C.Clear;
 
             Supervisor.Update (ID, New_C, Worker_Data);
-            --  FIXME: worker_Data.new_C_Keys.state updated; insert into C_Tree.
+
+            --  Worker_Data.New_C_Keys.state updated; insert into C_Tree.
+            for Worker of Worker_Data loop
+               for Node of Worker.New_C_Keys loop
+                  C_Tree.Insert (Node, Duplicate => SAL.Error);
+               end loop;
+               Worker.New_C_Keys.Clear;
+            end loop;
          end loop;
 
          if Trace_Generate_Table > Outline then

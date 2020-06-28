@@ -45,7 +45,8 @@ package body Test_LR1_Parallel is
       Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
 
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-        WisiToken.BNF.Generate_Utils.Parse_Grammar_File (Grammar_File_Name, Ignore_Conflicts => True);
+        WisiToken.BNF.Generate_Utils.Parse_Grammar_File
+          (Grammar_File_Name, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
@@ -66,7 +67,7 @@ package body Test_LR1_Parallel is
       Item_Sets_8_Array : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count => 8);
 
-      Item_Sets_8_Tree : LR1_Items.Item_Set_Trees.Tree;
+      Item_Sets_8_Tree : LR1_Items.Item_Set_Tree;
 
       Map    : array (State_Index range Item_Sets_1.First_Index .. Item_Sets_1.Last_Index) of State_Index;
       Mapped : array (State_Index range Item_Sets_1.First_Index .. Item_Sets_1.Last_Index) of Boolean :=
@@ -78,14 +79,15 @@ package body Test_LR1_Parallel is
 
       for I in Map'Range loop
          Item_Sets_8_Tree.Insert
-           ((LR1_Items.To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Descriptor, Include_Lookaheads => True),
-             I));
+           ((LR1_Items.To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Include_Lookaheads => True),
+             I),
+           Duplicate => SAL.Error);
       end loop;
 
       for I in Map'Range loop
          begin
             Map (I) := Item_Sets_8_Tree.Constant_Ref
-              (LR1_Items.To_Item_Set_Tree_Key (Item_Sets_1 (I), Descriptor, Include_Lookaheads => True)).State;
+              (LR1_Items.To_Item_Set_Tree_Key (Item_Sets_1 (I), Include_Lookaheads => True)).State;
             Mapped (Map (I)) := True;
          exception
          when SAL.Not_Found =>

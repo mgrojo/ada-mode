@@ -36,7 +36,6 @@ with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
-with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
@@ -124,11 +123,7 @@ is
       Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
       Put_Line (Standard_Error,
                 "  --task_count n; number of tasks used to compute LR1 items; 0 (the default) means CPU count");
-      Put_Line
-        (Standard_Error,
-         "  --lr1_hash_table_size n; default" &
-           WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows'Image &
-           "; bigger should be faster");
+      Put_Line (Standard_Error, "  --lr1_hash_table_size n; default 113; bigger should be faster");
    end Put_Usage;
 
    Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
@@ -179,8 +174,6 @@ is
    end Use_Input_File;
 
 begin
-   Input_Data.Language_Params.LR1_Hash_Table_Size := WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows;
-
    declare
       use Ada.Command_Line;
       Arg_Next : Integer := 1;

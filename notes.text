@@ -31,15 +31,6 @@ speed up lr1 for ada_annex_p
     o.w     o.e.a ada.wy LR1: 469463 states
     initial item_sets time: 163.506717162
 
-speed up lr1
-    ada.wy states: 469_463
-        rows:     113; initial item sets time: 178.?
-        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
-        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
-        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
-        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
-        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
-
     get profile
 
     --time output cache hit, total state counts
@@ -51,7 +42,8 @@ speed up lr1
 
     parallelize Lr1_generate.lr1_item_sets
         clean up, pass multiple states:
-            ada_lite.wy LALR getting programmer_error in Set_Minimal_Complete_Actions
+            dragon_4_43.wy LR1 getting programmer_error in Set_Minimal_Complete_Actions
+                no actions in state 4
 
         need gnat trace util
             output all options in --help
@@ -85,6 +77,13 @@ algorithm.tex:
     super searches/inserts M states in 1 trees, (M - Md) in w trees.
     when average M << N (later in process), worker search dominates super insert => parallel wins,
     when average M >> N, super insert into w workers dominates worker search
+    ada.wy states: 469_463
+        rows:     113; initial item sets time: 178.?
+        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
+        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
+        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
+        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
+        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
 
 output min_complete fraction in .parse_table - changed when recursion blew up?
 
