@@ -200,7 +200,11 @@ package body WisiToken.Generate.LR1_Items is
         return Boolean)
      return Item_Set
    is begin
-      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, Dot_IDs => Set.Dot_IDs, State => Set.State)
+      return Result : Item_Set :=
+        (Set       => <>,
+         Goto_List => Set.Goto_List,
+         Dot_IDs   => Set.Dot_IDs,
+         Tree_Node => Set.Tree_Node)
       do
          for Item of Set.Set loop
             if Include (Grammar, Descriptor, Item) then
@@ -248,10 +252,10 @@ package body WisiToken.Generate.LR1_Items is
       return Set.Set.Find ((Prod, Dot, Null_Lookahead));
    end Find;
 
-   function To_Item_Set_Tree_Key
-     (Item_Set           : in LR1_Items.Item_Set;
-      Include_Lookaheads : in Boolean)
-     return Item_Set_Tree_Key
+   procedure Compute_Key_Hash
+     (Item_Set           : in out LR1_Items.Item_Set;
+      Rows               : in     Positive;
+      Include_Lookaheads : in     Boolean)
    is
       use Interfaces;
 
@@ -272,38 +276,39 @@ package body WisiToken.Generate.LR1_Items is
       Result_Length : constant Integer :=
         (1 + Integer (Item_Set.Set.Length) * (if Include_Lookaheads then 3 + 8 else 3));
    begin
-      return Result : Item_Set_Tree_Key do
-         Result.Set_Capacity (1, Result_Length);
 
-         Result.Append (Unsigned_16 (Item_Set.Set.Length));
+         Item_Set.Tree_Node.Key.Set_Capacity (1, Result_Length);
+
+         Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item_Set.Set.Length));
          --  Int_Arrays."<" compares length, but only after everything else; we
          --  want it to compare first, since it is most likely to be different.
 
          for Item of Item_Set.Set loop
-            Result.Append (Unsigned_16 (Item.Prod.LHS));
-            Result.Append (Unsigned_16 (Item.Prod.RHS));
-            Result.Append (Unsigned_16 (Item.Dot));
+            Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Prod.LHS));
+            Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Prod.RHS));
+            Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Dot));
             if Include_Lookaheads then
                declare
                   Temp : constant Lookahead_Int_16 := To_Int_16 (Item.Lookaheads);
                begin
                   --  This faster than scanning the 128 booleans to get the token_ids,
                   --  and shorter than some of those.
-                  Result.Append (Temp.Word_0);
-                  Result.Append (Temp.Word_1);
-                  Result.Append (Temp.Word_2);
-                  Result.Append (Temp.Word_3);
-                  Result.Append (Temp.Word_4);
-                  Result.Append (Temp.Word_5);
-                  Result.Append (Temp.Word_6);
-                  Result.Append (Temp.Word_7);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_0);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_1);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_2);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_3);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_4);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_5);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_6);
+                  Item_Set.Tree_Node.Key.Append (Temp.Word_7);
                end;
             end if;
          end loop;
 
-         pragma Assert (Integer (Result.Length) = Result_Length);
-      end return;
-   end To_Item_Set_Tree_Key;
+      pragma Assert (Integer (Item_Set.Tree_Node.Key.Length) = Result_Length);
+
+      Item_Set.Tree_Node.Hash := Hash_Sum_32 (Item_Set.Tree_Node.Key, Rows);
+   end Compute_Key_Hash;
 
    function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive
    is
@@ -318,20 +323,28 @@ package body WisiToken.Generate.LR1_Items is
       return Positive (Accum);
    end Hash_Sum_32;
 
+   function To_Item_Set_Tree_Hash (Node : in Item_Set_Tree_Node; Rows : in Positive) return Positive
+   is
+      pragma Unreferenced (Rows);
+   begin
+      return Node.Hash;
+   end To_Item_Set_Tree_Hash;
+
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
-      New_Item_Set       : in     Item_Set;
+      New_Item_Set       : in out Item_Set;
       Item_Set_List      : in out LR1_Items.Item_Set_List;
       Item_Set_Tree      : in out LR1_Items.Item_Set_Tree;
       Descriptor         : in     WisiToken.Descriptor;
+      Hash_Table_Rows    : in     Positive;
       Include_Lookaheads : in     Boolean)
    is
       use Item_Set_Trees;
-      Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads);
    begin
       Item_Set_List.Append (New_Item_Set);
       Item_Set_List (Item_Set_List.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
-      Item_Set_Tree.Insert ((Key, New_Item_Set.State), Duplicate => SAL.Error);
+      Compute_Key_Hash (New_Item_Set, Hash_Table_Rows, Include_Lookaheads);
+      Item_Set_Tree.Insert (New_Item_Set.Tree_Node, Duplicate => SAL.Error);
    end Add;
 
    function Is_In
@@ -568,8 +581,8 @@ package body WisiToken.Generate.LR1_Items is
    is
       use Ada.Text_IO;
    begin
-      if Item.State /= Unknown_State then
-         Put_Line ("State" & Unknown_State_Index'Image (Item.State) & ":");
+      if Item.Tree_Node.State /= Unknown_State then
+         Put_Line ("State" & Unknown_State_Index'Image (Item.Tree_Node.State) & ":");
       end if;
 
       Put (Grammar, Descriptor, Item.Set, Show_Lookaheads, Kernel_Only);

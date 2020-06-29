@@ -24,51 +24,9 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-speed up lr1 for ada_annex_p
-    o.w     o.e.a ada.wy LR1: 469463 states
-    initial item_sets time: 163.506717162
-
-    get profile
-
-    --time output cache hit, total state counts
-
-    red_black with vector storage for goto_list
-        minimize allocations
-            same as unbounded_vector; lost in the noise
-        try bounded_vector?
-
-    parallelize Lr1_generate.lr1_item_sets
-        clean up, pass multiple states:
-            dragon_4_43.wy LR1 getting programmer_error in Set_Minimal_Complete_Actions
-                no actions in state 4
-
-        need gnat trace util
-            output all options in --help
-
-        time ada.wy with task_count = 8
-            cache new states for each worker: initial item_sets time: 184.235532238 no faster, but no slower :(
-            clean up, pass multiple states:
-
-        hash_table should use Duplicate_Action_Type
-
-        store hash pre-modulo with key
-            hash_tables.hash just does modulo
-            or include modulo; we know we are not going to call set_rows.
-
-        don't copy Item_set, just move a pointer to it.
-            copy involves lots of small allocs
-
-    alternate red_black_tree implementation
-        nodes are in an array, grow the array
-            => amortized 0 allocation time
-            slower search time? far more important
-            faster to copy for goto_item_lists
-
-    change goto_lists back to fixed length vector?
-
 algorithm.tex:
     super needs C_Tree to compute unique state numbers.
     w workers

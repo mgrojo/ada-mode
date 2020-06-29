@@ -22,7 +22,6 @@ pragma License (GPL);
 
 with AUnit.Checks.Containers;
 with GNAT.Source_Info;
-with SAL;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
@@ -61,10 +60,10 @@ package body Test_LR1_Parallel is
       First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
-      Item_Sets_1 : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count => 1);
+      Item_Sets_1 : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Single
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-      Item_Sets_8_Array : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets
+      Item_Sets_8_Array : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Parallel
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count => 8);
 
       Item_Sets_8_Tree : LR1_Items.Item_Set_Tree;
@@ -74,25 +73,13 @@ package body Test_LR1_Parallel is
         (others => False);
 
       use LR1_Items.Item_Set_Arrays;
+      Found : Boolean;
    begin
       Check ("item_set.length", Item_Sets_8_Array.Length, Item_Sets_1.Length);
 
       for I in Map'Range loop
-         Item_Sets_8_Tree.Insert
-           ((LR1_Items.To_Item_Set_Tree_Key (Item_Sets_8_Array (I), Include_Lookaheads => True),
-             I),
-           Duplicate => SAL.Error);
-      end loop;
-
-      for I in Map'Range loop
-         begin
-            Map (I) := Item_Sets_8_Tree.Constant_Ref
-              (LR1_Items.To_Item_Set_Tree_Key (Item_Sets_1 (I), Include_Lookaheads => True)).State;
-            Mapped (Map (I)) := True;
-         exception
-         when SAL.Not_Found =>
-            Check ("item_sets_1 state" & I'Image & " found", False, True);
-         end;
+         Map (I) := Item_Sets_8_Tree.Find_Or_Insert (Item_Sets_8_Array (I).Tree_Node, Found).State;
+         Mapped (Map (I)) := True;
       end loop;
 
       Check ("all states found", (for all M of Mapped => M), True);

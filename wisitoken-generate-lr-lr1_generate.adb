@@ -68,7 +68,137 @@ package body WisiToken.Generate.LR.LR1_Generate is
       return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    end LR1_Goto_Transitions;
 
-   function LR1_Item_Sets
+   function LR1_Item_Sets_Single
+     (Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor;
+      Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
+     return LR1_Items.Item_Set_List
+   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
+   --  "items", with some optimizations.
+   is
+      use LR1_Items;
+
+      First_State_Index : constant State_Index := 0;
+      States_Found      : Integer              := 0;
+
+      C               : LR1_Items.Item_Set_List; -- result
+      C_Tree          : LR1_Items.Item_Set_Tree; -- for fast find
+      States_To_Check : State_Index_Queues.Queue;
+      --  [dragon] specifies 'until no more items can be added', but we use
+      --  a queue to avoid checking unecessary states. Ada LR1 has over
+      --  100,000 states, so this is a significant gain (reduced time from
+      --  600 seconds to 40).
+
+      I       : State_Index;
+      Dot_IDs : Token_ID_Arrays.Vector;
+
+      New_Item_Set : Item_Set := Closure
+        ((Set            => Item_Lists.To_List
+            ((Prod       => (Grammar.First_Index, 0),
+              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index (No_Index_If_Empty => True),
+              Lookaheads => To_Lookahead (Descriptor.EOI_ID))),
+          Tree_Node      =>
+            (State       => First_State_Index,
+             others      => <>),
+          others         => <>),
+        Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+   begin
+      C.Set_First_Last (First_State_Index, First_State_Index - 1);
+      C_Tree.Set_Rows (Hash_Table_Size);
+
+      Add (Grammar, New_Item_Set, C, C_Tree, Descriptor, C_Tree.Rows, Include_Lookaheads => True);
+
+      States_To_Check.Put (First_State_Index);
+      loop
+         exit when States_To_Check.Is_Empty;
+         I := States_To_Check.Get;
+
+         if Trace_Generate_Table > Detail then
+            Ada.Text_IO.Put ("Checking ");
+            Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
+         end if;
+
+         Dot_IDs := C (I).Dot_IDs;
+         --  We can't iterate on C (I).Dot_IDs when the loop adds items to C;
+         --  it might be reallocated to grow.
+
+         for Symbol of Dot_IDs loop
+            --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
+            --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
+
+            --  The input to LR1_Goto_Transitions is always a previous output, and
+            --  always unique. The output may not be unique; we store that in C,
+            --  and a search key in C_Tree for faster searching.
+
+            New_Item_Set := LR1_Goto_Transitions
+              (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+
+            New_Item_Set.Tree_Node.State := C.Last_Index + 1;
+
+            Compute_Key_Hash (New_Item_Set, C_Tree.Rows, True);
+
+            declare
+               Found     : Boolean;
+               Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := C_Tree.Find_Or_Insert
+                 (New_Item_Set.Tree_Node, Found);
+            begin
+               if not Found then
+                  States_To_Check.Put (New_Item_Set.Tree_Node.State);
+
+                  New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
+
+                  C.Append (New_Item_Set);
+
+                  if Trace_Generate_Table > Detail then
+                     Ada.Text_IO.Put_Line
+                       ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
+                          Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
+                     Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
+                  end if;
+
+                  C (I).Goto_List.Insert ((Symbol, C.Last_Index));
+               else
+                  States_Found := @ + 1;
+                  --  If there's not already a goto entry between these two sets, create one.
+                  if not Is_In ((Symbol, Found_Ref.State), Goto_List => C (I).Goto_List) then
+                     C (I).Goto_List.Insert ((Symbol, Found_Ref.State));
+
+                     if Trace_Generate_Table > Detail then
+                        Ada.Text_IO.Put_Line
+                          ("  adding goto on " & Image (Symbol, Descriptor) & " to state" & Found_Ref.State'Image);
+                     end if;
+                  end if;
+               end if;
+            end;
+         end loop;
+      end loop;
+
+      if Trace_Time then
+         declare
+            Elements, Max_Row_Depth, Average_Row_Depth : Ada.Containers.Count_Type;
+            Rows : Integer;
+         begin
+            C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth);
+
+            Ada.Text_IO.Put_Line
+              ("LR1 hash table states:" & Elements'Image &
+                 " rows:" & Rows'Image &
+                 " max_row_depth:" & Max_Row_Depth'Image &
+                 " average_row_depth:" & Average_Row_Depth'Image &
+                 " states_found:" & States_Found'Image);
+         end;
+      end if;
+
+      if Trace_Generate_Table > Detail then
+         Ada.Text_IO.New_Line;
+      end if;
+
+      return C;
+   end LR1_Item_Sets_Single;
+
+   function LR1_Item_Sets_Parallel
      (Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -76,8 +206,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Task_Count              : in System.Multiprocessors.CPU_Range;
       Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List
-   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
-   --  "items", with some optimizations.
    is
       use LR1_Items;
       use all type Ada.Containers.Count_Type;
@@ -90,20 +218,18 @@ package body WisiToken.Generate.LR.LR1_Generate is
       type Base_Worker_ID is range 0 .. Positive'Last;
       subtype Worker_ID is Base_Worker_ID range 1 .. Base_Worker_ID'Last;
 
-      package Item_Set_Tree_Node_Queues is new SAL.Gen_Unbounded_Definite_Queues (Item_Set_Tree_Node);
-
       package Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-        (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
+        (Positive, Item_Set_Tree_Node, (others => <>));
 
-      package Worker_Array_Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-        (Worker_ID, Item_Set_Tree_Node_Arrays.Vector, Item_Set_Tree_Node_Arrays.Empty_Vector);
+      package Worker_Array_State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+        (Worker_ID, State_Index_Arrays.Vector, State_Index_Arrays.Empty_Vector);
 
       type Worker_Data is record
          --  All data produced by one worker from one state, except New_C,
          --  which doesn't need to be split by supervisor state.
          From_State          : State_Index := State_Index'Last;
-         New_C_Keys          : Item_Set_Tree_Node_Arrays.Vector;
-         Existing_Goto_Lists : Goto_Item_Arrays.Vector;
+         New_States          : State_Index_Arrays.Vector;
+         Existing_Goto_Items : Goto_Item_Arrays.Vector;
          New_Goto_Items      : Goto_Item_Arrays.Vector;
       end record;
 
@@ -116,38 +242,37 @@ package body WisiToken.Generate.LR.LR1_Generate is
       protected Supervisor is
 
          procedure Initialize
-           (Worker_Count   : in LR1_Item_Sets.Worker_ID;
-            First_Item_Set : in Item_Set);
+           (Worker_Count   : in     LR1_Item_Sets_Parallel.Worker_ID;
+            First_Item_Set : in out Item_Set);
 
          entry Get
-           (Worker_ID     : in     LR1_Item_Sets.Worker_ID;
+           (Worker_ID     : in     LR1_Item_Sets_Parallel.Worker_ID;
             Sets_To_Check :    out Item_Set_List;
-            Keys_To_Check :    out Item_Set_Tree_Node_Arrays.Vector;
             Keys_To_Store :    out Item_Set_Tree_Node_Arrays.Vector)
-         with Pre => Sets_To_Check.Is_Empty and Keys_To_Check.Is_Empty and Keys_To_Store.Is_Empty;
+         with Pre => Sets_To_Check.Is_Empty and Keys_To_Store.Is_Empty;
          --  Set Sets_To_Check to new states to check, _not_ indexed by state;
          --  they may be discontinuous. Available when there are states to
          --  check, or when all states have been checked and all workers are
-         --  inactive; then Sets is empty.
+         --  inactive; then Sets_To_Check is empty.
          --
          --  If Sets_To_Check is not empty, Keys_To_Store contains keys from
          --  other workers to store in worker's C_Tree; increment active worker
          --  count.
 
          procedure Update
-           (Worker_ID   : in     LR1_Item_Sets.Worker_ID;
+           (Worker_ID   : in     LR1_Item_Sets_Parallel.Worker_ID;
             New_C       : in out Item_Set_Arrays.Vector;
             Worker_Data : in out State_Array_Worker_Data.Vector);
          --  New_C: New states found by worker, indexed by worker new state
-         --  number (1 origin); add to supervisor C.
-         --
-         --  Worker_Data : Indexed by supervisor state number (I). Contains:
-         --
-         --     New_C_Keys: Keys for states derived from I, with worker new
-         --  state numbers; sets are in New_C. States are updated to supervisor
+         --  number (1 origin); add to supervisor C. States are updated to supervisor
          --  state numbers; worker should add those to worker's C_Tree.
          --
-         --     Existing_Goto_Lists: from C (I) to some state in supervisor
+         --  Worker_Data : Indexed by supervisor state number I. Contains:
+         --
+         --     New_States: Worker new state numbers for states derived from C (I);
+         --  sets are in New_C.
+         --
+         --     Existing_Goto_Items: Gotos from C (I) to some state in supervisor
          --  C (which worker found in C_Tree); add to supervisor C (I).
          --
          --     New_Goto_Items: From C (I) to some state in New_C (given by
@@ -172,34 +297,36 @@ package body WisiToken.Generate.LR.LR1_Generate is
       private
          C               : Item_Set_List; -- result
          C_Tree          : Item_Set_Tree; -- for fast find
-         States_To_Check : Item_Set_Tree_Node_Queues.Queue;
+         States_To_Check : State_Index_Queues.Queue;
          --  [dragon] specifies 'until no more items can be added', but we use
          --  a queue to avoid checking unecessary states. Ada LR1 has over
          --  100,000 states, so this is a significant gain (reduced time from
          --  600 seconds to 40).
 
-         Worker_Count   : LR1_Item_Sets.Worker_ID;
+         Worker_Count   : LR1_Item_Sets_Parallel.Worker_ID;
          Active_Workers : Natural := 0;
          Fatal          : Boolean := False;
 
-         New_States_For_Worker : Worker_Array_Item_Set_Tree_Node_Arrays.Vector;
+         New_States_For_Worker : Worker_Array_State_Index_Arrays.Vector;
          --  Indexed by worker ID
 
          Error_ID       : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
          Error_Message  : Ada.Strings.Unbounded.Unbounded_String;
 
-         Summary_Last_Output : State_Index   := 0;
-         Min_States_Get      : SAL.Peek_Type := 10; -- get from somewhere?
+         Min_States_Get      : SAL.Peek_Type := 10;
+
+         Net_Time            : Duration    := 0.0; -- Time spent in Get, Update.
+         Found_States        : Integer     := 0;   -- States found in Update; counts duplicate states found by workers
+         Summary_Last_Output : State_Index := 0;
       end Supervisor;
 
       protected body Supervisor is
 
          procedure Initialize
-           (Worker_Count   : in LR1_Item_Sets.Worker_ID;
-            First_Item_Set : in Item_Set)
+           (Worker_Count   : in     LR1_Item_Sets_Parallel.Worker_ID;
+            First_Item_Set : in out Item_Set)
          is
-            First_State_Index : constant State_Index       := First_Item_Set.State;
-            Key               : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (First_Item_Set, True);
+            First_State_Index : constant State_Index       := First_Item_Set.Tree_Node.State;
          begin
             Supervisor.Worker_Count := Worker_Count;
 
@@ -208,38 +335,48 @@ package body WisiToken.Generate.LR.LR1_Generate is
             C.Set_First_Last (First_State_Index, First_State_Index - 1);
             C_Tree.Set_Rows (Hash_Table_Size);
 
-            C.Append (First_Item_Set);
-            C (First_State_Index).Dot_IDs := Get_Dot_IDs (Grammar, First_Item_Set.Set, Descriptor);
-            C_Tree.Insert ((Key, First_Item_Set.State), Duplicate => SAL.Error);
+            First_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, First_Item_Set.Set, Descriptor);
+            Compute_Key_Hash (First_Item_Set, C_Tree.Rows, True);
 
-            States_To_Check.Put ((Key, First_State_Index));
+            C.Append (First_Item_Set);
+            C_Tree.Insert (First_Item_Set.Tree_Node, Duplicate => SAL.Error);
+
+            States_To_Check.Put (First_State_Index);
          end Initialize;
 
          entry Get
-           (Worker_ID     : in     LR1_Item_Sets.Worker_ID;
+           (Worker_ID     : in     LR1_Item_Sets_Parallel.Worker_ID;
             Sets_To_Check :    out Item_Set_List;
-            Keys_To_Check :    out Item_Set_Tree_Node_Arrays.Vector;
             Keys_To_Store :    out Item_Set_Tree_Node_Arrays.Vector)
          when Fatal or States_To_Check.Length > 0 or Active_Workers = 0
-         is begin
+         is
+            use all type Ada.Calendar.Time;
+
+            Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+         begin
             if States_To_Check.Length > 0 then
                for I in 1 ..
                  (if States_To_Check.Length / SAL.Peek_Type (Worker_Count) < Min_States_Get
                   then States_To_Check.Length
                   else States_To_Check.Length / SAL.Peek_Type (Worker_Count))
                loop
-                  Sets_To_Check.Append (C (States_To_Check.Peek.State));
-                  Keys_To_Check.Append (States_To_Check.Get);
+                  Sets_To_Check.Append (C (States_To_Check.Get));
                end loop;
 
-               Keys_To_Store := New_States_For_Worker (Worker_ID);
-               New_States_For_Worker (Worker_ID).Clear;
+               if not New_States_For_Worker (Worker_ID).Is_Empty then
+                  Keys_To_Store.Set_Capacity
+                    (New_States_For_Worker (Worker_ID).First_Index, New_States_For_Worker (Worker_ID).Last_Index);
+                  for State of New_States_For_Worker (Worker_ID) loop
+                     Keys_To_Store.Append (C (State).Tree_Node);
+                  end loop;
+                  New_States_For_Worker (Worker_ID).Clear;
+               end if;
 
                if Trace_Generate_Table > Detail then
                   Ada.Text_IO.Put
                     ("(worker" & Worker_ID'Image & ") Checking" & Sets_To_Check.Length'Image & " states");
-                  for Node of Keys_To_Check loop
-                     Ada.Text_IO.Put (Node.State'Image);
+                  for Set of Sets_To_Check loop
+                     Ada.Text_IO.Put (Set.Tree_Node.State'Image);
                   end loop;
                   Ada.Text_IO.New_Line;
                   if Trace_Generate_Table > Extra then
@@ -257,25 +394,32 @@ package body WisiToken.Generate.LR.LR1_Generate is
                end if;
 
                Active_Workers := @ + 1;
+
+               Net_Time := @ + (Ada.Calendar.Clock - Time_Start);
             end if;
 
-            if Trace_Generate_Table > Outline and then
-              C.Last_Index > Summary_Last_Output + 500
+            if Trace_Time and C.Last_Index > Summary_Last_Output +
+              (if C_Tree.Rows < 15_053 then 500 else 10_000) --  500 for ada_lite.wy, 10_000 for ada.wy
             then
                Ada.Text_IO.Put_Line
-                 ("(super) states:" & C.Last_Index'Image & " States_To_Check:" & States_To_Check.Length'Image);
+                 ("(super) time:" & Net_Time'Image &
+                    " states:" & C.Last_Index'Image &
+                    " States_To_Check:" & States_To_Check.Length'Image &
+                    " Found_States:" & Found_States'Image);
                Summary_Last_Output := C.Last_Index;
             end if;
          end Get;
 
          procedure Update
-           (Worker_ID   : in     LR1_Item_Sets.Worker_ID;
+           (Worker_ID   : in     LR1_Item_Sets_Parallel.Worker_ID;
             New_C       : in out Item_Set_Arrays.Vector;
             Worker_Data : in out State_Array_Worker_Data.Vector)
          is
+            use all type Ada.Calendar.Time;
+            Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+
             State_Map : array (New_C.First_Index .. New_C.Last_Index) of State_Index;
             --  Indexed by worker new state number, contains super state number
-
          begin
             if Trace_Generate_Table > Detail then
                Ada.Text_IO.Put ("(super) Update from worker" & Worker_ID'Image & "; new states:");
@@ -291,46 +435,42 @@ package body WisiToken.Generate.LR.LR1_Generate is
             end if;
 
             for Worker_Data of Update.Worker_Data loop
-               for New_C_Node of Worker_Data.New_C_Keys loop
+               for Worker_New_State of Worker_Data.New_States loop
                   declare
                      use Item_Set_Trees;
 
-                     Worker_New_State : constant State_Index := New_C_Node.State;
                      Super_New_State  : constant State_Index := C.Last_Index + 1;
 
                      Found      : Boolean;
-                     Found_Ref  : constant Item_Set_Trees.Constant_Reference_Type := C_Tree.Find_Or_Insert
-                       ((New_C_Node.Key, Super_New_State), Found);
+                     Found_Ref  : constant Item_Set_Trees.Variable_Reference_Type := C_Tree.Find_Or_Insert_Var
+                       (New_C (Worker_New_State).Tree_Node, Found);
                   begin
                      if Found then
                         State_Map (Worker_New_State) := Found_Ref.State;
+                        Found_States := @ + 1;
 
                      else
-                        States_To_Check.Put ((New_C_Node.Key, Super_New_State));
+                        Found_Ref.State := Super_New_State;
+                        New_C (Worker_New_State).Tree_Node.State := Super_New_State;
+
+                        States_To_Check.Put (Super_New_State);
 
                         State_Map (Worker_New_State) := Super_New_State;
 
-                        declare
-                           New_Item_Set : LR1_Items.Item_Set renames New_C (New_C_Node.State);
-                        begin
-                           New_C_Node.State   := Super_New_State;
-                           New_Item_Set.State := Super_New_State;
+                        C.Append (New_C (Worker_New_State));
+                        pragma Assert (C.Last_Index = Super_New_State);
 
-                           C.Append (New_Item_Set);
-                           pragma Assert (C.Last_Index = Super_New_State);
-
-                           for ID in New_States_For_Worker.First_Index .. New_States_For_Worker.Last_Index  loop
-                              if ID /= Worker_ID then
-                                 New_States_For_Worker (ID).Append (New_C_Node);
-                              end if;
-                           end loop;
-
-                           if Trace_Generate_Table > Extra then
-                              Put (Grammar, Descriptor, New_Item_Set,
-                                   Show_Lookaheads => True,
-                                   Show_Goto_List  => True);
+                        for ID in New_States_For_Worker.First_Index .. New_States_For_Worker.Last_Index  loop
+                           if ID /= Worker_ID then
+                              New_States_For_Worker (ID).Append (Super_New_State);
                            end if;
-                        end;
+                        end loop;
+
+                        if Trace_Generate_Table > Extra then
+                           Put (Grammar, Descriptor, New_C (Worker_New_State),
+                                Show_Lookaheads => True,
+                                Show_Goto_List  => True);
+                        end if;
                      end if;
                   end;
                end loop;
@@ -342,7 +482,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                begin
                   --  IMPROVEME: move this into a supervisor task? Supervisor should
                   --  just copy data to/from worker, assign state numbers.
-                  for Item of Worker_Data.Existing_Goto_Lists loop
+                  for Item of Worker_Data.Existing_Goto_Items loop
                      if Trace_Generate_Table > Extra and then
                        not Has_Element (C (From_State).Goto_List.Find (Item.Symbol))
                      then
@@ -372,6 +512,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
             end loop;
 
             Active_Workers := @ - 1;
+
+            Net_Time := @ + (Ada.Calendar.Clock - Time_Start);
          exception
          when E : others =>
 
@@ -404,8 +546,16 @@ package body WisiToken.Generate.LR.LR1_Generate is
          entry Done
            (ID      : out Ada.Exceptions.Exception_Id;
             Message : out Ada.Strings.Unbounded.Unbounded_String)
-           when Fatal or (Active_Workers = 0 and States_To_Check.Is_Empty)
+         when Fatal or (Active_Workers = 0 and States_To_Check.Is_Empty)
          is begin
+            if Trace_Time then
+               Ada.Text_IO.Put_Line
+                 ("(super) net time:" & Net_Time'Image &
+                    " states:" & C.Last_Index'Image &
+                    " States_To_Check:" & States_To_Check.Length'Image &
+                    " Found_States:" & Found_States'Image);
+            end if;
+
             ID      := Supervisor.Error_ID;
             Message := Supervisor.Error_Message;
          end Done;
@@ -419,14 +569,21 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       task type Worker_Task
       is
-         entry Start (ID : in LR1_Item_Sets.Worker_ID);
+         entry Start (ID : in LR1_Item_Sets_Parallel.Worker_ID);
          --  Start states from Supervisor. Stop when Supervisor returns
          --  Invalid_State_Index;
       end Worker_Task;
 
       task body Worker_Task
       is
-         ID : LR1_Item_Sets.Worker_ID;
+         use all type Ada.Calendar.Time;
+
+         ID : LR1_Item_Sets_Parallel.Worker_ID;
+
+         Time_Start     : Ada.Calendar.Time;
+         Net_Time       : Duration := 0.0; --  Time spent outside Supervisor
+         States_Checked : Integer  := 0;
+         States_Found   : Integer  := 0;
 
          C_Tree : Item_Set_Tree;          -- Local copy for fast find
          C      : Item_Set_Arrays.Vector; -- Local copy of subset of C to search; from Supervisor
@@ -441,16 +598,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
          procedure Check_State (C_Index : in State_Index)
          is
             C_I : Item_Set renames C (C_Index);
-            Worker_Data : LR1_Item_Sets.Worker_Data renames Worker_Task.Worker_Data (C_Index);
-            Pos_Local_New_State : constant Positive_Index_Type := Positive_Index_Type (Local_New_State);
+            Worker_Data : LR1_Item_Sets_Parallel.Worker_Data renames Worker_Task.Worker_Data (C_Index);
          begin
-            Worker_Data.From_State := C_I.State;
-            Worker_Data.New_C_Keys.Set_First_Last
-              (First => Pos_Local_New_State,
-               Last  => Pos_Local_New_State - 1);
-            Worker_Data.Existing_Goto_Lists.Set_First_Last
-              (First => Pos_Local_New_State,
-               Last  => Pos_Local_New_State - 1);
+            States_Checked := @ + 1;
+            Worker_Data.From_State := C_I.Tree_Node.State;
+            Worker_Data.New_States.Clear;
+            Worker_Data.Existing_Goto_Items.Clear;
             Worker_Data.New_Goto_Items.Clear;
 
             for Dot_ID_I in C_I.Dot_IDs.First_Index .. C_I.Dot_IDs.Last_Index loop
@@ -461,14 +614,13 @@ package body WisiToken.Generate.LR.LR1_Generate is
                   Symbol       : Token_ID renames C_I.Dot_IDs (Dot_ID_I);
                   New_Item_Set : Item_Set := LR1_Goto_Transitions
                     (C_I, Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-
                begin
+                  Compute_Key_Hash (New_Item_Set, C_Tree.Rows, True);
                   declare
                      use Item_Set_Trees;
-                     New_Item_Set_Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, True);
 
                      --  First search in Worker.C_Tree
-                     Found_Cur : Cursor := C_Tree.Find (New_Item_Set_Key);
+                     Found_Cur : Cursor := C_Tree.Find (New_Item_Set.Tree_Node);
 
                      Found_State : constant Unknown_State_Index :=
                        (if Has_Element (Found_Cur)
@@ -476,7 +628,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         else Unknown_State);
                   begin
                      if Found_State = Unknown_State then
-                        Found_Cur := New_C_Tree.Find (New_Item_Set_Key);
+                        Found_Cur := New_C_Tree.Find (New_Item_Set.Tree_Node);
 
                         if Has_Element (Found_Cur) then
                            --  Local_New_State was previously generated from some other state we
@@ -486,19 +638,20 @@ package body WisiToken.Generate.LR.LR1_Generate is
                         else
                            Worker_Data.New_Goto_Items.Append ((Symbol, Local_New_State));
 
-                           New_Item_Set.State := Local_New_State;
+                           New_Item_Set.Tree_Node.State := Local_New_State;
                            New_Item_Set.Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
                            New_C.Append (New_Item_Set);
                            pragma Assert (New_C.Last_Index = Local_New_State);
-                           Worker_Data.New_C_Keys.Append ((New_Item_Set_Key, Local_New_State));
+                           Worker_Data.New_States.Append (Local_New_State);
 
-                           New_C_Tree.Insert ((New_Item_Set_Key, Local_New_State), Duplicate => SAL.Error);
+                           New_C_Tree.Insert (New_Item_Set.Tree_Node, Duplicate => SAL.Error);
 
                            Local_New_State := Local_New_State + 1;
                         end if;
                      else
+                        States_Found := @ + 1;
                         if not Is_In ((Symbol, Found_State), Goto_List => C_I.Goto_List) then
-                           Worker_Data.Existing_Goto_Lists.Append ((Symbol, Found_State));
+                           Worker_Data.Existing_Goto_Items.Append ((Symbol, Found_State));
                         end if;
                      end if;
                   end;
@@ -507,7 +660,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end Check_State;
       begin
          select
-            accept Start (ID : in LR1_Item_Sets.Worker_ID)
+            accept Start (ID : in LR1_Item_Sets_Parallel.Worker_ID)
 
             do
                Worker_Task.ID := ID;
@@ -516,27 +669,30 @@ package body WisiToken.Generate.LR.LR1_Generate is
             terminate;
          end select;
 
+         C_Tree.Set_Rows (Hash_Table_Size);
+         New_C_Tree.Set_Rows (Hash_Table_Size);
+
          loop
             declare
-               C_Keys        : Item_Set_Tree_Node_Arrays.Vector;
                Keys_To_Store : Item_Set_Tree_Node_Arrays.Vector;
             begin
-               Supervisor.Get (ID, C, C_Keys, Keys_To_Store);
+               Supervisor.Get (ID, C, Keys_To_Store);
+               exit when C.Length = 0;
 
-               for Node of C_Keys loop
-                  --  C_Keys are for C, which are all new states to check, but they may
+               Time_Start := Ada.Calendar.Clock;
+
+               for Set of C loop
+                  --  C are all new states to check, but they may
                   --  have been in a previous Keys_To_Store.
-                  C_Tree.Insert (Node, Duplicate => SAL.Ignore);
+                  C_Tree.Insert (Set.Tree_Node, Duplicate => SAL.Ignore);
                end loop;
                for Node of Keys_To_Store loop
                   --  States are added to Keys_To_Store when they are new in
                   --  Supervisor.C_Tree, before they are given to any worker to check;
-                  --  they may also be in C_Keys
+                  --  they may also be in C
                   C_Tree.Insert (Node, Duplicate => SAL.Ignore);
                end loop;
             end;
-
-            exit when C.Length = 0;
 
             Local_New_State := 1;
             New_C.Set_First_Last (First => Local_New_State, Last => Local_New_State - 1);
@@ -549,16 +705,22 @@ package body WisiToken.Generate.LR.LR1_Generate is
             end loop;
             C.Clear;
 
+            Net_Time := @ + (Ada.Calendar.Clock - Time_Start);
             Supervisor.Update (ID, New_C, Worker_Data);
+            Time_Start := Ada.Calendar.Clock;
 
-            --  Worker_Data.New_C_Keys.state updated; insert into C_Tree.
-            for Worker of Worker_Data loop
-               for Node of Worker.New_C_Keys loop
-                  C_Tree.Insert (Node, Duplicate => SAL.Error);
-               end loop;
-               Worker.New_C_Keys.Clear;
+            --  New_C.Tree_Node.State updated; insert into C_Tree.
+            for Item of New_C loop
+               C_Tree.Insert (Item.Tree_Node, Duplicate => SAL.Error);
             end loop;
+            Net_Time := @ + (Ada.Calendar.Clock - Time_Start);
          end loop;
+
+         if Trace_Time then
+            Ada.Text_IO.Put_Line
+              ("(worker" & ID'Image & ") net time" & Net_Time'Image &
+                 " states checked:" & States_Checked'Image & " states found:" & States_Found'Image);
+         end if;
 
          if Trace_Generate_Table > Outline then
             Ada.Text_IO.Put_Line ("(worker" & ID'Image & ") terminate");
@@ -573,30 +735,31 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Worker_Tasks : array
         (1 .. System.Multiprocessors.CPU_Range'Min
-           (Task_Count,
-            System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs)))
+         (Task_Count,
+         System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs)))
         of Worker_Task;
 
       First_State_Index : constant State_Index := 0;
 
-      First_Item_Set : constant Item_Set := Closure
+      First_Item_Set : Item_Set := Closure
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
               Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index,
               Lookaheads => To_Lookahead (Descriptor.EOI_ID))),
-          Goto_List      => <>,
-          Dot_IDs        => <>,
-          State          => First_State_Index),
+          Tree_Node      =>
+            (State       => First_State_Index,
+             others      => <>),
+          others         => <>),
          Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
    begin
-      Supervisor.Initialize (LR1_Item_Sets.Worker_ID (Worker_Tasks'Last), First_Item_Set);
+      Supervisor.Initialize (LR1_Item_Sets_Parallel.Worker_ID (Worker_Tasks'Last), First_Item_Set);
 
       if Trace_Generate_Table > Outline then
          Ada.Text_IO.Put_Line (Worker_Tasks'Length'Image & " lr1_items worker tasks");
       end if;
 
       for I in Worker_Tasks'Range loop
-         Worker_Tasks (I).Start (LR1_Item_Sets.Worker_ID (I));
+         Worker_Tasks (I).Start (LR1_Item_Sets_Parallel.Worker_ID (I));
       end loop;
 
       declare
@@ -620,7 +783,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
          end if;
       end;
       return Supervisor.Get_C;
-   end LR1_Item_Sets;
+   end LR1_Item_Sets_Parallel;
 
    procedure Add_Actions
      (Item_Sets  : in     LR1_Items.Item_Set_List;
@@ -650,9 +813,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Ignore_Conflicts      : in     Boolean                          := False;
       Partial_Recursion     : in     Boolean                          := True;
       Task_Count            : in     System.Multiprocessors.CPU_Range := 1;
-      Hash_Table_Size       : in     Positive            := LR1_Items.Item_Set_Trees.Default_Rows)
+      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows)
      return Parse_Table_Ptr
    is
+      use all type System.Multiprocessors.CPU_Range;
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
@@ -680,8 +844,13 @@ package body WisiToken.Generate.LR.LR1_Generate is
       First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
-      Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count, Hash_Table_Size);
+      Item_Sets : constant LR1_Items.Item_Set_List :=
+        (if Task_Count = 1
+         then LR1_Item_Sets_Single
+           (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Hash_Table_Size)
+        else LR1_Item_Sets_Parallel
+           (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count,
+            Hash_Table_Size));
 
       Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;

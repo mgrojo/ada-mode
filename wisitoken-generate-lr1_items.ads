@@ -185,11 +185,35 @@ package WisiToken.Generate.LR1_Items is
       Descriptor : in WisiToken.Descriptor)
      return Token_ID_Arrays.Vector;
 
+   package Unsigned_16_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive, Interfaces.Unsigned_16, Default_Element => Interfaces.Unsigned_16'Last);
+   function Compare_Unsigned_16 (Left, Right : in Interfaces.Unsigned_16) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left < Right then SAL.Less
+      else SAL.Equal);
+
+   package Unsigned_16_Arrays_Comparable is new Unsigned_16_Arrays.Gen_Comparable (Compare_Unsigned_16);
+
+   subtype Item_Set_Tree_Key is Unsigned_16_Arrays_Comparable.Vector;
+   --  We want a key that is fast to compare, and has enough info to
+   --  significantly speed the search for an item set. So we convert all
+   --  relevant data in an item into a string of integers. We need 16 bit
+   --  because Ada token_ids max is 332. LR1 keys include lookaheads,
+   --  LALR keys do not.
+
+   Empty_Key : Item_Set_Tree_Key renames Unsigned_16_Arrays_Comparable.Empty_Vector;
+
+   type Item_Set_Tree_Node is record
+      Key   : Item_Set_Tree_Key   := Unsigned_16_Arrays_Comparable.Empty_Vector;
+      Hash  : Positive            := 1;
+      State : Unknown_State_Index := Unknown_State;
+   end record;
+
    type Item_Set is record
       Set       : Item_Lists.List;
       Goto_List : Goto_Item_List;
       Dot_IDs   : Token_ID_Arrays.Vector;
-      State     : Unknown_State_Index := Unknown_State;
+      Tree_Node : Item_Set_Tree_Node; --  Avoids building an aggregate to insert in the tree.
    end record;
 
    function Filter
@@ -232,46 +256,27 @@ package WisiToken.Generate.LR1_Items is
      (State_Index, Item_Set, Default_Element => (others => <>));
    subtype Item_Set_List is Item_Set_Arrays.Vector;
 
-   package Unsigned_16_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive, Interfaces.Unsigned_16, Default_Element => Interfaces.Unsigned_16'Last);
-   function Compare_Unsigned_16 (Left, Right : in Interfaces.Unsigned_16) return SAL.Compare_Result is
-     (if Left > Right then SAL.Greater
-      elsif Left < Right then SAL.Less
-      else SAL.Equal);
-
-   package Unsigned_16_Arrays_Comparable is new Unsigned_16_Arrays.Gen_Comparable (Compare_Unsigned_16);
-
-   subtype Item_Set_Tree_Key is Unsigned_16_Arrays_Comparable.Vector;
-   --  We want a key that is fast to compare, and has enough info to
-   --  significantly speed the search for an item set. So we convert all
-   --  relevant data in an item into a string of integers. We need 16 bit
-   --  because Ada token_ids max is 332. LR1 keys include lookaheads,
-   --  LALR keys do not.
-
-   type Item_Set_Tree_Node is record
-      Key   : Item_Set_Tree_Key   := Unsigned_16_Arrays_Comparable.Empty_Vector;
-      State : Unknown_State_Index := Unknown_State;
-   end record;
-
    package Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
 
-   function To_Item_Set_Tree_Key
-     (Item_Set           : in LR1_Items.Item_Set;
-      Include_Lookaheads : in Boolean)
-     return Item_Set_Tree_Key;
-
-   function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key is
-     (Node.Key);
-
    function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive;
+
+   procedure Compute_Key_Hash
+     (Item_Set           : in out LR1_Items.Item_Set;
+      Rows               : in     Positive;
+      Include_Lookaheads : in     Boolean);
+
+   function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key
+   is (Node.Key);
+
+   function To_Item_Set_Tree_Hash (Node : in Item_Set_Tree_Node; Rows : in Positive) return Positive;
 
    package Item_Set_Trees is new SAL.Gen_Unbounded_Definite_Hash_Tables
      (Element_Type => Item_Set_Tree_Node,
       Key_Type     => Item_Set_Tree_Key,
       Key          => To_Item_Set_Tree_Key,
       Key_Compare  => Unsigned_16_Arrays_Comparable.Compare,
-      Hash         => Hash_Sum_32);
+      Hash         => To_Item_Set_Tree_Hash);
    --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
    --  iterating in state order. Item_Set_Trees holds state
    --  indices sorted by Item_Set_Tree_Key, for fast Find in LR1_Item_Sets
@@ -281,12 +286,13 @@ package WisiToken.Generate.LR1_Items is
 
    procedure Add
      (Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
-      New_Item_Set       : in     Item_Set;
+      New_Item_Set       : in out Item_Set;
       Item_Set_List      : in out LR1_Items.Item_Set_List;
       Item_Set_Tree      : in out LR1_Items.Item_Set_Tree;
       Descriptor         : in     WisiToken.Descriptor;
+      Hash_Table_Rows    : in     Positive;
       Include_Lookaheads : in     Boolean)
-   with Pre => New_Item_Set.State = Item_Set_List.Last_Index + 1;
+   with Pre => New_Item_Set.Tree_Node.State = Item_Set_List.Last_Index + 1;
    --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree
 
    function Is_In

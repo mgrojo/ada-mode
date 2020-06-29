@@ -492,7 +492,7 @@ package body WisiToken.Generate.LR is
    is
       use Token_ID_Arrays;
 
-      State : constant State_Index := Closure.State;
+      State : constant State_Index := Closure.Tree_Node.State;
    begin
       if Trace_Generate_Table > Detail then
          Ada.Text_IO.Put_Line ("setting table actions for state" & State_Index'Image (State));
@@ -748,7 +748,7 @@ package body WisiToken.Generate.LR is
          end loop;
          raise SAL.Programmer_Error with
            "Set_Minimal_Complete_Actions: action for " & Image (ID, Descriptor) & " not found in state" &
-           Kernel.State'Image;
+           Kernel.Tree_Node.State'Image;
       end Find_Action;
 
       function Compute_Action (ID : in Token_ID) return Minimal_Action
@@ -796,7 +796,7 @@ package body WisiToken.Generate.LR is
       end Length_After_Dot;
 
    begin
-      if Kernel.State = 0 then
+      if Kernel.Tree_Node.State = 0 then
          --  State 0 has dot before all tokens, which is never needed in the
          --  Minimal_Complete_Action algorithm.
          return;

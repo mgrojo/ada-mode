@@ -185,21 +185,20 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Kernel_Tree       : LR1_Items.Item_Set_Tree; -- for fast find
       States_To_Check   : State_Index_Queues.Queue;
       Checking_State    : State_Index;
+
+      First_Item_Set : Item_Set :=
+        (Set               => Item_Lists.To_List
+           ((Prod          => (Grammar.First_Index, 0),
+             Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index (No_Index_If_Empty => True),
+             Lookaheads    => Null_Lookahead)),
+         Tree_Node         =>
+           (State          => First_State_Index,
+            others         => <>),
+         others            => <>);
    begin
       Kernels.Set_First_Last (First_State_Index, First_State_Index - 1);
 
-      Add (Grammar,
-           (Set               => Item_Lists.To_List
-              ((Prod          => (Grammar.First_Index, 0),
-                Dot           => Grammar (Grammar.First_Index).RHSs (0).Tokens.First_Index (No_Index_If_Empty => True),
-                Lookaheads    => Null_Lookahead)),
-            Goto_List         => <>,
-            Dot_IDs           => <>,
-            State             => First_State_Index),
-           Kernels,
-           Kernel_Tree,
-           Descriptor,
-           Include_Lookaheads => False);
+      Add (Grammar, First_Item_Set, Kernels, Kernel_Tree, Descriptor, Kernel_Tree.Rows, Include_Lookaheads => False);
 
       States_To_Check.Put (First_State_Index);
       loop
@@ -222,18 +221,17 @@ package body WisiToken.Generate.LR.LALR_Generate is
             begin
                if New_Item_Set.Set.Length > 0 then
 
-                  New_Item_Set.State := Kernels.Last_Index + 1;
+                  New_Item_Set.Tree_Node.State := Kernels.Last_Index + 1;
+
+                  Compute_Key_Hash (New_Item_Set, Kernel_Tree.Rows, Include_Lookaheads => False);
 
                   declare
-                     Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key
-                       (New_Item_Set, Include_Lookaheads => False);
-
                      Found     : Boolean;
                      Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := Kernel_Tree.Find_Or_Insert
-                       ((Key, New_Item_Set.State), Found);
+                       (New_Item_Set.Tree_Node, Found);
                   begin
                      if not Found then
-                        States_To_Check.Put (New_Item_Set.State);
+                        States_To_Check.Put (New_Item_Set.Tree_Node.State);
 
                         Kernels.Append (New_Item_Set);
 
@@ -358,7 +356,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
                if Closure_Item.Lookaheads (Descriptor.Last_Lookahead) then
                   Add_Propagation
                     (From_Item    => Source_Item,
-                     From_State   => Source_Set.State,
+                     From_State   => Source_Set.Tree_Node.State,
                      To_Item      => To_Item,
                      To_State     => Goto_State,
                      Propagations => Propagations);
@@ -424,9 +422,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
                   ((Prod       => Kernel_Item.Prod,
                     Dot        => Kernel_Item.Dot,
                     Lookaheads => Propagate_Lookahead (Descriptor))),
-                Goto_List      => <>,
-                Dot_IDs        => <>,
-                State          => <>),
+                others         => <>),
                Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
             for Closure_Item of Closure.Set loop

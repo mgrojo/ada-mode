@@ -34,14 +34,14 @@ package WisiToken.Generate.LR.LR1_Generate is
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
       Grammar_File_Name     : in     String;
-      Known_Conflicts       : in     Conflict_Lists.Tree := Conflict_Lists.Empty_Tree;
-      McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
-      Parse_Table_File_Name : in     String              := "";
-      Include_Extra         : in     Boolean             := False;
-      Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True;
+      Known_Conflicts       : in     Conflict_Lists.Tree              := Conflict_Lists.Empty_Tree;
+      McKenzie_Param        : in     McKenzie_Param_Type              := Default_McKenzie_Param;
+      Parse_Table_File_Name : in     String                           := "";
+      Include_Extra         : in     Boolean                          := False;
+      Ignore_Conflicts      : in     Boolean                          := False;
+      Partial_Recursion     : in     Boolean                          := True;
       Task_Count            : in     System.Multiprocessors.CPU_Range := 1;
-      Hash_Table_Size       : in     Positive            := LR1_Items.Item_Set_Trees.Default_Rows)
+      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows)
      return Parse_Table_Ptr
    with Pre => Descriptor.First_Nonterminal = Descriptor.Accept_ID;
    --  Generate a generalized LR1 parse table for Grammar. The
@@ -67,7 +67,16 @@ package WisiToken.Generate.LR.LR1_Generate is
    ----------
    --  visible for unit test
 
-   function LR1_Item_Sets
+   function LR1_Item_Sets_Single
+     (Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor;
+      Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
+     return LR1_Items.Item_Set_List;
+   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items", no tasking
+
+   function LR1_Item_Sets_Parallel
      (Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -75,6 +84,6 @@ package WisiToken.Generate.LR.LR1_Generate is
       Task_Count              : in System.Multiprocessors.CPU_Range;
       Hash_Table_Size         : in Positive := LR1_Items.Item_Set_Trees.Default_Rows)
      return LR1_Items.Item_Set_List;
-   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
+   --  With tasking; used if State_Count known.
 
 end WisiToken.Generate.LR.LR1_Generate;
