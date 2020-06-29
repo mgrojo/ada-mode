@@ -193,7 +193,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          if Container.Elements = null then
             Container.Elements := new Array_Type (J .. J);
 
-         elsif J > Container.Elements'Last then
+         elsif J not in Container.Elements'First .. Container.Elements'Last then
             Grow (Container.Elements, J);
          end if;
 
@@ -224,7 +224,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       begin
          if Container.Elements = null then
             Container.Elements := new Array_Type (I .. J);
-         elsif J > Container.Elements'Last then
+         elsif J not in Container.Elements'First .. Container.Elements'Last then
             Grow (Container.Elements, J);
          end if;
 
@@ -248,7 +248,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          if Container.Elements = null then
             Container.Elements := new Array_Type (J .. J);
 
-         elsif J < Container.Elements'First then
+         elsif J not in Container.Elements'First .. Container.Elements'Last then
             Grow (Container.Elements, J);
          end if;
 
@@ -275,8 +275,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
             I         : constant Peek_Type  := To_Peek_Type (New_First);
             J         : constant Peek_Type  := To_Peek_Type (Target.First - 1);
          begin
-            if Target.Elements'First > I then
+            if I not in Target.Elements'First .. Target.Elements'Last then
                Grow (Target.Elements, I);
+            end if;
+            if J not in Target.Elements'First .. Target.Elements'Last then
+               Grow (Target.Elements, J);
             end if;
             Target.Elements (I .. J) := Source.Elements (Source_I .. Source_J);
             Target.First := New_First;
@@ -297,10 +300,10 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          Container.Last := Container.Last + 1;
 
          declare
-            J : constant Peek_Type := To_Peek_Type (Before);
+            J : constant Peek_Type      := To_Peek_Type (Before);
             K : constant Base_Peek_Type := To_Peek_Type (Container.Last);
          begin
-            if K > Container.Elements'Last then
+            if K not in Container.Elements'First .. Container.Elements'Last then
                Grow (Container.Elements, K);
             end if;
 

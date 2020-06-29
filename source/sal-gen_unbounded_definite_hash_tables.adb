@@ -101,7 +101,7 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
 
       declare
          Found    : Boolean;
-         Tree_Cur : constant Element_Trees.Cursor := Table.Table (Hash (Pkg.Key (Element), Table.Table.Last_Index))
+         Tree_Cur : constant Element_Trees.Cursor := Table.Table (Hash (Element, Table.Table.Last_Index))
            .Find_Or_Insert (Element, Found);
          pragma Unreferenced (Tree_Cur);
       begin
@@ -127,29 +127,30 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
       end if;
 
       declare
-         Tree : Element_Trees.Tree renames Table.Table (Hash (Pkg.Key (Element), Table.Table.Last_Index));
+         Tree : Element_Trees.Tree renames Table.Table (Hash (Element, Table.Table.Last_Index));
          Tree_Cur : constant Element_Trees.Cursor := Tree.Find_Or_Insert (Element, Found);
       begin
          return (Tree.Constant_Ref (Tree_Cur).Element, 0);
       end;
    end Find_Or_Insert;
 
-   function Constant_Ref
-     (Table : aliased in Hash_Table;
-      Key   :         in Key_Type)
-     return Constant_Reference_Type
+   function Find_Or_Insert_Var
+     (Table   : in out Hash_Table;
+      Element : in     Element_Type;
+      Found   :    out Boolean)
+     return Variable_Reference_Type
    is begin
       if Table.Table.Is_Empty then
-         raise SAL.Not_Found;
-      else
-         declare
-            Tree : Element_Trees.Tree renames Table.Table (Hash (Key, Table.Table.Last_Index));
-            Tree_Ref : Element_Trees.Constant_Reference_Type renames Tree.Constant_Ref (Key);
-         begin
-            return (Tree_Ref.Element, 0);
-         end;
+         Set_Rows (Table, Default_Init_Rows);
       end if;
-   end Constant_Ref;
+
+      declare
+         Tree : Element_Trees.Tree renames Table.Table (Hash (Element, Table.Table.Last_Index));
+         Tree_Cur : constant Element_Trees.Cursor := Tree.Find_Or_Insert (Element, Found);
+      begin
+         return (Tree.Variable_Ref (Tree_Cur).Element, 0);
+      end;
+   end Find_Or_Insert_Var;
 
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean
    is begin
@@ -168,8 +169,8 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
    end Constant_Ref;
 
    function Find
-     (Table : aliased in Hash_Table;
-      Key   :         in Key_Type)
+     (Table   : aliased in Hash_Table;
+      Element :         in Element_Type)
      return Cursor
    is begin
       if Table.Table.Is_Empty then
@@ -177,9 +178,9 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
       end if;
 
       declare
-         Row : constant Positive := Hash (Key, Table.Table.Last_Index);
+         Row : constant Positive := Hash (Element, Table.Table.Last_Index);
          Tree : Element_Trees.Tree renames Table.Table (Row);
-         Tree_Cur : constant Element_Trees.Cursor := Tree.Find (Key);
+         Tree_Cur : constant Element_Trees.Cursor := Tree.Find (Key (Element));
       begin
          if Element_Trees.Has_Element (Tree_Cur) then
             return (Row, Tree_Cur);

@@ -40,10 +40,13 @@ generic
    with function Key (Element : in Element_Type) return Key_Type is <>;
    with function Key_Compare (Left, Right : in Key_Type) return Compare_Result;
 
-   with function Hash (Key : Key_Type; Rows : Positive) return Positive;
+   with function Hash (Element : Element_Type; Rows : Positive) return Positive;
    --  WORKAROUND: GNAT community 2019 doesn't allow 'with post' here
    --  with Release compilation switches.
    --  with Post => Hash'Result in 1 .. Rows;
+   --
+   --  Takes Element, not Key, to allow storing Hash in Element so it is
+   --  only computed once.
    --
    --  1 + (Some_hash (Key) mod Rows) works.
 
@@ -67,6 +70,8 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    --  Set the hash table size. If Table is not empty, all hashes are
    --  recomputed; this renders any Constant_Refs invalid.
 
+   function Rows (Table : in Hash_Table) return Positive;
+
    procedure Clear (Table : in out Hash_Table);
    --  Set Table to empty.
 
@@ -80,17 +85,23 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
 
+   type Variable_Reference_Type (Element : not null access Element_Type) is private with
+     Implicit_Dereference => Element;
+   --  User must not change Key or Hash via this reference.
+
    function Find_Or_Insert
      (Table   : in out Hash_Table;
       Element : in     Element_Type;
       Found   :    out Boolean)
      return Constant_Reference_Type;
 
-   function Constant_Ref
-     (Table : aliased in Hash_Table;
-      Key   :         in Key_Type)
-     return Constant_Reference_Type;
-   --  Raises SAL.Not_Found if Key is not found
+   function Find_Or_Insert_Var
+     (Table   : in out Hash_Table;
+      Element : in     Element_Type;
+      Found   :    out Boolean)
+     return Variable_Reference_Type;
+   --  WORKAROUND: GNAT Community 2019 uses the wrong Find_Or_Insert if
+   --  rely on overload resolution on result type.
 
    type Cursor is private;
 
@@ -105,10 +116,12 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    with Inline, Pre => Has_Element (Position);
 
    function Find
-     (Table : aliased in Hash_Table;
-      Key   :         in Key_Type)
+     (Table   : aliased in Hash_Table;
+      Element :         in Element_Type)
      return Cursor;
    --  Result is No_Element if Key is not in Table.
+   --
+   --  Takes Element instead of Key to allow storing Hash in Element.
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
@@ -142,7 +155,15 @@ private
       Table : Hash_Arrays.Vector;
    end record;
 
+   function Rows (Table : in Hash_Table) return Positive
+   is (if Table.Table.Last_Index = Hash_Arrays.No_Index then Default_Init_Rows else Table.Table.Last_Index);
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
