@@ -323,10 +323,16 @@ package body WisiToken.Syntax_Trees is
    procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
       Tree.Nodes.Clear;
+      Tree.Augmented_Present := False;
+      Tree.Traversing        := False;
+      Tree.Parents_Set       := False;
    end Clear;
 
    procedure Clear (Tree : in out Syntax_Trees.Tree)
    is begin
+      if Tree.Shared_Tree = null then
+         return;
+      end if;
       if Tree.Shared_Tree.Augmented_Present then
          for Node of Tree.Branched_Nodes loop
             if Node.Label = Nonterm then
@@ -337,6 +343,8 @@ package body WisiToken.Syntax_Trees is
       Tree.Shared_Tree.Clear;
       Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
+      Tree.Flush            := False;
+      Tree.Root             := Invalid_Node_Index;
    end Clear;
 
    function Copy_Subtree

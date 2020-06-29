@@ -74,7 +74,7 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Expected         : in Item_Set;
       Match_Lookaheads : in Boolean := True)
    is begin
-      Check (Label & ".State", Computed.State, Expected.State);
+      Check (Label & ".State", Computed.Tree_Node.State, Expected.Tree_Node.State);
       Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
       --  ignoring Goto_List, Dot_IDs
    end Check;
@@ -146,10 +146,8 @@ package body WisiToken.Generate.LR1_Items.AUnit is
    function "+" (Item : in LR1_Items.Item) return Item_Set
    is begin
       return Item_Set'
-        (Set       => Item_Lists.To_List (Item),
-         Goto_List => <>,
-         Dot_IDs   => <>,
-         State     => <>);
+        (Set    => Item_Lists.To_List (Item),
+         others => <>);
    end "+";
 
    function "&"
@@ -179,7 +177,12 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Item  : in LR1_Items.Item)
      return Item_Set
    is begin
-      return (Set => Item_Lists.To_List (Item), Goto_List => <>, Dot_IDs => <>, State => State);
+      return
+        (Set       => Item_Lists.To_List (Item),
+         Tree_Node =>
+           (State  => State,
+            others => <>),
+         others    => <>);
    end "+";
 
    function "+"
@@ -187,7 +190,12 @@ package body WisiToken.Generate.LR1_Items.AUnit is
       Item  : in Item_Lists.List)
      return Item_Set
    is begin
-      return (Set => Item, Goto_List => <>, Dot_IDs => <>, State => State);
+      return
+        (Set => Item,
+         Tree_Node =>
+           (State  => State,
+            others => <>),
+         others    => <>);
    end "+";
 
    function "&"
@@ -251,9 +259,10 @@ package body WisiToken.Generate.LR1_Items.AUnit is
             Prod       => Prod,
             Dot        => Dot,
             Lookaheads => Lookahead),
-         Goto_List     => <>,
-         Dot_IDs       => <>,
-         State         => WisiToken.Unknown_State);
+         Tree_Node     =>
+           (State      => WisiToken.Unknown_State,
+            others     => <>),
+         others        => <>);
    end Get_Item_Set;
 
 end WisiToken.Generate.LR1_Items.AUnit;

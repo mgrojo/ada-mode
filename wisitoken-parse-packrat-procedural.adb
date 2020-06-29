@@ -226,11 +226,12 @@ package body WisiToken.Parse.Packrat.Procedural is
       Result : Memo_Entry;
    begin
       Parser.Base_Tree.Clear;
+      Parser.Tree.Clear;
       Parser.Tree.Initialize (Parser.Base_Tree'Unchecked_Access);
       Parser.Lex_All;
 
       for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear;
+         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last (Parser.Terminals.First_Index, Parser.Terminals.Last_Index + 1);
          --  There might be an empty nonterm after the last token
       end loop;
