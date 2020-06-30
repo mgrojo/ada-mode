@@ -23,7 +23,7 @@ with Ada.Containers;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
-with Ada_Lite_LR1_Main;
+with Ada_Lite_LR1_T1_Main;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
@@ -2331,7 +2331,7 @@ package body Test_McKenzie_Recover is
             User_Data                      => User_Data'Access);
 
       when WisiToken.BNF.LR1               =>
-         Ada_Lite_LR1_Main.Create_Parser
+         Ada_Lite_LR1_T1_Main.Create_Parser
            (Parser,
             Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             Language_Matching_Begin_Tokens =>

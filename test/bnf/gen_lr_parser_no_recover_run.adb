@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2019 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -43,6 +43,7 @@ is
       Put_Line (Ada.Command_Line.Command_Name & " usage: [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
+      Put_Line ("  -no-state-numbers : no state numbers in parse trace; for test_lr1_parallel");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -84,28 +85,30 @@ is
 begin
    declare
       use Ada.Command_Line;
+      Arg_Next : Integer := 1;
    begin
-      case Argument_Count is
-      when 1 =>
-         File_Name := +Argument (1);
+      loop
+         exit when Argument (Arg_Next)(1) /= '-';
 
-      when 3 =>
-         if Argument (1) = "-v" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (2));
+         if Argument (Arg_Next) = "-v" then
+            Arg_Next  := Arg_Next + 1;
+            WisiToken.Trace_Parse := Integer'Value (Argument (Arg_Next));
+            Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-no-state-numbers" then
+            Arg_Next := Arg_Next + 1;
+
+            WisiToken.Trace_Parse_No_State_Numbers := True;
 
          else
             Set_Exit_Status (Failure);
             Put_Usage;
             return;
          end if;
+      end loop;
 
-         File_Name := +Argument (3);
+      File_Name := +Argument (Arg_Next);
 
-      when others =>
-         Set_Exit_Status (Failure);
-         Put_Usage;
-         return;
-      end case;
    exception
    when others =>
       Set_Exit_Status (Failure);

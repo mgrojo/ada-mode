@@ -255,6 +255,8 @@ package body WisiToken.Generate.LR1_Items is
    procedure Compute_Key_Hash
      (Item_Set           : in out LR1_Items.Item_Set;
       Rows               : in     Positive;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean)
    is
       use Interfaces;
@@ -272,18 +274,13 @@ package body WisiToken.Generate.LR1_Items is
       for Lookahead_Int_16'Size use 128;
 
       function To_Int_16 is new Ada.Unchecked_Conversion (Source => Lookahead, Target => Lookahead_Int_16);
-
-      Result_Length : constant Integer :=
-        (1 + Integer (Item_Set.Set.Length) * (if Include_Lookaheads then 3 + 8 else 3));
    begin
+      Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item_Set.Set.Length));
+      --  Int_Arrays."<" compares length, but only after everything else; we
+      --  want it to compare first, since it is most likely to be different.
 
-         Item_Set.Tree_Node.Key.Set_Capacity (1, Result_Length);
-
-         Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item_Set.Set.Length));
-         --  Int_Arrays."<" compares length, but only after everything else; we
-         --  want it to compare first, since it is most likely to be different.
-
-         for Item of Item_Set.Set loop
+      for Item of Item_Set.Set loop
+         if In_Kernel (Grammar, Descriptor, Item) then
             Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Prod.LHS));
             Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Prod.RHS));
             Item_Set.Tree_Node.Key.Append (Unsigned_16 (Item.Dot));
@@ -303,9 +300,8 @@ package body WisiToken.Generate.LR1_Items is
                   Item_Set.Tree_Node.Key.Append (Temp.Word_7);
                end;
             end if;
-         end loop;
-
-      pragma Assert (Integer (Item_Set.Tree_Node.Key.Length) = Result_Length);
+         end if;
+      end loop;
 
       Item_Set.Tree_Node.Hash := Hash_Sum_32 (Item_Set.Tree_Node.Key, Rows);
    end Compute_Key_Hash;
@@ -341,9 +337,9 @@ package body WisiToken.Generate.LR1_Items is
    is
       use Item_Set_Trees;
    begin
+      Compute_Key_Hash (New_Item_Set, Hash_Table_Rows, Grammar, Descriptor, Include_Lookaheads);
       Item_Set_List.Append (New_Item_Set);
       Item_Set_List (Item_Set_List.Last_Index).Dot_IDs := Get_Dot_IDs (Grammar, New_Item_Set.Set, Descriptor);
-      Compute_Key_Hash (New_Item_Set, Hash_Table_Rows, Include_Lookaheads);
       Item_Set_Tree.Insert (New_Item_Set.Tree_Node, Duplicate => SAL.Error);
    end Add;
 
@@ -473,11 +469,6 @@ package body WisiToken.Generate.LR1_Items is
 
             Item_I := I.Set.First;
             Added_Item := False;
-
-            if Trace_Generate_Table > Extra then
-               Ada.Text_IO.Put_Line ("  closure:");
-               Put (Grammar, Descriptor, I);
-            end if;
          else
             Item_Lists.Next (Item_I);
          end if;

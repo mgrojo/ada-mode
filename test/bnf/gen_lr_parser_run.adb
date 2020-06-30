@@ -43,6 +43,7 @@ is
       Put_Line ("  -disable_fixes : disable language_fixes");
       Put_Line ("  -disable_match_begin : disable matching_begin");
       Put_Line ("  -debug : set Wisitoken.Debug_Mode");
+      Put_Line ("  -no-state-numbers : no state numbers in parse trace; for test_lr1_parallel");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -151,6 +152,11 @@ begin
          elsif Argument (Arg_Next) = "-debug" then
             Arg_Next             := Arg_Next + 1;
             WisiToken.Debug_Mode := True;
+
+         elsif Argument (Arg_Next) = "-no-state-numbers" then
+            Arg_Next := Arg_Next + 1;
+
+            WisiToken.Trace_Parse_No_State_Numbers := True;
 
          else
             Set_Exit_Status (Failure);

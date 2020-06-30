@@ -199,7 +199,7 @@ package body BNF_WY_Test is
    is
       use WisiToken.BNF;
 
-      Gen_Alg  : constant String := "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg));
+      Gen_Alg  : constant String := "_" & To_Lower (Tuple.Gen_Alg'Image);
       Int_Kind : constant String := "_" & To_Lower (Interface_Type'Image (Tuple.Interface_Kind));
 
    begin
@@ -207,6 +207,7 @@ package body BNF_WY_Test is
       when LR_Generate_Algorithm =>
          Diff_One
            (Root_Name & Gen_Alg &
+              (if Tuple.Gen_Alg = LR1 then "_t1" else "") &
               (if If_Lexer_Present
                then "_" & Lexer_Image (Tuple.Lexer).all
                else "") &
@@ -251,7 +252,9 @@ package body BNF_WY_Test is
 
       --  We know Output_Language is Ada
 
-      Exe : constant String := "./" & Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) & "_run.exe";
+      Exe : constant String := "./" & Root_Name & "_" & To_Lower (Generate_Alg'Image) &
+        (if Generate_Alg = LR1 then "_t1" else "") &
+        "_run.exe";
 
       Args : GNAT.OS_Lib.String_List (1 .. 9) :=
         (1      => new String'("-v"),

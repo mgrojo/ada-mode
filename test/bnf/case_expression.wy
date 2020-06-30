@@ -22,7 +22,6 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-;; Declare all variants tested by wisi_wy_test.adb
 %generate LALR Ada re2c
 %generate LR1 Ada re2c
 %generate Packrat_Gen Ada re2c

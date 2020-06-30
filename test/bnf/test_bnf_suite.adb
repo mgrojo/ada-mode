@@ -51,6 +51,7 @@ begin
 
    if not EBNF_Only then
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null, Limit_Gen_Alg)));
+      Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
       Add_Test
         (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null, Limit_Gen_Alg)));
       Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));

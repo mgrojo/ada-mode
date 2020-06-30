@@ -36,6 +36,7 @@ with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
@@ -122,17 +123,19 @@ is
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
       Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
       Put_Line (Standard_Error,
-                "  --task_count n; number of tasks used to compute LR1 items; 0 (the default) means CPU count");
+                "  --task_count n; number of tasks used to compute LR1 items; 0 means CPU count." &
+                  " Default 1 unless %lr1_hash_table_size specified; then 0.");
       Put_Line (Standard_Error, "  --lr1_hash_table_size n; default 113; bigger should be faster");
    end Put_Usage;
 
-   Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
-   Output_File_Name_Root : Ada.Strings.Unbounded.Unbounded_String;
-   Suffix                : Ada.Strings.Unbounded.Unbounded_String;
-   Output_BNF            : Boolean                          := False;
-   Ignore_Conflicts      : Boolean                          := False;
-   Test_Main             : Boolean                          := False;
-   Task_Count            : System.Multiprocessors.CPU_Range := System.Multiprocessors.Number_Of_CPUs;
+   Language_Name           : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
+   Output_File_Name_Root   : Ada.Strings.Unbounded.Unbounded_String;
+   Suffix                  : Ada.Strings.Unbounded.Unbounded_String;
+   Output_BNF              : Boolean                          := False;
+   Ignore_Conflicts        : Boolean                          := False;
+   Test_Main               : Boolean                          := False;
+   Generate_Task_Count     : System.Multiprocessors.CPU_Range := 1;
+   Generate_Task_Count_Set : Boolean                          := False;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
@@ -253,6 +256,9 @@ begin
             Arg_Next := Arg_Next + 1;
 
             Input_Data.Language_Params.LR1_Hash_Table_Size := Positive'Value (Argument (Arg_Next));
+            if not Generate_Task_Count_Set then
+               Generate_Task_Count := 0;
+            end if;
 
             Arg_Next := Arg_Next + 1;
 
@@ -267,12 +273,13 @@ begin
 
          elsif Argument (Arg_Next) = "--task_count" then
             Arg_Next   := @ + 1;
+            Generate_Task_Count_Set := True;
             declare
                use System.Multiprocessors;
             begin
-               Task_Count := CPU_Range'Value (Argument (Arg_Next));
-               if Task_Count = 0 then
-                  Task_Count := Number_Of_CPUs;
+               Generate_Task_Count := CPU_Range'Value (Argument (Arg_Next));
+               if Generate_Task_Count = 0 then
+                  Generate_Task_Count := Number_Of_CPUs;
                end if;
             end;
             Arg_Next   := @ + 1;
@@ -481,6 +488,13 @@ begin
 
          when LR_Packrat_Generate_Algorithm =>
 
+            if Input_Data.Language_Params.LR1_Hash_Table_Size /=
+              WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows and
+              not Generate_Task_Count_Set
+            then
+               Generate_Task_Count := System.Multiprocessors.Number_Of_CPUs;
+            end if;
+
             declare
                use Ada.Real_Time;
 
@@ -496,7 +510,10 @@ begin
 
                Parse_Table_File_Name : constant String :=
                  (if WisiToken.Trace_Generate_Table = 0 and Tuple.Gen_Alg in LALR .. Packrat_Proc
-                  then -Output_File_Name_Root & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) &
+                  then -Output_File_Name_Root & "_" & To_Lower (Tuple.Gen_Alg'Image) &
+                    (if Tuple.Gen_Alg = LR1
+                     then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
+                     else "") &
                     (if Input_Data.If_Lexer_Present
                      then "_" & Lexer_Image (Input_Data.User_Lexer).all
                      else "") &
@@ -585,7 +602,7 @@ begin
                         Include_Extra     => Test_Main,
                         Ignore_Conflicts  => Ignore_Conflicts,
                         Partial_Recursion => Input_Data.Language_Params.Partial_Recursion,
-                        Task_Count        => Task_Count,
+                        Task_Count        => Generate_Task_Count,
                         Hash_Table_Size   => Input_Data.Language_Params.LR1_Hash_Table_Size);
 
                      if Trace_Time then
@@ -653,7 +670,7 @@ begin
                when Ada_Lang =>
                   WisiToken.BNF.Output_Ada
                     (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple, Test_Main,
-                     Multiple_Tuples);
+                     Multiple_Tuples, Generate_Task_Count);
 
                when Ada_Emacs_Lang =>
                   WisiToken.BNF.Output_Ada_Emacs

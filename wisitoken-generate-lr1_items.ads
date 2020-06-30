@@ -264,6 +264,8 @@ package WisiToken.Generate.LR1_Items is
    procedure Compute_Key_Hash
      (Item_Set           : in out LR1_Items.Item_Set;
       Rows               : in     Positive;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean);
 
    function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key

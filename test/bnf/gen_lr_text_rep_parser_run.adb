@@ -39,6 +39,7 @@ is
       Put_Line ("  -m <integer> : trace_mckenzie");
       Put_Line ("  -t <integer> : mckenzie task count");
       Put_Line ("  -debug : set Wisitoken.Debug_Mode");
+      Put_Line ("  -no-state-numbers : no state numbers in parse trace; for test_lr1_parallel");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -117,6 +118,11 @@ begin
          elsif Argument (Arg_Next) = "-debug" then
             Arg_Next             := Arg_Next + 1;
             WisiToken.Debug_Mode := True;
+
+         elsif Argument (Arg_Next) = "-no-state-numbers" then
+            Arg_Next := Arg_Next + 1;
+
+            WisiToken.Trace_Parse_No_State_Numbers := True;
 
          else
             Set_Exit_Status (Failure);

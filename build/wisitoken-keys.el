@@ -59,9 +59,9 @@
 	 (filename-good (concat filename "_good"))
 	 (loc-filename (locate-file filename compilation-search-path))
 	 (loc-filename-good (locate-file filename-good compilation-search-path)))
-    (unless filename
+    (unless loc-filename
       (user-error "'%s' not found; wrong project?" filename))
-    (unless filename-good
+    (unless loc-filename-good
       (user-error "'%s' not found; wrong project?" filename-good))
     (ediff loc-filename-good loc-filename)))
 

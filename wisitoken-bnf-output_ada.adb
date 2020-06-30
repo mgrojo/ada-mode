@@ -23,6 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regexp;
+with System.Multiprocessors;
 with WisiToken.BNF.Generate_Packrat;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.BNF.Output_Ada_Common; use WisiToken.BNF.Output_Ada_Common;
@@ -35,14 +36,18 @@ procedure WisiToken.BNF.Output_Ada
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
    Tuple                 :         in Generate_Tuple;
    Test_Main             :         in Boolean;
-   Multiple_Tuples       :         in Boolean)
+   Multiple_Tuples       :         in Boolean;
+   Generate_Task_Count   :         in System.Multiprocessors.CPU_Range)
 is
    Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
      (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
-      then "_" & Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all
+      then "_" & Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all &
+         (if Common_Data.Generate_Algorithm = LR1
+         then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
+         else "")
       else "");
 
    function Symbol_Regexp (Item : in String) return String
@@ -407,8 +412,7 @@ is
          when External => raise SAL.Programmer_Error,
          when Tree_Sitter => "Gen_Tree_Sitter_Parser_Run");
 
-      Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
-        "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
+      Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) & Gen_Alg_Name & "_Run";
 
       Default_Language_Runtime_Package : constant String := "WisiToken.Parse.LR.McKenzie_Recover." & File_Name_To_Ada
         (Output_File_Name_Root);

@@ -460,6 +460,9 @@ package WisiToken is
    Trace_Time : Boolean := False;
    --  Output execution time for various things.
 
+   Trace_Parse_No_State_Numbers : Boolean := False;
+   --  For test_lr1_parallel.adb
+
    Debug_Mode : Boolean := False;
    --  If True, Output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.

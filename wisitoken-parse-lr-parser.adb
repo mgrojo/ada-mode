@@ -126,7 +126,9 @@ package body WisiToken.Parse.LR.Parser is
       if Trace_Parse > Detail then
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
-              Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
+              (if Trace_Parse_No_State_Numbers
+               then "-- : "
+               else Trimmed_Image (Parser_State.Stack.Peek.State) & ": ") &
               Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
          Trace.New_Line;

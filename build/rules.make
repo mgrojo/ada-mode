@@ -36,8 +36,10 @@ tests :: test_all_harness.diff
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 gen_BNF :: ada_lite_re2c.c
+gen_BNF :: ada_lite_lr1_t8_run.ads
 # gen_BNF :: ada_lite_tree_sitter.c broken
 gen_BNF :: body_instantiation_conflict_re2c.c
+gen_BNF :: body_instantiation_conflict_lr1_t8_run.ads
 gen_BNF :: case_expression_re2c.c
 gen_BNF :: character_literal_re2c.c
 gen_BNF :: conflict_name_re2c.c
@@ -64,6 +66,7 @@ gen_EBNF :: java_enum_ch19_re2c.c
 gen_EBNF :: java_expressions_antlr_re2c.c
 gen_EBNF :: java_expressions_ch19_re2c.c
 gen_EBNF :: java_types_ch19_re2c.c
+gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
 gen_EBNF :: python_ebnf_bnf.wy # not a valid grammar
@@ -159,6 +162,15 @@ DIFF_OPT := -u -w
 %.re2c : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
 	dos2unix -q $**
+
+%_lr1_t8_run.ads : %.wy wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c --test_main $(GENERATE_ARGS) $<
+	dos2unix -q $**
+
+# override ada_lite for text_rep
+ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c text_rep --test_main $(GENERATE_ARGS) $<
+	dos2unix -q ada_lite_lr1_t8_run.ads
 
 %.exe : force; gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 

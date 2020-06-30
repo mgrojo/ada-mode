@@ -27,6 +27,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+key only needs to contain kernel
+    ada_lite t1 parse table ok
+    time ada.wy
+
 algorithm.tex:
     super needs C_Tree to compute unique state numbers.
     w workers
