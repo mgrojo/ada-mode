@@ -421,6 +421,8 @@ Truncate any region that overlaps POS."
 (defun wisi-reset-parser ()
   "Force a parse."
   (interactive)
+  (when wisi--parser
+    (wisi-parse-reset wisi--parser))
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
 
   (setq wisi--change-beg most-positive-fixnum)

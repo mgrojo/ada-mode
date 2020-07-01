@@ -1,4 +1,4 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS gpr.wy
 --
 
@@ -449,6 +449,9 @@ package body Gpr_Process_Main is
             Add_Goto (Table.States (49), 71, 69);
             Table.States (49).Kernel := To_Vector ((0 => ((56, 1),  27,  0, (71, 0),  1)));
             Table.States (49).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (71, 0),  1)));
+         end Subr_1;
+         procedure Subr_2
+         is begin
             Table.States (50).Action_List.Set_Capacity (1);
             Add_Action (Table.States (50), 37, (59, 1), 70);
             Table.States (50).Kernel := To_Vector ((0 => ((59, 1),  31,  1, (2147483647, 0),  0)));
@@ -813,9 +816,6 @@ package body Gpr_Process_Main is
             Add_Action (Table.States (101), (6, 8, 12, 16, 18, 23, 37), (51, 1),  1, null, null);
             Table.States (101).Kernel := To_Vector ((0 => ((51, 1),  72,  0, (51, 1),  1)));
             Table.States (101).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (51, 1),  1)));
-         end Subr_1;
-         procedure Subr_2
-         is begin
             Table.States (102).Action_List.Set_Capacity (1);
             Add_Action (Table.States (102), 21, (44, 1), 118);
             Table.States (102).Kernel := To_Vector ((0 => ((44, 1),  38,  1, (2147483647, 0),  0)));
@@ -824,6 +824,9 @@ package body Gpr_Process_Main is
             Add_Action (Table.States (103), (27, 30, 34), (44, 1),  6, null, null);
             Table.States (103).Kernel := To_Vector ((0 => ((44, 1),  21,  0, (44, 1),  6)));
             Table.States (103).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (44, 1),  6)));
+         end Subr_2;
+         procedure Subr_3
+         is begin
             Table.States (104).Action_List.Set_Capacity (7);
             Add_Action (Table.States (104), 6, (45, 0), 85);
             Add_Action (Table.States (104), 8, Reduce, (53, 0),  0, null, null);
@@ -1204,6 +1207,9 @@ package body Gpr_Process_Main is
             Add_Action (Table.States (158), (31, 34), (58, 1),  1, null, identifier_opt_1_check'Access);
             Table.States (158).Kernel := To_Vector ((0 => ((58, 1),  37,  0, (58, 1),  1)));
             Table.States (158).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (58, 1),  1)));
+         end Subr_3;
+         procedure Subr_4
+         is begin
             Table.States (159).Action_List.Set_Capacity (2);
             Add_Action (Table.States (159), (31, 34), (59, 0),  1, null, null);
             Table.States (159).Kernel := To_Vector ((0 => ((59, 0),  58,  0, (59, 0),  1)));
@@ -1569,9 +1575,6 @@ package body Gpr_Process_Main is
             Add_Action (Table.States (203), (31, 34), (59, 1),  3, null, null);
             Table.States (203).Kernel := To_Vector ((0 => ((59, 1),  37,  0, (59, 1),  3)));
             Table.States (203).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (59, 1),  3)));
-         end Subr_2;
-         procedure Subr_3
-         is begin
             Table.States (204).Action_List.Set_Capacity (1);
             Add_Action (Table.States (204), (1 =>  34), (41, 0),  3, aggregate_g_0'Access, null);
             Table.States (204).Kernel := To_Vector ((0 => ((41, 0),  21,  0, (41, 0),  3)));
@@ -1581,6 +1584,9 @@ package body Gpr_Process_Main is
             null);
             Table.States (205).Kernel := To_Vector ((0 => ((67, 1),  34,  0, (67, 1),  6)));
             Table.States (205).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (67, 1),  6)));
+         end Subr_4;
+         procedure Subr_5
+         is begin
             Table.States (206).Action_List.Set_Capacity (1);
             Add_Action (Table.States (206), 38, (44, 1), 243);
             Table.States (206).Kernel := To_Vector ((0 => ((44, 1),  14,  2, (2147483647, 0),  0)));
@@ -1957,6 +1963,9 @@ package body Gpr_Process_Main is
             null);
             Table.States (262).Kernel := To_Vector ((0 => ((42, 1),  34,  0, (42, 1),  8)));
             Table.States (262).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (42, 1),  8)));
+         end Subr_5;
+         procedure Subr_6
+         is begin
             Table.States (263).Action_List.Set_Capacity (1);
             Add_Action (Table.States (263), 37, (59, 1), 280);
             Table.States (263).Kernel := To_Vector ((0 => ((59, 1),  31,  1, (2147483647, 0),  0)));
@@ -2327,9 +2336,6 @@ package body Gpr_Process_Main is
             Table.States (312).Kernel := To_Vector ((((42, 3),  56,  1, (2147483647, 0),  0), ((56, 1),  56,  1,
             (2147483647, 0),  0)));
             Table.States (312).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (42, 3),  34, 316)));
-         end Subr_3;
-         procedure Subr_4
-         is begin
             Table.States (313).Action_List.Set_Capacity (3);
             Add_Action (Table.States (313), 4, (42, 2), 317);
             Add_Action (Table.States (313), 27, (56, 1), 261);
@@ -2337,6 +2343,9 @@ package body Gpr_Process_Main is
             Table.States (313).Kernel := To_Vector ((((42, 1),  56,  1, (2147483647, 0),  0), ((42, 2),  56,  3,
             (2147483647, 0),  0), ((56, 1),  56,  1, (2147483647, 0),  0)));
             Table.States (313).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (42, 1),  34, 318)));
+         end Subr_6;
+         procedure Subr_7
+         is begin
             Table.States (314).Action_List.Set_Capacity (2);
             Add_Action (Table.States (314), 34, Reduce, (58, 0),  0, null, null);
             Add_Action (Table.States (314), 37, (58, 1), 144);
@@ -2381,12 +2390,15 @@ package body Gpr_Process_Main is
             attribute_declaration_2'Access, null);
             Table.States (322).Kernel := To_Vector ((0 => ((42, 2),  34,  0, (42, 2),  10)));
             Table.States (322).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (42, 2),  10)));
-         end Subr_4;
+         end Subr_7;
       begin
          Subr_1;
          Subr_2;
          Subr_3;
          Subr_4;
+         Subr_5;
+         Subr_6;
+         Subr_7;
          Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
       end;
 

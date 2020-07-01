@@ -506,6 +506,9 @@ complete."
 
 ;;;;; main
 
+(cl-defgeneric wisi-parse-reset ((parser wisi-process--parser))
+  (setf (wisi-process--parser-busy parser) nil))
+
 (cl-defmethod wisi-parse-kill ((parser wisi-process--parser))
   (when (process-live-p (wisi-process--parser-process parser))
     ;; We used to send a quit command first, to be nice. But there's

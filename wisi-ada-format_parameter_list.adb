@@ -86,14 +86,14 @@ begin
       Params           : array (1 .. Param_Count) of Parameter;
       Param_Cur        : Cursor                     := Param_List.First;
       Param_Iter       : constant Constant_Iterator := Param_List.Iterate_Constant;
-      First_Param_Node : constant Node_Index        := Node (Param_Cur);
+      First_Param_Node : constant Node_Index        := Element (Param_Cur);
       Last_Param_Node  : Node_Index;
    begin
       for Param of Params loop
-         Last_Param_Node := Node (Param_Cur);
+         Last_Param_Node := Element (Param_Cur);
 
          declare
-            Children : constant Valid_Node_Index_Array := Tree.Children (Node (Param_Cur));
+            Children : constant Valid_Node_Index_Array := Tree.Children (Element (Param_Cur));
          begin
             for Ident of Creators.Create_List (Tree, Children (1), +identifier_list_ID, +IDENTIFIER_ID) loop
                Param.Identifiers.Append (Tree.Byte_Region (Ident));
