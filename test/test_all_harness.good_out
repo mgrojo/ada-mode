@@ -1,6 +1,11 @@
 
 OK test_generate_errors.adb ../test/bnf/unused_tokens : Run_Test
+OK bnf_wy_test.adb ada_lite : Run_Test
+OK test_lr1_parallel.adb ada_lite : Compare_LR1_Sets
+OK test_lr1_parallel.adb ada_lite : Compare_Parse
 OK bnf_wy_test.adb body_instantiation_conflict : Run_Test
+OK test_lr1_parallel.adb body_instantiation_conflict : Compare_LR1_Sets
+OK test_lr1_parallel.adb body_instantiation_conflict : Compare_Parse
 OK bnf_wy_test.adb case_expression : Run_Test
 OK bnf_wy_test.adb character_literal : Run_Test
 OK bnf_wy_test.adb conflict_name : Run_Test
@@ -24,6 +29,8 @@ OK bnf_wy_test.adb java_enum_ch19 : Run_Test
 OK bnf_wy_test.adb java_expressions_antlr : Run_Test
 OK bnf_wy_test.adb java_expressions_ch19 : Run_Test
 OK bnf_wy_test.adb java_types_ch19 : Run_Test
+OK test_lr1_parallel.adb java_types_ch19 : Compare_LR1_Sets
+OK test_lr1_parallel.adb java_types_ch19 : Compare_Parse
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb python_ebnf : Run_Test
@@ -170,9 +177,8 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_1
 OK wisitoken-syntax_trees-test.adb : Test_Prev_Next_Terminal_2
-OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   172
-Successful Tests:  172
+Total Tests Run:   178
+Successful Tests:  178
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -179,15 +179,16 @@ package body WisiToken.Generate.LR.LR1_Generate is
       if Trace_Time then
          declare
             Elements, Max_Row_Depth, Average_Row_Depth : Ada.Containers.Count_Type;
-            Rows : Integer;
+            Rows, Empty_Rows : Integer;
          begin
-            C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth);
+            C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth, Empty_Rows);
 
             Ada.Text_IO.Put_Line
               ("LR1 hash table states:" & Elements'Image &
                  " rows:" & Rows'Image &
                  " max_row_depth:" & Max_Row_Depth'Image &
                  " average_row_depth:" & Average_Row_Depth'Image &
+                 " empty_rows:" & Empty_Rows'Image &
                  " states_found:" & States_Found'Image);
          end;
       end if;
@@ -734,9 +735,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
          if Trace_Time then
             declare
                Elements, Max_Row_Depth, Average_Row_Depth : Ada.Containers.Count_Type;
-               Rows : Integer;
+               Rows, Empty_Rows : Integer;
             begin
-               C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth);
+               C_Tree.Sizes (Elements, Rows, Max_Row_Depth, Average_Row_Depth, Empty_Rows);
 
                Ada.Text_IO.Put_Line
                  ("(worker" & ID'Image & ") net time" & Net_Time'Image &
@@ -744,7 +745,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
                     " hash table states:" & Elements'Image &
                     " rows:" & Rows'Image &
                     " max_row_depth:" & Max_Row_Depth'Image &
-                    " average_row_depth:" & Average_Row_Depth'Image);
+                    " average_row_depth:" & Average_Row_Depth'Image &
+                    " empty_rows:" & Empty_Rows'Image);
             end;
          end if;
 

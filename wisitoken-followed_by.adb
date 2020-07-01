@@ -16,17 +16,9 @@ pragma License (GPL);
 with Ada.Command_Line;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Generate;
-with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Productions;
-with WisiToken.Text_IO_Trace;
-with WisiToken_Grammar_Editing;
-with WisiToken_Grammar_Runtime;
-with Wisitoken_Grammar_Actions;
-with Wisitoken_Grammar_Main;
 procedure WisiToken.Followed_By
 is
-   use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-
    procedure Put_Usage
    is
       use Ada.Text_IO;
@@ -173,11 +165,6 @@ is
    Token_A_Name      : Ada.Strings.Unbounded.Unbounded_String;
    Token_B_Name      : Ada.Strings.Unbounded.Unbounded_String;
 begin
-   Wisitoken_Grammar_Main.Create_Parser
-     (Parser    => Grammar_Parser,
-      Trace     => Trace'Unchecked_Access,
-      User_Data => Input_Data'Unchecked_Access);
-
    declare
       use Ada.Command_Line;
    begin
@@ -194,7 +181,8 @@ begin
       use Ada.Text_IO;
 
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-        WisiToken.BNF.Generate_Utils.Parse_Grammar_File (-Grammar_File_Name, Ignore_Conflicts => True);
+        WisiToken.BNF.Generate_Utils.Parse_Grammar_File
+          (-Grammar_File_Name, BNF.LALR, BNF.re2c_Lexer, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Token_A : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);
