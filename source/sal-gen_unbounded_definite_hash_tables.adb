@@ -230,14 +230,16 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
       Elements          :    out Ada.Containers.Count_Type;
       Rows              :    out Integer;
       Max_Row_Depth     :    out Ada.Containers.Count_Type;
-      Average_Row_Depth :    out Ada.Containers.Count_Type)
+      Average_Row_Depth :    out Ada.Containers.Count_Type;
+      Empty_Rows        :    out Integer)
    is
       use Ada.Containers;
    begin
-      Elements           := 0;
-      Rows               := Table.Table.Last_Index;
+      Elements          := 0;
+      Rows              := Table.Table.Last_Index;
       Max_Row_Depth     := 0;
       Average_Row_Depth := 0;
+      Empty_Rows        := 0;
 
       for Row of Table.Table loop
          declare
@@ -246,15 +248,20 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
          begin
             Row.Count_Depth (Count, Depth);
             Elements := @ + Count;
-            if Max_Row_Depth < Depth then
-               Max_Row_Depth := Depth;
+            if Count = 0 then
+               Empty_Rows := @ + 1;
+            else
+               if Max_Row_Depth < Depth then
+                  Max_Row_Depth := Depth;
+               end if;
+               Average_Row_Depth := @ + Depth;
             end if;
-            Average_Row_Depth := @ + Depth;
          end;
       end loop;
 
-      --  WORKAROUND: GNAT Community 2019 can't handle '@' here
-      Average_Row_Depth := @ / Count_Type (Rows);
+      if Rows > 0 and Rows > Empty_Rows then
+         Average_Row_Depth := @ / Count_Type (Rows - Empty_Rows);
+      end if;
    end Sizes;
 
 end SAL.Gen_Unbounded_Definite_Hash_Tables;

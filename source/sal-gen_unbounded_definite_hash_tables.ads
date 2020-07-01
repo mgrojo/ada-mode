@@ -138,7 +138,8 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
       Elements          :    out Ada.Containers.Count_Type;
       Rows              :    out Integer;
       Max_Row_Depth     :    out Ada.Containers.Count_Type;
-      Average_Row_Depth :    out Ada.Containers.Count_Type);
+      Average_Row_Depth :    out Ada.Containers.Count_Type;
+      Empty_Rows        :    out Integer);
 
 private
 
