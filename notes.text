@@ -43,12 +43,10 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-c:/Projects/org.adaic.arm_form/build/aarm2020.txt/aa-P.TXT
-    compare to ada_annex_p.wy
+compare_annex_p
+    no errors reported; bogus
+        need verbosity
 
-    make compare_annex_p
-
-    need regpat for keywords : if_expression
 
 speed up lr1 generate
     share single c_tree; avoid updating 8 copies

@@ -19,12 +19,17 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regpat;
+with WisiToken.BNF.Generate_Utils;
+with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Syntax_Trees.LR_Utils;
+with Wisitoken_Grammar_Actions;
 procedure Compare_Annex_P
 is
-   --  compare_annex_p <input.txt> <raw.wy>
+   --  compare_annex_p <input.txt> <raw.wy> <input.wy>
 
-   Arm_Source : constant String := Ada.Command_Line.Argument (1);
-   --  WY_Source : constant String := "ada_annex_p.wy";
+   Upstream_Txt_Source  : constant String := Ada.Command_Line.Argument (1);
+   Upstream_WY_Source   : constant String := Ada.Command_Line.Argument (2);
+   Downstream_WY_Source : constant String := Ada.Command_Line.Argument (3);
 
    type String_Array is array (Positive range <>) of Ada.Strings.Unbounded.String_Access;
    type Boolean_Array is array (Positive range <>) of Boolean;
@@ -143,7 +148,7 @@ is
    Special_Keyword_Regexp : constant String := Build_Special_Keyword_Regexp;
    Special_Keyword_Pattern : constant GNAT.Regpat.Pattern_Matcher := GNAT.Regpat.Compile (Special_Keyword_Regexp);
 
-   procedure Read_Arm (Arm_Source : in String; Arm_WY_Output : in String)
+   procedure Arm_Txt_To_Wy (Arm_Source : in String; Arm_WY_Output : in String)
    --  Read Arm_Source (a .TXT file from org.adaic.arm_form), output the
    --  equivalent WisiToken .wy file.
    is
@@ -365,15 +370,88 @@ is
       Put_Line (WY_File, ";; end of file");
       Close (Arm_File);
       Close (WY_File);
-   end Read_Arm;
+   end Arm_Txt_To_Wy;
 
+   Upstream_Parser   : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Downstream_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
-   --  Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-   --       WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-   --         (WY_Source, BNF.LALR, BNF.re2c_Lexer, Ignore_Conflicts => True);
-
-
-   --  WY_Grammar  : WisiToken.Productions.Production_Arrays.Vector renames Generate_Data.Grammar;
 begin
-   Read_Arm (Arm_Source, Ada.Command_Line.Argument (2));
+   Arm_Txt_To_Wy (Upstream_Txt_Source, Upstream_WY_Source);
+
+   WisiToken.BNF.Generate_Utils.Parse_Grammar_File (Upstream_Parser, Upstream_WY_Source);
+   WisiToken.BNF.Generate_Utils.Parse_Grammar_File (Downstream_Parser, Downstream_WY_Source);
+
+   declare
+      use WisiToken.Syntax_Trees.LR_Utils;
+      use Wisitoken_Grammar_Actions;
+
+      Upstream_Comp_Units : constant Constant_List     := Creators.Create_List
+        (Upstream_Parser.Tree_Var_Ref, Upstream_Parser.Tree.Child (Upstream_Parser.Tree.Root, 1),
+         +compilation_unit_list_ID, +compilation_unit_ID);
+      Upstream_Iter       : constant Constant_Iterator := Upstream_Comp_Units.Iterate_Constant;
+      Upstream_Cur        : Cursor                     := Upstream_Iter.First;
+
+      Downstream_Comp_Units : constant Constant_List     := Creators.Create_List
+        (Downstream_Parser.Tree_Var_Ref, Downstream_Parser.Tree.Child (Downstream_Parser.Tree.Root, 1),
+         +compilation_unit_list_ID, +compilation_unit_ID);
+      Downstream_Iter       : constant Constant_Iterator := Downstream_Comp_Units.Iterate_Constant;
+      Downstream_Cur        : Cursor                     := Downstream_Iter.First;
+
+      function Upstream_ID return Token_Enum_ID
+      is begin
+         return -Upstream_Parser.Tree.ID (Element (Upstream_Cur));
+      end Upstream_ID;
+
+      function Upstream_Text return String
+      is begin
+         return Upstream_Parser.Lexer.Buffer_Text (Upstream_Parser.Tree.Byte_Region (Element (Upstream_Cur)));
+      end Upstream_Text;
+
+      function Upstream_Error_Message (Msg : in String) return String
+      is (WisiToken.Syntax_Trees.Error_Message
+            (Upstream_Parser.Tree, Upstream_Parser.Terminals, Element (Upstream_Cur), Upstream_WY_Source, Msg));
+
+      function Downstream_ID return Token_Enum_ID
+      is begin
+         return -Downstream_Parser.Tree.ID (Element (Downstream_Cur));
+      end Downstream_ID;
+
+      function Downstream_Text return String
+      is begin
+         return Downstream_Parser.Lexer.Buffer_Text (Downstream_Parser.Tree.Byte_Region (Element (Downstream_Cur)));
+      end Downstream_Text;
+
+      function Downstream_Error_Message (Msg : in String) return String
+      is (WisiToken.Syntax_Trees.Error_Message
+            (Downstream_Parser.Tree, Downstream_Parser.Terminals, Element (Downstream_Cur),
+             Downstream_WY_Source, Msg));
+
+   begin
+      loop
+         exit when not Has_Element (Upstream_Cur) or not Has_Element (Downstream_Cur);
+         if Upstream_ID = nonterminal_ID then
+            if Downstream_ID = nonterminal_ID then
+               if Upstream_Text = Downstream_Text then
+                  Upstream_Cur   := Upstream_Iter.Next (Upstream_Cur);
+                  Downstream_Cur := Downstream_Iter.Next (Downstream_Cur);
+               else
+                  Put_Line (Standard_Error, Upstream_Error_Message ("not equal to"));
+                  Put_Line (Standard_Error, Downstream_Error_Message (""));
+                  raise WisiToken.User_Error;
+               end if;
+            else
+               Downstream_Cur := Downstream_Iter.Next (Downstream_Cur);
+            end if;
+         else
+            Upstream_Cur   := Upstream_Iter.Next (Upstream_Cur);
+         end if;
+      end loop;
+   end;
+exception
+when WisiToken.User_Error =>
+   declare
+      use Ada.Command_Line;
+   begin
+      Set_Exit_Status (Failure);
+   end;
 end Compare_Annex_P;
