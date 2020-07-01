@@ -50,6 +50,10 @@ c:/Projects/org.adaic.arm_form/build/aarm2020.txt/aa-P.TXT
 
     need regpat for keywords : if_expression
 
+speed up lr1 generate
+    share single c_tree; avoid updating 8 copies
+    supervisor gathers input from all workers, updates 1 copy, gives new states to all workers.
+    doesn't save time, just CPU use?
 
 indent bugs
     State.Kernel (I) :=

@@ -13,13 +13,17 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Command_Line;
 with Ada.Directories; use Ada.Directories;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
+with GNAT.Regpat;
 procedure Compare_Annex_P
 is
-   Arm_Source : constant String := "c:/Projects/org.adaic.arm_form/build/aarm2020.txt/aa-P.TXT";
+   --  compare_annex_p <input.txt> <raw.wy>
+
+   Arm_Source : constant String := Ada.Command_Line.Argument (1);
    --  WY_Source : constant String := "ada_annex_p.wy";
 
    type String_Array is array (Positive range <>) of Ada.Strings.Unbounded.String_Access;
@@ -99,9 +103,45 @@ is
       new String'("xor"));
 
    Special_Keywords : constant String_Array :=
-     (new String'("body"),
-      new String'("pragma"),
-      new String'("range"));
+     (1 => new String'("body"),
+      2 => new String'("pragma"),
+      3 => new String'("range"));
+
+   Keyword_Delimiters : constant String := "][ {}();"; -- _not_ '_'; ']' must be first
+
+   function Build_Keyword_Regexp return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("^[" & Keyword_Delimiters & "](");
+      First : Boolean := True;
+   begin
+      for Keyword of Keywords loop
+         Result := Result & (if First then ""else "|") & Keyword.all;
+         First := False;
+      end loop;
+      Result := Result & ")(?:[" & Keyword_Delimiters & "]|$)";
+      return To_String (Result);
+   end Build_Keyword_Regexp;
+
+   Keyword_Regexp : constant String := Build_Keyword_Regexp;
+   Keyword_Pattern : constant GNAT.Regpat.Pattern_Matcher := GNAT.Regpat.Compile (Keyword_Regexp);
+
+   function Build_Special_Keyword_Regexp return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("^[" & Keyword_Delimiters & "](?:(");
+      First : Boolean := True;
+   begin
+      for Keyword of Special_Keywords loop
+         Result := Result & (if First then "" else ")|(") & Keyword.all;
+         First := False;
+      end loop;
+      Result := Result & "))(?:[" & Keyword_Delimiters & "]|$)";
+      return To_String (Result);
+   end Build_Special_Keyword_Regexp;
+
+   Special_Keyword_Regexp : constant String := Build_Special_Keyword_Regexp;
+   Special_Keyword_Pattern : constant GNAT.Regpat.Pattern_Matcher := GNAT.Regpat.Compile (Special_Keyword_Regexp);
 
    procedure Read_Arm (Arm_Source : in String; Arm_WY_Output : in String)
    --  Read Arm_Source (a .TXT file from org.adaic.arm_form), output the
@@ -117,49 +157,59 @@ is
          Last   : Integer := Result'First - 1;
 
          function Handle_Keyword return Boolean
-         is begin
-            for Word of Keywords loop
-               if ((I - 1 > Line'First and I + Word'Length <= Line'Last) and then
-                     Line (I - 1 .. I + Word'Length) = " " & Word.all & " ") or
-                 ((I - 1 > Line'First and I + Word'Length - 1 = Line'Last) and then
-                    Line (I - 1 .. Line'Last) = " " & Word.all)
-               then
+         is
+            use GNAT.Regpat;
+            Matches : Match_Array (0 .. 1);
+         begin
+            Match (Keyword_Pattern, Line ((if I - 1 > Line'First then I - 1 else I) .. Line'Last), Matches);
+
+            if Matches (0) = No_Match then
+               return False;
+            else
+               declare
+                  Word : String renames Line (Matches (1).First .. Matches (1).Last);
+               begin
                   Last := Last + 1;
-                  Result (Last .. Last + Word'Length + 1) := "'" & Word.all & "'";
+                  Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
                   Last := Last + Word'Length + 1;
                   I := I + Word'Length;
+
                   return True;
-               end if;
-            end loop;
-            return False;
+               end;
+            end if;
          end Handle_Keyword;
 
          function Handle_Special_Keyword return Boolean
-         is begin
-            for J in Special_Keywords'Range loop
-               declare
-                  Word : String renames Special_Keywords (J).all;
-               begin
-                  if ((I - 1 > Line'First and I + Word'Length <= Line'Last) and then
-                        Line (I - 1 .. I + Word'Length) = " " & Word & " ") or
-                    ((I - 1 > Line'First and I + Word'Length - 1 = Line'Last) and then
-                       Line (I - 1 .. Line'Last) = " " & Word)
-                  then
-                     Last := Last + 1;
-                     if Special_Seen (J) then
-                        Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
-                        Last := Last + Word'Length + 1;
-                     else
-                        Special_Seen (J) := True;
-                        Result (Last .. Last + Word'Length + 1) := Word & "_g";
-                        Last := Last + Word'Length + 1;
-                     end if;
-                     I := I + Word'Length;
-                     return True;
+         is
+            use GNAT.Regpat;
+            Matches : Match_Array (0 .. Special_Keywords'Last);
+         begin
+            Match (Special_Keyword_Pattern, Line ((if I - 1 > Line'First then I - 1 else I) .. Line'Last), Matches);
+            if Matches (0) = No_Match then
+               return False;
+            else
+               for J in Special_Keywords'Range loop
+                  if Matches (J) /= No_Match then
+                     declare
+                        Word : String renames Line (Matches (J).First .. Matches (J).Last);
+                     begin
+                        Last := Last + 1;
+                        if Special_Seen (J) then
+                           Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
+                           Last := Last + Word'Length + 1;
+                        else
+                           Special_Seen (J) := True;
+                           Result (Last .. Last + Word'Length + 1) := Word & "_g";
+                           Last := Last + Word'Length + 1;
+                        end if;
+                        I := I + Word'Length;
+
+                        return True;
+                     end;
                   end if;
-               end;
-            end loop;
-            return False;
+               end loop;
+               return False; -- can't get here, but the compiler doesn't know that.
+            end if;
          end Handle_Special_Keyword;
 
       begin
@@ -192,11 +242,12 @@ is
                  Line (I .. I + 1) = "<<" or
                  Line (I .. I + 1) = "/=" or
                  Line (I .. I + 1) = "**" or
-                 Line (I .. I + 1) = "--")
+                 Line (I .. I + 1) = "--" or
+                 Line (I .. I + 1) = "..")
             then
                Last := Last + 1;
-               Result (Last .. Last + 3) := "'" & Line (I .. I + 1) & "'";
-               Last := Last + 3;
+               Result (Last .. Last + 5) := " '" & Line (I .. I + 1) & "' ";
+               Last := Last + 5;
                I := @ + 2;
 
             elsif Line (I) = ''' then
@@ -206,12 +257,12 @@ is
                I := @ + 1;
 
             elsif Line (I) in '.' | '+' | '*' | '-' | '/' | '#' | '&' | '(' | ')' | '@' |
-              '"' | ',' | ';' | '=' | '>' | '<' |
+              '"' | ',' | ';' | ':' | '=' | '>' | '<' |
               '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
             then
                Last := Last + 1;
-               Result (Last .. Last + 2) := "'" & Line (I) & "'";
-               Last := Last + 2;
+               Result (Last .. Last + 4) := " '" & Line (I) & "' ";
+               Last := Last + 4;
                I := @ + 1;
 
             else
@@ -242,7 +293,11 @@ is
       Put_Line (WY_File, "%start compilation");
       Put_Line (WY_File, "%token <left-paren>  LEFT_PAREN  ""(""");
       Put_Line (WY_File, "%token <right-paren> RIGHT_PAREN "")""");
+      Put_Line (WY_File, "%token <left-paren>  LEFT_SQUARE_BRACKET  ""[""");
+      Put_Line (WY_File, "%token <right-paren> RIGHT_SQUARE_BRACKET ""]""");
+      New_Line (WY_File);
       Put_Line (WY_File, "%token <punctuation> AMPERSAND ""&""");
+      Put_Line (WY_File, "%token <punctuation> AT '@'");
       Put_Line (WY_File, "%token <punctuation> BAR ""|""");
       Put_Line (WY_File, "%token <punctuation> BOX ""<>""");
       Put_Line (WY_File, "%token <punctuation> COLON "":""");
@@ -265,6 +320,11 @@ is
       Put_Line (WY_File, "%token <punctuation> SLASH_EQUAL ""/=""");
       Put_Line (WY_File, "%token <punctuation> STAR ""*""");
       Put_Line (WY_File, "%token <punctuation> STAR_STAR ""**""");
+
+      --  Not in ada.wy, but needed for raw annex_P
+      Put_Line (WY_File, "%token <punctuation> HASH ""#""");
+      Put_Line (WY_File, "%token <punctuation> DOUBLE_QUOTE '""'");
+      Put_Line (WY_File, "%token <punctuation> DASH_DASH '--'");
 
       loop
          declare
@@ -315,5 +375,5 @@ is
 
    --  WY_Grammar  : WisiToken.Productions.Production_Arrays.Vector renames Generate_Data.Grammar;
 begin
-   Read_Arm (Arm_Source, "../ada_annex_p_txt.wy");
+   Read_Arm (Arm_Source, Ada.Command_Line.Argument (2));
 end Compare_Annex_P;
