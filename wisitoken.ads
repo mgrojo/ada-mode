@@ -16,6 +16,8 @@
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book" due to the dragon
 --  on the cover).
 --
+--  [gnu_coding] https://www.gnu.org/prep/standards/standards.html#Errors
+--
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
@@ -504,7 +506,9 @@ package WisiToken is
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
-   --  Return Gnu-formatted error message.
+   --  Return Gnu-formatted error message. Column is origin 0 (WisiToken
+   --  and Emacs standard); in message it is origin 1 (Gnu coding
+   --  standards [gnu_coding])
 
    type Names_Array is array (Integer range <>) of String_Access_Constant;
    type Names_Array_Access is access Names_Array;

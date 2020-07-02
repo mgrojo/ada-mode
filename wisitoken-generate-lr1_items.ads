@@ -260,7 +260,7 @@ package WisiToken.Generate.LR1_Items is
      (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
 
    function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive
-   with Post => Hash_Sum_32'Result in 1 .. Rows;
+   with Post => Hash_Sum_32'Result <= Rows;
 
    procedure Compute_Key_Hash
      (Item_Set           : in out LR1_Items.Item_Set;

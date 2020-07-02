@@ -311,10 +311,12 @@ package body WisiToken is
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String
-   is begin
+   is
+      use all type Ada.Text_IO.Count;
+   begin
       return File_Name & ":" &
         Trimmed_Image (if Line = Invalid_Line_Number then Integer'(0) else Integer (Line)) & ":" &
-        Trimmed_Image (Integer (Column)) & ": " &
+        Trimmed_Image (Integer (Column + 1)) & ": " &
         Message;
    end Error_Message;
 
