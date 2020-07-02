@@ -44,8 +44,7 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 compare_annex_p
-    no errors reported; bogus
-        need verbosity
+
 
 
 speed up lr1 generate

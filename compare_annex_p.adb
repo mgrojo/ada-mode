@@ -19,17 +19,27 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regpat;
+with SAL;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees.LR_Utils;
+with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 procedure Compare_Annex_P
 is
    --  compare_annex_p <input.txt> <raw.wy> <input.wy>
 
    Upstream_Txt_Source  : constant String := Ada.Command_Line.Argument (1);
+   --  Should be manually copied from the Emacs presentation of the
+   --  *.info file, to include <> for italics.
+
    Upstream_WY_Source   : constant String := Ada.Command_Line.Argument (2);
    Downstream_WY_Source : constant String := Ada.Command_Line.Argument (3);
+
+   Verbosity : constant Integer :=
+     (if Ada.Command_Line.Argument_Count > 3
+      then Integer'Value (Ada.Command_Line.Argument (4))
+      else 0);
 
    type String_Array is array (Positive range <>) of Ada.Strings.Unbounded.String_Access;
    type Boolean_Array is array (Positive range <>) of Boolean;
@@ -110,7 +120,8 @@ is
    Special_Keywords : constant String_Array :=
      (1 => new String'("body"),
       2 => new String'("pragma"),
-      3 => new String'("range"));
+      3 => new String'("range"),
+      4 => new String'("identifier"));
 
    Keyword_Delimiters : constant String := "][ {}();"; -- _not_ '_'; ']' must be first
 
@@ -147,6 +158,9 @@ is
 
    Special_Keyword_Regexp : constant String := Build_Special_Keyword_Regexp;
    Special_Keyword_Pattern : constant GNAT.Regpat.Pattern_Matcher := GNAT.Regpat.Compile (Special_Keyword_Regexp);
+
+   Italics_Regexp : constant String := "<[_a-z]+>";
+   Italics_Pattern : constant GNAT.Regpat.Pattern_Matcher := GNAT.Regpat.Compile (Italics_Regexp);
 
    procedure Arm_Txt_To_Wy (Arm_Source : in String; Arm_WY_Output : in String)
    --  Read Arm_Source (a .TXT file from org.adaic.arm_form), output the
@@ -199,14 +213,21 @@ is
                         Word : String renames Line (Matches (J).First .. Matches (J).Last);
                      begin
                         Last := Last + 1;
-                        if Special_Seen (J) then
-                           Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
-                           Last := Last + Word'Length + 1;
+                        if J < 4 then
+                           if Special_Seen (J) then
+                              Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
+                              Last := Last + Word'Length + 1;
+                           else
+                              Special_Seen (J) := True;
+                              Result (Last .. Last + Word'Length + 1) := Word & "_g";
+                              Last := Last + Word'Length + 1;
+                           end if;
                         else
-                           Special_Seen (J) := True;
-                           Result (Last .. Last + Word'Length + 1) := Word & "_g";
-                           Last := Last + Word'Length + 1;
+                           --  upcase 'identifier'
+                           Result (Last .. Last + Word'Length - 1) := "IDENTIFIER";
+                           Last := Last + Word'Length - 1;
                         end if;
+
                         I := I + Word'Length;
 
                         return True;
@@ -280,6 +301,20 @@ is
          return Result (Result'First .. Last);
       end Quote_Tokens;
 
+      function Strip_Italics (Line : in String) return String
+      is
+         use GNAT.Regpat;
+         Matches : Match_Array (0 .. 0);
+         --  So far there is only one italics per line.
+      begin
+         Match (Italics_Pattern, Line, Matches);
+         if Matches (0) = No_Match then
+            return Line;
+         else
+            return Line (Line'First .. Matches (0).First - 1) & Line (Matches (0).Last + 1 .. Line'Last);
+         end if;
+      end Strip_Italics;
+
       Arm_File : Ada.Text_IO.File_Type;
       WY_File  : Ada.Text_IO.File_Type;
 
@@ -331,6 +366,11 @@ is
       Put_Line (WY_File, "%token <punctuation> DOUBLE_QUOTE '""'");
       Put_Line (WY_File, "%token <punctuation> DASH_DASH '--'");
 
+      --  Not in annex_p, but needed for ada.wy
+      Put_Line (WY_File, "%token <punctuation> TICK_1 ""'""");
+      Put_Line (WY_File, "%token <punctuation> TICK_2 %[ ""'"" / ""('""([\x20-\U0010FFFF]|GNAT_Char_Coding)""'"" ]%");
+      Put_Line (WY_File, "tick : TICK_1 | TICK_2 ;");
+
       loop
          declare
             Line       : constant String  := Get_Line (Arm_File);
@@ -338,22 +378,22 @@ is
          begin
             if In_Production then
                if Line'Length = 0 then
-                  Put_Line (WY_File, ";");
                   New_Line (WY_File);
 
                   In_Production := False;
+
                else
-                  Put_Line (WY_File, Quote_Tokens (Line));
+                  Put_Line (WY_File, Quote_Tokens (Strip_Italics (Line)));
                end if;
             else
                if Line'Length = 0 then
                   null;
 
-               elsif Line = "        range_constraint ::=  range range" then
+               elsif Line = "     range_constraint ::=  range range" then
                   Put_Line (WY_File, "        range_constraint ::=  'range' range_g ;");
                   New_Line (WY_File);
 
-               elsif Line = "        body ::= proper_body | body_stub" then
+               elsif Line = "     body ::= proper_body | body_stub" then
                   Put_Line (WY_File, "        body ::= proper_body | body_stub ;");
                   New_Line (WY_File);
 
@@ -362,7 +402,7 @@ is
 
                elsif Prod_Index /= 0 then
                   In_Production := True;
-                  Put_Line (WY_File, Quote_Tokens (Line));
+                  Put_Line (WY_File, Quote_Tokens (Strip_Italics (Line)));
                end if;
             end if;
          end;
@@ -375,6 +415,9 @@ is
    Upstream_Parser   : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    Downstream_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
+   Virtual_Identifiers : WisiToken.BNF.String_Arrays.Vector;
+   --  Empty because we are not translating to BNF; required by
+   --  wisitoken_grammar_runtime Get_Text.
 begin
    Arm_Txt_To_Wy (Upstream_Txt_Source, Upstream_WY_Source);
 
@@ -382,6 +425,7 @@ begin
    WisiToken.BNF.Generate_Utils.Parse_Grammar_File (Downstream_Parser, Downstream_WY_Source);
 
    declare
+      use WisiToken;
       use WisiToken.Syntax_Trees.LR_Utils;
       use Wisitoken_Grammar_Actions;
 
@@ -399,46 +443,291 @@ begin
 
       function Upstream_ID return Token_Enum_ID
       is begin
-         return -Upstream_Parser.Tree.ID (Element (Upstream_Cur));
+         return -Upstream_Parser.Tree.ID (Upstream_Parser.Tree.Child (Element (Upstream_Cur), 1));
       end Upstream_ID;
 
-      function Upstream_Text return String
-      is begin
-         return Upstream_Parser.Lexer.Buffer_Text (Upstream_Parser.Tree.Byte_Region (Element (Upstream_Cur)));
-      end Upstream_Text;
+      function Upstream_Nonterm return Valid_Node_Index
+      is (Upstream_Parser.Tree.Child (Element (Upstream_Cur), 1));
+
+      function Up_Text (Node : in Valid_Node_Index) return String
+      is (WisiToken_Grammar_Runtime.Get_Text
+            (Upstream_Parser.Terminals, Upstream_Parser.Lexer, Virtual_Identifiers, Upstream_Parser.Tree, Node));
 
       function Upstream_Error_Message (Msg : in String) return String
-      is (WisiToken.Syntax_Trees.Error_Message
-            (Upstream_Parser.Tree, Upstream_Parser.Terminals, Element (Upstream_Cur), Upstream_WY_Source, Msg));
+      is (Syntax_Trees.Error_Message
+            (Upstream_Parser.Tree, Upstream_Parser.Terminals, Element (Upstream_Cur),
+             Ada.Directories.Simple_Name (Upstream_WY_Source), Msg));
+
+      function Up_Child (Node : in Valid_Node_Index; Child : in Positive_Index_Type) return Valid_Node_Index
+      is (Upstream_Parser.Tree.Child (Node, Child));
 
       function Downstream_ID return Token_Enum_ID
       is begin
-         return -Downstream_Parser.Tree.ID (Element (Downstream_Cur));
+         return -Downstream_Parser.Tree.ID (Downstream_Parser.Tree.Child (Element (Downstream_Cur), 1));
       end Downstream_ID;
 
-      function Downstream_Text return String
-      is begin
-         return Downstream_Parser.Lexer.Buffer_Text (Downstream_Parser.Tree.Byte_Region (Element (Downstream_Cur)));
-      end Downstream_Text;
+      function Downstream_Nonterm return Valid_Node_Index
+      is (Downstream_Parser.Tree.Child (Element (Downstream_Cur), 1));
+
+      function Down_Text (Node : in Valid_Node_Index) return String
+      is (WisiToken_Grammar_Runtime.Get_Text
+            (Downstream_Parser.Terminals, Downstream_Parser.Lexer, Virtual_Identifiers, Downstream_Parser.Tree, Node));
 
       function Downstream_Error_Message (Msg : in String) return String
-      is (WisiToken.Syntax_Trees.Error_Message
+      is (Syntax_Trees.Error_Message
             (Downstream_Parser.Tree, Downstream_Parser.Terminals, Element (Downstream_Cur),
-             Downstream_WY_Source, Msg));
+             Ada.Directories.Simple_Name (Downstream_WY_Source), Msg));
+
+      function Down_Child (Node : in Valid_Node_Index; Child : in Positive_Index_Type) return Valid_Node_Index
+      is (Downstream_Parser.Tree.Child (Node, Child));
+
+      function Build_Inlined_Up_Nonterms return WisiToken.BNF.String_Pair_Lists.List
+      is begin
+         return Result : WisiToken.BNF.String_Pair_Lists.List do
+            Result.Append ((+"defining_identifier", +"IDENTIFIER"));
+         end return;
+      end Build_Inlined_Up_Nonterms;
+
+      Inlined_Up_Nonterms : constant WisiToken.BNF.String_Pair_Lists.List := Build_Inlined_Up_Nonterms;
+
+      function Is_Inlined (Nonterm : in Valid_Node_Index) return Boolean
+      is
+         Tree : Syntax_Trees.Tree renames Upstream_Parser.Tree_Var_Ref.Element.all;
+
+         Nonterm_Name : constant String := Up_Text (Tree.Child (Nonterm, 1));
+      begin
+         return (for some Pair of Inlined_Up_Nonterms => -Pair.Name = Nonterm_Name);
+      end Is_Inlined;
+
+      function Up_Text_Inlined (Nonterm : in Valid_Node_Index) return String
+      is
+         use Ada.Strings.Unbounded;
+
+         Tree : Syntax_Trees.Tree renames Upstream_Parser.Tree_Var_Ref.Element.all;
+         Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm);
+         RHS_List : constant Constant_List := Creators.Create_List
+           (Upstream_Parser.Tree_Var_Ref, Children (3), +rhs_list_ID, +rhs_ID);
+
+         Result : Unbounded_String := +Up_Text (Children (1)) & " " & Up_Text (Children (2)) & " ";
+
+         Need_Bar : Boolean := False;
+
+         function Do_Inlined (Orig : in String) return String
+         is begin
+            for Pair of Inlined_Up_Nonterms loop
+               if -Pair.Name = Orig then
+                  return -Pair.Value;
+               end if;
+            end loop;
+            return Orig;
+         end Do_Inlined;
+
+         function Get_Inlined (RHS : in Valid_Node_Index) return String
+         is
+            Result : Unbounded_String;
+         begin
+            if Tree.RHS_Index (RHS) = 0 then
+               return "";
+            end if;
+
+            declare
+               Item_List : constant Constant_List := Creators.Create_List
+                 (Tree, Tree.Child (RHS, 1), +rhs_item_list_ID, +rhs_element_ID);
+               Need_Space : Boolean := False;
+            begin
+               for Node of Item_List loop
+                  declare
+                     Item : constant Valid_Node_Index := Tree.Find_Descendant (Node, +rhs_item_ID);
+                  begin
+                     case Tree.RHS_Index (Item) is
+                     when 0 =>
+                        Result := Result & (if Need_Space then " " else "") & Do_Inlined (Up_Text (Item));
+                     when 1 .. 5 =>
+                        --  So far no nested substitutions
+                        Result := Result & (if Need_Space then " " else "") & Up_Text (Item);
+                     when others =>
+                        raise SAL.Programmer_Error;
+                     end case;
+                     Need_Space := True;
+                  end;
+               end loop;
+            end;
+            return -Result;
+         end Get_Inlined;
+      begin
+         for RHS of RHS_List loop
+            Result := Result & (if Need_Bar then " | " else "") & Get_Inlined (RHS);
+            Need_Bar := True;
+         end loop;
+         declare
+            Semicolon : constant String := Up_Text (Children (4));
+         begin
+            if Semicolon'Length > 0 then
+               Result := Result & " " & Semicolon;
+            end if;
+         end;
+         return To_String (Result);
+      end Up_Text_Inlined;
+
+      function Down_Text_Redundant (Nonterm : in Valid_Node_Index) return String
+      --  Get text of Nonterm tokens from Downstream tree, but include
+      --  ;;redundant comments as code, and substitute Inlined_Up_Nonterms.
+      is
+         use Ada.Strings.Unbounded;
+
+         Tree : Syntax_Trees.Tree renames Downstream_Parser.Tree_Var_Ref.Element.all;
+         Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm);
+         RHS_List : constant Constant_List := Creators.Create_List
+           (Downstream_Parser.Tree_Var_Ref, Children (3), +rhs_list_ID, +rhs_ID);
+
+         Result : Unbounded_String := +Down_Text (Children (1)) & " " & Down_Text (Children (2)) & " ";
+
+         Need_Bar : Boolean := False;
+
+         function Is_New (RHS : in Valid_Node_Index) return Boolean
+         is
+            use Ada.Strings.Fixed;
+            --  A new RHS looks like:
+            --      pragma_g ;; new
+            New_Pattern : constant String := ";; new";
+
+            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+         begin
+            if Aug = null then
+               return False;
+            end if;
+            declare
+               Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames WisiToken_Grammar_Runtime.Augmented_Token_Access
+                 (Aug).Non_Grammar;
+            begin
+               for Tok of Non_Grammar loop
+                  if Tok.ID = +COMMENT_ID then
+                     declare
+                        Line : constant String := Downstream_Parser.Lexer.Buffer_Text (Tok.Byte_Region);
+                        Red_Index : constant Integer := Index (Line, New_Pattern);
+                     begin
+                        return Red_Index /= 0;
+                     end;
+                  end if;
+               end loop;
+               return False;
+            end;
+         end Is_New;
+
+         procedure Get_Redundant (RHS : in Valid_Node_Index)
+         is
+            use Ada.Strings.Fixed;
+            --  A redundant RHS looks like:
+            --    ;; [ IDENTIFIER '=>' ] name ;; redundant with expression
+            --
+            Red_Pattern : constant String := ";; redundant";
+
+            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+         begin
+            if Aug = null then
+               return;
+            end if;
+            declare
+               Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames WisiToken_Grammar_Runtime.Augmented_Token_Access
+                 (Aug).Non_Grammar;
+            begin
+               for Tok of Non_Grammar loop
+                  if Tok.ID = +COMMENT_ID then
+                     declare
+                        Line : constant String := Downstream_Parser.Lexer.Buffer_Text (Tok.Byte_Region);
+                        Red_Index : constant Integer := Index (Line, Red_Pattern);
+                        Comment_Index : constant Integer := Index (Line, ";;");
+                     begin
+                        if Red_Index = 0 then
+                           null;
+                        else
+                           Result := Result &
+                             (if Need_Bar then " | " else "") &
+                             Line (Comment_Index + 3 .. Red_Index - 2);
+                           Need_Bar := True;
+                        end if;
+                     end;
+                  end if;
+               end loop;
+            end;
+         end Get_Redundant;
+
+      begin
+         Get_Redundant (Children (2)); -- original first RHS, after '::='
+
+         for RHS of RHS_List loop
+            if Is_New (RHS) then
+               null;
+            else
+               Result := Result & (if Need_Bar then " | " else "") & Down_Text (RHS);
+               Need_Bar := True;
+               Get_Redundant (RHS);
+            end if;
+         end loop;
+         declare
+            Semicolon : constant String := Down_Text (Children (4));
+         begin
+            if Semicolon'Length > 0 then
+               Result := Result & " " & Semicolon;
+            end if;
+         end;
+         return To_String (Result);
+      end Down_Text_Redundant;
+
+      Exclude_Up_Nonterms : constant String_Array :=
+        --  These are replaced by regexp.
+        (new String'("IDENTIFIER"),
+         new String'("identifier_start"),
+         new String'("identifier_extend"),
+         new String'("numeric_literal"),
+         new String'("decimal_literal"),
+         new String'("numeral"),
+         new String'("exponent"),
+         new String'("digit"),
+         new String'("based_literal"),
+         new String'("base"),
+         new String'("based_numeral"),
+         new String'("extended_digit"),
+         new String'("character_literal"),
+         new String'("string_literal"),
+         new String'("string_element"),
+         new String'("comment"));
+
+      function Up_Exclude (Nonterm : in Valid_Node_Index) return Boolean
+      is (for some Ptr of Exclude_Up_Nonterms => Ptr.all = Up_Text (Up_Child (Nonterm, 1)));
 
    begin
       loop
          exit when not Has_Element (Upstream_Cur) or not Has_Element (Downstream_Cur);
-         if Upstream_ID = nonterminal_ID then
+         if Upstream_ID = nonterminal_ID and then not Up_Exclude (Upstream_Nonterm) then
             if Downstream_ID = nonterminal_ID then
-               if Upstream_Text = Downstream_Text then
-                  Upstream_Cur   := Upstream_Iter.Next (Upstream_Cur);
-                  Downstream_Cur := Downstream_Iter.Next (Downstream_Cur);
-               else
-                  Put_Line (Standard_Error, Upstream_Error_Message ("not equal to"));
-                  Put_Line (Standard_Error, Downstream_Error_Message (""));
-                  raise WisiToken.User_Error;
-               end if;
+               declare
+                  Up_Nonterm   : constant Valid_Node_Index := Upstream_Nonterm;
+                  Down_Nonterm : constant Valid_Node_Index := Downstream_Nonterm;
+               begin
+                  if Is_Inlined (Up_Nonterm) then
+                     if Verbosity > 0 then
+                        Put_Line (Up_Text (Up_Child (Up_Nonterm, 1)) & " inlined");
+                     end if;
+                     Upstream_Cur   := Upstream_Iter.Next (Upstream_Cur);
+
+                  elsif Up_Text_Inlined (Up_Nonterm) = Down_Text_Redundant (Down_Nonterm) then
+                     if Verbosity > 0 then
+                        Put_Line (Up_Text (Up_Child (Up_Nonterm, 1)) & " = " &
+                                    Down_Text (Down_Child (Down_Nonterm, 1)));
+                     end if;
+                     Upstream_Cur   := Upstream_Iter.Next (Upstream_Cur);
+                     Downstream_Cur := Downstream_Iter.Next (Downstream_Cur);
+                  else
+                     Put_Line (Standard_Error, Upstream_Error_Message ("not equal to"));
+                     Put_Line (Standard_Error, Downstream_Error_Message (""));
+                     if Verbosity > 0 then
+                        Put_Line (Standard_Error, """" & Up_Text (Up_Nonterm) & """");
+                        Put_Line (Standard_Error, """" & Down_Text_Redundant (Down_Nonterm) & """");
+                     end if;
+                     raise User_Error;
+                  end if;
+               end;
             else
                Downstream_Cur := Downstream_Iter.Next (Downstream_Cur);
             end if;

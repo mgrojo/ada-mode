@@ -102,7 +102,8 @@
 
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
-;; this (sigh).
+;; this (sigh). See wisitoken test character_literal.wy for rationale
+;; behind this design.
 %token <punctuation> TICK_1 "'"
 
 %token <regexp> TICK_2
@@ -310,13 +311,14 @@ tick : TICK_1 | TICK_2 ;
 pragma_g ::=
   'pragma' IDENTIFIER ['(' pragma_argument_association {',' pragma_argument_association} ')'] ';'
 
-pragma_argument_association ::= ;; [IDENTIFIER '=>'] name redundant with expression
+pragma_argument_association ::=
+  ;; [ IDENTIFIER '=>' ] name ;; redundant with expression
     [IDENTIFIER '=>'] expression
-  ;;  | aspect_mark '=>'  name redundant with expression
+  ;; aspect_mark '=>' name ;; redundant with expression
   | aspect_mark '=>'  expression
 
 basic_declaration ::=
-    pragma_g
+    pragma_g ;; new
   | type_declaration
   | subtype_declaration
   | object_declaration
