@@ -26,6 +26,8 @@ with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 procedure Compare_Annex_P
 is
+   use WisiToken;
+
    --  Usage: compare_annex_p <upstream.wy> <downstream.wy> [verbosity]
    --
    --  upstream.wy is from ARM Annex P via annex_p_to_wy.adb
@@ -40,6 +42,48 @@ is
       else 0);
 
    type String_Array is array (Positive range <>) of Ada.Strings.Unbounded.String_Access;
+
+   Exclude_Up_Nonterms : constant String_Array :=
+     --  These are replaced by regexp.
+     (
+      new String'("CHARACTER_LITERAL"),
+      new String'("IDENTIFIER"),
+      new String'("base"),
+      new String'("based_literal"),
+      new String'("based_numeral"),
+      new String'("comment"),
+      new String'("decimal_literal"),
+      new String'("digit"),
+      new String'("exponent"),
+      new String'("extended_digit"),
+      new String'("identifier_extend"),
+      new String'("identifier_start"),
+      new String'("numeral"),
+      new String'("numeric_literal"),
+      new String'("string_element"),
+      new String'("string_literal"),
+
+      --  These are redundant with something
+      new String'("generalized_indexing"),
+      new String'("indexed_component")
+     );
+
+   function Build_Inlined_Up_Nonterms return WisiToken.BNF.String_Pair_Lists.List
+   is begin
+      return Result : WisiToken.BNF.String_Pair_Lists.List do
+         Result.Append ((+"ancestor_part", +"expression"));
+         Result.Append ((+"defining_character_literal", +"CHARACTER_LITERAL"));
+         Result.Append ((+"defining_identifier", +"IDENTIFIER"));
+         Result.Append ((+"defining_operator_symbol", +"STRING_LITERAL"));
+         Result.Append ((+"generalized_reference", +"name"));
+         Result.Append ((+"implicit_dereference", +"name"));
+         Result.Append ((+"operator_symbol", +"STRING_LITERAL"));
+         Result.Append ((+"prefix", +"name"));
+         Result.Append ((+"subtype_mark", +"name"));
+         --  Result.Append ((+""));
+         --  Result.Append ((+""));
+      end return;
+   end Build_Inlined_Up_Nonterms;
 
    Upstream_Parser   : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    Downstream_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
@@ -64,7 +108,6 @@ begin
    WisiToken.BNF.Generate_Utils.Parse_Grammar_File (Downstream_Parser, Downstream_WY_Source);
 
    declare
-      use WisiToken;
       use WisiToken.Syntax_Trees.LR_Utils;
       use Wisitoken_Grammar_Actions;
 
@@ -119,22 +162,6 @@ begin
 
       function Down_Child (Node : in Valid_Node_Index; Child : in Positive_Index_Type) return Valid_Node_Index
       is (Downstream_Parser.Tree.Child (Node, Child));
-
-      function Build_Inlined_Up_Nonterms return WisiToken.BNF.String_Pair_Lists.List
-      is begin
-         return Result : WisiToken.BNF.String_Pair_Lists.List do
-            Result.Append ((+"defining_identifier", +"IDENTIFIER"));
-            Result.Append ((+"subtype_mark", +"name"));
-            Result.Append ((+"defining_character_literal", +"CHARACTER_LITERAL"));
-            Result.Append ((+"operator_symbol", +"STRING_LITERAL"));
-            Result.Append ((+"defining_operator_symbol", +"STRING_LITERAL"));
-            Result.Append ((+"prefix", +"name"));
-            --  Result.Append ((+""));
-            --  Result.Append ((+""));
-            --  Result.Append ((+""));
-            --  Result.Append ((+""));
-         end return;
-      end Build_Inlined_Up_Nonterms;
 
       Inlined_Up_Nonterms : constant WisiToken.BNF.String_Pair_Lists.List := Build_Inlined_Up_Nonterms;
 
@@ -364,28 +391,6 @@ begin
          end;
          return To_String (Result);
       end Down_Text_Redundant;
-
-      Exclude_Up_Nonterms : constant String_Array :=
-        --  These are replaced by regexp.
-        (new String'("IDENTIFIER"),
-         new String'("identifier_start"),
-         new String'("identifier_extend"),
-         new String'("numeric_literal"),
-         new String'("decimal_literal"),
-         new String'("numeral"),
-         new String'("exponent"),
-         new String'("digit"),
-         new String'("based_literal"),
-         new String'("base"),
-         new String'("based_numeral"),
-         new String'("extended_digit"),
-         new String'("character_literal"),
-         new String'("string_literal"),
-         new String'("string_element"),
-         new String'("comment"),
-
-         --  These are redundant with something
-         new String'("indexed_component"));
 
       function Up_Exclude (Nonterm : in Valid_Node_Index) return Boolean
       is (for some Ptr of Exclude_Up_Nonterms => Ptr.all = Up_Text (Up_Child (Nonterm, 1)));

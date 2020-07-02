@@ -510,7 +510,7 @@ declarative_item ::= basic_declarative_item | proper_body | body_stub
 basic_declarative_item ::=
   basic_declaration | aspect_clause | use_clause
 
-;; body ::= proper_body | body_stub
+;; body ::= proper_body | body_stub ;; inlined
 
 proper_body ::=
   subprogram_body | package_body | task_body | protected_body
@@ -524,10 +524,10 @@ name ::=
   | attribute_reference
   | type_conversion
   | function_call
-  | character_literal
+  | CHARACTER_LITERAL
   | qualified_expression
-  ;; generalized_reference ;; redundant with name actual_parameter_part
-  ;; generalized_indexing ;; redundant with name actual_parameter_part
+  ;; name ;; redundant - inlined generalized_reference
+  ;; generalized_indexing ;; redundant with function_call
   | target_name
 
 direct_name ::= IDENTIFIER | STRING_LITERAL
@@ -538,7 +538,7 @@ explicit_dereference ::= name '.' 'all'
 
 ;; implicit_dereference ::= name ;; only used in 'prefix'
 
-;; indexed_component ::= name '(' expression {',' expression} ')' redundant with 'name actual_parameter_part'
+;; indexed_component ::= name '(' expression {',' expression} ')' redundant with function_call
 
 slice ::= name '(' discrete_range ')'
 
@@ -546,7 +546,7 @@ selected_component ::= name  '.'  selector_name
 
 selector_name ::= IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL
 
-attribute_reference ::= name tick attribute_designator
+attribute_reference ::= name tick attribute_designator | reduction_attribute_reference
 
 attribute_designator ::=
     IDENTIFIER ['(' expression ')']
@@ -559,11 +559,11 @@ range_attribute_reference ::= name tick range_attribute_designator
 
 range_attribute_designator ::= 'range' ['(' expression ')']
 
-;; generalized_reference ::= name  ;; redundant with name
+;; generalized_reference ::= name  ;; inlined to name
 
-;; generalized_indexing ::= name actual_parameter_part ;; redundant with name
+;; generalized_indexing ::= name actual_parameter_part - redundant with function_call
 
-aggregate ::= record_aggregate | extension_aggregate | array_aggregate
+aggregate ::= record_aggregate | extension_aggregate | array_aggregate | delta_aggregate | container_aggregate
 
 record_aggregate ::= '(' record_component_association_list ')'
 
@@ -579,29 +579,76 @@ component_choice_list ::= selector_name {'|' selector_name} | 'others'
 
 extension_aggregate ::= '(' expression 'with' record_component_association_list ')'
 
-;; ancestor_part ::= expression | name ;; redundant
+;; ancestor_part ::= expression | name ;; inlined to 'expression'
 
-array_aggregate ::=
-  positional_array_aggregate | named_array_aggregate
+array_aggregate ::= positional_array_aggregate | null_array_aggregate | named_array_aggregate
 
 positional_array_aggregate ::=
-    '(' expression {',' expression} ')'
+  ;; There must be at least two items in a positional aggregate
+    '(' expression ','  expression {',' expression} ')'
   | '(' expression {',' expression} ',' 'others' '=>' expression')'
   | '(' expression {',' expression} ',' 'others' '=>' '<>' ')'
+  | '[' expression { ','  expression} [','  'others'  '=>'  expression] ']'
+  | '[' expression { ','  expression} ','  'others'  '=>'   '<>'  ']'
 
-named_array_aggregate ::= '(' array_component_association {',' array_component_association} ')'
+null_array_aggregate ::= '[' ']'
+
+named_array_aggregate ::=
+    '(' array_component_association_list ')'
+  | '[' array_component_association_list ']'
+
+array_component_association_list ::= array_component_association { ','  array_component_association}
 
 array_component_association ::=
     discrete_choice_list '=>' expression
   | discrete_choice_list '=>' '<>'
+  | iterated_component_association
+
+iterated_component_association ::=
+    'for' IDENTIFIER 'in' discrete_choice_list  '=>'  expression
+  | 'for' iterator_specification  '=>'  expression
+
+delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
+
+record_delta_aggregate ::= '(' expression 'with' 'delta' record_component_association_list ')'
+
+array_delta_aggregate ::=
+    '(' expression 'with' 'delta' array_component_association_list ')'
+  | '[' expression 'with' 'delta' array_component_association_list ']'
+
+container_aggregate ::=
+    null_container_aggregate
+  | positional_container_aggregate
+  | named_container_aggregate
+
+null_container_aggregate ::= '[' ']'
+
+positional_container_aggregate ::= '[' expression {','  expression} ']'
+
+named_container_aggregate ::= '[' container_element_association_list ']'
+
+container_element_association_list ::= container_element_association { ','  container_element_association}
+
+container_element_association ::=
+    key_choice_list  '=>'  expression
+  | key_choice_list  '=>'   '<>'
+  | iterated_element_association
+
+key_choice_list ::= key_choice {'|' key_choice}
+
+key_choice ::= expression | discrete_range
+
+iterated_element_association ::=
+    'for' loop_parameter_specification ['use' expression] '=>' expression
+  | 'for' iterator_specification ['use' expression] '=>'  expression
 
 expression ::=
-    relation
-  | relation {'and' relation}-
-  | relation {'and' 'then' relation}-
-  | relation {'or' relation}-
-  | relation {'or' 'else' relation}-
-  | relation {'xor' relation}-
+    relation ;; new to reduce conflicts
+  | relation {'and' relation}-        ;; extra -
+  | relation {'and' 'then' relation}- ;; extra -
+  | relation {'or' relation}-         ;; extra -
+  | relation {'or' 'else' relation}-  ;; extra -
+  | relation {'xor' relation}-        ;; extra -
 
 choice_expression ::=
     choice_relation
@@ -668,6 +715,16 @@ quantified_expression ::=
 quantifier ::= 'all' | 'some'
 
 predicate ::= expression
+
+declare_expression ::=
+    'declare' {declare_item}
+      'begin' expression
+
+declare_item ::= object_declaration | object_renaming_declaration
+
+reduction_attribute_reference ::=
+    value_sequence tick reduction_attribute_designator
+  | prefix tick reduction_attribute_designator
 
 type_conversion ::=
     name '(' expression ')'

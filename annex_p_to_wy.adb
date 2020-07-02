@@ -13,6 +13,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Characters.Handling;
 with Ada.Command_Line;
 with Ada.Directories; use Ada.Directories;
 with Ada.Strings.Fixed;
@@ -35,11 +36,12 @@ is
    type Boolean_Array is array (Positive range <>) of Boolean;
 
    Keywords : constant String_Array :=
+     --  'attribute_designator' has | Access | Delta | Digits | Mod
      (new String'("abs"),
       new String'("accept"),
       new String'("abort"),
       new String'("abstract"),
-      new String'("access"),
+      new String'("[Aa]ccess"),
       new String'("aliased"),
       new String'("all"),
       new String'("and"),
@@ -51,8 +53,8 @@ is
       new String'("constant"),
       new String'("declare"),
       new String'("delay"),
-      new String'("delta"),
-      new String'("digits"),
+      new String'("[Dd]elta"),
+      new String'("[Dd]igits"),
       new String'("do"),
       new String'("else"),
       new String'("elsif"),
@@ -70,7 +72,7 @@ is
       new String'("is"),
       new String'("limited"),
       new String'("loop"),
-      new String'("mod"),
+      new String'("[Mm]od"),
       new String'("new"),
       new String'("not"),
       new String'("null"),
@@ -109,11 +111,13 @@ is
       new String'("xor"));
 
    Special_Keywords : constant String_Array :=
+     --  'range_attribute_designator' has Range
      (1 => new String'("pragma"),
-      2 => new String'("range"),
-      3 => new String'("identifier"));
+      2 => new String'("[Rr]ange"),
+      3 => new String'("identifier"),
+      4 => new String'("character_literal"));
 
-   Keyword_Delimiters : constant String := "][ {}();"; -- _not_ '_'; ']' must be first
+   Keyword_Delimiters : constant String := "][ {}();."; -- _not_ '_'; ']' must be first
 
    function Build_Keyword_Regexp return String
    is
@@ -135,7 +139,7 @@ is
    function Build_Special_Keyword_Regexp return String
    is
       use Ada.Strings.Unbounded;
-      Result : Unbounded_String := To_Unbounded_String ("^[" & Keyword_Delimiters & "](?:(.");
+      Result : Unbounded_String := To_Unbounded_String ("^[" & Keyword_Delimiters & "](?:(");
       First  : Boolean          := True;
    begin
       for Keyword of Special_Keywords loop
@@ -179,7 +183,7 @@ is
                   Word : String renames Line (Matches (1).First .. Matches (1).Last);
                begin
                   Last := Last + 1;
-                  Result (Last .. Last + Word'Length + 1) := "'" & Word & "'";
+                  Result (Last .. Last + Word'Length + 1) := "'" & Ada.Characters.Handling.To_Lower (Word) & "'";
                   Last := Last + Word'Length + 1;
                   I := I + Word'Length;
 
@@ -241,8 +245,8 @@ is
                               Last := Last + Word'Length + 1;
                            end;
 
-                        when 3 => --  upcase 'identifier'
-                           Result (Last .. Last + Word'Length - 1) := "IDENTIFIER";
+                        when 3 | 4 => --  upcase "identifier", "character_literal"
+                           Result (Last .. Last + Word'Length - 1) := Ada.Characters.Handling.To_Upper (Word);
                            Last := Last + Word'Length - 1;
 
                         when others =>
