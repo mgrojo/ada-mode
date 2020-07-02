@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada
+;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -22,18 +22,6 @@
 ;;  - eliminate many redundancies
 ;;
 ;;  - replace low level lexical productions with regular expression tokens.
-;;
-;;  for TreeSitter:
-;;
-;;  - rewrite nonterms that can be empty to not be, modify nonterms
-;;    using them to make them optional.
-;;
-;;    declarative_part
-;;    parameter_profile; delete, just use [formal_part]
-;;    mode
-;;    entry_body_formal_part
-;;    context_clause
-;;    formal_package_actual_part
 
 %meta_syntax EBNF
 
@@ -394,7 +382,7 @@ enumeration_type_definition ::= '(' enumeration_literal_specification {',' enume
 
 enumeration_literal_specification ::=  IDENTIFIER | CHARACTER_LITERAL
 
-;; defining_character_literal ::= CHARACTER_LITERAL just use CHARACTER_LITERAL
+;; defining_character_literal ::= CHARACTER_LITERAL
 
 integer_type_definition ::= signed_integer_type_definition |
   modular_type_definition
@@ -461,7 +449,7 @@ discriminant_association ::=
 record_type_definition ::= [['abstract'] 'tagged'] ['limited'] record_definition
 
 record_definition ::=
-    'record' component_list 'end' 'record'
+    'record' component_list 'end' 'record' [IDENTIFIER]
   | 'null' 'record'
 
 component_list ::=
@@ -503,50 +491,52 @@ access_to_object_definition ::= 'access' [general_access_modifier] subtype_indic
 general_access_modifier ::= 'all' | 'constant'
 
 access_to_subprogram_definition ::=
-    'access' ['protected'] 'procedure' [formal_part]
+    'access' ['protected'] 'procedure' parameter_profile
   | 'access' ['protected'] 'function'  parameter_and_result_profile
 
 null_exclusion ::= 'not' 'null'
 
 access_definition ::=
     [null_exclusion] 'access' ['constant'] name
-  | [null_exclusion] 'access' ['protected'] 'procedure' [formal_part]
+  | [null_exclusion] 'access' ['protected'] 'procedure' parameter_profile
   | [null_exclusion] 'access' ['protected'] 'function' parameter_and_result_profile
 
 incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
 
-declarative_part ::= declarative_item+
+declarative_part ::= {declarative_item}
 
-declarative_item ::= basic_declarative_item | body_g
+declarative_item ::= basic_declarative_item | proper_body | body_stub
 
 basic_declarative_item ::=
   basic_declaration | aspect_clause | use_clause
 
-body_g ::= proper_body | body_stub
+;; body ::= proper_body | body_stub
 
 proper_body ::=
   subprogram_body | package_body | task_body | protected_body
 
 name ::=
-    selector_name ;; IDENTIFIER | STRING_LITERAL  | CHARACTER_LITERAL ;; conflicts with direct_name, selector_name
+    direct_name
   | explicit_dereference
-;;  | indexed_component - redundant with 'name actual_parameter_part'
+  ;; indexed_component ;; redundant with 'name actual_parameter_part'
   | slice
   | selected_component
   | attribute_reference
   | type_conversion
-  | name actual_parameter_part
+  | function_call
+  | character_literal
   | qualified_expression
-;;  | generalized_reference
-;;  | generalized_indexing ;; redundant with name actual_parameter_part
+  ;; generalized_reference ;; redundant with name actual_parameter_part
+  ;; generalized_indexing ;; redundant with name actual_parameter_part
+  | target_name
 
 direct_name ::= IDENTIFIER | STRING_LITERAL
 
-;; prefix ::= name | implicit_dereference
+;; prefix ::= name | implicit_dereference ;; inlined to 'name'
 
 explicit_dereference ::= name '.' 'all'
 
-;; implicit_dereference ::= name
+;; implicit_dereference ::= name ;; only used in 'prefix'
 
 ;; indexed_component ::= name '(' expression {',' expression} ')' redundant with 'name actual_parameter_part'
 
@@ -569,7 +559,7 @@ range_attribute_reference ::= name tick range_attribute_designator
 
 range_attribute_designator ::= 'range' ['(' expression ')']
 
-;; generalized_reference ::= name
+;; generalized_reference ::= name  ;; redundant with name
 
 ;; generalized_indexing ::= name actual_parameter_part ;; redundant with name
 
@@ -761,7 +751,7 @@ iterator_specification ::=
 
 block_statement ::=
   [statement_identifier ':']
-  ['declare' [declarative_part]]
+  ['declare' declarative_part]
   'begin'
   handled_sequence_of_statements
   'end' [IDENTIFIER] ';'
@@ -794,7 +784,7 @@ function_specification ::= 'function' name parameter_and_result_profile
 
 ;; defining_operator_symbol ::= STRING_LITERAL
 
-;; parameter_profile ::= [formal_part]
+parameter_profile ::= [formal_part]
 
 parameter_and_result_profile ::=
     [formal_part] 'return' [null_exclusion] name
@@ -812,7 +802,7 @@ subprogram_body ::=
   [overriding_indicator]
   subprogram_specification
   [aspect_specification] 'is'
-  [declarative_part]
+  declarative_part
   'begin'
   handled_sequence_of_statements
   'end' [name]';'
@@ -849,7 +839,7 @@ package_specification ::=
     ['private' {basic_declarative_item}] 'end' [[name '.' ] IDENTIFIER]
 
 package_body ::=
-    'package' 'body' name [aspect_specification] 'is' [declarative_part]
+    'package' 'body' name [aspect_specification] 'is' declarative_part
     ['begin' handled_sequence_of_statements] 'end' [[name '.' ] IDENTIFIER] ';'
 
 private_type_declaration ::=
@@ -903,7 +893,7 @@ task_definition ::= {task_item} [ 'private' {task_item}] 'end' [IDENTIFIER]
 task_item ::= entry_declaration | aspect_clause
 
 task_body ::=
-    'task' 'body' IDENTIFIER [aspect_specification] 'is' [declarative_part] 'begin'
+    'task' 'body' IDENTIFIER [aspect_specification] 'is' declarative_part 'begin'
     handled_sequence_of_statements 'end' [IDENTIFIER]';'
 
 protected_type_declaration ::=
@@ -945,7 +935,7 @@ accept_statement ::=
 entry_index ::= expression
 
 entry_body ::=
-    'entry' IDENTIFIER [entry_body_formal_part] entry_barrier 'is' [declarative_part] 'begin'
+    'entry' IDENTIFIER [entry_body_formal_part] entry_barrier 'is' declarative_part 'begin'
     handled_sequence_of_statements 'end' [IDENTIFIER]';'
 
 entry_body_formal_part ::=
