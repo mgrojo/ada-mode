@@ -54,26 +54,28 @@ package body WisiToken_Grammar_Runtime is
    end Get_Line;
 
    function Get_Text
-     (Data         : in User_Data_Type;
-      Tree         : in Syntax_Trees.Tree;
-      Tree_Index   : in Valid_Node_Index;
-      Strip_Quotes : in Boolean := False)
+     (Terminals           : in WisiToken.Base_Token_Arrays.Vector;
+      Grammar_Lexer       : in WisiToken.Lexer.Handle;
+      Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
+      Tree                : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index          : in WisiToken.Valid_Node_Index;
+      Strip_Quotes        : in Boolean := False)
      return String
    is
       use all type Syntax_Trees.Node_Label;
 
       function Strip_Delimiters (Tree_Index : in Valid_Node_Index) return String
       is
-         Region : Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tree_Index)).Byte_Region;
+         Region : Buffer_Region renames Terminals (Tree.Terminal (Tree_Index)).Byte_Region;
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
             --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
-            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+            return Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
          elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and Strip_Quotes then
-            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
+            return Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
          else
-            return Data.Grammar_Lexer.Buffer_Text (Region);
+            return Grammar_Lexer.Buffer_Text (Region);
          end if;
       end Strip_Delimiters;
 
@@ -90,12 +92,12 @@ package body WisiToken_Grammar_Runtime is
       when Virtual_Identifier =>
          if Strip_Quotes then
             declare
-               Quoted : constant String := -Data.Tokens.Virtual_Identifiers (Tree.Identifier (Tree_Index));
+               Quoted : constant String := -Virtual_Identifiers (Tree.Identifier (Tree_Index));
             begin
                return Quoted (Quoted'First + 1 .. Quoted'Last - 1);
             end;
          else
-            return -Data.Tokens.Virtual_Identifiers (Tree.Identifier (Tree_Index));
+            return -Virtual_Identifiers (Tree.Identifier (Tree_Index));
          end if;
 
       when Nonterm =>
@@ -103,16 +105,28 @@ package body WisiToken_Grammar_Runtime is
             use all type Ada.Strings.Unbounded.Unbounded_String;
             Result       : Ada.Strings.Unbounded.Unbounded_String;
             Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals (Tree_Index);
-            Need_Space   : Boolean                                      := False;
+            Need_Space   : Boolean                         := False;
          begin
             for Tree_Index of Tree_Indices loop
                Result := Result & (if Need_Space then " " else "") &
-                 Get_Text (Data, Tree, Tree_Index, Strip_Quotes);
+                 Get_Text (Terminals, Grammar_Lexer, Virtual_Identifiers, Tree, Tree_Index, Strip_Quotes);
                Need_Space := True;
             end loop;
             return -Result;
          end;
       end case;
+   end Get_Text;
+
+   function Get_Text
+     (Data         : in User_Data_Type;
+      Tree         : in Syntax_Trees.Tree;
+      Tree_Index   : in Valid_Node_Index;
+      Strip_Quotes : in Boolean := False)
+     return String
+   is begin
+      return Get_Text
+        (Data.Terminals.all, Data.Grammar_Lexer, Data.Tokens.Virtual_Identifiers,
+         Tree, Tree_Index, Strip_Quotes);
    end Get_Text;
 
    function Get_Item_Text

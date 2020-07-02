@@ -88,7 +88,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                      Result := Child;
                      exit;
                   else
-                     raise SAL.Programmer_Error;
+                     raise SAL.Programmer_Error with "node" & Result'Image & " is not an element of the list";
                   end if;
                end;
             end loop;

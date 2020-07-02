@@ -147,12 +147,21 @@ package WisiToken_Grammar_Runtime is
      return WisiToken.Line_Number_Type;
 
    function Get_Text
+     (Terminals           : in WisiToken.Base_Token_Arrays.Vector;
+      Grammar_Lexer       : in WisiToken.Lexer.Handle;
+      Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
+      Tree                : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index          : in WisiToken.Valid_Node_Index;
+      Strip_Quotes        : in Boolean := False)
+     return String;
+   function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in WisiToken.Syntax_Trees.Tree;
       Tree_Index   : in WisiToken.Valid_Node_Index;
       Strip_Quotes : in Boolean := False)
      return String;
-   --  Return source text for Tree_Index.
+   --  Return source text for Tree_Index. This fetches each token
+   --  separately, without the non-grammar text.
 
    function Get_Item_Text
      (Data         : in User_Data_Type;

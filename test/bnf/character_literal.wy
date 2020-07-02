@@ -45,11 +45,10 @@
 ;; solution that works for full Ada, where that is not true. All of
 ;; the ambiguous cases for full Ada are given in
 ;; character_literal.input; this set of regexps sorts them out.
-;;
-;; TICK_2 is not needed by elisp, and is not valid a elisp
-;; regular expression. So we exclude it when lexer is elisp.
+
 %token <punctuation> TICK_1 "'"
 
+;; Holdover from elisp, now just testing %if
 %if lexer = re2c
 %token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 %end if

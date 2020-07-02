@@ -21,7 +21,6 @@ pragma License (GPL);
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Generate; use WisiToken.Generate;
-with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
@@ -255,6 +254,31 @@ package body WisiToken.BNF.Generate_Utils is
       end return;
    end Initialize;
 
+   procedure Parse_Grammar_File
+     (Grammar_Parser    : in out WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Grammar_File_Name : in     String)
+   is
+      Trace      : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+   begin
+      Wisitoken_Grammar_Main.Create_Parser
+        (Parser    => Grammar_Parser,
+         Trace     => Trace'Unchecked_Access,
+         User_Data => Input_Data'Unchecked_Access);
+
+      Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
+
+      Grammar_Parser.Parse;
+      Grammar_Parser.Execute_Actions; -- Meta phase.
+   exception
+   when WisiToken.Syntax_Error =>
+      Grammar_Parser.Put_Errors;
+      raise;
+   when E : WisiToken.Parse_Error =>
+      WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
+      raise;
+   end Parse_Grammar_File;
+
    function Parse_Grammar_File
      (Grammar_File_Name  : in String;
       Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
@@ -296,6 +320,13 @@ package body WisiToken.BNF.Generate_Utils is
       end if;
 
       return Initialize (Input_Data, Ignore_Conflicts);
+   exception
+   when WisiToken.Syntax_Error =>
+      Grammar_Parser.Put_Errors;
+      raise;
+   when E : WisiToken.Parse_Error =>
+      WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
+      raise;
    end Parse_Grammar_File;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID

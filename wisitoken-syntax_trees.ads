@@ -637,7 +637,7 @@ package WisiToken.Syntax_Trees is
 
    function Error_Message
      (Tree      : in Syntax_Trees.Tree;
-      Terminals : in Base_Token_Array_Access_Constant;
+      Terminals : in Base_Token_Arrays.Vector;
       Node      : in Valid_Node_Index;
       File_Name : in String;
       Message   : in String)

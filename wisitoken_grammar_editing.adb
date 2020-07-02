@@ -2137,7 +2137,7 @@ package body WisiToken_Grammar_Editing is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Tree, Data.Terminals, Node, Data.Grammar_Lexer.File_Name,
+                    (Tree, Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
                      Tree.Image
                        (Node, Wisitoken_Grammar_Actions.Descriptor,
                         Include_RHS_Index => True,
@@ -2483,7 +2483,7 @@ package body WisiToken_Grammar_Editing is
                   Put_Line
                     (Current_Error,
                      Error_Message
-                       (Tree, Data.Terminals, N, Data.Grammar_Lexer.File_Name,
+                       (Tree, Data.Terminals.all, N, Data.Grammar_Lexer.File_Name,
                         Tree.Image
                           (N, Wisitoken_Grammar_Actions.Descriptor,
                            Node_Numbers      => True)));
@@ -2506,7 +2506,7 @@ package body WisiToken_Grammar_Editing is
                   Put_Line
                     (Current_Error,
                      Error_Message
-                       (Tree, Data.Terminals, N, Data.Grammar_Lexer.File_Name,
+                       (Tree, Data.Terminals.all, N, Data.Grammar_Lexer.File_Name,
                         Tree.Image
                           (N, Wisitoken_Grammar_Actions.Descriptor,
                            Node_Numbers      => True)));
@@ -2549,7 +2549,7 @@ package body WisiToken_Grammar_Editing is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Tree, Data.Terminals, Node, Data.Grammar_Lexer.File_Name,
+                    (Tree, Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
                      Tree.Image
                        (Node, Wisitoken_Grammar_Actions.Descriptor,
                         Include_RHS_Index => True,
@@ -2606,7 +2606,7 @@ package body WisiToken_Grammar_Editing is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Tree, Data.Terminals, Node, Data.Grammar_Lexer.File_Name,
+                    (Tree, Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
                      Tree.Image
                        (Node, Wisitoken_Grammar_Actions.Descriptor,
                         Include_RHS_Index => True,

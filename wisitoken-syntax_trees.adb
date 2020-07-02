@@ -521,7 +521,7 @@ package body WisiToken.Syntax_Trees is
 
    function Error_Message
      (Tree      : in Syntax_Trees.Tree;
-      Terminals : in Base_Token_Array_Access_Constant;
+      Terminals : in Base_Token_Arrays.Vector;
       Node      : in Valid_Node_Index;
       File_Name : in String;
       Message   : in String)
@@ -538,7 +538,7 @@ package body WisiToken.Syntax_Trees is
          case Tree.Label (First_Terminal) is
          when Shared_Terminal =>
             declare
-               Token : Base_Token renames Terminals.all (Tree.First_Shared_Terminal (First_Terminal));
+               Token : Base_Token renames Terminals (Tree.First_Shared_Terminal (First_Terminal));
             begin
                Line   := Token.Line;
                Column := Token.Column;
@@ -2094,7 +2094,7 @@ package body WisiToken.Syntax_Trees is
                      Put_Line
                        (Current_Error,
                         Tree.Error_Message
-                          (Terminals, Node, File_Name,
+                          (Terminals.all, Node, File_Name,
                            Image (Tree, N, Node, Descriptor,
                                   Include_Children => False,
                                   Node_Numbers     => True)));
@@ -2102,7 +2102,7 @@ package body WisiToken.Syntax_Trees is
                   end if;
                   Put_Line
                     (Current_Error, Tree.Error_Message
-                       (Terminals, Node, File_Name, "... child" & I'Image & " deleted"));
+                       (Terminals.all, Node, File_Name, "... child" & I'Image & " deleted"));
 
                else
                   declare
@@ -2113,7 +2113,7 @@ package body WisiToken.Syntax_Trees is
                            Put_Line
                              (Current_Error,
                               Tree.Error_Message
-                                (Terminals, Node, File_Name,
+                                (Terminals.all, Node, File_Name,
                                  Image (Tree, N, Node, Descriptor,
                                         Include_Children => False,
                                         Node_Numbers     => True)));
@@ -2122,11 +2122,12 @@ package body WisiToken.Syntax_Trees is
                         if Child_Parent = Invalid_Node_Index then
                            Put_Line
                              (Current_Error, Tree.Error_Message
-                                (Terminals, Node, File_Name, "... child.parent invalid"));
+                                (Terminals.all, Node, File_Name, "... child.parent invalid"));
                         else
                            Put_Line
                              (Current_Error, Tree.Error_Message
-                                (Terminals, Node, File_Name, "... child.parent" & Child_Parent'Image & " incorrect"));
+                                (Terminals.all, Node, File_Name,
+                                 "... child.parent" & Child_Parent'Image & " incorrect"));
                         end if;
                      end if;
                   end;
