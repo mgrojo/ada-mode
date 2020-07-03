@@ -1253,7 +1253,8 @@ formal_type_declaration ::=
 formal_complete_type_declaration ::=
     'type' IDENTIFIER [discriminant_part] 'is' formal_type_definition [ 'or' 'use' name ] [aspect_specification] ';'
 
-formal_incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
+formal_incomplete_type_declaration ::=
+    'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ['or' 'use' name] ';'
 
 formal_type_definition ::=
     formal_private_type_definition
@@ -1306,11 +1307,11 @@ subprogram_default ::= default_name | '<>' | 'null'
 default_name ::= name
 
 formal_package_declaration ::=
-  'with' 'package' IDENTIFIER 'is' 'new' name [formal_package_actual_part] [aspect_specification]';'
+  'with' 'package' IDENTIFIER 'is' 'new' name formal_package_actual_part [aspect_specification]';'
 
 formal_package_actual_part ::=
     '(' ['others' '=>'] '<>' ')'
-  | generic_actual_part
+  | [generic_actual_part]
   | '(' formal_package_association {',' formal_package_association} [',' 'others' '=>' '<>'] ')'
 
 formal_package_association ::=
@@ -1323,27 +1324,30 @@ aspect_clause ::=
   | record_representation_clause
   | at_clause
 
-;; local_name ::=
-;;     direct_name tick attribute_designator ;; redundant with attribute_designator in name
+;; local_name ::= ;; inlined to "name"; redundant with attribute_designator in name
+;;     direct_name tick attribute_designator
 ;;   | name
 
 aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] }
 
-aspect_mark ::= IDENTIFIER [tick 'Class']
+aspect_mark ::= IDENTIFIER [tick 'class'] ;; FIXME: new %local_keyword? redundant with attribute?
 
-aspect_definition ::= ;; name redundant with expression
-  | expression
-  ;; | IDENTIFIER redundant with expression
+aspect_definition ::=
+  ;; name ;; redundant with expression
+    expression
+  ;; IDENTIFIER ;; redundant with expression
+  ;; aggregate ;; redundant with expression
+  | global_aspect_definition
 
 attribute_definition_clause ::=
     'for' name tick attribute_designator 'use' expression ';'
-;;  | 'for' name tick attribute_designator 'use' name ';' ;; redundant with expression
+      ;; 'for' name tick attribute_designator 'use' name ';' ;; redundant with expression
 
 enumeration_representation_clause ::= 'for' name 'use' enumeration_aggregate';'
 
 enumeration_aggregate ::= array_aggregate
 
-record_representation_clause ::= 'for' name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' ';'
+record_representation_clause ::= 'for' name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' [name] ';'
 
 component_clause ::=
   name 'at' position 'range' first_bit '..' last_bit ';'
@@ -1354,7 +1358,44 @@ first_bit ::= simple_expression
 
 last_bit ::= simple_expression
 
-;; code_statement ::= qualified_expression ';' ;; redundant with procedure_call_statement
+;; code_statement ::= qualified_expression ';' ;; deleted; redundant with procedure_call_statement
+
+storage_pool_indicator ::= name | 'null' | 'standard' ;; FIXME: new %local_keyword?
+
+restriction ::=
+    IDENTIFIER
+  | IDENTIFIER  '=>' restriction_parameter_argument
+
+restriction_parameter_argument ::= name | expression
+
+extended_global_aspect_definition ::=
+    'use' formal_parameter_designator
+  | 'do' dispatching_operation_specifier
+
+extended_global_aspect_element ::=
+    'use' formal_parameter_set
+  | 'do' dispatching_operation_set
+
+extended_global_mode ::= 'overriding' basic_global_mode
+
+formal_parameter_designator ::=
+    formal_group_designator
+  | name
+
+formal_parameter_set ::=
+    formal_group_designator
+  | name {',' name}
+
+formal_group_designator ::= 'null' | 'all'
+
+;; formal_parameter_name ::= ;; inlined to "name"
+;;     subtype_mark
+;;   | name
+;;   | name
+
+dispatching_operation_set ::= dispatching_operation_specifier {',' dispatching_operation_specifier}
+
+dispatching_operation_specifier ::= name  '(' name ')'
 
 delta_constraint ::= 'delta' simple_expression [range_constraint]
 

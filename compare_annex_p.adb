@@ -65,15 +65,16 @@ is
       new String'("string_element"),
 
       --  These are redundant with something
+      new String'("code_statement"),
+      new String'("context_clause"),
+      new String'("context_item"),
       new String'("entry_call_statement"),
       new String'("generalized_indexing"),
       new String'("indexed_component"),
       new String'("library_item"),
+      new String'("library_unit_body"),
       new String'("library_unit_declaration"),
       new String'("library_unit_renaming_declaration"),
-      new String'("library_unit_body"),
-      new String'("context_clause"),
-      new String'("context_item"),
 
       --  These are not used in the grammar
       new String'("highest_precedence_operator"),
@@ -86,22 +87,21 @@ is
       return Result : WisiToken.BNF.String_Pair_Lists.List do
          Result.Append ((+"ancestor_part", +"expression"));
          Result.Append ((+"defining_character_literal", +"CHARACTER_LITERAL"));
-         Result.Append ((+"defining_identifier", +"IDENTIFIER"));
          Result.Append ((+"defining_designator", +"name"));
+         Result.Append ((+"defining_identifier", +"IDENTIFIER"));
          Result.Append ((+"defining_operator_symbol", +"STRING_LITERAL"));
          Result.Append ((+"defining_program_unit_name", +"name"));
          Result.Append ((+"designator", +"name"));
+         Result.Append ((+"formal_parameter_name", +"name"));
          Result.Append ((+"generalized_reference", +"name"));
          Result.Append ((+"global_name", +"name"));
          Result.Append ((+"implicit_dereference", +"name"));
+         Result.Append ((+"local_name", +"name"));
          Result.Append ((+"operator_symbol", +"STRING_LITERAL"));
          Result.Append ((+"parent_unit_name", +"name"));
          Result.Append ((+"prefix", +"name"));
          Result.Append ((+"procedure_or_entry_call", +"procedure_call_statement"));
          Result.Append ((+"subtype_mark", +"name"));
-         --  Result.Append ((+""));
-         --  Result.Append ((+""));
-         --  Result.Append ((+""));
       end return;
    end Build_Inlined_Up_Nonterms;
 
@@ -347,7 +347,10 @@ begin
             --      pragma_g ;; new
             New_Pattern : constant String := ";; new";
 
-            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+            Last_Terminal : constant Node_Index := Tree.Last_Terminal (RHS);
+
+            Aug : constant Base_Token_Class_Access :=
+              (if Last_Terminal = Invalid_Node_Index then null else Tree.Augmented (Last_Terminal));
          begin
             if Aug = null then
                return False;
@@ -378,7 +381,11 @@ begin
             --
             Red_Pattern : constant String := ";; redundant";
 
-            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+            Last_Terminal : constant Node_Index := Tree.Last_Terminal (RHS);
+
+            Aug : constant Base_Token_Class_Access :=
+              (if Last_Terminal = Invalid_Node_Index then null else Tree.Augmented (Last_Terminal));
+
          begin
             if Aug = null then
                return;
@@ -427,7 +434,10 @@ begin
             RHS_Text : constant String := Down_Text (RHS);
             Last     : Integer         := RHS_Text'Last;
 
-            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+            Last_Terminal : constant Node_Index := Tree.Last_Terminal (RHS);
+
+            Aug : constant Base_Token_Class_Access :=
+              (if Last_Terminal = Invalid_Node_Index then null else Tree.Augmented (Last_Terminal));
          begin
             if Aug = null then
                return RHS_Text;

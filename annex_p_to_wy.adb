@@ -51,6 +51,7 @@ is
       new String'("body"),
       new String'("case"),
       new String'("constant"),
+      new String'("[Cc]lass"),
       new String'("declare"),
       new String'("delay"),
       new String'("[Dd]elta"),
@@ -96,6 +97,7 @@ is
       new String'("separate"),
       new String'("select"),
       new String'("some"),
+      new String'("[Ss]tandard"),
       new String'("subtype"),
       new String'("synchronized"),
       new String'("tagged"),
@@ -120,7 +122,8 @@ is
       5 => new String'("numeric_literal"),
       6 => new String'("string_literal"));
 
-   Keyword_Delimiters : constant String := "][ {}();."; -- _not_ '_'; ']' must be first
+   Keyword_Delimiters : constant String := "][ {}();.'";
+   --  _not_ '_'; ']' must be first
 
    function Build_Keyword_Regexp return String
    is
