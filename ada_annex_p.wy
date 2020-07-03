@@ -31,7 +31,7 @@
 ;;
 ;;  - rewrite nonterms that can be empty to not be, modify nonterms
 ;;    using them to make them optional.
-;;    
+;;
 ;;    declarative_part
 ;;    parameter_profile; delete, just use [formal_part]
 ;;    mode
@@ -42,7 +42,7 @@
 %meta_syntax EBNF
 
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2020 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -66,6 +66,10 @@
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
 
+%lr1_hash_table_size 124_087
+
+;; The addition of declare_expression caused a massive increase in recursion
+%partial_recursion
 %case_insensitive
 %start compilation
 
@@ -98,8 +102,13 @@
 
 ;; Support GNAT character coding in names and character and string
 ;; literals (see test/non_ascii.ads)
-%re2c_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
+%if lexer = re2c
+%lexer_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
+%elsif lexer = tree_sitter
+%lexer_regexp GNAT_Char_Coding %[ (\["[0-9A-Fa-f]+"\]) ]%
+%end if
 
+%if lexer = re2c
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
 ;; this (sigh).
@@ -108,16 +117,28 @@
 %token <regexp> TICK_2
     %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
   "'"
-
 tick : TICK_1 | TICK_2 ;
+
+%elsif lexer = tree_sitter
+;; FIXME:
+;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet Negative lookahead assertion:
+%token <punctuation> tick "'"
+%end if
 
 ;; This regexp allows a lot of things that are not Ada numeric
 ;; literals, but it's faster than a strictly conforming regexp. For
 ;; non-based literals, force a trailing integer so (1..Length) is
 ;; parsed correctly.
+%if lexer = re2c
 %token <regexp> NUMERIC_LITERAL
     %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
   "1234567890"
+
+%elsif lexer = tree_sitter
+%token <regexp> NUMERIC_LITERAL
+    %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+#[0-9a-fA-F._-]+#) ]%
+  "1234567890"
+%end if
 
 ;; non_grammar are not seen by the elisp lexer, but are needed by the re2c lexer
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
@@ -128,20 +149,46 @@ tick : TICK_1 | TICK_2 ;
 ;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
 ;; placeholders as comments. Also terminate placeholder on newline,
 ;; EOF, to handle missing }. x04 is EOF.
+%if lexer = re2c
 %non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*) ]%
 
+%elsif lexer = tree_sitter
+%non_grammar <comment> COMMENT %[ ((--|#if|#elsif|#else|#end)[^\n\x04]*)|({[^}\n\x04]*) ]%
+%end if
+
 ;; '$' for gnatprep symbols.
+%if lexer = re2c
 %token <symbol> IDENTIFIER
     %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
   "A_Bogus_Identifier"
 
+%elsif lexer = tree_sitter
+%token <symbol> IDENTIFIER
+    %[ ([$a-zA-Z\x80-\uFFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\uFFFF]|GNAT_Char_Coding)* ]%
+  "A_Bogus_Identifier"
+%end if
+
+%if lexer = re2c
 %token <string-double> STRING_LITERAL
     %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
   '""'
 
+%elsif lexer = tree_sitter
+%token <string-double> STRING_LITERAL
+    %[ ("([\x20-\x21\x23-\uFFFF]|GNAT_Char_Coding)*")+ ]%
+  '""'
+%end if
+
+%if lexer = re2c
 %token <string-single> CHARACTER_LITERAL
     %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
   "' '"
+
+%elsif lexer = tree_sitter
+%token <string-single> CHARACTER_LITERAL
+    %[ '([\x20-\U0010FFFF]|GNAT_Char_Coding)' ]%
+  "' '"
+%end if
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
