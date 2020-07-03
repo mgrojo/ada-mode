@@ -43,6 +43,37 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+compare_annex_p
+    terminal semicolons make parse faster?
+    ada_annex_p_txt.wy no semicolons: per iteration: 1.957165633
+    with semicolons: 1.219159486 not good enough; set partial-parse-threshold lower
+
+speed up lr1 generate
+    share single c_tree; avoid updating 8 copies
+    supervisor gathers input from all workers, updates 1 copy, gives new states to all workers.
+    doesn't save time, just CPU use?
+
+indent bugs
+    State.Kernel (I) :=
+      (Production        => Item.Prod,
+       Recursion         =>
+       --  Item.Recursion is used by at generate time by Delete_Non_Minimal
+         ((case To_Index (Item.Dot) is
+
+        comment should align with expression, not discrete_choice
+            which is _not_ what wisi-hanging Indenting_Comment True does
+            semantics of Indenting_Comment are confused
+                Indenting_Token should be the token to which wisi-hanging applies, not the one containing the comment?
+                they are the same when there is a comment-pair
+                    so keep what we have for consistency?
+
+        test/ada_mode-generic_package.ads
+            preceding comment moved when wisi-hanging added to name.
+
+        test/ada_mode-recover_30.adb
+            comment after aspect_specification in subprogram_body
+                should be indented with 'is'
+
 Separate set of McKenzie params for face parse
 
 ada-format-param-list take option to convert from single line to multi-line
@@ -50,6 +81,7 @@ ada-format-param-list take option to convert from single line to multi-line
     requires passing that option to Ada reformat code; changes elisp-ada API
 
 gpr-query: mode line Symbols > 100%
+    maybe fixed that, but now symbols % is not showing
 
 eldoc
     use gpr_query to provide info
@@ -68,72 +100,6 @@ ada_annex_p.wy
     ada_annex_p.wy LALR:
      0 accept/reduce conflicts, 66 shift/reduce conflicts, 27 reduce/reduce conflicts
      321 rules, 0 user actions, 0 checks, 2612 states
-
-compare ada LR1 generate time
-    o.e.a:
-        LALR re2c generate time: 0.589618659
-        LR1 re2c generate time: 66.265096411
-            44 declared conflicts
-            0 accept/reduce conflicts, 5374 shift/reduce conflicts, 27 reduce/reduce conflicts
-            224 rules, 232 user actions, 37 checks, 151571 states
-            67017725 bytes ada_lr1_parse_table.txt
-
-        ada_annex_p.wy LR1 650.00
-            679 declared conflicts
-            547 virtual nonterms
-            0 accept/reduce conflicts, 97411 shift/reduce conflicts, 422574 reduce/reduce conflicts
-            396 rules, 0 user actions, 0 checks, 299492 states
-            make wisi-bnf-gen faster: o.w.s-1
-
-    7.0.1
-        ../ada-mode-releases/org.wisitoken-1.3.1/build/Makefile
-        timed?
-        LALR re2c generate time: 0.689046474
-        LR1 re2c generate time: 37.564196185
-
-        timed 6 June 2020:
-        LALR re2c generate time: 0.979680499
-        LR1 re2c generate time: 65.663078392
-
-    2020_05_22 (pre fix 'Unrestricted_Access)
-        LALR re2c generate time: 0.520925872
-        LR1 re2c generate time: 62.148224014
-
-    2020_04_22 (pre use virtual in indent)
-        LALR re2c generate time: 0.519115752
-        LR1 re2c generate time: 61.987758850
-
-    2018_07_26
-        timed then (from benchmarks, below) gnat 2018?
-        LALR re2c generate time: 0.450525800
-        LR1 re2c generate time: 31.202567095
-
-        timed now, gnat 2019:
-        LALR re2c generate time: 0.511612680
-        LR1 re2c generate time: 68.728940913
-
-
-    old compiler generated faster code?
-        gnat 2018,2018_07_26: LR1 re2c generate time: 68.036990818
-
-    computer got slower!?
-
-indent bugs
-    State.Kernel (I) :=
-      (Production        => Item.Prod,
-       Recursion         =>
-       --  Item.Recursion is used by at generate time by Delete_Non_Minimal
-         ((case To_Index (Item.Dot) is
-
-        comment should align with expression, not discrete_choice
-            which is _not_ what wisi-hanging Indenting_Comment True does
-            semantics of Indenting_Comment are confused
-                Indenting_Token should be the token to which wisi-hanging applies, not the one containing the comment?
-                they are the same when there is a comment-pair
-                    so keep what we have for consistency?
-
-        test/ada_mode-generic_package.ads
-            preceding comment moved when wisi-hanging added to name.
 
 wisi-prj.el use project-switch-project?
     stores projects in a file
@@ -463,10 +429,17 @@ wisitoken-bnf-generate
         LR1    0 accept/reduce conflicts, 4750 shift/reduce conflicts, 24 reduce/reduce conflicts
              224 rules, 230 user actions, 37 checks, 119354 states
 
+    25 Jun 2020 Ada 2020 grammar, hash-table/red-black tree for collisions
+        GNAT Community 2019
+        before hash table, tree depth was log_2 (states) ~ 18, not bad.
+        LR1 hash table states: 469463 rows: 124087 max_row_depth: 9 average_row_depth: 2
+        LR1 initial item_sets time: 163.506717162
 
-    ada_annex_p.wy LALR:
-     0 accept/reduce conflicts, 66 shift/reduce conflicts, 27 reduce/reduce conflicts
-     321 rules, 0 user actions, 0 checks, 2612 states
+    29 Jun 2020 parallelize LR1_Item_Sets
+        initial item_sets time: 103.791729848
+
+    ada_annex_p.wy LR1:
+        no Ada 2020 yet
 
 mckenzie recover
     ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0
@@ -777,6 +750,8 @@ keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
 update benchmarks above
+
+generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
 
 (dvc-status ".")
 

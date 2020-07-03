@@ -1,2 +1,5 @@
 build/Makefile
 build/prj.el
+ada_lr1_parse_table.txt
+ada_process_lr1_main.adb
+ada_process_lr1_main.ads

@@ -184,6 +184,9 @@
    declaration
    declarations
    declarative_part_opt
+   declare_expression
+   declare_item
+   declare_item_list
    delay_alternative
    delay_statement
    delta_constraint

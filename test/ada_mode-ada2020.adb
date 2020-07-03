@@ -38,5 +38,13 @@ begin
    --  [2] 4.5.10 reduction expression
    --
    --  Count items in A
-   A := [for Item in Iterator => 1]'Reduce ("+", 0);
+   A := [for Item in Worker'Range => 1]'Reduce ("+", 0);
+
+   --  [2] 4.4 declare_expresssion
+   A :=
+     (declare
+         B : constant Integer := 3;
+      begin
+         B + 1);
+
 end Ada_Mode.Ada2020;

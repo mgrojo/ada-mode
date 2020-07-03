@@ -1,4 +1,4 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
 --
 
@@ -26,7 +26,7 @@ package Ada_Process_Actions is
      (First_Terminal    => 3,
       Last_Terminal     => 111,
       First_Nonterminal => 112,
-      Last_Nonterminal  => 343,
+      Last_Nonterminal  => 346,
       EOI_ID            => 111,
       Accept_ID         => 112,
       Case_Insensitive  => True,
@@ -199,6 +199,9 @@ package Ada_Process_Actions is
          new String'("declaration"),
          new String'("declarations"),
          new String'("declarative_part_opt"),
+         new String'("declare_expression"),
+         new String'("declare_item"),
+         new String'("declare_item_list"),
          new String'("delay_alternative"),
          new String'("delay_statement"),
          new String'("delta_constraint"),
@@ -548,6 +551,9 @@ package Ada_Process_Actions is
       declaration_ID,
       declarations_ID,
       declarative_part_opt_ID,
+      declare_expression_ID,
+      declare_item_ID,
+      declare_item_list_ID,
       delay_alternative_ID,
       delay_statement_ID,
       delta_constraint_ID,
@@ -957,6 +963,16 @@ package Ada_Process_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure declaration_9
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declare_expression_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declare_expression_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;
@@ -1532,6 +1548,11 @@ package Ada_Process_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure primary_5
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure primary_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;

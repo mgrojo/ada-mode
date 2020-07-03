@@ -57,13 +57,13 @@ recover-compare : wisitoken-libadalang-diff
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
-update-elisp : build_executables
-update-elisp : autoloads
-update-elisp : byte-compile
+update : build_executables
+update : autoloads
+update : byte-compile
 
 # This updates and installs everything after any source change, without running the
 # tests or publishing to elpa
-update-install : update-elisp
+update-install : update
 update-install : install
 update-install : docs
 
@@ -94,10 +94,10 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-ada2020_more.adb
+ONE_TEST_FILES ?= ada_mode-ada2020.adb
 one :: build_executables
 one :: byte-compile autoloads
-#one :: compile-ada-test
+one :: compile-ada-test
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
@@ -452,6 +452,12 @@ build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
+
+ada_annex_p_txt.wy : compare_annex_p.exe
+	../compare_annex_p.exe c:/Projects/org.adaic.arm_form/build/aarm2020.txt/aa-P.TXT ../ada_annex_p_txt.wy
+
+ada_annex_p_txt.stamp : ada_annex_p_txt.wy
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe ../ada_annex_p_txt.wy
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

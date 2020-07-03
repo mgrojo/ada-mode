@@ -50,6 +50,10 @@
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
 
+%lr1_hash_table_size 124_087
+
+;; The addition of declare_expression caused a massive increase in recursion
+%partial_recursion
 %case_insensitive
 %start compilation
 
@@ -160,7 +164,7 @@
 
 ;; Support GNAT character coding in names and character and string
 ;; literals (see test/non_ascii.ads)
-%re2c_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
+%lexer_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
 
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
@@ -195,6 +199,7 @@
     %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
   "A_Bogus_Identifier"
 
+;; \x22 is "
 %token <string-double> STRING_LITERAL
     %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
   '""'
@@ -443,17 +448,17 @@ aggregate
   | LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN ;; extension_aggregate
     %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) [(wisi-anchored 1 1) (wisi-anchored 1 1)]
                                (wisi-anchored 1 0)]))%
-  
+
   | LEFT_PAREN expression WITH DELTA association_list RIGHT_PAREN ;; record_delta_aggregate, array_delta_aggregate
-    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)  
+    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)
                                [(wisi-anchored 1 1) (wisi-anchored 1 1)]
                                (wisi-anchored 1 0)]))%
-  
+
   | LEFT_SQUARE_BRACKET expression WITH DELTA association_list RIGHT_SQUARE_BRACKET ;; array_delta_aggregate
-    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)  
+    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1)
                                [(wisi-anchored 1 1) (wisi-anchored 1 1)]
                                (wisi-anchored 1 0)]))%
-  
+
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
@@ -547,7 +552,7 @@ association_opt
  ;; test/ada_mode-parens.adb Hello
     %((wisi-indent-action [[(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   | ;; empty
-    
+
   | FOR IDENTIFIER IN discrete_choice_list EQUAL_GREATER expression ;; iterated_component_association
     %((wisi-indent-action [nil nil nil (wisi-hanging nil ada-indent-broken) ada-indent-broken
                                [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
@@ -677,7 +682,7 @@ case_statement_alternative_list
 
 ;; choice_relation* - use 'relation*', to avoid conflicts
 
-chunk_specification  
+chunk_specification
   : simple_expression
   | IDENTIFIER IN discrete_subtype_definition
   ;
@@ -841,6 +846,23 @@ declarative_part_opt
 
 ;; declarative_item merged into declaration
 
+declare_expression
+  : DECLARE declare_item_list BEGIN expression
+    %((wisi-indent-action [nil ada-indent nil ada-indent]))%
+  | DECLARE BEGIN expression
+    %((wisi-indent-action [nil nil ada-indent]))%
+  ;
+
+declare_item
+  : object_declaration
+  | object_renaming_declaration
+  ;
+
+declare_item_list
+  : declare_item
+  | declare_item_list declare_item
+  ;
+
 delay_alternative
   : delay_statement sequence_of_statements_opt
   ;
@@ -965,7 +987,7 @@ entry_body
         ;; entry E3
         ;;   (X : Integer) when Local_1 = 0 and not
         ;;     (Local_2 = 1)
-        (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil
                                  (wisi-anchored% 4 ada-indent-broken)
                                  nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
                                  ada-indent-broken]))%
@@ -991,12 +1013,12 @@ entry_declaration
         (wisi-name-action 3)
         (wisi-face-apply-action [3 nil font-lock-function-name-face])
         (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)
-                               ada-indent-broken ada-indent-broken ada-indent-broken]))%
+                               ada-indent-broken nil ada-indent-broken]))%
   | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt aspect_specification_opt SEMICOLON
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
         (wisi-name-action 3)
         (wisi-face-apply-action [3 nil font-lock-function-name-face])
-        (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
+        (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
   ;
 
 enumeration_literal ;; enumeration_literal_specification
@@ -1690,7 +1712,7 @@ name
     %((wisi-propagate-name 1))%
 
   | AT_SIGN ;; target_name
-  
+
   ;; | explicit_dereference in selected_component
   ;; | indexed_component same as 'name actual_parameter_part' above
   ;; | generalized_reference same as 'name'
@@ -1976,7 +1998,10 @@ primary
     %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
 
   ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by aggregate
- ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate
+  ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate
+
+  | LEFT_PAREN declare_expression RIGHT_PAREN
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
 private_extension_declaration
@@ -2191,7 +2216,7 @@ record_representation_clause
 
 reduction_attribute_designator : IDENTIFIER LEFT_PAREN reduction_specification RIGHT_PAREN ;
 
-reduction_attribute_reference 
+reduction_attribute_reference
   : value_sequence tick reduction_attribute_designator
   | name tick reduction_attribute_designator
   ;

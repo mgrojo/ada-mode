@@ -204,8 +204,8 @@ Prompt user if more than one."
   (save-excursion
     (forward-line 1)
     (skip-syntax-forward "^ ")
-    (looking-at " use fully qualified name starting with \\([[:alnum:]_]+\\) to make")
-    (match-string 1)
+    (when (looking-at " use fully qualified name starting with \\([[:alnum:]_]+\\) to make")
+      (match-string 1))
     ))
 
 (cl-defmethod wisi-compiler-fix-error ((_compiler gnat-compiler) source-buffer)

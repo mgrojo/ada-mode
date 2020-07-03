@@ -11,7 +11,7 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 RECOVER_TEST_FILES := $(shell cd ../test/correct; ls *.ad?)
 
-.PRECIOUS : %-elisp.el %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff
+.PRECIOUS : %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff
 
 .PHONY : all force one test test-clean
 
@@ -50,7 +50,7 @@ endif
 # they can be saved in CM together.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --time --output_bnf $(<F)
-	cd ./$(<D); dos2unix -q $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
+	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 	cd ./$(<D); dos2unix -q $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
@@ -151,7 +151,7 @@ profile-clean ::
 
 # delete all files created by wisitoken-bnf-generate for main programs
 build-ada-exec-clean :
-	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-elisp.el *-process.el *_parse_table.txt
+	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-process.el *_parse_table.txt
 
 test-clean ::
 	rm -f *.diff *.tmp
