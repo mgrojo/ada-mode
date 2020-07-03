@@ -105,6 +105,7 @@ is
       new String'("type"),
       new String'("until"),
       new String'("use"),
+      new String'("[Uu]nspecified"), --  In global_aspect_definition
       new String'("when"),
       new String'("while"),
       new String'("with"),
@@ -115,7 +116,9 @@ is
      (1 => new String'("pragma"),
       2 => new String'("[Rr]ange"),
       3 => new String'("identifier"),
-      4 => new String'("character_literal"));
+      4 => new String'("character_literal"),
+      5 => new String'("numeric_literal"),
+      6 => new String'("string_literal"));
 
    Keyword_Delimiters : constant String := "][ {}();."; -- _not_ '_'; ']' must be first
 
@@ -224,12 +227,12 @@ is
                            declare
                               Replacement : String (1 .. 7);
                            begin
-                              if Line'Last > Matches (J).Last + 4 and then
+                              if Line'Last >= Matches (J).Last + 4 and then
                                 Line (Matches (J).Last + 1 .. Matches (J).Last + 4) = " ::="
                               then
                                  Replacement := "range_g";
 
-                              elsif Line'Last > Matches (J).Last + 2 and then
+                              elsif Line'Last >= Matches (J).Last + 2 and then
                                 Line (Matches (J).Last + 1 .. Matches (J).Last + 2) = " |"
                               then
                                  Replacement := "range_g";
@@ -245,7 +248,7 @@ is
                               Last := Last + Word'Length + 1;
                            end;
 
-                        when 3 | 4 => --  upcase "identifier", "character_literal"
+                        when 3 .. 6 => --  upcase
                            Result (Last .. Last + Word'Length - 1) := Ada.Characters.Handling.To_Upper (Word);
                            Last := Last + Word'Length - 1;
 

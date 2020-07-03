@@ -5,9 +5,9 @@
 ;; Created: Sept 2012
 ;; Keywords: syntax
 ;;
-;;  Copied from Ada Language Reference Manual Annex P, minimal changes
-;;  made to conform with WisiToken requirements, then more to conform
-;;  with TreeSitter requirements (no empty nonterms).
+;;  Copied from Ada Language Reference Manual Annex P
+;;  (http://www.ada-auth.org/standards/ada2x.html), minimal changes
+;;  made to conform with WisiToken requirements.
 
 ;;  Changes from Annex P:
 ;;
@@ -15,13 +15,20 @@
 ;;
 ;;  - add single quotes around literal tokens, operators and reserved words, digits.
 ;;
-;;  - use 'TICK' for '''.
-;;
 ;;  - delete italics part of token names
 ;;
-;;  - eliminate many redundancies
+;;  - eliminate many redundancies which cause parse conflicts
 ;;
 ;;  - replace low level lexical productions with regular expression tokens.
+;;
+;;  - use nonterminal "tick" for '''.
+
+;; The programs 'annex_p_to_wy.adb' translates the text of ARM Annex P
+;; to a WisiToken .wy file, and 'compare_annex_p.adb' compares that
+;; with this file. Nonterminals that are changed in this file from ARM
+;; Annex P have comments explaining how. Some comments are recognized
+;; by 'compare_annex_p.adb' to help with the comparison; see the code
+;; for more detail.
 
 %meta_syntax EBNF
 
@@ -651,24 +658,27 @@ expression ::=
   | relation {'xor' relation}-        ;; extra -
 
 choice_expression ::=
-    choice_relation
-  | choice_relation {'and' choice_relation}-
-  | choice_relation {'or' choice_relation}-
-  | choice_relation {'xor' choice_relation}-
-  | choice_relation {'and' 'then' choice_relation}-
-  | choice_relation {'or' 'else' choice_relation}-
+    choice_relation ;; new to reduce conflicts
+  | choice_relation {'and' choice_relation}-        ;; extra -
+  | choice_relation {'or' choice_relation}-         ;; extra -
+  | choice_relation {'xor' choice_relation}-        ;; extra -
+  | choice_relation {'and' 'then' choice_relation}- ;; extra -
+  | choice_relation {'or' 'else' choice_relation}-  ;; extra -
 
 choice_relation ::= simple_expression [relational_operator simple_expression]
 
 relation ::=
-    choice_relation
+    ;; simple_expression [ relational_operator simple_expression ] ;; redundant with choice_relation
+    choice_relation ;; new
   | simple_expression ['not'] 'in' membership_choice_list
   | raise_expression
 
 membership_choice_list ::= membership_choice {'|' membership_choice}
 
-membership_choice ::= simple_expression | range_g
-  ;; | name redundant with simple_expression
+membership_choice ::=
+    simple_expression
+  | range_g
+  ;; name ;; redundant - from inlined subtype_mark, redundant with name in simple_expression
 
 simple_expression ::= [unary_adding_operator] term {binary_adding_operator term}
 
@@ -679,21 +689,26 @@ factor ::= primary ['**' primary] | 'abs' primary | 'not' primary
 primary ::=
     NUMERIC_LITERAL
   | 'null'
-;;| STRING_LITERAL in name
+  ;; STRING_LITERAL ;; redundant with name
   | aggregate
   | name
   | allocator
-;;| '(' expression ')' redundant with aggregate
+  | '(' expression ')' ;; FIXME: redundant with positional_aggregate? that requires two elements.
   | '(' conditional_expression ')'
   | '(' quantified_expression ')'
+  | '(' declare_expression ')'
 
-relational_operator ::=  '=' | '/=' | '<' | '<=' | '>' | '>='
+;; logical_operator ::= 'and' | 'or' | 'xor' ;; not used in the grammar
 
-binary_adding_operator ::=     '+'   | '-'   | '&'
+relational_operator ::= '=' | '/=' | '<' | '<=' | '>' | '>='
 
-unary_adding_operator ::=     '+'   | '-'
+binary_adding_operator ::= '+' | '-' | '&'
 
-multiplying_operator ::=     '*'   | '/'   | 'mod' | 'rem'
+unary_adding_operator ::= '+' | '-'
+
+multiplying_operator ::=  '*' | '/' | 'mod' | 'rem'
+
+;; highest_precedence_operator ::= '**' | 'abs' | 'not' ;; not used in the grammar
 
 conditional_expression ::= if_expression | case_expression
 
@@ -724,7 +739,13 @@ declare_item ::= object_declaration | object_renaming_declaration
 
 reduction_attribute_reference ::=
     value_sequence tick reduction_attribute_designator
-  | prefix tick reduction_attribute_designator
+  | name tick reduction_attribute_designator
+
+value_sequence ::= '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']'
+
+reduction_attribute_designator ::= IDENTIFIER '(' reduction_specification ')'
+
+reduction_specification ::= name ',' expression
 
 type_conversion ::=
     name '(' expression ')'
@@ -734,7 +755,7 @@ qualified_expression ::= name tick '(' expression ')' | name tick aggregate
 
 allocator ::=
     'new' [subpool_specification] subtype_indication
-;;  | 'new' [subpool_specification] qualified_expression ;; redundant with name in subtype_indication
+      ;; 'new' [ subpool_specification ] qualified_expression ;; redundant with name in subtype_indication
 
 subpool_specification ::= '(' name ')'
 
@@ -749,18 +770,22 @@ simple_statement ::= null_statement
   | goto_statement
   | procedure_call_statement
   | simple_return_statement
-;;  | entry_call_statement ;; redundant with procedure_call_statement
+  ;; entry_call_statement ;; redundant with procedure_call_statement
   | requeue_statement
   | delay_statement
   | abort_statement
   | raise_statement
-;;  | code_statement
+      ;; code_statement ;; redundant with procedure_call_statement
 
 compound_statement ::=
-  if_statement   | case_statement
-  | loop_statement   | block_statement
+    if_statement
+  | case_statement
+  | loop_statement
+  | block_statement
   | extended_return_statement
-  | accept_statement   | select_statement
+  | parallel_block_statement
+  | accept_statement
+  | select_statement
 
 null_statement ::= 'null' ';'
 
@@ -768,17 +793,15 @@ label ::= '<<' statement_identifier '>>'
 
 statement_identifier ::= direct_name
 
-assignment_statement ::=
-  name ':=' expression';'
+assignment_statement ::= name ':=' expression ';'
+
+target_name ::= '@'
 
 if_statement ::=
-  'if' condition 'then'
-  sequence_of_statements
-  {'elsif' condition 'then'
-  sequence_of_statements}
-  ['else'
-  sequence_of_statements]
-  'end' 'if' ';'
+    'if' condition 'then' sequence_of_statements
+      {'elsif' condition 'then' sequence_of_statements}
+      ['else' sequence_of_statements]
+      'end' 'if' ';'
 
 case_statement ::=
   'case' expression 'is'
@@ -798,20 +821,48 @@ iteration_scheme ::=
     'while' condition
   | 'for' loop_parameter_specification
   | 'for' iterator_specification
+  | ['parallel'] 'for' procedural_iterator
+  | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
+  | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
 
-loop_parameter_specification ::=
-  IDENTIFIER 'in' ['reverse'] discrete_subtype_definition
+chunk_specification ::=
+    simple_expression
+  | IDENTIFIER 'in' discrete_subtype_definition
+
+loop_parameter_specification ::= IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
+
+iterator_filter ::= 'when' condition
 
 iterator_specification ::=
-    IDENTIFIER 'in' ['reverse'] name
-  | IDENTIFIER [':' subtype_indication] 'of' ['reverse'] name
+    IDENTIFIER [':' loop_parameter_subtype_indication] 'in' ['reverse'] name [iterator_filter]
+  | IDENTIFIER [':' loop_parameter_subtype_indication] 'of' ['reverse'] name [iterator_filter]
+
+loop_parameter_subtype_indication ::= subtype_indication | access_definition
+
+procedural_iterator ::= iterator_parameter_specification 'of' iterator_procedure_call [iterator_filter]
+
+iterator_parameter_specification ::=
+    formal_part
+  | '(' IDENTIFIER {',' IDENTIFIER} ')'
+
+iterator_procedure_call ::=
+    name
+  | name iterator_actual_parameter_part
+
+iterator_actual_parameter_part ::= '(' iterator_parameter_association { ',' iterator_parameter_association} ')'
+
+iterator_parameter_association ::=
+    parameter_association
+  | parameter_association_with_box
+
+parameter_association_with_box ::= [ selector_name  '=>'  ]  '<>'
 
 block_statement ::=
-  [statement_identifier ':']
-  ['declare' declarative_part]
-  'begin'
-  handled_sequence_of_statements
-  'end' [IDENTIFIER] ';'
+  [statement_identifier ':'] ['declare' declarative_part] 'begin' handled_sequence_of_statements 'end' [IDENTIFIER] ';'
+
+parallel_block_statement ::=
+    'parallel' 'do' handled_sequence_of_statements 'and' handled_sequence_of_statements
+      {'and' handled_sequence_of_statements} 'end' 'do' ';'
 
 exit_statement ::=
   'exit' [name] ['when' condition]';'
@@ -827,19 +878,19 @@ subprogram_specification ::=
   procedure_specification
   | function_specification
 
-procedure_specification ::= 'procedure' name [formal_part]
+procedure_specification ::= 'procedure' name parameter_profile
 
 function_specification ::= 'function' name parameter_and_result_profile
 
-;; designator ::= [name  '.'] IDENTIFIER | STRING_LITERAL ;; redundant with name
+;; designator ::= [name  '.'] IDENTIFIER | STRING_LITERAL ;; inlined to "name"
 
-;; defining_designator ::= name | STRING_LITERAL
+;; defining_designator ::= name | STRING_LITERAL ;; inlined to "name"
 
-;; defining_program_unit_name ::= [name  '.'] IDENTIFIER ;; redundant with IDENTIFIER, selected_component in name
+;; defining_program_unit_name ::= [name  '.'] IDENTIFIER ;; inlined to "name"; redundant with selected_component in name
 
-;; operator_symbol ::= STRING_LITERAL
+;; operator_symbol ::= STRING_LITERAL ;; inlined
 
-;; defining_operator_symbol ::= STRING_LITERAL
+;; defining_operator_symbol ::= STRING_LITERAL ;; inlined
 
 parameter_profile ::= [formal_part]
 
@@ -850,10 +901,33 @@ parameter_and_result_profile ::=
 formal_part ::= '(' parameter_specification {';' parameter_specification} ')'
 
 parameter_specification ::=
-    defining_identifier_list ':' ['aliased'] [mode] [null_exclusion] name [':=' default_expression]
+    defining_identifier_list ':' ['aliased'] mode [null_exclusion] name [':=' default_expression]
   | defining_identifier_list ':' access_definition [':=' default_expression]
 
-mode ::= 'in' | 'in' 'out' | 'out'
+mode ::= ['in'] | 'in' 'out' | 'out'
+
+global_aspect_definition ::=
+    'null'
+  | 'unspecified'  ;; FIXME: new keyword? redundant with IDENTIFIER?
+  | global_mode global_designator
+  |  '(' global_aspect_element{ ','  global_aspect_element} ')'
+  | extended_global_aspect_definition
+
+global_aspect_element ::=
+    global_mode global_set
+  | extended_global_aspect_element
+
+global_mode ::=
+    basic_global_mode
+  | extended_global_mode
+
+basic_global_mode ::= 'in' | 'in' 'out' | 'out'
+
+global_set ::= name { ','  name}
+
+global_designator ::= 'all' | 'synchronized' | name
+
+;; global_name ::= name | name ;; inlined to "name"
 
 subprogram_body ::=
   [overriding_indicator]
@@ -864,13 +938,21 @@ subprogram_body ::=
   handled_sequence_of_statements
   'end' [name]';'
 
-procedure_call_statement ::= name ';' ;; [actual_parameter_part] redundant with name
+procedure_call_statement ::=
+    name ';'
+      ;; name actual_parameter_part ';' ;; redundant with function_call in name
+
+function_call ::=
+    ;; name ;; redundant with "name"
+    name actual_parameter_part
 
 actual_parameter_part ::= '(' parameter_association {',' parameter_association} ')'
 
 parameter_association ::= [selector_name '=>'] explicit_actual_parameter
 
-explicit_actual_parameter ::= expression ;; | name redundant with expression
+explicit_actual_parameter ::=
+    expression
+      ;; name ;; redundant with expression
 
 simple_return_statement ::= 'return' [expression]';'
 
@@ -923,7 +1005,7 @@ renaming_declaration ::=
   | generic_renaming_declaration
 
 object_renaming_declaration ::=
-    IDENTIFIER ':' [null_exclusion] name 'renames' name [aspect_specification]';'
+    IDENTIFIER [':' [null_exclusion] name] 'renames' name [aspect_specification]';'
   | IDENTIFIER ':' access_definition 'renames' name [aspect_specification]';'
 
 exception_renaming_declaration ::= IDENTIFIER ':' 'exception' 'renames' name [aspect_specification]';'
@@ -981,29 +1063,29 @@ protected_operation_item ::=
   | entry_body
   | aspect_clause
 
+;; synchronization_kind ::= By_Entry | By_Protected_Procedure | Optional ;; not used in the grammar
+
 entry_declaration ::=
-    [overriding_indicator] 'entry' IDENTIFIER ['('discrete_subtype_definition')'] [formal_part]
+    [overriding_indicator] 'entry' IDENTIFIER ['('discrete_subtype_definition')'] parameter_profile
     [aspect_specification]';'
 
 accept_statement ::=
-    'accept' direct_name ['('entry_index')'] [formal_part]
+    'accept' direct_name ['('entry_index')'] parameter_profile
     ['do' handled_sequence_of_statements 'end' [IDENTIFIER]] ';'
 
 entry_index ::= expression
 
 entry_body ::=
-    'entry' IDENTIFIER [entry_body_formal_part] entry_barrier 'is' declarative_part 'begin'
+    'entry' IDENTIFIER entry_body_formal_part [aspect_specification] entry_barrier 'is' declarative_part 'begin'
     handled_sequence_of_statements 'end' [IDENTIFIER]';'
 
-entry_body_formal_part ::=
-    '(' entry_index_specification ')' [formal_part]
-    ['('entry_index_specification')'] formal_part
+entry_body_formal_part ::= ['('entry_index_specification')'] parameter_profile
 
 entry_barrier ::= 'when' condition
 
 entry_index_specification ::= 'for' IDENTIFIER 'in' discrete_subtype_definition
 
-;; entry_call_statement ::= name [actual_parameter_part] ';' ;; redundant with procedure_call_statement
+;; entry_call_statement ::= name [actual_parameter_part] ';' ;; deleted; redundant with procedure_call_statement
 
 requeue_statement ::= 'requeue' name ['with' 'abort'] ';'
 
@@ -1040,17 +1122,15 @@ timed_entry_call ::= 'select' entry_call_alternative 'or' delay_alternative 'end
 
 entry_call_alternative ::= procedure_call_statement [sequence_of_statements]
 
-;; procedure_or_entry_call ::= procedure_call_statement | entry_call_statement ;; just use procedure_call_statement
+;; procedure_or_entry_call ::= procedure_call_statement | entry_call_statement ;; inlined to procedure_call_statement
 
 conditional_entry_call ::= 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
 
 asynchronous_select ::= 'select' triggering_alternative 'then' 'abort' abortable_part 'end' 'select' ';'
 
-triggering_alternative ::=
-    procedure_call_statement [sequence_of_statements]
-  | delay_statement [sequence_of_statements]
+triggering_alternative ::= triggering_statement [sequence_of_statements]
 
-;; triggering_statement ::= procedure_or_entry_call | delay_statement ;; redundant with triggering_alternative
+triggering_statement ::= procedure_call_statement | delay_statement
 
 abortable_part ::= sequence_of_statements
 
@@ -1060,12 +1140,12 @@ compilation ::= {compilation_unit}
 
 ;; extended for partial parse, fragment parse
 compilation_unit ::=
-    with_clause
-  | ['private'] declarative_item
-  | statement
-;;  | library_item ;; All are in declarative_item
-  | subunit
-
+  ;; context_clause library_item ;; redundant; all are in declarative_item
+  ;; context_clause subunit ;; redundant
+    with_clause ;; new
+  | ['private'] declarative_item ;; new
+  | statement ;; new
+  | subunit ;; new
 
 ;; library_item ::=
 ;;     ['private'] library_unit_declaration
@@ -1085,7 +1165,7 @@ compilation_unit ::=
 
 ;; library_unit_body ::= subprogram_body | package_body
 
-;; parent_unit_name ::= name
+;; parent_unit_name ::= name ;; inlined
 
 ;; with_clause merged into compilation_unit; use_clause is already there via declarative_item
 ;; context_clause ::= context_item+
@@ -1154,18 +1234,24 @@ generic_actual_part ::= '(' generic_association {',' generic_association} ')'
 
 generic_association ::= [selector_name '=>'] explicit_generic_actual_parameter
 
-explicit_generic_actual_parameter ::= expression ;; | name | name redundant with expression
+explicit_generic_actual_parameter ::=
+    expression
+      ;; name ;; redundant <variable_>name
+      ;; name ;; redundant <subprogram_>name
+      ;; name ;; redundant <entry_>name
+      ;; name ;; redundant subtype_mark
+      ;; name ;; redundant <package_instance_>name
 
 formal_object_declaration ::=
-    defining_identifier_list ':' [mode] [null_exclusion] name [':=' default_expression] [aspect_specification]';'
-  | defining_identifier_list ':' [mode] access_definition [':=' default_expression] [aspect_specification]';'
+    defining_identifier_list ':' mode [null_exclusion] name [':=' default_expression] [aspect_specification]';'
+  | defining_identifier_list ':' mode access_definition [':=' default_expression] [aspect_specification]';'
 
 formal_type_declaration ::=
     formal_complete_type_declaration
   | formal_incomplete_type_declaration
 
 formal_complete_type_declaration ::=
-    'type' IDENTIFIER [discriminant_part] 'is' formal_type_definition [aspect_specification] ';'
+    'type' IDENTIFIER [discriminant_part] 'is' formal_type_definition [ 'or' 'use' name ] [aspect_specification] ';'
 
 formal_incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
 
@@ -1268,7 +1354,7 @@ first_bit ::= simple_expression
 
 last_bit ::= simple_expression
 
-;; code_statement ::= qualified_expression ';' duplicates procedure_call_statement
+;; code_statement ::= qualified_expression ';' ;; redundant with procedure_call_statement
 
 delta_constraint ::= 'delta' simple_expression [range_constraint]
 

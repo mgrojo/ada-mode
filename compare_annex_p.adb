@@ -30,8 +30,9 @@ is
 
    --  Usage: compare_annex_p <upstream.wy> <downstream.wy> [verbosity]
    --
-   --  upstream.wy is from ARM Annex P via annex_p_to_wy.adb
-   --  downstream.wy is the working verion, with grammar actions.
+   --  upstream.wy is from ARM Annex P via annex_p_to_wy.adb (converted
+   --  to unix line endings). downstream.wy is the working version, with
+   --  grammar actions.
 
    Upstream_WY_Source   : constant String := Ada.Command_Line.Argument (1);
    Downstream_WY_Source : constant String := Ada.Command_Line.Argument (2);
@@ -44,10 +45,12 @@ is
    type String_Array is array (Positive range <>) of Ada.Strings.Unbounded.String_Access;
 
    Exclude_Up_Nonterms : constant String_Array :=
-     --  These are replaced by regexp.
      (
+      --  These are replaced by regexp.
       new String'("CHARACTER_LITERAL"),
       new String'("IDENTIFIER"),
+      new String'("NUMERIC_LITERAL"),
+      new String'("STRING_LITERAL"),
       new String'("base"),
       new String'("based_literal"),
       new String'("based_numeral"),
@@ -59,13 +62,23 @@ is
       new String'("identifier_extend"),
       new String'("identifier_start"),
       new String'("numeral"),
-      new String'("numeric_literal"),
       new String'("string_element"),
-      new String'("string_literal"),
 
       --  These are redundant with something
+      new String'("entry_call_statement"),
       new String'("generalized_indexing"),
-      new String'("indexed_component")
+      new String'("indexed_component"),
+      new String'("library_item"),
+      new String'("library_unit_declaration"),
+      new String'("library_unit_renaming_declaration"),
+      new String'("library_unit_body"),
+      new String'("context_clause"),
+      new String'("context_item"),
+
+      --  These are not used in the grammar
+      new String'("highest_precedence_operator"),
+      new String'("logical_operator"),
+      new String'("synchronization_kind")
      );
 
    function Build_Inlined_Up_Nonterms return WisiToken.BNF.String_Pair_Lists.List
@@ -74,12 +87,19 @@ is
          Result.Append ((+"ancestor_part", +"expression"));
          Result.Append ((+"defining_character_literal", +"CHARACTER_LITERAL"));
          Result.Append ((+"defining_identifier", +"IDENTIFIER"));
+         Result.Append ((+"defining_designator", +"name"));
          Result.Append ((+"defining_operator_symbol", +"STRING_LITERAL"));
+         Result.Append ((+"defining_program_unit_name", +"name"));
+         Result.Append ((+"designator", +"name"));
          Result.Append ((+"generalized_reference", +"name"));
+         Result.Append ((+"global_name", +"name"));
          Result.Append ((+"implicit_dereference", +"name"));
          Result.Append ((+"operator_symbol", +"STRING_LITERAL"));
+         Result.Append ((+"parent_unit_name", +"name"));
          Result.Append ((+"prefix", +"name"));
+         Result.Append ((+"procedure_or_entry_call", +"procedure_call_statement"));
          Result.Append ((+"subtype_mark", +"name"));
+         --  Result.Append ((+""));
          --  Result.Append ((+""));
          --  Result.Append ((+""));
       end return;
@@ -227,6 +247,23 @@ begin
                         when 0 =>
                            Result := Result & Do_Inlined (Up_Text (Item));
 
+                        when 3 =>
+                           pragma Assert (Tree.ID (Tree.Child (Item, 1)) = +rhs_optional_item_ID);
+                           declare
+                              Children : constant Valid_Node_Index_Array := Tree.Children (Tree.Child (Item, 1));
+                           begin
+                              case Children'Length is
+                              when 3 | 4 =>
+                                 Result := Result & Up_Text (Children (1)) & " " & Get_Inlined (Children (2)) & " " &
+                                   Up_Text (Children (3)) &
+                                   (if Children'Length = 4 then Up_Text (Children (4)) else "");
+                              when 2 =>
+                                 Result := Result & Do_Inlined (Up_Text (Children (1))) & " " & Up_Text (Children (2));
+                              when others =>
+                                 raise SAL.Programmer_Error;
+                              end case;
+                           end;
+
                         when 4 =>
                            pragma Assert (Tree.ID (Tree.Child (Item, 1)) = +rhs_multiple_item_ID);
                            declare
@@ -244,9 +281,10 @@ begin
                               end case;
                            end;
 
-                        when 1 | 2 | 3 | 5 =>
-                           --  So far no nested optional or group
+                        when 1 | 2 | 5 =>
+                           --  So far no nested group
                            Result := Result & Up_Text (Item);
+
                         when others =>
                            raise SAL.Programmer_Error;
                         end case;
@@ -352,8 +390,8 @@ begin
                for Tok of Non_Grammar loop
                   if Tok.ID = +COMMENT_ID then
                      declare
-                        Line : constant String := Downstream_Parser.Lexer.Buffer_Text (Tok.Byte_Region);
-                        Red_Index : constant Integer := Index (Line, Red_Pattern);
+                        Line          : constant String  := Downstream_Parser.Lexer.Buffer_Text (Tok.Byte_Region);
+                        Red_Index     : constant Integer := Index (Line, Red_Pattern);
                         Comment_Index : constant Integer := Index (Line, ";;");
                      begin
                         if Red_Index = 0 then
@@ -370,6 +408,54 @@ begin
             end;
          end Get_Redundant;
 
+         function Handle_Extra (RHS : in Valid_Node_Index) return String
+         is
+            use Ada.Strings.Fixed;
+            --  For example, upstream 'expression' has:
+            --
+            --  expression ::=
+            --      relation {'and' relation}
+            --
+            --  Downstream has:
+            --
+            --  expression ::=
+            --      relation ;; new to reduce conflicts
+            --    | relation {'and' relation}-        ;; extra -
+
+            Extra_Pattern : constant String := ";; extra";
+
+            RHS_Text : constant String := Down_Text (RHS);
+            Last     : Integer         := RHS_Text'Last;
+
+            Aug : constant Base_Token_Class_Access := Tree.Augmented (Tree.Last_Terminal (RHS));
+         begin
+            if Aug = null then
+               return RHS_Text;
+            end if;
+            declare
+               Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames WisiToken_Grammar_Runtime.Augmented_Token_Access
+                 (Aug).Non_Grammar;
+            begin
+               for Tok of Non_Grammar loop
+                  if Tok.ID = +COMMENT_ID then
+                     declare
+                        Comment_Text : constant String  := Downstream_Parser.Lexer.Buffer_Text (Tok.Byte_Region);
+                        Extra_Index  : constant Integer := Index (Comment_Text, Extra_Pattern);
+                     begin
+                        if Extra_Index = 0 then
+                           null;
+                        else
+                           Last := Last - (Comment_Text'Last - Extra_Index - Extra_Pattern'Length) - 1;
+                           --  - 1 for trailing space.
+                           exit;
+                        end if;
+                     end;
+                  end if;
+               end loop;
+            end;
+            return RHS_Text (RHS_Text'First .. Last);
+         end Handle_Extra;
+
       begin
          Get_Redundant (Children (2)); -- original first RHS, after '::='
 
@@ -377,7 +463,7 @@ begin
             if Is_New (RHS) then
                null;
             else
-               Result := Result & (if Need_Bar then " | " else "") & Down_Text (RHS);
+               Result := Result & (if Need_Bar then " | " else "") & Handle_Extra (RHS);
                Need_Bar := True;
                Get_Redundant (RHS);
             end if;
