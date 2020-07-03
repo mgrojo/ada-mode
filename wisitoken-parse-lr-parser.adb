@@ -1092,12 +1092,12 @@ package body WisiToken.Parse.LR.Parser is
       end;
    end Parse;
 
-   overriding function Tree (Shared_Parser : in Parser) return Syntax_Trees.Tree
+   overriding function Tree (Shared_Parser : aliased in Parser) return Syntax_Trees.Tree_Constant_Reference
    is begin
       if Shared_Parser.Parsers.Count > 1 then
          raise WisiToken.Parse_Error with "ambigous parse";
       else
-         return Shared_Parser.Parsers.First_State_Ref.Tree;
+         return (Element => Shared_Parser.Parsers.First_State_Ref.Tree'Access);
       end if;
    end Tree;
 

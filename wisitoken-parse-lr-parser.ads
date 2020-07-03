@@ -147,7 +147,7 @@ package WisiToken.Parse.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
-   overriding function Tree (Shared_Parser : in Parser) return Syntax_Trees.Tree;
+   overriding function Tree (Shared_Parser : aliased in Parser) return Syntax_Trees.Tree_Constant_Reference;
    overriding function Tree_Var_Ref (Shared_Parser : aliased in out Parser) return Syntax_Trees.Tree_Variable_Reference;
    --  If there is one parser in Parsers, return its tree. Otherwise,
    --  raise Parse_Error for an ambiguous parse.

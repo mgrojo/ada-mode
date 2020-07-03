@@ -71,7 +71,10 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
-   overriding function Tree (Parser : in LR.Parser_No_Recover.Parser) return Syntax_Trees.Tree;
+   overriding
+   function Tree
+     (Parser : aliased in LR.Parser_No_Recover.Parser)
+     return Syntax_Trees.Tree_Constant_Reference;
 
    overriding
    function Tree_Var_Ref

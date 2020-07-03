@@ -64,11 +64,15 @@ package WisiToken.Parse is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
-   function Tree (Parser : in Base_Parser) return Syntax_Trees.Tree is abstract;
+   function Tree (Parser : aliased in Base_Parser) return Syntax_Trees.Tree_Constant_Reference is abstract;
    --  Return the syntax tree resulting from the parse.
+   --
+   --  If the parse was ambiguous, raises Parse_Error.
 
    function Tree_Var_Ref (Parser : aliased in out Base_Parser) return Syntax_Trees.Tree_Variable_Reference is abstract;
    --  Return a writable reference to the syntax tree resulting from the parse.
+   --
+   --  If the parse was ambiguous, raises Parse_Error.
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

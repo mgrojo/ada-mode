@@ -504,12 +504,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end if;
    end Execute_Actions;
 
-   overriding function Tree (Parser : in LR.Parser_No_Recover.Parser) return Syntax_Trees.Tree
+   overriding
+   function Tree
+     (Parser : aliased in LR.Parser_No_Recover.Parser)
+     return Syntax_Trees.Tree_Constant_Reference
    is begin
       if Parser.Parsers.Count > 1 then
          raise WisiToken.Parse_Error with "ambigous parse";
       else
-         return Parser.Parsers.First_State_Ref.Tree;
+         return (Element => Parser.Parsers.First_State_Ref.Tree'Access);
       end if;
    end Tree;
 
