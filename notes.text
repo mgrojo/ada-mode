@@ -27,123 +27,34 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-key only needs to contain kernel
-    ada_lite t1 parse table ok
-    time ada.wy
-
-algorithm.tex:
-    super needs C_Tree to compute unique state numbers.
-    w workers
-    worker gets N states, returns M new
-    of which Md are also found by other workers before wi are processed
-    super searches/inserts M states in 1 trees, (M - Md) in w trees.
-    when average M << N (later in process), worker search dominates super insert => parallel wins,
-    when average M >> N, super insert into w workers dominates worker search
-    ada.wy states: 469_463
-        rows:     113; initial item sets time: 178.?
-        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
-        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
-        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
-        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
-        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
-
-output min_complete fraction in .parse_table - changed when recursion blew up?
-
-Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
-
-
-need gnat-prep for tree-sitter
-    most devels won't have it
-
-add tree-sitter parser, lexer
-    tree-sitter still not getting comments right
-        try updating tree-sitter from github
-        try 'tree-sitter parse'
-
-    tree-sitter generate supposed to report conflicts
-        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
-
-    translate tree-sitter parse tree to wisitoken?
-        api.h has root, node_children,  etc.
-
-    time parts of generate tree_sitter; seems slow on ada_annex_p
-
-    need to_grammar for actions
-        which needs all tokens defined
-        and is done before translate_to_tree_sitter is done
-        so do subset of translate_to_bnf
-            allow to_grammar to call execute_actions and declare the tokens.
-            preserve token numbers for actions
-            build the actions
-
-improve bnf generation
-    copy/preserve trailing comments on ebnf nodes
-        ada_ebnf.wy ";; end of file"
-        python_ebnf_bnf.wy
-            atom: forced terminating semicolon should be before trailing comment
-
-    java_ebnf.wy Statement
-        inline expand ()
-
-    java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
-        requires adding 'empty' to Annotation_list instead of inserting optional rhs
-        or first phase of extracting common sequences.
-
-    python.wy
-        decorated: decorators (classdef | funcdef | async_funcdef)
-            expand group locally
-            helps if user needs to copy bnf output to .wy for actions
-
-        testlist_star_expr use names from alt_list for nonterminal
-
-        try_stmt: indent +1 for paren
-
-        classdef: don't copy newline in insert_optional?
-
-separate pass to eliminate single-token productions
-    ada_annex_p explicit_generic_actual_parameter ::= expression
-    also have to edit conflicts, or user will be confused
-    output substitutions so user can do them
-
-write INDENT, DEDENT as re2c code
-
-delete descriptor.case_insensitive?
-    used in regexp lexer?
-    move to lexer?
-
-syntax_trees.Replace_Child
-    update cached data as in Set_Children
-
--explore.check
-         --  FIXME: if there were conflicts, enqueue them; they might yield a
-         --  cheaper or same cost solution?
-         same code as fast_forward; just use that?
-
-        see if parsing all affects any tests
-
-        item.shift_count not used
-
-String_literal, numeric_literal, identifier are equivalent - only insert one
-    minimal_complete does this for expression
-
-test/ada_mode-recover_31.adb
-    language_fixes changes char_literal '|-' to string_literal; ok for first call on real error
-
-    but later, it gets a config where Error_Token is set by Parse.Parse
-        with min_terminal_index = invalid_token_index, virtual = true
-
-    because in Parse.Parse_One_Item, Current_Token is a Base_Token, which does not have Token_Index
-        use parser_state.current_shared_token?
-        or change Current_Token to Recover_Token?
-
-redesign parse table to speed recovery
-    group identical reduce actions
-        ada_mode-recover_02.adb
-        only do each reduce once, then insert lots of terminals
-
-rename "semantic checks" to "in-parse actions", others to "post-parse actions".
-
 error_correction_algorithm.tex
+    need title
+        \title, \author not working!?
+
+    get mckenzie log of figure 3 recursive_length_after_dot
+        minimal_complete_recursive_length_after_dot.java_exp_ch19
+        treatment of recursion changed since that text was written
+
+    recursion in minimal_complete
+        Here the production is labeled \code{recursive}, because it is part of
+        a recursion cycle in the grammar. The grammar in this example is a
+        subset of Java; the productions involved in this recursion cycle are:
+        \begin{verbatim}
+        Assignment           <= LeftHandSide ^ EQUAL Expression
+        Expression           <= LambdaExpression  | AssignmentExpression
+        AssignmentExpression <= AdditiveExpression | Assignment
+        \end{verbatim}
+        This says that an \code{Expression} in this grammar can be \code{A :=
+          B := C := 1}. Thus it makes no sense for \code{Minimal\_Complete} to
+        insert \code{:=}; that will never result in a minimal length. In
+        general, recursive productions are never minimal length, so
+        \code{Minimal\_Complete} drops them when computing the actions, unless
+        all the productions in a kernel are recursive. Then the recursion is
+        ignored, and all the actions are queued; one of the later states will
+        break the recursion. Note that since we normally set
+        the cost of a \code{Minimal\_Complete} step negative, we cannot rely
+        on cost to eliminate recursive productions.
+
     full vs partial_recursion
         java_expressions_antlr_lr1
         full:
@@ -225,6 +136,117 @@ error_correction_algorithm.tex
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
      Stefan Monnier paper on SMIE in  https://programming-journal.org/
+
+LR1 algorithm.tex:
+    super needs C_Tree to compute unique state numbers.
+    w workers
+    worker gets N states, returns M new
+    of which Md are also found by other workers before wi are processed
+    super searches/inserts M states in 1 trees, (M - Md) in w trees.
+    when average M << N (later in process), worker search dominates super insert => parallel wins,
+    when average M >> N, super insert into w workers dominates worker search
+    ada.wy states: 469_463
+        rows:     113; initial item sets time: 178.?
+        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
+        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
+        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
+        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
+        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
+
+output min_complete fraction in .parse_table - changed when recursion blew up?
+
+Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
+
+need gnat-prep for tree-sitter
+    most devels won't have it
+
+add tree-sitter parser, lexer
+    tree-sitter still not getting comments right
+        try updating tree-sitter from github
+        try 'tree-sitter parse'
+
+    tree-sitter generate supposed to report conflicts
+        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
+
+    translate tree-sitter parse tree to wisitoken?
+        api.h has root, node_children,  etc.
+
+    time parts of generate tree_sitter; seems slow on ada_annex_p
+
+    need to_grammar for actions
+        which needs all tokens defined
+        and is done before translate_to_tree_sitter is done
+        so do subset of translate_to_bnf
+            allow to_grammar to call execute_actions and declare the tokens.
+            preserve token numbers for actions
+            build the actions
+
+improve bnf generation
+    copy/preserve trailing comments on ebnf nodes
+        ada_ebnf.wy ";; end of file"
+        python_ebnf_bnf.wy
+            atom: forced terminating semicolon should be before trailing comment
+
+    java_ebnf.wy Statement
+        inline expand ()
+
+    java_types_ch19.wy Dims top level is canonical list, list_element = Annotation_list LEFT_BRACKET RIGHT_BRACKET
+        requires adding 'empty' to Annotation_list instead of inserting optional rhs
+        or first phase of extracting common sequences.
+
+    python.wy
+        decorated: decorators (classdef | funcdef | async_funcdef)
+            expand group locally
+            helps if user needs to copy bnf output to .wy for actions
+
+        testlist_star_expr use names from alt_list for nonterminal
+
+        try_stmt: indent +1 for paren
+
+        classdef: don't copy newline in insert_optional?
+
+   separate pass to eliminate single-token productions
+       ada_annex_p explicit_generic_actual_parameter ::= expression
+       also have to edit conflicts, or user will be confused
+       output substitutions so user can do them
+
+write Python INDENT, DEDENT as re2c code
+
+delete descriptor.case_insensitive?
+    used in regexp lexer?
+    move to lexer?
+
+syntax_trees.Replace_Child
+    update cached data as in Set_Children
+
+-explore.check
+         --  FIXME: if there were conflicts, enqueue them; they might yield a
+         --  cheaper or same cost solution?
+         same code as fast_forward; just use that?
+
+        see if parsing all affects any tests
+
+        item.shift_count not used
+
+String_literal, numeric_literal, identifier are equivalent - only insert one
+    minimal_complete does this for expression
+
+test/ada_mode-recover_31.adb
+    language_fixes changes char_literal '|-' to string_literal; ok for first call on real error
+
+    but later, it gets a config where Error_Token is set by Parse.Parse
+        with min_terminal_index = invalid_token_index, virtual = true
+
+    because in Parse.Parse_One_Item, Current_Token is a Base_Token, which does not have Token_Index
+        use parser_state.current_shared_token?
+        or change Current_Token to Recover_Token?
+
+redesign parse table to speed recovery
+    group identical reduce actions
+        ada_mode-recover_02.adb
+        only do each reduce once, then insert lots of terminals
+
+rename "semantic checks" to "in-parse actions", others to "post-parse actions".
 
 wisitoken user guide mention concrete syntax tree
 
