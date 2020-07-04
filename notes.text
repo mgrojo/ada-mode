@@ -43,10 +43,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-compare_annex_p
-    terminal semicolons make parse faster?
-    ada_annex_p_txt.wy no semicolons: per iteration: 1.957165633
-    with semicolons: 1.219159486 not good enough; set partial-parse-threshold lower
+ada_annex_p.wy
+    elminate conflicts
+    some done:
+72 states with conflicts
+ 0 accept/reduce conflicts, 81 shift/reduce conflicts, 35 reduce/reduce conflicts
+ 364 rules, 0 user actions, 0 checks, 2717 states
 
 speed up lr1 generate
     share single c_tree; avoid updating 8 copies
