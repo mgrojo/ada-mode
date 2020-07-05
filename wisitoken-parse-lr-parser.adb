@@ -790,6 +790,10 @@ package body WisiToken.Parse.LR.Parser is
 
                         New_Line (Shared_Parser.Recover_Log_File);
                         Flush (Shared_Parser.Recover_Log_File);
+                     exception
+                     when others =>
+                        New_Line (Shared_Parser.Recover_Log_File);
+                        Flush (Shared_Parser.Recover_Log_File);
                      end;
                   end if;
                else

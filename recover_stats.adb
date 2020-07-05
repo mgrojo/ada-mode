@@ -118,16 +118,12 @@ begin
             return Boolean'Value (Line (First .. Last));
          end Next_Boolean;
 
-         function Read_Strat_Counts (Strategy_Found : out Boolean) return Strategy_Counts
+         function Read_Strat_Counts return Strategy_Counts
          is begin
-            Strategy_Found := False;
             Last := Index (Line, "(", Last + 1);
-            return Result : Strategy_Counts do
+            return Result : Strategy_Counts := (others => 0) do
                for I in Strategies loop
                   Result (I) := Next_Integer;
-                  if Result (I) > 0 then
-                     Strategy_Found := True;
-                  end if;
                end loop;
                Last := 1 + Index (Line, ")", Last + 1);
             end return;
@@ -145,7 +141,7 @@ begin
          First := Last + 1;
          if Line (First .. First + 3) = "FAIL" then
             Summary (Label).Fail_Event_Count := Summary (Label).Fail_Event_Count + 1;
-            First := First + 4;
+            First := First + 5;
 
             if Line_Eq ("NO_CONFIGS_LEFT") then
                Summary (Label).Fail_No_Configs_Left := Summary (Label).Fail_No_Configs_Left + 1;
@@ -160,11 +156,11 @@ begin
          else
             --  Process per-parser data
             Last := Index (Line, "(", Last + 1);
+            One_Line :
             loop
-               exit when Line (Last + 1) = ')';
+               exit One_Line when Line (Last + 1) = ')';
                declare
-                  Strategy_Found : Boolean;
-                  Strat_Counts   : constant Strategy_Counts := Read_Strat_Counts (Strategy_Found);
+                  Strat_Counts   : constant Strategy_Counts := Read_Strat_Counts;
                   Enqueue_Count  : constant Integer         := Next_Integer;
                   Check_Count    : constant Integer         := Next_Integer;
                   Success        : constant Boolean         := Next_Boolean;
@@ -172,24 +168,41 @@ begin
                begin
                   Summary (Label).Recover_Count_Present := Summary (Label).Recover_Count_Present + 1;
 
-                  if not Strategy_Found then
-                     raise SAL.Programmer_Error;
-                  else
-                     Summary (Label).Enqueue_Stats.Accumulate (Long_Float (Enqueue_Count));
-                     Summary (Label).Check_Stats.Accumulate (Long_Float (Check_Count));
-                     for I in Strategies loop
-                        Summary (Label).Recover_Count_Total    :=
+                  Summary (Label).Enqueue_Stats.Accumulate (Long_Float (Enqueue_Count));
+                  Summary (Label).Check_Stats.Accumulate (Long_Float (Check_Count));
+                  for I in Strategies loop
+                     if Strat_Counts (I) > 20 then
+                        --  Something got garbled
+                        Put_Line (Standard_Error, "strat_counts error: line" &
+                                    Ada.Text_IO.Count'Image (Ada.Text_IO.Line (File) - 1) &
+                                    Strat_Counts (I)'Image);
+                        exit One_Line;
+                     else
+                        Summary (Label).Recover_Count_Total :=
                           Summary (Label).Recover_Count_Total + Strat_Counts (I);
+
                         Summary (Label).Strat_Counts_Total (I) :=
                           Summary (Label).Strat_Counts_Total (I) + Strat_Counts (I);
+
                         if Strat_Counts (I) > 0 then
                            Summary (Label).Strat_Counts_Present (I) := Summary (Label).Strat_Counts_Present (I) + 1;
                         end if;
-                     end loop;
-                  end if;
+                     end if;
+                  end loop;
                end;
-            end loop;
+            end loop One_Line;
          end if;
+
+         if Summary (Label).Event_Count mod 1000 = 0 then
+            Put_Line (Standard_Error,
+                      "line:" & Ada.Text_IO.Count'Image (Ada.Text_IO.Line (File) - 1) & " " &
+                     Summary (Label).Recover_Count_Total'Image);
+         end if;
+      exception
+      when E : Constraint_Error =>
+         --  a line got garbled by a glitch; go on to the next
+         Put_Line (Standard_Error, "CONSTRAINT_ERROR: line" & Ada.Text_IO.Count'Image (Ada.Text_IO.Line (File) - 1) &
+                     " " & Ada.Exceptions.Exception_Message (E));
       end;
    end loop;
 
