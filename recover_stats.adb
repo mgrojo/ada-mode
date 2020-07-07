@@ -136,10 +136,10 @@ begin
             Label := Partial;
          end if;
 
-         Summary (Label).Event_Count := Summary (Label).Event_Count + 1;
-
          First := Last + 1;
          if Line (First .. First + 3) = "FAIL" then
+            Summary (Label).Event_Count := Summary (Label).Event_Count + 1;
+
             Summary (Label).Fail_Event_Count := Summary (Label).Fail_Event_Count + 1;
             First := First + 5;
 
@@ -159,6 +159,9 @@ begin
             One_Line :
             loop
                exit One_Line when Line (Last + 1) = ')';
+               Summary (Label).Event_Count := Summary (Label).Event_Count + 1;
+               --  One event per parser, so event_count > strategy_count
+
                declare
                   Strat_Counts   : constant Strategy_Counts := Read_Strat_Counts;
                   Enqueue_Count  : constant Integer         := Next_Integer;
