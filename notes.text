@@ -27,11 +27,163 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-key only needs to contain kernel
-    ada_lite t1 parse table ok
-    time ada.wy
+error_correction_algorithm.tex
+    why does left recursion prevent minimal action when dot is not 1?
+        ada_mode-recover_13.adb
+            object_declaration missing ';' - libadalang gets it right.
+            object_declaration is other_left recursive because of identifier_list
+            ada_lite does not have that
+            no good examples in java either
 
-algorithm.tex:
+        add identifier_list to ada_lite, allow minimal_action
+
+    finish "results"
+        two metrics; correction attempts succeed/fail, with strategy counts
+            c:/Projects/org.emacs.ada-mode/recover.log
+2020-06-11 - 2020-07-04
+FULL
+present/total: 41514 / 462343
+           mean        std. dev.    min     max
+Enqueue: (    796.3,    2151.3,       1.0,   60147.0)
+Check:   (     61.8,     169.3,       1.0,    5496.0)
+FAIL                    =>     1197  3%
+FAIL_ENQUEUE_LIMIT      =>     1126  3%
+FAIL_PROGRAMMER_ERROR   =>       71  0%
+IGNORE_ERROR               2130  1% /    2207  0%
+LANGUAGE_FIX              11138  6% /   17155  4%
+MINIMAL_COMPLETE         151977 78% /  242890 53%
+MATCHING_BEGIN             2848  1% /    2849  1%
+PUSH_BACK                 13694  7% /   14378  3%
+UNDO_REDUCE                7491  4% /   12882  3%
+INSERT                   141629 72% /  147617 32%
+DELETE                    18557  9% /   19716  4%
+STRING_QUOTE               2615  1% /    2649  1%
+
+PARTIAL
+present/total: 12830 / 69507
+           mean        std. dev.    min     max
+Enqueue: (    922.6,    1774.1,       4.0,   49286.0)
+Check:   (     78.5,     148.0,       2.0,    4201.0)
+FAIL                    =>       16  0%
+FAIL_ENQUEUE_LIMIT      =>       16  0%
+IGNORE_ERROR                850  5% /     850  1%
+LANGUAGE_FIX                356  2% /     669  1%
+MINIMAL_COMPLETE          14579 77% /   54300 78%
+MATCHING_BEGIN             2355 13% /    2522  4%
+PUSH_BACK                  1019  5% /    1083  2%
+UNDO_REDUCE                 544  3% /     730  1%
+INSERT                     6076 32% /    7801 11%
+DELETE                     1266  7% /    1541  2%
+STRING_QUOTE                 11  0% /      11  0%
+
+
+        difference between desired and found terminal sequence file_count: 59
+            wisitoken-recover-compare:  total size: 14054
+            libadalang-recover-compare: total size: 60069
+
+        libadalang better:
+            recover_02, recover_13 (perfect)
+
+    need title
+        \title, \author not working!?
+
+    recursion in minimal_complete
+        Here the production is labeled \code{recursive}, because it is part of
+        a recursion cycle in the grammar. The grammar in this example is a
+        subset of Java; the productions involved in this recursion cycle are:
+        \begin{verbatim}
+        Assignment           <= LeftHandSide ^ EQUAL Expression
+        Expression           <= LambdaExpression  | AssignmentExpression
+        AssignmentExpression <= AdditiveExpression | Assignment
+        \end{verbatim}
+        This says that an \code{Expression} in this grammar can be \code{A :=
+          B := C := 1}. Thus it makes no sense for \code{Minimal\_Complete} to
+        insert \code{:=}; that will never result in a minimal length. In
+        general, recursive productions are never minimal length, so
+        \code{Minimal\_Complete} drops them when computing the actions, unless
+        all the productions in a kernel are recursive. Then the recursion is
+        ignored, and all the actions are queued; one of the later states will
+        break the recursion. Note that since we normally set
+        the cost of a \code{Minimal\_Complete} step negative, we cannot rely
+        on cost to eliminate recursive productions.
+
+
+    forbid push_back:
+        if push_back over insert/delete, get duplicate results
+        can push_back into fast-forward:
+            1 do large push_back, insert/delete there
+            2 fast forward to orig error point
+            3 do small push_back, insert/delete there
+                useful for fixing 'end *;' errors in Ada.
+                t_mck Error_3.
+
+    doc Just_Pushed_Back_Or_Deleted
+        required because do insert last
+        try_delete also checks for just_inserted
+        check multiple ops
+        duplicate_state does not eliminate these because '(delete
+            end)(insert end)' replaces a real token with a virtual
+            token, which changes the buffer region on the nonterms.
+
+    explain check_reduce_to_start
+
+    In Check, "made some progress" does _not_ mean "closer to
+    Resume_Token_Goal than _original_ config"; it means "moved away
+    from the edit point".
+        if the "progress" is only shifting tokens that were previously
+        pushed_back, that's a waste. Which is why we don't check
+        configs that would lead to that.
+
+    redo examples with partial recursion
+        causes problems?
+
+    doc Minimal_Complete done?
+
+    see comments in .tex file
+
+    test and/or prove Nullable
+
+    redo ada-mode/test compare using lr1 for wisitoken-tokens
+        wisitoken both ada.wy and ada_annex_p.wy
+        Bison?
+        add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
+        add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
+            has python parser
+            java?
+            add ada parser, both ada.wy and ada_annex_p.wy
+
+    compare size of ada_lr1.txt
+
+    compare speed of recover
+
+    LALR vs LR1
+        test_mckenzie_recover
+            String_Quote_2
+            String_Quote_5
+            Two_Missing_Ends enqueue 50 vs 101
+            Do_Delete_First 280 vs 202
+            Two_Parsers 18 vs 55
+            Match_Selected_Component_1
+
+    Get Ludovic to enable --recover-log, publish real data from production environment.
+
+   - search Google scholar for partial parse
+
+   - ask for review
+     - Stefan Monnier
+     - Emmanual Briot
+     - adacore adalang people
+     - Laurent? peg/packrat expert
+
+    try to present code, more detail on algorithm?
+        or just refer to full code?
+
+   - publish in some ACM journal?
+     McKenzie in ACM Transactions on Programming Languages and Systems
+     Fischer/Mauney in  Acta Informatica Springer
+     Stefan Monnier paper on SMIE in  https://programming-journal.org/
+
+LR1 algorithm.tex:
     super needs C_Tree to compute unique state numbers.
     w workers
     worker gets N states, returns M new
@@ -50,7 +202,6 @@ algorithm.tex:
 output min_complete fraction in .parse_table - changed when recursion blew up?
 
 Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
-
 
 need gnat-prep for tree-sitter
     most devels won't have it
@@ -100,12 +251,12 @@ improve bnf generation
 
         classdef: don't copy newline in insert_optional?
 
-separate pass to eliminate single-token productions
-    ada_annex_p explicit_generic_actual_parameter ::= expression
-    also have to edit conflicts, or user will be confused
-    output substitutions so user can do them
+   separate pass to eliminate single-token productions
+       ada_annex_p explicit_generic_actual_parameter ::= expression
+       also have to edit conflicts, or user will be confused
+       output substitutions so user can do them
 
-write INDENT, DEDENT as re2c code
+write Python INDENT, DEDENT as re2c code
 
 delete descriptor.case_insensitive?
     used in regexp lexer?
@@ -142,89 +293,6 @@ redesign parse table to speed recovery
         only do each reduce once, then insert lots of terminals
 
 rename "semantic checks" to "in-parse actions", others to "post-parse actions".
-
-error_correction_algorithm.tex
-    full vs partial_recursion
-        java_expressions_antlr_lr1
-        full:
-            state 34 mca => RPAREN 30.4
-            state 56, 126, 140 Minimal_Complete_Action => (RPAREN 30.4, DOT 31.4)
-        partial
-            state 34 mca => (RPAREN 30.4, DOT 31.4)
-            state 56, 126140    Minimal_Complete_Action => RPAREN 30.4
-                31.4 appears to be other_left
-
-    forbid push_back:
-        if push_back over insert/delete, get duplicate results
-        can push_back into fast-forward:
-            1 do large push_back, insert/delete there
-            2 fast forward to orig error point
-            3 do small push_back, insert/delete there
-                useful for fixing 'end *;' errors in Ada.
-                t_mck Error_3.
-
-    doc Just_Pushed_Back_Or_Deleted
-        required because do insert last
-        try_delete also checks for just_inserted
-        check multiple ops
-        duplicate_state does not eliminate these because '(delete
-            end)(insert end)' replaces a real token with a virtual
-            token, which changes the buffer region on the nonterms.
-
-    explain check_reduce_to_start
-
-    In Check, "made some progress" does _not_ mean "closer to
-    Resume_Token_Goal than _original_ config"; it means "moved away
-    from the edit point".
-        if the "progress" is only shifting tokens that were previously
-        pushed_back, that's a waste. Which is why we don't check
-        configs that would lead to that.
-
-    redo examples with partial recursion
-        causes problems?
-
-    doc Minimal_Complete done?
-
-    see comments in .tex file
-
-    test and/or prove Nullable
-
-    redo compare using lr1 for wisitoken-tokens
-        wisitoken both ada.wy and ada_annex_p.wy
-        Bison?
-        add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
-        add tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
-            has python parser
-            java?
-            add ada parser, both ada.wy and ada_annex_p.wy
-
-    compare size of ada_lr1.txt
-
-    compare speed of recover
-
-    LALR vs LR1
-        test_mckenzie_recover
-            String_Quote_2
-            String_Quote_5
-            Two_Missing_Ends enqueue 50 vs 101
-            Do_Delete_First 280 vs 202
-            Two_Parsers 18 vs 55
-            Match_Selected_Component_1
-
-    Get Ludovic to enable --recover-log, publish real data from production environment.
-
-   - search Google scholar for partial parse
-
-   - ask for review
-     - Stefan Monnier
-     - Emmanual Briot
-     - adacore adalang people
-     - Laurent? peg/packrat expert
-
-   - publish in some ACM journal?
-     McKenzie in ACM Transactions on Programming Languages and Systems
-     Fischer/Mauney in  Acta Informatica Springer
-     Stefan Monnier paper on SMIE in  https://programming-journal.org/
 
 wisitoken user guide mention concrete syntax tree
 

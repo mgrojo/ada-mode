@@ -34,7 +34,8 @@ package body WisiToken.Generate is
       use Ada.Strings;
    begin
       return Simple_Name (File_Name) & ":" &
-        Trim (Line_Number_Type'Image (File_Line), Left) & ":0: " & Message;
+        Trim (Line_Number_Type'Image (File_Line), Left) & ":1: " & Message;
+      --  Column number is 1 origin in Gnu error messages [gnu_coding]
    end Error_Message;
 
    procedure Put_Error (Message : in String)

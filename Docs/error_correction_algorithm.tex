@@ -4,6 +4,10 @@
 \usepackage{float}
 \usepackage{listings}
 \lstset{escapeinside={\%*}{*)}, language=Ada}
+
+% we'd like to use 'hyperref' for clickable citation links in PDF, but
+% that conflicts with 'listings \lstinline'
+
 \title{Robust error correction in a generalized LR parser}
 \author{Stephen Leake}
 
@@ -15,14 +19,14 @@
 \section{Introduction}
 Emacs Ada mode has used an LR parser to support indentation, syntax
 highlighting, and navigation since 2013 \cite{Emacs Ada mode news}.
-However, the parser did not provide error correction, so the
-indentation was often confusing when the syntax was incorrect, as it
-usually is in an interactive editing environment. This motivated the
-search for error correction algorithms.
+However, the parser did not provide error correction, so indentation
+was often confusing when the syntax was incorrect, as it usually is in
+an interactive editing environment. This motivated the search for
+error correction algorithms.
 
-Grune \cite{Grune 2008} provides a thorough overview of error correction in
-LR and LL parsers. Of those algorithms presented, McKenzie \cite{McKenzie 1995}
-provides the foundation for the current work.
+Grune \cite{Grune 2008} provides a thorough overview of error
+correction algorithms in LR and LL parsers. Of those, McKenzie
+\cite{McKenzie 1995} provides the foundation for the current work.
 
 The McKenzie algorithm works by exploring the parse table (or
 Deterministic Parsing Automata (DPA) as \cite{McKenzie 1995} calls it)
@@ -84,7 +88,10 @@ to complete the trailing statement in situations like this.
 
 This article also introduces several other new operations for the core
 McKenzie algorithm to try at the error point, and adapts the algorithm
-to work with a generalized parser.
+to work with a generalized parse.
+
+Unless quoting from another source, we use the notation described in
+\cite{DeRemer 1982}.
 
 %% copy initial parts of mckenzie to define 'config' etc? Also dragon
 %% to define "parse state", "kernel"
@@ -117,7 +124,8 @@ parse''; parsing only part of a file.
 
 Note that this is not the same as ``incremental parse'', where an
 existing syntax tree from a previous parse is modified based on a text
-edit.
+edit. Integrating this error correction algorithm with incremental
+parse is the subject of future work.
 
 In order to minimize the amount of text passed, we modify the grammar
 to allow smaller chunks of code to be accepted as a complete parse. In
@@ -161,13 +169,14 @@ moves the edit point.
 (which must be a nonterminal), replacing the top stack item by the
 sequence of stack items just before the reduction, without
 moving the edit point. This requires a syntax tree that records the
-shifts and reductions done during the parse. The input pointer is not
+shifts and reductions done during the parse. The edit point is not
 moved. This operation serves two purposes;
+\begin{enumerate}
+\item It allows a subsequenct \code{push\_back} to push back fewer tokens.
 
-1) it allows a subsequenct \code{push\_back} to push back fewer tokens.
-
-2) it allows token insertions that would otherwise be forbidden by the
+\item It allows token insertions that would otherwise be forbidden by the
 grammar.
+\end{enumerate}
 
 To illustrate the second point, consider:
 \begin{figure}[H]
@@ -189,10 +198,11 @@ end Example_2;
 There is an extra \code{begin} after
 \code{I : Integer}. The error is detected at \code{procedure}; at that point,
 the parse stack looks like (top is to the left):
+\small{
 \begin{verbatim}
-245 : BEGIN, 208 : declarative_part, 159 : IS,
-   36 : subprogram_specification, 0 :
+245 : BEGIN, 208 : declarative_part, 159 : IS, 36 : subprogram_specification, 0 :
 \end{verbatim}
+}
 Here the numbers label the states, terminals are in uppercase,
 nonterminals in lowercase.
 
@@ -274,12 +284,14 @@ The missing \code{"} should be before \code{for}. The parse error is at \code{al
 this solution inserts the missing quote before \code{all}, which is
 almost right.
 
-\item one non-empty token before the unbalanced quote. Same example,
+\item One non-empty token before the unbalanced quote. Same example,
   but this inserts the \code{"} before \code{all}, which is correct.
 
-\item If there is a string literal on the parse stack,
-assume the closing quote of that string literal is new (or extra),
-and extend the string literal to the unbalanced quote. Example:
+\item If there is a string literal on the parse stack, assume the
+  closing quote of that string literal is new (or extra), push back
+  thru the token containing that string literal, and extend the string
+  literal to the unbalanced quote.
+  Example:
 \begin{lstlisting}
    A := "for all" good";
 \end{lstlisting}
@@ -287,13 +299,12 @@ The \code{"} after \code{all} is extra. The parse error is at \code{good};
 this solution in effect deletes the extra quote.
 
 Note that the search for a string literal on the parse stack must take
-into account nonterminals that may contain a string literal. This
-requires the syntax tree mentioned in connection with
-\code{undo\_reduce} above. The set of nonterminals that may contain a
-string literal is provided as a function call written by the grammar
-author; it is not computed from the grammar because it should not
-include higher level nonterminals that are not likely to be contained
-in a string; for Ada, it stops at expression.
+into account nonterminals that may contain a string literal. The set
+of nonterminals that may contain a string literal is provided as a
+function call written by the grammar author; it is not computed from
+the grammar because it should not include higher level nonterminals
+that are not likely to be contained in a string; for Ada, it stops at
+expression.
 \end{itemize}
 \end{itemize}
 
@@ -307,8 +318,8 @@ one low cost.
 \subsection{Minimal\_Complete}
 The \code{Minimal\_Complete} strategy is to insert the minimum number
 of tokens to finish the current grammar production. This is supported
-by precomputing a \code{Minimal\_Complete\_Action} (or set of actions)
-for each parser state.
+by precomputing a set of \code{Minimal\_Complete\_Action} for each
+parser state.
 
 Section \ref{minimal-complete-compute} gives the algorithm for
 computing the\\ \code{Minimal\_Complete\_Actions}; here we describe how
@@ -327,13 +338,14 @@ one production:
 loop_statement <= LOOP sequence_of_statements END ^ LOOP
    identifier_opt SEMICOLON
 \end{verbatim}
-where the carrot (\verb|^|) shows the parse point. In this case, it is
-easy to see that \code{Minimal\_Complete\_Action} must be \code{loop}.
+where the carrot (\verb|^|) shows the parse point (also known as
+``dot''). In this case, it is easy to see that
+\code{Minimal\_Complete\_Action} must be ``insert \code{loop} ''.
 Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
-is \code{identifier\_opt}, and then \code{;}. After that, we will be
-completing the inner \code{if then} statement, and then the outer
-\code{if then} statement. At that point, the existing \code{end ;} is
-legal.
+is ``reduce to \code{identifier\_opt} '', and then ``insert \code{;}
+''. After that, we will be completing the inner \code{if then}
+statement, and then the outer \code{if then} statement. At that point,
+the existing \code{end ;} is legal.
 
 To handle cases where only the leading part of a nonterminal
 production needs to be inserted, the check to see if the original
@@ -351,9 +363,8 @@ is found, with an enqueue limit of 120,000. With
 \code{Minimal\_Complete} cost -3, the desired solution is found with
 cost 9, after enqueueing 6804 configurations and checking 1051.
 
-As usual, there is a trade off here; setting the magnitude high
-encourages \code{Minimal\_Complete} over other solutions, but sometimes
-other solutions would be better. For example, consider:
+As usual, there is a trade off here; sometimes other solutions would
+be better than \code{Minimal\_Complete}. For example, consider:
 \begin{lstlisting}
 for I in 1 to Result_Length loop
 end loop;
@@ -390,15 +401,15 @@ which causes another syntax error later in the code (missing
 \code{end loop;}). Here three tokens were inserted by
 \code{Minimal\_Complete}; \code{.. loop ;}.
 
-In the production Ada parser, -3 proves to be a good setting for\\
+In the production Ada parser, -3 proves to be a good compromise for\\
 \code{Minimal\_Complete} cost.
 
 In some cases, the action required for \code{Minimal\_Complete} is
 reduce, not shift. For example:
 \begin{lstlisting}
 case Current_Token is
-= +RIGHT_PAREN_ID then
-   Matching_Begin_Token := +LEFT_PAREN_ID;
+= +Right_Paren_ID then
+   Matching_Begin_Token := +Left_Paren_ID;
 else
    Matching_Begin_Token := Invalid_Token_ID;
 end if;
@@ -470,162 +481,105 @@ action gives the minimum length, all are kept. Therefore
 action to check. Each may produce a new configuration for the next
 McKenzie step.
 
-Consider the Java code fragment:
+Sometimes the minimal length production cannot be computed at compile
+time. Consider the Java code fragment:
 \begin{figure}[H]
-\begin{lstlisting}
+  \small{
+    \begin{lstlisting}
 { B = UpdateText (A }
-\end{lstlisting}
+    \end{lstlisting}
+    }
 \caption{}
 \label{ex:recursive_length_after_dot}
 \end{figure}
 % minimal_complete_recursive_length_after_dot.java_exp_ch19
+% minimal_complete_recursive_length_after_dot.parse
 This is missing \code{);} after \code{A}. The error is detected at
 `\lstinline|}|'. At that point, the kernel is:
-%% java_expressions_ch19_lr1.parse_table state 22
+%% java_expressions_ch19_lr1.parse_table state 21
 \begin{verbatim}
 LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
 LeftHandSide <= Identifier ^
 ClassType <= Identifier ^
-MethodInvocation <= Identifier ^ LEFT_PAREN ArgumentList
-                     RIGHT_PAREN
+MethodInvocation <= Identifier ^ LEFT_PAREN ArgumentList RIGHT_PAREN
 
-Minimal_Complete_Action => (LeftHandSide, ClassType)
+Minimal_Complete_Action => (MINUS_GREATER, LeftHandSide, ClassType)
 \end{verbatim}
-Here both actions are reduce, so we have to look at the next state.
-Reducing to \code{LeftHandSide} goes to state 27:
+Here two actions are reduce, and therefore there are no tokens in
+these productions after the parse point, so we have to look at the
+next state to find the minimal length production. Reducing to
+\code{LeftHandSide} goes to the state:
+%% java_expressions_ch19_lr1.parse_table state 26
 \begin{verbatim}
-Assignment <= LeftHandSide ^ EQUAL Expression ; recursive
-Minimal_Complete_Action => EQUAL
+Assignment <= LeftHandSide ^ EQUAL Expression
 \end{verbatim}
-Here the production is labeled \code{recursive}, because it is part of
-a recursion cycle in the grammar. The grammar is a subset of Java; the
-productions involved in this recursion cycle are:
-\begin{verbatim}
-Assignment           <= LeftHandSide ^ EQUAL Expression
-Expression           <= LambdaExpression  | AssignmentExpression
-AssignmentExpression <= AdditiveExpression | Assignment
-\end{verbatim}
-This says that an \code{Expression} in this grammar can be \code{A :=
-  B := C := 1}. Thus it makes no sense for \code{Minimal\_Complete} to
-insert \code{:=}; that will never result in a minimal length. In
-general, recursive productions are never minimal length, so
-\code{Minimal\_Complete} drops them, unless all the productions in a
-kernel are recursive. Then the recursion is ignored, and all the
-actions are queued; one of the later states will break the recursion.
-This requires a \code{recursive} flag stored for each kernel item in
-each parse state. Note that since we normally set the cost of a
-\code{Minimal\_Complete} step negative, we cannot rely on cost to
-eliminate recursive productions.
+where there are two tokens needed to complete the production.
 
-Getting back to figure \ref{ex:recursive_length_after_dot}, reducing
-to \code{ClassType} goes to state 33:
+Reducing to \code{ClassType} goes to the state:
+%% java_expressions_ch19_lr1.parse_table state 32
 \begin{verbatim}
 PostfixExpression <= ClassType ^
-ClassType <= ClassType ^ DOT Identifier ; recursive
-
-Minimal_Complete_Action => PostfixExpression 31.0
+ClassType <= ClassType ^ DOT Identifier
 \end{verbatim}
-Here \code{PostfixExpression} is not recursive, so that is chosen. We
-cannot compute a length from this production because there are no
-tokens after the parse point; we have to follow the reduce to the next
-state, and the next, until we find a shift. Several more single-token
-reductions are done, ending with:
-%% states 30 29 28 25 23 84
+Once again, we reduce \code{ClassType} to the next state, and the
+next, until we find a shift. This ends in the state:
+%% states 30 29 28 27 24 22 83
 \begin{verbatim}
-MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^
-                    RIGHT_PAREN
-ArgumentList <= ArgumentList ^ COMMA Expression ; recursive
-
-Minimal_Complete_Action => RIGHT_PAREN
+MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
+ArgumentList <= ArgumentList ^ COMMA Expression
 \end{verbatim}
-which shifts \code{)}. All of these reductions, and the final shift,
-are done in one McKenzie step. The function that computes the length
-after parse point is recursive.
+which has 1 token after the parse point; this is the minimal length.
+All of these reductions, and the final shift, are done in one McKenzie
+step. The function that computes the length after parse point is
+recursive, and explores all paths that might be minimal.
 
-Consider the following code:
+Sometimes \code{Minimal\_Complete\_Actions} results in an ambiguous
+parse. Consider the following Java code:
 \begin{figure}[H]
+  \small{
 \begin{lstlisting}
 { UpdateText (A) }
 \end{lstlisting}
+}
 \caption{}
-\label{ex:minimal_complete_all_recursive}
+\label{ex:minimal_complete_ambiguous}
 \end{figure}
-% minimal_complete_all_recursive.java_exp_ch19
+% minimal_complete_ambiguous.java_exp_ch19
 In the subset of Java we are using for this example, this is not a
 complete statement. The relevant productions are:
 \begin{verbatim}
-StatementExpression     <= PostIncrementExpression |
-                           PostDecrementExpression ;
+StatementExpression     <= PostIncrementExpression | PostDecrementExpression ;
 PostIncrementExpression <= PostfixExpression '++' ;
 PostDecrementExpression <= PostfixExpression '--' ;
-PostfixExpression       <= ClassType | MethodInvocation |
-                           PostIncrementExpression |
-                           PostDecrementExpression ;
-ClassType               <= Identifier |
-                           ClassType '.' Identifier ;
+PostfixExpression       <=
+   ClassType | MethodInvocation | PostIncrementExpression | PostDecrementExpression ;
+ClassType               <= Identifier | ClassType '.' Identifier ;
 \end{verbatim}
 To complete the code fragment in figure
-\ref{ex:minimal_complete_all_recursive}, we have to insert either
+\ref{ex:minimal_complete_ambiguous}, we have to insert either
 \code{++} or \code{--}. The error is detected at the closing brace;
-the parse state kernel is:
-% java_expressions_ch19_lr1.parse_table state 62
-\begin{verbatim}
-MethodInvocation <= Identifier LEFT_PAREN ArgumentList
-                    RIGHT_PAREN ^
-Minimal_Complete_Action => MethodInvocation
-\end{verbatim}
-Then we reduce to \code{PostfixExpression}, and arrive at this state:
-% state 8
+the state is:
+% java_expressions_ch19_lr1.parse_table state 61
 \begin{verbatim}
 PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS
 PostDecrementExpression <= PostfixExpression ^ MINUS_MINUS
 Minimal_Complete_Action => (PLUS_PLUS, MINUS_MINUS)
 \end{verbatim}
-There are two actions; because both states are labeled recursive, we
-don't look at the next states - we enqueue two configs, one with each
-shift. The next McKenzie step inserts \code{;} in each, completing the
-error recovery session with two solutions. In the main parser, both
-solutions parse to end of input; then one is chosen arbitrarily to be
-the final parse. Note that in the absence of error correction multiple
-parallel parsers getting to end of input is an error, but since error
-correction often produces multiple solutions, we don't report an
-error.
-
-Consider the following code:
-\begin{figure}[H]
-\begin{lstlisting}
-{ A, B,
-\end{lstlisting}
-\caption{}
-\label{ex:minimal_complete_cycle_check}
-\end{figure}
-% minimal_complete_all_recursive.java_enum_ch19
-Here we are using a different subset of Java; there are only three
-productions in the grammar:
-\begin{verbatim}
-EnumConstantList <= EnumConstant |
-                    EnumConstantList COMMA EnumConstant ;
-EnumConstant     <= IDENTIFIER ;
-EnumBody         <= LEFT_CURLY_BRACKET EnumConstantList COMMA
-                    RIGHT_CURLY_BRACKET |
-                    LEFT_CURLY_BRACKET COMMA
-                    RIGHT_CURLY_BRACKET ;
-\end{verbatim}
-The input is missing '\lstinline|}|'; the error is detected at end of
-input. The parse state kernel is:
-\begin{verbatim}
-EnumConstantList <= EnumConstantList COMMA ^ EnumConstant
-EnumBody         <= LEFT_CURLY_BRACKET EnumConstantList COMMA
-                    ^ RIGHT_CURLY_ BRACKET
-
-Minimal_Complete_Action => (IDENTIFIER, RIGHT_CURLY_BRACKET)
-\end{verbatim}
+There are two actions, neither reduce, so we enqueue both. The next
+McKenzie step inserts \code{;} in each, completing the error recovery
+session with two solutions. In the main parser, both solutions parse
+to end of input. In the absence of error correction multiple parallel
+parsers getting to end of input is an error (ambiguous parse), but
+since error correction often produces multiple solutions, we don't
+report an error, one solution is chosen arbitrarily to be the final
+parse.
 
 \subsection{Matching\_Begin}
-Consider the code:
+Consider the Ada code fragment:
 \begin{lstlisting}
 procedure ... end;
-end if;
+
+   end if;
 end Foo;
 \end{lstlisting}
 This is a result of cut and paste.
@@ -639,14 +593,15 @@ The error is detected at the \code{end} in \code{end if}.
 \end{verbatim}
 \code{Minimal\_Action} in state 34 is reduce to
 \code{compilation\_unit}, which is then reduced to
-\code{compilation\_unit\_list}, which is the grammar start symbol. So
-\code{Minimal\_Complete} has nothing useful to insert.
+\code{compilation\_unit\_list}, which is the grammar start symbol,
+which has no minimal complete action. So \code{Minimal\_Complete} has
+nothing useful to insert.
 
 To the grammar author, the solution is obvious. We capture that
 knowledge by having the grammar author provide a function\\
 \code{Language\_Matching\_Begin\_Tokens}, which takes the current parse
 stack and the next three input tokens as input, and returns a list of
-tokens to insert at the edit point.
+tokens to try inserting at the edit point.
 
 The \code{Language\_Matching\_Begin\_Tokens} function is similar to the
 table\\ $E(A,a)$ given in \cite{FMQ 1980} for an LL parser:
@@ -676,7 +631,7 @@ package Parent_1.Child_1 is begin end Parent_1.Child_1;
 \end{lstlisting}
 In the case and loop statements, the three tokens starting with
 \code{end} are \code{end loop ;} and \code{end case ;}; here we only
-need two tokens to determine that the matching begin is \code|case| or
+need two tokens to determine that the matching begin is \code{case} or
 \code{loop}.
 To distinguish between the named block statement and the package
 declaration, we need three tokens; in a named block statement the name
@@ -688,7 +643,7 @@ statement start token for \code{end ... }, and for
 \code{then, else, elsif, exception}. For \code{when}, it returns
 \code{case IDENTIFIER is}, which assumes a partial case statement is
 more common than a partial exception handler. For any other error
-token, it returns an empty sequence; no guess is better than a bad
+token, it returns an empty token list; no guess is better than a bad
 guess.
 
 \code{Language\_Matching\_Begin\_Tokens} also returns a flag\\
@@ -774,9 +729,10 @@ the production Ada code.
 
 \section{Computing Minimal\_Complete}
 \label{minimal-complete-compute}
-To compute the \code{Minimal\_Complete\_Action} for each state, we
-first compute the recursions. A `{\it recursion}' is the result of a
-cycle in the grammar; for example, consider:
+
+\subsection{Grammar recursions}
+We first compute the recursions in the grammar. A `{\it recursion}' is
+the result of a cycle in the grammar productions; for example:
 \begin{verbatim}
 association_list
   : association_list COMMA association_opt
@@ -794,13 +750,7 @@ name
   ;
 selected_component : name DOT IDENTIFIER ;
 \end{verbatim}
-Together, \code{name, selected\_component} are indirect single recursive.
-
-There are several posibilities for recursion in an RHS:\\ \code{None,
-Direct_Left, Other_Left, Other, Other_Right, Direct_Right}.\\ \code{left, right}
-mean the recursive token is at the left or right end of the RHS;
-\code{Other} means it is at neither end. \code{Direct} means the LHS
-appears in the RHS.
+Together, \code{name, selected\_component} are indirect recursive.
 
 We can form a graph representing the grammar by taking the
 nonterminals as the graph vertices, and if there is a production $A
@@ -817,27 +767,93 @@ nodes. Real grammars can be multigraphs, so we first filter out all
 such edges, and add them back after we compute the cycles.
 
 Some languages have a lot of recursion, so it can be prohibitive to
-compute the exact set of cycles in the graph. For example, Java (using
-the grammar given in chapter 19 of the language reference manual
-\cite{javarm}) takes too long to compute. In that case, we only
-compute the strongly connected components (which is one of the steps
-in \cite{graph-cycles}), and use that as the recursion. This gives
-more recursion than necessary, but still gives good performance in
-error correction.
+compute the exact set of cycles in the graph. For example, Java SE 12
+(using the grammar given in chapter 19 of the language reference
+manual \cite{javarm}) takes too long to compute. In that case, we only
+compute the strongly connected components (SCCs) (which is one of the
+steps in \cite{graph-cycles}), and use that as the recursion. This
+gives more recursion than necessary, and thus reduces the number of
+minimal actions computed, but still gives good performance in error
+correction. For Ada 2012, computing the full recursion is fast, but
+for Ada 2020, it is prohibitively slow.
 
+Once we have the cycles or SCCs, we add a Boolean \code{recursive}
+flag to the items in the state kernels; true if the production is in a
+cycle or SCC and the recursive token is the first token (ie the
+production is left recursive, direct or indirect), false otherwise.
+
+%FIXME; example of why non-left recursion is ok;
+               %%  ada_lite_lalr_re2c_t1.parse_table - not listed in state order here, to
+               %%  State 77:
+               %%       57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN ; ( 2 => Other)
+               %%      103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
+               %%
+%% In State 77, Dot_ID is association_list which has
+%%                    Other recursion; we say "there is recursion at the parse point".
+%%                --  However, Length_After_Dot is correct; it assumes the
+%%                --  recursion-breaking case for the expansion of association_list. So
+%%                --  this is the same as no recursion at the parse point
+\subsection{Other preliminaries}
 Next, we compute the minimal terminal token sequence for each production.
 This is the same as $S(A)$ from FMQ \cite{FMQ 1980}:
 \begin{equation}
 S(A) \equiv x \in V_t^* \, |\, A \Rightarrow^* x, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
-where the cost of each token is 1.
+where the cost of each token is 1. Including token costs at this point
+would make it very difficult to assign useful costs; we only use token
+costs in the run-time portion of the algorithm.
 
-The computation is straight-forward, except that some productions are
-recursive.
+Next we need \code{Minimal\_Terminal\_First(A)}, which is the first
+token in $S(A)$, or the invalid token $\xi$ if $S(A)$ is empty.
 
-Next we need $MINFIRST(A)$, which is the first token in $S(A)$, or the
-invalid token $\xi$ if $S(A)$ is empty.
+Next we need $Nullable(A, \omega)$, which gives the production that
+reduces $A$ to $\epsilon$:
+\begin{equation}
+Nullable(A, \omega) \equiv (B, \psi) \in P\, |\, (A \Rightarrow B \gamma, B \Rightarrow^* \epsilon)\ else\ \xi
+\end{equation}
 
+\subsection{Minimal Complete Action}
+For each state, we consider each LR1 item in the kernel. There are
+several possible cases, listed in priority order:
+\begin{enumerate}
+  \setcounter{enumi}{-1}
+
+  %case 0
+\item There is only one item in the kernel. Recursion is
+  ignored, minimal action is given by \code{Compute\_Action (Dot)},
+  where \code{Dot} is the token after dot in the kernel item.
+
+  %case 1
+\item Dot is at the end of the production; the actual production
+  length must be computed at runtime. Recursion is ignored; the
+  minimal action is reduce to the item LHS.
+
+  %case 2
+\item The item is left recursive; there is no minimal action.
+
+  %case 3
+\item There is no recursion, and dot is not at the end of the
+  production. If the number of tokens after dot is minimal within the
+  kernel, include \code{Compute\_Action (Dot)} in the minimal actions.
+
+\end{enumerate}
+\begin{lstlisting}
+function Compute_Action (Token)
+   if Token in Terminals then
+      return Action (State, Token);
+
+   else
+      if Minimal_Terminal_First (Token) = Invalid_Token then
+         return (Reduce 0 tokens to Token);
+
+      else
+         return Action (State, Minimal_Terminal_First (Token));
+      end if;
+   end if;
+end Compute_Action;
+\end{lstlisting}
+where \code{Action (State, Token)} returns the parse action for
+the token in the state.
 
 \section{Implementation}
 %% optimize data structures for speed; fixed length queue, stack;
@@ -845,16 +861,77 @@ invalid token $\xi$ if $S(A)$ is empty.
 %% multiple threads
 %% LR1 vs LALR
 
-\section{Code}
-\label{code}
-\begin{lstlisting}
-  %*\lstset{numbers=left} *)
+\section{Results}
+This error correction algorithm has been in production use in Emacs
+ada-mode since November 2018. The parser can be configured to output
+information about each error recovery; that is summarized in figures
+\ref{table:full-recover-stats}, \ref{table:partial-recover-stats} for one
+month of the author's use. The enqueue limit is set at 58\_000; there is a
+noticeable delay when that limit is hit. The maximimum enqueu value is
+higher because multiple tasks are used in error recovery; each task is
+allowed to finish its current operation before aborting due to the limit.
 
-\end{lstlisting}
+This shows that the minimal complete operation is used in a large
+majority of cases, along with insert.
+
+\begin{figure}[H]
+\begin{tabular}{| l | r | r |}
+\hline
+fail enqueue limit    & 1126     & 3\%     \\
+\hline
+ignore\_error         & 2130     & 1\%     \\
+language\_fix         & 11\_138  & 6\%     \\
+minimal\_complete     & 151\_977 & 78\%    \\
+matching\_begin       & 2848     & 1\%     \\
+push\_back            & 13\_694  & 7\%     \\
+undo\_reduce          & 7491     & 4\%     \\
+insert                & 141\_629 & 72\%    \\
+delete                & 18\_557  & 9\%     \\
+string\_quote         & 2615     & 1\%     \\
+\hline
+                      & mean     & max     \\
+Enqueue               & 796.3    & 60\_147 \\
+Check                 & 61.8     & 5496  \\
+\hline
+\end{tabular}
+\caption{Error recovery statistics for full file parsing}
+\label{table:full-recover-stats}
+\end{figure}
+
+\begin{figure}[H]
+\begin{tabular}{| l | r | r |}
+\hline
+fail enqueue limit & 16      & 0\%      \\
+\hline
+ignore\_error      & 850     & 5\%     \\
+language\_fix      & 356     & 2\%     \\
+minimal\_complete  & 14\_579 & 77\%    \\
+matching\_begin    & 2355    & 13\%    \\
+push\_back         & 1019    & 5\%     \\
+undo\_reduce       & 544     & 3\%     \\
+insert             & 6076    & 32\%    \\
+delete             & 1266    & 7\%     \\
+string\_quote      & 11      & 0\%     \\
+\hline
+                   & mean    & max     \\
+Enqueue            & 922.6   & 49\_286 \\
+Check              & 78.5    & 4201    \\
+\hline
+\end{tabular}
+\caption{Error recovery statistics for partial file parsing}
+\label{table:partial-recover-stats}
+\end{figure}
+
 \section{Bibliography}
 \begin{thebibliography}{9}
 
 \bibitem{Ada 2012} \verb|http://ada-auth.org/standards/ada12.html|
+
+\bibitem{DeRemer 1982} Frank DeRemer, Thomas Pennello: Efficient
+  Computation of LALR(1) Look-Ahead Sets. ACM Transactions on
+  Programming Languages and Systems, Vol. 4, No. 4, October 1982,
+  pages 615-649.
+    % "d:/Books/eBooks/Parsing/DeRemer, Pennello 1982 Efficient Computation.pdf"
 
 \bibitem{Emacs Ada mode news} http://www.nongnu.org/ada-mode/NEWS-ada-mode.text
 

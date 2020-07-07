@@ -887,8 +887,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return;
          end if;
 
-         --  More than one minimal action in State; try to use next states and
-         --  recursion to pick one.
+         --  More than one minimal action in State; try to use next states to pick one.
          Actions_Loop :
          for I in Actions.First_Index .. Actions.Last_Index loop
             declare

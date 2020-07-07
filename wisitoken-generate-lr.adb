@@ -370,6 +370,7 @@ package body WisiToken.Generate.LR is
       end loop;
 
       if Found_Conflicts.Length > 0 then
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " unknown conflicts:"));
          Put (Found_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
@@ -377,6 +378,7 @@ package body WisiToken.Generate.LR is
       end if;
 
       if Known_Conflicts.Length > 0 then
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
          Ada.Text_IO.Put_Line
            (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " excess known conflicts:"));
          Put (Known_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
@@ -846,8 +848,7 @@ package body WisiToken.Generate.LR is
          State.Kernel.Set_First_Last (Kernel_Index'First, Kernel_Index'Last);
          for Item of Kernel.Set loop
             declare
-               RHS    : WisiToken.Productions.Right_Hand_Side renames
-                 Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS);
+               RHS    : WisiToken.Productions.Right_Hand_Side renames Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS);
                Dot_ID : constant Token_ID :=
                  (if Item.Dot = No_Index
                   then Invalid_Token_ID
@@ -874,10 +875,10 @@ package body WisiToken.Generate.LR is
                --  The strategy in Insert_Minimal_Complete_Actions when
                --  Item.Length_After_Dot = 0 is to compute Length_After_Dot by doing
                --  Reduce until a Shift is encountered, and using Length_After_Dot
-               --  for that item.               --
+               --  for that item.
                --
                --  Consider these kernel items with possible recursion (from
-               --  ada_lite_lalr.parse_table - not listed in state order here, to
+               --  ada_lite_lalr_re2c_t1.parse_table - not listed in state order here, to
                --  group related productions). The recursion of each production is
                --  shown after ';', if not all None.
                --
@@ -885,7 +886,7 @@ package body WisiToken.Generate.LR is
                --       86.0:exit_statement <= EXIT ^ identifier_opt WHEN expression_opt SEMICOLON
                --       86.1:exit_statement <= EXIT ^ identifier_opt SEMICOLON
                --
-               --  State 43:
+               --  State 42:
                --     103.2:name <= IDENTIFIER ^
                --
                --  State 30:
@@ -893,49 +894,48 @@ package body WisiToken.Generate.LR is
                --
                --  State 47:
                --      103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
-               --      103.1:name <= name ^ actual_parameter_part ; ( 1 => Direct_Left,  2 => Other)
+               --      103.1:name <= name ^ actual_parameter_part ; ( 1 => Direct_Left,  2 => Other_Right)
                --      113.2:primary <= name ^  ; ( 1 => Other_Left)
                --      124.0:selected_component <= name ^ DOT IDENTIFIER ; ( 1 => Other_Left)
                --
                --  State 68:
                --       95.1:generic_instantiation <= PROCEDURE name ^ IS NEW name SEMICOLON
                --      103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
-               --      103.1:name <= name ^ actual_parameter_part ; ( 1 => Direct_Left,  2 => Other)
+               --      103.1:name <= name ^ actual_parameter_part ; ( 1 => Direct_Left,  2 => Other_Right)
                --      115.0:procedure_specification <= PROCEDURE name ^ parameter_profile_opt
                --      124.0:selected_component <= name ^ DOT IDENTIFIER ; ( 1 => Other_Left)
                --
                --  State 50:
                --       87.1:expression <= relation_and_list ^ ; ( 1 => Other_Left)
-               --      119.0:relation_and_list <= relation_and_list ^ AND relation ; ( 1 => Direct_Left,  3 => Other)
-               --
+               --      119.0:relation_and_list <= relation_and_list ^ AND relation;(1 => Direct_Left, 3 => Other_Right)
                --
                --  State 77:
                --       57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN ; ( 2 => Other)
                --      103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
                --
                --  State 154:
-               --      103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
-               --      118.0:range_list <= range_list ^ COMMA range_g
+               --      103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
+               --      118.0:range_list <= range_list ^ COMMA range_g ; (1 => Direct_Left, 3 => Other_Right)
                --
                --  State 251:
                --      110.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^ COLON_EQUAL expression_opt
                --      110.1:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^
                --
-               --  From java_enum_ch19_lr1.parse_table:
+               --  From java_enum_ch19_lr1_t1.parse_table:
                --
                --  State 8:
-               --       9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant ; (1 => Direct_Left, 3 => Other)
+               --       9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant ; (1 => Direct_Left)
                --      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA ^ RIGHT_CURLY_BRACKET
                --
-               --  From empty_production_2_lalar.parse_table:
+               --  From empty_production_2_lalr.parse_table:
                --
                --  State 5:
-               --        8.0:declarations <= declarations ^ declaration
-               --        9.0:body <= IS declarations ^ BEGIN SEMICOLON
+               --        8.0:declarations <= declarations ^ declaration ; (1 => Direct_Left, 2 => Other_Right)
+               --        9.0:body <= IS declarations ^ BEGIN SEMICOLON ; (2 => Other)
 
-               --  case 0: In states 43 and 30, there is only one possible action, so
-               --  recursion is not considered. Minimal_Action is
-               --  computed by Compute_Minimal_Action, Label is Keep_Always.
+               --  case 0: In states 42 and 30, there is only one possible action, so
+               --  recursion is not considered. Minimal_Action is computed by
+               --  Compute_Action, Label is Keep_Always.
                --
                --  In the following, we only consider kernels where there is more
                --  than one item.
@@ -965,14 +965,13 @@ package body WisiToken.Generate.LR is
                --
                --  It is possible for both case 1 and case 2 to apply; see
                --  empty_production_2_lalar.parse_table State 5 above and
-               --  ada_lite_ebnf_lalr.parse_table state 46. case 1 has precedence if
-               --  Dot = No_Element.
+               --  ada_lite_ebnf_lalr.parse_table state 46. case 1 has precedence.
                --
                --  case 3: In state 251, there is no recursion, and Length_After_Dot
                --  is correct; Label is set to Keep_If_Minimal, Minimal_Action to
-               --  Compute_Minimal_Action. In State 77, Dot_ID is association_list
-               --  which has Other recursion; we say "there is recursion at the parse
-               --  point". However, Length_After_Dot is correct; it assumes the
+               --  Compute_Action. In State 77, Dot_ID is association_list which has
+               --  Other recursion; we say "there is recursion at the parse point".
+               --  However, Length_After_Dot is correct; it assumes the
                --  recursion-breaking case for the expansion of association_list. So
                --  this is the same as no recursion at the parse point
                --
