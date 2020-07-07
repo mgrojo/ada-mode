@@ -232,20 +232,6 @@ package body WisiToken.Parse.LR.Parser is
       Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
       Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
    begin
-      if Trace_Parse > Extra then
-         Shared_Parser.Trace.Put_Line
-           (Integer'Image (Parser_State.Label) & ": shared_token:" &
-              WisiToken.Token_Index'Image (Parser_State.Shared_Token) &
-              " inc_shared_token: " & Boolean'Image (Parser_State.Inc_Shared_Token) &
-              " recover_insert_delete:" &
-              (if Parser_State.Recover_Insert_Delete_Current = No_Index
-               then ""
-               else Parser_State.Recover_Insert_Delete_Current'Image & " " &
-                  Image
-                    (Constant_Ref (Parser_State.Recover_Insert_Delete, Parser_State.Recover_Insert_Delete_Current),
-                     Shared_Parser.Trace.Descriptor.all)));
-      end if;
-
       loop
          exit when Ins_Del_Cur = Recover_Op_Arrays.No_Index;
          declare
@@ -269,6 +255,20 @@ package body WisiToken.Parse.LR.Parser is
             end if;
          end;
       end loop;
+
+      if Trace_Parse > Extra then
+         Shared_Parser.Trace.Put_Line
+           (Integer'Image (Parser_State.Label) & ": (do_deletes) shared_token:" &
+              WisiToken.Token_Index'Image (Parser_State.Shared_Token) &
+              " inc_shared_token: " & Boolean'Image (Parser_State.Inc_Shared_Token) &
+              " recover_insert_delete:" &
+              (if Parser_State.Recover_Insert_Delete_Current = No_Index
+               then ""
+               else Parser_State.Recover_Insert_Delete_Current'Image & " " &
+                  Image
+                    (Constant_Ref (Parser_State.Recover_Insert_Delete, Parser_State.Recover_Insert_Delete_Current),
+                     Shared_Parser.Trace.Descriptor.all)));
+      end if;
    end Do_Deletes;
 
    --  Verb: the type of parser cycle to execute;
@@ -524,12 +524,13 @@ package body WisiToken.Parse.LR.Parser is
 
                elsif Parser_State.Verb = Shift then
                   declare
+                     use Recover_Op_Arrays, Recover_Op_Array_Refs;
+
                      function Insert_Virtual return Boolean
                      is
-                        use Recover_Op_Arrays, Recover_Op_Array_Refs;
                         Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
                         Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
-                        Result : Boolean := False;
+                        Result      : Boolean := False;
                      begin
                         if Ins_Del_Cur /= No_Index then
                            declare
@@ -578,13 +579,18 @@ package body WisiToken.Parse.LR.Parser is
                           (Parser_State.Shared_Token).Tree_Index;
 
                      end if;
-                  end;
 
-                  if Trace_Parse > Extra then
-                     Trace.Put_Line
-                       (Integer'Image (Parser_State.Label) & ": current_token " & Parser_State.Tree.Image
-                          (Parser_State.Current_Token, Trace.Descriptor.all));
-                  end if;
+                     if Trace_Parse > Extra then
+                        Trace.Put_Line
+                          (Integer'Image (Parser_State.Label) & ": current_token " & Parser_State.Tree.Image
+                             (Parser_State.Current_Token, Trace.Descriptor.all) &
+                             " recover_insert_delete:" &
+                             (if Parser_State.Recover_Insert_Delete_Current = No_Index
+                              then ""
+                              else Parser_State.Recover_Insert_Delete_Current'Image & " " &
+                                 Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all)));
+                     end if;
+                  end;
                end if;
             end loop;
 
@@ -753,6 +759,7 @@ package body WisiToken.Parse.LR.Parser is
 
                   if Trace_Parse > Outline then
                      if Recover_Result = Success  then
+                        Trace.New_Line;
                         Trace.Put_Line
                           ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                      else
@@ -808,21 +815,24 @@ package body WisiToken.Parse.LR.Parser is
                           (Integer'Image (Parser_State.Label) & ": Current_Token " &
                              Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                              " Shared_Token " & Image
-                               (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all));
+                               (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all) &
+                             " recover_insert_delete:" &
+                             (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                              then ""
+                              else Parser_State.Recover_Insert_Delete_Current'Image & " " &
+                                 Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all)));
 
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
                              (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
-                                WisiToken.Token_Index'Image (Parser_State.Resume_Token_Goal));
+                                WisiToken.Token_Index'Image (Parser_State.Resume_Token_Goal) &
+                                ", inc_shared_token: " & Parser_State.Inc_Shared_Token'Image);
                         end if;
                      end if;
 
                      Parser_State.Zombie_Token_Count := 0;
 
                      case Parser_State.Verb is
-                     when Reduce =>
-                        null;
-
                      when Error =>
                         --  Force this parser to be terminated.
                         if Shared_Parser.Enable_McKenzie_Recover then
@@ -832,10 +842,14 @@ package body WisiToken.Parse.LR.Parser is
                      when Shift =>
                         null;
 
-                     when Pause | Accept_It =>
+                     when Reduce | Pause | Accept_It =>
                         raise SAL.Programmer_Error;
                      end case;
                   end loop;
+
+                  if Trace_Parse > Detail then
+                     Shared_Parser.Trace.New_Line;
+                  end if;
 
                else
                   --  Terminate with error. Parser_State has all the required info on

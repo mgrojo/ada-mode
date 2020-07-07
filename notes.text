@@ -28,12 +28,64 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
+    why does left recursion prevent minimal action when dot is not 1?
+        ada_mode-recover_13.adb
+            object_declaration missing ';' - libadalang gets it right.
+            object_declaration is other_left recursive because of identifier_list
+            ada_lite does not have that
+            no good examples in java either
+
+        add identifier_list to ada_lite, allow minimal_action
+
+    finish "results"
+        two metrics; correction attempts succeed/fail, with strategy counts
+            c:/Projects/org.emacs.ada-mode/recover.log
+2020-06-11 - 2020-07-04
+FULL
+present/total: 41514 / 462343
+           mean        std. dev.    min     max
+Enqueue: (    796.3,    2151.3,       1.0,   60147.0)
+Check:   (     61.8,     169.3,       1.0,    5496.0)
+FAIL                    =>     1197  3%
+FAIL_ENQUEUE_LIMIT      =>     1126  3%
+FAIL_PROGRAMMER_ERROR   =>       71  0%
+IGNORE_ERROR               2130  1% /    2207  0%
+LANGUAGE_FIX              11138  6% /   17155  4%
+MINIMAL_COMPLETE         151977 78% /  242890 53%
+MATCHING_BEGIN             2848  1% /    2849  1%
+PUSH_BACK                 13694  7% /   14378  3%
+UNDO_REDUCE                7491  4% /   12882  3%
+INSERT                   141629 72% /  147617 32%
+DELETE                    18557  9% /   19716  4%
+STRING_QUOTE               2615  1% /    2649  1%
+
+PARTIAL
+present/total: 12830 / 69507
+           mean        std. dev.    min     max
+Enqueue: (    922.6,    1774.1,       4.0,   49286.0)
+Check:   (     78.5,     148.0,       2.0,    4201.0)
+FAIL                    =>       16  0%
+FAIL_ENQUEUE_LIMIT      =>       16  0%
+IGNORE_ERROR                850  5% /     850  1%
+LANGUAGE_FIX                356  2% /     669  1%
+MINIMAL_COMPLETE          14579 77% /   54300 78%
+MATCHING_BEGIN             2355 13% /    2522  4%
+PUSH_BACK                  1019  5% /    1083  2%
+UNDO_REDUCE                 544  3% /     730  1%
+INSERT                     6076 32% /    7801 11%
+DELETE                     1266  7% /    1541  2%
+STRING_QUOTE                 11  0% /      11  0%
+
+
+        difference between desired and found terminal sequence file_count: 59
+            wisitoken-recover-compare:  total size: 14054
+            libadalang-recover-compare: total size: 60069
+
+        libadalang better:
+            recover_02, recover_13 (perfect)
+
     need title
         \title, \author not working!?
-
-    get mckenzie log of figure 3 recursive_length_after_dot
-        minimal_complete_recursive_length_after_dot.java_exp_ch19
-        treatment of recursion changed since that text was written
 
     recursion in minimal_complete
         Here the production is labeled \code{recursive}, because it is part of
@@ -55,15 +107,6 @@ error_correction_algorithm.tex
         the cost of a \code{Minimal\_Complete} step negative, we cannot rely
         on cost to eliminate recursive productions.
 
-    full vs partial_recursion
-        java_expressions_antlr_lr1
-        full:
-            state 34 mca => RPAREN 30.4
-            state 56, 126, 140 Minimal_Complete_Action => (RPAREN 30.4, DOT 31.4)
-        partial
-            state 34 mca => (RPAREN 30.4, DOT 31.4)
-            state 56, 126140    Minimal_Complete_Action => RPAREN 30.4
-                31.4 appears to be other_left
 
     forbid push_back:
         if push_back over insert/delete, get duplicate results
@@ -100,7 +143,7 @@ error_correction_algorithm.tex
 
     test and/or prove Nullable
 
-    redo compare using lr1 for wisitoken-tokens
+    redo ada-mode/test compare using lr1 for wisitoken-tokens
         wisitoken both ada.wy and ada_annex_p.wy
         Bison?
         add ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
@@ -131,6 +174,9 @@ error_correction_algorithm.tex
      - Emmanual Briot
      - adacore adalang people
      - Laurent? peg/packrat expert
+
+    try to present code, more detail on algorithm?
+        or just refer to full code?
 
    - publish in some ACM journal?
      McKenzie in ACM Transactions on Programming Languages and Systems

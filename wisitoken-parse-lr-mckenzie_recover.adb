@@ -485,7 +485,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  correct, and we do not do Stack.Pop. We can still check the target
                               --  token index against the previous ops.
                               --
-                              --  See test_mckenzie_recover.adb Erorr_2 for an example of Push_Back
+                              --  See test_mckenzie_recover.adb Error_2 for an example of Push_Back
                               --  after other ops.
                               if not
                                 (I = First_Index (Result.Ops) or else
@@ -563,7 +563,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Del_ID          => Op.Del_ID,
                                   Del_Token_Index => Op.Del_Token_Index));
 
-                              if Stack_Matches_Ops and Op.Del_Token_Index = Parser_State.Shared_Token then
+                              --  We don't check Stack_Matches_Ops here; if the current token needs
+                              --  to be deleted, this is the only chance to do that. See
+                              --  ada_mode-recover_02.adb with LR1 parser for example.
+                              if Op.Del_Token_Index = Parser_State.Shared_Token then
                                  --  Delete has no effect on Stack, so we can apply multiple deletes.
                                  Parser_State.Shared_Token := Op.Del_Token_Index + 1;
                                  Shared_Token_Changed      := True;
