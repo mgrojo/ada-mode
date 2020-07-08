@@ -28,14 +28,7 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    why does left recursion prevent minimal action when dot is not 1?
-        ada_mode-recover_13.adb
-            object_declaration missing ';' - libadalang gets it right.
-            object_declaration is other_left recursive because of identifier_list
-            ada_lite does not have that
-            no good examples in java either
-
-        add identifier_list to ada_lite, allow minimal_action
+    recursion not ignored if dot after last token
 
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts

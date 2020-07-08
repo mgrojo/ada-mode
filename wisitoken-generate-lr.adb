@@ -961,7 +961,15 @@ package body WisiToken.Generate.LR is
                --  cycle; left recursion applies even when it is not just before the
                --  parse point. On the other hand, in ada_lite state 154, both
                --  productions are left recursive; 103.0 could be preserved. In the
-               --  current algorithm, both are dropped.
+               --  current algorithm, both are dropped; this avoids needing cycle
+               --  detection at runtime.
+               --
+               --  It is tempting to allow a minimal complete action for tokens in an
+               --  RHS that are not in a recursion cycle. However, with partial
+               --  recursion this is not possible because we don't have accurate
+               --  recursion information, and in simpler languages that allow
+               --  computing full recursion it is not very helpful. So we treat
+               --  productions with left recursion independent of dot.
                --
                --  It is possible for both case 1 and case 2 to apply; see
                --  empty_production_2_lalar.parse_table State 5 above and
