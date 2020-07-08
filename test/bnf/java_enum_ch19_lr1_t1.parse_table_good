@@ -14,14 +14,14 @@ Tokens:
 
 Productions:
 8.0: wisitoken_accept <= EnumBody Wisi_EOI
-9.0: EnumConstantList <= EnumConstant ; (1 => Other_Left)
-9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left, 3 => Other_Right)
+9.0: EnumConstantList <= EnumConstant
+9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left)
 10.0: EnumConstant <= IDENTIFIER
 11.0: EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET
 11.1: EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET
 
-Partial recursions:
-1 => (9 (0, 1, 1) -> )
+Recursions:
+1 => (9 (1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -160,6 +160,8 @@ State 10:
    default             => ERROR
 
    Minimal_Complete_Action => EnumConstantList 9.1
+
+9 states with minimal_complete_actions; 9 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

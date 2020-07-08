@@ -62,9 +62,9 @@ Productions:
 32.0: use_clause <= USE name_list SEMICOLON
 
 Recursions:
-1 => (24 (0) -> )
-2 => (27 (0) -> )
-3 => (28 (1) -> )
+1 => (24 (0.1) -> )
+2 => (27 (0.1) -> )
+3 => (28 (1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -749,6 +749,8 @@ State 55:
    default          => ERROR
 
    Minimal_Complete_Action => loop_statement 26.0
+
+54 states with minimal_complete_actions; 54 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

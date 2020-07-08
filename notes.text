@@ -28,7 +28,23 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    recursion not ignored if dot after last token
+    recursion not ignored if length_after_dot = 0, when tokens after dot are nullable
+        try ignoring recursion then
+            empty_production_2_lalr.parse_table state 5
+                now includes a recursion cycle
+        go the other way; exclude recursion even if dot = no_index
+            ada_lite_lalr state 47 loses primary <= name ^
+                all productions in that state are recursive; need cost to sort it out
+                same for 50, 51, 52, ...
+
+            t_mck
+                fewer enqueus in error_3, string_quote_0,
+                loop_bound 1 error was 2
+                extra_name_2 2 errors
+                actual_parameter_part different solution
+                string_quote_5 got exception
+
+    cycle detection in mckensie paper?
 
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts

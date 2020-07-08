@@ -933,21 +933,23 @@ package body WisiToken.Generate.LR is
                --        8.0:declarations <= declarations ^ declaration ; (1 => Direct_Left, 2 => Other_Right)
                --        9.0:body <= IS declarations ^ BEGIN SEMICOLON ; (2 => Other)
 
-               --  case 0: In states 42 and 30, there is only one possible action, so
-               --  recursion is not considered. Minimal_Action is computed by
+               --  case 0: In states 42 and 30, there is only one possible action.
+               --  Recursion is ignored; Minimal_Action is computed by
                --  Compute_Action, Label is Keep_Always.
                --
                --  In the following, we only consider kernels where there is more
                --  than one item.
                --
-               --  case 1: In state 47 production 113.2, Length_After_Dot is 0, so
-               --  recursion is not considered. We set Label to Keep_Always, since
-               --  the true Length_After_Dot must be computed at runtime.
+               --  case 1: In state 47 production 113.2, Dot is after all tokens, so
+               --  the true Length_After_Dot must be computed at runtime. Recursion
+               --  is not considered, because any other McKensie operation would also
+               --  need to do a reduce to the LHS here. Label is Keep_Always,
                --  Minimal_Action is Reduce_Production.
                --
-               --  Similarly in state 68 production 115.0, Length_After_Dot is 0
-               --  because parameter_profile_opt is nullable, and we set Label to
-               --  Keep_Always, Minimal_Action to Reduce_Production.
+               --  In state 68 production 115.0, Length_After_Dot is 0 because
+               --  parameter_profile_opt is nullable. We don't ignore recursion in
+               --  this case; the nullable token may be in the recursion cycle. So if
+               --  the production is recursive, the item is dropped.
                --
                --  case 2: In state 47, if LEFT_PAREN or First
                --  (actual_parameter_part) is inserted, a recursion cycle is followed
@@ -973,7 +975,7 @@ package body WisiToken.Generate.LR is
                --
                --  It is possible for both case 1 and case 2 to apply; see
                --  empty_production_2_lalar.parse_table State 5 above and
-               --  ada_lite_ebnf_lalr.parse_table state 46. case 1 has precedence.
+               --  ada_lite_ebnf_lalr.parse_table state 46. case 2 has precedence.
                --
                --  case 3: In state 251, there is no recursion, and Length_After_Dot
                --  is correct; Label is set to Keep_If_Minimal, Minimal_Action to
@@ -1413,8 +1415,12 @@ package body WisiToken.Generate.LR is
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False)
    is
+      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       Parse_Table_File : File_Type;
+
+      Minimal_Complete_Action_States : Integer := 0;
+      Minimal_Complete_Actions       : Ada.Containers.Count_Type := 0;
    begin
       Create (Parse_Table_File, Out_File, Parse_Table_File_Name);
       Set_Output (Parse_Table_File);
@@ -1464,7 +1470,17 @@ package body WisiToken.Generate.LR is
          if State_Index /= Table.States'Last then
             New_Line;
          end if;
+
+         Minimal_Complete_Actions := @ + Table.States (State_Index).Minimal_Complete_Actions.Length;
+         if Table.States (State_Index).Minimal_Complete_Actions.Length > 0 then
+            Minimal_Complete_Action_States := @ + 1;
+         end if;
       end loop;
+
+      New_Line;
+      Put_Line
+        (Trimmed_Image (Minimal_Complete_Action_States) & " states with minimal_complete_actions;" &
+           Minimal_Complete_Actions'Image & " total minimal_complete_actions.");
 
       declare
          use Ada.Strings.Unbounded;
@@ -1491,6 +1507,7 @@ package body WisiToken.Generate.LR is
 
          if State_Count > 0 then
             New_Line;
+
             if Include_Extra then
                Line := Trimmed_Image (State_Count) & " states with conflicts:" & Line;
                Indent_Wrap (-Line);

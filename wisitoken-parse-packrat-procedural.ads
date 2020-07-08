@@ -71,7 +71,7 @@ package WisiToken.Parse.Packrat.Procedural is
      return Procedural.Parser;
 
    overriding procedure Parse (Parser : aliased in out Procedural.Parser);
-   overriding function Tree (Parser : in Procedural.Parser) return Syntax_Trees.Tree;
+   overriding function Tree (Parser : aliased in Procedural.Parser) return Syntax_Trees.Tree_Constant_Reference;
    overriding function Tree_Var_Ref
      (Parser : aliased in out Procedural.Parser)
      return Syntax_Trees.Tree_Variable_Reference;

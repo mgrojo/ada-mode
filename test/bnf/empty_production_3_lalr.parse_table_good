@@ -104,6 +104,8 @@ State 8:
 
    Minimal_Complete_Action => parameter_specification 8.0
 
+7 states with minimal_complete_actions; 7 total minimal_complete_actions.
+
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
  4 rules, 1 user actions, 1 checks, 9 states

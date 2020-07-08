@@ -22,11 +22,13 @@ Action
 spawn parser 1 from 0 (2 active)
  1:  1, ( 0 0 1 0 0 0 0 0 0), (93 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
  0:  1, ( 0 0 3 0 0 0 0 0 0), (93 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
+
 recover: succeed, parser count 2
- 1: Current_Token (RIGHT_PAREN) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125))
- 1: resume_active: True, token goal 11
- 0: Current_Token (MINUS_GREATER) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125))
- 0: resume_active: True, token goal 11
+ 1: Current_Token (RIGHT_PAREN) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete:
+ 1: resume_active: True, token goal 11, inc_shared_token: FALSE
+ 0: Current_Token (MINUS_GREATER) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete: 2 (( 3, MINUS_GREATER, 7, 25), ( 3, Identifier, 7, 0), ( 3, RIGHT_PAREN, 7, 0))
+ 0: resume_active: True, token goal 11, inc_shared_token: FALSE
+
  1: 21: (RIGHT_PAREN) : reduce 1 tokens to ClassType
 (ClassType, (123 . 123)) <= (6:(Identifier, (123 . 123)))
  ... goto state 32
@@ -164,11 +166,13 @@ Action
 spawn parser 2 from 1 (2 active)
  2:  6, ( 0 0 0 0 0 0 2 0 0), (20 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
  1:  6, ( 0 0 0 0 0 0 2 0 0), (20 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
+
 recover: succeed, parser count 2
- 2: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281))
- 2: resume_active: True, token goal 17
- 1: Current_Token (PLUS_PLUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281))
- 1: resume_active: True, token goal 17
+ 2: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 (( 3, RIGHT_PAREN, 7, 25), ( 3, MINUS_MINUS, 13, 49), ( 3, SEMICOLON, 13, 0))
+ 2: resume_active: True, token goal 17, inc_shared_token: FALSE
+ 1: Current_Token (PLUS_PLUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 (( 3, RIGHT_PAREN, 7, 25), ( 3, PLUS_PLUS, 13, 49), ( 3, SEMICOLON, 13, 0))
+ 1: resume_active: True, token goal 17, inc_shared_token: FALSE
+
  2: 61: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
 (MethodInvocation, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
  ... goto state 11
@@ -271,9 +275,11 @@ Action
  1 parallel tasks
  2: succeed 1, enqueue 4, check  2, cost:  1
  2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (417 . 417))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
+
 recover: succeed, parser count 1
- 2: Current_Token (Identifier) Shared_Token  22:(RIGHT_CURLY_BRACKET, (417 . 417))
- 2: resume_active: True, token goal 26
+ 2: Current_Token (Identifier) Shared_Token  22:(RIGHT_CURLY_BRACKET, (417 . 417)) recover_insert_delete:
+ 2: resume_active: True, token goal 26, inc_shared_token: FALSE
+
  2: 16: (Identifier) : shift and goto state 35
  2: 35: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to ClassType
 (ClassType) <= ((Identifier))
@@ -306,9 +312,9 @@ recover: succeed, parser count 1
  2: 2: 23:(Wisi_EOI, (434 . 433)) : accept it
 (wisitoken_accept, (105 . 417)) <= ((CompilationUnit, (105 . 417)))
  2: succeed
-java_expressions_ch19.input:2:20: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
+java_expressions_ch19.input:2:21: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
-java_expressions_ch19.input:6:17: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
+java_expressions_ch19.input:6:18: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
    recovered: ((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
-java_expressions_ch19.input:12:6: syntax error: expecting Identifier, found '}'
+java_expressions_ch19.input:12:7: syntax error: expecting Identifier, found '}'
    recovered: ((INSERT, Identifier, 22))

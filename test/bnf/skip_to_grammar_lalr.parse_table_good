@@ -26,8 +26,8 @@ Productions:
 13.1: compilation_unit_list <= compilation_unit
 
 Recursions:
-1 => (10 (0) -> )
-2 => (13 (0) -> )
+1 => (10 (0.1) -> )
+2 => (13 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -162,6 +162,8 @@ State 11:
    default               => ERROR
 
    Minimal_Complete_Action => declaration_item_list 10.0
+
+10 states with minimal_complete_actions; 10 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
