@@ -28,24 +28,6 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    recursion not ignored if length_after_dot = 0, when tokens after dot are nullable
-        try ignoring recursion then
-            empty_production_2_lalr.parse_table state 5
-                now includes a recursion cycle
-        go the other way; exclude recursion even if dot = no_index
-            ada_lite_lalr state 47 loses primary <= name ^
-                all productions in that state are recursive; need cost to sort it out
-                same for 50, 51, 52, ...
-
-            t_mck
-                fewer enqueus in error_3, string_quote_0,
-                loop_bound 1 error was 2
-                extra_name_2 2 errors
-                actual_parameter_part different solution
-                string_quote_5 got exception
-
-    cycle detection in mckensie paper?
-
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts
             c:/Projects/org.emacs.ada-mode/recover.log
@@ -90,8 +72,17 @@ STRING_QUOTE                 11  0% /      11  0%
             wisitoken-recover-compare:  total size: 14054
             libadalang-recover-compare: total size: 60069
 
+        add ada_annex_p
+
         libadalang better:
-            recover_02, recover_13 (perfect)
+            recover_02
+                example of losing recover power to imprecise recursion
+                    could rebalance cost, but we favor fixing large errors.
+
+            recover_13 (perfect)
+
+
+    McKensie bit map to prune config queue => not needed because we use a min heap
 
     need title
         \title, \author not working!?
@@ -208,9 +199,9 @@ LR1 algorithm.tex:
         rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
         rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
 
-output min_complete fraction in .parse_table - changed when recursion blew up?
-
-Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
+implement %local_keyword?
+    for ada_annex_p aspect_mark 'class', some others
+    add in-parse action to check identifier in local_keyword set.
 
 need gnat-prep for tree-sitter
     most devels won't have it

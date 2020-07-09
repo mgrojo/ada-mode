@@ -394,7 +394,10 @@ begin
          Generate_Set := Command_Generate_Set;
       end if;
 
-      Multiple_Tuples := Generate_Set'Length > 1;
+      Multiple_Tuples :=
+        --  Preserve output file names when overriding file %generate
+        (if Input_Data.Generate_Set = null then False else Input_Data.Generate_Set'Length > 1) or
+           (if Command_Generate_Set = null then False else Command_Generate_Set'Length > 1);
 
       if Input_Data.Meta_Syntax = EBNF_Syntax and (for some Tup of Generate_Set.all => Tup.Gen_Alg /= Tree_Sitter) then
          --  translate EBNF

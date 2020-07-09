@@ -188,18 +188,6 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Add_Terminal;
 
-   function Before
-     (Tree             : in Syntax_Trees.Tree;
-      Virtual_Terminal : in Valid_Node_Index)
-     return Base_Token_Index
-   is begin
-      if Tree.Flush then
-         return Tree.Shared_Tree.Nodes (Virtual_Terminal).Before;
-      else
-         return Tree.Branched_Nodes (Virtual_Terminal).Before;
-      end if;
-   end Before;
-
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -223,6 +211,23 @@ package body WisiToken.Syntax_Trees is
          return Base_Token_Class_Access_Constant (Tree.Branched_Nodes (Node).Augmented);
       end if;
    end Augmented_Const;
+
+   function Before
+     (Tree             : in Syntax_Trees.Tree;
+      Virtual_Terminal : in Valid_Node_Index)
+     return Base_Token_Index
+   is begin
+      if Tree.Flush then
+         return Tree.Shared_Tree.Nodes (Virtual_Terminal).Before;
+      else
+         return Tree.Branched_Nodes (Virtual_Terminal).Before;
+      end if;
+   end Before;
+
+   function Branched_Tree_Node_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
+   is begin
+      return Tree.Branched_Nodes.Length;
+   end Branched_Tree_Node_Count;
 
    function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
@@ -1972,11 +1977,6 @@ package body WisiToken.Syntax_Trees is
          Tree.Branched_Nodes (Node).Name := Region;
       end if;
    end Set_Name_Region;
-
-   function Shared_Tree_Node_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
-   is begin
-      return Tree.Shared_Tree.Nodes.Length;
-   end Shared_Tree_Node_Count;
 
    function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
    is
