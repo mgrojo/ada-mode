@@ -43,12 +43,34 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+opening or refreshing ada_annex_p_bnf.wy is very slow
+    something does full parse; takes ~ 30 seconds
+    mmm-auto.el (add-hook 'change-major-mode-hook #'mmm-major-mode-change)
+    mmm-major-mode-change: (add-hook 'post-command-hook #'mmm-check-changed-buffers)
+    'mmm-check-changed-buffers: mmm-run-major-mode-hook
+    mmm-auto.el (add-hook 'mmm-major-mode-hook #'mmm-mode-on-maybe)
+    mmm-mode-on-maybe mmm-update-font-lock-buffer
+    mmm-update-font-lock-buffer (mmm-overlays-overlapping (point-min) (point-max))
+        should be no overlays yet?
+
+    slowdown is _before_ wisitoken-grammar-mode is run!
+        somewhere in find-file (-hook)?
+
+wisi-grammar-mode
+    error during resume; parse called from wisi-fontify-region
+    wisi--run-parse(2690 3180)
+    can't reproduce
+
 ada_annex_p.wy
-    elminate conflicts
-    some done:
-72 states with conflicts
- 0 accept/reduce conflicts, 81 shift/reduce conflicts, 35 reduce/reduce conflicts
- 364 rules, 0 user actions, 0 checks, 2717 states
+    elminate conflicts: done
+
+    add actions
+        make two
+        added labels, action to abstract_subprogram_declaration
+            very tedious adding labels to everything
+                auto-label in translate_ebnf
+                or write elisp
+
 
 speed up lr1 generate
     share single c_tree; avoid updating 8 copies
@@ -380,7 +402,7 @@ add wisi-forward-anchor, use for comments after 'is', 'when' in record type
         make recursive-clean build_ada_executables
 
 d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
-    copied to c:/tmp/gnatcoll-xref.adb
+    copied to c:/eurocontrol/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
 wisitoken-bnf-generate
@@ -438,10 +460,13 @@ wisitoken-bnf-generate
         LR1 initial item_sets time: 163.506717162
 
     29 Jun 2020 parallelize LR1_Item_Sets
-        initial item_sets time: 103.791729848
+        initial item_sets time: 103.791729848, 108.724074927
 
     ada_annex_p.wy LR1:
-        no Ada 2020 yet
+    4 Jul 2020 all Ada 2020, no actions:
+        states: 444034, 22107 states with conflicts
+        0 accept/reduce conflicts, 41267 shift/reduce conflicts, 1616 reduce/reduce conflicts
+        initial item_sets time: 126.852255667
 
 mckenzie recover
     ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0

@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 -*-
+;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -544,8 +544,11 @@ discrete_choice ::= choice_expression | subtype_indication | range_g | 'others'
 
 record_extension_part ::= 'with' record_definition
 
-abstract_subprogram_declaration ::=
-  [overriding_indicator] subprogram_specification 'is' 'abstract' [aspect_specification] ';'
+abstract_subprogram_declaration
+  : [T1=overriding_indicator] T2=subprogram_specification T3='is' T4='abstract' [T5=aspect_specification] T6=';'
+    %((wisi-statement-action [T1 statement-start T2 statement-override T6 statement-end])
+      (wisi-indent-action [(T1 . nil) (T2 . nil) (T3 . ada-indent-broken) (T4 . ada-indent-broken) (T5 . ada-indent-broken) (T6 . ada-indent-broken)]))%
+  ;
 
 interface_type_definition ::=
   ['limited' | 'task' | 'protected' | 'synchronized'] 'interface' ['and' interface_list]
@@ -1407,7 +1410,9 @@ aspect_clause ::=
 
 aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] }
 
-aspect_mark ::= IDENTIFIER [tick 'class'] ;; FIXME: new %local_keyword? redundant with attribute?
+aspect_mark ::= IDENTIFIER [tick IDENTIFIER]
+;; FIXME: "class" changed to IDENTIFIER so foo'class is legal
+;; elsewhere; need %local_keyword "class" => in-parse action?
 
 aspect_definition ::=
   ;; name ;; redundant with expression
