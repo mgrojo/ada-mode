@@ -15,12 +15,14 @@ pragma License (GPL);
 
 with Ada.Characters.Handling;
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Process_Actions;
-with Ada_Process_LR1_Main;
 with Ada_Process_LALR_Main;
+with Ada_Process_LR1_Main;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada;
 with WisiToken.Parse.LR.Parser;
@@ -33,11 +35,11 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line (Standard_Error, "dump_wisitoken_corrected <alg> <file> [verbosity]");
-      Put_Line ("alg = 1 for LR1, 0 for LALR");
+      Put_Line (Standard_Error, "dump_wisitoken_corrected <alg> <file> [trace_parse trace_mckenzie]");
+      Put_Line ("alg {LR1 | LALR}");
    end Put_Usage;
 
-   Verbosity : Integer := 0;
+   File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Ada_Process_Actions.Descriptor'Unrestricted_Access);
    Parser : WisiToken.Parse.LR.Parser.Parser;
@@ -79,20 +81,25 @@ is
          new String'("'"),
          new String'("'"));
 
-      Tree     : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
-      ID       : constant Token_ID := Tree.ID (Node);
+      Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
+      ID   : constant Token_ID := Tree.ID (Node);
    begin
       if Tree.Label (Node) = Shared_Terminal then
          declare
             Token : Base_Token renames Parser.Terminals (Tree.First_Shared_Terminal (Node));
          begin
-            if -ID = IDENTIFIER_ID then
+            case To_Token_Enum (ID) is
+            when IDENTIFIER_ID =>
                return "IDENTIFIER " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
-            elsif -ID = CHARACTER_LITERAL_ID then
+            when CHARACTER_LITERAL_ID =>
                return "CHARACTER_LITERAL " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
-            else
+            when NUMERIC_LITERAL_ID =>
+               return "NUMERIC_LITERAL";
+            when STRING_LITERAL_ID =>
+               return "STRING_LITERAL";
+            when others =>
                return Parser.Lexer.Buffer_Text (Token.Byte_Region);
-            end if;
+            end case;
          end;
       else
          if -ID in RIGHT_PAREN_ID .. TICK_2_ID then
@@ -110,6 +117,7 @@ is
 begin
    declare
       use Ada.Command_Line;
+      use Ada.Directories;
    begin
       Set_Exit_Status (Success);
       if Argument_Count < 2 then
@@ -118,7 +126,7 @@ begin
          return;
       end if;
 
-      if Argument (1) = "1" then
+      if Argument (1) = "LR1" then
          Ada_Process_LR1_Main.Create_Parser
            (Parser,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
@@ -126,7 +134,7 @@ begin
             WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
             Trace'Unrestricted_Access,
             User_Data => null,
-            Text_Rep_File_Name => "../ada_lr1_parse_table.txt");
+            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lr1_parse_table.txt");
       else
          Ada_Process_LALR_Main.Create_Parser
            (Parser,
@@ -137,27 +145,32 @@ begin
             User_Data => null);
       end if;
 
-      declare
-         File_Name : constant String := Argument (2);
+      File_Name := +Argument (2);
       begin
-         Parser.Lexer.Reset_With_File (File_Name);
+         Parser.Lexer.Reset_With_File (-File_Name);
       exception
       when Ada.IO_Exceptions.Name_Error =>
-         Put_Line (Standard_Error, "'" & File_Name & "' cannot be opened");
+         Put_Line (Standard_Error, "'" & (-File_Name) & "' cannot be opened");
          Set_Exit_Status (Failure);
          return;
       end;
 
-      if Argument_Count > 2 then
-         Verbosity := Integer'Value (Argument (3));
+      if Argument_Count >= 3 then
+         WisiToken.Trace_Parse := Integer'Value (Argument (3));
+      end if;
+
+      if Argument_Count >= 4 then
+         WisiToken.Trace_McKenzie := Integer'Value (Argument (4));
       end if;
    end;
+
+   Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
 
    Parser.Table.McKenzie_Param.Task_Count := 1; -- minimize race conditions
 
    Parser.Parse;
 
-   if Verbosity > 0 then
+   if Trace_Parse > 0 then
       Parser.Put_Errors;
    end if;
 
@@ -171,6 +184,7 @@ begin
 
 exception
 when E : others =>
+   Put_Line (Standard_Error, -File_Name & ":1:1");
    Put_Line (Standard_Error,
              "exception " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));

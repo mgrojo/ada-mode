@@ -23,11 +23,11 @@ with Ada_Annex_P_Process_LR1_Main;
 with Gen_Run_Wisi_LR_Text_Rep_Parse;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P;
 with Wisi.Ada;
-procedure Run_Ada_Annex_P_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
+procedure Run_Ada_Annex_P_LR1_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
   (Wisi.Ada.Parse_Data_Type,
    Ada_Annex_P_Process_Actions.Descriptor,
    WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Language_Fixes'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Matching_Begin_Tokens'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.String_ID_Set'Access,
-   "ada_annex_p_parse_table.txt",
+   "ada_annex_p_lr1_parse_table.txt",
    Ada_Annex_P_Process_LR1_Main.Create_Parser);

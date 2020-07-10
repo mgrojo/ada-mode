@@ -19,14 +19,14 @@
 pragma License (GPL);
 
 with Ada_Annex_P_Process_Actions;
-with Ada_Annex_P_Process_Main;
+with Ada_Annex_P_Process_LALR_Main;
 with Gen_Run_Wisi_LR_Parse;
---  with WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P;
 with Wisi.Ada;
 procedure Run_Ada_Annex_P_LALR_Parse is new Gen_Run_Wisi_LR_Parse
   (Wisi.Ada.Parse_Data_Type,
    Ada_Annex_P_Process_Actions.Descriptor,
-   null, --  FIXME: WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Language_Fixes'Access,
-   null, --  FIXME: WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Matching_Begin_Tokens'Access,
-   null, --  FIXME: WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.String_ID_Set'Access,
-   Ada_Annex_P_Process_Main.Create_Parser);
+   WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Language_Fixes'Access,
+   WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.Matching_Begin_Tokens'Access,
+   WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.String_ID_Set'Access,
+   Ada_Annex_P_Process_LALR_Main.Create_Parser);

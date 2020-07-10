@@ -8,8 +8,8 @@
 -- Error recovery finds a different reasonable solution.
 
 --EMACSCMD:(setq skip-recase-test t)
-
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(switch-to-lr1)
 
 pragma License (Modified_GPL);
 
