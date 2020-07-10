@@ -289,10 +289,11 @@ package WisiToken.BNF is
    --  in call to post parse grammar action.
 
    type RHS_Type is record
-      Tokens      : Labeled_Token_Arrays.Vector;
-      Action      : Ada.Strings.Unbounded.Unbounded_String;
-      Check       : Ada.Strings.Unbounded.Unbounded_String;
-      Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      Tokens            : Labeled_Token_Arrays.Vector;
+      Auto_Token_Labels : Boolean                    := False;
+      Action            : Ada.Strings.Unbounded.Unbounded_String;
+      Check             : Ada.Strings.Unbounded.Unbounded_String;
+      Source_Line       : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
    end record;
    package RHS_Lists is new Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 

@@ -131,6 +131,7 @@ package WisiToken_Grammar_Editing is
    function Add_RHS
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
       Item              : in     WisiToken.Valid_Node_Index;
+      Auto_Token_Labels : in     Boolean;
       Post_Parse_Action : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
       In_Parse_Action   : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index)
      return WisiToken.Valid_Node_Index

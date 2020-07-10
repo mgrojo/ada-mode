@@ -92,6 +92,7 @@ package body Subprograms_Process_Actions is
      Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+      nam : constant SAL.Peek_Type := 4;
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -219,18 +220,18 @@ package body Subprograms_Process_Actions is
      Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
-      lef : constant SAL.Peek_Type := 1;
-      nam : constant SAL.Peek_Type := 2;
-      rig : constant SAL.Peek_Type := 3;
+      T1 : constant SAL.Peek_Type := 1;
+      T2 : constant SAL.Peek_Type := 2;
+      T3 : constant SAL.Peek_Type := 3;
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (nam, Misc)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (T2, Misc)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (lef => (False, (Simple, (Int, 0))), nam => (False,
-         (Simple, (Anchored_0, 1, 1))), rig => (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (T1 => (False, (Simple, (Int, 0))), T2 => (False, (Simple,
+         (Anchored_0, 1, 1))), T3 => (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end parameter_list_0;
 
@@ -241,8 +242,8 @@ package body Subprograms_Process_Actions is
      Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
-      lef : constant SAL.Peek_Type := 1;
-      rig : constant SAL.Peek_Type := 2;
+      T1 : constant SAL.Peek_Type := 1;
+      T3 : constant SAL.Peek_Type := 2;
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -250,8 +251,8 @@ package body Subprograms_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (lef => (False, (Simple, (Int, 0))), rig => (False,
-         (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (T1 => (False, (Simple, (Int, 0))), T3 => (False, (Simple,
+         (Anchored_0, 1, 0)))));
       end case;
    end parameter_list_1;
 
