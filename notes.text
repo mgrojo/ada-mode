@@ -28,15 +28,6 @@ update-wisitoken_grammar
 
  current work
 error_correction_algorithm.tex
-    why does left recursion prevent minimal action when dot is not 1?
-        ada_mode-recover_13.adb
-            object_declaration missing ';' - libadalang gets it right.
-            object_declaration is other_left recursive because of identifier_list
-            ada_lite does not have that
-            no good examples in java either
-
-        add identifier_list to ada_lite, allow minimal_action
-
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts
             c:/Projects/org.emacs.ada-mode/recover.log
@@ -81,8 +72,17 @@ STRING_QUOTE                 11  0% /      11  0%
             wisitoken-recover-compare:  total size: 14054
             libadalang-recover-compare: total size: 60069
 
+        add ada_annex_p
+
         libadalang better:
-            recover_02, recover_13 (perfect)
+            recover_02
+                example of losing recover power to imprecise recursion
+                    could rebalance cost, but we favor fixing large errors.
+
+            recover_13 (perfect)
+
+
+    McKensie bit map to prune config queue => not needed because we use a min heap
 
     need title
         \title, \author not working!?
@@ -199,9 +199,9 @@ LR1 algorithm.tex:
         rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
         rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
 
-output min_complete fraction in .parse_table - changed when recursion blew up?
-
-Syntax tree nonterm node child array in two pieces - fixed for <5 and dynamic for >5
+implement %local_keyword?
+    for ada_annex_p aspect_mark 'class', some others
+    add in-parse action to check identifier in local_keyword set.
 
 need gnat-prep for tree-sitter
     most devels won't have it

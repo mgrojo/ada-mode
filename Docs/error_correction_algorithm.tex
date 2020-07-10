@@ -456,8 +456,7 @@ Minimal_Complete_Action => statement
   ...
 \end{verbatim}
 
-and finally arrives at the
-state kernel:
+and finally arrives at the state:
 %% state 370
 \begin{verbatim}
 case_statement <= CASE expression_opt IS
@@ -573,6 +572,12 @@ parsers getting to end of input is an error (ambiguous parse), but
 since error correction often produces multiple solutions, we don't
 report an error, one solution is chosen arbitrarily to be the final
 parse.
+
+In general, we can rely on cost to exclude cycles in error recovery,
+but this is not true for \code{Minimal\_Complete}, since it has
+negative cost. We will see in section \ref{minimal-complete-compute}
+that all minimal actions that might lead to a cycle are dropped at
+compile time, so there is no need for detecting cycles at runtime.
 
 \subsection{Matching\_Begin}
 Consider the Ada code fragment:
@@ -782,19 +787,8 @@ flag to the items in the state kernels; true if the production is in a
 cycle or SCC and the recursive token is the first token (ie the
 production is left recursive, direct or indirect), false otherwise.
 
-%FIXME; example of why non-left recursion is ok;
-               %%  ada_lite_lalr_re2c_t1.parse_table - not listed in state order here, to
-               %%  State 77:
-               %%       57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN ; ( 2 => Other)
-               %%      103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN ; ( 1 => Direct_Left,  3 => Other)
-               %%
-%% In State 77, Dot_ID is association_list which has
-%%                    Other recursion; we say "there is recursion at the parse point".
-%%                --  However, Length_After_Dot is correct; it assumes the
-%%                --  recursion-breaking case for the expansion of association_list. So
-%%                --  this is the same as no recursion at the parse point
 \subsection{Other preliminaries}
-Next, we compute the minimal terminal token sequence for each production.
+We also need the minimal terminal token sequence for each production.
 This is the same as $S(A)$ from FMQ \cite{FMQ 1980}:
 \begin{equation}
 S(A) \equiv x \in V_t^* \, |\, A \Rightarrow^* x, \, \mathtt{Cost(x)\; is\; minimized}
@@ -806,27 +800,32 @@ costs in the run-time portion of the algorithm.
 Next we need \code{Minimal\_Terminal\_First(A)}, which is the first
 token in $S(A)$, or the invalid token $\xi$ if $S(A)$ is empty.
 
-Next we need $Nullable(A, \omega)$, which gives the production that
+Finally we need $Nullable(A, \omega)$, which gives the production that
 reduces $A$ to $\epsilon$:
 \begin{equation}
 Nullable(A, \omega) \equiv (B, \psi) \in P\, |\, (A \Rightarrow B \gamma, B \Rightarrow^* \epsilon)\ else\ \xi
 \end{equation}
 
 \subsection{Minimal Complete Action}
-For each state, we consider each LR1 item in the kernel. There are
+For each state, we consider each item in the kernel. There are
 several possible cases, listed in priority order:
 \begin{enumerate}
   \setcounter{enumi}{-1}
 
   %case 0
 \item There is only one item in the kernel. Recursion is
-  ignored, minimal action is given by \code{Compute\_Action (Dot)},
+  ignored, because any other McKenzie operation also has no choice
+  here. The minimal action is given by \code{Compute\_Action (Dot)},
   where \code{Dot} is the token after dot in the kernel item.
 
   %case 1
-\item Dot is at the end of the production; the actual production
-  length must be computed at runtime. Recursion is ignored; the
-  minimal action is reduce to the item LHS.
+\item Dot is at the end of the production, or all tokens following dot
+  are nullable; the actual production length must be computed at
+  runtime. If Dot is at the end of the production, recursion is
+  ignored again because any other McKenzie operation also has no
+  choice here; the minimal action is reduce to the item LHS. If Dot is
+  not at the end of the production, we cannot ignore recursion; the
+  null token might be in a recursion cycle.
 
   %case 2
 \item The item is left recursive; there is no minimal action.

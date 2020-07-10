@@ -23,7 +23,7 @@ Productions:
 12.1: label_opt <=
 
 Recursions:
-1 => (11 (0) -> )
+1 => (11 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -161,6 +161,8 @@ State 14:
    default                => ERROR
 
    Minimal_Complete_Action => statement 10.0
+
+13 states with minimal_complete_actions; 13 total minimal_complete_actions.
 
 2 states with conflicts: 1 5
 

@@ -278,6 +278,8 @@ State 26:
 
    Minimal_Complete_Action => if_statement 12.0
 
+25 states with minimal_complete_actions; 25 total minimal_complete_actions.
+
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
  3 rules, 0 user actions, 0 checks, 27 states

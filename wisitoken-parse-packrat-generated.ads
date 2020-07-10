@@ -66,7 +66,7 @@ package WisiToken.Parse.Packrat.Generated is
    end record;
 
    overriding procedure Parse (Parser : aliased in out Generated.Parser);
-   overriding function Tree (Parser : in Generated.Parser) return Syntax_Trees.Tree;
+   overriding function Tree (Parser : aliased in Generated.Parser) return Syntax_Trees.Tree_Constant_Reference;
    overriding function Tree_Var_Ref
      (Parser : aliased in out Generated.Parser)
      return Syntax_Trees.Tree_Variable_Reference;

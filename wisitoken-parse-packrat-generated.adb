@@ -62,9 +62,9 @@ package body WisiToken.Parse.Packrat.Generated is
 
    end Parse;
 
-   overriding function Tree (Parser : in Generated.Parser) return Syntax_Trees.Tree
+   overriding function Tree (Parser : aliased in Generated.Parser) return Syntax_Trees.Tree_Constant_Reference
    is begin
-      return Parser.Tree;
+      return (Element => Parser.Tree'Access);
    end Tree;
 
    overriding function Tree_Var_Ref

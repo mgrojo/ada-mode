@@ -13,7 +13,7 @@ Productions:
 6.1: expr <= NUMERIC_LITERAL
 
 Recursions:
-1 => (6 (0) -> )
+1 => (6 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -61,6 +61,8 @@ State 4:
    default          => ERROR
 
    Minimal_Complete_Action => expr 6.0
+
+3 states with minimal_complete_actions; 3 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

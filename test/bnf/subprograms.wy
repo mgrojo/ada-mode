@@ -1,5 +1,4 @@
-;; Grammar has no conflicts; test wisi cache actions in Emacs
-;; (ediff "subprograms.wy" "../../../org.wisitoken.stephe-1/wisi/test/subprograms.wy")
+;; Test translate elisp wisi actions to Ada, auto token labels
 
 %code copyright_license %{
 ;;  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
@@ -20,7 +19,7 @@
 
 %meta_syntax EBNF
 
-%generate LALR         Ada_Emacs re2c Process
+%generate LALR Ada_Emacs re2c Process
 %start compilation_unit
 
 ;; FIXME: implement *, ? directly in packrat
@@ -69,6 +68,7 @@
 ;; language-specific elisp action
 %elisp_action face wisi-mmmify-token MMMify_Token
 
+;; Leave these token labels manually entered.
 block
   : beg=BEGIN T2=loop_statement [T3=EXCEPTION whe=WHEN T5=name] T6=END
     %((progn
@@ -76,6 +76,7 @@ block
       (wisi-indent-action [(beg . nil) (T2 . subp-indent) (T3 . nil) (whe . subp-indent) (T5 . nil) (T6 . nil)])))%
 ;
 
+;; No automatic token labels needed.
 compilation_unit
   : declarations
     %()%
@@ -92,6 +93,7 @@ declaration
   | use_clause
   ;
 
+;; No automatic token labels needed; manual labels preserved.
 loop_statement
   : FOR SYMBOL IN nam=subtype LOOP SEMICOLON
     %((progn
@@ -105,20 +107,20 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
-;; Recognized canonical list with action, token labels
+;; Recognized canonical list with action, automatic token labels
 name_list
-  : T1=name (T2=COMMA T3=name)*
-    %((wisi-mmmify-token [T3])
-      (wisi-indent-action [(T1 . (wisi-hanging 0 java-indent-broken))
-                           (T2 . 0)
-                           (T3 . (wisi-hanging 0 java-indent-broken))]))%
+  : name (COMMA name)*
+    %((wisi-mmmify-token [3])
+      (wisi-indent-action [(wisi-hanging 0 java-indent-broken)
+                           0
+                           (wisi-hanging 0 java-indent-broken)]))%
   ;
 
 parameter_list
-  : lef=LEFT_PAREN nam=SYMBOL? rig=RIGHT_PAREN
+  : LEFT_PAREN SYMBOL? RIGHT_PAREN
     %((progn
-      (wisi-statement-action [nam misc])
-      (wisi-indent-action [(lef . 0) (nam . (wisi-anchored 1 1)) (rig . (wisi-anchored 1 0))])))%
+      (wisi-statement-action [2 misc])
+      (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))%
   ;
 
 subprogram
@@ -135,7 +137,7 @@ subprogram
                              (blo . 0)
                              (sem . 0)])))%
   | PROCEDURE name parameter_list END name SEMICOLON
-  ;; No token labels (and thus parameter_list is not optional), to test that flavor
+  ;; No manual or automatic token labels
     %((progn
         (wisi-statement-action [1 statement-start 2 name 6 statement-end])
         (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])

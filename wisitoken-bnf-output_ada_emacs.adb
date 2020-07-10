@@ -186,6 +186,13 @@ is
       Label_Needed   : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
       Nonterm_Needed : Boolean := False;
 
+      Last_Token_Index : Integer := 0;
+      function Next_Token_Label return String
+      is begin
+         Last_Token_Index := @ + 1;
+         return "T" & WisiToken.Trimmed_Image (Last_Token_Index);
+      end Next_Token_Label;
+
       function Label_Used (Label : in String) return Boolean
       is
          Found : Boolean := False;
@@ -255,7 +262,7 @@ is
             Last := Index (Params, Space_Paren_Set, Second + 1);
 
             declare
-               Label : constant String := Params (First .. Second - 1);
+               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Second - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count := Count + 1;
@@ -326,7 +333,8 @@ is
                end;
 
                declare
-                  Label : constant String := Params (Index_First .. Index_Last);
+                  Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") &
+                    Params (Index_First .. Index_Last);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" &
@@ -347,7 +355,7 @@ is
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
                declare
-                  Label : constant String := Params (First .. Last - 1);
+                  Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
@@ -407,7 +415,7 @@ is
             First := Last;
             Last  := Index (Params, Delim, First);
             declare
-               Label : constant String := Params (First .. Last - 1);
+               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count  := Count + 1;
@@ -463,7 +471,7 @@ is
             First := Last;
             Last  := Index (Params, Delim, First);
             declare
-               Label : constant String := Params (First .. Last - 1);
+               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count  := Count + 1;
@@ -506,34 +514,40 @@ is
       function Face_Remove_Params (Params : in String) return String
       is
          --  Params is a vector of token numbers: [1 3 ...]
+         --  Token numbers can be labels.
          --  Result: (1, 3, ...)
          use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Index_Non_Blank (Params); -- skip [
+         Last       : Integer := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
-         Need_Comma : Boolean          := False;
-         Count      : Integer          := 0;
+         Need_Comma : Boolean := False;
+         Count      : Integer := 0;
       begin
          loop
             Last := Index_Non_Blank (Params, Last + 1);
 
             exit when Params (Last) = ']' or Params (Last) = ')';
 
-            Count  := Count + 1;
             First  := Last;
             Last   := Index (Params, Delim, First);
-            Result := Result & (if Need_Comma then ", " else "") & Params (First .. Last - 1);
-
-            Need_Comma := True;
+            declare
+               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Count      := Count + 1;
+                  Result     := Result & (if Need_Comma then ", " else "") & Label;
+                  Need_Comma := True;
+               end if;
+            end;
          end loop;
          Nonterm_Needed := True;
-         if Count = 1 then
-            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
-         else
-            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
-         end if;
+         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+           (case Count is
+            when 0 => "(1 .. 0 => 1)",
+            when 1 => "(1 => " & (-Result) & "))",
+            when others => "(" & (-Result) & "))");
       exception
       when E : others =>
          Put_Error
@@ -809,6 +823,21 @@ is
                end if;
             end Comma;
          begin
+            if (Prefix = False and Skip = False) and then RHS.Auto_Token_Labels then
+               declare
+                  Label : constant String := Next_Token_Label;
+               begin
+                  if Label_Used (Label) then
+                     Comma;
+                     Result := Result & Label & " => ";
+                     One_Param (Prefix => True);
+                  else
+                     One_Param (Skip => True);
+                  end if;
+                  return;
+               end;
+            end if;
+
             case Params (Last) is
             when '(' =>
                --  cons or function
@@ -893,9 +922,10 @@ is
 
          --  In translated EBNF, token counts vary in each RHS; require each
          --  parameter to be labeled if any are, both for catching errors, and
-         --  becase that would produce mixed positional and named association
-         --  in the Ada action subprogram.
-         if Param_Count /= RHS.Tokens.Length then
+         --  because not doing so would produce mixed positional and named
+         --  association in the Ada action subprogram. Auto_Token_Labels
+         --  violates this, but is checked in unit tests.
+         if Param_Count /= RHS.Tokens.Length and (not RHS.Auto_Token_Labels) then
             if Labels.Length = 0 then
                Put_Error
                  (Error_Message
@@ -929,10 +959,12 @@ is
          --  Input looks like "1 2)"
          First             : constant Integer := Index_Non_Blank (Params);
          Second            : constant Integer := Index (Params, Blank_Set, First);
-         Label_First       : constant String  := Params (First .. Second - 1);
+         Label_First       : constant String  := (if RHS.Auto_Token_Labels then "T" else "") &
+           Params (First .. Second - 1);
          Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
            Label_Used (Label_First);
-         Label_Second      : constant String  := Params (Second + 1 .. Params'Last - 1);
+         Label_Second      : constant String  := (if RHS.Auto_Token_Labels then "T" else "") &
+           Params (Second + 1 .. Params'Last - 1);
          Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
            Label_Used (Label_Second);
       begin
@@ -959,8 +991,8 @@ is
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Lexer, Descriptor, Tokens, " &
-           Params (First .. Second - 1) & ',' &
-           Params (Second .. Params'Last - 1) & ", " &
+           (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Second - 1) & ',' &
+           (if RHS.Auto_Token_Labels then "T" else "") & Params (Second .. Params'Last - 1) & ", " &
            (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
             then -Input_Data.Language_Params.End_Names_Optional_Option
             else "False") & ")";
@@ -979,7 +1011,7 @@ is
             First := Index_Non_Blank (Params, Last + 1);
             Last  := Index (Params, Space_Paren_Set, First);
             declare
-               Label : constant String  := Params (First .. Last - 1);
+               Label : constant String  := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Param_Count := Param_Count + 1;
@@ -1056,7 +1088,7 @@ is
             declare
                First : constant Integer := Index_Non_Blank (Line, Last + 1);
                Last  : constant Integer := Index (Line, Space_Paren_Set, First);
-               Label : constant String  := Line (First .. Last - 1);
+               Label : constant String  := (if RHS.Auto_Token_Labels then "T" else "") & Line (First .. Last - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Nonterm_Needed := True;
@@ -1131,7 +1163,7 @@ is
             Assert_Check_Empty;
             Nonterm_Needed := True;
             Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";";
+              " (Nonterm, Tokens, " & (if RHS.Auto_Token_Labels then "T" else "") & Line (Last + 1 .. Line'Last) & ";";
 
          elsif Elisp_Name = "wisi-merge-names" then
             Assert_Check_Empty;

@@ -393,6 +393,8 @@ State 41:
 
    Minimal_Complete_Action => generic_instantiation 19.0
 
+40 states with minimal_complete_actions; 42 total minimal_complete_actions.
+
 2 states with conflicts: 7 17
 
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts

@@ -118,7 +118,8 @@ package WisiToken.Generate is
       Token_Index : Positive := Positive'Last;
    end record;
 
-   function Edge_Image (Edge : in Edge_Data) return String is (Trimmed_Image (Edge.RHS));
+   function Edge_Image (Edge : in Edge_Data) return String
+   is (Trimmed_Image (Edge.RHS) & "." & Trimmed_Image (Edge.Token_Index));
 
    type Base_Recursion_Index is range 0 .. Integer'Last;
    subtype Recursion_Index is Base_Recursion_Index range 1 .. Base_Recursion_Index'Last;

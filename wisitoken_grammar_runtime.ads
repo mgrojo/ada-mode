@@ -84,12 +84,14 @@ package WisiToken_Grammar_Runtime is
 
    type Augmented_Token is new WisiToken.Base_Token with
    record
-      Non_Grammar : WisiToken.Base_Token_Arrays.Vector;
+      Non_Grammar       : WisiToken.Base_Token_Arrays.Vector;
+      Auto_Token_Labels : Boolean := False;
    end record;
    type Augmented_Token_Access is access all Augmented_Token;
 
    function Image (Item : in WisiToken.Base_Token_Class_Access) return String
-     is (WisiToken.Image (Augmented_Token_Access (Item).Non_Grammar, Wisitoken_Grammar_Actions.Descriptor));
+   is (WisiToken.Image (Augmented_Token_Access (Item).Non_Grammar, Wisitoken_Grammar_Actions.Descriptor) &
+         Augmented_Token_Access (Item).Auto_Token_Labels'Image);
 
    overriding
    procedure Set_Lexer_Terminals

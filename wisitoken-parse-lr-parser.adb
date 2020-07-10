@@ -206,8 +206,8 @@ package body WisiToken.Parse.LR.Parser is
          begin
             Parser_State.Errors.Append
               ((Label          => LR.Action,
-                First_Terminal => Trace.Descriptor.First_Terminal,
-                Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                First_Terminal => Expecting'First,
+                Last_Terminal  => Expecting'Last,
                 Error_Token    => Parser_State.Current_Token,
                 Expecting      => Expecting,
                 Recover        => (others => <>)));
@@ -1008,8 +1008,8 @@ package body WisiToken.Parse.LR.Parser is
 
                         else
                            if Debug_Mode then
-                              if Current_Parser.State_Ref.Tree.Shared_Tree_Node_Count >
-                                Shared_Parser.Shared_Tree_Node_Count_Threshold
+                              if Current_Parser.State_Ref.Tree.Branched_Tree_Node_Count >
+                                Shared_Parser.Branched_Tree_Node_Count_Threshold
                               then
                                  declare
                                     Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
@@ -1017,9 +1017,9 @@ package body WisiToken.Parse.LR.Parser is
                                  begin
                                     raise WisiToken.Parse_Error with Error_Message
                                       (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
-                                       "shared syntax tree growing too large (>" &
-                                         Shared_Parser.Shared_Tree_Node_Count_Threshold'Image &
-                                         "); improve grammar or increase Parser.Shared_Tree_Node_Count_Threshold.");
+                                       "branched syntax tree growing too large (>" &
+                                         Shared_Parser.Branched_Tree_Node_Count_Threshold'Image &
+                                         "); improve grammar or increase Parser.Branched_Tree_Node_Count_Threshold.");
                                  end;
                               end if;
                            end if;

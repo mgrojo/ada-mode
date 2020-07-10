@@ -253,9 +253,9 @@ package body WisiToken.Parse.Packrat.Procedural is
       end if;
    end Parse;
 
-   overriding function Tree (Parser : in Procedural.Parser) return Syntax_Trees.Tree
+   overriding function Tree (Parser : aliased in Procedural.Parser) return Syntax_Trees.Tree_Constant_Reference
    is begin
-      return Parser.Tree;
+      return (Element => Parser.Tree'Access);
    end Tree;
 
    overriding function Tree_Var_Ref

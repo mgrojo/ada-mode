@@ -191,6 +191,8 @@ package body WisiToken_Grammar_Runtime is
    begin
       return RHS : WisiToken.BNF.RHS_Type do
          RHS.Source_Line := Get_Line (Data, Tree, Token);
+         RHS.Auto_Token_Labels := Tree.Augmented (Token) /= null and then
+           Augmented_Token_Access (Tree.Augmented (Token)).Auto_Token_Labels;
 
          if Children'Length > 0 then
             for I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop
@@ -362,7 +364,7 @@ package body WisiToken_Grammar_Runtime is
             begin
                if Containing_Aug = null then
                   Containing_Aug := new Augmented_Token'
-                    (Data.Terminals.all (Tree.First_Shared_Terminal (Data.Last_Terminal_Node)) with Non_Grammar => <>);
+                    (Data.Terminals.all (Tree.First_Shared_Terminal (Data.Last_Terminal_Node)) with others => <>);
                   Tree.Set_Augmented (Data.Last_Terminal_Node, WisiToken.Base_Token_Class_Access (Containing_Aug));
                end if;
 

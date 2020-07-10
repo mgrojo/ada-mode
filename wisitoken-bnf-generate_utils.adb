@@ -280,15 +280,15 @@ package body WisiToken.BNF.Generate_Utils is
    end Parse_Grammar_File;
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
+     (Grammar_File_Name  :         in     String;
+      Input_Data         : aliased in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Generate_Algorithm :         in     WisiToken.BNF.Generate_Algorithm;
+      Lexer              :         in     WisiToken.BNF.Lexer_Type;
+      Ignore_Conflicts   :         in     Boolean)
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
       Trace             : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-      Input_Data        : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
       Wisitoken_Grammar_Main.Create_Parser
@@ -327,6 +327,18 @@ package body WisiToken.BNF.Generate_Utils is
    when E : WisiToken.Parse_Error =>
       WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
       raise;
+   end Parse_Grammar_File;
+
+   function Parse_Grammar_File
+     (Grammar_File_Name  : in String;
+      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in WisiToken.BNF.Lexer_Type;
+      Ignore_Conflicts   : in Boolean)
+     return Generate_Data
+   is
+      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+   begin
+      return Parse_Grammar_File (Grammar_File_Name, Input_Data, Generate_Algorithm, Lexer, Ignore_Conflicts);
    end Parse_Grammar_File;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID

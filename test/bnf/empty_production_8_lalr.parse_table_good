@@ -24,7 +24,7 @@ Productions:
 11.1: constant_opt <=
 
 Recursions:
-1 => (8 (0) -> )
+1 => (8 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -154,6 +154,8 @@ State 12:
    default                 => ERROR
 
    Minimal_Complete_Action => object_declaration 9.1
+
+11 states with minimal_complete_actions; 11 total minimal_complete_actions.
 
 1 states with conflicts: 1
 

@@ -33,7 +33,7 @@ Productions:
 18.1: tick <= TICK_2
 
 Recursions:
-1 => (16 (0) -> )
+1 => (16 (0.1) -> )
 
 LR1 Parse Table:
 State 0:
@@ -265,6 +265,8 @@ State 22:
    default           => ERROR
 
    Minimal_Complete_Action => statement 17.0
+
+21 states with minimal_complete_actions; 21 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 

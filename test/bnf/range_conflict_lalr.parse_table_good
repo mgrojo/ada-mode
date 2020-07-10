@@ -31,10 +31,10 @@ Productions:
 16.0: relation <= primary IN membership_choice ; (1 => Other_Left, 3 => Other_Right)
 
 Recursions:
-1 => (13 (0) -> 14 (2) -> 16 (0) -> )
-2 => (13 (1) -> 15 (2, 2) -> 14 (2) -> 16 (0) -> )
-3 => (13 (1) -> 15 (0) -> 16 (0) -> )
-4 => (14 (2) -> 16 (0) -> )
+1 => (13 (0.1) -> 14 (2.2) -> 16 (0.3) -> )
+2 => (13 (1.1) -> 15 (2.1, 2.3) -> 14 (2.2) -> 16 (0.3) -> )
+3 => (13 (1.1) -> 15 (0.5) -> 16 (0.3) -> )
+4 => (14 (2.2) -> 16 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -299,6 +299,8 @@ State 22:
    default           => ERROR
 
    Minimal_Complete_Action => range_g 15.0
+
+21 states with minimal_complete_actions; 23 total minimal_complete_actions.
 
 1 states with conflicts: 17
 

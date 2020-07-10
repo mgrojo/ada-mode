@@ -332,7 +332,7 @@ begin
       --  In general, all of the data in Generate_Utils.Generate_Data
       --  depends on the generate tuple parameters. However, if
       --  'If_Lexer_Present' is false, then they don't depend on the lexer,
-      --  and if 'If_Parser_Present' is false, then they don't depend on the
+      --  and if 'If_Parser_Present' is false, then they don't depend on
       --  Gen_Alg, except for the parser table. But it's not worth trying to
       --  cache results in those cases; they only happen in test grammars,
       --  which are small.
@@ -394,7 +394,10 @@ begin
          Generate_Set := Command_Generate_Set;
       end if;
 
-      Multiple_Tuples := Generate_Set'Length > 1;
+      Multiple_Tuples :=
+        --  Preserve output file names when overriding file %generate
+        (if Input_Data.Generate_Set = null then False else Input_Data.Generate_Set'Length > 1) or
+           (if Command_Generate_Set = null then False else Command_Generate_Set'Length > 1);
 
       if Input_Data.Meta_Syntax = EBNF_Syntax and (for some Tup of Generate_Set.all => Tup.Gen_Alg /= Tree_Sitter) then
          --  translate EBNF
@@ -423,7 +426,8 @@ begin
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
                  (Wisitoken_Grammar_Actions.Descriptor,
-                  Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                  Image_Action    => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access,
+                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
             end if;
 
             if Output_BNF then
