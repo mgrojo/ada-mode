@@ -20,7 +20,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -43,15 +43,24 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-compare_annex_p
-    terminal semicolons make parse faster?
-    ada_annex_p_txt.wy no semicolons: per iteration: 1.957165633
-    with semicolons: 1.219159486 not good enough; set partial-parse-threshold lower
+need better homepage for wisi
+    point to user guide, show some screen shots
+    populate Savannah 'docs' page?
+    set savannah devel status to 'in production'
 
-speed up lr1 generate
-    share single c_tree; avoid updating 8 copies
-    supervisor gathers input from all workers, updates 1 copy, gives new states to all workers.
-    doesn't save time, just CPU use?
+output min_complete fraction in .parse_table - changed when recursion blew up?
+
+dos2unix takes a long time on lr1_parse_table.txt
+    change put_text_rep to use stream_io, do correct line ending.
+
+annex_p
+    minimize conflicts due to added Ada 2020 syntax
+
+    add actions
+
+    compare_ada_annex_p
+        arm_texi use bold underscore for bold, to distinguish keywords
+        write arm-info-mode, to apply faces
 
 indent bugs
     State.Kernel (I) :=
