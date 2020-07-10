@@ -461,7 +461,8 @@ package body WisiToken_Grammar_Editing is
 
                         when 5 =>
                            --  rhs_group_item
-                           Add_Token_Labels_1 (Tree.Child (Item, 2));
+                           Add_Token_Labels_1 (Tree.Child (Tree.Child (Item, 1), 2));
+
                         when others =>
                            raise SAL.Programmer_Error;
                         end case;

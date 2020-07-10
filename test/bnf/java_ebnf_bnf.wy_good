@@ -52,7 +52,7 @@ compilationUnit
 
 statement
   : blockLabel=block
-  | TRY block nonterminal_049
+  | T1=TRY T2=block nonterminal_054
     %((wisi-statement-action [1 statement-start]))%
   | SWITCH parExpression LBRACE switchBlockStatementGroup_list switchLabel_list RBRACE
   | SWITCH parExpression LBRACE switchBlockStatementGroup_list RBRACE
@@ -157,11 +157,11 @@ ReturnStatement
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
   : primary
-  | expression bop=DOT nonterminal_052
-  | expression postfix=nonterminal_053
+  | expression bop=DOT nonterminal_057
+  | expression postfix=nonterminal_058
 
 ;; attribute with more than one item following
-  | expression bop=nonterminal_054 expression
+  | expression bop=nonterminal_059 expression
 
 ;; attribute with one item following
   | expression
@@ -169,19 +169,19 @@ expression
 
 ;; non-trivial group item
 arrayCreatorRest
-  : LBRACK nonterminal_058
+  : LBRACK nonterminal_063
   ;
 
 ;; another non-trivial group item, and lots of copies
 interfaceMethodDeclaration
-  : interfaceMethodModifier_list nonterminal_061 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
-  | interfaceMethodModifier_list nonterminal_061 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
-  | interfaceMethodModifier_list nonterminal_061 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | interfaceMethodModifier_list nonterminal_061 IDENTIFIER formalParameters methodBody
-  | nonterminal_061 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
-  | nonterminal_061 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
-  | nonterminal_061 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
-  | nonterminal_061 IDENTIFIER formalParameters methodBody
+  : interfaceMethodModifier_list nonterminal_066 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
+  | interfaceMethodModifier_list nonterminal_066 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
+  | interfaceMethodModifier_list nonterminal_066 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | interfaceMethodModifier_list nonterminal_066 IDENTIFIER formalParameters methodBody
+  | nonterminal_066 IDENTIFIER formalParameters LBRACK_RBRACK_list THROWS qualifiedNameList methodBody
+  | nonterminal_066 IDENTIFIER formalParameters LBRACK_RBRACK_list methodBody
+  | nonterminal_066 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_066 IDENTIFIER formalParameters methodBody
   ;
 
 ;; trailing optional with multiple tokens
@@ -219,10 +219,10 @@ catchClause_list
   : catchClause
   | catchClause_list catchClause
   ;
-nonterminal_049
-  : catchClause_list finallyBlock
-  | catchClause_list
-  | finallyBlock
+nonterminal_054
+  : T3=catchClause_list T4=finallyBlock
+  | T3=catchClause_list
+  | T5=finallyBlock
   ;
 switchBlockStatementGroup_list
   : switchBlockStatementGroup
@@ -232,18 +232,18 @@ switchLabel_list
   : switchLabel
   | switchLabel_list switchLabel
   ;
-nonterminal_052
+nonterminal_057
   : THIS
   | NEW nonWildcardTypeArguments innerCreator
   | NEW innerCreator
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_053
+nonterminal_058
   : INC
   | DEC
   ;
-nonterminal_054
+nonterminal_059
   : ASSIGN
   | ADD_ASSIGN
   | SUB_ASSIGN
@@ -269,7 +269,7 @@ LBRACK_RBRACK_list
   : LBRACK RBRACK
   | LBRACK_RBRACK_list LBRACK RBRACK
   ;
-nonterminal_058
+nonterminal_063
   : RBRACK_LBRACK_list arrayInitializer
   | expression RBRACK LBRACK_expression_list LBRACK_RBRACK_list
   | expression RBRACK LBRACK_expression_list
@@ -283,7 +283,7 @@ annotation_list
   : annotation
   | annotation_list annotation
   ;
-nonterminal_061
+nonterminal_066
   : typeTypeOrVoid
   | typeParameters annotation_list typeTypeOrVoid
   | typeParameters typeTypeOrVoid

@@ -27,10 +27,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-auto-label tokens during translate to bnf
-    subprograms.wy done
-    test ada_annex_p.wy
-
 error_correction_algorithm.tex
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts
