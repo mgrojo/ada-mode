@@ -45,6 +45,23 @@ for ada_mode_wisi_parse.gpr:
  current work
 output min_complete fraction in .parse_table - changed when recursion blew up?
 
+navigate bug
+    wisitoken-bnf-output_ada_emacs.adb
+    point on 'begin' of Create_Ada_Action
+    wisi-reset-parser
+    sal-ada-next-declaration; ok
+
+    point on 'procedure Translate_Sexp (Line : in String)'
+    wisi-reset-parser
+    sal-ada-next-declaration; on 'begin'
+    sal-ada-next-declaration; no declaration-start found
+        nav cache not being overwritten!?
+
+navigate in .wy buffer
+    can always parse locally
+    only need global for completion list
+        background that, like in gpr-query
+
 opening or refreshing ada_annex_p_bnf.wy is very slow
     something does full parse; takes ~ 30 seconds
     mmm-auto.el (add-hook 'change-major-mode-hook #'mmm-major-mode-change)
