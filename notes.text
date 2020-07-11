@@ -27,6 +27,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+auto_token_labels
+    test wisitoken-grammar-mode
+
 error_correction_algorithm.tex
     finish "results"
         two metrics; correction attempts succeed/fail, with strategy counts
@@ -208,8 +211,16 @@ need gnat-prep for tree-sitter
 
 add tree-sitter parser, lexer
     tree-sitter still not getting comments right
+        these two are equivalent:
+        1. `/--.*/`
+        2. `token(seq('--'), /.*/))`
+
         try updating tree-sitter from github
-        try 'tree-sitter parse'
+        try 'tree-sitter parse' with trivial grammar
+        try tree-sitter parse with javascript grammar (supposedly working)
+
+    case insensitive:
+        alias(/[fF][oO][rR]/, 'for')
 
     tree-sitter generate supposed to report conflicts
         then w-b-g needs to declare conflicts with 'conflicts:' in grammar
@@ -411,6 +422,14 @@ try packrat indirect recursion solution
     see paper by laurent, mens
         in ebooks/parsing, google drive
         used in https://tatsu.readthedocs.io/
+
+    https://arxiv.org/abs/2005.06444 pika parser
+        bottom-up, right-to-left
+            allows error correction
+            same as LR?
+
+    http://mousepeg.sourceforge.net
+        http://www.romanredz.se/pubs.htm
 
     docs/indirect_recursion_in_packrat.latex
         finish it

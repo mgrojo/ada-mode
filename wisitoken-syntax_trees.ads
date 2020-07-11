@@ -645,24 +645,31 @@ package WisiToken.Syntax_Trees is
    --  Get Line, column from Node.
 
    type Validate_Node is access procedure
-     (Tree              : in     Syntax_Trees.Tree;
-      Node              : in     Valid_Node_Index;
-      Node_Image_Output : in out Boolean);
+     (Tree                : in     Syntax_Trees.Tree;
+      Node                : in     Valid_Node_Index;
+      Node_Image_Output   : in out Boolean;
+      Node_Error_Reported : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform other
    --  checks, output to Text_IO.Current_Error. If Node_Image_Output is
-   --  False, output Image (Tree, Node, Descriptor, Node_Numbers => True) once
-   --  before any error messages.
+   --  False, output Image (Tree, Node, Descriptor, Node_Numbers => True)
+   --  once before any error messages. Set Node_Error_Reported true if
+   --  any errors are reported. Don't report errors if Error_Reported
+   --  (Node) is already True, but don't set Error_Reported; that is
+   --  handled by Validate_Tree.
 
    procedure Validate_Tree
-     (Tree          : in out Syntax_Trees.Tree;
-      Terminals     : in     Base_Token_Array_Access_Constant;
-      Descriptor    : in     WisiToken.Descriptor;
-      File_Name     : in     String;
-      Root          : in     Node_Index                 := Invalid_Node_Index;
-      Validate_Node : in     Syntax_Trees.Validate_Node := null)
+     (Tree           : in out Syntax_Trees.Tree;
+      Terminals      : in     Base_Token_Array_Access_Constant;
+      Descriptor     : in     WisiToken.Descriptor;
+      File_Name      : in     String;
+      Error_Reported : in out Node_Array_Booleans.Vector;
+      Root           : in     Node_Index                 := Invalid_Node_Index;
+      Validate_Node  : in     Syntax_Trees.Validate_Node := null)
    with Pre => Tree.Flushed and Tree.Parents_Set;
    --  Verify child/parent links, and that no children are Deleted_Child.
-   --  Violations output a message to Text_IO.Current_Error.
+   --  Call Validate_Node for each visited node. Violations output a
+   --  message to Text_IO.Current_Error. Error_Reported is used to ensure
+   --  that an error for a node is only reported once.
 
    type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
    type Image_Action is access function (Action : in Semantic_Action) return String;

@@ -1,4 +1,4 @@
-;;; subprograms-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; subprograms-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 
 ;;  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
@@ -52,6 +52,7 @@
    subprogram
    subtype
    use_clause
+   nonterminal_011
    ])
 
 (defconst subprograms-process-face-table

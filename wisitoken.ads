@@ -321,6 +321,9 @@ package WisiToken is
      (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'Last);
    --  Index matches Valid_Node_Index_Array.
 
+   package Node_Array_Booleans is new SAL.Gen_Unbounded_Definite_Vectors
+     (Valid_Node_Index, Boolean, False);
+
    type Base_Token is tagged record
       --  Base_Token is used in the core parser. The parser only needs ID and Tree_Index;
       --  semantic checks need Byte_Region to compare names. Line, Col, and

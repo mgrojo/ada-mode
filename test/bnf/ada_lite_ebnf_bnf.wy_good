@@ -285,10 +285,10 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : compilation_unit
+  : T1=compilation_unit
     %( )%
     %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
-  | compilation_unit_list compilation_unit
+  | G1=compilation_unit_list T1=compilation_unit
     %( )%
     %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   ;

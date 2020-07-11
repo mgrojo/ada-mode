@@ -534,7 +534,7 @@ code runs in an Emacs background process. For @code{Module}, the
 generated code runs as an Emacs loadable module (currently not
 supported).
 
-@item %language_runtime
+@item %language_runtime <string>
 Specify an alternate name for the language runtime package; the
 default is @code{Wisi.<language_name>}.
 

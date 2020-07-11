@@ -26,7 +26,7 @@ package Subprograms_Process_Actions is
      (First_Terminal    => 4,
       Last_Terminal     => 20,
       First_Nonterminal => 21,
-      Last_Nonterminal  => 32,
+      Last_Nonterminal  => 33,
       EOI_ID            => 20,
       Accept_ID         => 21,
       Case_Insensitive  => False,
@@ -66,7 +66,8 @@ package Subprograms_Process_Actions is
          new String'("parameter_list"),
          new String'("subprogram"),
          new String'("subtype"),
-         new String'("use_clause")),
+         new String'("use_clause"),
+         new String'("nonterminal_011")),
       Terminal_Image_Width => 11,
       Image_Width          => 16,
       Last_Lookahead       => 21);
@@ -104,7 +105,8 @@ package Subprograms_Process_Actions is
       parameter_list_ID,
       subprogram_ID,
       subtype_ID,
-      use_clause_ID);
+      use_clause_ID,
+      nonterminal_011_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
    use all type WisiToken.Token_ID;
@@ -210,6 +212,11 @@ package Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure use_clause_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure nonterminal_011_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;

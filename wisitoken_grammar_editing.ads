@@ -22,6 +22,7 @@ with Wisitoken_Grammar_Actions;
 with WisiToken_Grammar_Runtime;
 with WisiToken.Syntax_Trees.LR_Utils;
 package WisiToken_Grammar_Editing is
+   use all type WisiToken.Production_ID;
    use all type WisiToken.Node_Index;
    use all type WisiToken.Token_ID;
    use all type WisiToken.Base_Token_Index;
@@ -114,11 +115,14 @@ package WisiToken_Grammar_Editing is
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     WisiToken.Valid_Node_Index)
+     (Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Item  : in     WisiToken.Valid_Node_Index;
+      Label : in     Identifier_Token_Index := Invalid_Identifier_Token)
      return WisiToken.Valid_Node_Index
    with Pre => Tree.ID (Item) = +rhs_item_ID,
-     Post => Tree.ID (Add_RHS_Element'Result) = +rhs_element_ID;
+     Post => Tree.Production_ID (Add_RHS_Element'Result) =
+             (+rhs_element_ID, (if Label = Invalid_Identifier_Token then 0 else 1));
 
    function Empty_RHS_Item_List
      (Tree : aliased in out WisiToken.Syntax_Trees.Tree)
@@ -132,6 +136,7 @@ package WisiToken_Grammar_Editing is
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
       Item              : in     WisiToken.Valid_Node_Index;
       Auto_Token_Labels : in     Boolean;
+      Edited_Token_List : in     Boolean;
       Post_Parse_Action : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
       In_Parse_Action   : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index)
      return WisiToken.Valid_Node_Index

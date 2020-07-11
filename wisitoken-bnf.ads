@@ -291,6 +291,7 @@ package WisiToken.BNF is
    type RHS_Type is record
       Tokens            : Labeled_Token_Arrays.Vector;
       Auto_Token_Labels : Boolean                    := False;
+      Edited_Token_List : Boolean                    := False;
       Action            : Ada.Strings.Unbounded.Unbounded_String;
       Check             : Ada.Strings.Unbounded.Unbounded_String;
       Source_Line       : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;

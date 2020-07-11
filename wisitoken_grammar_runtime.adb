@@ -80,6 +80,10 @@ package body WisiToken_Grammar_Runtime is
       end Strip_Delimiters;
 
    begin
+      if Tree_Index = Deleted_Child then
+         return "<deleted child>";
+      end if;
+
       case Tree.Label (Tree_Index) is
       when Shared_Terminal =>
          return Strip_Delimiters (Tree_Index);
@@ -191,8 +195,15 @@ package body WisiToken_Grammar_Runtime is
    begin
       return RHS : WisiToken.BNF.RHS_Type do
          RHS.Source_Line := Get_Line (Data, Tree, Token);
-         RHS.Auto_Token_Labels := Tree.Augmented (Token) /= null and then
-           Augmented_Token_Access (Tree.Augmented (Token)).Auto_Token_Labels;
+
+         if Tree.Augmented (Token) /= null then
+            declare
+               Aug : constant Augmented_Token_Access := Augmented_Token_Access (Tree.Augmented (Token));
+            begin
+               RHS.Auto_Token_Labels := Aug.Auto_Token_Labels;
+               RHS.Edited_Token_List := Aug.Edited_Token_List;
+            end;
+         end if;
 
          if Children'Length > 0 then
             for I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop

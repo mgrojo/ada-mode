@@ -122,11 +122,22 @@ package body WisiToken_Grammar_Editing is
    end Add_RHS_Item;
 
    function Add_RHS_Element
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     WisiToken.Valid_Node_Index)
+     (Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Item  : in     WisiToken.Valid_Node_Index;
+      Label : in     Identifier_Token_Index := Invalid_Identifier_Token)
      return WisiToken.Valid_Node_Index
-   is begin
-      return Tree.Add_Nonterm ((+rhs_element_ID, 0), (1 => Item));
+   is
+      Label_Node : constant Node_Index :=
+        (if Label = Invalid_Identifier_Token
+         then Invalid_Node_Index
+         else Add_Identifier_Token (Tree, Label, Data.Terminals));
+   begin
+      return Tree.Add_Nonterm
+        ((+rhs_element_ID, (if Label = Invalid_Identifier_Token then 0 else 1)),
+         (if Label = Invalid_Identifier_Token
+          then (1 => Item)
+          else (Label_Node, Tree.Add_Terminal (+EQUAL_ID), Item)));
    end Add_RHS_Element;
 
    function Empty_RHS_Item_List
@@ -175,13 +186,16 @@ package body WisiToken_Grammar_Editing is
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
       Item              : in     WisiToken.Valid_Node_Index;
       Auto_Token_Labels : in     Boolean;
+      Edited_Token_List : in     Boolean;
       Post_Parse_Action : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
       In_Parse_Action   : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index)
      return WisiToken.Valid_Node_Index
    is
       RHS : Valid_Node_Index;
       Aug : constant Augmented_Token_Access := new Augmented_Token'
-        (Auto_Token_Labels => Auto_Token_Labels, others => <>);
+        (Auto_Token_Labels => Auto_Token_Labels,
+         Edited_Token_List => Edited_Token_List,
+         others => <>);
    begin
       if In_Parse_Action = Invalid_Node_Index then
          if Post_Parse_Action = Invalid_Node_Index then
@@ -369,11 +383,11 @@ package body WisiToken_Grammar_Editing is
 
       Last_Token_Index : Integer := 0;
 
-      function Next_Token_Label return WisiToken.Identifier_Index
+      function Next_Token_Label (Prefix : in String := "T") return WisiToken.Identifier_Index
       is begin
          Last_Token_Index := @ + 1;
          declare
-            Label : constant String := "T" & WisiToken.Trimmed_Image (Last_Token_Index);
+            Label : constant String := Prefix & WisiToken.Trimmed_Image (Last_Token_Index);
          begin
             for I in Data.Tokens.Virtual_Identifiers.First_Index .. Data.Tokens.Virtual_Identifiers.Last_Index loop
                if -Data.Tokens.Virtual_Identifiers (I) = Label then
@@ -495,6 +509,36 @@ package body WisiToken_Grammar_Editing is
             raise SAL.Programmer_Error;
          end case;
       end Add_Token_Labels;
+
+      function Nonterm_Content_Equal
+        (Target : in String;
+         List   : in LR_Utils.Constant_List'Class;
+         Node   : in Valid_Node_Index)
+        return Boolean
+      is
+         pragma Unreferenced (List);
+      begin
+         if Tree.ID (Tree.Child (Node, 1)) = +nonterminal_ID then
+            --  Target nonterm is:
+            --
+            --  (compilation_unit_1, (111 . 128))
+            --  | (nonterminal_0, (111 . 128))
+            --  | |  7;(IDENTIFIER, (111 . 128))
+            --  | | (COLON)
+            --  | | (rhs_list_1, (111 . 128))
+            --  | | | ...
+            declare
+               RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Node, 1), 3);
+            begin
+               if RHS_List_1 /= Invalid_Node_Index and then
+                 Target = Get_Text (Data, Tree, RHS_List_1)
+               then
+                  return True;
+               end if;
+            end;
+         end if;
+         return False;
+      end Nonterm_Content_Equal;
 
       function Find_Nonterminal
         (Target : in String;
@@ -644,7 +688,8 @@ package body WisiToken_Grammar_Editing is
 
       function Get_RHS_Auto_Token_Labels (Node : in Valid_Node_Index) return Boolean
       is
-         RHS : constant Valid_Node_Index := Tree.Find_Ancestor (Node, +rhs_ID);
+         RHS : constant Valid_Node_Index :=
+           (if Tree.ID (Node) = +rhs_ID then Node else Tree.Find_Ancestor (Node, +rhs_ID));
          Aug : constant Augmented_Token_Access := Augmented_Token_Access (Tree.Augmented (RHS));
       begin
          if Aug = null then
@@ -995,20 +1040,44 @@ package body WisiToken_Grammar_Editing is
          end if;
       end Add_Compilation_Unit;
 
-      function To_RHS_List (RHS_Element : in Valid_Node_Index) return Valid_Node_Index
+      function To_RHS_List
+        (RHS_Element       : in Valid_Node_Index;
+         Auto_Token_Labels : in Boolean;
+         Post_Parse_Action : in Node_Index := Invalid_Node_Index;
+         In_Parse_Action   : in Node_Index := Invalid_Node_Index)
+        return Valid_Node_Index
       with Pre => Tree.ID (RHS_Element) = +rhs_element_ID
+      --  Add an RHS containing RHS_Element..
+      --
+      --  Post_Parse_Action, _2 are not copied.
       is
          RHS_Item_List : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 => RHS_Element));
-         RHS           : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_ID, 1),           (1 => RHS_Item_List));
+
+         RHS : constant Valid_Node_Index := Add_RHS
+           (Tree,
+            RHS_Item_List,
+            Auto_Token_Labels,
+            Edited_Token_List => True,
+            Post_Parse_Action => Post_Parse_Action,
+            In_Parse_Action   => In_Parse_Action);
       begin
          return Tree.Add_Nonterm ((+rhs_list_ID, 0), (1 => RHS));
       end To_RHS_List;
 
-      function Convert_RHS_Alternative (Content : in Valid_Node_Index) return Valid_Node_Index
+      function Convert_RHS_Alternative
+        (Content           : in Valid_Node_Index;
+         Auto_Token_Labels : in Boolean;
+         Post_Parse_Action : in Node_Index := Invalid_Node_Index;
+         In_Parse_Action   : in Node_Index := Invalid_Node_Index)
+        return Valid_Node_Index
       with Pre => Tree.ID (Content) = +rhs_alternative_list_ID
+      --  Convert Content to an rhs_list; Content is edited.
+      --
+      --  Post_Parse_Action, _2 are not copied for the first RHS; they are copied
+      --  for any more.
       is
-         --  Convert rhs_alternative_list rooted at Content to an rhs_list
-         Node : Valid_Node_Index := Content;
+         Node         : Valid_Node_Index := Content;
+         Copy_Actions : Boolean          := False;
       begin
          loop
             exit when Tree.RHS_Index (Node) = 0;
@@ -1042,14 +1111,24 @@ package body WisiToken_Grammar_Editing is
                    2 => Tree.Child (Node, 2),
                    3 => Tree.Child (Node, 3)));
             else
-               Tree.Set_Children
-                 (Node,
-                  (+rhs_list_ID, 1),
-                  (1 => Tree.Child (Node, 1),
-                   2 => Tree.Child (Node, 2),
-                   3 => Tree.Add_Nonterm
-                     ((+rhs_ID, 1),
-                      (1 => Tree.Child (Node, 3)))));
+               declare
+                  RHS : constant Valid_Node_Index := Add_RHS
+                    (Tree, Tree.Child (Node, 3), Auto_Token_Labels,
+                     Edited_Token_List => True,
+                     Post_Parse_Action =>
+                       (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action) else Post_Parse_Action),
+                     In_Parse_Action   =>
+                       (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action) else In_Parse_Action));
+               begin
+                  Tree.Set_Children
+                    (Node,
+                     (+rhs_list_ID, 1),
+                     (1 => Tree.Child (Node, 1),
+                      2 => Tree.Child (Node, 2),
+                      3 => RHS));
+               end;
+
+               Copy_Actions := True;
             end if;
 
             Node := Tree.Child (Node, 1);
@@ -1064,38 +1143,57 @@ package body WisiToken_Grammar_Editing is
          --  | rhs: new
          --  | | rhs_item_list: Node.Child (1)
 
-         Tree.Set_Children
-           (Node,
-            (+rhs_list_ID, 0),
-            (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Tree.Child (Node, 1)))));
+         declare
+            RHS : constant Valid_Node_Index := Add_RHS
+              (Tree, Tree.Child (Node, 1), Auto_Token_Labels,
+               Edited_Token_List => True,
+               Post_Parse_Action =>
+                 (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action) else Post_Parse_Action),
+               In_Parse_Action   =>
+                 (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action) else In_Parse_Action));
+         begin
+            Tree.Set_Children (Node, (+rhs_list_ID, 0), (1 => RHS));
+         end;
 
          return Content;
       end Convert_RHS_Alternative;
 
       procedure New_Nonterminal
-        (Label          : in String;
-         New_Identifier : in Identifier_Index;
-         Content        : in Valid_Node_Index)
+        (Label             : in String;
+         New_Identifier    : in Identifier_Index;
+         Content           : in Valid_Node_Index;
+         Post_Parse_Action : in Node_Index := Invalid_Node_Index;
+         In_Parse_Action   : in Node_Index := Invalid_Node_Index)
       with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | rhs_element_ID
+      --  Convert subtree rooted at Content to an rhs_list contained by a new nonterminal
+      --  named New_Identifier.
+      --
+      --  Post_Parse_Action, _2 are not copied for the first RHS; they are copied
+      --  for any more in an rhs_alternative_list_ID.
       is
-         --  Convert subtree rooted at Content to an rhs_list contained by a new nonterminal
-         --  named New_Identifier.
+         Child_1 : constant Valid_Node_Index := Tree.Add_Identifier
+           (+IDENTIFIER_ID, New_Identifier, Tree.Byte_Region (Content));
+
+         Child_2 : constant Valid_Node_Index := Tree.Add_Terminal (+COLON_ID);
+
+         Child_3 : constant Valid_Node_Index :=
+           (case To_Token_Enum (Tree.ID (Content)) is
+            when rhs_element_ID          => To_RHS_List
+              (Content, Get_RHS_Auto_Token_Labels (Content), Post_Parse_Action, In_Parse_Action),
+            when rhs_alternative_list_ID => Convert_RHS_Alternative
+              (Content, Get_RHS_Auto_Token_Labels (Content), Post_Parse_Action, In_Parse_Action),
+            when others => raise SAL.Programmer_Error);
+
+         Child_4 : constant Valid_Node_Index := Tree.Add_Nonterm
+           ((+semicolon_opt_ID, 0),
+            (1     => Tree.Add_Terminal (+SEMICOLON_ID)));
+
+         New_Nonterm : constant Valid_Node_Index := Tree.Add_Nonterm
+           (Production => (+nonterminal_ID, 0),
+            Children   => (Child_1, Child_2, Child_3, Child_4),
+            Action     => Wisitoken_Grammar_Actions.nonterminal_0'Access);
       begin
-         declare
-            New_Nonterm : constant Valid_Node_Index := Tree_Add_Nonterminal
-              (Child_1   => Tree.Add_Identifier (+IDENTIFIER_ID, New_Identifier, Tree.Byte_Region (Content)),
-               Child_2   => Tree.Add_Terminal (+COLON_ID),
-               Child_3   =>
-                 (case To_Token_Enum (Tree.ID (Content)) is
-                  when rhs_element_ID          => To_RHS_List (Content),
-                  when rhs_alternative_list_ID => Convert_RHS_Alternative (Content),
-                  when others => raise SAL.Programmer_Error),
-               Child_4   => Tree.Add_Nonterm
-                 ((+semicolon_opt_ID, 0),
-                  (1     => Tree.Add_Terminal (+SEMICOLON_ID))));
-         begin
-            Add_Compilation_Unit (Label & New_Identifier'Image, New_Nonterm);
-         end;
+         Add_Compilation_Unit (Label & New_Identifier'Image, New_Nonterm);
       end New_Nonterminal;
 
       procedure New_Nonterminal_List
@@ -1115,20 +1213,20 @@ package body WisiToken_Grammar_Editing is
       begin
          RHS_Item_List_2.Append
            (Add_RHS_Element
-              (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Nonterm, Data.Terminals))));
+              (Tree, Data, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Nonterm, Data.Terminals))));
 
          if Separator /= Invalid_Identifier_Token then
             RHS_Item_List_2.Append
               (Add_RHS_Element
-                 (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, Separator, Data.Terminals))));
+                 (Tree, Data, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, Separator, Data.Terminals))));
          end if;
 
          for Element of RHS_Item_List_1 loop
             RHS_Item_List_2.Append (Tree.Copy_Subtree (Element));
          end loop;
 
-         RHS_List.Append (Add_RHS (Tree, RHS_Item_List_1.Root, Auto_Token_Labels));
-         RHS_List.Append (Add_RHS (Tree, RHS_Item_List_2.Root, Auto_Token_Labels));
+         RHS_List.Append (Add_RHS (Tree, RHS_Item_List_1.Root, Auto_Token_Labels, Edited_Token_List => True));
+         RHS_List.Append (Add_RHS (Tree, RHS_Item_List_2.Root, Auto_Token_Labels, Edited_Token_List => True));
 
          Add_Compilation_Unit
            ("canonical list",
@@ -1159,7 +1257,8 @@ package body WisiToken_Grammar_Editing is
          RHS_Item_List_1 : List := Empty_RHS_Item_List (Tree);
       begin
          RHS_Item_List_1.Append
-           (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Element, Data.Terminals))));
+           (Add_RHS_Element
+              (Tree, Data, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Element, Data.Terminals))));
          New_Nonterminal_List (List_Nonterm, RHS_Item_List_1.Root, Separator, Auto_Token_Labels);
       end New_Nonterminal_List;
 
@@ -1359,59 +1458,54 @@ package body WisiToken_Grammar_Editing is
          --  | | | rhs_alternative_list: Child (Node, 2)
          --  | | | RIGHT_PAREN
 
-         use Syntax_Trees.LR_Utils;
-
+         RHS              : constant Valid_Node_Index := Tree.Find_Ancestor (Node, +rhs_ID);
+         Has_Actions      : constant Boolean          := Tree.RHS_Index (RHS) in 2 .. 3;
          Element_Content  : constant String           := Get_Text (Data, Tree, Tree.Child (Node, 2));
          Right_Paren_Node : constant Valid_Node_Index := Tree.Child (Node, 3);
-         List             : constant Constant_List    := Creators.Create_List
-           (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
-         Name_Node        : Node_Index;
+         Found_Unit       : constant Node_Index       :=
+           (if Has_Actions then Invalid_Node_Index
+            else Find_Nonterminal
+              (Element_Content, Nonterm_Content_Equal'Unrestricted_Access));
          New_Ident        : Base_Identifier_Index     := Invalid_Identifier_Index;
       begin
-         --  See if there's an existing nonterminal for this content.
-         for N of List loop
-
-            if Tree.Production_ID (Tree.Child (N, 1)) = (+nonterminal_ID, 0) then
-               --  Target nonterm is:
-               --
-               --  (compilation_unit_1, (111 . 128))
-               --  | (nonterminal_0, (111 . 128))
-               --  | |  7;(IDENTIFIER, (111 . 128))
-               --  | | (COLON)
-               --  | | (rhs_list_1, (111 . 128))
-               --  | | | ...
-               declare
-                  RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (N, 1), 3);
-               begin
-                  if RHS_List_1 /= Invalid_Node_Index and then
-                    Element_Content = Get_Text (Data, Tree, RHS_List_1)
-                  then
-                     Name_Node := Tree.Child (Tree.Child (N, 1), 1);
-                     case Tree.Label (Name_Node) is
-                     when Shared_Terminal =>
-                        New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
-                     when Virtual_Identifier =>
-                        New_Ident := Tree.Identifier (Name_Node);
-                     when others =>
-                        Raise_Programmer_Error ("translate_rhs_group_item", Data, Tree, Name_Node);
-                     end case;
-
-                     exit;
-                  end if;
-               end;
-            end if;
-         end loop;
-
-         if New_Ident = Invalid_Identifier_Index then
+         if Found_Unit = Invalid_Node_Index then
             New_Ident := Next_Nonterm_Name;
-            New_Nonterminal ("group item", New_Ident, Tree.Child (Node, 2));
+            New_Nonterminal
+              ("group item", New_Ident, Tree.Child (Node, 2),
+               Post_Parse_Action => Tree.Copy_Subtree (Tree.Child (RHS, 2)),
+               In_Parse_Action   => Tree.Copy_Subtree (Tree.Child (RHS, 3)));
          else
+            declare
+               Name_Node : constant Node_Index := Tree.Child (Tree.Child (Found_Unit, 1), 1);
+            begin
+               case Tree.Label (Name_Node) is
+               when Shared_Terminal =>
+                  New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
+               when Virtual_Identifier =>
+                  New_Ident := Tree.Identifier (Name_Node);
+               when others =>
+                  Raise_Programmer_Error ("translate_rhs_group_item", Data, Tree, Name_Node);
+               end case;
+            end;
             Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
          end if;
 
          Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Ident);
          Copy_Non_Grammar (Right_Paren_Node, Node);
          Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
+
+         if Get_RHS_Auto_Token_Labels (Node) then
+            declare
+               Element_Node : constant Valid_Node_Index := Tree.Parent (Node, 2);
+               Item_Node    : constant Valid_Node_Index := Tree.Parent (Node, 1);
+               Label        : constant Valid_Node_Index := Tree.Add_Identifier
+                 (+IDENTIFIER_ID, Next_Token_Label ("G"), Tree.Byte_Region (Node));
+               Equal        : constant Valid_Node_Index := Tree.Add_Terminal (+EQUAL_ID);
+            begin
+               Tree.Set_Children (Element_Node, (+rhs_element_ID, 1), (Label, Equal, Item_Node));
+            end;
+         end if;
+
          Clear_EBNF_Node (Node);
       end Translate_RHS_Group_Item;
 
@@ -1625,6 +1719,12 @@ package body WisiToken_Grammar_Editing is
 
                Post_Parse_Action : constant Node_Index := Tree.Child (RHS, 2); --  deleted by first Add_RHS
                In_Parse_Action   : constant Node_Index := Tree.Child (RHS, 3);
+               Auto_Token_Labels : constant Boolean    := Get_RHS_Auto_Token_Labels (RHS);
+
+               Label : constant Identifier_Token_Index :=
+                 (if Auto_Token_Labels
+                  then To_Identifier_Token (Next_Token_Label ("G"))
+                  else Invalid_Identifier_Token);
 
                List_Name : constant Identifier_Token_Index :=
                  (if Can_Be_Empty
@@ -1640,32 +1740,37 @@ package body WisiToken_Grammar_Editing is
             begin
                if Tree.ID (List_Elements) = +IDENTIFIER_ID then
                   RHS_Item_List_1.Append
-                    (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements))));
+                    (Add_RHS_Element (Tree, Data, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements)), Label));
 
-                  RHS_Item_List_2.Append (Add_RHS_Element (Tree, Add_RHS_Item (Tree, List_Elements)));
+                  RHS_Item_List_2.Append (Add_RHS_Element (Tree, Data, Add_RHS_Item (Tree, List_Elements)));
                end if;
 
                New_RHS_List.Append
                  (Add_RHS
                     (Tree, RHS_Item_List_1.Root,
                      Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
+                     Edited_Token_List => True,
                      Post_Parse_Action => Post_Parse_Action,
                      In_Parse_Action   => In_Parse_Action));
 
                RHS_Item_List_2.Prepend
                  (Add_RHS_Element
-                    (Tree, Add_RHS_Item
+                    (Tree,
+                     Data,
+                     Add_RHS_Item
                        (Tree,
                         Add_Identifier_Token
                           (Tree,
                            List_Name,
-                           Data.Terminals))));
+                           Data.Terminals)),
+                    Label));
 
                New_RHS_List.Append
                  (Add_RHS
                     (Tree,
                      RHS_Item_List_2.Root,
                      Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
+                     Edited_Token_List => True,
                      Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action),
                      In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action)));
 
@@ -1685,8 +1790,10 @@ package body WisiToken_Grammar_Editing is
                      Child_Index          => 1,
                      New_Child            => Add_RHS_Element
                        (Tree,
+                        Data,
                         Add_RHS_Item
-                          (Tree, Add_Identifier_Token (Tree, List_Name, Data.Terminals))),
+                          (Tree, Add_Identifier_Token (Tree, List_Name, Data.Terminals)),
+                        Label),
                      Old_Child            => Element (Element_2),
                      Old_Child_New_Parent => Invalid_Node_Index);
 
@@ -2334,29 +2441,41 @@ package body WisiToken_Grammar_Editing is
       end Process_Node;
 
       EBNF_Allowed : Boolean := True;
+      Error_Reported : Node_Array_Booleans.Vector;
 
       procedure Validate_Node
-        (Tree              : in     Syntax_Trees.Tree;
-         Node              : in     Valid_Node_Index;
-         Node_Image_Output : in out Boolean)
+        (Tree                : in     Syntax_Trees.Tree;
+         Node                : in     Valid_Node_Index;
+         Node_Image_Output   : in out Boolean;
+         Node_Error_Reported : in out Boolean)
       is
          use Ada.Text_IO;
 
          procedure Put_Error (Msg : in String)
          is begin
+            if Node in Error_Reported.First_Index .. Error_Reported.Last_Index and then Error_Reported (Node) then
+               return;
+            end if;
+
+            Node_Error_Reported := True;
+
             if not Node_Image_Output then
                Node_Image_Output := True;
                Put_Line
                  (Current_Error,
-                  Error_Message
-                    (Tree, Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
+                  Tree.Error_Message
+                    (Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
                      Tree.Image
                        (Node, Wisitoken_Grammar_Actions.Descriptor,
                         Include_RHS_Index => True,
-                        Include_Children  => Trace_Generate_EBNF > Detail,
+                        Include_Children  => True,
                         Node_Numbers      => True)));
             end if;
-            Put_Line (Current_Error, "... " & Msg);
+            Put_Line
+              (Current_Error,
+               Tree.Error_Message
+                 (Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
+                  "... invalid tree: " & Msg));
             WisiToken.Generate.Error := True;
          end Put_Error;
 
@@ -2777,8 +2896,8 @@ package body WisiToken_Grammar_Editing is
             Process_Node (I);
 
             Tree.Validate_Tree
-              (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
-               Validate_Node'Unrestricted_Access);
+              (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+               Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
             Check_Original_EBNF;
             Check_Copied_EBNF;
          end if;
@@ -2833,8 +2952,8 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Copied_EBNF_Nodes (I));
 
                Tree.Validate_Tree
-                 (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
-                  Validate_Node'Unrestricted_Access);
+                 (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+                  Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
                Check_Copied_EBNF;
             end if;
             I := I + 1;
@@ -2862,8 +2981,8 @@ package body WisiToken_Grammar_Editing is
 
       EBNF_Allowed := False;
       Tree.Validate_Tree
-        (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name, Tree.Root,
-         Validate_Node'Unrestricted_Access);
+        (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+         Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 
@@ -2890,33 +3009,41 @@ package body WisiToken_Grammar_Editing is
         (Node           : in Valid_Node_Index;
          Force_New_Line : in Boolean := False;
          Force_Comment  : in String  := "")
-      is
-         Last_Term : constant Node_Index              := Tree.Last_Terminal (Node);
-         Aug       : constant Base_Token_Class_Access :=
-           (if Last_Term = Invalid_Node_Index
-            then null
-            else Tree.Augmented (Last_Term));
-
-         Comments_Include_Newline : Boolean := False;
-      begin
-         if Aug = null then
-            if Force_Comment /= "" then
-               Put_Line (File, Force_Comment);
-
-            elsif Force_New_Line then
+      is begin
+         if Node = Deleted_Child then
+            if Force_New_Line then
                New_Line (File);
             end if;
-         else
-            for Token of Augmented_Token_Access (Aug).Non_Grammar loop
-               if Token.ID = +NEW_LINE_ID then
-                  Comments_Include_Newline := True;
-               end if;
-               Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
-            end loop;
-            if Force_New_Line and not Comments_Include_Newline then
-               New_Line (File);
-            end if;
+            return;
          end if;
+         declare
+            Last_Term : constant Node_Index              := Tree.Last_Terminal (Node);
+            Aug       : constant Base_Token_Class_Access :=
+              (if Last_Term = Invalid_Node_Index
+               then null
+               else Tree.Augmented (Last_Term));
+
+            Comments_Include_Newline : Boolean := False;
+         begin
+            if Aug = null then
+               if Force_Comment /= "" then
+                  Put_Line (File, Force_Comment);
+
+               elsif Force_New_Line then
+                  New_Line (File);
+               end if;
+            else
+               for Token of Augmented_Token_Access (Aug).Non_Grammar loop
+                  if Token.ID = +NEW_LINE_ID then
+                     Comments_Include_Newline := True;
+                  end if;
+                  Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
+               end loop;
+               if Force_New_Line and not Comments_Include_Newline then
+                  New_Line (File);
+               end if;
+            end if;
+         end;
       end Put_Comments;
 
       procedure Put_Declaration_Item (Node : in Valid_Node_Index)

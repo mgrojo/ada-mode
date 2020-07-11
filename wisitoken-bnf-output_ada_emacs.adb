@@ -186,12 +186,33 @@ is
       Label_Needed   : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
       Nonterm_Needed : Boolean := False;
 
-      Last_Token_Index : Integer := 0;
+      Last_Token_Index : Base_Identifier_Index := 0;
       function Next_Token_Label return String
       is begin
+         --  Only called from Indent_Params when RHS.Auto_Token_Labels is True.
          Last_Token_Index := @ + 1;
-         return "T" & WisiToken.Trimmed_Image (Last_Token_Index);
+         return "T" & Trimmed_Image (Last_Token_Index);
       end Next_Token_Label;
+
+      function Get_Label (Token_Param : in String) return String
+      is begin
+         if RHS.Auto_Token_Labels then
+            --  This will not match a generated label (starts with 'G'), so the
+            --  corresponding parameter will be skipped.
+            return "T" & Token_Param;
+         else
+            return Token_Param;
+         end if;
+      end Get_Label;
+
+      procedure Mark_Label_Used (Label : in String)
+      is begin
+         for I in Labels.First_Index .. Labels.Last_Index loop
+            if Label = Labels (I) then
+               Label_Needed (I) := True;
+            end if;
+         end loop;
+      end Mark_Label_Used;
 
       function Label_Used (Label : in String) return Boolean
       is
@@ -216,17 +237,6 @@ is
          end loop;
          raise SAL.Programmer_Error;
       end Label_Used;
-
-      function Count_Label_Needed return Ada.Containers.Count_Type
-      is
-         use Ada.Containers;
-         Result : Count_Type := 0;
-      begin
-         for B of Label_Needed loop
-            if B then Result := Result + 1; end if;
-         end loop;
-         return Result;
-      end Count_Label_Needed;
 
       function Find_Token_Index (I : in Base_Identifier_Index) return SAL.Base_Peek_Type
       is
@@ -262,7 +272,7 @@ is
             Last := Index (Params, Space_Paren_Set, Second + 1);
 
             declare
-               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Second - 1);
+               Label : constant String := Get_Label (Params (First .. Second - 1));
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count := Count + 1;
@@ -333,8 +343,7 @@ is
                end;
 
                declare
-                  Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") &
-                    Params (Index_First .. Index_Last);
+                  Label : constant String := Get_Label (Params (Index_First .. Index_Last));
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" &
@@ -355,7 +364,7 @@ is
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
                declare
-                  Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+                  Label : constant String := Get_Label (Params (First .. Last - 1));
                begin
                   if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
@@ -383,11 +392,11 @@ is
          use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Index_Non_Blank (Params); -- skip [
+         Last       : Integer := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
-         Need_Comma : Boolean          := False;
-         Count      : Integer          := 0;
+         Need_Comma : Boolean := False;
+         Count      : Integer := 0;
 
          procedure Elisp_Param (Skip : in Boolean)
          is begin
@@ -415,9 +424,9 @@ is
             First := Last;
             Last  := Index (Params, Delim, First);
             declare
-               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+               Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if 0 = Index (Label, Numeric, Outside) or Label_Used (Label) then
                   Count  := Count + 1;
                   Result := Result & (if Need_Comma then ", (" else "(") & Label;
                   Need_Comma := True;
@@ -471,7 +480,7 @@ is
             First := Last;
             Last  := Index (Params, Delim, First);
             declare
-               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+               Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count  := Count + 1;
@@ -533,7 +542,7 @@ is
             First  := Last;
             Last   := Index (Params, Delim, First);
             declare
-               Label : constant String := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+               Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Count      := Count + 1;
@@ -580,11 +589,17 @@ is
 
          subtype Digit is Character range '0' .. '9';
 
-         Last          : Integer         := Index_Non_Blank (Params); -- skip [
-         Prefix        : constant String := " (Parse_Data, Tree, Nonterm, Tokens, " & N & "(";
-         Result        : Unbounded_String;
-         Need_Comma    : Boolean         := False;
-         Param_Count   : Count_Type      := 0;            -- in Params
+         Last       : Integer         := Index_Non_Blank (Params); -- skip [
+         Prefix     : constant String := " (Parse_Data, Tree, Nonterm, Tokens, " & N & "(";
+         Result     : Unbounded_String;
+         Need_Comma : Boolean         := False;
+
+         --  In translated EBNF, token counts vary in each RHS, but the indent
+         --  parameter list is copied from the original. So the tokens don't
+         --  match the indent params. First we build a list of (label, value)
+         --  for parameters present in Params, then we match them against
+         --  RHS.Tokens.
+         Param_List : String_Pair_Lists.List;
 
          function Indent_Function (Elisp_Name : in String) return String
          is begin
@@ -778,14 +793,6 @@ is
             return "";
          end Expression;
 
-         procedure Skip_Expression (Param_First : in Integer)
-         is
-            Junk : constant String := Expression (Param_First);
-            pragma Unreferenced (Junk);
-         begin
-            null;
-         end Skip_Expression;
-
          function Ensure_Indent_Param (Item : in String) return String
          is begin
             --  Return an aggregate for Indent_Param. Item can be anything
@@ -810,32 +817,18 @@ is
             end if;
          end Ensure_Indent_Param;
 
-         procedure One_Param (Prefix : in Boolean := False; Skip : in Boolean := False)
+         Param_Label_Count : Ada.Containers.Count_Type := 0;
+
+         procedure One_Param (Label : in String := "")
          is
-            procedure Comma
-            is begin
-               if Need_Comma then
-                  if not Prefix then
-                     Result := Result & ", ";
-                  end if;
-               else
-                  Need_Comma := True;
-               end if;
-            end Comma;
+            Pair : String_Pair_Type;
          begin
-            if (Prefix = False and Skip = False) and then RHS.Auto_Token_Labels then
-               declare
-                  Label : constant String := Next_Token_Label;
-               begin
-                  if Label_Used (Label) then
-                     Comma;
-                     Result := Result & Label & " => ";
-                     One_Param (Prefix => True);
-                  else
-                     One_Param (Skip => True);
-                  end if;
-                  return;
-               end;
+            if Label = "" then
+               if RHS.Auto_Token_Labels then
+                  Pair.Name := +Next_Token_Label;
+               end if;
+            else
+               Pair.Name := +Label;
             end if;
 
             case Params (Last) is
@@ -845,46 +838,35 @@ is
                   Label_Last : constant Integer := Check_Cons;
                begin
                   if Label_Last > 0 then
+                     pragma Assert (not RHS.Auto_Token_Labels);
                      declare
                         Label : constant String := Params (Last + 1 .. Label_Last);
                      begin
                         Last := Index_Non_Blank (Params, Label_Last + 3);
-                        if Label_Used (Label) then
-                           Comma;
-                           Result := Result & Label & " => ";
-                           One_Param (Prefix => True);
-                        else
-                           --  This token is not present in this RHS; skip this param
-                           One_Param (Skip => True);
-                        end if;
-                        if Params (Last) /= ')' then
-                           Put_Error
-                             (Error_Message
-                                (Input_Data.Grammar_Lexer.File_Name,
-                                 RHS.Source_Line, "invalid indent syntax; missing ')'"));
-                        end if;
-                        Last := Last + 1;
+                        One_Param (Label);
                      end;
-                  else
-                     if Skip then
-                        Skip_Expression (Last);
-                     else
-                        Comma;
-                        Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+                     Param_Label_Count := @ + 1;
+
+                     if Params (Last) /= ')' then
+                        Put_Error
+                          (Error_Message
+                             (Input_Data.Grammar_Lexer.File_Name,
+                              RHS.Source_Line, "invalid indent syntax; missing ')'"));
                      end if;
+                     Last := Last + 1;
+                  else
+                     Pair.Value := +"(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+                     Param_List.Append (Pair);
                   end if;
                end;
 
             when '[' =>
                --  vector
-               if Skip then
-                  Skip_Expression (Last + 1);
-                  Skip_Expression (Last + 1);
-               else
-                  Comma;
-                  Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
-                  Result := Result & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
-               end if;
+               Pair.Value := +"(True, " & Ensure_Indent_Param (Expression (Last + 1));
+               Pair.Value := @ & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
+
+               Param_List.Append (Pair);
+
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
@@ -894,12 +876,8 @@ is
 
             when others =>
                --  integer or symbol
-               if Skip then
-                  Skip_Expression (Last);
-               else
-                  Comma;
-                  Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
-               end if;
+               Pair.Value := +"(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+               Param_List.Append (Pair);
             end case;
          end One_Param;
 
@@ -916,36 +894,82 @@ is
             exit when Params (Last) = ']';
 
             One_Param;
-
-            Param_Count := Param_Count + 1;
          end loop;
 
-         --  In translated EBNF, token counts vary in each RHS; require each
-         --  parameter to be labeled if any are, both for catching errors, and
-         --  because not doing so would produce mixed positional and named
-         --  association in the Ada action subprogram. Auto_Token_Labels
-         --  violates this, but is checked in unit tests.
-         if Param_Count /= RHS.Tokens.Length and (not RHS.Auto_Token_Labels) then
-            if Labels.Length = 0 then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
-                       ": indent parameters count of" & Count_Type'Image (Param_Count) &
-                       " /= production token count of" & Count_Type'Image (RHS.Tokens.Length)));
+         --  Now we have Param_List; match it against RHS.Tokens and create Result.
 
-            elsif Count_Label_Needed /= RHS.Tokens.Length then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
-                       ": indent parameter(s) not labeled"));
-            else
-               --  all parameters labeled
-               null;
-            end if;
+         if RHS.Auto_Token_Labels or Param_Label_Count = Param_List.Length then
+            --  All tokens are either manually or automatically labeled, and if
+            --  manual then all parameters are manually labeled, and we can detect
+            --  extra params in edited RHS.
+            declare
+               use String_Pair_Lists;
+               use all type SAL.Base_Peek_Type;
+
+               Token_I   : Positive_Index_Type      := RHS.Tokens.First_Index;
+               Param_Cur : String_Pair_Lists.Cursor := Param_List.First;
+               Param_I   : Positive_Index_Type      := RHS.Tokens.First_Index;
+
+               Nil_Indent : constant String := "(False, (Simple, (Label => None)))";
+            begin
+               loop
+                  exit when Token_I > RHS.Tokens.Last_Index or not Has_Element (Param_Cur);
+
+                  declare
+                     Token_Label : constant String := -RHS.Tokens (Token_I).Label;
+                     Param_Label : constant String := -Element (Param_Cur).Name;
+                  begin
+                     if Token_Label = Param_Label then
+                        Result := Result & (if Need_Comma then ", " else "") & Param_Label & " => " &
+                          Element (Param_Cur).Value;
+
+                        Mark_Label_Used (Token_Label);
+
+                        Need_Comma := True;
+
+                        Token_I := @ + 1;
+                        Next (Param_Cur);
+                        Param_I := @ + 1;
+
+                     elsif RHS.Auto_Token_Labels and Token_Label (1) /= 'T' and Token_I = Param_I then
+                        Result := Result & (if Need_Comma then ", " else "") & Token_Label & " => " & Nil_Indent;
+                        Mark_Label_Used (Token_Label);
+                        Need_Comma := True;
+
+                        Token_I := @ + 1;
+                        Next (Param_Cur);
+                        Param_I := @ + 1;
+
+                     else
+                        Next (Param_Cur);
+                        Param_I := @ + 1;
+                     end if;
+                  end;
+               end loop;
+
+               if Token_I /= RHS.Tokens.Last_Index + 1 or
+                 (not RHS.Edited_Token_List and Has_Element (Param_Cur))
+               then
+                  --  We don't check 'Has_Element (Param_Cur)' when edited_token_list
+                  --  because we expect to have more params than tokens.
+                  Put_Error
+                    (Error_Message
+                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
+                          ": indent parameter/token label mismatch"
+                       & (if RHS.Auto_Token_Labels then "" else " all tokens must be labeled if any are")));
+               end if;
+            end;
+
+         else
+            --  No labels; assume Param_List is correct.
+            for Pair of Param_List loop
+               Result := Result & (if Need_Comma then ", " else "") & Pair.Value;
+               Need_Comma := True;
+            end loop;
          end if;
 
          Nonterm_Needed := True;
-         if Param_Count = 1 then
+         if Param_List.Length = 1 then
             Result := Prefix & "1 => " & Result;
          else
             Result := Prefix & Result;
@@ -959,12 +983,10 @@ is
          --  Input looks like "1 2)"
          First             : constant Integer := Index_Non_Blank (Params);
          Second            : constant Integer := Index (Params, Blank_Set, First);
-         Label_First       : constant String  := (if RHS.Auto_Token_Labels then "T" else "") &
-           Params (First .. Second - 1);
+         Label_First       : constant String  := Get_Label (Params (First .. Second - 1));
          Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
            Label_Used (Label_First);
-         Label_Second      : constant String  := (if RHS.Auto_Token_Labels then "T" else "") &
-           Params (Second + 1 .. Params'Last - 1);
+         Label_Second      : constant String  := Get_Label (Params (Second + 1 .. Params'Last - 1));
          Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
            Label_Used (Label_Second);
       begin
@@ -991,8 +1013,8 @@ is
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Lexer, Descriptor, Tokens, " &
-           (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Second - 1) & ',' &
-           (if RHS.Auto_Token_Labels then "T" else "") & Params (Second .. Params'Last - 1) & ", " &
+           Get_Label (Params (First .. Second - 1)) & ',' &
+           Get_Label (Params (Second .. Params'Last - 1)) & ", " &
            (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
             then -Input_Data.Language_Params.End_Names_Optional_Option
             else "False") & ")";
@@ -1011,7 +1033,7 @@ is
             First := Index_Non_Blank (Params, Last + 1);
             Last  := Index (Params, Space_Paren_Set, First);
             declare
-               Label : constant String  := (if RHS.Auto_Token_Labels then "T" else "") & Params (First .. Last - 1);
+               Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Param_Count := Param_Count + 1;
@@ -1088,7 +1110,7 @@ is
             declare
                First : constant Integer := Index_Non_Blank (Line, Last + 1);
                Last  : constant Integer := Index (Line, Space_Paren_Set, First);
-               Label : constant String  := (if RHS.Auto_Token_Labels then "T" else "") & Line (First .. Last - 1);
+               Label : constant String  := Get_Label (Line (First .. Last - 1));
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
                   Nonterm_Needed := True;
@@ -1163,7 +1185,7 @@ is
             Assert_Check_Empty;
             Nonterm_Needed := True;
             Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              " (Nonterm, Tokens, " & (if RHS.Auto_Token_Labels then "T" else "") & Line (Last + 1 .. Line'Last) & ";";
+              " (Nonterm, Tokens, " & Get_Label (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-merge-names" then
             Assert_Check_Empty;
@@ -1183,7 +1205,7 @@ is
 
          elsif Is_Present (Input_Data.Tokens.Actions, Elisp_Name) then
             --  Language-specific action (used in wisitoken grammar mode for
-            --  wisi-check-parens).
+            --  wisi-check-parens, mmmify).
             declare
                Item   : Elisp_Action_Type renames Input_Data.Tokens.Actions
                  (Input_Data.Tokens.Actions.Find (+Elisp_Name));
@@ -1635,8 +1657,11 @@ is
       Set_Output (File);
       Indent := 1;
 
+      --  We can't use Put_File_Header here because it does not output the
+      --  file name.
       Put_Line
-        (";;; " & Output_File_Name_Root & "-process.el --- Generated parser support file  -*- lexical-binding:t -*-");
+        (";;; " & Output_File_Name_Root &
+           "-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-");
       Put_Command_Line (Elisp_Comment & "  ", Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
