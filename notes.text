@@ -20,7 +20,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -30,7 +30,7 @@ o.e.a.stephe-6 (with o.w.s-1/o.s_l.sal): available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
@@ -56,21 +56,14 @@ opening or refreshing ada_annex_p_bnf.wy is very slow
     slowdown is _before_ wisitoken-grammar-mode is run!
         somewhere in find-file (-hook)?
 
-wisi-grammar-mode
-    error during resume; parse called from wisi-fontify-region
-    wisi--run-parse(2690 3180)
-    can't reproduce
-
 ada_annex_p.wy
     elminate conflicts: done
 
     add actions
         make two
-        added labels, action to abstract_subprogram_declaration
-            very tedious adding labels to everything
-                auto-label in translate_ebnf
-                or write elisp
-
+        copy from ada.wy, in ada.wy alphabetical order
+            done thru access_definition
+                wisitoken auto_token_labels broken; notes in o.w.s-1
 
 speed up lr1 generate
     share single c_tree; avoid updating 8 copies

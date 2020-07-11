@@ -404,7 +404,7 @@ accept_statement
 ;; same as access_type_definition for our purposes
 access_definition
   : null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
- ;; test/ada_mode-nomina.ads
+ ;; test/ada_mode-nominal.ads
  ;; type Procedure_Access_Type_8 is access
  ;;   protected procedure
  ;;     (A_Param : out Integer);

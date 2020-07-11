@@ -545,9 +545,9 @@ discrete_choice ::= choice_expression | subtype_indication | range_g | 'others'
 record_extension_part ::= 'with' record_definition
 
 abstract_subprogram_declaration
-  : [T1=overriding_indicator] T2=subprogram_specification T3='is' T4='abstract' [T5=aspect_specification] T6=';'
-    %((wisi-statement-action [T1 statement-start T2 statement-override T6 statement-end])
-      (wisi-indent-action [(T1 . nil) (T2 . nil) (T3 . ada-indent-broken) (T4 . ada-indent-broken) (T5 . ada-indent-broken) (T6 . ada-indent-broken)]))%
+  : [overriding_indicator] subprogram_specification 'is' 'abstract' [aspect_specification] ';'
+    %((wisi-statement-action [statement-start statement-override statement-end])
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
   ;
 
 interface_type_definition ::=
@@ -569,10 +569,24 @@ access_to_subprogram_definition ::=
 
 null_exclusion ::= 'not' 'null'
 
-access_definition ::=
-    [null_exclusion] 'access' ['constant'] name
+access_definition
+  : [null_exclusion] 'access' ['constant'] name
+    %((wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face]))%
+
   | [null_exclusion] 'access' ['protected'] 'procedure' parameter_profile
+    ;; test/ada_mode-nominal.ads
+    ;; type Procedure_Access_Type_8 is access
+    ;;   protected procedure
+    ;;     (A_Param : out Integer);
+    %((wisi-indent-action [nil nil nil nil (wisi-anchored%- 4 ada-indent-broken)]))%
+
   | [null_exclusion] 'access' ['protected'] 'function' parameter_and_result_profile
+    ;; test/ada_mode-nominal.ads
+    ;; type Procedure_Access_Type_8 is access
+    ;;   protected procedure
+    ;;     (A_Param : out Integer);
+    %((wisi-indent-action [nil nil nil nil (wisi-anchored%- 4 ada-indent-broken)]))%
+  ;
 
 incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
 
@@ -1146,8 +1160,15 @@ entry_declaration ::=
     [aspect_specification]';'
 
 accept_statement ::=
-    'accept' direct_name ['('entry_index')'] parameter_profile
+    'accept' direct_name ['(' entry_index ')'] parameter_profile
     ['do' handled_sequence_of_statements 'end' [IDENTIFIER]] ';'
+    %((wisi-statement-action [1 statement-start 7 motion 11 statement-end])
+      (wisi-motion-action [1 7 [8 WHEN] 11])
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 10 nil font-lock-function-name-face])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil nil ada-indent-broken
+                               [nil ada-indent] [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
+    %((wisi-match-names 2 10))%
+  ;
 
 entry_index ::= expression
 
