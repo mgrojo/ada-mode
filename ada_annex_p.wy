@@ -196,6 +196,7 @@ tick : TICK_1 | TICK_2 ;
 %elisp_indent ada-indent-return Ada_Indent_Return_0
 %elisp_indent ada-indent-record Ada_Indent_Record_0
 %elisp_indent "ada-indent-record*" Ada_Indent_Record_1
+%elisp_indent ada-indent-anchored-expression Ada_Indent_Anchored_Expression
 
 ;; Set McKenzie error recovery costs.
 ;;
@@ -284,8 +285,8 @@ tick : TICK_1 | TICK_2 ;
 %conflict REDUCE discriminant_association | REDUCE explicit_actual_parameter on token COMMA
 %conflict REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token RIGHT_PAREN
 %conflict REDUCE iterated_component_association | REDUCE iterated_element_association on token RIGHT_SQUARE_BRACKET
-%conflict REDUCE iterator_parameter_association | REDUCE parameter_association_COMMA_list on token COMMA
-%conflict REDUCE iterator_parameter_association | REDUCE parameter_association_COMMA_list on token RIGHT_PAREN
+%conflict REDUCE iterator_parameter_association | REDUCE parameter_association_list on token COMMA
+%conflict REDUCE iterator_parameter_association | REDUCE parameter_association_list on token RIGHT_PAREN
 %conflict REDUCE name | REDUCE selector_name on token BAR
 %conflict REDUCE name | REDUCE selector_name on token EQUAL_GREATER
 %conflict REDUCE primary | REDUCE global_aspect_definition on token COMMA
@@ -329,8 +330,8 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list | REDUCE direct_name on token COLON
 %conflict SHIFT package_body_stub | REDUCE direct_name on token IS
 %conflict SHIFT parameter_association | REDUCE selector_name_BAR_list on token EQUAL_GREATER
-%conflict SHIFT positional_array_aggregate | REDUCE expression_COMMA_list on token COMMA
-%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_COMMA_list on token COMMA
+%conflict SHIFT positional_array_aggregate | REDUCE expression_list on token COMMA
+%conflict SHIFT positional_array_aggregate | REDUCE record_component_association | REDUCE expression_list on token COMMA
 %conflict SHIFT pragma_argument_association | REDUCE aspect_mark on token EQUAL_GREATER
 %conflict SHIFT primary | REDUCE record_component_association on token RIGHT_PAREN
 %conflict SHIFT qualified_expression | REDUCE record_component_association on token RIGHT_PAREN
@@ -657,7 +658,10 @@ aggregate ::=
   | delta_aggregate
   ;; container_aggregate ;; redundant with array_aggregate
 
-record_aggregate ::= '(' record_component_association_list ')'
+record_aggregate
+  : '(' record_component_association_list ')'
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  ;
 
 record_component_association_list ::=
     record_component_association {',' record_component_association}
@@ -675,13 +679,50 @@ extension_aggregate ::= '(' expression 'with' record_component_association_list 
 
 array_aggregate ::= positional_array_aggregate | null_array_aggregate | named_array_aggregate
 
-positional_array_aggregate ::=
+expression_list ;; new to support actions
+  : expression {',' expression} ;
+
+positional_array_aggregate
   ;; There must be at least two items in a positional aggregate with parens.
-    '(' expression ','  expression {',' expression} ')'
-  | '(' expression {',' expression} ',' 'others' '=>' expression')'
-  | '(' expression {',' expression} ',' 'others' '=>' '<>' ')'
-  | '[' expression {',' expression} [','  'others'  '=>'  expression] ']'
-  | '[' expression {',' expression} ','  'others'  '=>'   '<>'  ']'
+  : '(' expression ','  expression_list ')'
+    %((wisi-indent-action [nil
+                           (ada-indent-anchored-expression 1)
+                           nil
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+  | '(' expression_list ',' 'others' '=>' expression ')'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 ada-indent-broken)
+                           (ada-indent-anchored-expression 1)
+                           (wisi-anchored 1 0)]))%
+  | '(' expression_list ',' 'others' '=>' '<>' ')'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           nil
+                           (wisi-anchored 1 1)
+                           nil
+                           nil
+                           (wisi-anchored 1 0)]))%
+  | '[' expression_list [','  'others'  '=>'  expression] ']'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 ada-indent-broken)
+                           (ada-indent-anchored-expression 1)
+                           (wisi-anchored 1 0)]))%
+  | '[' expression_list ','  'others'  '=>'   '<>' ']'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           nil
+                           (wisi-anchored 1 1)
+                           nil
+                           nil
+                           (wisi-anchored 1 0)]))%
+  ;
 
 null_array_aggregate ::= '[' ']'
 
@@ -1036,7 +1077,21 @@ function_call ::=
     ;; name ;; redundant with "name"
     name actual_parameter_part
 
-actual_parameter_part ::= '(' parameter_association {',' parameter_association} ')'
+parameter_association_list ;; new to support actions
+  : parameter_association {',' parameter_association} ;
+
+actual_parameter_part
+  ;; '(' parameter_association {',' parameter_association} ')' ;; deleted to support actions
+  : '(' parameter_association_list ')' ;; new to support actions
+    ;; see note in test/ada_mode-parens.adb Local_10 about right paren indent.
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | '(' conditional_expression ')' ;; new
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  | '(' quantified_expression ')' ;; new
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  ;
 
 parameter_association ::= [selector_name '=>'] explicit_actual_parameter
 

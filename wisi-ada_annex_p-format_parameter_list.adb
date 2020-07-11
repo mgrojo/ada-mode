@@ -26,7 +26,7 @@ procedure Format_Parameter_List
    Edit_Begin : in     WisiToken.Buffer_Pos)
 is
    use Standard.Ada.Containers;
-   use Ada_Process_Actions;
+   use Ada_Annex_P_Process_Actions;
    use Standard.Ada.Text_IO;
    use WisiToken.Syntax_Trees;
 
@@ -52,7 +52,7 @@ is
       else Creators.Create_List
         (Tree,
          Root       => Tree.Child (Formal_Part, 2),
-         List_ID    => +parameter_specification_list_ID,
+         List_ID    => +parameter_specification_SEMICOLON_list_ID,
          Element_ID => +parameter_specification_ID));
 
    Edit_End    : Buffer_Pos;
@@ -95,7 +95,7 @@ begin
          declare
             Children : constant Valid_Node_Index_Array := Tree.Children (Element (Param_Cur));
          begin
-            for Ident of Creators.Create_List (Tree, Children (1), +identifier_list_ID, +IDENTIFIER_ID) loop
+            for Ident of Creators.Create_List (Tree, Children (1), +defining_identifier_list_ID, +IDENTIFIER_ID) loop
                Param.Identifiers.Append (Tree.Byte_Region (Ident));
             end loop;
 
@@ -103,7 +103,7 @@ begin
 
             for I in 4 .. Children'Last loop
                case To_Token_Enum (Tree.ID (Children (I))) is
-               when mode_opt_ID =>
+               when mode_ID =>
                   if Tree.Buffer_Region_Is_Empty (Children (I)) then
                      Param.In_P  := False;
                      Param.Out_P := False;
@@ -113,39 +113,43 @@ begin
                        Tree.Children (Children (I))'Length > 1; -- 'in out'
                   end if;
 
-               when null_exclusion_opt_ID =>
-                  Param.Not_Null_P := not Tree.Buffer_Region_Is_Empty (Children (I));
+               when null_exclusion_ID =>
+                  Param.Not_Null_P := True;
 
                when name_ID =>
                   Param.Type_Region := Tree.Byte_Region (Children (I));
 
                when access_definition_ID =>
-                  --  First two children are always:
-                  --  null_exclusion_opt ACCESS
-                  declare
-                     Access_Children : constant Valid_Node_Index_Array := Tree.Children (Children (I));
-                  begin
-                     Param.Not_Null_P := not Tree.Buffer_Region_Is_Empty (Access_Children (1));
-                     Param.Access_P := True;
+                  for Child of Tree.Children (Children (I)) loop
+                     case To_Token_Enum (Tree.ID (Child)) is
+                     when null_exclusion_ID =>
+                        Param.Not_Null_P := True;
 
-                     if Tree.ID (Access_Children (3)) = +general_access_modifier_opt_ID then
-                        Param.Constant_P := not Tree.Buffer_Region_Is_Empty (Access_Children (3));
-                        Param.Type_Region := Tree.Byte_Region (Access_Children (4));
-                     else
-                        Param.Protected_P := not Tree.Buffer_Region_Is_Empty (Access_Children (3));
+                     when ACCESS_ID =>
+                        Param.Access_P := True;
+
+                     when CONSTANT_ID =>
+                        Param.Constant_P := True;
+
+                     when name_ID | PROCEDURE_ID | FUNCTION_ID =>
                         Param.Type_Region :=
-                          (Tree.Byte_Region (Access_Children (4)).First,
+                          (Tree.Byte_Region (Child).First,
                            Tree.Byte_Region (Children (I)).Last);
-                     end if;
-                  end;
+                        exit;
+
+                     when PROTECTED_ID =>
+                        Param.Protected_P := True;
+
+                     when others =>
+                        raise SAL.Programmer_Error;
+                     end case;
+                  end loop;
 
                when COLON_EQUAL_ID =>
                   null;
 
-               when expression_opt_ID =>
-                  if not Tree.Buffer_Region_Is_Empty (Children (I)) then
-                     Param.Default_Exp := Tree.Byte_Region (Children (I));
-                  end if;
+               when expression_ID =>
+                  Param.Default_Exp := Tree.Byte_Region (Children (I));
 
                when others =>
                   Raise_Programmer_Error

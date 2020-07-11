@@ -324,7 +324,9 @@ package Wisi is
       Option            : in     Boolean;
       Accumulate        : in     Boolean)
      return Delta_Type;
-   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging%-.
+   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging%-;
+   --     Option     = % present
+   --     Accumulate = - not present
    --
    --  Language specific child packages may override this to implement
    --  language-specific cases.

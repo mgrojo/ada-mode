@@ -32,8 +32,20 @@ gpr-skel.gpr.tmp :
 %.diff-run : % %.tmp
 	-diff -u $< $(*F).tmp
 
-# for building only this
-../run_ada_%_parse.exe : ../run_ada_%_parse.ads ../ada_re2c.c force
+# for building only these
+../run_ada_lalr_parse.exe : ../run_ada_lalr_parse.ads ../ada_re2c.c force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
+../run_ada_lr1_parse.exe : ../run_ada_lr1_parse.ads ../ada_re2c.c force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
+../run_ada_libadalang_parse.exe : ../run_ada_libadalang_parse.ads force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
+../run_ada_annex_p_lalr_parse.exe : ../run_ada_annex_p_lalr_parse.ads ../ada_annex_p_re2c.c force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
+../run_ada_annex_p_lr1_parse.exe : ../run_ada_annex_p_lr1_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 elisp-clean :

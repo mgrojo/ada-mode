@@ -78,19 +78,6 @@ package Wisi.Ada_Annex_P is
      return Boolean;
 
    overriding
-   function Indent_Hanging_1
-     (Data              : in out Parse_Data_Type;
-      Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
-      Indenting_Comment : in     Boolean;
-      Delta_1           : in     Simple_Indent_Param;
-      Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean;
-      Accumulate        : in     Boolean)
-     return Delta_Type;
-
-   overriding
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
@@ -152,5 +139,22 @@ package Wisi.Ada_Annex_P is
      return Wisi.Delta_Type;
    --  [1] ada-indent-record*
    --  Args: anchor_token_ID, record_token_index, offset
+
+   function Ada_Indent_Anchored_Expression
+     (Data              : in out Wisi.Parse_Data_Type'Class;
+      Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Tokens            : in     WisiToken.Valid_Node_Index_Array;
+      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi.Indent_Arg_Arrays.Vector)
+     return Wisi.Delta_Type;
+   --  Args: anchor_token_index
+   --
+   --  Equivalent to:
+   --  [(wisi-hanging%- (wisi-anchored% arg ada-indent-broken)
+   --                   (wisi-anchored% arg (* 2 ada-indent-broken)))
+   --   (wisi-hanging%- (wisi-anchored% arg ada-indent-broken)
+   --                   (wisi-anchored% arg (* 2 ada-indent-broken)))]]))%
+
 
 end Wisi.Ada_Annex_P;

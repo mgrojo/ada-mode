@@ -73,7 +73,12 @@ opening or refreshing ada_annex_p_bnf.wy is very slow
         should be no overlays yet?
 
     slowdown is _before_ wisitoken-grammar-mode is run!
-        somewhere in find-file (-hook)?
+        in normal-mode, called from after-find-file
+        in set-auto-mode
+        in set-auto-mode-0
+        which just calls wisitoken-grammar-mode
+            so slowdown must be in non-visible code created by define-derived-mode. sigh.
+            in run-mode-hooks? nope; they are run after visible code
 
 need better homepage for wisi
     point to user guide, show some screen shots
@@ -89,8 +94,7 @@ ada_annex_p.wy
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order
-            done thru access_definition
-                wisitoken auto_token_labels broken; notes in o.w.s-1
+            done thru actual_parameter_part, part of aggregate
 
     compare_ada_annex_p
         arm_texi use bold underscore for bold, to distinguish keywords
