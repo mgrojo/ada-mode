@@ -154,12 +154,13 @@ is
    end Split_Sexp;
 
    procedure Create_Ada_Action
-     (Name          : in String;
-      RHS           : in RHS_Type;
-      Prod_ID       : in WisiToken.Production_ID;
-      Unsplit_Lines : in Ada.Strings.Unbounded.Unbounded_String;
-      Labels        : in String_Arrays.Vector;
-      Check         : in Boolean)
+     (Name          : in     String;
+      RHS           : in     RHS_Type;
+      Prod_ID       : in     WisiToken.Production_ID;
+      Unsplit_Lines : in     Ada.Strings.Unbounded.Unbounded_String;
+      Labels        : in     String_Arrays.Vector;
+      Empty         :    out Boolean;
+      Check         : in     Boolean)
    is
       --  Create Action (if Check = False; Lines must be RHS.Action) or
       --  Check (if Check = True; Lines must be RHS.Check) subprogram named
@@ -1009,15 +1010,24 @@ is
       function Match_Names_Params (Params : in String) return String
       is
          --  Input looks like: 1 2)
-         First  : constant Integer := Index_Non_Blank (Params);
-         Second : constant Integer := Index (Params, Blank_Set, First);
+         First             : constant Integer := Index_Non_Blank (Params);
+         Second            : constant Integer := Index (Params, Blank_Set, First);
+         Label_First       : constant String  := Get_Label (Params (First .. Second - 1));
+         Label_Second      : constant String  := Get_Label (Params (Second + 1 .. Params'Last - 1));
+         Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
+           Label_Used (Label_First);
+         Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
+           Label_Used (Label_Second);
       begin
-         return " (Lexer, Descriptor, Tokens, " &
-           Get_Label (Params (First .. Second - 1)) & ',' &
-           Get_Label (Params (Second .. Params'Last - 1)) & ", " &
-           (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
-            then -Input_Data.Language_Params.End_Names_Optional_Option
-            else "False") & ")";
+         if Label_Used_First and Label_Used_Second then
+            return " (Lexer, Descriptor, Tokens, " &
+              Label_First & ", " & Label_Second & ", " &
+              (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
+               then -Input_Data.Language_Params.End_Names_Optional_Option
+               else "False") & ")";
+         else
+            return "";
+         end if;
       end Match_Names_Params;
 
       function Language_Action_Params (Params : in String; Action_Name : in String) return String
@@ -1193,9 +1203,15 @@ is
               Merge_Names_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-match-names" then
-            Assert_Check_Empty;
-            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Params : constant String := Match_Names_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Assert_Check_Empty;
+                  Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                    Params & ";";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
             Assert_Check_Empty;
@@ -1243,6 +1259,7 @@ is
          end if;
       end Translate_Sexp;
 
+      Subprogram_Started : Boolean := False;
    begin
       for Sexp of Sexps loop
          begin
@@ -1257,65 +1274,74 @@ is
 
       if Check then
          --  in a check
-         Indent_Line ("function " & Name);
-         Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
-         Indent_Line ("  Nonterm        : in out WisiToken.Recover_Token;");
-         Indent_Line ("  Tokens         : in     WisiToken.Recover_Token_Array;");
-         Indent_Line ("  Recover_Active : in     Boolean)");
-         Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
-         declare
-            Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
-            Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
-            Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
-            Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
-            Need_Comma    : Boolean          := False;
-         begin
-            if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover or
-              (for some I of Label_Needed => I)
-            then
-               Indent_Line ("is");
+         if Length (Check_Line) = 0 then
+            Empty := True; -- don't output a spec for this.
 
-               Indent := Indent + 3;
-               if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
-                  Indent_Start ("pragma Unreferenced (");
+         else
+            Empty              := False;
+            Subprogram_Started := True;
+            Indent_Line ("function " & Name);
+            Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+            Indent_Line ("  Nonterm        : in out WisiToken.Recover_Token;");
+            Indent_Line ("  Tokens         : in     WisiToken.Recover_Token_Array;");
+            Indent_Line ("  Recover_Active : in     Boolean)");
+            Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
+            declare
+               Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
+               Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
+               Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
+               Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
+               Need_Comma    : Boolean          := False;
+            begin
+               if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover or
+                 (for some I of Label_Needed => I)
+               then
+                  Indent_Line ("is");
 
-                  if Unref_Lexer then
-                     Put ((if Need_Comma then ", " else "") & "Lexer");
-                     Need_Comma := True;
+                  Indent := Indent + 3;
+                  if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                     Indent_Start ("pragma Unreferenced (");
+
+                     if Unref_Lexer then
+                        Put ((if Need_Comma then ", " else "") & "Lexer");
+                        Need_Comma := True;
+                     end if;
+                     if Unref_Nonterm then
+                        Put ((if Need_Comma then ", " else "") & "Nonterm");
+                        Need_Comma := True;
+                     end if;
+                     if Unref_Tokens then
+                        Put ((if Need_Comma then ", " else "") & "Tokens");
+                        Need_Comma := True;
+                     end if;
+                     if Unref_Recover then
+                        Put ((if Need_Comma then ", " else "") & "Recover_Active");
+                        Need_Comma := True;
+                     end if;
+                     Put_Line (");");
                   end if;
-                  if Unref_Nonterm then
-                     Put ((if Need_Comma then ", " else "") & "Nonterm");
-                     Need_Comma := True;
-                  end if;
-                  if Unref_Tokens then
-                     Put ((if Need_Comma then ", " else "") & "Tokens");
-                     Need_Comma := True;
-                  end if;
-                  if Unref_Recover then
-                     Put ((if Need_Comma then ", " else "") & "Recover_Active");
-                     Need_Comma := True;
-                  end if;
-                  Put_Line (");");
+
+                  for I in Label_Needed'Range loop
+                     if Label_Needed (I) then
+                        Indent_Line
+                          (-Labels (I) & " : constant SAL.Peek_Type :=" &
+                             SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
+                     end if;
+                  end loop;
+                  Indent := Indent - 3;
+
+                  Indent_Line ("begin");
+               else
+                  Indent_Line ("is begin");
                end if;
-
-               for I in Label_Needed'Range loop
-                  if Label_Needed (I) then
-                     Indent_Line
-                       (-Labels (I) & " : constant SAL.Peek_Type :=" &
-                          SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
-                  end if;
-               end loop;
-               Indent := Indent - 3;
-
-               Indent_Line ("begin");
-            else
-               Indent_Line ("is begin");
-            end if;
-         end;
-         Indent := Indent + 3;
-         Indent_Line (-Check_Line);
+            end;
+            Indent := Indent + 3;
+            Indent_Line (-Check_Line);
+         end if;
       else
          --  In an action
+         Empty              := False;
+         Subprogram_Started := True;
          Indent_Line ("procedure " & Name);
          Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
          Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
@@ -1375,9 +1401,11 @@ is
          Indent_Line ("end case;");
       end if;
 
-      Indent := Indent - 3;
-      Indent_Line ("end " & Name & ";");
-      New_Line;
+      if Subprogram_Started then
+         Indent := Indent - 3;
+         Indent_Line ("end " & Name & ";");
+         New_Line;
+      end if;
 
    end Create_Ada_Action;
 
@@ -1475,21 +1503,28 @@ is
          declare
             LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
             RHS_Index : Integer                     := 0; -- Semantic_Action defines RHS_Index as zero-origin
+            Empty     : Boolean;
          begin
             for RHS of Rule.Right_Hand_Sides loop
                if Length (RHS.Action) > 0 then
                   declare
                      Name : constant String := Action_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Action, Rule.Labels, Check => False);
+                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Action, Rule.Labels, Empty, Check => False);
+                     if Empty then
+                        Action_Names (LHS_ID)(RHS_Index) := null;
+                     end if;
                   end;
                end if;
 
                if Length (RHS.Check) > 0 then
                   declare
-                     Name : constant String := Check_Names (LHS_ID)(RHS_Index).all;
+                     Name  : constant String := Check_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Check, Rule.Labels, Check => True);
+                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Check, Rule.Labels, Empty, Check => True);
+                     if Empty then
+                        Check_Names (LHS_ID)(RHS_Index) := null;
+                     end if;
                   end;
                end if;
                RHS_Index := RHS_Index + 1;

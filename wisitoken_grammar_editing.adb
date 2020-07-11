@@ -2867,9 +2867,9 @@ package body WisiToken_Grammar_Editing is
                      RHS_List : constant Constant_List := Creators.Create_List
                        (Tree, Tree.Child (Nonterm, 3), +rhs_list_ID, +rhs_ID);
                   begin
-                     Last_Token_Index := 0;
-
                      for RHS of RHS_List loop
+                        Last_Token_Index := 0;
+
                         if Needs_Token_Labels (RHS) then
                            Add_Token_Labels (RHS);
                         end if;
