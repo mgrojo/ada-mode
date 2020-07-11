@@ -481,13 +481,21 @@ digits_constraint ::= 'digits' simple_expression [range_constraint]
 array_type_definition ::=
   unconstrained_array_definition | constrained_array_definition
 
-unconstrained_array_definition ::=
-  'array' '(' index_subtype_definition {',' index_subtype_definition} ')' 'of' component_definition
+index_subtype_definition_list : index_subtype_definition {',' index_subtype_definition} ;
+
+unconstrained_array_definition
+  : 'array' '(' index_subtype_definition_list ')' 'of' component_definition
+    %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
+  ;
 
 index_subtype_definition ::= name 'range' '<>'
 
-constrained_array_definition ::=
-  'array' '(' discrete_subtype_definition {',' discrete_subtype_definition} ')' 'of' component_definition
+discrete_subtype_definition_list : discrete_subtype_definition {',' discrete_subtype_definition} ;
+
+constrained_array_definition
+  : 'array' '(' discrete_subtype_definition_list  ')' 'of' component_definition
+    %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
+  ;
 
 discrete_subtype_definition ::= subtype_indication | range_g
 
@@ -658,6 +666,13 @@ aggregate ::=
   | delta_aggregate
   ;; container_aggregate ;; redundant with array_aggregate
 
+  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | '(' conditional_expression ')' ;; new
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  | '(' quantified_expression ')' ;; new
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  ;
+
 record_aggregate
   : '(' record_component_association_list ')'
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
@@ -673,7 +688,14 @@ record_component_association ::=
 
 component_choice_list ::= selector_name {'|' selector_name} | 'others'
 
-extension_aggregate ::= '(' expression 'with' record_component_association_list ')'
+extension_aggregate
+  : '(' expression 'with' record_component_association_list ')'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+  ;
 
 ;; ancestor_part ::= expression | name ;; inlined to 'expression'
 
@@ -726,9 +748,12 @@ positional_array_aggregate
 
 null_array_aggregate ::= '[' ']'
 
-named_array_aggregate ::=
-    '(' array_component_association_list ')'
+named_array_aggregate
+  : '(' array_component_association_list ')'
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   | '[' array_component_association_list ']'
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  ;
 
 array_component_association_list ::= array_component_association { ','  array_component_association}
 
@@ -743,11 +768,33 @@ iterated_component_association ::=
 
 delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
 
-record_delta_aggregate ::= '(' expression 'with' 'delta' record_component_association_list ')'
+record_delta_aggregate
+  : '(' expression 'with' 'delta' record_component_association_list ')'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+  ;
 
-array_delta_aggregate ::=
-    '(' expression 'with' 'delta' array_component_association_list ')'
+array_delta_aggregate
+  : '(' expression 'with' 'delta' array_component_association_list ')'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+
   | '[' expression 'with' 'delta' array_component_association_list ']'
+    %((wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+  ;
 
 ;; container_aggregate ::= ;; deleted; subset of array_aggregate
 ;;     null_array_aggregate
@@ -820,8 +867,8 @@ primary ::=
   | name
   | allocator
   | '(' expression ')' ;; FIXME: redundant with positional_aggregate? that requires two elements.
-  | '(' conditional_expression ')'
-  | '(' quantified_expression ')'
+  ;; '(' conditional_expression ')' ;;:redundant with aggregate
+  ;; '(' quantified_expression ')' ;;:redundant with aggregate
   | '(' declare_expression ')'
 
 ;; logical_operator ::= 'and' | 'or' | 'xor' ;; not used in the grammar
@@ -1484,7 +1531,12 @@ aspect_clause ::=
 ;;     direct_name tick attribute_designator
 ;;   | name
 
-aspect_specification ::= 'with' aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] }
+aspect_mark_list : aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] } ;
+
+aspect_specification
+  : 'with' aspect_mark_list
+    %((wisi-indent-action [nil ada-indent-broken]))%
+  ;
 
 aspect_mark ::= IDENTIFIER [tick IDENTIFIER]
 ;; FIXME: "class" changed to IDENTIFIER so foo'class is legal
@@ -1497,9 +1549,14 @@ aspect_definition ::=
   ;; aggregate ;; redundant with expression
   | global_aspect_definition
 
-attribute_definition_clause ::=
-    'for' name tick attribute_designator 'use' expression ';'
-      ;; 'for' name tick attribute_designator 'use' name ';' ;; redundant with expression
+attribute_definition_clause
+  : 'for' name tick attribute_designator 'use' expression ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken nil]))%
+
+  ;; 'for' name tick attribute_designator 'use' name ';' ;;:redundant with expression
+  ;
 
 enumeration_representation_clause ::= 'for' name 'use' enumeration_aggregate';'
 

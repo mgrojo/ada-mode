@@ -94,7 +94,7 @@ ada_annex_p.wy
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order
-            done thru actual_parameter_part, part of aggregate
+            done thru aspect_specification_opt
 
     compare_ada_annex_p
         arm_texi use bold underscore for bold, to distinguish keywords
