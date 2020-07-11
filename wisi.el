@@ -442,6 +442,9 @@ Truncate any region that overlaps POS."
   (wisi-set-last-parse-region (point-min) (point-min) 'indent)
   (wisi-set-last-parse-region (point-min) (point-min) 'face)
   (wisi-set-last-parse-region (point-min) (point-min) 'navigate)
+  (wisi-invalidate-cache 'indent (point-min))
+  (wisi-invalidate-cache 'face (point-min))
+  (wisi-invalidate-cache 'navigate (point-min))
   (wisi-fringe-clean))
 
 ;; wisi--change-* keep track of buffer modifications.

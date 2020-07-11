@@ -79,6 +79,9 @@ is
       --  These are not used in the grammar
       new String'("highest_precedence_operator"),
       new String'("logical_operator"),
+      new String'("restriction"),
+      new String'("restriction_parameter_argument"),
+      new String'("storage_pool_indicator"),
       new String'("synchronization_kind")
      );
 

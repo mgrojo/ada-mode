@@ -16,7 +16,12 @@
 (defun pkg-dir-clean (name version)
   (let ((dir (pkg-dir name version)))
     (when (file-exists-p dir)
-      (delete-directory dir t))))
+      (delete-directory dir t))
+    )
+  (let* ((elpa-dir (locate-user-emacs-file "elpa"))
+	 (files (file-name-all-completions (concat name "-" version) elpa-dir)))
+    (dolist (file files)
+      (delete-file (concat elpa-dir "/" file)))))
 
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)
