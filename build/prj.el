@@ -3,9 +3,9 @@
 (wisi-prj-select-cache
  "wisitoken.prj"
  (create-ada-prj
-  :name "wisitoken main"
+  :name "wisitoken stephe-2"
   :compile-env
-  '("SAL=../../org.stephe_leake.sal"))
+  '("SAL=../../org.stephe_leake.sal.stephe-1"))
   "Makefile")
 
 ;; Separate so can be updated in CM

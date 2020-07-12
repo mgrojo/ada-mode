@@ -19,7 +19,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -210,14 +210,9 @@ need gnat-prep for tree-sitter
     most devels won't have it
 
 add tree-sitter parser, lexer
-    tree-sitter still not getting comments right
-        these two are equivalent:
-        1. `/--.*/`
-        2. `token(seq('--'), /.*/))`
-
-        try updating tree-sitter from github
-        try 'tree-sitter parse' with trivial grammar
-        try tree-sitter parse with javascript grammar (supposedly working)
+    tree-sitter comments: ~/tree-sitter-work/debug_comment_2/grammar.js
+        first rule is start symbol!
+            wisi-eoi is implicit in tree-sitter
 
     case insensitive:
         alias(/[fF][oO][rR]/, 'for')
