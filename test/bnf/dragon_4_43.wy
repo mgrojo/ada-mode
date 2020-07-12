@@ -29,6 +29,12 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
 ;; comment.
+%if lexer = re2c
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
+%elsif lexer = tree_sitter
+%non_grammar <line-comment> COMMENT '--'
+%end if
+
 ;; no mckenzie
 
 %no_language_runtime

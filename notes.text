@@ -210,15 +210,13 @@ need gnat-prep for tree-sitter
     most devels won't have it
 
 add tree-sitter parser, lexer
-    tree-sitter comments: ~/tree-sitter-work/debug_comment_2/grammar.js
-        first rule is start symbol!
-            wisi-eoi is implicit in tree-sitter
+    ada_lite.wy
+        tree-sitter generate reports a conflict
+        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
+
 
     case insensitive:
         alias(/[fF][oO][rR]/, 'for')
-
-    tree-sitter generate supposed to report conflicts
-        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
 
     translate tree-sitter parse tree to wisitoken?
         api.h has root, node_children,  etc.

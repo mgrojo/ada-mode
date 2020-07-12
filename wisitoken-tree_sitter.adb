@@ -677,6 +677,8 @@ package body WisiToken.Tree_Sitter is
 
       Extras : WisiToken.BNF.String_Lists.List;
 
+      Start_Node : Node_Index := Invalid_Node_Index;
+
       --  Local specs
 
       procedure Put_RHS_Item_List (Node : in Valid_Node_Index; First : in Boolean)
@@ -996,6 +998,10 @@ package body WisiToken.Tree_Sitter is
 
       procedure Process_Node (Node : in Valid_Node_Index)
       is begin
+         if Node = Start_Node then
+            return;
+         end if;
+
          case To_Token_Enum (Tree.ID (Node)) is
          --  Enum_Token_ID alphabetical order
 
@@ -1022,8 +1028,8 @@ package body WisiToken.Tree_Sitter is
             when 0 =>
                --  We need tokens with 'regexp' values because they are not defined
                --  elsewhere, 'punctuation' tokens for consistent names, and
-               --  'comment' to allow comments. tree-sitter default 'extras' handles
-               --  whitespace and newline on its own, but if we define 'comment', we
+               --  'line-comment' to allow comments. tree-sitter default 'extras'
+               --  handles whitespace and newline, but if we define 'comment', we
                --  also need 'new-line' and 'whitespace'.
                declare
                   use Ada.Strings;
@@ -1041,29 +1047,12 @@ package body WisiToken.Tree_Sitter is
                   --  We are ignoring any repair image
                begin
                   if Class = NON_GRAMMAR_ID then
-                     if List.Count > 1 then
-                        --  WORKAROUND: tree-sitter 0.16.6 treats "seq('--', /.*/)" almost correctly
-                        --  for an Ada comment, but not "/--.*/". See github tree-sitter issue 651
-                        Put (File, Name & ": $ => seq(");
-                        for Item of List loop
-                           case To_Token_Enum (Tree.ID (Tree.Child (Item, 1))) is
-                           when REGEXP_ID =>
-                              Put (File, "/" & Trim (Get_Text (Item), Both) & "/,");
-
-                           when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
-                              Put (File, Get_Text (Item) & ",");
-
-                           when others =>
-                              Generate.Put_Error
-                                (Generate.Error_Message
-                                   (Input_File_Name,
-                                    WisiToken_Grammar_Runtime.Get_Line (Data, Tree, Item),
-                                    "invalid " & Image (Tree.ID (Item), Wisitoken_Grammar_Actions.Descriptor) &
-                                      " item in multi-item non-grammar token"));
-                           end case;
-                        end loop;
-
-                        Put_Line (File, "),");
+                     if Kind = "line-comment" then
+                        --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
+                        --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
+                        --  github tree-sitter issue 651 - closed without resolving this
+                        --  question, but it does provide a workaround.
+                        Put_Line (File, Name & ": $ => token(seq(" & Get_Text (Value) & ", /.*/)),");
                         Extras.Append ("$." & Name);
                      else
                         Extras.Append ("/" & Trim (Get_Text (Value), Both) & "/");
@@ -1123,6 +1112,21 @@ package body WisiToken.Tree_Sitter is
       Put_Line (File, "  name: '" & Language_Name & "',");
 
       Put_Line (File, "  rules: {");
+
+      --  Start symbol must be the first rule; that's how tree-sitter knows
+      --  it's the start symbol. accept rule with wisi-eoi is implicit in
+      --  tree-sitter (as in .wy).
+      if -Data.Language_Params.Start_Token = "" then
+         Generate.Put_Error (Generate.Error_Message (Input_File_Name, 1, "%start not specified"));
+      else
+         declare
+            Temp : constant Node_Index := WisiToken_Grammar_Editing.Find_Declaration
+              (Data, Tree, -Data.Language_Params.Start_Token);
+         begin
+            Process_Node (Temp);
+            Start_Node := Temp;
+         end;
+      end if;
 
       Process_Node (Tree.Root);
 
