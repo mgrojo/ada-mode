@@ -28,7 +28,9 @@ update-wisitoken_grammar
 
  current work
 auto_token_labels
-    test wisitoken-grammar-mode
+    ada_annex_p.wy access_definition broken
+        last_token_index not reset between RHS
+        duplicate in subprograms.wy
 
 error_correction_algorithm.tex
     finish "results"
@@ -75,7 +77,7 @@ STRING_QUOTE                 11  0% /      11  0%
             wisitoken-recover-compare:  total size: 14054
             libadalang-recover-compare: total size: 60069
 
-        add ada_annex_p
+        add diff results for ada_annex_p
 
         libadalang better:
             recover_02
@@ -85,10 +87,10 @@ STRING_QUOTE                 11  0% /      11  0%
             recover_13 (perfect)
 
 
-    McKensie bit map to prune config queue => not needed because we use a min heap
-
     need title
         \title, \author not working!?
+
+    supported in part by Eurocontrol
 
     recursion in minimal_complete
         Here the production is labeled \code{recursive}, because it is part of
@@ -161,12 +163,29 @@ STRING_QUOTE                 11  0% /      11  0%
 
     LALR vs LR1
         test_mckenzie_recover
-            String_Quote_2
-            String_Quote_5
-            Two_Missing_Ends enqueue 50 vs 101
-            Do_Delete_First 280 vs 202
-            Two_Parsers 18 vs 55
-            Match_Selected_Component_1
+            String_Quote_2  Enqueue when LALR => 61, when LR1 => 69
+            String_Quote_5          when LALR => 244, when LR1 => 251
+            Two_Missing_Ends enqueue when LALR => 26, when LR1 => 40
+            Do_Delete_First          when LALR => 235, when LR1 => 207
+            Two_Parsers              when LALR => 19, when LR1 => 56
+            Match_Selected_Component_1 when LALR => 23, when LR1 => 35
+
+        ada_mode-recover_02
+            LALR
+                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
+                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
+                ;;  1: fail; total enqueue limit ( 500000 cost 11)
+                ;;  4: fail, enqueue 283458, check  26708, max shared_token  64
+                ;;  4: fail; total enqueue limit ( 500000 cost 11)
+                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
+                1.16 seconds
+
+            LR1
+                ;;  0: fail; total enqueue limit ( 500000 cost 10)
+                ;;  0: succeed 8, enqueue 441988, check  41725, cost:  11
+                ;;  1: succeed 2, enqueue 58102, check  5805, cost:  7
+                1.48 seconds slower!?
+
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
 

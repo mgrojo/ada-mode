@@ -85,7 +85,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Super.Fatal (E);
    end Worker_Task;
 
-   Worker_Tasks : array (1 .. System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs - 1)) of
+   Worker_Tasks : array (1 .. System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs)) of
      Worker_Access;
    --  Declaring an array of tasks directly causes a circular elaboration
    --  problem, and would mean a task that terminates due to an exception
@@ -229,7 +229,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
          then Worker_Tasks'Last
-         --  Keep one CPU free for this main task, and the user.
          else Shared_Parser.Table.McKenzie_Param.Task_Count);
 
    begin

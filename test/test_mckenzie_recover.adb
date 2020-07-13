@@ -225,7 +225,7 @@ package body Test_McKenzie_Recover is
 
    procedure Empty_Comments (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
    begin
       --  Error recovery returns the cheapest minimal statement.
 
@@ -235,13 +235,10 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     =>
-           (case Test.Alg is
-            when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
+         Enqueue_Low             => 118,
+         Check_Low               => 25,
          Cost                    => 5);
 
       Parse_Text ("   ");
@@ -250,13 +247,10 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     =>
-           (case Test.Alg is
-            when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
+         Enqueue_Low             => 118,
+         Check_Low               => 25,
          Cost                    => 5);
 
       Parse_Text ("--  a comment");
@@ -265,13 +259,10 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOI_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     =>
-           (case Test.Alg is
-            when LALR => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-            when LR1  => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1)),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 118, when LR1 => 118),
-         Check_Low               => (case Test.Alg is when LALR => 25, when LR1 => 25),
+         Enqueue_Low             => 118,
+         Check_Low               => 25,
          Cost                    => 5);
    end Empty_Comments;
 
@@ -737,7 +728,6 @@ package body Test_McKenzie_Recover is
 
    procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
       pragma Unreferenced (T);
    begin
       --  Test that the correct error token is reported when the error occurs
@@ -758,9 +748,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +AND_ID,
          Error_Token_Byte_Region => (28, 30),
-         Ops                     =>
-           (case Test.Alg is
-            when LALR | LR1 => +(Delete, +AND_ID, 6)),
+         Ops                     => +(Delete, +AND_ID, 6),
          Strategy_Counts    => (Delete => 1, others => 0),
          Enqueue_Low        => 81,
          Check_Low          => 15,
