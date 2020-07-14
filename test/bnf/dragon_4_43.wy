@@ -20,7 +20,7 @@
 %generate Packrat_Gen Ada re2c
 %generate LALR Ada re2c
 %generate Packrat_Proc Ada re2c
-;; %generate Tree_Sitter Ada tree_sitter currently broken
+%generate Tree_Sitter Ada tree_sitter
 
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"

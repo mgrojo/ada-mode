@@ -169,7 +169,11 @@ package body WisiToken.Parse.LR.Parser is
                   Current_Parser.Set_Verb (Reduce);
 
                   if Trace_Parse > Detail then
-                     Trace.Put_Line (" ... goto state " & Trimmed_Image (New_State));
+                     Trace.Put_Line
+                       (" ... goto state " &
+                          (if Trace_Parse_No_State_Numbers
+                           then "--"
+                           else Trimmed_Image (New_State)));
                   end if;
 
                when Semantic_Checks.Error =>
@@ -215,8 +219,10 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Parse > Outline then
                Put
                  (Trace,
-                  Integer'Image (Current_Parser.Label) & ":" &
-                    Unknown_State_Index'Image (Parser_State.Stack.Peek.State) & ": expecting: " &
+                  Integer'Image (Current_Parser.Label) & ": " &
+                    (if Trace_Parse_No_State_Numbers
+                     then "--"
+                     else Trimmed_Image (Parser_State.Stack.Peek.State)) & ": expecting: " &
                     Image (Expecting, Trace.Descriptor.all));
                Trace.New_Line;
             end if;

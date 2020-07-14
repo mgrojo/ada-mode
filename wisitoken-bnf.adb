@@ -21,7 +21,6 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Text_IO;
-with Ada.Strings.Fixed;
 package body WisiToken.BNF is
 
    function Is_Valid_Interface (Item : in String) return Boolean

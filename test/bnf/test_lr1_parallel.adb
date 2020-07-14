@@ -287,8 +287,8 @@ package body Test_LR1_Parallel is
       Exe_t1 : constant String := "./" & Base_Name & "_t1_run.exe";
       Exe_t8 : constant String := "./" & Base_Name & "_t8_run.exe";
 
-      Output_t1 : constant String := Base_Name & "_t1.parse";
-      Output_t8 : constant String := Base_Name & "_t8.parse";
+      Output_t1 : constant String := Base_Name & "_t1-no_states.parse";
+      Output_t8 : constant String := Base_Name & "_t8-no_states.parse";
 
       Args : constant GNAT.OS_Lib.String_List (1 .. 4) :=
         (1 => new String'("-v"),

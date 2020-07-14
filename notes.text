@@ -211,8 +211,18 @@ need gnat-prep for tree-sitter
 
 add tree-sitter parser, lexer
     ada_lite.wy
-        tree-sitter generate reports a conflict
-        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
+        getting syntax errors
+            that's just generalized parsing; the lexer is aware of the parser state
+
+    write Ada code to traverse tree-sitter tree
+    report errors:
+        ts_node_has_error
+            traverse tree, checking each node
+
+        find nodes with errors Tree Query for `(ERROR)`; ts_query_new, ts_query_cursor_new
+            https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries
+
+        https://github.com/tree-sitter/tree-sitter/issues/255 for adding APIs suited toward user-facing error messages.
 
 
     case insensitive:
@@ -221,7 +231,7 @@ add tree-sitter parser, lexer
     translate tree-sitter parse tree to wisitoken?
         api.h has root, node_children,  etc.
 
-    time parts of generate tree_sitter; seems slow on ada_annex_p
+    time parts of w-bnf-generate tree_sitter; seems slow on ada_annex_p
 
     need to_grammar for actions
         which needs all tokens defined

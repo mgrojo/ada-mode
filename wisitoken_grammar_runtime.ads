@@ -25,6 +25,7 @@ with Wisitoken_Grammar_Actions;
 with WisiToken.Syntax_Trees.LR_Utils;
 package WisiToken_Grammar_Runtime is
    use all type WisiToken.Node_Index;
+   use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
 
    type Meta_Syntax is (Unknown, BNF_Syntax, EBNF_Syntax);
    --  Syntax used in grammar file.
@@ -120,9 +121,23 @@ package WisiToken_Grammar_Runtime is
       Token : in              WisiToken.Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
+   function Get_Lexer_Set
+     (User_Data : in out User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Node      : in     WisiToken.Valid_Node_Index)
+     return WisiToken.BNF.Lexer_Set
+   with Pre => To_Token_Enum (Tree.ID (Node)) in IDENTIFIER_ID | IDENTIFIER_BAR_list_ID;
+
+   function Get_Generate_Algorithm_Set
+     (User_Data : in out User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Node      : in     WisiToken.Valid_Node_Index)
+     return WisiToken.BNF.Generate_Algorithm_Set
+   with Pre => To_Token_Enum (Tree.ID (Node)) in IDENTIFIER_ID | IDENTIFIER_BAR_list_ID;
+
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array);
 
    procedure End_If (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class);
@@ -134,7 +149,7 @@ package WisiToken_Grammar_Runtime is
 
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array);
 
    function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String;

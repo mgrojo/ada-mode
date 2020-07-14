@@ -1,0 +1,96 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => LOWER_C
+ 4 => LOWER_D
+ 5 => Wisi_EOI
+ 6 => wisitoken_accept
+ 7 => upper_s
+ 8 => upper_c
+
+Productions:
+6.0: wisitoken_accept <= upper_s Wisi_EOI
+7.0: upper_s <= upper_c upper_c
+8.0: upper_c <= LOWER_C upper_c ; (2 => Direct_Right)
+8.1: upper_c <= LOWER_D
+
+Recursions:
+1 => (8 (0.2) -> )
+
+LALR Parse Table:
+State 0:
+      6.0:wisitoken_accept <= ^ upper_s Wisi_EOI
+
+   LOWER_C          => shift and goto state 1 8.0
+   LOWER_D          => shift and goto state 2 8.1
+   default          => ERROR
+
+   upper_s          goto state 3
+   upper_c          goto state 4
+
+   Minimal_Complete_Action => 
+
+State 1:
+      8.0:upper_c <= LOWER_C ^ upper_c
+
+   LOWER_C          => shift and goto state 1 8.0
+   LOWER_D          => shift and goto state 2 8.1
+   default          => ERROR
+
+   upper_c          goto state 5
+
+   Minimal_Complete_Action => LOWER_D 8.1
+
+State 2:
+      8.1:upper_c <= LOWER_D ^
+
+   LOWER_C          => reduce 1 tokens to upper_c 8.1
+   LOWER_D          => reduce 1 tokens to upper_c 8.1
+   Wisi_EOI         => reduce 1 tokens to upper_c 8.1
+   default          => ERROR
+
+   Minimal_Complete_Action => upper_c 8.1
+
+State 3:
+      6.0:wisitoken_accept <= upper_s ^ Wisi_EOI
+
+   Wisi_EOI         => accept it 6.0
+   default          => ERROR
+
+   Minimal_Complete_Action => 
+
+State 4:
+      7.0:upper_s <= upper_c ^ upper_c
+
+   LOWER_C          => shift and goto state 1 8.0
+   LOWER_D          => shift and goto state 2 8.1
+   default          => ERROR
+
+   upper_c          goto state 6
+
+   Minimal_Complete_Action => LOWER_D 8.1
+
+State 5:
+      8.0:upper_c <= LOWER_C upper_c ^
+
+   LOWER_C          => reduce 2 tokens to upper_c 8.0
+   LOWER_D          => reduce 2 tokens to upper_c 8.0
+   Wisi_EOI         => reduce 2 tokens to upper_c 8.0
+   default          => ERROR
+
+   Minimal_Complete_Action => upper_c 8.0
+
+State 6:
+      7.0:upper_s <= upper_c upper_c ^
+
+   Wisi_EOI         => reduce 2 tokens to upper_s 7.0
+   default          => ERROR
+
+   Minimal_Complete_Action => upper_s 7.0
+
+5 states with minimal_complete_actions; 5 total minimal_complete_actions.
+
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 2 rules, 0 user actions, 0 checks, 7 states

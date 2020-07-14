@@ -197,10 +197,19 @@
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
 
-%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS (64)
+%if parser = LALR
+;; tree-sitter and wisitoken have different naming
+;; conventions for shift/reduce conflicts that reduce 0 tokens in LALR
+;; (because reduce 0 tokens is forbidden in tree-sitter).
+
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS
+
+%elsif parser = Tree_Sitter
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+%end if
 
 ;;;; grammar rules
 

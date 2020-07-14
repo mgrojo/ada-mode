@@ -2339,7 +2339,7 @@ package body Test_McKenzie_Recover is
             Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
             Trace                          => Trace'Access,
             User_Data                      => User_Data'Access,
-            Text_Rep_File_Name             => "ada_lite_lr1_parse_table.txt");
+            Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
       end case;
 
       Orig_Params := Parser.Table.McKenzie_Param;

@@ -215,7 +215,6 @@ package body BNF_WY_Test is
 
       when Tree_Sitter =>
          Diff_One (Root_Name & ".js");
-         Diff_One (Root_Name & "_tree_sitter.c");
 
       when None | Packrat_Generate_Algorithm | External =>
          null;
@@ -237,7 +236,7 @@ package body BNF_WY_Test is
          end case;
 
          if Tuple.Text_Rep then
-            Diff_One (Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "_parse_table.txt");
+            Diff_One (Text_Rep_File_Name (Root_Name, Tuple, 1, If_Lexer_Present));
          end if;
       end if;
    end Diff_Gen;
@@ -286,7 +285,9 @@ package body BNF_WY_Test is
          Default_Input_Name : constant String := "../test/bnf/" & Root_Name & ".input";
 
          Output : constant String := Root_Name & "_" &
-           To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
+           To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
+           (if Generate_Alg = LR1 then "_t1" else "") &
+           ".parse";
       begin
          if Ada.Directories.Exists (Default_Input_Name) then
             Args (Last) := new String'(Default_Input_Name);
@@ -301,6 +302,7 @@ package body BNF_WY_Test is
       if Input_Name'Length > 0 then
          declare
             Output : constant String := Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
+              (if Generate_Alg = LR1 then "_t1" else "") &
               "-" & Input_Name & ".parse";
          begin
             Args (Last) := new String'("../test/bnf/" & Input_Name & ".input");

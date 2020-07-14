@@ -1,8 +1,8 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -97,10 +97,32 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
+      pragma Unreferenced (Nonterm);
+   begin
+      Start_If (User_Data, Tree, Tokens);
+   end declaration_6;
+
+   procedure declaration_7
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Start_If (User_Data, Tree, Tokens);
+   end declaration_7;
+
+   procedure declaration_8
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+   is
       pragma Unreferenced (Tree, Nonterm, Tokens);
    begin
       End_If (User_Data);
-   end declaration_6;
+   end declaration_8;
 
    procedure nonterminal_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
