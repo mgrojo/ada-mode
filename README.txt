@@ -13,8 +13,9 @@ in 2013; it is called "Ada 2012". Previous versions are labeled Ada 95
 and Ada 2005.
 
 The official version of the Ada Reference Manual is available at
-http://www.adaic.com/standards/. It provides versions of the manual
-with change markup.
+http://www.adaic.com/standards/ (draft of next version at
+http://www.ada-auth.org/standards/ada2x.html). That site also provides
+versions of the manual with change markup.
 
 For each year version, there are two different versions of manual, one
 that contains just the text of the official standard, and one which

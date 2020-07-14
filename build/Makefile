@@ -106,6 +106,9 @@ define doc_year_build
 	mkdir --parents $$@
 	cd $(SOURCE_DIR_$(y)); \
         $(CURDIR)/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) $(VERSION_$(y)) $(CURDIR)/$$@/
+	for i in $$@/*; do \
+	  iconv --from-code=iso8859-1 --to-code=utf-8 > $$@/tmp $$$$i && mv $$@/tmp $$$$i; \
+	done
   clean::
 	rm -f -r $(d)$(y).txt
 
@@ -125,7 +128,7 @@ define doc_year_build
   $(d)$(y).pdf: $(d)$(y).texinfo
 	texi2any --pdf $(TEXI_PDF_OPTS) $$< -o $$@
   clean::
-	rm -f $(d)$(y).aux $(d)$(y).log $(d)$(y).pdf $(d)$(y).toc
+	rm -f $(d)$(y).aux $(d)$(y).cp $(d)$(y).cps $(d)$(y).log $(d)$(y).pdf $(d)$(y).toc
 
 endef
 $(foreach d,$(AVAILABLE_DOCUMENTS),\

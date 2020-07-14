@@ -10,6 +10,8 @@ See the end of the file for license conditions.
    http://www.ada-auth.org/standards/ada2x.html; some features
    are supported in GNAT Community 2020 compiler.
 
+** Generate an info index, containing entries from the ARM Index.
+
 * 2012.5
 3 Mar 2019
 
