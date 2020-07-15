@@ -148,7 +148,7 @@ package Wisi.Ada_Annex_P is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  Args: anchor_token_index
+   --  Implements indent function (ada-indent-anchored-expression anchor_token_index)
    --
    --  Equivalent to:
    --  [(wisi-hanging%- (wisi-anchored% arg ada-indent-broken)

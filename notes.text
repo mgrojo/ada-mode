@@ -62,24 +62,6 @@ navigate in .wy buffer
     only need global for completion list
         background that, like in gpr-query
 
-opening or refreshing ada_annex_p_bnf.wy is very slow
-    something does full parse; takes ~ 30 seconds
-    mmm-auto.el (add-hook 'change-major-mode-hook #'mmm-major-mode-change)
-    mmm-major-mode-change: (add-hook 'post-command-hook #'mmm-check-changed-buffers)
-    'mmm-check-changed-buffers: mmm-run-major-mode-hook
-    mmm-auto.el (add-hook 'mmm-major-mode-hook #'mmm-mode-on-maybe)
-    mmm-mode-on-maybe mmm-update-font-lock-buffer
-    mmm-update-font-lock-buffer (mmm-overlays-overlapping (point-min) (point-max))
-        should be no overlays yet?
-
-    slowdown is _before_ wisitoken-grammar-mode is run!
-        in normal-mode, called from after-find-file
-        in set-auto-mode
-        in set-auto-mode-0
-        which just calls wisitoken-grammar-mode
-            so slowdown must be in non-visible code created by define-derived-mode. sigh.
-            in run-mode-hooks? nope; they are run after visible code
-
 need better homepage for wisi
     point to user guide, show some screen shots
     populate Savannah 'docs' page?
@@ -89,8 +71,6 @@ dos2unix takes a long time on lr1_parse_table.txt
     change put_text_rep to use stream_io, do correct line ending.
 
 ada_annex_p.wy
-    elminate conflicts: done
-
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order

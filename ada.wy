@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada
+;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -1261,7 +1261,7 @@ formal_package_actual_part
   | ;; empty generic actual part
 
  ;; | LEFT_PAREN association_list RIGHT_PAREN
- ;; covered by name <empty formal_package_actual_part) in formal_package_declaration
+ ;; covered by name (empty formal_package_actual_part) in formal_package_declaration
  ;; covers others => <>
   ;
 
