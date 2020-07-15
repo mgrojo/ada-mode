@@ -5,6 +5,7 @@
 # variables below.
 
 #export Standard_Common_Build := Debug
+export MMM_MODE := -L c:/Projects/mmm-mode
 
 export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
 
@@ -14,11 +15,11 @@ elisp : update-elisp test
 
 pub : pub-wisitoken-grammar build-elpa uninstall-elpa
 
-update-elisp :: build_executables
-update-elisp :: autoloads
-update-elisp :: byte-compile
+update :: build_executables
+update :: autoloads
+update :: byte-compile
 
-update-install : update-elisp install
+update-install : update install
 
 test : test-wisitoken_grammar.stamp
 
@@ -27,10 +28,12 @@ one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 one :: one-clean
 one :: build_executables
+one :: byte-compile
 one :: RUNTEST := run-indent-test-grammar.el
-one :: $(ONE_TEST_FILE).diff
+#one :: $(ONE_TEST_FILE).diff
+one :: $(ONE_TEST_FILE).debug
 
-two :: RUN_ARGS ?= parse navigate test/slow_parse.wy --debug_mode --verbosity 3 0 0 > slow_parse.parse
+two :: RUN_ARGS ?= parse face test/debug.wy --debug_mode --verbosity 0 0 1
 two :: build_executables
 	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
 
@@ -53,7 +56,7 @@ two_pro : build_executables
 # is all we need after a CM update. Doing byte-compile-clean
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -89,7 +92,10 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+
+%.debug : %
+	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))

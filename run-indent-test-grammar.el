@@ -2,7 +2,7 @@
 (load "autoloads")
 
 ;; Don’t require installing executables to run tests
-(setq wisi-grammar-process-parse-exec (expand-file-name "./wisi_grammar_mode_parse.exe"))
+(setq wisitoken-grammar-process-parse-exec (expand-file-name "./wisitoken_grammar_mode_parse.exe"))
 
 (package-initialize)
 (require 'mmm-mode)

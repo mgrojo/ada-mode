@@ -25,8 +25,9 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-wisitoken uses indent-region, mmm-mode overrides indent-line
-    write mmm-indent-region
+navigate to | in nonterms
+    edited, broken
+
 
  release process
 (dvc-pull "/Projects/elpa")

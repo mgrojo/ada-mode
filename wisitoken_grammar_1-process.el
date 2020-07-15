@@ -1,7 +1,7 @@
-;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 
-;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -28,7 +28,9 @@
    COMMENT
    CODE
    END
+   ELSIF
    IF
+   IN
    KEYWORD
    NON_GRAMMAR
    TOKEN
@@ -64,6 +66,7 @@
    declaration
    token_keyword_non_grammar
    identifier_list
+   IDENTIFIER_BAR_list
    declaration_item_list
    declaration_item
    nonterminal
@@ -80,7 +83,7 @@
    rhs_alternative_list
    compilation_unit
    compilation_unit_list
-   nonterminal_004
+   nonterminal_009
    ])
 
 (defconst wisitoken_grammar_1-process-face-table
@@ -97,7 +100,9 @@
   '(
    (CODE . "code")
    (END . "end")
+   (ELSIF . "elsif")
    (IF . "if")
+   (IN . "in")
    (KEYWORD . "keyword")
    (NON_GRAMMAR . "non_grammar")
    (TOKEN . "token")

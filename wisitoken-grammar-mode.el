@@ -56,7 +56,10 @@
     ;; limit syntax-ppss, we can't set ?\' to string here; that sees
     ;; ?\' in 'code' and 'action' blocks. In addition, we prefer
     ;; font-lock-constant-face for tokens. So we handle ?\' in the
-    ;; parser.
+    ;; parser. Which means we also handle ?\" there, so:
+    ;;   %token <punctuation> DOUBLE_QUOTE '"'
+    ;; doesn't confuse syntax-ppss
+    (modify-syntax-entry ?\"  ".   " table) ;; default string quote
 
     table))
 
@@ -69,6 +72,7 @@
     (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     (define-key map "\C-c`"    'ada-show-secondary-error)
+    (define-key map "\C-c."    'wisitoken-parse_table-conflict-goto)
     map
   )  "Local keymap used for wisitoken-grammar mode.")
 
@@ -78,7 +82,9 @@
 (easy-menu-define wisitoken-grammar-mode-menu wisitoken-grammar-mode-map "Menu keymap for Wisitoken Grammar mode"
   '("Wisi-Grammar"
     ["Goto declaration" xref-find-definitions t]
-    ["mmm-ify action"   wisitoken-grammar-mmm-parse t]))
+    ["mmm-ify action or code"   wisitoken-grammar-mmm-parse t]
+    ["insert mmm action or code"   mmm-insert-region t]
+    ["clean conflict states" wisitoken-grammar-clean-conflicts]))
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))
   ;; no new slots
@@ -142,7 +148,9 @@
 		    result t)
 
 	    ;; else go up one level
-	    (setq state (syntax-ppss (1- (nth 1 state))))
+	    (if (null (nth 1 state))
+		(setq done t)
+	      (setq state (syntax-ppss (1- (nth 1 state)))))
 	    )))
       result)
      )))
@@ -154,6 +162,9 @@
    ((wisi-search-backward-skip "^%[^({[]\\|:" #'wisitoken-grammar-in-action-or-comment)
     (when (looking-at ":")
       ;; Move back to before the nonterminal name
+      (when (= ?: (char-before))
+	;; in ::=
+	(backward-char 1))
       (forward-comment (- (line-number-at-pos (point))))
       (skip-syntax-backward "w_"))
     (point))
@@ -166,7 +177,7 @@
   "Starting at END, search forward for a parse end point."
   (goto-char end)
   (cond
-   ((wisi-search-forward-skip "^%\\|;$" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-forward-skip "^[%a-z]\\|;$" #'wisitoken-grammar-in-action-or-comment)
     (point))
 
    (t
@@ -189,6 +200,16 @@
       (when (and begin end)
 	(mmm-parse-region begin end)))
     ))
+
+(defun wisitoken-grammar-clean-conflicts ()
+  "Delete (nn, nn) from %conflict lines."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "%conflict" nil t)
+      (goto-char (line-end-position))
+      (when (looking-back "(\\(:?[0-9]+, \\)*[0-9]+)" (line-beginning-position))
+	(delete-region (match-beginning 0) (match-end 0))))))
 
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
@@ -304,14 +325,20 @@ Otherwise insert a plain new line."
     :match-submode wisitoken-grammar-mmm-action
     :face mmm-code-submode-face
     :front "%("
+    :include-front t ;; for lisp-indent-region; treat %() as containing parens
+    :front-match 0
+    :front-offset 1
     :back ")%"
-    :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%")))
+    :include-back t
+    :back-match 0
+    :back-offset -1
+    :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%" @)))
    (wisi-code
     :match-submode wisitoken-grammar-mmm-code
     :face mmm-code-submode-face
     :front "%{"
     :back "}%"
-    :insert ((?a wisi-code nil @ "%{" @ "" _ "" @ "}%")))
+    :insert ((?c wisi-code nil @ "%{" @ "" _ "" @ "}%" @)))
    ))
 
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-action))
@@ -394,8 +421,8 @@ Otherwise insert a plain new line."
 	     :language-action-table [wisitoken-grammar-check-parens]
 	     )))
 
-  ;; Our wisi parser does not fontify comments and strings, so tell
-  ;; font-lock to do that.
+  ;; Our wisi parser does not fontify comments, so tell font-lock to
+  ;; do that.
   (setq font-lock-defaults
 	'(nil ;; keywords
 	  nil ;; keywords-only

@@ -23,7 +23,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -58,7 +58,9 @@
 
 %keyword CODE "code"
 %keyword END "end"
+%keyword ELSIF "elsif"
 %keyword IF "if"
+%keyword IN "in"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword TOKEN "token"
@@ -91,11 +93,7 @@
 %token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 
-;; In re2c regexps, '...' indicates a case-insensitive match.
-;;
-;; In nonterminals, '...' indicates a literal, which we translate to a
-;; token; case-sensitive is then determined by the 'case_insensitive'
-;; declaration.
+;; Handling ':
 ;;
 ;; 0x22 = "
 ;; 0x27 = '
@@ -131,12 +129,10 @@
 ;; semicolons.
 %mckenzie_check_limit 3
 
-%conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT
-%conflict SHIFT/REDUCE in state rhs_item_list, rhs  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER
+%conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+%conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
+%conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
 
 ;;;; grammar rules, no particular order
 
@@ -150,30 +146,44 @@ declaration
           3 nil font-lock-function-name-face])
       (wisi-indent-action [nil nil nil (wisi-hanging 4 2)]))%
   | PERCENT CODE identifier_list RAW_CODE
-    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER declaration_item_list
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
       (wisi-indent-action [nil nil (wisi-hanging 4 2)]))%
   | PERCENT IDENTIFIER
-    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+  | PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+  | PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+  | PERCENT ELSIF IDENTIFIER IN IDENTIFIER_BAR_list
+    %((wisi-face-apply-action [1 nil font-lock-constant-face
+                                 2 nil font-lock-keyword-face
+                                 4 nil font-lock-keyword-face]))%
   | PERCENT END IF
-    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face 3 nil
-        font-lock-keyword-face]) )%
+    %((wisi-face-apply-action [1 nil font-lock-constant-face
+                                 2 nil font-lock-keyword-face
+                                 3 nil font-lock-keyword-face]) )%
   ;
 
 token_keyword_non_grammar
   : KEYWORD
   | NON_GRAMMAR LESS IDENTIFIER GREATER
-    %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
+    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
   | TOKEN LESS IDENTIFIER GREATER
-    %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
+    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
   ;
 
 identifier_list
   : IDENTIFIER
   | identifier_list IDENTIFIER
+  ;
+
+IDENTIFIER_BAR_list
+  : IDENTIFIER
+  | IDENTIFIER_BAR_list BAR IDENTIFIER
   ;
 
 declaration_item_list
@@ -182,8 +192,10 @@ declaration_item_list
   ;
 
 declaration_item
-  : COMMA
+  : BAR
+  | COMMA
   | IDENTIFIER
+  | IN
   | EQUAL
   | LEFT_PAREN
   | NUMERIC_LITERAL
@@ -196,7 +208,7 @@ declaration_item
   | STRING_LITERAL_2
     %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | TOKEN
-  ;; ",", "token", "/", "(", ")" appear in %conflict declarations
+  ;; "|", ",", "token", "/", "(", ")", "in" appear in %conflict declarations
   ;
 
 nonterminal
@@ -204,7 +216,7 @@ nonterminal
     %((wisi-statement-action [1 statement-start 4 statement-end])
       (wisi-name-action 1)
       (wisi-face-apply-action [1 nil font-lock-function-name-face])
-      (wisi-indent-action [nil 2 2 2]))%
+      (wisi-indent-action [nil 2 2 2 2]))%
   ;
 
 semicolon_opt :
@@ -214,11 +226,23 @@ semicolon_opt :
 
 rhs_list
   : rhs
-  %((wisi-indent-action [[2 nil]]))%
+    %((wisi-statement-action [1 motion])
+      (wisi-indent-action [[2 nil]]))%
   | rhs_list BAR rhs
-  %((wisi-indent-action [nil nil 2]))%
+  %((wisi-statement-action [3 motion])
+    (wisi-indent-action [nil nil 2]))%
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+    %((wisi-face-apply-action [2 nil font-lock-constant-face 3 nil font-lock-keyword-face]))%
+  | rhs_list PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
+    %((wisi-face-apply-action [2 nil font-lock-constant-face 3 nil font-lock-keyword-face]))%
+  | rhs_list PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
+    %((wisi-face-apply-action [2 nil font-lock-constant-face 3 nil font-lock-keyword-face]))%
+  | rhs_list PERCENT ELSIF IDENTIFIER IN IDENTIFIER_BAR_list
+    %((wisi-face-apply-action [2 nil font-lock-constant-face 3 nil font-lock-keyword-face]))%
   | rhs_list PERCENT END IF
+    %((wisi-face-apply-action [2 nil font-lock-constant-face
+                                 3 nil font-lock-keyword-face
+                                 4 nil font-lock-keyword-face]))%
   ;
 
 rhs
