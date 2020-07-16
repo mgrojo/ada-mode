@@ -3,10 +3,12 @@ module.exports = grammar({
   name: 'Dragon_4_43',
   rules: {
 upper_s: $ => seq($.upper_c, $.upper_c),
+COMMENT: $ => token(seq('--', /.*/)),
 upper_c: $ => choice(seq("c", $.upper_c),"d"),
   },
   extras: $ => [
     /[ \t]/,
     /[\x0a]|[\x0d][\x0a]/,
+    $.COMMENT,
   ],
-});
+  });

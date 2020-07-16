@@ -53,11 +53,14 @@ int wisitoken_tree_sitter_parse_file (const TSLanguage *language, const char* fi
   //
   // or ts_tree_cursor_new
 
+  // This doesn't work reliably on mingw, even after attempting to patch subtree.c
+  /* TSNode root_node = ts_tree_root_node(tree); */
+  /* char *string = ts_node_string(root_node); */
+  /* printf("Syntax tree: %s\n", string); */
+  // free (string);
+
   ts_tree_delete(tree);
   ts_parser_delete(parser);
-
-  // closest thing we have to a parse trace, for now.
-  // ts_tree_print_dot_graph(tree, stdout);
 
   return 0;
 }

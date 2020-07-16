@@ -8,16 +8,22 @@ ZIP_VERSION := 2.1
 all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
 # export Standard_Common_Build := Debug
+#export GENERATE := EBNF
+#export GENERATE := Tree_Sitter
 
 # test_one_harness.adb
 # test_all_harness.adb
 #
 #t_one :: one-clean
+t_one :: one-clean
+t_one :: ada_lite_ebnf_re2c.c
+t_one :: ada_lite_ebnf/parser.c
 t_one :: test_one_harness.run
 
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
+t_bnf :: RUN_ARGS=1 "" 1 1
 t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
@@ -30,19 +36,43 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
 one-clean :
-	touch ../wisitoken-bnf-generate_utils.adb
+	rm -rf ada_lite*
 
 #one :: one-clean
+one :: GRAMMAR := dragon_4_43
+one :: VERBOSITY := 0 2 0
 one :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --time ../../org.emacs.ada-mode/ada.wy
+#	./wisitoken-bnf-generate.exe --debug_mode --generate LR1 Ada re2c -v $(VERBOSITY) ../test/bnf/$(GRAMMAR).wy > generate-$(GRAMMAR).log
+#	dos2unix $(GRAMMAR)*.txt
+# 	./wisitoken-bnf-generate.exe --time -v 1 0 0 --generate Tree_Sitter Ada tree_sitter  ../test/bnf/ada_lite.wy
+# 	tree-sitter generate ./ada_lite.js
+	./wisitoken-bnf-generate.exe --time --generate LR1 Ada re2c ../../org.emacs.ada-mode/ada.wy
 
-two :: GRAMMAR := ada_lite
+two-clean :
+	rm -rf debug*
+
 two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --test_main --output_bnf --time --generate LR1 Ada re2c -v 0 2 0 ../test/bnf/$(GRAMMAR).wy > generate-$(GRAMMAR).log
+	./wisitoken-bnf-generate.exe --generate LALR Ada re2c -v 0 2 0 ../test/bnf/dragon_4_43.wy
 
-three :: VERBOSITY := -v 1 -m 1
-three :: ada_lite_ebnf_lalr_run.exe
-	./ada_lite_ebnf_lalr_run.exe -t 1 $(VERBOSITY) ../test/bnf/ada_lite.input > debug.log
+# two :: VERBOSITY := 1 0 0
+# two :: two-clean
+# two :: wisitoken-bnf-generate.exe
+# 	./wisitoken-bnf-generate.exe --test_main --ignore_conflicts --output_bnf -v $(VERBOSITY) ../test/bnf/debug.wy
+# 	tree-sitter generate ./debug.js
+# 	mv src/parser.c debug_tree_sitter.c
+#	gprbuild -P wisitoken_test.gpr debug_tree_sitter_run.adb
+#	./debug_tree_sitter_run.exe -v 2 ../test/bnf/debug.input
+
+three :: GENERATE_ARGS := -v 1 0 0
+three :: one-clean
+three :: ada_lite_ebnf.re2c
+three :: ada_lite_ebnf/parser.c
+
+four :: GRAMMAR := dragon_4_43
+#four :: gen
+four :: test-executables
+#	./$(GRAMMAR)_tree_sitter_run.exe -v 1 ../test/bnf/$(GRAMMAR).input
+	./$(GRAMMAR)_tree_sitter_run.exe -v 1 foo
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make

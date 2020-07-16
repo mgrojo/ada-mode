@@ -51,7 +51,7 @@ is
    --  <verbose> test_name routine_name trace_generate_table trace_parse trace_mckenzie trace_action
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
-   --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
+   --  test_name, routine_name can be "" to set trace for all test, routines.
    --  Trace_Action is used for verbosity in tests.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;

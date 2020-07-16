@@ -1,8 +1,8 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -26,15 +26,15 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal     => 37,
-      First_Nonterminal => 38,
-      Last_Nonterminal  => 57,
-      EOI_ID            => 37,
-      Accept_ID         => 38,
+      Last_Terminal     => 38,
+      First_Nonterminal => 39,
+      Last_Nonterminal  => 59,
+      EOI_ID            => 38,
+      Accept_ID         => 39,
       Case_Insensitive  => False,
       New_Line_ID       => 1,
-      String_1_ID       => 36,
-      String_2_ID       => 35,
+      String_1_ID       => 37,
+      String_2_ID       => 36,
       Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
@@ -43,6 +43,7 @@ package Wisitoken_Grammar_Actions is
          new String'("END"),
          new String'("ELSIF"),
          new String'("IF"),
+         new String'("IN"),
          new String'("KEYWORD"),
          new String'("NON_GRAMMAR"),
          new String'("TOKEN"),
@@ -78,6 +79,7 @@ package Wisitoken_Grammar_Actions is
          new String'("declaration"),
          new String'("token_keyword_non_grammar"),
          new String'("identifier_list"),
+         new String'("IDENTIFIER_BAR_list"),
          new String'("declaration_item_list"),
          new String'("declaration_item"),
          new String'("nonterminal"),
@@ -96,7 +98,7 @@ package Wisitoken_Grammar_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 17,
       Image_Width          => 25,
-      Last_Lookahead       => 38);
+      Last_Lookahead       => 39);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -106,6 +108,7 @@ package Wisitoken_Grammar_Actions is
       END_ID,
       ELSIF_ID,
       IF_ID,
+      IN_ID,
       KEYWORD_ID,
       NON_GRAMMAR_ID,
       TOKEN_ID,
@@ -141,6 +144,7 @@ package Wisitoken_Grammar_Actions is
       declaration_ID,
       token_keyword_non_grammar_ID,
       identifier_list_ID,
+      IDENTIFIER_BAR_list_ID,
       declaration_item_list_ID,
       declaration_item_ID,
       nonterminal_ID,
@@ -197,6 +201,16 @@ package Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure declaration_6
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declaration_7
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declaration_8
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;

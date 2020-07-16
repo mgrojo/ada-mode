@@ -47,6 +47,8 @@ is
    Limit_Gen_Alg : constant WisiToken.BNF.Generate_Algorithm :=
      (if Argument_Count >= 5
       then WisiToken.BNF.Generate_Algorithm'Value (Argument (5))
+      elsif Ada.Environment_Variables.Exists ("GENERATE")
+      then WisiToken.BNF.Generate_Algorithm'Value (Ada.Environment_Variables.Value ("GENERATE"))
       else WisiToken.BNF.None);
 
    Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only, Limit_Gen_Alg);
