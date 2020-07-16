@@ -42,7 +42,7 @@
 ;; Declare all variants tested by wisi_wy_test.adb
 %generate LALR Ada re2c
 %generate LR1 Ada re2c text_rep
-;; %generate Tree_Sitter Ada tree_sitter currently broken
+%generate Tree_Sitter Ada tree_sitter
 ;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
 
 ;; We don't actually need this for speed here, but we do need to test it.
@@ -116,7 +116,7 @@
 
 %token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
 %token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
-%non_grammar <comment> COMMENT %[ --[^\n\x04]* ]%
+%non_grammar <line-comment> COMMENT "--"
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
@@ -168,12 +168,17 @@
 ;; keywords.
 %mckenzie_cost_delete STRING_LITERAL 2
 
-%conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS ( 67)
-%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS ( 68)
-%conflict SHIFT subprogram_body_stub | REDUCE aspect_specification_opt on token IS ( 146)
-%conflict REDUCE association_opt | REDUCE parameter_specification on token RIGHT_PAREN ( 112)
-%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN ( 249)
-%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN ( 175)
+%if parser in LALR | LR1
+%conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS
+%elsif parser = tree_sitter
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+%end if
+
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS
+%conflict SHIFT subprogram_body_stub | REDUCE aspect_specification_opt on token IS
+%conflict REDUCE association_opt | REDUCE parameter_specification on token RIGHT_PAREN
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
+%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
 
 ;;;; grammar rules
 

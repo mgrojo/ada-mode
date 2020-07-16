@@ -450,9 +450,9 @@ is
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
       Put_Line ("  (" & Actions_Package_Name & ".Descriptor,");
       if Common_Data.Text_Rep then
-         Put_Line ("   """ & Output_File_Name_Root & "_" &
-                     To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
-                     "_parse_table.txt"",");
+         Put_Line ("   """ &
+                     Text_Rep_File_Name
+                       (Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present) & """,");
       end if;
       if Input_Data.Language_Params.Error_Recover then
          if Input_Data.Language_Params.Use_Language_Runtime then

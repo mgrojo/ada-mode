@@ -158,21 +158,29 @@ package body WisiToken_Grammar_Runtime is
 
    procedure Start_If_1
      (Data    : in out User_Data_Type;
-      Tree    : in     Syntax_Trees.Tree;
+      Tree    : in out Syntax_Trees.Tree;
       A_Index : in     Valid_Node_Index;
       B_Index : in     Valid_Node_Index)
    is
-      use all type WisiToken.BNF.Generate_Algorithm;
-      use all type WisiToken.BNF.Lexer_Type;
+      use WisiToken.BNF;
+
+
    begin
       if "lexer" = Get_Text (Data, Tree, A_Index) then
-         Data.If_Lexer_Present := True;
-         Data.Ignore_Lines     := Data.User_Lexer /= WisiToken.BNF.To_Lexer (Get_Text (Data, Tree, B_Index));
+         declare
+            Right : constant Lexer_Set := Get_Lexer_Set (Data, Tree, B_Index);
+         begin
+            Data.If_Lexer_Present := True;
+            Data.Ignore_Lines     := not Right (Data.User_Lexer);
+         end;
 
       elsif "parser" = Get_Text (Data, Tree, A_Index) then
          Data.If_Parser_Present := True;
-         Data.Ignore_Lines := Data.User_Parser /= WisiToken.BNF.Generate_Algorithm'Value
-           (Get_Text (Data, Tree, B_Index));
+         declare
+            Right : constant Generate_Algorithm_Set := Get_Generate_Algorithm_Set (Data, Tree, B_Index);
+         begin
+            Data.Ignore_Lines := not Right (Data.User_Parser);
+         end;
 
       else
          raise Grammar_Error with
@@ -263,7 +271,7 @@ package body WisiToken_Grammar_Runtime is
 
    procedure Get_Right_Hand_Sides
      (Data             : in out User_Data_Type;
-      Tree             : in     WisiToken.Syntax_Trees.Tree;
+      Tree             : in out WisiToken.Syntax_Trees.Tree;
       Right_Hand_Sides : in out WisiToken.BNF.RHS_Lists.List;
       Labels           : in out WisiToken.BNF.String_Arrays.Vector;
       Token            : in     WisiToken.Valid_Node_Index)
@@ -286,12 +294,17 @@ package body WisiToken_Grammar_Runtime is
             Right_Hand_Sides.Append (Get_RHS (Data, Tree, Labels, Tokens (3)));
          end if;
 
-      when 2 | 3 =>
+      when 2 | 4 =>
          --  | rhs_list PERCENT (IF | ELSIF) IDENTIFIER EQUAL IDENTIFIER
          Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (1));
          Start_If_1 (Data, Tree, Tokens (4), Tokens (6));
 
-      when 4 =>
+      when 3 | 5 =>
+         --  | rhs_list PERCENT (IF | ELSIF) IDENTIFIER IN IDENTIFIER_BAR_list
+         Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (1));
+         Start_If_1 (Data, Tree, Tokens (4), Tokens (6));
+
+      when 6 =>
          --  | rhs_list PERCENT END IF
          Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (1));
          Data.Ignore_Lines := False;
@@ -387,9 +400,59 @@ package body WisiToken_Grammar_Runtime is
       end if;
    end Lexer_To_Augmented;
 
+   function Get_Lexer_Set
+     (User_Data : in out User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Node      : in     Valid_Node_Index)
+     return WisiToken.BNF.Lexer_Set
+   is
+      use WisiToken.BNF;
+   begin
+      return Result : Lexer_Set := (others => False) do
+         if Tree.ID (Node) = +IDENTIFIER_ID then
+            Result (To_Lexer (Get_Text (User_Data, Tree, Node))) := True;
+         else
+            declare
+               use WisiToken.Syntax_Trees.LR_Utils;
+               List : constant Constant_List := Creators.Create_List
+                 (Tree, Node, +IDENTIFIER_BAR_list_ID, +IDENTIFIER_ID);
+            begin
+               for Item of List loop
+                  Result (To_Lexer (Get_Text (User_Data, Tree, Item))) := True;
+               end loop;
+            end;
+         end if;
+      end return;
+   end Get_Lexer_Set;
+
+   function Get_Generate_Algorithm_Set
+     (User_Data : in out User_Data_Type;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Node      : in     Valid_Node_Index)
+     return WisiToken.BNF.Generate_Algorithm_Set
+   is
+      use WisiToken.BNF;
+   begin
+      return Result : Generate_Algorithm_Set := (others => False) do
+         if Tree.ID (Node) = +IDENTIFIER_ID then
+            Result (To_Generate_Algorithm (Get_Text (User_Data, Tree, Node))) := True;
+         else
+            declare
+               use WisiToken.Syntax_Trees.LR_Utils;
+               List : constant Constant_List := Creators.Create_List
+                 (Tree, Node, +IDENTIFIER_BAR_list_ID, +IDENTIFIER_ID);
+            begin
+               for Item of List loop
+                  Result (To_Generate_Algorithm (Get_Text (User_Data, Tree, Item))) := True;
+               end loop;
+            end;
+         end if;
+      end return;
+   end Get_Generate_Algorithm_Set;
+
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is begin
       --  all phases
@@ -666,7 +729,7 @@ package body WisiToken_Grammar_Runtime is
                      --              1        2 3         4  5      6     7  8      9  10     11
 
                      --  New format:
-                     --  %conflict action LHS.rhs [| action LHS.rsh]* 'on token' on
+                     --  %conflict action LHS [| action LHS]* 'on token' on
                      --            1      2
 
                      Conflict : BNF.Conflict;
@@ -853,7 +916,7 @@ package body WisiToken_Grammar_Runtime is
 
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Valid_Node_Index_Array)
    is
       use all type Ada.Containers.Count_Type;

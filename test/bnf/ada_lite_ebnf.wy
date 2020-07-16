@@ -52,7 +52,7 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-;; %generate Tree_Sitter Ada tree_sitter currently broken
+%generate Tree_Sitter Ada tree_sitter
 
 %meta_syntax EBNF
 
@@ -124,11 +124,7 @@
 
 %token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
 %token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
-
-;; WORKAROUND: This translates to seq('--', /.*/), which in
-;; tree-sitter 0.16.6 is apparently not the same as /--.*/. See github
-;; tree-sitter issue 651
-%non_grammar <comment> COMMENT '--' %[ .* ]%
+%non_grammar <line-comment> COMMENT '--'
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
@@ -201,10 +197,19 @@
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
 
-%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS (64)
+%if parser = LALR
+;; tree-sitter and wisitoken have different naming
+;; conventions for shift/reduce conflicts that reduce 0 tokens in LALR
+;; (because reduce 0 tokens is forbidden in tree-sitter).
+
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS
+
+%elsif parser = Tree_Sitter
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+%end if
 
 ;;;; grammar rules
 

@@ -112,8 +112,7 @@ project WisiToken_Test is
 
    case Generate is
    when "all" =>
-      for Main use Gen_BNF & Gen_EBNF;
-        -- & Gen_Tree_Sitter;
+      for Main use Gen_BNF & Gen_EBNF & Gen_Tree_Sitter;
    when "BNF" =>
       for Main use Gen_BNF;
    when "EBNF" =>

@@ -23,7 +23,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -54,6 +54,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %keyword END "end"
 %keyword ELSIF "elsif"
 %keyword IF "if"
+%keyword IN "in"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword TOKEN "token"
@@ -112,9 +113,10 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; interactive use, and to keep wisitoken-bnf-generate independent of
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
-%conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT 
-%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER 
-%conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER 
+%conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+%conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
+%conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
 
 ;;;; grammar rules, no particular order
 
@@ -129,7 +131,11 @@ declaration
     %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
     %(Start_If (User_Data, Tree, Tokens);)%
+  | PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
+    %(Start_If (User_Data, Tree, Tokens);)%
   | PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
+    %(Start_If (User_Data, Tree, Tokens);)%
+  | PERCENT ELSIF IDENTIFIER IN IDENTIFIER_BAR_list
     %(Start_If (User_Data, Tree, Tokens);)%
   | PERCENT END IF
     %(End_If (User_Data);)%
@@ -146,6 +152,11 @@ identifier_list
   | identifier_list IDENTIFIER
   ;
 
+IDENTIFIER_BAR_list
+  : IDENTIFIER
+  | IDENTIFIER_BAR_list BAR IDENTIFIER
+  ;
+
 declaration_item_list
   : declaration_item
   | declaration_item_list declaration_item
@@ -155,6 +166,7 @@ declaration_item
   : BAR
   | COMMA
   | IDENTIFIER
+  | IN
   | EQUAL
   | LEFT_PAREN
   | NUMERIC_LITERAL
@@ -164,7 +176,7 @@ declaration_item
   | STRING_LITERAL_1
   | STRING_LITERAL_2
   | TOKEN
-  ;; "|", ",", "token", "/", "(", ")" appear in %conflict declarations
+  ;; "|", ",", "token", "/", "(", ")", "in" appear in %conflict declarations
   ;
 
 nonterminal
@@ -183,7 +195,9 @@ rhs_list
   : rhs
   | rhs_list BAR rhs
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
   | rhs_list PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT ELSIF IDENTIFIER IN IDENTIFIER_BAR_list
   | rhs_list PERCENT END IF
   ;
 

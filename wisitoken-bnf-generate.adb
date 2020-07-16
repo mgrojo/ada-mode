@@ -660,9 +660,8 @@ begin
                   if Tuple.Text_Rep then
                      WisiToken.Generate.LR.Put_Text_Rep
                        (Generate_Data.LR_Parse_Table.all,
-                        -Output_File_Name_Root & "_" &
-                          To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
-                          "_parse_table.txt",
+                        Text_Rep_File_Name
+                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present),
                         Generate_Data.Action_Names.all, Generate_Data.Check_Names.all);
                   end if;
 

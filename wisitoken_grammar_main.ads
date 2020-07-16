@@ -1,8 +1,8 @@
---  generated parser support file.
+--  generated parser support file. -*- buffer-read-only:t  -*-
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --

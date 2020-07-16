@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - speed up lr1
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canonical lists
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -19,7 +19,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canoni
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -30,52 +30,19 @@ update-wisitoken_grammar
 tree_sitter
     test ada_annex_p
 
+auto_token_labels
+    check for empty statement-action params
+        wisitoken_grammar_1_bnf.wy nontemrinal_009
+
 error_correction_algorithm.tex
     finish "results"
-        two metrics; correction attempts succeed/fail, with strategy counts
-            c:/Projects/org.emacs.ada-mode/recover.log
-2020-06-11 - 2020-07-04
-FULL
-present/total: 41514 / 462343
-           mean        std. dev.    min     max
-Enqueue: (    796.3,    2151.3,       1.0,   60147.0)
-Check:   (     61.8,     169.3,       1.0,    5496.0)
-FAIL                    =>     1197  3%
-FAIL_ENQUEUE_LIMIT      =>     1126  3%
-FAIL_PROGRAMMER_ERROR   =>       71  0%
-IGNORE_ERROR               2130  1% /    2207  0%
-LANGUAGE_FIX              11138  6% /   17155  4%
-MINIMAL_COMPLETE         151977 78% /  242890 53%
-MATCHING_BEGIN             2848  1% /    2849  1%
-PUSH_BACK                 13694  7% /   14378  3%
-UNDO_REDUCE                7491  4% /   12882  3%
-INSERT                   141629 72% /  147617 32%
-DELETE                    18557  9% /   19716  4%
-STRING_QUOTE               2615  1% /    2649  1%
-
-PARTIAL
-present/total: 12830 / 69507
-           mean        std. dev.    min     max
-Enqueue: (    922.6,    1774.1,       4.0,   49286.0)
-Check:   (     78.5,     148.0,       2.0,    4201.0)
-FAIL                    =>       16  0%
-FAIL_ENQUEUE_LIMIT      =>       16  0%
-IGNORE_ERROR                850  5% /     850  1%
-LANGUAGE_FIX                356  2% /     669  1%
-MINIMAL_COMPLETE          14579 77% /   54300 78%
-MATCHING_BEGIN             2355 13% /    2522  4%
-PUSH_BACK                  1019  5% /    1083  2%
-UNDO_REDUCE                 544  3% /     730  1%
-INSERT                     6076 32% /    7801 11%
-DELETE                     1266  7% /    1541  2%
-STRING_QUOTE                 11  0% /      11  0%
-
 
         difference between desired and found terminal sequence file_count: 59
-            wisitoken-recover-compare:  total size: 14054
-            libadalang-recover-compare: total size: 60069
+            wisitoken-recover-compare:              total size: 13038 zero size: 23
+            wisitoken-ada_annex_p-recover-compare:  total size: 13470 zero size: 23
+            libadalang-recover-compare:             total size: 27843 zero size: 5
 
-        add ada_annex_p
+        add diff results for ada_annex_p
 
         libadalang better:
             recover_02
@@ -85,10 +52,10 @@ STRING_QUOTE                 11  0% /      11  0%
             recover_13 (perfect)
 
 
-    McKensie bit map to prune config queue => not needed because we use a min heap
-
     need title
         \title, \author not working!?
+
+    supported in part by Eurocontrol
 
     recursion in minimal_complete
         Here the production is labeled \code{recursive}, because it is part of
@@ -128,8 +95,6 @@ STRING_QUOTE                 11  0% /      11  0%
             end)(insert end)' replaces a real token with a virtual
             token, which changes the buffer region on the nonterms.
 
-    explain check_reduce_to_start
-
     In Check, "made some progress" does _not_ mean "closer to
     Resume_Token_Goal than _original_ config"; it means "moved away
     from the edit point".
@@ -159,14 +124,6 @@ STRING_QUOTE                 11  0% /      11  0%
 
     compare speed of recover
 
-    LALR vs LR1
-        test_mckenzie_recover
-            String_Quote_2
-            String_Quote_5
-            Two_Missing_Ends enqueue 50 vs 101
-            Do_Delete_First 280 vs 202
-            Two_Parsers 18 vs 55
-            Match_Selected_Component_1
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
 
@@ -210,25 +167,28 @@ need gnat-prep for tree-sitter
     most devels won't have it
 
 add tree-sitter parser, lexer
-    tree-sitter still not getting comments right
-        these two are equivalent:
-        1. `/--.*/`
-        2. `token(seq('--'), /.*/))`
+    ada_lite.wy
+        getting syntax errors
+            that's just generalized parsing; the lexer is aware of the parser state
 
-        try updating tree-sitter from github
-        try 'tree-sitter parse' with trivial grammar
-        try tree-sitter parse with javascript grammar (supposedly working)
+    write Ada code to traverse tree-sitter tree
+    report errors:
+        ts_node_has_error
+            traverse tree, checking each node
+
+        find nodes with errors Tree Query for `(ERROR)`; ts_query_new, ts_query_cursor_new
+            https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries
+
+        https://github.com/tree-sitter/tree-sitter/issues/255 for adding APIs suited toward user-facing error messages.
+
 
     case insensitive:
         alias(/[fF][oO][rR]/, 'for')
 
-    tree-sitter generate supposed to report conflicts
-        then w-b-g needs to declare conflicts with 'conflicts:' in grammar
-
     translate tree-sitter parse tree to wisitoken?
         api.h has root, node_children,  etc.
 
-    time parts of generate tree_sitter; seems slow on ada_annex_p
+    time parts of w-bnf-generate tree_sitter; seems slow on ada_annex_p
 
     need to_grammar for actions
         which needs all tokens defined

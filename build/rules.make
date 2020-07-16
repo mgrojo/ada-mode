@@ -37,14 +37,14 @@ gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 gen_BNF :: ada_lite_re2c.c
 gen_BNF :: ada_lite_lr1_t8_run.ads
-# gen_BNF :: ada_lite_tree_sitter.c broken
+gen_BNF :: ada_lite_tree_sitter.c
 gen_BNF :: body_instantiation_conflict_re2c.c
 gen_BNF :: body_instantiation_conflict_lr1_t8_run.ads
 gen_BNF :: case_expression_re2c.c
 gen_BNF :: character_literal_re2c.c
 gen_BNF :: conflict_name_re2c.c
 gen_BNF :: dragon_4_43_re2c.c
-# gen_BNF :: dragon_4_43_tree_sitter.c broken
+gen_BNF :: dragon_4_43_tree_sitter.c
 gen_BNF :: empty_production_1_re2c.c
 gen_BNF :: empty_production_2_re2c.c
 gen_BNF :: empty_production_3_re2c.c
@@ -59,7 +59,7 @@ gen_BNF :: warth_left_recurse_expr_1_re2c.c
 
 gen_EBNF :: ada_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: ada_lite_ebnf_re2c.c
-# gen_EBNF :: ada_lite_ebnf_tree_sitter.c broken
+gen_EBNF :: ada_lite_ebnf_tree_sitter.c
 gen_EBNF :: identifier_list_name_conflict_re2c.c
 gen_EBNF :: java_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: java_enum_ch19_re2c.c
@@ -109,7 +109,7 @@ clean :: test-clean
 
 # don't delete prj.el
 test-clean :
-	rm -f *.ad? *.c *.diff *-process.el *.in *.js *.re2c *.exe *.out *.parse* *.txt *.wy
+	rm -f binding.gyp *.ad? *.c *.diff *-process.el *.in *.js *.re2c *.exe *.out *.parse* *.set_table *.txt *.wy
 
 # We want the files generated for wisitoken_grammar.wy in ../, for CM,
 # and to avoid deleting them in clean. We don't include
@@ -117,11 +117,11 @@ test-clean :
 # bootstrapping.
 ../wisitoken_grammar.re2c : ../wisitoken_grammar.wy
 	cd ../; $(CURDIR)/wisitoken-bnf-generate.exe wisitoken_grammar.wy
-	dos2unix ../wisitoken_grammar*
+	dos2unix -q ../wisitoken_grammar*
 
 ../wisitoken_grammar_re2c.c : ../wisitoken_grammar.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-	dos2unix ../wisitoken_grammar_re2c.c
+	dos2unix -q ../wisitoken_grammar_re2c.c
 
 wisitoken_grammar-clean :
 	cd ../; rm -rf wisitoken_grammar_actions.ad? wisitoken_grammar_main.ad? wisitoken_grammar*.parse_table wisitoken_grammar.re2c wisitoken_grammar_re2c.c wisitoken_grammar_re2c_c.ads
@@ -171,6 +171,7 @@ DIFF_OPT := -u -w
 ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c text_rep --test_main $(GENERATE_ARGS) $<
 	dos2unix -q ada_lite_lr1_t8_run.ads
+	dos2unix -q ada_lite_lr1_t8_re2c_parse_table.txt
 
 %.exe : force; gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
@@ -178,9 +179,7 @@ ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
 	re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
-%_tree_sitter.c : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf --test_main $(GENERATE_ARGS) $<
-	dos2unix -q $**
+%_tree_sitter.c : %.re2c wisitoken-bnf-generate.exe
 	tree-sitter generate ./$*.js
 	mv src/parser.c $*_tree_sitter.c
 
