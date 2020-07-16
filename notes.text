@@ -5,11 +5,11 @@ branches:
 Makefile
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal")
-  (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode") ;; aka wisi
-  (xmtn . "c:/Projects/org.wisitoken.grammar_mode")
+'((xgit . "c:/Projects/org.stephe_leake.makerules")
+  (xgit . "c:/Projects/org.stephe_leake.sal")
+  (xgit . "c:/Projects/org.wisitoken")
+  (xgit . "c:/Projects/org.emacs.ada-mode") ;; aka wisi
+  (xgit . "c:/Projects/org.wisitoken.grammar_mode")
   (xgit . "c:/Projects/elpa-externals/wisitoken-grammar-mode")))
 
 (dvc-propagate-multiple
@@ -25,8 +25,6 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-navigate to | in nonterms
-    edited, broken
 
 
  release process

@@ -11,6 +11,8 @@
 ;; post-command-hook, which is run after ’run-test’ (the command).
 (add-hook 'wisitoken-grammar-mode-hook #'mmm-mode-on)
 
+;; (setq wisi-disable-face t)
+
 (require 'wisi-run-indent-test)
 
 ;; end of file

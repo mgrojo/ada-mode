@@ -26,6 +26,7 @@ with Wisi; use Wisi;
 with Wisi.WisiToken_Grammar; use Wisi.WisiToken_Grammar;
 package body Wisitoken_Grammar_1_Process_Actions is
 
+   use all type Motion_Param_Array;
 
    procedure declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -296,7 +297,9 @@ package body Wisitoken_Grammar_1_Process_Actions is
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((T1, Statement_Start), (T4, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((T1, Statement_Start), (T5, Statement_End)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((T1, Invalid_Token_ID) & (T4, 49) & (T5,
+         Invalid_Token_ID)));
          Name_Action (Parse_Data, Tree, Nonterm, Tokens, 1);
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (T1, 5, 1)));

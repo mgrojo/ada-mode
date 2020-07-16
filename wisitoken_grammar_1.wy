@@ -213,7 +213,8 @@ declaration_item
 
 nonterminal
   : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
-    %((wisi-statement-action [1 statement-start 4 statement-end])
+    %((wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-motion-action [1 [4 rhs] 5])
       (wisi-name-action 1)
       (wisi-face-apply-action [1 nil font-lock-function-name-face])
       (wisi-indent-action [nil 2 2 2 2]))%

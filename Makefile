@@ -23,7 +23,7 @@ update-install : update install
 
 test : test-wisitoken_grammar.stamp
 
-ONE_TEST_FILE := nominal.wy
+ONE_TEST_FILE := debug.wy
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 one :: one-clean
@@ -33,7 +33,7 @@ one :: RUNTEST := run-indent-test-grammar.el
 #one :: $(ONE_TEST_FILE).diff
 one :: $(ONE_TEST_FILE).debug
 
-two :: RUN_ARGS ?= parse face test/debug.wy --debug_mode --verbosity 0 0 1
+two :: RUN_ARGS ?= parse indent test/debug.wy --debug_mode --verbosity 0 0 2
 two :: build_executables
 	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
 
@@ -44,7 +44,7 @@ two_pro : build_executables
 	gprof ./exec_pro/run_wisitoken_grammar_parse.exe > $(GRAMMAR).profile
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf $(<F)
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf --task_count 1 $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 

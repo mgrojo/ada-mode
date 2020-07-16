@@ -69,6 +69,7 @@
 
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
+    (define-key map "\C-c\C-i" 'wisi-indent-statement)
     (define-key map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
     (define-key map [S-return] 'wisitoken-grammar-new-line)
     (define-key map "\C-c`"    'ada-show-secondary-error)
