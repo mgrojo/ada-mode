@@ -1011,7 +1011,8 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-forward-sexp (&optional arg)
-  "For `forward-sexp-function'."
+  "If on paren or string quote, move to matching one. Otherwise move to next statement keyword.
+For `forward-sexp-function'."
   (interactive "^p")
   (or arg (setq arg 1))
   (cond

@@ -1,4 +1,4 @@
-;;; gpr-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; gpr-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS gpr.wy
 
 ;;  Copyright (C) 2013 - 2020 Free Software Foundation, Inc.

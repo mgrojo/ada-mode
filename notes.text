@@ -43,6 +43,10 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+wisitoken-grammar-mode force partial parse for ada code to preserve initial indent
+
+ada-which-function fails in wisi-ada_annex_p-format_parameter_list.adb
+
 output min_complete fraction in .parse_table - changed when recursion blew up?
 
 navigate bug
@@ -472,7 +476,7 @@ wisitoken-bnf-generate
         initial item_sets time: 126.852255667
 
 mckenzie recover
-    ./run_ada_lr1_parse.exe test/ada_mode-recover_partial_02_lr1.adb Indent --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0
+    ./run_ada_lr1_parse.exe parse indent test/ada_mode-recover_partial_02_lr1.adb --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0 --task_count 8
 
     12 Jul 2019 ada-mode 6.1.1
         0: succeed 2, enqueue 110, check  14, cost:  2
@@ -528,6 +532,57 @@ mckenzie recover
     ;;  1: fail, enqueue 57219, check  5433, max shared_token  64
     ;;  0: succeed 2, enqueue 62819, check  6409, cost:  7
         0.315512031
+
+    13 Jul 2020 devel branch:
+        increase to enqueue_limit 500_000, check_delta 100_000
+        LR1:
+            task_count 1
+            ;; 2020-07-13 21:11:34.04 pre-recover 2 active
+            ;;  1: fail; total enqueue limit ( 500000 cost 11)
+            ;;  1: succeed 7, enqueue 441907, check  41699, cost:  11
+            ;;  0: succeed 2, enqueue 58102, check  5805, cost:  7
+            ;; 2020-07-13 21:11:36.43 post-recover 9 active, 2.387545121
+            2.39 seconds
+
+            ;; 2020-07-13 22:15:10.49 pre-recover 2 active
+            ;;  8 parallel tasks
+            task_count 8
+            ;;  0: fail; total enqueue limit ( 500000 cost 10)
+            ;;  0: succeed 8, enqueue 441988, check  41725, cost:  11
+            ;;  1: succeed 2, enqueue 58102, check  5805, cost:  7
+            ;; 2020-07-13 22:15:11.97 post-recover 13 active, 1.480531181
+            1.48 seconds, 1.07 seconds
+
+            (/ (- 2.39 1.48) 2.39) = 0.389 not very good.
+
+        LALR:
+            task_count 1:
+                ;; 2020-07-13 22:43:09.05 pre-recover 1 active
+                ;;  0: succeed 2, enqueue 118, check  14, cost:  2
+                ;; 2020-07-13 22:43:09.05 post-recover 2 active, 0.001850146
+                ;; 2020-07-13 22:43:09.05 pre-recover 4 active
+                ;;  4: fail; total enqueue limit ( 500000 cost 11)
+                ;;  1: fail; total enqueue limit ( 500000 cost 11)
+                ;;  4: fail, enqueue 283434, check  26607, max shared_token  64
+                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
+                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
+                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
+                ;; 2020-07-13 22:43:11.54 post-recover 5 active, 2.491979429
+                0 seconds + 2.49 seconds
+
+            task_count 8
+                ;; 2020-07-13 22:46:15.31 pre-recover 4 active
+                ;;  4: fail; total enqueue limit ( 500000 cost 11)
+                ;;  1: fail; total enqueue limit ( 500000 cost 11)
+                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
+                ;;  4: fail, enqueue 283458, check  26708, max shared_token  64
+                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
+                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
+                ;; 2020-07-13 22:46:16.47 post-recover 5 active, 1.159587153
+                1.16 seconds, 1.12 seconds
+
+
+
 
 navigate, face, indent
     make -r benchmark
