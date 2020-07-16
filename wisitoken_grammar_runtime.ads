@@ -81,6 +81,11 @@ package WisiToken_Grammar_Runtime is
 
       Ignore_Lines : Boolean := False;
       --  An '%if' specified a different lexer, during Execute_Actions
+
+      EBNF_Allowed   : Boolean := True;
+      Error_Reported : WisiToken.Node_Array_Booleans.Vector;
+      --  Used with Syntax_Trees.Validate_Tree.
+
    end record;
 
    type Augmented_Token is new WisiToken.Base_Token with

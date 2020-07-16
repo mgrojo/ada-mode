@@ -537,8 +537,8 @@ package body WisiToken.Syntax_Trees is
       Column         : Ada.Text_IO.Count   := Ada.Text_IO.Count'First;
    begin
       if First_Terminal = Invalid_Node_Index then
-         Line   := Line_Number_Type'First;
-         Column := Ada.Text_IO.Count (Tree.Byte_Region (Node).First);
+         --  Node is empty
+         null;
       else
          case Tree.Label (First_Terminal) is
          when Shared_Terminal =>
@@ -550,8 +550,7 @@ package body WisiToken.Syntax_Trees is
             end;
 
          when Virtual_Terminal | Virtual_Identifier =>
-            Line   := Line_Number_Type'First;
-            Column := Ada.Text_IO.Count (Tree.Byte_Region (First_Terminal).First);
+            null;
 
          when others =>
             null;
@@ -2073,6 +2072,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Validate_Tree
      (Tree           : in out Syntax_Trees.Tree;
+      User_Data      : in out User_Data_Type'Class;
       Terminals      : in     Base_Token_Array_Access_Constant;
       Descriptor     : in     WisiToken.Descriptor;
       File_Name      : in     String;
@@ -2136,7 +2136,9 @@ package body WisiToken.Syntax_Trees is
          end if;
 
          if Validate_Node /= null then
-            Validate_Node (Tree, Node, Node_Image_Output, Node_Error_Reported);
+            Validate_Node
+              (Tree, Node, User_Data, Terminals, Descriptor, File_Name, Error_Reported, Node_Image_Output,
+               Node_Error_Reported);
          end if;
 
          if Node_Error_Reported then

@@ -92,7 +92,23 @@ package body WisiToken_Grammar_Editing is
       Content   : in     WisiToken.Valid_Node_Index)
      return WisiToken.Valid_Node_Index
    is begin
-      return Tree.Add_Nonterm ((+rhs_optional_item_ID, RHS_Index), (1 => Content));
+      return Tree.Add_Nonterm
+        ((+rhs_optional_item_ID, RHS_Index),
+         (case RHS_Index is
+          when 0 =>
+            (1 => Tree.Add_Terminal (+LEFT_BRACKET_ID),
+             2 => Content,
+             3 => Tree.Add_Terminal (+RIGHT_BRACKET_ID)),
+          when 1 =>
+            (1 => Tree.Add_Terminal (+LEFT_PAREN_ID),
+             2 => Content,
+             3 => Tree.Add_Terminal (+RIGHT_PAREN_ID),
+             4 => Tree.Add_Terminal (+QUESTION_ID)),
+          when 2 | 3 =>
+            (1 => Content,
+             2 => Tree.Add_Terminal (+QUESTION_ID)),
+
+          when others => raise SAL.Programmer_Error));
    end Add_RHS_Optional_Item;
 
    function Add_Identifier_Token
@@ -269,6 +285,374 @@ package body WisiToken_Grammar_Editing is
       end loop;
       return Invalid_Node_Index;
    end Find_Declaration;
+
+   procedure Validate_Node
+     (Tree                : in     Syntax_Trees.Tree;
+      Node                : in     Valid_Node_Index;
+      User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Terminals           : in     Base_Token_Array_Access_Constant;
+      Descriptor          : in     WisiToken.Descriptor;
+      File_Name           : in     String;
+      Error_Reported      : in out Node_Array_Booleans.Vector;
+      Node_Image_Output   : in out Boolean;
+      Node_Error_Reported : in out Boolean)
+   is
+      use Ada.Text_IO;
+
+      Data : WisiToken_Grammar_Runtime.User_Data_Type renames WisiToken_Grammar_Runtime.User_Data_Type (User_Data);
+
+      procedure Put_Error (Msg : in String)
+      is begin
+         if Node in Error_Reported.First_Index .. Error_Reported.Last_Index and then
+           Error_Reported (Node)
+         then
+            return;
+         end if;
+
+         Node_Error_Reported := True;
+
+         if not Node_Image_Output then
+            Node_Image_Output := True;
+            Put_Line
+              (Current_Error,
+               Tree.Error_Message
+                 (Terminals.all, Node, File_Name,
+                  Tree.Image
+                    (Node, Descriptor,
+                     Include_RHS_Index => True,
+                     Include_Children  => True,
+                     Node_Numbers      => True)));
+         end if;
+         Put_Line
+           (Current_Error,
+            Tree.Error_Message
+              (Terminals.all, Node, File_Name,
+               "... invalid tree: " & Msg));
+         WisiToken.Generate.Error := True;
+      end Put_Error;
+
+      procedure Check_EBNF_Allowed
+      is begin
+         if not Data.EBNF_Allowed then
+            Put_Error ("no EBNF allowed");
+         end if;
+      end Check_EBNF_Allowed;
+
+   begin
+      if Tree.Label (Node) /= Nonterm then
+         return;
+      end if;
+
+      declare
+         use all type Ada.Containers.Count_Type;
+         Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
+         RHS_Index : constant Natural                := Tree.RHS_Index (Node);
+      begin
+         if (for some Child of Children => Child = Deleted_Child) then
+            Put_Error ("deleted child");
+            return;
+         end if;
+
+         case To_Token_Enum (Tree.ID (Node)) is
+         when nonterminal_ID =>
+            null;
+
+         when rhs_list_ID =>
+            case RHS_Index is
+            when 0 =>
+               if Children'Length /= 1 then
+                  Put_Error ("expected child_count 1");
+               elsif Tree.ID (Children (1)) /= +rhs_ID then
+                  Put_Error ("child 1 not rhs");
+               end if;
+
+            when 1 =>
+               if Tree.Child_Count (Node) /= 3 then
+                  Put_Error ("expected child_count 3");
+               elsif Tree.ID (Children (1)) /= +rhs_list_ID or
+                 Tree.ID (Children (2)) /= +BAR_ID or
+                 Tree.ID (Children (3)) /= +rhs_ID
+               then
+                  Put_Error ("expecting rhs_list BAR rhs");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_ID =>
+            case RHS_Index is
+            when 0 =>
+               if Children'Length /= 0 then
+                  Put_Error ("expected child_count 0");
+               end if;
+
+            when 1 =>
+               if Tree.Child_Count (Node) /= 1 then
+                  Put_Error ("expected child_count 1");
+               elsif Tree.ID (Children (1)) /= +rhs_item_list_ID then
+                  Put_Error ("expecting rhs_item_list");
+               end if;
+
+            when 2 =>
+               if Tree.Child_Count (Node) /= 2 then
+                  Put_Error ("expected child_count 2");
+               elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
+                 Tree.ID (Children (2)) /= +ACTION_ID
+               then
+                  Put_Error ("expecting rhs_item_list ACTION");
+               end if;
+
+            when 3 =>
+               if Tree.Child_Count (Node) /= 3 then
+                  Put_Error ("expected child_count 3");
+               elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
+                 Tree.ID (Children (2)) /= +ACTION_ID or
+                 Tree.ID (Children (3)) /= +ACTION_ID
+               then
+                  Put_Error ("expecting rhs_item_list ACTION ACTION");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_attribute_ID =>
+            Check_EBNF_Allowed;
+
+         when rhs_element_ID =>
+            case RHS_Index is
+            when 0 =>
+               if Tree.Child_Count (Node) /= 1 then
+                  Put_Error ("expected child_count 1");
+               elsif Tree.ID (Children (1)) /= +rhs_item_ID then
+                  Put_Error ("expecting rhs_item");
+               end if;
+
+            when 1 =>
+               if Tree.Child_Count (Node) /= 3 then
+                  Put_Error ("expected child_count 3");
+               elsif Tree.ID (Children (1)) /= +IDENTIFIER_ID or
+                 Tree.ID (Children (2)) /= +EQUAL_ID or
+                 Tree.ID (Children (3)) /= +rhs_item_ID
+               then
+                  Put_Error ("expecting IDENTIFIER EQUAL rhs_item");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_item_list_ID =>
+            case RHS_Index is
+            when 0 =>
+               if Tree.Child_Count (Node) /= 1 then
+                  Put_Error ("expected child_count 1");
+               elsif Tree.ID (Children (1)) /= +rhs_element_ID then
+                  Put_Error ("expecting rhs_element");
+               end if;
+
+            when 1 =>
+               if Tree.Child_Count (Node) /= 2 then
+                  Put_Error ("expected child_count 2");
+               elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
+                 Tree.ID (Children (2)) /= +rhs_element_ID
+               then
+                  Put_Error ("expecting rhs_item_list ELEMENT");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_item_ID =>
+            if Tree.Child_Count (Node) /= 1 then
+               Put_Error ("expected child_count 1");
+            end if;
+
+            case RHS_Index is
+            when 0 =>
+               if Tree.ID (Children (1)) /= +IDENTIFIER_ID then
+                  Put_Error ("expecting IDENTIFIER");
+               end if;
+
+            when 1 =>
+               if Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID then
+                  Put_Error ("expecting STRING_LITERAL_2");
+               end if;
+
+            when 2 =>
+               if Tree.ID (Children (1)) /= +rhs_attribute_ID then
+                  Put_Error ("expecting rhs_attribute");
+               end if;
+
+            when 3 =>
+               if Tree.ID (Children (1)) /= +rhs_optional_item_ID then
+                  Put_Error ("expecting rhs_optional_item");
+               end if;
+
+            when 4 =>
+               if Tree.ID (Children (1)) /= +rhs_multiple_item_ID then
+                  Put_Error ("expecting rhs_multiple_item");
+               end if;
+
+            when 5 =>
+               if Tree.ID (Children (1)) /= +rhs_group_item_ID then
+                  Put_Error ("expecting rhs_group_item");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_group_item_ID =>
+            Check_EBNF_Allowed;
+            if RHS_Index /= 0 or
+              (Children'Length /= 3 or else
+                 (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_PAREN_ID))
+            then
+               Put_Error ("expecting RHS_Index 0, LEFT_PAREN rhs_alternative_list RIGHT_PAREN");
+            end if;
+
+         when rhs_optional_item_ID =>
+            Check_EBNF_Allowed;
+            case RHS_Index is
+            when 0 =>
+               if Children'Length /= 3 or else
+                 (Tree.ID (Children (1)) /= +LEFT_BRACKET_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_BRACKET_ID)
+               then
+                  Put_Error ("expecting LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET");
+               end if;
+
+            when 1 =>
+               if Children'Length /= 4 or else
+                 (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
+                    Tree.ID (Children (4)) /= +QUESTION_ID)
+               then
+                  Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION");
+               end if;
+
+            when 2 =>
+               if Children'Length /= 2 or else
+                 (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
+                    Tree.ID (Children (2)) /= +QUESTION_ID)
+               then
+                  Put_Error ("expecting IDENTIFIER QUESTION");
+               end if;
+
+            when 3 =>
+               if Children'Length /= 2 or else
+                 (Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID or
+                    Tree.ID (Children (2)) /= +QUESTION_ID)
+               then
+                  Put_Error ("expecting STRING_LITERAL_2 QUESTION");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_multiple_item_ID =>
+            Check_EBNF_Allowed;
+            case RHS_Index is
+            when 0 =>
+               if Children'Length /= 3 or else
+                 (Tree.ID (Children (1)) /= +LEFT_BRACE_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_BRACE_ID)
+               then
+                  Put_Error ("expecting LEFT_BRACE rhs_alternative_list RIGHT_BRACE");
+               end if;
+
+            when 1 =>
+               if Children'Length /= 4 or else
+                 (Tree.ID (Children (1)) /= +LEFT_BRACE_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_BRACE_ID or
+                    Tree.ID (Children (4)) /= +MINUS_ID)
+               then
+                  Put_Error ("expecting LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS");
+               end if;
+
+            when 2 =>
+               if Children'Length /= 4 or else
+                 (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
+                    Tree.ID (Children (4)) /= +PLUS_ID)
+               then
+                  Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS");
+               end if;
+
+            when 3 =>
+               if Children'Length /= 4 or else
+                 (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
+                    Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
+                    Tree.ID (Children (4)) /= +STAR_ID)
+               then
+                  Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR");
+               end if;
+
+            when 4 =>
+               if Children'Length /= 2 or else
+                 (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
+                    Tree.ID (Children (2)) /= +PLUS_ID)
+               then
+                  Put_Error ("expecting IDENTIFIER PLUS");
+               end if;
+
+            when 5 =>
+               if Children'Length /= 2 or else
+                 (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
+                    Tree.ID (Children (2)) /= +STAR_ID)
+               then
+                  Put_Error ("expecting IDENTIFIER STAR");
+               end if;
+
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when rhs_alternative_list_ID =>
+            Check_EBNF_Allowed;
+            case RHS_Index is
+            when 0 =>
+               if Children'Length /= 1 or else
+                 (Tree.ID (Children (1)) /= +rhs_item_list_ID)
+               then
+                  Put_Error ("expecting rhs_item_list");
+               end if;
+
+            when 1 =>
+               if Children'Length /= 3 or else
+                 (Tree.ID (Children (1)) /= +rhs_alternative_list_ID or
+                    Tree.ID (Children (2)) /= +BAR_ID or
+                    Tree.ID (Children (3)) /= +rhs_item_list_ID)
+               then
+                  Put_Error ("expecting rhs_alternative_list BAR rhs_item_list");
+               end if;
+            when others =>
+               Put_Error ("unexpected RHS_Index");
+            end case;
+
+         when compilation_unit_ID =>
+            null;
+
+         when compilation_unit_list_ID =>
+            null;
+
+         when others =>
+            null;
+         end case;
+      end;
+   end Validate_Node;
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
@@ -2440,368 +2824,6 @@ package body WisiToken_Grammar_Editing is
          end if;
       end Process_Node;
 
-      EBNF_Allowed : Boolean := True;
-      Error_Reported : Node_Array_Booleans.Vector;
-
-      procedure Validate_Node
-        (Tree                : in     Syntax_Trees.Tree;
-         Node                : in     Valid_Node_Index;
-         Node_Image_Output   : in out Boolean;
-         Node_Error_Reported : in out Boolean)
-      is
-         use Ada.Text_IO;
-
-         procedure Put_Error (Msg : in String)
-         is begin
-            if Node in Error_Reported.First_Index .. Error_Reported.Last_Index and then Error_Reported (Node) then
-               return;
-            end if;
-
-            Node_Error_Reported := True;
-
-            if not Node_Image_Output then
-               Node_Image_Output := True;
-               Put_Line
-                 (Current_Error,
-                  Tree.Error_Message
-                    (Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
-                     Tree.Image
-                       (Node, Wisitoken_Grammar_Actions.Descriptor,
-                        Include_RHS_Index => True,
-                        Include_Children  => True,
-                        Node_Numbers      => True)));
-            end if;
-            Put_Line
-              (Current_Error,
-               Tree.Error_Message
-                 (Data.Terminals.all, Node, Data.Grammar_Lexer.File_Name,
-                  "... invalid tree: " & Msg));
-            WisiToken.Generate.Error := True;
-         end Put_Error;
-
-         procedure Check_EBNF_Allowed
-         is begin
-            if not EBNF_Allowed then
-               Put_Error ("no EBNF allowed");
-            end if;
-         end Check_EBNF_Allowed;
-
-      begin
-         if Tree.Label (Node) /= Nonterm then
-            return;
-         end if;
-
-         declare
-            use all type Ada.Containers.Count_Type;
-            Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
-            RHS_Index : constant Natural                := Tree.RHS_Index (Node);
-         begin
-            if (for some Child of Children => Child = Deleted_Child) then
-               Put_Error ("deleted child");
-               return;
-            end if;
-
-            case To_Token_Enum (Tree.ID (Node)) is
-            when nonterminal_ID =>
-               null;
-
-            when rhs_list_ID =>
-               case RHS_Index is
-               when 0 =>
-                  if Children'Length /= 1 then
-                     Put_Error ("expected child_count 1");
-                  elsif Tree.ID (Children (1)) /= +rhs_ID then
-                     Put_Error ("child 1 not rhs");
-                  end if;
-
-               when 1 =>
-                  if Tree.Child_Count (Node) /= 3 then
-                     Put_Error ("expected child_count 3");
-                  elsif Tree.ID (Children (1)) /= +rhs_list_ID or
-                    Tree.ID (Children (2)) /= +BAR_ID or
-                    Tree.ID (Children (3)) /= +rhs_ID
-                  then
-                     Put_Error ("expecting rhs_list BAR rhs");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_ID =>
-               case RHS_Index is
-               when 0 =>
-                  if Children'Length /= 0 then
-                     Put_Error ("expected child_count 0");
-                  end if;
-
-               when 1 =>
-                  if Tree.Child_Count (Node) /= 1 then
-                     Put_Error ("expected child_count 1");
-                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID then
-                     Put_Error ("expecting rhs_item_list");
-                  end if;
-
-               when 2 =>
-                  if Tree.Child_Count (Node) /= 2 then
-                     Put_Error ("expected child_count 2");
-                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
-                    Tree.ID (Children (2)) /= +ACTION_ID
-                  then
-                     Put_Error ("expecting rhs_item_list ACTION");
-                  end if;
-
-               when 3 =>
-                  if Tree.Child_Count (Node) /= 3 then
-                     Put_Error ("expected child_count 3");
-                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
-                    Tree.ID (Children (2)) /= +ACTION_ID or
-                    Tree.ID (Children (3)) /= +ACTION_ID
-                  then
-                     Put_Error ("expecting rhs_item_list ACTION ACTION");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_attribute_ID =>
-               Check_EBNF_Allowed;
-
-            when rhs_element_ID =>
-               case RHS_Index is
-               when 0 =>
-                  if Tree.Child_Count (Node) /= 1 then
-                     Put_Error ("expected child_count 1");
-                  elsif Tree.ID (Children (1)) /= +rhs_item_ID then
-                     Put_Error ("expecting rhs_item");
-                  end if;
-
-               when 1 =>
-                  if Tree.Child_Count (Node) /= 3 then
-                     Put_Error ("expected child_count 3");
-                  elsif Tree.ID (Children (1)) /= +IDENTIFIER_ID or
-                    Tree.ID (Children (2)) /= +EQUAL_ID or
-                    Tree.ID (Children (3)) /= +rhs_item_ID
-                  then
-                     Put_Error ("expecting IDENTIFIER EQUAL rhs_item");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_item_list_ID =>
-               case RHS_Index is
-               when 0 =>
-                  if Tree.Child_Count (Node) /= 1 then
-                     Put_Error ("expected child_count 1");
-                  elsif Tree.ID (Children (1)) /= +rhs_element_ID then
-                     Put_Error ("expecting rhs_element");
-                  end if;
-
-               when 1 =>
-                  if Tree.Child_Count (Node) /= 2 then
-                     Put_Error ("expected child_count 2");
-                  elsif Tree.ID (Children (1)) /= +rhs_item_list_ID or
-                    Tree.ID (Children (2)) /= +rhs_element_ID
-                  then
-                     Put_Error ("expecting rhs_item_list ELEMENT");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_item_ID =>
-               if Tree.Child_Count (Node) /= 1 then
-                  Put_Error ("expected child_count 1");
-               end if;
-
-               case RHS_Index is
-               when 0 =>
-                  if Tree.ID (Children (1)) /= +IDENTIFIER_ID then
-                     Put_Error ("expecting IDENTIFIER");
-                  end if;
-
-               when 1 =>
-                  if Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID then
-                     Put_Error ("expecting STRING_LITERAL_2");
-                  end if;
-
-               when 2 =>
-                  if Tree.ID (Children (1)) /= +rhs_attribute_ID then
-                     Put_Error ("expecting rhs_attribute");
-                  end if;
-
-               when 3 =>
-                  if Tree.ID (Children (1)) /= +rhs_optional_item_ID then
-                     Put_Error ("expecting rhs_optional_item");
-                  end if;
-
-               when 4 =>
-                  if Tree.ID (Children (1)) /= +rhs_multiple_item_ID then
-                     Put_Error ("expecting rhs_multiple_item");
-                  end if;
-
-               when 5 =>
-                  if Tree.ID (Children (1)) /= +rhs_group_item_ID then
-                     Put_Error ("expecting rhs_group_item");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_group_item_ID =>
-               Check_EBNF_Allowed;
-               if RHS_Index /= 0 or
-                 (Children'Length /= 3 or else
-                    (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_PAREN_ID))
-               then
-                  Put_Error ("expecting RHS_Index 0, LEFT_PAREN rhs_alternative_list RIGHT_PAREN");
-               end if;
-
-            when rhs_optional_item_ID =>
-               Check_EBNF_Allowed;
-               case RHS_Index is
-               when 0 =>
-                  if Children'Length /= 3 or else
-                    (Tree.ID (Children (1)) /= +LEFT_BRACKET_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_BRACKET_ID)
-                  then
-                     Put_Error ("expecting LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET");
-                  end if;
-
-               when 1 =>
-                  if Children'Length /= 4 or else
-                    (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
-                       Tree.ID (Children (4)) /= +QUESTION_ID)
-                  then
-                     Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION");
-                  end if;
-
-               when 2 =>
-                  if Children'Length /= 2 or else
-                    (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
-                       Tree.ID (Children (2)) /= +QUESTION_ID)
-                  then
-                     Put_Error ("expecting IDENTIFIER QUESTION");
-                  end if;
-
-               when 3 =>
-                  if Children'Length /= 2 or else
-                    (Tree.ID (Children (1)) /= +STRING_LITERAL_2_ID or
-                       Tree.ID (Children (2)) /= +QUESTION_ID)
-                  then
-                     Put_Error ("expecting STRING_LITERAL_2 QUESTION");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_multiple_item_ID =>
-               Check_EBNF_Allowed;
-               case RHS_Index is
-               when 0 =>
-                  if Children'Length /= 3 or else
-                    (Tree.ID (Children (1)) /= +LEFT_BRACE_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_BRACE_ID)
-                  then
-                     Put_Error ("expecting LEFT_BRACE rhs_alternative_list RIGHT_BRACE");
-                  end if;
-
-               when 1 =>
-                  if Children'Length /= 4 or else
-                    (Tree.ID (Children (1)) /= +LEFT_BRACE_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_BRACE_ID or
-                       Tree.ID (Children (4)) /= +MINUS_ID)
-                  then
-                     Put_Error ("expecting LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS");
-                  end if;
-
-               when 2 =>
-                  if Children'Length /= 4 or else
-                    (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
-                       Tree.ID (Children (4)) /= +PLUS_ID)
-                  then
-                     Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS");
-                  end if;
-
-               when 3 =>
-                  if Children'Length /= 4 or else
-                    (Tree.ID (Children (1)) /= +LEFT_PAREN_ID or
-                       Tree.ID (Children (2)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (3)) /= +RIGHT_PAREN_ID or
-                       Tree.ID (Children (4)) /= +STAR_ID)
-                  then
-                     Put_Error ("expecting LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR");
-                  end if;
-
-               when 4 =>
-                  if Children'Length /= 2 or else
-                    (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
-                       Tree.ID (Children (2)) /= +PLUS_ID)
-                  then
-                     Put_Error ("expecting IDENTIFIER PLUS");
-                  end if;
-
-               when 5 =>
-                  if Children'Length /= 2 or else
-                    (Tree.ID (Children (1)) /= +IDENTIFIER_ID or
-                       Tree.ID (Children (2)) /= +STAR_ID)
-                  then
-                     Put_Error ("expecting IDENTIFIER STAR");
-                  end if;
-
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when rhs_alternative_list_ID =>
-               Check_EBNF_Allowed;
-               case RHS_Index is
-               when 0 =>
-                  if Children'Length /= 1 or else
-                    (Tree.ID (Children (1)) /= +rhs_item_list_ID)
-                  then
-                     Put_Error ("expecting rhs_item_list");
-                  end if;
-
-               when 1 =>
-                  if Children'Length /= 3 or else
-                    (Tree.ID (Children (1)) /= +rhs_alternative_list_ID or
-                       Tree.ID (Children (2)) /= +BAR_ID or
-                       Tree.ID (Children (3)) /= +rhs_item_list_ID)
-                  then
-                     Put_Error ("expecting rhs_alternative_list BAR rhs_item_list");
-                  end if;
-               when others =>
-                  Put_Error ("unexpected RHS_Index");
-               end case;
-
-            when compilation_unit_ID =>
-               null;
-
-            when compilation_unit_list_ID =>
-               null;
-
-            when others =>
-               null;
-            end case;
-         end;
-      end Validate_Node;
-
       procedure Check_Original_EBNF
       is
          use Ada.Text_IO;
@@ -2896,8 +2918,8 @@ package body WisiToken_Grammar_Editing is
             Process_Node (I);
 
             Tree.Validate_Tree
-              (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-               Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+              (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+               Data.Error_Reported, Tree.Root, Validate_Node'Access);
             Check_Original_EBNF;
             Check_Copied_EBNF;
          end if;
@@ -2952,8 +2974,8 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Copied_EBNF_Nodes (I));
 
                Tree.Validate_Tree
-                 (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-                  Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+                 (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+                  Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
                Check_Copied_EBNF;
             end if;
             I := I + 1;
@@ -2979,10 +3001,10 @@ package body WisiToken_Grammar_Editing is
          end loop;
       end;
 
-      EBNF_Allowed := False;
+      Data.EBNF_Allowed := False;
       Tree.Validate_Tree
-        (Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-         Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+        (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+         Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 
