@@ -62,7 +62,7 @@ package body Wisitoken_Grammar_1_Process_Main is
          Matching_Begin =>  0,
          Ignore_Check_Fail  => 2,
          Task_Count  => 0,
-         Check_Limit => 3,
+         Check_Limit => 2,
          Check_Delta_Limit => 2147483647,
          Enqueue_Limit => 10000);
 

@@ -212,6 +212,26 @@
       (when (looking-back "(\\(:?[0-9]+, \\)*[0-9]+)" (line-beginning-position))
 	(delete-region (match-beginning 0) (match-end 0))))))
 
+(defun wisitoken-grammar-tree-sitter-conflict ()
+  "Convert a list of nonterms from a tree-sitter conflict error message to a %conflict."
+  (interactive)
+  (let ((wy-buffer (current-buffer))
+	nonterms)
+    (pop-to-buffer compilation-last-buffer)
+    (search-backward "Add a conflict for these rules")
+    (looking-at "Add a conflict for these rules: \\(`[a-z_]+`\\(, `[a-z_]+`\\)\\)")
+    (setq nonterms (match-string 1))
+    (pop-to-buffer wy-buffer)
+    (insert (concat "\n%conflict " nonterms))
+    (goto-char (line-beginning-position))
+    (search-forward "`")
+    (delete-char -1)
+    (while (search-forward "`, `" (line-end-position) t)
+      (delete-char -4)
+      (insert " "))
+    (search-forward "`")
+    (delete-char -1)))
+
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
 If in nonterminal, insert new production right hand side.
