@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - speed up lr1
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - Translate_EBNF recognize more canonical lists
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -28,54 +28,16 @@ update-wisitoken_grammar
 
  current work
 auto_token_labels
-    ada_annex_p.wy access_definition broken
-        last_token_index not reset between RHS
-        duplicate in subprograms.wy
+    check for empty statement-action params
+        wisitoken_grammar_1_bnf.wy nontemrinal_009
 
 error_correction_algorithm.tex
     finish "results"
-        two metrics; correction attempts succeed/fail, with strategy counts
-            c:/Projects/org.emacs.ada-mode/recover.log
-2020-06-11 - 2020-07-04
-FULL
-present/total: 41514 / 462343
-           mean        std. dev.    min     max
-Enqueue: (    796.3,    2151.3,       1.0,   60147.0)
-Check:   (     61.8,     169.3,       1.0,    5496.0)
-FAIL                    =>     1197  3%
-FAIL_ENQUEUE_LIMIT      =>     1126  3%
-FAIL_PROGRAMMER_ERROR   =>       71  0%
-IGNORE_ERROR               2130  1% /    2207  0%
-LANGUAGE_FIX              11138  6% /   17155  4%
-MINIMAL_COMPLETE         151977 78% /  242890 53%
-MATCHING_BEGIN             2848  1% /    2849  1%
-PUSH_BACK                 13694  7% /   14378  3%
-UNDO_REDUCE                7491  4% /   12882  3%
-INSERT                   141629 72% /  147617 32%
-DELETE                    18557  9% /   19716  4%
-STRING_QUOTE               2615  1% /    2649  1%
-
-PARTIAL
-present/total: 12830 / 69507
-           mean        std. dev.    min     max
-Enqueue: (    922.6,    1774.1,       4.0,   49286.0)
-Check:   (     78.5,     148.0,       2.0,    4201.0)
-FAIL                    =>       16  0%
-FAIL_ENQUEUE_LIMIT      =>       16  0%
-IGNORE_ERROR                850  5% /     850  1%
-LANGUAGE_FIX                356  2% /     669  1%
-MINIMAL_COMPLETE          14579 77% /   54300 78%
-MATCHING_BEGIN             2355 13% /    2522  4%
-PUSH_BACK                  1019  5% /    1083  2%
-UNDO_REDUCE                 544  3% /     730  1%
-INSERT                     6076 32% /    7801 11%
-DELETE                     1266  7% /    1541  2%
-STRING_QUOTE                 11  0% /      11  0%
-
 
         difference between desired and found terminal sequence file_count: 59
-            wisitoken-recover-compare:  total size: 14054
-            libadalang-recover-compare: total size: 60069
+            wisitoken-recover-compare:              total size: 13038 zero size: 23
+            wisitoken-ada_annex_p-recover-compare:  total size: 13470 zero size: 23
+            libadalang-recover-compare:             total size: 27843 zero size: 5
 
         add diff results for ada_annex_p
 
@@ -130,8 +92,6 @@ STRING_QUOTE                 11  0% /      11  0%
             end)(insert end)' replaces a real token with a virtual
             token, which changes the buffer region on the nonterms.
 
-    explain check_reduce_to_start
-
     In Check, "made some progress" does _not_ mean "closer to
     Resume_Token_Goal than _original_ config"; it means "moved away
     from the edit point".
@@ -160,31 +120,6 @@ STRING_QUOTE                 11  0% /      11  0%
     compare size of ada_lr1.txt
 
     compare speed of recover
-
-    LALR vs LR1
-        test_mckenzie_recover
-            String_Quote_2  Enqueue when LALR => 61, when LR1 => 69
-            String_Quote_5          when LALR => 244, when LR1 => 251
-            Two_Missing_Ends enqueue when LALR => 26, when LR1 => 40
-            Do_Delete_First          when LALR => 235, when LR1 => 207
-            Two_Parsers              when LALR => 19, when LR1 => 56
-            Match_Selected_Component_1 when LALR => 23, when LR1 => 35
-
-        ada_mode-recover_02
-            LALR
-                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
-                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
-                ;;  1: fail; total enqueue limit ( 500000 cost 11)
-                ;;  4: fail, enqueue 283458, check  26708, max shared_token  64
-                ;;  4: fail; total enqueue limit ( 500000 cost 11)
-                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
-                1.16 seconds
-
-            LR1
-                ;;  0: fail; total enqueue limit ( 500000 cost 10)
-                ;;  0: succeed 8, enqueue 441988, check  41725, cost:  11
-                ;;  1: succeed 2, enqueue 58102, check  5805, cost:  7
-                1.48 seconds slower!?
 
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
