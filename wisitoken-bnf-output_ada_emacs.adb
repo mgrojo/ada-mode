@@ -86,7 +86,8 @@ is
 
       Delete_Last_Paren : Boolean := False;
    begin
-      --  Loop thru Item, copying chars to Buffer, ignoring comments, newlines.
+      --  Loop thru Item, copying chars to Buffer, replacing comments and
+      --  newlines with a single space each.
 
       if 0 /= Progn_Index then
          Item_I := Progn_Index + 6;
@@ -100,6 +101,8 @@ is
          if In_Comment then
             if Item (Item_I) in ASCII.CR | ASCII.LF then
                In_Comment := False;
+               Buffer (Buffer_J) := ' ';
+               Buffer_J := Buffer_J + 1;
             end if;
          else
             if Item (Item_I) = '(' then
@@ -133,7 +136,8 @@ is
                end if;
 
             elsif Item (Item_I) in ASCII.CR | ASCII.LF then
-               null;
+               Buffer (Buffer_J) := ' ';
+               Buffer_J := Buffer_J + 1;
 
             elsif Item (Item_I) = ';' and then Item_I < Item'Last and then Item (Item_I + 1) = ';' then
                In_Comment := True;

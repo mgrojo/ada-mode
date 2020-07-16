@@ -3,7 +3,7 @@
 ;;
 ;; Also syntax that revealed bugs discovered during development.
 ;;
-;; Note that the only *.*_good file is java_ebnf_bnf.wy_good, and that
+;; Note that the only *.*_good file is ada_ebnf_bnf.wy_good, and that
 ;; this file does not declare all used tokens; we are only testing the
 ;; translation from EBNF to BNF.
 %meta_syntax EBNF

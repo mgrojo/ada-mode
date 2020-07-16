@@ -27,8 +27,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-auto_token_labels
-    test wisitoken-grammar-mode
+tree_sitter
+    test ada_annex_p
 
 error_correction_algorithm.tex
     finish "results"
