@@ -42,6 +42,7 @@
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
 
+%token <punctuation> COLON ":"
 %token <punctuation> COMMA ","
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
@@ -72,12 +73,38 @@
 
 ;; Auto generated token labels with holes in indent args
 block
-  : T1=BEGIN T2=loop_statement T3=EXCEPTION T4=WHEN T5=name T6=END
-    %((wisi-statement-action [2 motion 3 motion 4 motion])
-      (wisi-indent-action [nil subp-indent nil subp-indent nil nil]))%
-  | T1=BEGIN T2=loop_statement T6=END
-    %((wisi-statement-action [2 motion 3 motion 4 motion])
-      (wisi-indent-action [nil subp-indent nil subp-indent nil nil]))%
+  : T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T1=SYMBOL T2=COLON T3=BEGIN T4=loop_statement T8=END
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END T9=SYMBOL
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T3=BEGIN T4=loop_statement T5=EXCEPTION T6=WHEN T7=name T8=END
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T3=BEGIN T4=loop_statement T8=END T9=SYMBOL
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
+  | T3=BEGIN T4=loop_statement T8=END
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
   ;
 
 ;; No automatic token labels needed.
@@ -239,13 +266,13 @@ subtype
 
 use_clause
 ;; simple group item to test auto token labels
-  : T1=USE G5=nonterminal_011 T3=SEMICOLON
+  : T1=USE G5=nonterminal_014 T3=SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%
   ;
 
 ;; end of file
-nonterminal_011
+nonterminal_014
   : T2=name_list
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%

@@ -1025,7 +1025,10 @@ package body WisiToken.Parse.LR.Parser is
                                       (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
                                        "branched syntax tree growing too large (>" &
                                          Shared_Parser.Branched_Tree_Node_Count_Threshold'Image &
-                                         "); improve grammar or increase Parser.Branched_Tree_Node_Count_Threshold.");
+                                         "), last shared node " &
+                                         Parser_State.Tree.Image
+                                           (Parser_State.Tree.Max_Shared_Node, Trace.Descriptor.all) &
+                                         "; improve grammar or increase Parser.Branched_Tree_Node_Count_Threshold.");
                                  end;
                               end if;
                            end if;

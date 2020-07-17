@@ -724,19 +724,33 @@ package body WisiToken_Grammar_Runtime is
                      Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals
                        (Tokens (3));
 
-                     --  Old format:
+                     --  Old LR1, LALR format:
                      --   %conflict <action_a>/<action_b> in state <LHS_A>, <LHS_B> on token <on>
                      --              1        2 3         4  5      6     7  8      9  10     11
 
-                     --  New format:
-                     --  %conflict action LHS [| action LHS]* 'on token' on
+                     --  New LR1, LALR format:
+                     --  %conflict action LHS (| action LHS)* 'on token' on
                      --            1      2
+                     --
+                     --  Tree_Sitter format:
+                     --  %conflict LHS (LHS)*
 
                      Conflict : BNF.Conflict;
                   begin
                      Conflict.Source_Line := Data.Terminals.all (Tree.Terminal (Tree_Indices (1))).Line;
 
-                     if Tree.ID (Tree_Indices (2)) = +SLASH_ID then
+                     if Tree_Indices'Length < 3 or else
+                       (Tree.ID (Tree_Indices (3)) /= +BAR_ID and
+                          Tree.ID (Tree_Indices (2)) /= +SLASH_ID)
+                     then
+                        --  Tree_Sitter format
+                        for LHS of Tree_Indices loop
+                           Conflict.Items.Append
+                             ((Name  => +"",
+                               Value => +Get_Text (Data, Tree, LHS)));
+                        end loop;
+
+                     elsif Tree.ID (Tree_Indices (2)) = +SLASH_ID then
                         --  old format
                         Conflict.Items.Append
                           ((Name  => +Get_Text (Data, Tree, Tree_Indices (1)),

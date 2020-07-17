@@ -1146,29 +1146,43 @@ package body WisiToken.Tree_Sitter is
                begin
                   --  FIXME: lexer_regexp
                   if Kind = "conflict" then
-                     --  .wy format:
+                     --  .wy LR format:
                      --  %conflict action LHS [| action LHS]* 'on token' on
                      --            I      I+1
+                     --
+                     --  .wy Tree_Sitter format:
+                     --  %conflict LHS (LHS)*
                      --
                      --  .js format:
                      --  [$.LHS, $.LHS, ...]
 
                      declare
                         use Ada.Strings.Unbounded;
-                        use all type SAL.Base_Peek_Type;
 
                         Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals (Tree.Child (Node, 3));
                         Result       : Unbounded_String                := +"[";
-
-                        I : SAL.Peek_Type := Tree_Indices'First;
                      begin
-                        loop
-                           Result := @ & "$." & Get_Text (Tree_Indices (I + 1)) & ", ";
+                        if Tree_Indices'Length < 3 or else Tree.ID (Tree_Indices (3)) /= +BAR_ID then
+                           --  Tree_Sitter format
+                           for LHS of Tree_Indices loop
+                              Result := @ & "$." & Get_Text (LHS) & ", ";
+                           end loop;
 
-                           I := I + 2;
-                           exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
-                           I := I + 1;
-                        end loop;
+                        else
+                           --  LR format
+                           declare
+                              use all type SAL.Base_Peek_Type;
+                              I : SAL.Peek_Type := Tree_Indices'First;
+                           begin
+                              loop
+                                 Result := @ & "$." & Get_Text (Tree_Indices (I + 1)) & ", ";
+
+                                 I := I + 2;
+                                 exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
+                                 I := I + 1;
+                              end loop;
+                           end;
+                        end if;
                         Conflicts.Append (-Result & ']');
                      end;
                   end if;

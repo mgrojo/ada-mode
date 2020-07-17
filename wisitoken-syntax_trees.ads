@@ -694,6 +694,8 @@ package WisiToken.Syntax_Trees is
 
    function Branched_Tree_Node_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type;
 
+   function Max_Shared_Node (Tree : in Syntax_Trees.Tree) return Node_Index;
+
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts in shared and branched trees.
 
@@ -829,5 +831,8 @@ private
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Shared_Tree.Parents_Set);
+
+   function Max_Shared_Node (Tree : in Syntax_Trees.Tree) return Node_Index
+   is (Tree.Last_Shared_Node);
 
 end WisiToken.Syntax_Trees;

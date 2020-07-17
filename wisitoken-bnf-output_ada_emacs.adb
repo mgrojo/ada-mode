@@ -223,6 +223,11 @@ is
       is
          Found : Boolean := False;
       begin
+         if 0 = Index (Label, Numeric, Outside) then
+            --  Label is an integer, not a label
+            return True;
+         end if;
+
          for Tok of RHS.Tokens loop
             if -Tok.Label = Label then
                Found := True;
@@ -279,7 +284,7 @@ is
             declare
                Label : constant String := Get_Label (Params (First .. Second - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if Label_Used (Label) then
                   Count := Count + 1;
                   Result := Result & (if Need_Comma then ", " else "") &
                     "(" & Label & ", " &
@@ -350,7 +355,7 @@ is
                declare
                   Label : constant String := Get_Label (Params (Index_First .. Index_Last));
                begin
-                  if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  if Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" &
                        Label & ", " & ID & ")";
                      Need_Comma := True;
@@ -371,7 +376,7 @@ is
                declare
                   Label : constant String := Get_Label (Params (First .. Last - 1));
                begin
-                  if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  if Label_Used (Label) then
                      Result := Result & (if Need_Comma then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
                      Need_Comma := True;
                      Count  := Count + 1;
@@ -431,7 +436,7 @@ is
             declare
                Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or Label_Used (Label) then
+               if Label_Used (Label) then
                   Count  := Count + 1;
                   Result := Result & (if Need_Comma then ", (" else "(") & Label;
                   Need_Comma := True;
@@ -487,7 +492,7 @@ is
             declare
                Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if Label_Used (Label) then
                   Count  := Count + 1;
                   Skip   := False;
                   Result := Result & (if Need_Comma then ", (" else "(") & Label;
@@ -549,7 +554,7 @@ is
             declare
                Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if Label_Used (Label) then
                   Count      := Count + 1;
                   Result     := Result & (if Need_Comma then ", " else "") & Label;
                   Need_Comma := True;
@@ -989,11 +994,9 @@ is
          First             : constant Integer := Index_Non_Blank (Params);
          Second            : constant Integer := Index (Params, Blank_Set, First);
          Label_First       : constant String  := Get_Label (Params (First .. Second - 1));
-         Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
-           Label_Used (Label_First);
+         Label_Used_First  : constant Boolean := Label_Used (Label_First);
          Label_Second      : constant String  := Get_Label (Params (Second + 1 .. Params'Last - 1));
-         Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
-           Label_Used (Label_Second);
+         Label_Used_Second : constant Boolean := Label_Used (Label_Second);
       begin
          Nonterm_Needed := True;
 
@@ -1018,10 +1021,8 @@ is
          Second            : constant Integer := Index (Params, Blank_Set, First);
          Label_First       : constant String  := Get_Label (Params (First .. Second - 1));
          Label_Second      : constant String  := Get_Label (Params (Second + 1 .. Params'Last - 1));
-         Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
-           Label_Used (Label_First);
-         Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
-           Label_Used (Label_Second);
+         Label_Used_First  : constant Boolean := Label_Used (Label_First);
+         Label_Used_Second : constant Boolean := Label_Used (Label_Second);
       begin
          if Label_Used_First and Label_Used_Second then
             return " (Lexer, Descriptor, Tokens, " &
@@ -1049,7 +1050,7 @@ is
             declare
                Label : constant String := Get_Label (Params (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if Label_Used (Label) then
                   Param_Count := Param_Count + 1;
                   if Need_Comma then
                      Result := Result & ", ";
@@ -1126,10 +1127,10 @@ is
                Last  : constant Integer := Index (Line, Space_Paren_Set, First);
                Label : constant String  := Get_Label (Line (First .. Last - 1));
             begin
-               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+               if Label_Used (Label) then
                   Nonterm_Needed := True;
                   Navigate_Lines.Append
-                    ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Line (First .. Line'Last) & ";");
+                    ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Label & ");");
                end if;
             end;
 
@@ -1196,10 +1197,16 @@ is
             end;
 
          elsif Elisp_Name = "wisi-propagate-name" then
-            Assert_Check_Empty;
-            Nonterm_Needed := True;
-            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              " (Nonterm, Tokens, " & Get_Label (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Label : constant String := Line (Last + 1 .. Line'Last - 1);
+            begin
+               if Label_Used (Label) then
+                  Assert_Check_Empty;
+                  Nonterm_Needed := True;
+                  Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                    " (Nonterm, Tokens, " & Label & ");";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-merge-names" then
             Assert_Check_Empty;

@@ -1007,7 +1007,9 @@ package body WisiToken_Grammar_Editing is
                when others => raise SAL.Programmer_Error));
 
          Aug : constant Augmented_Token_Access := new Augmented_Token'
-           (Auto_Token_Labels => Auto_Token_Labels, others => <>);
+           (Auto_Token_Labels => Auto_Token_Labels,
+            Edited_Token_List => True,
+            others => <>);
       begin
          Tree.Set_Augmented (RHS, WisiToken.Base_Token_Class_Access (Aug));
 
@@ -1332,7 +1334,9 @@ package body WisiToken_Grammar_Editing is
                      After : Valid_Node_Index := B;
 
                      Aug : constant Augmented_Token_Access := new Augmented_Token'
-                       (Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B), others => <>);
+                       (Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
+                        Edited_Token_List => True,
+                        others => <>);
                   begin
                      loop
                         After := List_Root (Tree, Tree.Find_Ancestor (After, +rhs_item_list_ID), +rhs_item_list_ID);
@@ -2917,11 +2921,13 @@ package body WisiToken_Grammar_Editing is
 
             Process_Node (I);
 
-            Tree.Validate_Tree
-              (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-               Data.Error_Reported, Tree.Root, Validate_Node'Access);
-            Check_Original_EBNF;
-            Check_Copied_EBNF;
+            if Debug_Mode then
+               Tree.Validate_Tree
+                 (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+                  Data.Error_Reported, Tree.Root, Validate_Node'Access);
+               Check_Original_EBNF;
+               Check_Copied_EBNF;
+            end if;
          end if;
       end loop;
 
@@ -2973,10 +2979,12 @@ package body WisiToken_Grammar_Editing is
 
                Process_Node (Copied_EBNF_Nodes (I));
 
-               Tree.Validate_Tree
-                 (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-                  Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
-               Check_Copied_EBNF;
+               if Debug_Mode then
+                  Tree.Validate_Tree
+                    (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+                     Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+                  Check_Copied_EBNF;
+               end if;
             end if;
             I := I + 1;
          end loop;
