@@ -43,6 +43,23 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+fix mmm-indent-region
+    whole buffer gets actions wrong
+    wisi-indent-statement on nonterminal last line in elisp wrong
+    %code needs help
+        may need mmm-indent-region-narrowed
+    c:/Projects/org.wisitoken.grammar_mode/notes.text
+
+ada_annex_p.wy
+    add actions
+        make two
+        copy from ada.wy, in ada.wy alphabetical order
+            done thru block_statement
+
+    compare_ada_annex_p
+        arm_texi use bold underscore for bold, to distinguish keywords
+        write arm-info-mode, to apply faces
+
 output min_complete fraction in .parse_table - changed when recursion blew up?
 
 navigate bug
@@ -69,16 +86,6 @@ need better homepage for wisi
 
 dos2unix takes a long time on lr1_parse_table.txt
     change put_text_rep to use stream_io, do correct line ending.
-
-ada_annex_p.wy
-    add actions
-        make two
-        copy from ada.wy, in ada.wy alphabetical order
-            done thru aspect_specification_opt
-
-    compare_ada_annex_p
-        arm_texi use bold underscore for bold, to distinguish keywords
-        write arm-info-mode, to apply faces
 
 indent bugs
     State.Kernel (I) :=
@@ -1099,7 +1106,21 @@ Different versions of GNAT either require the .all or forbid it.
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
---------------------
+-------------------
+
+-------------------
+Ada Reference Manual info format 2020.1 released.
+-------------------
+
+ada-ref-man 2020.1 is now available in GNU ELPA.
+
+This includes Ada 202x draft 25, as well as Ada 2012. GNAT Community
+2020 has some support for some of the new language features in Ada
+202x.
+
+There is also now a searchable info index, containing the entries in
+the ARM Index.
+-------------------
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
