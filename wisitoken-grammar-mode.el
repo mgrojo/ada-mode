@@ -362,6 +362,9 @@ Otherwise insert a plain new line."
     :insert ((?c wisi-code nil @ "%{" @ "" _ "" @ "}%" @)))
    ))
 
+(put 'emacs-lisp-mode 'mmm-indent-narrow nil) ;; syntax-ppss is only valid on the entire buffer
+(put 'ada-mode 'mmm-indent-narrow t)          ;; expects Ada code before and after the indent region.
+
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-action))
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-code))
 
