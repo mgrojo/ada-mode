@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
+ ;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 wisi-branched-tree-limit: 2000 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -382,6 +382,8 @@ pragma_argument_association ::=
   ;; aspect_mark '=>' name ;; redundant with expression
   | aspect_mark '=>'  expression
 
+;; pragma_g is not a 'basic_declaration' in ARM, but it must be in our
+;; grammar.
 basic_declaration ::=
     pragma_g ;; new
   | type_declaration
@@ -397,8 +399,10 @@ basic_declaration ::=
   | exception_declaration
   | generic_declaration
   | generic_instantiation
+  ;
 
-  ;; defining_identifier ::= IDENTIFIER
+;; defining_identifier ;;:redundant with IDENTIFIER
+;; ::= IDENTIFIER
 
 type_declaration ::=  full_type_declaration
   | incomplete_type_declaration
@@ -444,7 +448,12 @@ object_declaration ::=
 
 defining_identifier_list ::= IDENTIFIER {',' IDENTIFIER}
 
-number_declaration ::= defining_identifier_list ':' 'constant' ':=' expression';'
+number_declaration
+  : defining_identifier_list ':' 'constant' ':=' expression ';'
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [(wisi-hanging nil ada-indent-broken) ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-anchored% 4 ada-indent-broken) ada-indent-broken]))%
+  ;
 
 derived_type_definition ::=
     ['abstract'] ['limited'] 'new' subtype_indication [['and' interface_list] record_extension_part]
@@ -543,17 +552,22 @@ record_definition ::=
     'record' component_list 'end' 'record' [IDENTIFIER]
   | 'null' 'record'
 
-component_list ::=
-    component_item {component_item}
+component_list
+  : component_item {component_item}
   | {component_item} variant_part
   |  'null' ';'
+    %((wisi-statement-action [1 statement-start 2 statement-end]))%
+  ;
 
 component_item ::= component_declaration | aspect_clause
 
-component_declaration ::=
-    defining_identifier_list ':' component_definition [':='
-      default_expression]
-      [aspect_specification]';'
+component_declaration
+  : defining_identifier_list ':' component_definition [':=' default_expression] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-anchored% 4 ada-indent-broken)
+                               ada-indent-broken ada-indent-broken]))%
+  ;
 
 variant_part ::= 'case' direct_name 'is' variant {variant} 'end' 'case' ';'
 
@@ -613,12 +627,11 @@ incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tag
 
 declarative_part ::= {declarative_item}
 
-declarative_item ::= basic_declarative_item | proper_body | body_stub
+declarative_item : basic_declarative_item | proper_body | body_stub ;
 
-basic_declarative_item ::=
-    basic_declaration | aspect_clause | use_clause
-
-  ;; body ::= proper_body | body_stub ;; inlined
+basic_declarative_item
+  : basic_declaration | aspect_clause | use_clause
+  ;; body ::= proper_body | body_stub ;;:inlined
 
 proper_body ::=
     subprogram_body | package_body | task_body | protected_body
@@ -956,9 +969,10 @@ quantifier ::= 'all' | 'some'
 
 predicate ::= expression
 
-declare_expression ::=
-    'declare' {declare_item}
-      'begin' expression
+declare_expression
+  : 'declare' {declare_item} 'begin' expression
+    %((wisi-indent-action [nil ada-indent nil ada-indent]))%
+  ;
 
 declare_item ::= object_declaration | object_renaming_declaration
 
@@ -1410,7 +1424,13 @@ entry_call_alternative ::= procedure_call_statement sequence_of_statements_opt
 
   ;; procedure_or_entry_call ::= procedure_call_statement | entry_call_statement ;; inlined to procedure_call_statement
 
-conditional_entry_call ::= 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
+conditional_entry_call
+  : 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
+    %((wisi-statement-action [1 statement-start 3 motion 7 statement-end])
+        (wisi-motion-action [1 3 7])
+        (wisi-indent-action [nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
+                                 ada-indent-broken]))%
+  ;
 
 asynchronous_select
   : 'select' triggering_alternative 'then' 'abort' abortable_part 'end' 'select' ';'
@@ -1671,24 +1691,30 @@ enumeration_aggregate ::= array_aggregate
 
 record_representation_clause ::= 'for' name 'use' 'record' [mod_clause] {component_clause} 'end' 'record' [name] ';'
 
-component_clause ::=
-    name 'at' position 'range' first_bit '..' last_bit ';'
+component_clause
+  : name 'at' position 'range' first_bit '..' last_bit ';'
+    %((wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
-position ::= expression
+position : expression ;
 
-first_bit ::= simple_expression
+first_bit : simple_expression ;
 
-last_bit ::= simple_expression
+last_bit : simple_expression ;
 
-;; code_statement ::= qualified_expression ';' ;; deleted; redundant with procedure_call_statement
+;; code_statement ;;:deleted; redundant with procedure_call_statement
+;; ::= qualified_expression ';'
 
-;; storage_pool_indicator ::= name | 'null' | Standard ;; deleted; not used in the grammar
+;; storage_pool_indicator ;;:deleted; not used in the grammar
+;; ::= name | 'null' | Standard
 
-;; restriction ::= ;; deleted; not used in the grammar
-;;     IDENTIFIER
-;;   | IDENTIFIER  '=>' restriction_parameter_argument
+;; restriction ;;:deleted; not used in the grammar
+;; ::= IDENTIFIER | IDENTIFIER '=>' restriction_parameter_argument
 
-;; restriction_parameter_argument ::= name | expression ;; deleted; not used in the grammar
+;; restriction_parameter_argument ;;:deleted; not used in the grammar
+;; ::= name | expression
 
 extended_global_aspect_definition ::=
     'use' formal_parameter_designator

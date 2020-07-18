@@ -47,7 +47,7 @@ ada_annex_p.wy
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order
-            done thru compilation
+            done thru declare_expression
 
     compare_ada_annex_p
         arm_texi use bold underscore for bold, to distinguish keywords
