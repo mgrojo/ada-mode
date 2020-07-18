@@ -124,14 +124,17 @@
 	;; syntax-propertize.
 	)))
 
-(defun wisitoken-grammar-in-action-or-comment ()
+(defun wisitoken-grammar-in-action-comment-string ()
   ;; (info "(elisp) Parser State" "*info syntax-ppss*")
   (let* ((state (syntax-ppss))
 	 (paren-depth (nth 0 state))
 	 (done nil)
 	 (result nil))
+    ;; We disabled all string delimiters in
+    ;; wisitoken-grammar-mode-syntax-table, so we must rely on the
+    ;; face set by the parser to detect strings.
     (cond
-     ((nth 3 state)
+     ((eq font-lock-constant-face (get-text-property (point) 'font-lock-face))
       ;; in string
       t)
 
@@ -160,7 +163,7 @@
   "Starting at BEGIN, search backward for a parse start point."
   (goto-char begin)
   (cond
-   ((wisi-search-backward-skip "^%[^({[]\\|:" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-backward-skip "^%[^({[\n]\\|:" #'wisitoken-grammar-in-action-comment-string)
     (when (looking-at ":")
       ;; Move back to before the nonterminal name
       (when (= ?: (char-before))
@@ -178,7 +181,7 @@
   "Starting at END, search forward for a parse end point."
   (goto-char end)
   (cond
-   ((wisi-search-forward-skip "^[%a-z]\\|;$" #'wisitoken-grammar-in-action-or-comment)
+   ((wisi-search-forward-skip "^[%a-z]\\|;$" #'wisitoken-grammar-in-action-comment-string)
     (point))
 
    (t

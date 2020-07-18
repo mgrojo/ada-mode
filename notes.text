@@ -24,8 +24,9 @@ Makefile
    ("../org.emacs.ada-mode.stephe-2"         . "../org.emacs.ada-mode")
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
+(wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
+(setq wisi-disable-face t)
 
-
 
  release process
 (dvc-pull "/Projects/elpa")
