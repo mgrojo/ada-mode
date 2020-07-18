@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
+;;; WisiToken grammar for Ada -*-  wisi-process-time-out: 30.0 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>

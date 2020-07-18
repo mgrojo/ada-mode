@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada -*- wisi-process-time-out: 30.0 -*-
+;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -921,11 +921,32 @@ if_expression ::=
       {'elsif' condition 'then' expression}
       ['else' expression]
 
-condition ::= expression
+condition ::= expression ;
 
-case_expression ::= 'case' expression 'is' case_expression_alternative { ',' case_expression_alternative}
+case_expression_alternative_list ;;:new
+  : case_expression_alternative
+  | case_expression_alternative_list ',' case_expression_alternative
+    %((wisi-motion-action [1 3]))%
+  ;
 
-case_expression_alternative ::= 'when' discrete_choice_list '=>' expression
+case_expression
+  : 'case' expression 'is' case_expression_alternative_list
+    %((wisi-statement-action [1 motion])
+      (wisi-motion-action [1 4])
+      (wisi-indent-action [nil ada-indent-broken nil ada-indent-when]))%
+  ;
+
+case_expression_alternative
+  : 'when' discrete_choice_list '=>' expression
+    ;; test/ada_mode-conditional_expressions.adb
+    ;; when A =>
+    ;;    J = 4
+    ;;      or else M, --  test case from Piotr Trojanek
+    %((wisi-statement-action [1 motion])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               (wisi-hanging (wisi-anchored% 1 ada-indent)
+                                             (wisi-anchored% 1 (+ ada-indent ada-indent-broken)))]))%
+  ;
 
 quantified_expression ::=
     'for' quantifier loop_parameter_specification '=>' predicate
@@ -1020,14 +1041,28 @@ if_statement ::=
       {'elsif' condition 'then' sequence_of_statements}
       ['else' sequence_of_statements]
       'end' 'if' ';'
+  ;
 
-case_statement ::=
-    'case' expression 'is'
-      case_statement_alternative
-      {case_statement_alternative}
-      'end' 'case' ';'
+case_statement_alternative_list ;;:new
+  : case_statement_alternative
+  | case_statement_alternative_list case_statement_alternative
+    %((wisi-motion-action [1 2]))%
+  ;
 
-case_statement_alternative ::= 'when' discrete_choice_list '=>' sequence_of_statements
+case_statement
+  : 'case' expression 'is' case_statement_alternative_list 'end' 'case' ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-motion-action [1 4 7])
+      (wisi-indent-action [nil ada-indent-broken nil [ada-indent-when ada-indent-when]
+                               nil ada-indent-broken ada-indent-broken]))%
+;
+
+case_statement_alternative
+  : 'when' discrete_choice_list '=>' sequence_of_statements
+    %((wisi-statement-action [1 motion])
+      ;; ada-indent-when added in case_statement
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken [ada-indent ada-indent]]))%
+  ;
 
 loop_statement ::=
     [statement_identifier ':']
@@ -1397,40 +1432,49 @@ abortable_part ::= sequence_of_statements
 
 abort_statement ::= 'abort' name {',' name} ';'
 
-compilation ::= {compilation_unit}
+;; Compute indent for trailing comments.
+compilation
+  : compilation_unit
+    %((wisi-indent-action [[0 0]]))%
+    %((wisi-terminate-partial-parse))%
+  | compilation compilation_unit
+    %((wisi-indent-action [0 [0 0]]))%
+  ;
 
-  ;; extended for partial parse, fragment parse
+;; extended for partial parse, fragment parse
 compilation_unit ::=
   ;; context_clause library_item ;; redundant; all are in declarative_item
   ;; context_clause subunit ;; redundant
     with_clause ;; new
   | ['private'] declarative_item ;; new
+    %((wisi-indent-action [0 0]))%
   | statement ;; new
   | subunit ;; new
+  ;
 
-  ;; library_item ::=
-  ;;     ['private'] library_unit_declaration
-  ;;   | library_unit_body
-  ;;   | ['private'] library_unit_renaming_declaration
+;; library_item ::=
+;;     ['private'] library_unit_declaration
+;;   | library_unit_body
+;;   | ['private'] library_unit_renaming_declaration
 
-  ;; library_unit_declaration ::=
-  ;;     subprogram_declaration
-  ;;   | package_declaration
-  ;;   | generic_declaration
-  ;;   | generic_instantiation
+;; library_unit_declaration ::=
+;;     subprogram_declaration
+;;   | package_declaration
+;;   | generic_declaration
+;;   | generic_instantiation
 
-  ;; library_unit_renaming_declaration ::=
-  ;;     package_renaming_declaration
-  ;;   | generic_renaming_declaration
-  ;;   | subprogram_renaming_declaration
+;; library_unit_renaming_declaration ::=
+;;     package_renaming_declaration
+;;   | generic_renaming_declaration
+;;   | subprogram_renaming_declaration
 
-  ;; library_unit_body ::= subprogram_body | package_body
+;; library_unit_body ::= subprogram_body | package_body
 
-  ;; parent_unit_name ::= name ;; inlined
+;; parent_unit_name ::= name ;; inlined
 
-  ;; with_clause merged into compilation_unit; use_clause is already there via declarative_item
-  ;; context_clause ::= context_item+
-  ;; context_item ::= with_clause | use_clause
+;; with_clause merged into compilation_unit; use_clause is already there via declarative_item
+;; context_clause ::= context_item+
+;; context_item ::= with_clause | use_clause
 
 with_clause ::= limited_with_clause | nonlimited_with_clause
 
@@ -1664,7 +1708,7 @@ formal_parameter_set ::=
     formal_group_designator
   | name {',' name}
 
-formal_group_designator ::= 'null' | 'all'
+formal_group_designator ::= 'null' | 'all' ;
 
 ;; formal_parameter_name ::= ;; inlined to "name"
 ;;     subtype_mark
