@@ -44,7 +44,6 @@
    wisitoken_accept
    block
    compilation_unit
-   declarations
    declaration
    loop_statement
    name
@@ -53,6 +52,7 @@
    subprogram
    subtype
    use_clause
+   declaration_list
    nonterminal_014
    ])
 

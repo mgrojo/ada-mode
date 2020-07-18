@@ -941,7 +941,10 @@ is
                         Next (Param_Cur);
                         Param_I := @ + 1;
 
-                     elsif RHS.Auto_Token_Labels and Token_Label (1) /= 'T' and Token_I = Param_I then
+                     elsif RHS.Auto_Token_Labels and
+                       (Token_Label'Length > 0 and then Token_Label (1) /= 'T') and
+                       Token_I = Param_I
+                     then
                         Result := Result & (if Need_Comma then ", " else "") & Token_Label & " => " & Nil_Indent;
                         Mark_Label_Used (Token_Label);
                         Need_Comma := True;

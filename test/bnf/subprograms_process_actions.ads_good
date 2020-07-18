@@ -59,7 +59,6 @@ package Subprograms_Process_Actions is
          new String'("wisitoken_accept"),
          new String'("block"),
          new String'("compilation_unit"),
-         new String'("declarations"),
          new String'("declaration"),
          new String'("loop_statement"),
          new String'("name"),
@@ -68,6 +67,7 @@ package Subprograms_Process_Actions is
          new String'("subprogram"),
          new String'("subtype"),
          new String'("use_clause"),
+         new String'("declaration_list"),
          new String'("nonterminal_014")),
       Terminal_Image_Width => 11,
       Image_Width          => 16,
@@ -99,7 +99,6 @@ package Subprograms_Process_Actions is
       wisitoken_accept_ID,
       block_ID,
       compilation_unit_ID,
-      declarations_ID,
       declaration_ID,
       loop_statement_ID,
       name_ID,
@@ -108,6 +107,7 @@ package Subprograms_Process_Actions is
       subprogram_ID,
       subtype_ID,
       use_clause_ID,
+      declaration_list_ID,
       nonterminal_014_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;

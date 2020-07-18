@@ -107,16 +107,12 @@ block
     %((wisi-match-names 1 9))%
   ;
 
-;; No automatic token labels needed.
+;; No automatic token labels needed; {declaration} is replaced by declaration_list.
 compilation_unit
-  : declarations
+  : T1=declaration_list
     %()%
     %((wisi-terminate-partial-parse))%
-  ;
-
-declarations
-  : declarations declaration
-  | declaration
+  | ;; empty
   ;
 
 declaration
@@ -140,16 +136,12 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
-;; Recognized canonical list with action, automatic token labels
 name_list
-  : T1=name
+  : name
+    %((wisi-mmmify-token [1]))%
+  | name_list COMMA name
     %((wisi-mmmify-token [3])
-      (wisi-indent-action [(wisi-hanging 0 java-indent-broken)
-                           0
-                           (wisi-hanging 0 java-indent-broken)]))%
-  | G4=name_list T2=COMMA T3=name
-    %((wisi-mmmify-token [3])
-      (wisi-indent-action [(wisi-hanging 0 java-indent-broken)
+      (wisi-indent-action [nil
                            0
                            (wisi-hanging 0 java-indent-broken)]))%
   ;
@@ -266,12 +258,16 @@ subtype
 
 use_clause
 ;; simple group item to test auto token labels
-  : T1=USE G5=nonterminal_014 T3=SEMICOLON
+  : T1=USE G4=nonterminal_014 T3=SEMICOLON
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken 0]))%
   ;
 
 ;; end of file
+declaration_list
+  : declaration
+  | declaration_list declaration
+  ;
 nonterminal_014
   : T2=name_list
     %((wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])

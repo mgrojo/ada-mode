@@ -1015,7 +1015,7 @@ package body WisiToken.Parse.LR.Parser is
                         else
                            if Debug_Mode then
                               if Current_Parser.State_Ref.Tree.Branched_Tree_Node_Count >
-                                Shared_Parser.Branched_Tree_Node_Count_Threshold
+                                Shared_Parser.Branched_Tree_Limit
                               then
                                  declare
                                     Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
@@ -1024,11 +1024,11 @@ package body WisiToken.Parse.LR.Parser is
                                     raise WisiToken.Parse_Error with Error_Message
                                       (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
                                        "branched syntax tree growing too large (>" &
-                                         Shared_Parser.Branched_Tree_Node_Count_Threshold'Image &
+                                         Shared_Parser.Branched_Tree_Limit'Image &
                                          "), last shared node " &
                                          Parser_State.Tree.Image
                                            (Parser_State.Tree.Max_Shared_Node, Trace.Descriptor.all) &
-                                         "; improve grammar or increase Parser.Branched_Tree_Node_Count_Threshold.");
+                                         "; improve grammar or increase Parser.Branched_Tree_Limit.");
                                  end;
                               end if;
                            end if;

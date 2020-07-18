@@ -77,16 +77,11 @@ block
     %((wisi-match-names 1 9))%
 ;
 
-;; No automatic token labels needed.
+;; No automatic token labels needed; {declaration} is replaced by declaration_list.
 compilation_unit
-  : declarations
+  : {declaration}
     %()%
     %((wisi-terminate-partial-parse))%
-  ;
-
-declarations
-  : declarations declaration
-  | declaration
   ;
 
 declaration
@@ -107,11 +102,12 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
-;; Recognized canonical list with action, automatic token labels
 name_list
-  : name (COMMA name)*
+  : name
+    %((wisi-mmmify-token [1]))%
+  | name_list COMMA name
     %((wisi-mmmify-token [3])
-      (wisi-indent-action [(wisi-hanging 0 java-indent-broken)
+      (wisi-indent-action [nil
                            0
                            (wisi-hanging 0 java-indent-broken)]))%
   ;

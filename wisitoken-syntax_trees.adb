@@ -1588,7 +1588,7 @@ package body WisiToken.Syntax_Trees is
                   for I in 1 .. Level + 1 loop
                      Put ("| ");
                   end loop;
-                  Put_Line (" <deleted>");
+                  Put_Line ("<deleted>");
                else
                   Print_Node (Child, Level + 1);
                end if;

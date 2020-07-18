@@ -848,7 +848,18 @@ package body WisiToken_Grammar_Editing is
                            begin
                               case Tree.RHS_Index (Mult_Item) is
                               when 0 .. 3 =>
-                                 Add_Token_Labels_1 (Tree.Child (Mult_Item, 2));
+                                 declare
+                                    use all type Ada.Containers.Count_Type;
+                                    Content_List : constant Constant_List := Creators.Create_List
+                                      (Tree, Tree.Child (Mult_Item, 2), +rhs_alternative_list_ID, +rhs_item_list_ID);
+                                 begin
+                                    if Content_List.Count = 1 then
+                                       --  FIXME: check rhs_item_list.count!
+                                       Add_Token_Label (Element);
+                                    else
+                                       Add_Token_Labels_1 (Tree.Child (Mult_Item, 2));
+                                    end if;
+                                 end;
 
                               when 4 .. 5 =>
                                  Add_Token_Label (Element);
@@ -2151,7 +2162,7 @@ package body WisiToken_Grammar_Editing is
                           (Tree,
                            List_Name,
                            Data.Terminals)),
-                    Label));
+                     Label));
 
                New_RHS_List.Append
                  (Add_RHS
@@ -2248,7 +2259,7 @@ package body WisiToken_Grammar_Editing is
                return;
             end if;
 
-            if (RHS_List.Count = 1 and Tree.ID (RHS) = +rhs_ID) and then
+            if (RHS_List.Count = 1 and Tree.ID (RHS) = +rhs_ID and Tree.RHS_Index (RHS) = 1) and then
               ((RHS_Item_List_List.Count = 1 and
                   (B_Alt_List_List.Is_Invalid or else B_Alt_List_Item_List.Count = 1)) or
                  (RHS_Item_List_List.Count = 2 and Element_2 = RHS_Item_List_List.Last))
@@ -2905,6 +2916,14 @@ package body WisiToken_Grammar_Editing is
             end;
          end loop;
       end;
+
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+            Data.Error_Reported, Tree.Root, Validate_Node'Access);
+         Check_Original_EBNF;
+         Check_Copied_EBNF;
+      end if;
 
       --  Process nodes in node increasing order, so contained items are
       --  translated first, so duplicates of the containing item can be found

@@ -104,7 +104,8 @@ package WisiToken_Grammar_Runtime is
 
    function Image (Item : in WisiToken.Base_Token_Class_Access) return String
    is (WisiToken.Image (Augmented_Token_Access (Item).Non_Grammar, Wisitoken_Grammar_Actions.Descriptor) &
-         Augmented_Token_Access (Item).Auto_Token_Labels'Image);
+         Augmented_Token_Access (Item).Auto_Token_Labels'Image & " " &
+         Augmented_Token_Access (Item).Edited_Token_List'Image);
 
    overriding
    procedure Set_Lexer_Terminals
