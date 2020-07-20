@@ -19,7 +19,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -27,19 +27,39 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+dump_tree_sitter_ada_lite_corrected
+    runs, token_ids wrong
+
 auto_token_labels
     check for empty statement-action params
         wisitoken_grammar_1_bnf.wy nontemrinal_009
 
 error_correction_algorithm.tex
     finish "results"
+        use ada_lite for tree-sitter
+            first get ada_lite diffs
+../test/ada_lite/ada_mode-recover_16.adb:1:1
+../test/ada_lite/ada_mode-recover_17.adb:1:1
+../test/ada_lite/ada_mode-recover_18.adb:1:1
+../test/ada_lite/ada_mode-recover_21.adb:1:1
+../test/ada_lite/ada_mode-recover_22.adb:1:1
+../test/ada_lite/ada_mode-recover_27.adb:1:1
+../test/ada_lite/ada_mode-recover_30.adb:1:1
+../test/ada_lite/ada_mode-recover_31.adb:1:1
+../test/ada_lite/ada_mode-recover_33.adb:1:1
+../test/ada_lite/ada_mode-recover_34.adb:1:1
+../test/ada_lite/ada_mode-recover_align_1.adb:1:1
+../test/ada_lite/ada_mode-recover_deleted_procedure_1.adb:1:1
+../test/ada_lite/ada_mode-recover_exception_1.adb:1:1
+../test/ada_lite/ada_mode-recover_match_names.adb:1:1
+../test/ada_lite/ada_mode-recover_renaming_1.adb:1:1
+../test/ada_lite/ada_mode-recover_string_quote_1.adb:1:1
+../test/ada_lite/ada_mode-recover_type_1.ads:1:1
+../test/ada_lite/ada_mode-recover_virtual_renames.adb:1:1
 
         difference between desired and found terminal sequence file_count: 59
-            wisitoken-recover-compare:              total size: 13038 zero size: 23
-            wisitoken-ada_annex_p-recover-compare:  total size: 13470 zero size: 23
             libadalang-recover-compare:             total size: 27843 zero size: 5
 
-        add diff results for ada_annex_p
 
         libadalang better:
             recover_02
@@ -47,7 +67,6 @@ error_correction_algorithm.tex
                     could rebalance cost, but we favor fixing large errors.
 
             recover_13 (perfect)
-
 
     need title
         \title, \author not working!?
