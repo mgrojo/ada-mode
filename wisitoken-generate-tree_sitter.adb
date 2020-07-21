@@ -26,7 +26,7 @@ with WisiToken.Generate;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken_Grammar_Editing;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
-package body WisiToken.Tree_Sitter is
+package body WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
      (Data            : in out WisiToken_Grammar_Runtime.User_Data_Type;
@@ -1233,7 +1233,7 @@ package body WisiToken.Tree_Sitter is
       Set_Output (Standard_Output);
    end Create_Test_Main;
 
-end WisiToken.Tree_Sitter;
+end WisiToken.Generate.Tree_Sitter;
 --  Local Variables:
 --  ada-case-strict: nil
 --  End:

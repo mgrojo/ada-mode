@@ -42,7 +42,7 @@ with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Tree_Sitter;
+with WisiToken.Generate.Tree_Sitter;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
@@ -458,7 +458,7 @@ begin
 
          when Tree_Sitter =>
             declare
-               use WisiToken.Tree_Sitter;
+               use WisiToken.Generate.Tree_Sitter;
 
                procedure Translate (Tree : in out Syntax_Trees.Tree)
                is begin

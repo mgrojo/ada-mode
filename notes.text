@@ -36,27 +36,6 @@ auto_token_labels
 
 error_correction_algorithm.tex
     finish "results"
-        use ada_lite for tree-sitter
-            first get ada_lite diffs
-../test/ada_lite/ada_mode-recover_16.adb:1:1
-../test/ada_lite/ada_mode-recover_17.adb:1:1
-../test/ada_lite/ada_mode-recover_18.adb:1:1
-../test/ada_lite/ada_mode-recover_21.adb:1:1
-../test/ada_lite/ada_mode-recover_22.adb:1:1
-../test/ada_lite/ada_mode-recover_27.adb:1:1
-../test/ada_lite/ada_mode-recover_30.adb:1:1
-../test/ada_lite/ada_mode-recover_31.adb:1:1
-../test/ada_lite/ada_mode-recover_33.adb:1:1
-../test/ada_lite/ada_mode-recover_34.adb:1:1
-../test/ada_lite/ada_mode-recover_align_1.adb:1:1
-../test/ada_lite/ada_mode-recover_deleted_procedure_1.adb:1:1
-../test/ada_lite/ada_mode-recover_exception_1.adb:1:1
-../test/ada_lite/ada_mode-recover_match_names.adb:1:1
-../test/ada_lite/ada_mode-recover_renaming_1.adb:1:1
-../test/ada_lite/ada_mode-recover_string_quote_1.adb:1:1
-../test/ada_lite/ada_mode-recover_type_1.ads:1:1
-../test/ada_lite/ada_mode-recover_virtual_renames.adb:1:1
-
         difference between desired and found terminal sequence file_count: 59
             libadalang-recover-compare:             total size: 27843 zero size: 5
 

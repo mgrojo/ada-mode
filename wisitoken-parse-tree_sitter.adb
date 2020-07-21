@@ -27,10 +27,10 @@ package body WisiToken.Parse.Tree_Sitter is
    --    External_Name => "ts_node_is_missing",
    --    Convention    => C;
 
-   --  function TS_Node_Is_Extra (Node : in Syntax_Tree_Node) return Interfaces.C.Extensions.bool
-   --  with Import     => True,
-   --    External_Name => "ts_node_is_extra",
-   --    Convention    => C;
+   function TS_Node_Is_Extra (Node : in Syntax_Tree_Node) return Interfaces.C.Extensions.bool
+   with Import     => True,
+     External_Name => "ts_node_is_extra",
+     Convention    => C;
 
    --  function TS_Node_Has_Error (Node : in Syntax_Tree_Node) return Interfaces.C.Extensions.bool
    --  with Import     => True,
@@ -74,7 +74,11 @@ package body WisiToken.Parse.Tree_Sitter is
       subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
       subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
    begin
-      if ID (Node) in Terminal then
+      if TS_Node_Is_Extra (Node) then
+         --  non-grammar
+         return 0;
+
+      elsif ID (Node) in Terminal then
          return 1;
 
       elsif ID (Node) in Nonterminal | Error_Token_ID then
@@ -85,7 +89,7 @@ package body WisiToken.Parse.Tree_Sitter is
          end return;
 
       else
-         --  Non-grammar
+         --  something else
          return 0;
       end if;
    end Count_Terminals;
@@ -103,7 +107,11 @@ package body WisiToken.Parse.Tree_Sitter is
       subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
       ID : constant Token_ID := Tree_Sitter.ID (Node);
    begin
-      if ID in Terminal then
+      if TS_Node_Is_Extra (Node) then
+         --  non-grammar
+         null;
+
+      elsif ID in Terminal then
          Last := Last + 1;
          Result (Last) := Node;
 

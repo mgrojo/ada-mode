@@ -25,7 +25,8 @@ package Ada_Lite_Tree_Sitter_Actions is
 
    --  Copied from ada_lite_tree_sitter.c, converted to Ada
    type Token_Enum_ID is
-     (AMP_ID,                                -- 1
+     (TS_EOI_ID,                             -- 0
+      AMP_ID,                                -- 1
       COLON_ID,                              -- 2
       COLON_EQ_ID,                           -- 3
       COMMA_ID,                              -- 4
@@ -186,7 +187,8 @@ package Ada_Lite_Tree_Sitter_Actions is
       String_1_ID => +STRING_LITERAL_ID,
       String_2_ID => WisiToken.Invalid_Token_ID,
       Image =>
-        (new String'("&"),
+        (new String'("<eoi>"),
+         new String'("&"),
          new String'(":"),
          new String'(":="),
          new String'(","),

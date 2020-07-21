@@ -15,7 +15,7 @@ pragma License (Modified_GPL);
 
 with WisiToken_Grammar_Runtime;
 with WisiToken.Syntax_Trees;
-package WisiToken.Tree_Sitter is
+package WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
      (Data            : in out WisiToken_Grammar_Runtime.User_Data_Type;
@@ -36,4 +36,4 @@ package WisiToken.Tree_Sitter is
 
    procedure Create_Test_Main (Output_File_Name_Root : in String);
 
-end WisiToken.Tree_Sitter;
+end WisiToken.Generate.Tree_Sitter;
