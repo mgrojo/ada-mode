@@ -647,6 +647,11 @@ package WisiToken.Syntax_Trees is
    type Validate_Node is access procedure
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Index;
+      Data                : in out User_Data_Type'Class;
+      Terminals           : in     Base_Token_Array_Access_Constant;
+      Descriptor          : in     WisiToken.Descriptor;
+      File_Name           : in     String;
+      Error_Reported      : in out Node_Array_Booleans.Vector;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform other
@@ -659,6 +664,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Validate_Tree
      (Tree           : in out Syntax_Trees.Tree;
+      User_Data      : in out User_Data_Type'Class;
       Terminals      : in     Base_Token_Array_Access_Constant;
       Descriptor     : in     WisiToken.Descriptor;
       File_Name      : in     String;

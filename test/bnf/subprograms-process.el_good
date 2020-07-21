@@ -35,6 +35,7 @@
    USE
    LEFT_PAREN
    RIGHT_PAREN
+   COLON
    COMMA
    DOT
    SEMICOLON
@@ -43,7 +44,6 @@
    wisitoken_accept
    block
    compilation_unit
-   declarations
    declaration
    loop_statement
    name
@@ -52,7 +52,8 @@
    subprogram
    subtype
    use_clause
-   nonterminal_011
+   declaration_list
+   nonterminal_014
    ])
 
 (defconst subprograms-process-face-table
@@ -77,6 +78,7 @@
    (USE . "use")
    (LEFT_PAREN . "(")
    (RIGHT_PAREN . ")")
+   (COLON . ":")
    (COMMA . ",")
    (DOT . ".")
    (SEMICOLON . ";")

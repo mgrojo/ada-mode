@@ -40,6 +40,7 @@
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
 
+%token <punctuation> COLON ":"
 %token <punctuation> COMMA ","
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
@@ -70,21 +71,17 @@
 
 ;; Auto generated token labels with holes in indent args
 block
-  : BEGIN loop_statement [EXCEPTION WHEN name] END
-    %((wisi-statement-action [2 motion 3 motion 4 motion])
-      (wisi-indent-action [nil subp-indent nil subp-indent nil nil]))%
+  : [SYMBOL COLON] BEGIN loop_statement [EXCEPTION WHEN name] END [SYMBOL]
+    %((wisi-statement-action [1 statement-start 3 motion 5 motion 9 motion])
+      (wisi-indent-action [nil nil nil subp-indent nil subp-indent nil nil nil]))%
+    %((wisi-match-names 1 9))%
 ;
 
-;; No automatic token labels needed.
+;; No automatic token labels needed; {declaration} is replaced by declaration_list.
 compilation_unit
-  : declarations
+  : {declaration}
     %()%
     %((wisi-terminate-partial-parse))%
-  ;
-
-declarations
-  : declarations declaration
-  | declaration
   ;
 
 declaration
@@ -105,11 +102,12 @@ name
     %((wisi-merge-names pre suf))%
   ;
 
-;; Recognized canonical list with action, automatic token labels
 name_list
-  : name (COMMA name)*
+  : name
+    %((wisi-mmmify-token [1]))%
+  | name_list COMMA name
     %((wisi-mmmify-token [3])
-      (wisi-indent-action [(wisi-hanging 0 java-indent-broken)
+      (wisi-indent-action [nil
                            0
                            (wisi-hanging 0 java-indent-broken)]))%
   ;

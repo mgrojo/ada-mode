@@ -19,6 +19,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Calendar;
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Exceptions;
@@ -400,17 +401,17 @@ begin
            (if Command_Generate_Set = null then False else Command_Generate_Set'Length > 1);
 
       if Input_Data.Meta_Syntax = EBNF_Syntax and (for some Tup of Generate_Set.all => Tup.Gen_Alg /= Tree_Sitter) then
-         --  translate EBNF
+         if Trace_Generate_EBNF > Outline then
+            Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
+         end if;
+
          declare
-            Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+            Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+            Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
          begin
             Tree.Complete_Copy
               (New_Base_Tree => Saved_EBNF_Base_Tree'Unrestricted_Access,
                New_Tree      => Saved_EBNF_Tree);
-
-            if Trace_Generate_EBNF > Outline then
-               Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
-            end if;
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
@@ -432,6 +433,11 @@ begin
 
             if Output_BNF then
                WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", Tree, Input_Data);
+            end if;
+
+            if Trace_Time then
+               Ada.Text_IO.Put_Line
+                 ("translate to bnf time:" & Duration'Image (Ada.Calendar."-" (Ada.Calendar.Clock, Time_Start)));
             end if;
 
             if WisiToken.Generate.Error then

@@ -39,15 +39,15 @@ package body Subprograms_Process_LALR_Main is
       use WisiToken.Parse.LR;
       McKenzie_Param : constant McKenzie_Param_Type :=
         (First_Terminal    => 4,
-         Last_Terminal     => 20,
-         First_Nonterminal => 21,
-         Last_Nonterminal  => 33,
+         Last_Terminal     => 21,
+         First_Nonterminal => 22,
+         Last_Nonterminal  => 34,
          Insert =>
-           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
+           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
          Delete =>
-           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
+           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
          Push_Back =>
-           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
+           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
          Undo_Reduce =>
            (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
          Minimal_Complete_Cost_Delta => -1,
@@ -61,327 +61,425 @@ package body Subprograms_Process_LALR_Main is
 
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
-         State_Last        => 56,
+         State_Last        => 70,
          First_Terminal    => 4,
-         Last_Terminal     => 20,
-         First_Nonterminal => 21,
-         Last_Nonterminal  => 33);
+         Last_Terminal     => 21,
+         First_Nonterminal => 22,
+         Last_Nonterminal  => 34);
    begin
       Table.McKenzie_Param := McKenzie_Param;
       declare
          procedure Subr_1
          is begin
-            Table.States (0).Action_List.Set_Capacity (3);
+            Table.States (0).Action_List.Set_Capacity (4);
             Add_Action (Table.States (0), 8, (30, 0), 1);
             Add_Action (Table.States (0), 11, (30, 8), 2);
             Add_Action (Table.States (0), 13, (32, 0), 3);
+            Add_Action (Table.States (0), 21, Reduce, (24, 1),  0, null, null);
             Table.States (0).Goto_List.Set_Capacity (5);
-            Add_Goto (Table.States (0), 23, 4);
-            Add_Goto (Table.States (0), 24, 5);
-            Add_Goto (Table.States (0), 25, 6);
-            Add_Goto (Table.States (0), 30, 7);
-            Add_Goto (Table.States (0), 32, 8);
+            Add_Goto (Table.States (0), 24, 4);
+            Add_Goto (Table.States (0), 25, 5);
+            Add_Goto (Table.States (0), 30, 6);
+            Add_Goto (Table.States (0), 32, 7);
+            Add_Goto (Table.States (0), 33, 8);
             Table.States (1).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (1), 4, (22, 0), 9);
+            Add_Action (Table.States (1), 4, (23, 4), 9);
             Add_Action (Table.States (1), 14, (29, 0), 10);
-            Add_Action (Table.States (1), 18, (30, 7), 11);
-            Add_Action (Table.States (1), 19, (27, 1), 12);
+            Add_Action (Table.States (1), 19, (30, 7), 11);
+            Add_Action (Table.States (1), 20, (23, 0), 12);
             Table.States (1).Goto_List.Set_Capacity (3);
-            Add_Goto (Table.States (1), 22, 13);
+            Add_Goto (Table.States (1), 23, 13);
             Add_Goto (Table.States (1), 27, 14);
             Add_Goto (Table.States (1), 29, 15);
             Table.States (1).Kernel := To_Vector ((((30, 0),  8,  12, (2147483647, 0),  0), ((30, 1),  8,  4,
             (2147483647, 0),  0), ((30, 2),  8,  10, (2147483647, 0),  0), ((30, 3),  8,  2, (2147483647, 0),  0),
             ((30, 4),  8,  11, (2147483647, 0),  0), ((30, 5),  8,  3, (2147483647, 0),  0), ((30, 6),  8,  9,
             (2147483647, 0),  0), ((30, 7),  8,  1, (2147483647, 0),  0)));
-            Table.States (1).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 7),  18, 11)));
+            Table.States (1).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 7),  19, 11)));
             Table.States (2).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (2), 19, (27, 1), 12);
+            Add_Action (Table.States (2), 20, (27, 1), 16);
             Table.States (2).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (2), 27, 16);
+            Add_Goto (Table.States (2), 27, 17);
             Table.States (2).Kernel := To_Vector ((0 => ((30, 8),  11,  6, (2147483647, 0),  0)));
-            Table.States (2).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
+            Table.States (2).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
             Table.States (3).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (3), 19, (27, 1), 12);
+            Add_Action (Table.States (3), 20, (27, 1), 16);
             Table.States (3).Goto_List.Set_Capacity (3);
-            Add_Goto (Table.States (3), 27, 17);
-            Add_Goto (Table.States (3), 28, 18);
-            Add_Goto (Table.States (3), 33, 19);
+            Add_Goto (Table.States (3), 27, 18);
+            Add_Goto (Table.States (3), 28, 19);
+            Add_Goto (Table.States (3), 34, 20);
             Table.States (3).Kernel := To_Vector ((0 => ((32, 0),  13,  2, (2147483647, 0),  0)));
-            Table.States (3).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
+            Table.States (3).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
             Table.States (4).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (4), 20, Accept_It, (21, 0),  1, null, null);
+            Add_Action (Table.States (4), 21, Accept_It, (22, 0),  1, null, null);
             Table.States (5).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (5), 8, (30, 0), 1);
-            Add_Action (Table.States (5), 11, (30, 8), 2);
-            Add_Action (Table.States (5), 13, (32, 0), 3);
-            Add_Action (Table.States (5), 20, Reduce, (23, 0),  1, null, compilation_unit_0_check'Access);
-            Table.States (5).Goto_List.Set_Capacity (3);
-            Add_Goto (Table.States (5), 25, 20);
-            Add_Goto (Table.States (5), 30, 7);
-            Add_Goto (Table.States (5), 32, 8);
-            Table.States (5).Kernel := To_Vector ((((23, 0),  24,  0, (23, 0),  1), ((24, 0),  24,  2, (2147483647, 0),
-             0)));
-            Table.States (5).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (23, 0),  1)));
+            Add_Action (Table.States (5), (8, 11, 13, 21), (33, 0),  1, null, null);
+            Table.States (5).Kernel := To_Vector ((0 => ((33, 0),  25,  0, (33, 0),  1)));
+            Table.States (5).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 0),  1)));
             Table.States (6).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (6), (8, 11, 13, 20), (24, 1),  1, null, null);
-            Table.States (6).Kernel := To_Vector ((0 => ((24, 1),  25,  0, (24, 1),  1)));
-            Table.States (6).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (24, 1),  1)));
+            Add_Action (Table.States (6), (8, 11, 13, 21), (25, 0),  1, null, null);
+            Table.States (6).Kernel := To_Vector ((0 => ((25, 0),  30,  0, (25, 0),  1)));
+            Table.States (6).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (25, 0),  1)));
             Table.States (7).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (7), (8, 11, 13, 20), (25, 0),  1, null, null);
-            Table.States (7).Kernel := To_Vector ((0 => ((25, 0),  30,  0, (25, 0),  1)));
-            Table.States (7).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (25, 0),  1)));
+            Add_Action (Table.States (7), (8, 11, 13, 21), (25, 1),  1, null, null);
+            Table.States (7).Kernel := To_Vector ((0 => ((25, 1),  32,  0, (25, 1),  1)));
+            Table.States (7).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (25, 1),  1)));
             Table.States (8).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (8), (8, 11, 13, 20), (25, 1),  1, null, null);
-            Table.States (8).Kernel := To_Vector ((0 => ((25, 1),  32,  0, (25, 1),  1)));
-            Table.States (8).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (25, 1),  1)));
+            Add_Action (Table.States (8), 8, (30, 0), 1);
+            Add_Action (Table.States (8), 11, (30, 8), 2);
+            Add_Action (Table.States (8), 13, (32, 0), 3);
+            Add_Action (Table.States (8), 21, Reduce, (24, 0),  1, null, compilation_unit_0_check'Access);
+            Table.States (8).Goto_List.Set_Capacity (3);
+            Add_Goto (Table.States (8), 25, 21);
+            Add_Goto (Table.States (8), 30, 6);
+            Add_Goto (Table.States (8), 32, 7);
+            Table.States (8).Kernel := To_Vector ((((24, 0),  33,  0, (24, 0),  1), ((33, 1),  33,  2, (2147483647, 0),
+             0)));
+            Table.States (8).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (24, 0),  1)));
             Table.States (9).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (9), 7, (26, 0), 21);
+            Add_Action (Table.States (9), 7, (26, 0), 22);
             Table.States (9).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (9), 26, 22);
-            Table.States (9).Kernel := To_Vector ((((22, 0),  4,  10, (2147483647, 0),  0), ((22, 1),  4,  7,
-            (2147483647, 0),  0)));
-            Table.States (9).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  7, 21)));
+            Add_Goto (Table.States (9), 26, 23);
+            Table.States (9).Kernel := To_Vector ((((23, 4),  4,  11, (2147483647, 0),  0), ((23, 5),  4,  10,
+            (2147483647, 0),  0), ((23, 6),  4,  8, (2147483647, 0),  0), ((23, 7),  4,  7, (2147483647, 0),  0)));
+            Table.States (9).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  7, 22)));
             Table.States (10).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (10), 15, (29, 1), 23);
-            Add_Action (Table.States (10), 19, (29, 0), 24);
+            Add_Action (Table.States (10), 15, (29, 1), 24);
+            Add_Action (Table.States (10), 20, (29, 0), 25);
             Table.States (10).Kernel := To_Vector ((((29, 0),  14,  2, (2147483647, 0),  0), ((29, 1),  14,  1,
             (2147483647, 0),  0)));
-            Table.States (10).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 1),  15, 23)));
+            Table.States (10).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 1),  15, 24)));
             Table.States (11).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (11), (8, 11, 13, 20), (30, 7),  2, subprogram_7'Access, null);
-            Table.States (11).Kernel := To_Vector ((0 => ((30, 7),  18,  0, (30, 7),  2)));
+            Add_Action (Table.States (11), (8, 11, 13, 21), (30, 7),  2, subprogram_7'Access, null);
+            Table.States (11).Kernel := To_Vector ((0 => ((30, 7),  19,  0, (30, 7),  2)));
             Table.States (11).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 7),  2)));
-            Table.States (12).Action_List.Set_Capacity (7);
-            Add_Action (Table.States (12), (4, 5, 10, 14, 16, 17, 18), (27, 1),  1, name_1'Access,
-            name_1_check'Access);
-            Table.States (12).Kernel := To_Vector ((0 => ((27, 1),  19,  0, (27, 1),  1)));
-            Table.States (12).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (27, 1),  1)));
+            Table.States (12).Action_List.Set_Capacity (6);
+            Add_Action (Table.States (12), 4, Reduce, (27, 1),  1, name_1'Access, name_1_check'Access);
+            Add_Action (Table.States (12), 14, Reduce, (27, 1),  1, name_1'Access, name_1_check'Access);
+            Add_Action (Table.States (12), 16, (23, 0), 26);
+            Add_Action (Table.States (12), 18, Reduce, (27, 1),  1, name_1'Access, name_1_check'Access);
+            Add_Action (Table.States (12), 19, Reduce, (27, 1),  1, name_1'Access, name_1_check'Access);
+            Add_Action (Table.States (12), 20, Reduce, (27, 1),  1, name_1'Access, name_1_check'Access);
+            Table.States (12).Kernel := To_Vector ((((23, 0),  20,  13, (2147483647, 0),  0), ((23, 1),  20,  12,
+            (2147483647, 0),  0), ((23, 2),  20,  10, (2147483647, 0),  0), ((23, 3),  20,  9, (2147483647, 0),  0),
+            ((27, 1),  20,  0, (27, 1),  1)));
+            Table.States (12).Minimal_Complete_Actions := To_Vector (((Shift, (23, 0),  16, 26), (Reduce, (27, 1),
+            1)));
             Table.States (13).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (13), 18, (30, 6), 25);
-            Table.States (13).Kernel := To_Vector ((0 => ((30, 6),  22,  1, (2147483647, 0),  0)));
-            Table.States (13).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 6),  18, 25)));
-            Table.States (14).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (14), 4, (22, 0), 9);
+            Add_Action (Table.States (13), 19, (30, 6), 27);
+            Table.States (13).Kernel := To_Vector ((0 => ((30, 6),  23,  1, (2147483647, 0),  0)));
+            Table.States (13).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 6),  19, 27)));
+            Table.States (14).Action_List.Set_Capacity (5);
+            Add_Action (Table.States (14), 4, (23, 4), 9);
             Add_Action (Table.States (14), 14, (29, 0), 10);
-            Add_Action (Table.States (14), 17, (27, 0), 26);
-            Add_Action (Table.States (14), 18, (30, 3), 27);
+            Add_Action (Table.States (14), 18, (27, 0), 28);
+            Add_Action (Table.States (14), 19, (30, 3), 29);
+            Add_Action (Table.States (14), 20, (23, 0), 30);
             Table.States (14).Goto_List.Set_Capacity (2);
-            Add_Goto (Table.States (14), 22, 28);
-            Add_Goto (Table.States (14), 29, 29);
+            Add_Goto (Table.States (14), 23, 31);
+            Add_Goto (Table.States (14), 29, 32);
             Table.States (14).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((30, 0),  27,  11,
             (2147483647, 0),  0), ((30, 1),  27,  3, (2147483647, 0),  0), ((30, 2),  27,  9, (2147483647, 0),  0),
             ((30, 3),  27,  1, (2147483647, 0),  0)));
-            Table.States (14).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 3),  18, 27)));
-            Table.States (15).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (15), 4, (22, 0), 9);
-            Add_Action (Table.States (15), 18, (30, 5), 30);
+            Table.States (14).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 3),  19, 29)));
+            Table.States (15).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (15), 4, (23, 4), 9);
+            Add_Action (Table.States (15), 19, (30, 5), 33);
+            Add_Action (Table.States (15), 20, (23, 0), 30);
             Table.States (15).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (15), 22, 31);
+            Add_Goto (Table.States (15), 23, 34);
             Table.States (15).Kernel := To_Vector ((((30, 4),  29,  9, (2147483647, 0),  0), ((30, 5),  29,  1,
             (2147483647, 0),  0)));
-            Table.States (15).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 5),  18, 30)));
-            Table.States (16).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (16), 14, (29, 0), 10);
-            Add_Action (Table.States (16), 17, (27, 0), 26);
-            Table.States (16).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (16), 29, 32);
-            Table.States (16).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((30, 8),  27,  5,
+            Table.States (15).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 5),  19, 33)));
+            Table.States (16).Action_List.Set_Capacity (6);
+            Add_Action (Table.States (16), (5, 10, 14, 17, 18, 19), (27, 1),  1, name_1'Access, name_1_check'Access);
+            Table.States (16).Kernel := To_Vector ((0 => ((27, 1),  20,  0, (27, 1),  1)));
+            Table.States (16).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (27, 1),  1)));
+            Table.States (17).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (17), 14, (29, 0), 10);
+            Add_Action (Table.States (17), 18, (27, 0), 28);
+            Table.States (17).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (17), 29, 35);
+            Table.States (17).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((30, 8),  27,  5,
             (2147483647, 0),  0)));
-            Table.States (16).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 0),  14, 10)));
-            Table.States (17).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (17), 16, Reduce, (28, 0),  1, name_list_0'Access, null);
-            Add_Action (Table.States (17), 17, (27, 0), 26);
-            Add_Action (Table.States (17), 18, Reduce, (28, 0),  1, name_list_0'Access, null);
-            Table.States (17).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((28, 0),  27,  0, (28,
+            Table.States (17).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 0),  14, 10)));
+            Table.States (18).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (18), 17, Reduce, (28, 0),  1, name_list_0'Access, null);
+            Add_Action (Table.States (18), 18, (27, 0), 28);
+            Add_Action (Table.States (18), 19, Reduce, (28, 0),  1, name_list_0'Access, null);
+            Table.States (18).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((28, 0),  27,  0, (28,
             0),  1)));
-            Table.States (17).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (28, 0),  1)));
-            Table.States (18).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (18), 16, (28, 1), 33);
-            Add_Action (Table.States (18), 18, Reduce, (33, 0),  1, nonterminal_011_0'Access, null);
-            Table.States (18).Kernel := To_Vector ((((28, 1),  28,  2, (2147483647, 0),  0), ((33, 0),  28,  0, (33,
+            Table.States (18).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (28, 0),  1)));
+            Table.States (19).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (19), 17, (28, 1), 36);
+            Add_Action (Table.States (19), 19, Reduce, (34, 0),  1, nonterminal_014_0'Access, null);
+            Table.States (19).Kernel := To_Vector ((((28, 1),  28,  2, (2147483647, 0),  0), ((34, 0),  28,  0, (34,
             0),  1)));
-            Table.States (18).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 0),  1)));
-            Table.States (19).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (19), 18, (32, 0), 34);
-            Table.States (19).Kernel := To_Vector ((0 => ((32, 0),  33,  1, (2147483647, 0),  0)));
-            Table.States (19).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (32, 0),  18, 34)));
-            Table.States (20).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (20), (8, 11, 13, 20), (24, 0),  2, null, null);
-            Table.States (20).Kernel := To_Vector ((0 => ((24, 0),  25,  0, (24, 0),  2)));
-            Table.States (20).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (24, 0),  2)));
-            Table.States (21).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (21), 19, (26, 0), 35);
-            Table.States (21).Kernel := To_Vector ((0 => ((26, 0),  7,  5, (2147483647, 0),  0)));
-            Table.States (21).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  19, 35)));
-            Table.States (22).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (22), 5, (22, 1), 36);
-            Add_Action (Table.States (22), 6, (22, 0), 37);
-            Table.States (22).Kernel := To_Vector ((((22, 0),  26,  4, (2147483647, 0),  0), ((22, 1),  26,  1,
-            (2147483647, 0),  0)));
-            Table.States (22).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (22, 1),  5, 36)));
-            Table.States (23).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (23), (4, 5, 18), (29, 1),  2, parameter_list_1'Access, null);
-            Table.States (23).Kernel := To_Vector ((0 => ((29, 1),  15,  0, (29, 1),  2)));
-            Table.States (23).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (29, 1),  2)));
-            Table.States (24).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (24), 15, (29, 0), 38);
-            Table.States (24).Kernel := To_Vector ((0 => ((29, 0),  19,  1, (2147483647, 0),  0)));
-            Table.States (24).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 0),  15, 38)));
-            Table.States (25).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (25), (8, 11, 13, 20), (30, 6),  3, subprogram_6'Access, null);
-            Table.States (25).Kernel := To_Vector ((0 => ((30, 6),  18,  0, (30, 6),  3)));
-            Table.States (25).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 6),  3)));
+            Table.States (19).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (34, 0),  1)));
+            Table.States (20).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (20), 19, (32, 0), 37);
+            Table.States (20).Kernel := To_Vector ((0 => ((32, 0),  34,  1, (2147483647, 0),  0)));
+            Table.States (20).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (32, 0),  19, 37)));
+            Table.States (21).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (21), (8, 11, 13, 21), (33, 1),  2, null, null);
+            Table.States (21).Kernel := To_Vector ((0 => ((33, 1),  25,  0, (33, 1),  2)));
+            Table.States (21).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 1),  2)));
+            Table.States (22).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (22), 20, (26, 0), 38);
+            Table.States (22).Kernel := To_Vector ((0 => ((26, 0),  7,  5, (2147483647, 0),  0)));
+            Table.States (22).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  20, 38)));
+            Table.States (23).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (23), 5, (23, 6), 39);
+            Add_Action (Table.States (23), 6, (23, 4), 40);
+            Table.States (23).Kernel := To_Vector ((((23, 4),  26,  5, (2147483647, 0),  0), ((23, 5),  26,  4,
+            (2147483647, 0),  0), ((23, 6),  26,  2, (2147483647, 0),  0), ((23, 7),  26,  1, (2147483647, 0),  0)));
+            Table.States (23).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 6),  5, 39)));
+            Table.States (24).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (24), (4, 5, 19, 20), (29, 1),  2, parameter_list_1'Access, null);
+            Table.States (24).Kernel := To_Vector ((0 => ((29, 1),  15,  0, (29, 1),  2)));
+            Table.States (24).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (29, 1),  2)));
+            Table.States (25).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (25), 15, (29, 0), 41);
+            Table.States (25).Kernel := To_Vector ((0 => ((29, 0),  20,  1, (2147483647, 0),  0)));
+            Table.States (25).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (29, 0),  15, 41)));
             Table.States (26).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (26), 19, (27, 0), 39);
-            Table.States (26).Kernel := To_Vector ((0 => ((27, 0),  17,  1, (2147483647, 0),  0)));
-            Table.States (26).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 0),  19, 39)));
+            Add_Action (Table.States (26), 4, (23, 0), 42);
+            Table.States (26).Kernel := To_Vector ((((23, 0),  16,  12, (2147483647, 0),  0), ((23, 1),  16,  11,
+            (2147483647, 0),  0), ((23, 2),  16,  9, (2147483647, 0),  0), ((23, 3),  16,  8, (2147483647, 0),  0)));
+            Table.States (26).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 0),  4, 42)));
             Table.States (27).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (27), (8, 11, 13, 20), (30, 3),  3, subprogram_3'Access, null);
-            Table.States (27).Kernel := To_Vector ((0 => ((30, 3),  18,  0, (30, 3),  3)));
-            Table.States (27).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 3),  3)));
+            Add_Action (Table.States (27), (8, 11, 13, 21), (30, 6),  3, subprogram_6'Access, null);
+            Table.States (27).Kernel := To_Vector ((0 => ((30, 6),  19,  0, (30, 6),  3)));
+            Table.States (27).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 6),  3)));
             Table.States (28).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (28), 18, (30, 2), 40);
-            Table.States (28).Kernel := To_Vector ((0 => ((30, 2),  22,  1, (2147483647, 0),  0)));
-            Table.States (28).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 2),  18, 40)));
-            Table.States (29).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (29), 4, (22, 0), 9);
-            Add_Action (Table.States (29), 18, (30, 1), 41);
-            Table.States (29).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (29), 22, 42);
-            Table.States (29).Kernel := To_Vector ((((30, 0),  29,  9, (2147483647, 0),  0), ((30, 1),  29,  1,
-            (2147483647, 0),  0)));
-            Table.States (29).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 1),  18, 41)));
-            Table.States (30).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (30), (8, 11, 13, 20), (30, 5),  3, subprogram_5'Access, null);
-            Table.States (30).Kernel := To_Vector ((0 => ((30, 5),  18,  0, (30, 5),  3)));
-            Table.States (30).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 5),  3)));
+            Add_Action (Table.States (28), 20, (27, 0), 43);
+            Table.States (28).Kernel := To_Vector ((0 => ((27, 0),  18,  1, (2147483647, 0),  0)));
+            Table.States (28).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 0),  20, 43)));
+            Table.States (29).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (29), (8, 11, 13, 21), (30, 3),  3, subprogram_3'Access, null);
+            Table.States (29).Kernel := To_Vector ((0 => ((30, 3),  19,  0, (30, 3),  3)));
+            Table.States (29).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 3),  3)));
+            Table.States (30).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (30), 16, (23, 0), 26);
+            Table.States (30).Kernel := To_Vector ((((23, 0),  20,  13, (2147483647, 0),  0), ((23, 1),  20,  12,
+            (2147483647, 0),  0), ((23, 2),  20,  10, (2147483647, 0),  0), ((23, 3),  20,  9, (2147483647, 0),  0)));
+            Table.States (30).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 0),  16, 26)));
             Table.States (31).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (31), 18, (30, 4), 43);
-            Table.States (31).Kernel := To_Vector ((0 => ((30, 4),  22,  1, (2147483647, 0),  0)));
-            Table.States (31).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 4),  18, 43)));
-            Table.States (32).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (32), 5, (30, 8), 44);
-            Table.States (32).Kernel := To_Vector ((0 => ((30, 8),  29,  3, (2147483647, 0),  0)));
-            Table.States (32).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 8),  5, 44)));
-            Table.States (33).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (33), 19, (27, 1), 12);
-            Table.States (33).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (33), 27, 45);
-            Table.States (33).Kernel := To_Vector ((0 => ((28, 1),  16,  1, (2147483647, 0),  0)));
-            Table.States (33).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
-            Table.States (34).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (34), (8, 11, 13, 20), (32, 0),  3, use_clause_0'Access, null);
-            Table.States (34).Kernel := To_Vector ((0 => ((32, 0),  18,  0, (32, 0),  3)));
-            Table.States (34).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (32, 0),  3)));
+            Add_Action (Table.States (31), 19, (30, 2), 44);
+            Table.States (31).Kernel := To_Vector ((0 => ((30, 2),  23,  1, (2147483647, 0),  0)));
+            Table.States (31).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 2),  19, 44)));
+            Table.States (32).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (32), 4, (23, 4), 9);
+            Add_Action (Table.States (32), 19, (30, 1), 45);
+            Add_Action (Table.States (32), 20, (23, 0), 30);
+            Table.States (32).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (32), 23, 46);
+            Table.States (32).Kernel := To_Vector ((((30, 0),  29,  9, (2147483647, 0),  0), ((30, 1),  29,  1,
+            (2147483647, 0),  0)));
+            Table.States (32).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 1),  19, 45)));
+            Table.States (33).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (33), (8, 11, 13, 21), (30, 5),  3, subprogram_5'Access, null);
+            Table.States (33).Kernel := To_Vector ((0 => ((30, 5),  19,  0, (30, 5),  3)));
+            Table.States (33).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 5),  3)));
+            Table.States (34).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (34), 19, (30, 4), 47);
+            Table.States (34).Kernel := To_Vector ((0 => ((30, 4),  23,  1, (2147483647, 0),  0)));
+            Table.States (34).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 4),  19, 47)));
             Table.States (35).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (35), 9, (26, 0), 46);
-            Table.States (35).Kernel := To_Vector ((0 => ((26, 0),  19,  4, (2147483647, 0),  0)));
-            Table.States (35).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  9, 46)));
+            Add_Action (Table.States (35), 5, (30, 8), 48);
+            Table.States (35).Kernel := To_Vector ((0 => ((30, 8),  29,  3, (2147483647, 0),  0)));
+            Table.States (35).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 8),  5, 48)));
             Table.States (36).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (36), (1 =>  18), (22, 1),  3, block_1'Access, null);
-            Table.States (36).Kernel := To_Vector ((0 => ((22, 1),  5,  0, (22, 1),  3)));
-            Table.States (36).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (22, 1),  3)));
-            Table.States (37).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (37), 12, (22, 0), 47);
-            Table.States (37).Kernel := To_Vector ((0 => ((22, 0),  6,  3, (2147483647, 0),  0)));
-            Table.States (37).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (22, 0),  12, 47)));
-            Table.States (38).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (38), (4, 5, 18), (29, 0),  3, parameter_list_0'Access, null);
-            Table.States (38).Kernel := To_Vector ((0 => ((29, 0),  15,  0, (29, 0),  3)));
-            Table.States (38).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (29, 0),  3)));
-            Table.States (39).Action_List.Set_Capacity (7);
-            Add_Action (Table.States (39), (4, 5, 10, 14, 16, 17, 18), (27, 0),  3, name_0'Access,
-            name_0_check'Access);
-            Table.States (39).Kernel := To_Vector ((0 => ((27, 0),  19,  0, (27, 0),  3)));
-            Table.States (39).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (27, 0),  3)));
-            Table.States (40).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (40), (8, 11, 13, 20), (30, 2),  4, subprogram_2'Access, null);
-            Table.States (40).Kernel := To_Vector ((0 => ((30, 2),  18,  0, (30, 2),  4)));
-            Table.States (40).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 2),  4)));
+            Add_Action (Table.States (36), 20, (27, 1), 16);
+            Table.States (36).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (36), 27, 49);
+            Table.States (36).Kernel := To_Vector ((0 => ((28, 1),  17,  1, (2147483647, 0),  0)));
+            Table.States (36).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
+            Table.States (37).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (37), (8, 11, 13, 21), (32, 0),  3, use_clause_0'Access, null);
+            Table.States (37).Kernel := To_Vector ((0 => ((32, 0),  19,  0, (32, 0),  3)));
+            Table.States (37).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (32, 0),  3)));
+            Table.States (38).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (38), 9, (26, 0), 50);
+            Table.States (38).Kernel := To_Vector ((0 => ((26, 0),  20,  4, (2147483647, 0),  0)));
+            Table.States (38).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  9, 50)));
+            Table.States (39).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (39), 19, Reduce, (23, 7),  3, block_7'Access, null);
+            Add_Action (Table.States (39), 20, (23, 6), 51);
+            Table.States (39).Kernel := To_Vector ((((23, 6),  5,  1, (2147483647, 0),  0), ((23, 7),  5,  0, (23, 7),
+            3)));
+            Table.States (39).Minimal_Complete_Actions := To_Vector (((Shift, (23, 6),  20, 51), (Reduce, (23, 7),
+            3)));
+            Table.States (40).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (40), 12, (23, 4), 52);
+            Table.States (40).Kernel := To_Vector ((((23, 4),  6,  4, (2147483647, 0),  0), ((23, 5),  6,  3,
+            (2147483647, 0),  0)));
+            Table.States (40).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 4),  12, 52)));
             Table.States (41).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (41), (8, 11, 13, 20), (30, 1),  4, subprogram_1'Access, null);
-            Table.States (41).Kernel := To_Vector ((0 => ((30, 1),  18,  0, (30, 1),  4)));
-            Table.States (41).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 1),  4)));
+            Add_Action (Table.States (41), (4, 5, 19, 20), (29, 0),  3, parameter_list_0'Access, null);
+            Table.States (41).Kernel := To_Vector ((0 => ((29, 0),  15,  0, (29, 0),  3)));
+            Table.States (41).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (29, 0),  3)));
             Table.States (42).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (42), 18, (30, 0), 48);
-            Table.States (42).Kernel := To_Vector ((0 => ((30, 0),  22,  1, (2147483647, 0),  0)));
-            Table.States (42).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 0),  18, 48)));
-            Table.States (43).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (43), (8, 11, 13, 20), (30, 4),  4, subprogram_4'Access, null);
-            Table.States (43).Kernel := To_Vector ((0 => ((30, 4),  18,  0, (30, 4),  4)));
-            Table.States (43).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 4),  4)));
-            Table.States (44).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (44), 19, (27, 1), 12);
-            Table.States (44).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (44), 27, 49);
-            Table.States (44).Kernel := To_Vector ((0 => ((30, 8),  5,  2, (2147483647, 0),  0)));
-            Table.States (44).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
-            Table.States (45).Action_List.Set_Capacity (3);
-            Add_Action (Table.States (45), 16, Reduce, (28, 1),  3, name_list_1'Access, null);
-            Add_Action (Table.States (45), 17, (27, 0), 26);
-            Add_Action (Table.States (45), 18, Reduce, (28, 1),  3, name_list_1'Access, null);
-            Table.States (45).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((28, 1),  27,  0, (28,
-            1),  3)));
-            Table.States (45).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (28, 1),  3)));
+            Add_Action (Table.States (42), 7, (26, 0), 22);
+            Table.States (42).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (42), 26, 53);
+            Table.States (42).Kernel := To_Vector ((((23, 0),  4,  11, (2147483647, 0),  0), ((23, 1),  4,  10,
+            (2147483647, 0),  0), ((23, 2),  4,  8, (2147483647, 0),  0), ((23, 3),  4,  7, (2147483647, 0),  0)));
+            Table.States (42).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  7, 22)));
+            Table.States (43).Action_List.Set_Capacity (8);
+            Add_Action (Table.States (43), (4, 5, 10, 14, 17, 18, 19, 20), (27, 0),  3, name_0'Access,
+            name_0_check'Access);
+            Table.States (43).Kernel := To_Vector ((0 => ((27, 0),  20,  0, (27, 0),  3)));
+            Table.States (43).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (27, 0),  3)));
+            Table.States (44).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (44), (8, 11, 13, 21), (30, 2),  4, subprogram_2'Access, null);
+            Table.States (44).Kernel := To_Vector ((0 => ((30, 2),  19,  0, (30, 2),  4)));
+            Table.States (44).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 2),  4)));
+            Table.States (45).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (45), (8, 11, 13, 21), (30, 1),  4, subprogram_1'Access, null);
+            Table.States (45).Kernel := To_Vector ((0 => ((30, 1),  19,  0, (30, 1),  4)));
+            Table.States (45).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 1),  4)));
             Table.States (46).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (46), 19, (27, 1), 12);
-            Table.States (46).Goto_List.Set_Capacity (2);
-            Add_Goto (Table.States (46), 27, 50);
-            Add_Goto (Table.States (46), 31, 51);
-            Table.States (46).Kernel := To_Vector ((0 => ((26, 0),  9,  3, (2147483647, 0),  0)));
-            Table.States (46).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
-            Table.States (47).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (47), 19, (27, 1), 12);
-            Table.States (47).Goto_List.Set_Capacity (1);
-            Add_Goto (Table.States (47), 27, 52);
-            Table.States (47).Kernel := To_Vector ((0 => ((22, 0),  12,  2, (2147483647, 0),  0)));
-            Table.States (47).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  19, 12)));
-            Table.States (48).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (48), (8, 11, 13, 20), (30, 0),  5, subprogram_0'Access, null);
-            Table.States (48).Kernel := To_Vector ((0 => ((30, 0),  18,  0, (30, 0),  5)));
-            Table.States (48).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 0),  5)));
-            Table.States (49).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (49), 17, (27, 0), 26);
-            Add_Action (Table.States (49), 18, (30, 8), 53);
-            Table.States (49).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((30, 8),  27,  1,
-            (2147483647, 0),  0)));
-            Table.States (49).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 8),  18, 53)));
-            Table.States (50).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (50), 10, Reduce, (31, 0),  1, subtype_0'Access, null);
-            Add_Action (Table.States (50), 17, (27, 0), 26);
-            Table.States (50).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((31, 0),  27,  0, (31,
-            0),  1)));
-            Table.States (50).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (31, 0),  1)));
+            Add_Action (Table.States (46), 19, (30, 0), 54);
+            Table.States (46).Kernel := To_Vector ((0 => ((30, 0),  23,  1, (2147483647, 0),  0)));
+            Table.States (46).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 0),  19, 54)));
+            Table.States (47).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (47), (8, 11, 13, 21), (30, 4),  4, subprogram_4'Access, null);
+            Table.States (47).Kernel := To_Vector ((0 => ((30, 4),  19,  0, (30, 4),  4)));
+            Table.States (47).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 4),  4)));
+            Table.States (48).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (48), 20, (27, 1), 16);
+            Table.States (48).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (48), 27, 55);
+            Table.States (48).Kernel := To_Vector ((0 => ((30, 8),  5,  2, (2147483647, 0),  0)));
+            Table.States (48).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
+            Table.States (49).Action_List.Set_Capacity (3);
+            Add_Action (Table.States (49), 17, Reduce, (28, 1),  3, name_list_1'Access, null);
+            Add_Action (Table.States (49), 18, (27, 0), 28);
+            Add_Action (Table.States (49), 19, Reduce, (28, 1),  3, name_list_1'Access, null);
+            Table.States (49).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((28, 1),  27,  0, (28,
+            1),  3)));
+            Table.States (49).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (28, 1),  3)));
+            Table.States (50).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (50), 20, (27, 1), 16);
+            Table.States (50).Goto_List.Set_Capacity (2);
+            Add_Goto (Table.States (50), 27, 56);
+            Add_Goto (Table.States (50), 31, 57);
+            Table.States (50).Kernel := To_Vector ((0 => ((26, 0),  9,  3, (2147483647, 0),  0)));
+            Table.States (50).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
             Table.States (51).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (51), 10, (26, 0), 54);
-            Table.States (51).Kernel := To_Vector ((0 => ((26, 0),  31,  2, (2147483647, 0),  0)));
-            Table.States (51).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  10, 54)));
-            Table.States (52).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (52), 5, (22, 0), 55);
-            Add_Action (Table.States (52), 17, (27, 0), 26);
-            Table.States (52).Kernel := To_Vector ((((22, 0),  27,  1, (2147483647, 0),  0), ((27, 0),  27,  2,
+            Add_Action (Table.States (51), (1 =>  19), (23, 6),  4, block_6'Access, null);
+            Table.States (51).Kernel := To_Vector ((0 => ((23, 6),  20,  0, (23, 6),  4)));
+            Table.States (51).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (23, 6),  4)));
+            Table.States (52).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (52), 20, (27, 1), 16);
+            Table.States (52).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (52), 27, 58);
+            Table.States (52).Kernel := To_Vector ((((23, 4),  12,  3, (2147483647, 0),  0), ((23, 5),  12,  2,
             (2147483647, 0),  0)));
-            Table.States (52).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (22, 0),  5, 55)));
-            Table.States (53).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (53), (8, 11, 13, 20), (30, 8),  6, subprogram_8'Access, null);
-            Table.States (53).Kernel := To_Vector ((0 => ((30, 8),  18,  0, (30, 8),  6)));
-            Table.States (53).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 8),  6)));
-            Table.States (54).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (54), 18, (26, 0), 56);
-            Table.States (54).Kernel := To_Vector ((0 => ((26, 0),  10,  1, (2147483647, 0),  0)));
-            Table.States (54).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  18, 56)));
-            Table.States (55).Action_List.Set_Capacity (1);
-            Add_Action (Table.States (55), (1 =>  18), (22, 0),  6, block_0'Access, null);
-            Table.States (55).Kernel := To_Vector ((0 => ((22, 0),  5,  0, (22, 0),  6)));
-            Table.States (55).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (22, 0),  6)));
+            Table.States (52).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
+            Table.States (53).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (53), 5, (23, 2), 59);
+            Add_Action (Table.States (53), 6, (23, 0), 60);
+            Table.States (53).Kernel := To_Vector ((((23, 0),  26,  5, (2147483647, 0),  0), ((23, 1),  26,  4,
+            (2147483647, 0),  0), ((23, 2),  26,  2, (2147483647, 0),  0), ((23, 3),  26,  1, (2147483647, 0),  0)));
+            Table.States (53).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 2),  5, 59)));
+            Table.States (54).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (54), (8, 11, 13, 21), (30, 0),  5, subprogram_0'Access, null);
+            Table.States (54).Kernel := To_Vector ((0 => ((30, 0),  19,  0, (30, 0),  5)));
+            Table.States (54).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 0),  5)));
+            Table.States (55).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (55), 18, (27, 0), 28);
+            Add_Action (Table.States (55), 19, (30, 8), 61);
+            Table.States (55).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((30, 8),  27,  1,
+            (2147483647, 0),  0)));
+            Table.States (55).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (30, 8),  19, 61)));
             Table.States (56).Action_List.Set_Capacity (2);
-            Add_Action (Table.States (56), (5, 6), (26, 0),  6, loop_statement_0'Access, null);
-            Table.States (56).Kernel := To_Vector ((0 => ((26, 0),  18,  0, (26, 0),  6)));
-            Table.States (56).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (26, 0),  6)));
+            Add_Action (Table.States (56), 10, Reduce, (31, 0),  1, subtype_0'Access, null);
+            Add_Action (Table.States (56), 18, (27, 0), 28);
+            Table.States (56).Kernel := To_Vector ((((27, 0),  27,  2, (2147483647, 0),  0), ((31, 0),  27,  0, (31,
+            0),  1)));
+            Table.States (56).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (31, 0),  1)));
+            Table.States (57).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (57), 10, (26, 0), 62);
+            Table.States (57).Kernel := To_Vector ((0 => ((26, 0),  31,  2, (2147483647, 0),  0)));
+            Table.States (57).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  10, 62)));
+            Table.States (58).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (58), 5, (23, 4), 63);
+            Add_Action (Table.States (58), 18, (27, 0), 28);
+            Table.States (58).Kernel := To_Vector ((((23, 4),  27,  2, (2147483647, 0),  0), ((23, 5),  27,  1,
+            (2147483647, 0),  0), ((27, 0),  27,  2, (2147483647, 0),  0)));
+            Table.States (58).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 4),  5, 63)));
+            Table.States (59).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (59), 19, Reduce, (23, 3),  5, block_3'Access, null);
+            Add_Action (Table.States (59), 20, (23, 2), 64);
+            Table.States (59).Kernel := To_Vector ((((23, 2),  5,  1, (2147483647, 0),  0), ((23, 3),  5,  0, (23, 3),
+            5)));
+            Table.States (59).Minimal_Complete_Actions := To_Vector (((Shift, (23, 2),  20, 64), (Reduce, (23, 3),
+            5)));
+            Table.States (60).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (60), 12, (23, 0), 65);
+            Table.States (60).Kernel := To_Vector ((((23, 0),  6,  4, (2147483647, 0),  0), ((23, 1),  6,  3,
+            (2147483647, 0),  0)));
+            Table.States (60).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 0),  12, 65)));
+            Table.States (61).Action_List.Set_Capacity (4);
+            Add_Action (Table.States (61), (8, 11, 13, 21), (30, 8),  6, subprogram_8'Access, null);
+            Table.States (61).Kernel := To_Vector ((0 => ((30, 8),  19,  0, (30, 8),  6)));
+            Table.States (61).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (30, 8),  6)));
+            Table.States (62).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (62), 19, (26, 0), 66);
+            Table.States (62).Kernel := To_Vector ((0 => ((26, 0),  10,  1, (2147483647, 0),  0)));
+            Table.States (62).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (26, 0),  19, 66)));
+            Table.States (63).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (63), 19, Reduce, (23, 5),  6, block_5'Access, null);
+            Add_Action (Table.States (63), 20, (23, 4), 67);
+            Table.States (63).Kernel := To_Vector ((((23, 4),  5,  1, (2147483647, 0),  0), ((23, 5),  5,  0, (23, 5),
+            6)));
+            Table.States (63).Minimal_Complete_Actions := To_Vector (((Shift, (23, 4),  20, 67), (Reduce, (23, 5),
+            6)));
+            Table.States (64).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (64), (1 =>  19), (23, 2),  6, block_2'Access, block_2_check'Access);
+            Table.States (64).Kernel := To_Vector ((0 => ((23, 2),  20,  0, (23, 2),  6)));
+            Table.States (64).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (23, 2),  6)));
+            Table.States (65).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (65), 20, (27, 1), 16);
+            Table.States (65).Goto_List.Set_Capacity (1);
+            Add_Goto (Table.States (65), 27, 68);
+            Table.States (65).Kernel := To_Vector ((((23, 0),  12,  3, (2147483647, 0),  0), ((23, 1),  12,  2,
+            (2147483647, 0),  0)));
+            Table.States (65).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (27, 1),  20, 16)));
+            Table.States (66).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (66), (5, 6), (26, 0),  6, loop_statement_0'Access, null);
+            Table.States (66).Kernel := To_Vector ((0 => ((26, 0),  19,  0, (26, 0),  6)));
+            Table.States (66).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (26, 0),  6)));
+            Table.States (67).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (67), (1 =>  19), (23, 4),  7, block_4'Access, null);
+            Table.States (67).Kernel := To_Vector ((0 => ((23, 4),  20,  0, (23, 4),  7)));
+            Table.States (67).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (23, 4),  7)));
+            Table.States (68).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (68), 5, (23, 0), 69);
+            Add_Action (Table.States (68), 18, (27, 0), 28);
+            Table.States (68).Kernel := To_Vector ((((23, 0),  27,  2, (2147483647, 0),  0), ((23, 1),  27,  1,
+            (2147483647, 0),  0), ((27, 0),  27,  2, (2147483647, 0),  0)));
+            Table.States (68).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (23, 0),  5, 69)));
+            Table.States (69).Action_List.Set_Capacity (2);
+            Add_Action (Table.States (69), 19, Reduce, (23, 1),  8, block_1'Access, null);
+            Add_Action (Table.States (69), 20, (23, 0), 70);
+            Table.States (69).Kernel := To_Vector ((((23, 0),  5,  1, (2147483647, 0),  0), ((23, 1),  5,  0, (23, 1),
+            8)));
+            Table.States (69).Minimal_Complete_Actions := To_Vector (((Shift, (23, 0),  20, 70), (Reduce, (23, 1),
+            8)));
          end Subr_1;
+         procedure Subr_2
+         is begin
+            Table.States (70).Action_List.Set_Capacity (1);
+            Add_Action (Table.States (70), (1 =>  19), (23, 0),  9, block_0'Access, block_0_check'Access);
+            Table.States (70).Kernel := To_Vector ((0 => ((23, 0),  20,  0, (23, 0),  9)));
+            Table.States (70).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (23, 0),  9)));
+         end Subr_2;
       begin
          Subr_1;
+         Subr_2;
          Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
       end;
 

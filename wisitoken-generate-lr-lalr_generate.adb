@@ -512,9 +512,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
-      Table_Time            : Ada.Calendar.Time;
-      Minimal_Actions_Time  : Ada.Calendar.Time;
-      Collect_Conflict_Time : Ada.Calendar.Time;
+      Table_Time           : Ada.Calendar.Time;
+      Minimal_Actions_Time : Ada.Calendar.Time;
    begin
       WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
 
@@ -592,13 +591,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end if;
 
       Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
-
-      if Trace_Time then
-         Collect_Conflict_Time := Ada.Calendar.Clock;
-         Ada.Text_IO.Put_Line
-           ("compute minimal actions time:" & Duration'Image
-              (Ada.Calendar."-" (Collect_Conflict_Time, Minimal_Actions_Time)));
-      end if;
 
       if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table

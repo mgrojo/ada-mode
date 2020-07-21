@@ -82,7 +82,7 @@ begin
    WisiToken.Trace_Parse          := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
    WisiToken.Trace_Action         := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", null)));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
 
    Run (Suite, Options, Result, Status);
 

@@ -154,6 +154,22 @@ package WisiToken_Grammar_Editing is
                 To_Token_Enum (Tree.ID (Find_Declaration'Result)) in declaration_ID | nonterminal_ID;
    --  Return the node that declares Name, Invalid_Node_Index if none.
 
+   procedure Validate_Node
+     (Tree                : in     WisiToken.Syntax_Trees.Tree;
+      Node                : in     WisiToken.Valid_Node_Index;
+      User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Terminals           : in     WisiToken.Base_Token_Array_Access_Constant;
+      Descriptor          : in     WisiToken.Descriptor;
+      File_Name           : in     String;
+      Error_Reported      : in out WisiToken.Node_Array_Booleans.Vector;
+      Node_Image_Output   : in out Boolean;
+      Node_Error_Reported : in out Boolean);
+   --  Verify that all nodes match wisitoken_grammar.wy. Data must be of
+   --  type WisiToken_Grammar_Runtime.User_Data_Type. Uses
+   --  Data.EBNF_Allowed, Data.Error_Reported.
+   --
+   --  For use with Syntax_Trees.Validate_Tree.
+
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Data : in out WisiToken_Grammar_Runtime.User_Data_Type);

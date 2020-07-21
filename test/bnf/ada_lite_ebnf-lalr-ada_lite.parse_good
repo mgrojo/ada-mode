@@ -193,7 +193,6 @@ semantic check OK
  ... goto state 71
  1: 71: 24:(FUNCTION, (255 . 262)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (161 . 252)) <= ((compilation_unit_list, (161 . 178)), (compilation_unit, (181 . 252)))
-semantic check OK
  ... goto state 16
  1: 16: 24:(FUNCTION, (255 . 262)) : shift and goto state 4
  1: 4: 25:(IDENTIFIER, (264 . 269)) : shift and goto state 41
@@ -247,7 +246,6 @@ semantic check OK
  ... goto state 71
  1: 71: 38:(FUNCTION, (321 . 328)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (161 . 319)) <= ((compilation_unit_list, (161 . 252)), (compilation_unit, (255 . 319)))
-semantic check OK
  ... goto state 16
  1: 16: 38:(FUNCTION, (321 . 328)) : shift and goto state 4
  1: 4: 39:(IDENTIFIER, (330 . 335)) : shift and goto state 41
@@ -427,7 +425,6 @@ semantic check OK
  ... goto state 71
  1: 71: 65:(PROCEDURE, (438 . 446)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (161 . 435)) <= ((compilation_unit_list, (161 . 319)), (compilation_unit, (321 . 435)))
-semantic check OK
  ... goto state 16
  1: 16: 65:(PROCEDURE, (438 . 446)) : shift and goto state 8
  1: 8: 66:(IDENTIFIER, (448 . 453)) : shift and goto state 41
@@ -767,7 +764,6 @@ semantic check OK
  ... goto state 71
  2: 71: 107:(PROCEDURE, (628 . 636)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (161 . 625)) <= ((compilation_unit_list, (161 . 435)), (compilation_unit, (438 . 625)))
-semantic check OK
  ... goto state 16
  2: 16: 107:(PROCEDURE, (628 . 636)) : shift and goto state 8
  2: 8: 108:(IDENTIFIER, (638 . 643)) : shift and goto state 41
@@ -1120,7 +1116,6 @@ semantic check OK
  ... goto state 71
  3: 71: 156:(Wisi_EOI, (863 . 862)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (161 . 862)) <= ((compilation_unit_list, (161 . 625)), (compilation_unit, (628 . 862)))
-semantic check OK
  ... goto state 16
  3: 16: 156:(Wisi_EOI, (863 . 862)) : accept it
 (wisitoken_accept, (161 . 862)) <= ((compilation_unit_list, (161 . 862)))
