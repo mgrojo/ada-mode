@@ -2,7 +2,7 @@
 --
 --  Common utilities for Gen_Emacs_Wisi_*_Parse
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,7 +24,7 @@ with Wisi;
 with WisiToken.Parse.LR.Parser;
 package Emacs_Wisi_Common_Parse is
 
-   Protocol_Version : constant String := "5";
+   Protocol_Version : constant String := "6";
    --  Protocol_Version defines the data sent between elisp and the
    --  background process, except for the language-specific parameters,
    --  which are defined by the Language_Protocol_Version parameter to
@@ -115,6 +115,7 @@ package Emacs_Wisi_Common_Parse is
       Check_Limit          : Integer;
       Enqueue_Limit        : Integer;
       Max_Parallel         : Integer;
+      Branched_Tree_Limit  : Integer;
       Byte_Count           : Integer;
       --  Count of bytes of source file sent.
    end record;

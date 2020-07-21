@@ -11,7 +11,7 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 RECOVER_TEST_FILES := $(shell cd ../test/correct; ls *.ad?)
 
-.PRECIOUS : %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff
+.PRECIOUS : %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff wisitoken-ada_lite-tokens/%.tokens ada_lite-correct-tokens/%.tokens
 
 .PHONY : all force one test test-clean
 

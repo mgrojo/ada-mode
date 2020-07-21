@@ -285,9 +285,18 @@ If nil, uses value from grammar file."
 
 (defcustom wisi-parse-max-parallel 15
   "Maximum number of parallel parsers during regular parsing.
-Parallel parsers are used to resolve redundancy in the grammar.
+Parallel parsers are used to resolve conflicts in the grammar.
 If a file needs more than this, it's probably an indication that
-the grammar is excessively redundant."
+the grammar has excessive conflicts."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+
+(defcustom wisi-branched-tree-limit 1000
+  "Maximum size of branched syntax table during regular parsing.
+Only checked when wisi-debug > 0.
+If a file needs more than this, it's probably an indication that
+the grammar has excessive conflicts."
   :type 'integer
   :group 'wisi
   :safe 'integerp)

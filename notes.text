@@ -1075,6 +1075,8 @@ update elpa, commit elpa/ada-ref-man (not done on Debian)
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 
+    check version ada-ref-man.el
+
     build/Makefile pub-ada-ref-man
 
     (dvc-state-one "/Projects/elpa")

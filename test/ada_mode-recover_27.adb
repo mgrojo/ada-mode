@@ -34,10 +34,10 @@ package body Wisi.Libadalang is
                      Prod_ID.RHS := I;
                      return;
                   <<Next_RHS>>
-                  end loop;
+                  end loop; --  extra 'end loop'
                   exit when not K > Descendants.Last_Index;
                   K := K + 1;
-                  end loop; --  missing 'loop'
+                  end loop;
                   raise SAL.Programmer_Error with "production not found";
                end Find_Production;
             begin

@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Containers;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
@@ -56,6 +57,8 @@ package body Run_Wisi_Common_Parse is
                    else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   WisiToken.Parse.LR.Parser.Default_Max_Parallel'Image & ")");
+      Put_Line ("--branched_tree_limit n  : set branched tree size in parallel parsers (default" &
+                  WisiToken.Parse.LR.Parser.Default_Branched_Tree_Limit'Image & ")");
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
@@ -134,6 +137,10 @@ package body Run_Wisi_Common_Parse is
                end case;
 
                WisiToken.Debug_Mode := WisiToken.Trace_Parse > Outline or WisiToken.Trace_McKenzie > Outline;
+
+            elsif Argument (Arg) = "--branched_tree_limit" then
+               Parser.Branched_Tree_Limit := Ada.Containers.Count_Type'Value (Argument (Arg + 1));
+               Arg := Arg + 2;
 
             elsif Argument (Arg) = "--check_limit" then
                Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
