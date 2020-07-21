@@ -1,4 +1,4 @@
-;;; WisiToken grammar for Ada -*- wisi-partial-parse-threshold: 30000 wisi-process-time-out: 30.0 -*-
+;;; WisiToken grammar for Ada -*-  wisi-process-time-out: 30.0 -*-
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -1009,7 +1009,7 @@ entry_call_alternative
 entry_declaration
   : overriding_indicator_opt ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
     parameter_profile_opt aspect_specification_opt SEMICOLON
-    %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
+    %((wisi-statement-action [1 statement-start 2 statement-override 9 statement-end])
         (wisi-name-action 3)
         (wisi-face-apply-action [3 nil font-lock-function-name-face])
         (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)

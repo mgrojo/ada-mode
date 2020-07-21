@@ -156,5 +156,4 @@ package Wisi.Ada_Annex_P is
    --   (wisi-hanging%- (wisi-anchored% arg ada-indent-broken)
    --                   (wisi-anchored% arg (* 2 ada-indent-broken)))]]))%
 
-
 end Wisi.Ada_Annex_P;
