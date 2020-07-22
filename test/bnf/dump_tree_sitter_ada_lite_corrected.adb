@@ -41,7 +41,15 @@ is
    begin
       case To_Token_Enum (ID) is
       when IDENTIFIER_ID =>
-         return "IDENTIFIER " & Parser.Buffer_Text (WisiToken.Parse.Tree_Sitter.Byte_Region (Node));
+         --  workaround a bug in tree-sitter; it sometimes includes the char before the identifier
+         declare
+            Ident : constant String := Parser.Buffer_Text (WisiToken.Parse.Tree_Sitter.Byte_Region (Node));
+         begin
+            return "IDENTIFIER " &
+              (if Ident (Ident'First) in ' ' | '.'
+               then Ident (Ident'First + 1 .. Ident'Last)
+               else Ident);
+         end;
       when NUMERIC_LITERAL_ID =>
          return "NUMERIC_LITERAL";
       when STRING_LITERAL_ID =>

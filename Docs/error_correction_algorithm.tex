@@ -1,6 +1,5 @@
 %% compilation command: latex -file-line-error -interaction=nonstopmode <file>
 \documentclass{article}
-\usepackage{algorithm2e}[longend noline]
 \usepackage{float}
 \usepackage{listings}
 \lstset{escapeinside={\%*}{*)}, language=Ada}
@@ -14,7 +13,17 @@
 \newcommand{\code}[1]{`\lstinline|#1|'}
 
 \begin{document}
-\section{Abstract}
+\maketitle
+\begin{abstract}
+Error correction in a parser is important when the parser is used in
+an interactive development environment (IDE); the source code is often not
+syntactically correct. Several extensions to work by McKenzie, Yeatman,
+and De Vere \cite{McKenzie 1995} are described, including
+\code{Minimal\_Complete}, which quickly provides the missing end of
+any grammar production. The algorithm has been in production use in
+Emacs ada-mode for over a year; metrics show that the algorithm is
+useful.\footnote{This work was supported in part by Eurocontrol}
+\end{abstract}
 
 \section{Introduction}
 Emacs Ada mode has used an LR parser to support indentation, syntax
@@ -41,9 +50,7 @@ point. Then the minimum cost configuration is checked to see if it
 succeeds; if not, more configurations are generated.
 
 There are several situations where the McKenzie algorithm can take a
-long time, or is inefficient.
-
-For example, consider this Ada code:
+long time, or is inefficient. For example, consider this Ada code:
 \begin{lstlisting}
 procedure Example_01
 is begin
@@ -76,7 +83,7 @@ begin
            Do_Something;
 end;
 \end{lstlisting}
-\caption{missing many 'end'}
+\caption{missing many `end's}
 \label{ex:min_com_if_if_loop}
 \end{figure}
 
@@ -92,11 +99,9 @@ This article also introduces several other new operations for the core
 McKenzie algorithm to try at the error point, and adapts the algorithm
 to work with a generalized parser.
 
-Unless quoting from another source, we use the notation described in
-\cite{DeRemer 1982}.
-
-%% FIXME: define: grammar, nonterminal, terminal, production, Also dragon
-%% to define "parse state", "kernel", lr1 item, dot.
+Unless quoting from another source, we use the notation described by
+DeRemer and Pennello \cite{DeRemer 1982} or Aho, Sethi, and Ullman
+\cite{dragon}.
 
 \section{The parsing context}
 \subsection{Generalized parsing}
@@ -198,11 +203,10 @@ end Example_2;
 There is an extra \code{begin} after
 \code{I : Integer}. The error is detected at \code{procedure}; at that point,
 the parse stack looks like (top is to the left):
-\small{
 \begin{verbatim}
 245 : BEGIN, 208 : declarative_part, 159 : IS, 36 : subprogram_specification, 0 :
 \end{verbatim}
-}
+
 Here the numbers label the states, terminals are in uppercase,
 nonterminals in lowercase.
 
@@ -274,7 +278,7 @@ This solution inserts that missing quote.
 
 \item If the parse error is before the unbalanced quote, assume the unbalanced
 quote is the intended closing quote, and insert the opening quote in
-several places:
+several places (generate one new configuration for each):
 
 \begin{itemize}
 \item before the error token. Example:
@@ -323,14 +327,13 @@ by precomputing a set of \code{Minimal\_Complete\_Action} for each
 parser state.
 
 Section \ref{minimal-complete-compute} gives the algorithm for
-computing the\\ \code{Minimal\_Complete\_Actions}; here we describe how
+computing the \code{Minimal\_Complete\_Actions}; here we describe how
 they are used in error correction.
 
 Each \code{Minimal\_Complete\_Action} is either ``insert this terminal
 token'' or ``reduce to this nonterminal token''.
 
-Consider the code in figure \ref{ex:min_com_if_if_loop}. The best
-error correction is to provide all of the missing ``ends''. When
+Consider the code in figure \ref{ex:min_com_if_if_loop}. When
 parsing this code, an error is detected at the final \code{;}; the
 parser is expecting \code{end loop;}. The kernel of that state has one
 production:
@@ -339,7 +342,7 @@ loop_statement <= LOOP sequence_of_statements END ^ LOOP
    identifier_opt SEMICOLON
 \end{verbatim}
 where the carrot (\verb|^|) shows the parse point (also known as
-``dot''). In this case, it is easy to see that
+``dot'' in an LR(1) item). In this case, it is easy to see that
 \code{Minimal\_Complete\_Action} must be ``insert \code{loop} ''.
 Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
 is ``reduce to \code{identifier\_opt} '', and then ``insert \code{;}
@@ -347,11 +350,11 @@ is ``reduce to \code{identifier\_opt} '', and then ``insert \code{;}
 statement, and then the outer \code{if then} statement. At that point,
 the existing \code{end ;} is legal.
 
-To handle cases where only the leading part of a nonterminal
-production needs to be inserted, the check to see if the original
-error token is now legal must be performed after each token is
-inserted; this means that \code{Minimal\_Complete} inserts at most one
-token for each cycle of the underlying McKenzie algorithm.
+To handle cases where only part of a nonterminal production needs to
+be inserted, the check to see if the original error token is now legal
+must be performed after each token is inserted; this means that
+\code{Minimal\_Complete} inserts at most one token for each cycle of
+the underlying McKenzie algorithm.
 
 In order to prefer the \code{Minimal\_Complete} solution over others,
 we give it a negative cost. In figure \ref{ex:min_com_if_if_loop}, the
@@ -533,17 +536,11 @@ All of these reductions, and the final shift, are done in one McKenzie
 step. The function that computes the length after parse point is
 recursive, and explores all paths that might be minimal.
 
-Sometimes \code{Minimal\_Complete\_Actions} results in an ambiguous
+Sometimes \code{Minimal\_Complete} results in an ambiguous
 parse. Consider the following Java code:
-\begin{figure}[H]
-  \small{
 \begin{lstlisting}
 { UpdateText (A) }
 \end{lstlisting}
-}
-\caption{}
-\label{ex:minimal_complete_ambiguous}
-\end{figure}
 % minimal_complete_ambiguous.java_exp_ch19
 In the subset of Java we are using for this example, this is not a
 complete statement. The relevant productions are:
@@ -556,8 +553,7 @@ PostfixExpression       <=
  | PostDecrementExpression ;
 ClassType               <= Identifier | ClassType '.' Identifier ;
 \end{verbatim}
-To complete the code fragment in figure
-\ref{ex:minimal_complete_ambiguous}, we have to insert either
+To complete the code fragment, we have to insert either
 \code{++} or \code{--}. The error is detected at the closing brace;
 the state is:
 % java_expressions_ch19_lr1.parse_table state 61
@@ -610,8 +606,9 @@ knowledge by having the grammar author provide a function\\
 stack and the next three input tokens as input, and returns a list of
 tokens to try inserting at the edit point.
 
-The \code{Language\_Matching\_Begin\_Tokens} function is similar to the
-table\\ $E(A,a)$ given in \cite{FMQ 1980} for an LL parser:
+The \code{Language\_Matching\_Begin\_Tokens} function is similar to
+the table\\ $E(A,a)$ given by Fischer, Milton, and Quiring in
+\cite{FMQ 1980} for an LL parser:
 \begin{equation}
 E(A,a) \equiv x \, | \, A \Rightarrow^* xay, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
@@ -780,7 +777,7 @@ steps in \cite{graph-cycles}), and use that as the recursion. This
 gives more recursion than necessary, and thus reduces the number of
 minimal actions computed, but still gives good performance in error
 correction. For Ada 2012, computing the full recursion is fast, but
-for Ada 2020 draft 25 (see \ref{Ada 2020}), it is prohibitively slow.
+for Ada 2020 draft 25 (see \cite{Ada 2020}), it is prohibitively slow.
 
 Once we have the cycles or SCCs, we add a Boolean \code{recursive}
 flag to the items in the state kernels; true if the production is in a
@@ -862,19 +859,21 @@ the token in the state.
 \end{figure}
 
 \section{Implementation}
-%% LR1 vs LALR
-McKensie uses a bit map to prune redundant configurations from the
-queue; instead, we use a Fibonacci min heap (\cite{algorithms 2009}
-chapter 19), so finding the minimal cost insert is asymptotically
-free.
+The algorithm presented here is implemented in the WisiToken parser
+(see \cite{wisitoken}), and used in Emacs ada-mode.
+
+McKenzie uses a bit map to prune redundant (but presumably higher
+cost) configurations from the queue; instead, we use a Fibonacci min
+heap (\cite{algorithms 2009} chapter 19), so finding the minimal cost
+configuration is asymptotically free.
 
 Checking each configuration to see if it is a solution, and generating
 new configurations from it, is independent of all other
 configurations, so the underlying McKenzie algorithm is easily
 parallelized. We use one Ada protected object to store the min heap of
 configurations to check, and one Ada task per processor to check and
-generate. However, that gives only 40\% speedup with 8 processors;
-more work is needed in this area.
+generate configurations. However, that results in only 40\% speedup
+with 8 processors; more work is needed in this area.
 
 The configure data structure is optimized for speed; it has a bounded
 parse stack of 70 items, and a bounded vector of 80 recover
@@ -899,7 +898,7 @@ same between the LALR and LR1 parsers; 1.10 seconds in this case.
 This error correction algorithm has been in production use in Emacs
 ada-mode since November 2018. The parser can be configured to output
 information about each error recovery; that is summarized in figures
-\ref{table:full-recover-stats}, \ref{table:partial-recover-stats} for
+\ref{table:full-recover-stats} and \ref{table:partial-recover-stats} for
 one month of the author's use. The enqueue limit is set at 58\_000;
 there is a noticeable delay when that limit is hit. The maximimum
 enqueue value in the table is higher because multiple tasks are used
@@ -965,6 +964,60 @@ check              & 78.5    & 4201    \\
 \label{table:partial-recover-stats}
 \end{figure}
 
+To compare our error correction to other parsers, we use a set of 59 Ada
+source files with known errors - this is the set of files used to test
+Emacs indentation etc. We write code to use the parsers to output the
+corrected string of tokens found for each file. Then we difference
+that string from the nominal correct string, using the \code{diff}
+program. The length of the diff output is then a measure of error
+correction quality (shorter is better).
+
+libadalang is a parser provided by AdaCore \cite{libadalang}, used in
+their GNAT Studio IDE (although not yet for indentation; see
+\cite{gnat-studio}). The results of comparing wisitoken with
+libadalang are given in figure \ref{fig:compare-libadalang}. Here
+``perfect files'' is the count of files where the corrected token
+stream is the same as the nominally correct token stream; ``better
+files'' means the diff is shorter than the other algorithm. Overall,
+WisiToken does a better job, although there are 7 files where
+libadalang does a better job.
+\begin{figure}[H]
+\begin{tabular}{| l | r | r | r |}
+\hline
+                                 &
+\parbox[t]{1.2cm}{total diff size} &
+\parbox[t]{1cm}{perfect files}   &
+\parbox[t]{1cm}{better files} \\
+\hline
+wisitoken                        & 13\_097 & 23 & 49 \\
+libadalang                       & 27\_935 & 4  & 7  \\
+\hline
+\end{tabular}
+\caption{error comparison metrics with full Ada grammar}
+\label{fig:compare-libadalang}
+\end{figure}
+
+Tree-sitter \cite{tree-sitter} is an incremental parser,
+designed for use in IDEs. However, it cannot cope with the full Ada
+grammar, so we used the Ada subset grammar to compare error
+correction. The test files were edited to conform to the subset
+grammar; three became meaningless after that and were dropped. The
+results are in figure \ref{fig:compare-tree-sitter}
+\begin{figure}[H]
+\begin{tabular}{| l | r | r | r |}
+\hline
+                                 &
+\parbox[t]{1.2cm}{total diff size} &
+\parbox[t]{1cm}{perfect files}   &
+\parbox[t]{1cm}{better files} \\
+\hline
+wisitoken                        & 20\_450 & 12 & 51 \\
+tree-sitter                      & 47\_047 & 1  & 4  \\
+\hline
+\end{tabular}
+\caption{error comparison metrics with subset Ada grammar}
+\label{fig:compare-tree-sitter}
+\end{figure}
 \section{Bibliography}
 \begin{thebibliography}{9}
 
@@ -993,6 +1046,9 @@ check              & 78.5    & 4201    \\
   pages 615-649.
     % "d:/Books/eBooks/Parsing/DeRemer, Pennello 1982 Efficient Computation.pdf"
 
+\bibitem{dragon}Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.
+  Compilers: Principles, Techniques, and Tools. Addison-Wesley 1985
+
 \bibitem{Tomita 1986} Masaru Tomita. Efficient parsing for natural language. Kluwer Academic Publishers, Boston, 1986.
 
 \bibitem{FMQ 1980}  Fischer, C.N., Milton, D.R., Quiring, S.B.:
@@ -1005,6 +1061,12 @@ SIAM J. Comput. Vol 4, No. 1, March 1975.\\ \verb|https://epubs.siam.org/doi/abs
 \bibitem{algorithms 2009} Introduction to Algorithms, Third Edition.
     Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest. The MIT
     Press, 2009.
+
+\bibitem{wisitoken}\verb|https://stephe-leake.org/ada/wisitoken.html|
+\bibitem{libadalang}\verb|https://github.com/AdaCore/libadalang|
+\bibitem{gnat-studio}\verb|https://www.adacore.com/gnatpro/toolsuite/gnatstudio|
+
+\bibitem{tree-sitter}\verb|https://github.com/tree-sitter/tree-sitter|
 
 \end{thebibliography}
 \end{document}

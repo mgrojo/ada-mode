@@ -34,83 +34,11 @@ auto_token_labels
 doc ebnf vs actions in wisitoken.texi
 
 error_correction_algorithm.tex
-    finish "results"
-        difference between desired and found terminal sequence file_count: 59
-            libadalang-recover-compare:             total size: 27843 zero size: 5
-
-
-        libadalang better:
-            recover_02
-                example of losing recover power to imprecise recursion
-                    could rebalance cost, but we favor fixing large errors.
-
-            recover_13 (perfect)
-
-    need title
-        \title, \author not working!?
-
-    supported in part by Eurocontrol
-
-    recursion in minimal_complete
-        Here the production is labeled \code{recursive}, because it is part of
-        a recursion cycle in the grammar. The grammar in this example is a
-        subset of Java; the productions involved in this recursion cycle are:
-        \begin{verbatim}
-        Assignment           <= LeftHandSide ^ EQUAL Expression
-        Expression           <= LambdaExpression  | AssignmentExpression
-        AssignmentExpression <= AdditiveExpression | Assignment
-        \end{verbatim}
-        This says that an \code{Expression} in this grammar can be \code{A :=
-          B := C := 1}. Thus it makes no sense for \code{Minimal\_Complete} to
-        insert \code{:=}; that will never result in a minimal length. In
-        general, recursive productions are never minimal length, so
-        \code{Minimal\_Complete} drops them when computing the actions, unless
-        all the productions in a kernel are recursive. Then the recursion is
-        ignored, and all the actions are queued; one of the later states will
-        break the recursion. Note that since we normally set
-        the cost of a \code{Minimal\_Complete} step negative, we cannot rely
-        on cost to eliminate recursive productions.
-
-
-    forbid push_back:
-        if push_back over insert/delete, get duplicate results
-        can push_back into fast-forward:
-            1 do large push_back, insert/delete there
-            2 fast forward to orig error point
-            3 do small push_back, insert/delete there
-                useful for fixing 'end *;' errors in Ada.
-                t_mck Error_3.
-
-    doc Just_Pushed_Back_Or_Deleted
-        required because do insert last
-        try_delete also checks for just_inserted
-        check multiple ops
-        duplicate_state does not eliminate these because '(delete
-            end)(insert end)' replaces a real token with a virtual
-            token, which changes the buffer region on the nonterms.
-
-    In Check, "made some progress" does _not_ mean "closer to
-    Resume_Token_Goal than _original_ config"; it means "moved away
-    from the edit point".
-        if the "progress" is only shifting tokens that were previously
-        pushed_back, that's a waste. Which is why we don't check
-        configs that would lead to that.
-
-    redo examples with partial recursion
-        causes problems?
-
-    doc Minimal_Complete done?
-
-    see comments in .tex file
-
-    test and/or prove Nullable
+    acmart
 
     ada-mode/test compare
-        wisitoken both ada.wy and ada_annex_p.wy
         Bison?
         ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
-        tree-sitter https://tree-sitter.github.io/tree-sitter/using-parsers
-            can't handle ada_annex_p.wy
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
         enhance to capture files

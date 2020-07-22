@@ -122,7 +122,7 @@ begin
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
             Trace'Unrestricted_Access,
             User_Data => null,
-            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lite_lr1_parse_table.txt");
+            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lite_lr1_t1_re2c_parse_table.txt");
       else
          Ada_Lite_LALR_Main.Create_Parser
            (Parser,
@@ -155,6 +155,9 @@ begin
    Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
 
    Parser.Table.McKenzie_Param.Task_Count := 1; -- minimize race conditions
+
+   Parser.Table.McKenzie_Param.Enqueue_Limit := 58_000; -- same as ada.wy
+
 
    Parser.Parse;
 

@@ -2,7 +2,7 @@
 module.exports = grammar({
   name: 'Ada_Lite_Ebnf',
   rules: {
-compilation_unit_list: $ => repeat1($.compilation_unit),
+compilation_unit_list: $ => choice($.compilation_unit,seq($.compilation_unit_list, $.compilation_unit)),
 AMPERSAND: $ => "&",
 COLON: $ => ":",
 COLON_EQUAL: $ => ":=",
