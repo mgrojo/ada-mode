@@ -35,6 +35,8 @@ is
    end Process_File;
 
 begin
+   Ada.Text_IO.Put_Line (Simple_Name (Current_Directory));
+
    Search
      (Directory        => Current_Directory,
       Pattern          => "*",

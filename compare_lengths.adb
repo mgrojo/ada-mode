@@ -24,11 +24,13 @@ is
    Dir_1_Search : Search_Type;
    Dir_2_Search : Search_Type;
 
-   Dir_1_Larger : Integer := 0;
-   Dir_2_Larger : Integer := 0;
+   Dir_1_Smaller : Integer := 0;
+   Dir_2_Smaller : Integer := 0;
    Equal        : Integer := 0;
 
 begin
+   Ada.Text_IO.Put_Line (Dir_1_Name & " - " & Dir_2_Name);
+
    Start_Search
      (Dir_1_Search,
       Directory        => Dir_1_Name,
@@ -62,22 +64,20 @@ begin
             raise Ada.Text_IO.Use_Error;
          end if;
 
-         Ada.Text_IO.Put_Line (Simple_Name (Dir_1_Entry));
-
          Size_1 := Size (Dir_1_Entry);
          Size_2 := Size (Dir_2_Entry);
 
-         if Size_1 > Size_2 then
-            Dir_1_Larger := @ + 1;
-         elsif Size_1 < Size_2 then
-            Dir_2_Larger := @ + 1;
+         if Size_1 < Size_2 then
+            Dir_1_Smaller := @ + 1;
+         elsif Size_1 > Size_2 then
+            Dir_2_Smaller := @ + 1;
          else
             Equal := @ + 1;
          end if;
       end;
    end loop;
 
-   Ada.Text_IO.Put_Line (Dir_1_Name & " larger:" & Dir_1_Larger'Image);
-   Ada.Text_IO.Put_Line (Dir_2_Name & " larger:" & Dir_2_Larger'Image);
+   Ada.Text_IO.Put_Line (Dir_1_Name & " smaller:" & Dir_1_Smaller'Image);
+   Ada.Text_IO.Put_Line (Dir_2_Name & " smaller:" & Dir_2_Smaller'Image);
    Ada.Text_IO.Put_Line ("equal:" & Equal'Image);
 end Compare_Lengths;

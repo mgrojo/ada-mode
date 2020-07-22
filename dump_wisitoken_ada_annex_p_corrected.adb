@@ -134,7 +134,7 @@ begin
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P.String_ID_Set'Access,
             Trace'Unrestricted_Access,
             User_Data => null,
-            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lr1_parse_table.txt");
+            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_annex_p_lr1_t8_re2c_parse_table.txt");
       else
          Ada_Annex_P_Process_LALR_Main.Create_Parser
            (Parser,
