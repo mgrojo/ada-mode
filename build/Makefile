@@ -7,7 +7,7 @@ ZIP_VERSION := 2.1
 
 all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
-# export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
 #export GENERATE := EBNF
 #export GENERATE := Tree_Sitter
 
@@ -39,20 +39,14 @@ one-clean :
 	rm -rf ada_lite*
 
 #one :: one-clean
-one :: GRAMMAR := dragon_4_43
-one :: VERBOSITY := 0 2 0
-one :: wisitoken-bnf-generate.exe
-#	./wisitoken-bnf-generate.exe --debug_mode --generate LR1 Ada re2c -v $(VERBOSITY) ../test/bnf/$(GRAMMAR).wy > generate-$(GRAMMAR).log
-#	dos2unix $(GRAMMAR)*.txt
-# 	./wisitoken-bnf-generate.exe --time -v 1 0 0 --generate Tree_Sitter Ada tree_sitter  ../test/bnf/ada_lite.wy
-# 	tree-sitter generate ./ada_lite.js
-	./wisitoken-bnf-generate.exe --time --generate LR1 Ada re2c ../../org.emacs.ada-mode/ada.wy
+one :: dump_tree_sitter_ada_lite_corrected.exe
+	./dump_tree_sitter_ada_lite_corrected.exe ../../org.emacs.ada-mode/test/ada_lite/ada_mode-recover_03.adb > ada_mode-recover_03.adb.tokens
 
 two-clean :
 	rm -rf debug*
 
-two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --generate LALR Ada re2c -v 0 2 0 ../test/bnf/dragon_4_43.wy
+two :: ada_lite_tree_sitter_run.exe
+	./ada_lite_tree_sitter_run.exe -v 2 ../../org.emacs.ada-mode/test/ada_lite/ada_mode-recover_03.adb > ada_mode-recover_03.adb.parse
 
 # two :: VERBOSITY := 1 0 0
 # two :: two-clean
@@ -85,6 +79,8 @@ gmon.out : exec_pro/wisitoken-bnf-generate.exe
 generate_ada_lite_lr1.gprof : gmon.out
 	gprof exec_pro/wisitoken-bnf-generate.exe > generate_ada_lite_lr1.gprof
 
+doc :: error_correction_algorithm.dvi
+doc :: error_correction_algorithm.bbl
 doc :: error_correction_algorithm.pdf
 doc :: ../Docs/wisitoken-user_guide.info
 doc :: ../Docs/wisitoken-user_guide.html

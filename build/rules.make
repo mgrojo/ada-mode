@@ -14,6 +14,7 @@ vpath %.wy ../test/bnf ../Docs/error_correction_examples
 
 vpath %.texinfo ../Docs
 vpath %.tex ../Docs
+vpath %.bib ../Docs
 
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)

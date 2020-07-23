@@ -16,7 +16,7 @@
 Error correction in a parser is important when the parser is used in
 an interactive development environment (IDE); the source code is often not
 syntactically correct. Several extensions to work by McKenzie, Yeatman,
-and De Vere \citep{McKenzie 1995} are described, including
+and De Vere \citep{McKenzie_1995} are described, including
 \code{Minimal\_Complete}, which quickly provides the missing end of
 any grammar production. The algorithm has been in production use in
 Emacs ada-mode for over a year; metrics show that the algorithm is
@@ -58,19 +58,19 @@ useful.\footnote{This work was supported in part by Eurocontrol}
 \maketitle
 \section{Introduction}
 Emacs Ada mode has used an LR parser to support indentation, syntax
-highlighting, and navigation since 2013 \citep{Emacs Ada mode news}.
+highlighting, and navigation since 2013 \citep{Emacs_Ada_mode_news}.
 However, the parser did not provide error correction, so indentation
 was often confusing when the syntax was incorrect, as it usually is in
 an interactive editing environment. This motivated the search for
 error correction algorithms.
 
-\citet{Grune 2008} provides a thorough overview of error
+\citet{Grune_2008} provides a thorough overview of error
 correction algorithms in LR and LL parsers. Of those, the work by
-McKenzie, Yeatman, and De Vere \citep{McKenzie 1995} provides the
+McKenzie, Yeatman, and De Vere \citep{McKenzie_1995} provides the
 foundation for the current work.
 
 The McKenzie algorithm works by exploring the parse table (or
-Deterministic Parsing Automata (DPA) as \citet{McKenzie 1995} calls it)
+Deterministic Parsing Automata (DPA) as \citet{McKenzie_1995} calls it)
 at the error point, finding tokens to insert. It also tries deleting
 tokens following the error point. Each possible solution, together
 with the parse stack at the error point, forms a
@@ -132,15 +132,15 @@ McKenzie algorithm to try at the error point, and adapts the algorithm
 to work with a generalized parser.
 
 Unless quoting from another source, we use the notation described by
-DeRemer and Pennello \citep{DeRemer 1982} or Aho, Sethi, and Ullman
+DeRemer and Pennello \citep{DeRemer_1982} or Aho, Sethi, and Ullman
 \citep{dragon}.
 
 \section{The parsing context}
 \subsection{Generalized parsing}
-We use a generalized LR parser \citet{Tomita 1986}, to tolerate
+We use a generalized LR parser \citet{Tomita_1986}, to tolerate
 conflicts in the parse table. This allows using an Ada grammar that is
 close to the one given in the ISO Ada language standard appendix P
-\citep{Ada 2012}, which is not LR(1). Using that grammar as faithfully
+\citep{Ada_2012}, which is not LR(1). Using that grammar as faithfully
 as possible ensures we are implementing the correct language, and
 simplifies updating the parser to a new language version.
 
@@ -642,7 +642,7 @@ tokens to try inserting at the edit point.
 
 The \code{Language\_Matching\_Begin\_Tokens} function is similar to
 the table\\ $E(A,a)$ given by Fischer, Milton, and Quiring in
-\citep{FMQ 1980} for an LL parser:
+\citep{FMQ_1980} for an LL parser:
 \begin{equation}
 E(A,a) \equiv x \, | \, A \Rightarrow^* xay, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
@@ -811,7 +811,7 @@ steps in \citet{graph-cycles}), and use that as the recursion. This
 gives more recursion than necessary, and thus reduces the number of
 minimal actions computed, but still gives good performance in error
 correction. For Ada 2012, computing the full recursion is fast, but
-for Ada 2020 draft 25 \citep{Ada 2020}, it is prohibitively slow.
+for Ada 2020 draft 25 \citep{Ada_2020}, it is prohibitively slow.
 
 Once we have the cycles or SCCs, we add a Boolean \code{recursive}
 flag to the items in the state kernels; true if the production is in a
@@ -820,7 +820,7 @@ production is left recursive, direct or indirect), false otherwise.
 
 \subsection{Other preliminaries}
 We also need the minimal terminal token sequence for each production.
-This is the same as $S(A)$ from \citet{FMQ 1980}:
+This is the same as $S(A)$ from \citet{FMQ_1980}:
 \begin{equation}
 S(A) \equiv x \in V_t^* \, |\, A \Rightarrow^* x, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
@@ -899,7 +899,7 @@ The algorithm presented here is implemented in the WisiToken parser
 
 McKenzie uses a bit map to prune redundant (but presumably higher
 cost) configurations from the queue; instead, we use a Fibonacci min
-heap (Cormen, Leiserson, and Rivest \citet{algorithms 2009} chapter
+heap (Cormen, Leiserson, and Rivest \citet{algorithms_2009} chapter
 19), so finding the minimal cost configuration is asymptotically free.
 
 Checking each configuration to see if it is a solution, and generating
@@ -1058,54 +1058,8 @@ tree-sitter                      & 47\_047 & 1  & 4  \\
 \label{fig:compare-tree-sitter}
 \end{figure}
 
-\begin{thebibliography}{9}
+\bibliographystyle{plainnat}
 
-\bibitem[Grune, 2008]{Grune 2008} Dick Grune, Ceriel J.H. Jacobs: ``Parsing Techniques; A Practical Guide, Second
-  Edition''. Springer Science  2008.
-
-\bibitem[McKenzie, 1995]{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
-  Vere, Lorraine. Error repair in shift reduce parsers. ACM Trans.
-  Prog. Lang. Syst., 17(4):672-689, July 1995.
-  % Described in [Grune 2008] ref 321.
-
-\bibitem[Leake, 2020]{Emacs Ada mode news}Emacs Ada mode news:
-  \url{http://www.nongnu.org/ada-mode/NEWS-ada-mode.text}
-
-\bibitem[ISO, 2012]{Ada 2012}Ada 2012 language standard:
-  \url{http://ada-auth.org/standards/ada12.html}
-
-\bibitem[ISO, 2020]{Ada 2020}Ada 2020 draft 25: http://www.ada-auth.org/standards/ada2x.html
-
-\bibitem[Gosling, 2019]{javarm}Java language grammar:
-  \url{https://docs.oracle.com/javase/specs/jls/se12/html/index.html}
-
-\bibitem[DeRemer, 1982]{DeRemer 1982} Frank DeRemer, Thomas Pennello: Efficient
-  Computation of LALR(1) Look-Ahead Sets. ACM Transactions on
-  Programming Languages and Systems, Vol. 4, No. 4, October 1982,
-  pages 615-649.
-    % "d:/Books/eBooks/Parsing/DeRemer, Pennello 1982 Efficient Computation.pdf"
-
-\bibitem[Aho Ullman, 1985]{dragon}Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.
-  Compilers: Principles, Techniques, and Tools. Addison-Wesley 1985
-
-\bibitem[Tomita, 1986]{Tomita 1986} Masaru Tomita. Efficient parsing for natural language. Kluwer Academic Publishers, Boston, 1986.
-
-\bibitem[FMQ, 1980]{FMQ 1980}Fischer, C.N., Milton, D.R., Quiring, S.B.:
-  Efficient LL(1) error correction and recovery using only insertions.
-  Acta Inf. 13(2), 141-154 (1980)
-
-\bibitem[Johnson, 1975]{graph-cycles}Donald B. Johnson, Finding all the Elementary Circuits of a Directed Graph.
-SIAM J. Comput. Vol 4, No. 1, March 1975.\\ \verb|https://epubs.siam.org/doi/abs/10.1137/0204007|
-
-\bibitem[Cormen, 2009]{algorithms 2009} Introduction to Algorithms, Third Edition.
-    Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest. The MIT
-    Press, 2009.
-
-\bibitem[Leake, 2020]{wisitoken}\url{https://stephe-leake.org/ada/wisitoken.html}
-\bibitem[AdaCore libadalang, 2020]{libadalang}\url{https://github.com/AdaCore/libadalang}
-\bibitem[AdaCore GNAT studio, 2020]{gnat-studio}\url{https://www.adacore.com/gnatpro/toolsuite/gnatstudio}
-
-\bibitem[Brunsfeld, 2020]{tree-sitter}\url{https://github.com/tree-sitter/tree-sitter}
-
-\end{thebibliography}
+% argument is .bib file relative to build directory
+\bibliography{../Docs/error_correction_algorithm}
 \end{document}

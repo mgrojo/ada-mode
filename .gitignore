@@ -30,3 +30,6 @@ build/.gdbinit
 build/binding.gyp
 build/src/
 build/*.set_table
+build/*.bbl
+build/*.blg
+build/*.xcp
