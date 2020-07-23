@@ -32,8 +32,11 @@ export TEX_OPTIONS :=
 %.aux : %.tex
 	latex $(LATEX_INCLUDES) -interaction nonstopmode -file-line-error $(TEX_OPTIONS) $<
 
+%.bbl : %.aux %.bib
+	bibtex $*.aux
+
 clean ::
-	rm -f *log *.aux *.dvi *.pdf *.out *.toc
+	rm -f *log *.aux *.bbl *.blg *.dvi *.pdf *.out *.toc *.xcp
 	if [ -d auto ]; then rm -rf auto; fi
 
 maintainer-clean :: clean
