@@ -1,45 +1,76 @@
 %% compilation command: latex -file-line-error -interaction=nonstopmode <file>
-\documentclass{article}
+\documentclass[authordraft]{acmart}
 \usepackage{float}
 \usepackage{listings}
 \lstset{escapeinside={\%*}{*)}, language=Ada}
 
-% we'd like to use 'hyperref' for clickable citation links in PDF, but
-% that conflicts with 'listings \lstinline'
-
 \title{Robust error correction in a generalized LR parser}
 \author{Stephen Leake}
+\email{stephen\_leake@stephe-leake.org}
+\affiliation{retired}
 
-\newcommand{\code}[1]{`\lstinline|#1|'}
+\setcopyright{rightsretained}
+\copyrightyear{2020}
 
-\begin{document}
-\maketitle
 \begin{abstract}
 Error correction in a parser is important when the parser is used in
 an interactive development environment (IDE); the source code is often not
 syntactically correct. Several extensions to work by McKenzie, Yeatman,
-and De Vere \cite{McKenzie 1995} are described, including
+and De Vere \citep{McKenzie 1995} are described, including
 \code{Minimal\_Complete}, which quickly provides the missing end of
 any grammar production. The algorithm has been in production use in
 Emacs ada-mode for over a year; metrics show that the algorithm is
 useful.\footnote{This work was supported in part by Eurocontrol}
 \end{abstract}
 
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011041.10011688</concept_id>
+<concept_desc>Software and its engineering~Parsers</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10011006.10011041.10011046</concept_id>
+<concept_desc>Software and its engineering~Translator writing systems and compiler generators</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003120.10003121.10003129.10011756</concept_id>
+<concept_desc>Human-centered computing~User interface programming</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010169.10010170.10010171</concept_id>
+<concept_desc>Computing methodologies~Shared memory algorithms</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Parsers}
+\ccsdesc[500]{Software and its engineering~Translator writing systems and compiler generators}
+\ccsdesc[500]{Human-centered computing~User interface programming}
+\ccsdesc[300]{Computing methodologies~Shared memory algorithms}
+\newcommand{\code}[1]{`\lstinline|#1|'}
+
+\begin{document}
+\maketitle
 \section{Introduction}
 Emacs Ada mode has used an LR parser to support indentation, syntax
-highlighting, and navigation since 2013 \cite{Emacs Ada mode news}.
+highlighting, and navigation since 2013 \citep{Emacs Ada mode news}.
 However, the parser did not provide error correction, so indentation
 was often confusing when the syntax was incorrect, as it usually is in
 an interactive editing environment. This motivated the search for
 error correction algorithms.
 
-Grune \cite{Grune 2008} provides a thorough overview of error
+\citet{Grune 2008} provides a thorough overview of error
 correction algorithms in LR and LL parsers. Of those, the work by
-McKenzie, Yeatman, and De Vere \cite{McKenzie 1995} provides the
+McKenzie, Yeatman, and De Vere \citep{McKenzie 1995} provides the
 foundation for the current work.
 
 The McKenzie algorithm works by exploring the parse table (or
-Deterministic Parsing Automata (DPA) as \cite{McKenzie 1995} calls it)
+Deterministic Parsing Automata (DPA) as \citet{McKenzie 1995} calls it)
 at the error point, finding tokens to insert. It also tries deleting
 tokens following the error point. Each possible solution, together
 with the parse stack at the error point, forms a
@@ -84,6 +115,7 @@ begin
 end;
 \end{lstlisting}
 \caption{missing many `end's}
+\Description{example Ada code with many missing 'ends'}
 \label{ex:min_com_if_if_loop}
 \end{figure}
 
@@ -100,15 +132,15 @@ McKenzie algorithm to try at the error point, and adapts the algorithm
 to work with a generalized parser.
 
 Unless quoting from another source, we use the notation described by
-DeRemer and Pennello \cite{DeRemer 1982} or Aho, Sethi, and Ullman
-\cite{dragon}.
+DeRemer and Pennello \citep{DeRemer 1982} or Aho, Sethi, and Ullman
+\citep{dragon}.
 
 \section{The parsing context}
 \subsection{Generalized parsing}
-We use a generalized LR parser \cite{Tomita 1986}, to tolerate
+We use a generalized LR parser \citet{Tomita 1986}, to tolerate
 conflicts in the parse table. This allows using an Ada grammar that is
 close to the one given in the ISO Ada language standard appendix P
-\cite{Ada 2012}, which is not LR(1). Using that grammar as faithfully
+\citep{Ada 2012}, which is not LR(1). Using that grammar as faithfully
 as possible ensures we are implementing the correct language, and
 simplifies updating the parser to a new language version.
 
@@ -199,6 +231,7 @@ end Example_2;
 \end{lstlisting}
 \caption{}
 \label{ex:extra_begin_2}
+\Description{example Ada code with an extra 'begin'}
 \end{figure}
 There is an extra \code{begin} after
 \code{I : Integer}. The error is detected at \code{procedure}; at that point,
@@ -493,6 +526,7 @@ time. Consider the Java code fragment:
     \end{lstlisting}
     }
 \caption{}
+\Description{example Java code close paren semicolon.}
 \label{ex:recursive_length_after_dot}
 \end{figure}
 % minimal_complete_recursive_length_after_dot.java_exp_ch19
@@ -608,7 +642,7 @@ tokens to try inserting at the edit point.
 
 The \code{Language\_Matching\_Begin\_Tokens} function is similar to
 the table\\ $E(A,a)$ given by Fischer, Milton, and Quiring in
-\cite{FMQ 1980} for an LL parser:
+\citep{FMQ 1980} for an LL parser:
 \begin{equation}
 E(A,a) \equiv x \, | \, A \Rightarrow^* xay, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
@@ -762,7 +796,7 @@ Then recursion is represented by a cycle in the graph.
 In a useful grammar, every recursion must have a non-recursive
 RHS in one of the nonterminals, to terminate the recursion.
 
-We use Johnson's algorithm \cite{graph-cycles} to find the cycles in
+We use Johnson's algorithm \citep{graph-cycles} to find the cycles in
 the graph. However, that algorithm does not apply to `{\it
   multigraphs}', which have more than one edge connecting any two
 nodes. Real grammars can be multigraphs, so we first filter out all
@@ -771,13 +805,13 @@ such edges, and add them back after we compute the cycles.
 Some languages have a lot of recursion, so it can be prohibitive to
 compute the exact set of cycles in the graph. For example, Java SE 12
 (using the grammar given in chapter 19 of the language reference
-manual \cite{javarm}) takes too long to compute. In that case, we only
+manual \citep{javarm}) takes too long to compute. In that case, we only
 compute the strongly connected components (SCCs) (which is one of the
-steps in \cite{graph-cycles}), and use that as the recursion. This
+steps in \citet{graph-cycles}), and use that as the recursion. This
 gives more recursion than necessary, and thus reduces the number of
 minimal actions computed, but still gives good performance in error
 correction. For Ada 2012, computing the full recursion is fast, but
-for Ada 2020 draft 25 (see \cite{Ada 2020}), it is prohibitively slow.
+for Ada 2020 draft 25 \citep{Ada 2020}, it is prohibitively slow.
 
 Once we have the cycles or SCCs, we add a Boolean \code{recursive}
 flag to the items in the state kernels; true if the production is in a
@@ -786,7 +820,7 @@ production is left recursive, direct or indirect), false otherwise.
 
 \subsection{Other preliminaries}
 We also need the minimal terminal token sequence for each production.
-This is the same as $S(A)$ from FMQ \cite{FMQ 1980}:
+This is the same as $S(A)$ from \citet{FMQ 1980}:
 \begin{equation}
 S(A) \equiv x \in V_t^* \, |\, A \Rightarrow^* x, \, \mathtt{Cost(x)\; is\; minimized}
 \end{equation}
@@ -856,16 +890,17 @@ the token in the state.
 
 \caption{}
 \label{code:compute_action}
+\Description{implementation of function Compute\_Action}
 \end{figure}
 
 \section{Implementation}
 The algorithm presented here is implemented in the WisiToken parser
-(see \cite{wisitoken}), and used in Emacs ada-mode.
+\citep{wisitoken}, and used in Emacs ada-mode.
 
 McKenzie uses a bit map to prune redundant (but presumably higher
 cost) configurations from the queue; instead, we use a Fibonacci min
-heap (\cite{algorithms 2009} chapter 19), so finding the minimal cost
-configuration is asymptotically free.
+heap (Cormen, Leiserson, and Rivest \citet{algorithms 2009} chapter
+19), so finding the minimal cost configuration is asymptotically free.
 
 Checking each configuration to see if it is a solution, and generating
 new configurations from it, is independent of all other
@@ -909,58 +944,58 @@ This shows that the minimal complete operation is used in a large
 majority of cases, along with insert.
 
 \begin{figure}[H]
-\begin{tabular}{| l | r | r |}
-\hline
+\caption{Error recovery statistics for full file parsing}
+\Description{table giving percent use of each McKenzie operation
+  during full file parsing}
+\begin{tabular}{l r r}
+\toprule
                    & count    & percent \\
-\hline
-fail enqueue limit & 1126     & 3\%     \\
-\hline
-ignore\_error      & 2130     & 1\%     \\
+\midrule
+fail enqueue limit & 1\_126   & 3\%     \\
+ignore\_error      & 2\_130   & 1\%     \\
 language\_fix      & 11\_138  & 6\%     \\
 minimal\_complete  & 151\_977 & 78\%    \\
-matching\_begin    & 2848     & 1\%     \\
+matching\_begin    & 2\_848   & 1\%     \\
 push\_back         & 13\_694  & 7\%     \\
-undo\_reduce       & 7491     & 4\%     \\
+undo\_reduce       & 7\_491   & 4\%     \\
 insert             & 141\_629 & 72\%    \\
 delete             & 18\_557  & 9\%     \\
-string\_quote      & 2615     & 1\%     \\
-\hline
-\hline
+string\_quote      & 2\_615   & 1\%     \\
+\bottomrule
                    & mean     & max     \\
-\hline
+\midrule
 enqueue            & 796.3    & 60\_147 \\
 check              & 61.8     & 5496    \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Error recovery statistics for full file parsing}
 \label{table:full-recover-stats}
 \end{figure}
 
 \begin{figure}[H]
-\begin{tabular}{| l | r | r |}
-\hline
+\caption{Error recovery statistics for partial file parsing}
+\Description{table giving percent use of each McKenzie operation
+  during full file parsing}
+\begin{tabular}{l r r}
+\toprule
                    & count    & percent \\
-\hline
+\midrule
 fail enqueue limit & 16      & 0\%      \\
-\hline
 ignore\_error      & 850     & 5\%     \\
 language\_fix      & 356     & 2\%     \\
 minimal\_complete  & 14\_579 & 77\%    \\
-matching\_begin    & 2355    & 13\%    \\
-push\_back         & 1019    & 5\%     \\
+matching\_begin    & 2\_355    & 13\%    \\
+push\_back         & 1\_019    & 5\%     \\
 undo\_reduce       & 544     & 3\%     \\
-insert             & 6076    & 32\%    \\
-delete             & 1266    & 7\%     \\
+insert             & 6\_076    & 32\%    \\
+delete             & 1\_266    & 7\%     \\
 string\_quote      & 11      & 0\%     \\
-\hline
-\hline
+\bottomrule
                    & mean    & max     \\
-\hline
+\midrule
 enqueue            & 922.6   & 49\_286 \\
 check              & 78.5    & 4201    \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Error recovery statistics for partial file parsing}
 \label{table:partial-recover-stats}
 \end{figure}
 
@@ -972,9 +1007,9 @@ that string from the nominal correct string, using the \code{diff}
 program. The length of the diff output is then a measure of error
 correction quality (shorter is better).
 
-libadalang is a parser provided by AdaCore \cite{libadalang}, used in
+libadalang is a parser provided by AdaCore \citep{libadalang}, used in
 their GNAT Studio IDE (although not yet for indentation; see
-\cite{gnat-studio}). The results of comparing wisitoken with
+\citet{gnat-studio}). The results of comparing wisitoken with
 libadalang are given in figure \ref{fig:compare-libadalang}. Here
 ``perfect files'' is the count of files where the corrected token
 stream is the same as the nominally correct token stream; ``better
@@ -982,91 +1017,95 @@ files'' means the diff is shorter than the other algorithm. Overall,
 WisiToken does a better job, although there are 7 files where
 libadalang does a better job.
 \begin{figure}[H]
-\begin{tabular}{| l | r | r | r |}
-\hline
+\caption{error comparison metrics with full Ada grammar}
+\Description{table comparing wisitoken to libadalang using the diff
+  token stream metric}
+\begin{tabular}{l c c c}
+\toprule
                                  &
-\parbox[t]{1.2cm}{total diff size} &
+\parbox[t]{1.0cm}{total diff size} &
 \parbox[t]{1cm}{perfect files}   &
 \parbox[t]{1cm}{better files} \\
-\hline
+\midrule
 wisitoken                        & 13\_097 & 23 & 49 \\
 libadalang                       & 27\_935 & 4  & 7  \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{error comparison metrics with full Ada grammar}
 \label{fig:compare-libadalang}
 \end{figure}
 
-Tree-sitter \cite{tree-sitter} is an incremental parser,
+Tree-sitter \citep{tree-sitter} is an incremental parser,
 designed for use in IDEs. However, it cannot cope with the full Ada
 grammar, so we used the Ada subset grammar to compare error
 correction. The test files were edited to conform to the subset
 grammar; three became meaningless after that and were dropped. The
 results are in figure \ref{fig:compare-tree-sitter}
 \begin{figure}[H]
-\begin{tabular}{| l | r | r | r |}
-\hline
+\caption{error comparison metrics with subset Ada grammar}
+\Description{table comparing wisitoken to tree-sitter using the diff
+  token stream metric}
+\begin{tabular}{l c c c}
+\toprule
                                  &
-\parbox[t]{1.2cm}{total diff size} &
+\parbox[t]{1.0cm}{total diff size} &
 \parbox[t]{1cm}{perfect files}   &
 \parbox[t]{1cm}{better files} \\
-\hline
+\midrule
 wisitoken                        & 20\_450 & 12 & 51 \\
 tree-sitter                      & 47\_047 & 1  & 4  \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{error comparison metrics with subset Ada grammar}
 \label{fig:compare-tree-sitter}
 \end{figure}
-\section{Bibliography}
+
 \begin{thebibliography}{9}
 
-\bibitem{Grune 2008} Dick Grune, Ceriel J.H. Jacobs: ``Parsing Techniques; A Practical Guide, Second
+\bibitem[Grune, 2008]{Grune 2008} Dick Grune, Ceriel J.H. Jacobs: ``Parsing Techniques; A Practical Guide, Second
   Edition''. Springer Science  2008.
 
-\bibitem{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
+\bibitem[McKenzie, 1995]{McKenzie 1995} McKenzie, Bruce J., Yeatman, Corey, and De
   Vere, Lorraine. Error repair in shift reduce parsers. ACM Trans.
   Prog. Lang. Syst., 17(4):672-689, July 1995.
   % Described in [Grune 2008] ref 321.
 
-\bibitem{Emacs Ada mode news}Emacs Ada mode news:\\
-  http://www.nongnu.org/ada-mode/NEWS-ada-mode.text
+\bibitem[Leake, 2020]{Emacs Ada mode news}Emacs Ada mode news:
+  \url{http://www.nongnu.org/ada-mode/NEWS-ada-mode.text}
 
-\bibitem{Ada 2012}Ada 2012 language standard:
-  http://ada-auth.org/standards/ada12.html
+\bibitem[ISO, 2012]{Ada 2012}Ada 2012 language standard:
+  \url{http://ada-auth.org/standards/ada12.html}
 
-\bibitem{Ada 2020}Ada 2020 draft 25: http://www.ada-auth.org/standards/ada2x.html
+\bibitem[ISO, 2020]{Ada 2020}Ada 2020 draft 25: http://www.ada-auth.org/standards/ada2x.html
 
-\bibitem{javarm}Java language grammar:
-  https://docs.oracle.com/javase/specs/jls/se12/html/index.html
+\bibitem[Gosling, 2019]{javarm}Java language grammar:
+  \url{https://docs.oracle.com/javase/specs/jls/se12/html/index.html}
 
-\bibitem{DeRemer 1982} Frank DeRemer, Thomas Pennello: Efficient
+\bibitem[DeRemer, 1982]{DeRemer 1982} Frank DeRemer, Thomas Pennello: Efficient
   Computation of LALR(1) Look-Ahead Sets. ACM Transactions on
   Programming Languages and Systems, Vol. 4, No. 4, October 1982,
   pages 615-649.
     % "d:/Books/eBooks/Parsing/DeRemer, Pennello 1982 Efficient Computation.pdf"
 
-\bibitem{dragon}Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.
+\bibitem[Aho Ullman, 1985]{dragon}Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.
   Compilers: Principles, Techniques, and Tools. Addison-Wesley 1985
 
-\bibitem{Tomita 1986} Masaru Tomita. Efficient parsing for natural language. Kluwer Academic Publishers, Boston, 1986.
+\bibitem[Tomita, 1986]{Tomita 1986} Masaru Tomita. Efficient parsing for natural language. Kluwer Academic Publishers, Boston, 1986.
 
-\bibitem{FMQ 1980}  Fischer, C.N., Milton, D.R., Quiring, S.B.:
+\bibitem[FMQ, 1980]{FMQ 1980}Fischer, C.N., Milton, D.R., Quiring, S.B.:
   Efficient LL(1) error correction and recovery using only insertions.
   Acta Inf. 13(2), 141-154 (1980)
 
-\bibitem{graph-cycles} Donald B. Johnson, Finding all the Elementary Circuits of a Directed Graph.
+\bibitem[Johnson, 1975]{graph-cycles}Donald B. Johnson, Finding all the Elementary Circuits of a Directed Graph.
 SIAM J. Comput. Vol 4, No. 1, March 1975.\\ \verb|https://epubs.siam.org/doi/abs/10.1137/0204007|
 
-\bibitem{algorithms 2009} Introduction to Algorithms, Third Edition.
+\bibitem[Cormen, 2009]{algorithms 2009} Introduction to Algorithms, Third Edition.
     Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest. The MIT
     Press, 2009.
 
-\bibitem{wisitoken}\verb|https://stephe-leake.org/ada/wisitoken.html|
-\bibitem{libadalang}\verb|https://github.com/AdaCore/libadalang|
-\bibitem{gnat-studio}\verb|https://www.adacore.com/gnatpro/toolsuite/gnatstudio|
+\bibitem[Leake, 2020]{wisitoken}\url{https://stephe-leake.org/ada/wisitoken.html}
+\bibitem[AdaCore libadalang, 2020]{libadalang}\url{https://github.com/AdaCore/libadalang}
+\bibitem[AdaCore GNAT studio, 2020]{gnat-studio}\url{https://www.adacore.com/gnatpro/toolsuite/gnatstudio}
 
-\bibitem{tree-sitter}\verb|https://github.com/tree-sitter/tree-sitter|
+\bibitem[Brunsfeld, 2020]{tree-sitter}\url{https://github.com/tree-sitter/tree-sitter}
 
 \end{thebibliography}
 \end{document}

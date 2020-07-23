@@ -34,7 +34,7 @@ auto_token_labels
 doc ebnf vs actions in wisitoken.texi
 
 error_correction_algorithm.tex
-    acmart
+    external bibtex file, for consistent formatting
 
     ada-mode/test compare
         Bison?
