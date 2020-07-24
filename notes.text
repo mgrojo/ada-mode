@@ -3,7 +3,7 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - available
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -34,20 +34,21 @@ auto_token_labels
 doc ebnf vs actions in wisitoken.texi
 
 error_correction_algorithm.tex
-    external bibtex file, for consistent formatting
-
     ada-mode/test compare
         Bison?
         ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
 
     Get Ludovic to enable --recover-log, publish real data from production environment.
+        email sent 24 Jul
         enhance to capture files
 
    - ask for review
-     - Stefan Monnier
-     - Emmanual Briot
-     - adacore adalang people
-     - Laurent? peg/packrat expert
+     - Stefan Monnier - email sent 24 jul
+     - Emmanual Briot - LinkedIn message sent 24 jul
+     - adacore adalang Raphaël Amiard raph-amiard - email sent 24 jul
+     - Max Brunsfeld tree-sitter - added to issue 693 24 jul
+     - ada-mode mailing list - posted 24 jul
+     - emacs-devel mailing list - posted 24 jul
 
    - publish in some ACM journal?
      McKenzie in ACM Transactions on Programming Languages and Systems
