@@ -99,7 +99,7 @@ package body WisiToken.Parse is
          exit when EOF_ID = Next_Grammar_Token (Parser, Stream);
       end loop;
       if Trace_Parse > Outline then
-         Parser.Trace.Put_Line (Syntax_Trees.Get_Debug_Index (Parser.Last_Grammar_Node)'Image & " tokens lexed");
+         Parser.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Parser.Last_Grammar_Node)'Image & " tokens lexed");
       end if;
 
    end Lex_All;

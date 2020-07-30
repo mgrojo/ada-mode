@@ -21,6 +21,11 @@
 --  the tree; to prune them, copy the surviving tree to a new tree,
 --  finalize the original.
 --
+--  We can't traverse Tree.Streams to deallocate; in general both
+--  Stream_Elements and Nodes are referenced multiple times in
+--  multiple streams. So we keep track of things to deallocate in
+--  Tree.Elements and Tree.Nodes.
+--
 --  Node contains a Parent link, to make it easy to traverse the tree
 --  in any direction. However, we do not set the Parent links while
 --  parsing, to simplify maintaining the syntax tree while parallel
@@ -53,10 +58,10 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
-with SAL.Gen_Trimmed_Image_Unsigned;
+with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Sparse_Ordered_Sets;
-with SAL.Generic_Decimal_Image_Unsigned;
+with SAL.Generic_Decimal_Image;
 with WisiToken.Lexer;
 package WisiToken.Syntax_Trees is
    use all type SAL.Base_Peek_Type;
@@ -125,8 +130,10 @@ package WisiToken.Syntax_Trees is
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
 
-   procedure Clear (Tree : in out Syntax_Trees.Tree);
-   --  Delete all nodes in all streams, reset for new parse.
+   procedure Clear (Tree : in out Syntax_Trees.Tree; Free_Memory : in Boolean := False);
+   --  Delete all nodes in all streams, reset for new parse. Free_Memory
+   --  applies to internal bookkeeping; leaving it False may slightly
+   --  speed parsing a similar sized file as the previous one.
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
 
@@ -756,14 +763,15 @@ package WisiToken.Syntax_Trees is
       Descriptor   : in WisiToken.Descriptor;
       Node_Numbers : in Boolean := False)
      return String;
-   --  Includes Node.Debug_Index, Node.ID
+   --  Includes Node.Node_Index, Node.ID
 
-   type Debug_Index is mod 2 ** 32; -- no exception on rollover. FIXME: rename, used for more than debug
+   type Node_Index is range 0 .. Integer'Last;
+   subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
 
-   function Decimal_Image is new SAL.Generic_Decimal_Image_Unsigned (Debug_Index);
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image_Unsigned (Debug_Index);
+   function Decimal_Image is new SAL.Generic_Decimal_Image (Node_Index);
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Node_Index);
 
-   function Get_Debug_Index (Node : in Node_Access) return Debug_Index;
+   function Get_Node_Index (Node : in Node_Access) return Node_Index;
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result;
 
@@ -836,8 +844,7 @@ private
    record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
-      Debug_Index : Syntax_Trees.Debug_Index;
-      --  Increments with each new node, for debug only.
+      Node_Index : Syntax_Trees.Node_Index;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Computed by Set_Children, used in Semantic_Check actions and debug
@@ -893,8 +900,8 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   function Get_Debug_Index (Node : in Node_Access) return Debug_Index
-   is (if Node = Invalid_Node_Access then 0 else Node.Debug_Index);
+   function Get_Node_Index (Node : in Node_Access) return Node_Index
+   is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
 
    type Parse_Stream is record
       First : Stream_Index := Invalid_Stream_Index;
@@ -908,10 +915,13 @@ private
       --  deleting during editing.
       Next : Stream_Index := Invalid_Stream_Index;
       Prev : Stream_Index := Invalid_Stream_Index;
-      Node : Node_Access   := Invalid_Node_Access;
+      Node : Node_Access  := Invalid_Node_Access;
    end record;
 
    procedure Free is new Ada.Unchecked_Deallocation (Stream_Element, Stream_Index);
+
+   type Element_Index is range 0 .. Integer'Last;
+   subtype Valid_Element_Index is Element_Index range 1 .. Element_Index'Last;
 
    type Stream_ID is range 0 .. Integer'Last;
    subtype Valid_Stream_ID is Stream_ID range 1 .. Stream_ID'Last;
@@ -924,6 +934,10 @@ private
    package Parse_Stream_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Valid_Stream_ID, Parse_Stream, (others => <>));
 
+   package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
+
+   package Element_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Element_Index, Stream_Index, null);
+
    type Tree is new Ada.Finalization.Controlled with record
       Leading_Non_Grammar : aliased WisiToken.Base_Token_Arrays.Vector;
       --  Non-grammar tokens before first grammar token; leading blank lines
@@ -932,6 +946,19 @@ private
       Streams : Parse_Stream_Arrays.Vector;
       --  FIXME: need a free list of streams; otherwise Streams gets
       --  unbounded large and sparse during incremental parse.
+      --
+      --  FIXME: Nodes gets unbounded large and nominally sparse during
+      --  incremental parse.
+      --
+      --  One solution to both is to prune tree by copy/finalize after N
+      --  edits.
+
+      Elements : Element_Access_Arrays.Vector;
+      --  For Finalize.
+
+      Nodes : Node_Access_Arrays.Vector;
+      --  Stores ref to all nodes, for Finalize. Also provides Node_Index;
+      --  we may add access via Node_Index at some point.
 
       Traversing : Boolean := False;
       --  True while traversing tree in Process_Tree.
@@ -940,8 +967,6 @@ private
       Parents_Set : Boolean := False;
       --  We don't set Node.Parent until after parse is done; see Design
       --  note above.
-
-      Next_Debug_Index : Debug_Index := 1;
    end record;
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
