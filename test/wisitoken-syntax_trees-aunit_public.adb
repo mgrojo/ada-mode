@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check
@@ -27,6 +28,14 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       Expected : in Semantic_Action)
    is begin
       Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Tree;
+      Expected : in Tree)
+   is begin
+      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Public;

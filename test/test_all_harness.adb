@@ -111,6 +111,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Name_Grammar_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Accept_State.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Utils.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));

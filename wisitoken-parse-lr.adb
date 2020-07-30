@@ -637,28 +637,10 @@ package body WisiToken.Parse.LR is
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
 
-   function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result
-   is
-      Left_Token_Index : constant WisiToken.Token_Index :=
-        (case Insert_Delete_Op_Label'(Left.Op) is
-         when Insert => Left.Ins_Token_Index,
-         when Delete => Left.Del_Token_Index);
-      Right_Token_Index : constant WisiToken.Token_Index :=
-        (case Insert_Delete_Op_Label'(Right.Op) is
-         when Insert => Right.Ins_Token_Index,
-         when Delete => Right.Del_Token_Index);
-   begin
-      if Left_Token_Index < Right_Token_Index then
-         return SAL.Less;
-      elsif Left_Token_Index = Right_Token_Index then
-         return SAL.Equal;
-      else
-         return SAL.Greater;
-      end if;
-   end Compare;
-
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is begin
+   is
+      use all type WisiToken.Syntax_Trees.Node_Index;
+   begin
       return Left.Op = Insert and then
         Left.Ins_ID = Right.Ins_ID and then
         Left.Ins_Token_Index = Right.Ins_Token_Index;
@@ -732,9 +714,11 @@ package body WisiToken.Parse.LR is
    end Any;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
-   is begin
+   is
+      use all type WisiToken.Syntax_Trees.Node_Index;
+   begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Tree_Index = Invalid_Node_Index then
+         if Stack.Peek (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then
             return False;
          end if;
       end loop;

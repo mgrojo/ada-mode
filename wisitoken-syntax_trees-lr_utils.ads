@@ -27,15 +27,13 @@ pragma License (Modified_GPL);
 with Ada.Iterator_Interfaces;
 with SAL.Gen_Unconstrained_Array_Image_Aux;
 package WisiToken.Syntax_Trees.LR_Utils is
-   use all type SAL.Base_Peek_Type;
 
    procedure Raise_Programmer_Error
      (Label      : in String;
       Descriptor : in WisiToken.Descriptor;
       Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Terminals  : in WisiToken.Base_Token_Arrays.Vector;
-      Node       : in WisiToken.Node_Index);
+      Node       : in WisiToken.Syntax_Trees.Node_Index);
    pragma No_Return (Raise_Programmer_Error);
 
    ----------
@@ -358,11 +356,11 @@ package WisiToken.Syntax_Trees.LR_Utils is
    record
       --  Skip_Last may be Positive_Index_Type'First - 1 to indicate an
       --  empty or invalid skip list.
-      Start_List_Root         : Valid_Node_Index := Valid_Node_Index'Last;
-      Start_List_ID           : Token_ID         := Invalid_Token_ID;
-      Start_Element_ID        : Token_ID         := Invalid_Token_ID;
-      Start_Separator_ID      : Token_ID         := Invalid_Token_ID;
-      Start_Multi_Element_RHS : Natural          := 0;
+      Start_List_Root         : Node_Index := Invalid_Node_Index;
+      Start_List_ID           : Token_ID   := Invalid_Token_ID;
+      Start_Element_ID        : Token_ID   := Invalid_Token_ID;
+      Start_Separator_ID      : Token_ID   := Invalid_Token_ID;
+      Start_Multi_Element_RHS : Natural    := 0;
       Skips                   : Skip_Array (Positive_Index_Type'First .. Skip_Last);
    end record;
 
@@ -425,7 +423,7 @@ private
      --  work either. Since most applications using LR_Utils are editing
      --  the tree anyway, we live with requiring variable access.
    record
-      Root       : WisiToken.Node_Index;
+      Root       : WisiToken.Syntax_Trees.Node_Index;
       List_ID    : WisiToken.Token_ID;
       Element_ID : WisiToken.Token_ID;
    end record;

@@ -27,8 +27,8 @@ with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_Lists is
 
    type Parser_Stack_Item is record
-      State : Unknown_State_Index     := Unknown_State;
-      Token : Node_Index := Invalid_Node_Index;
+      State : Unknown_State_Index       := Unknown_State;
+      Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
    end record;
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
@@ -55,8 +55,8 @@ package WisiToken.Parse.LR.Parser_Lists is
    record
       --  Visible components for direct access
 
-      Shared_Token : Base_Token_Index := Invalid_Token_Index;
-      --  Last token read from Shared_Parser.Terminals.
+      Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+      --  Last token read from input text
 
       Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.
@@ -70,8 +70,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 
-      Current_Token : Node_Index := Invalid_Node_Index;
-      --  Current terminal, in Tree
+      Current_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
 
       Inc_Shared_Token : Boolean := True;
 
@@ -79,28 +78,15 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  There is no need to use a branched stack; max stack length is
       --  proportional to source text nesting depth, not source text length.
 
-      Tree : aliased Syntax_Trees.Tree;
-      --  We use a branched tree to avoid copying large trees for each
-      --  spawned parser; tree size is proportional to source text size. In
-      --  normal parsing, parallel parsers are short-lived; they each process
-      --  a few tokens, to resolve a grammar conflict.
-      --
-      --  When there is only one parser, tree nodes are written directly to
-      --  the shared tree (via the branched tree, with Flush => True).
-      --
-      --  When there is more than one, tree nodes are written to the
-      --  branched tree. Then when all but one parsers are terminated, the
-      --  remaining branched tree is flushed into the shared tree.
-
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Base_Token_Index := 0;
+      Zombie_Token_Count : Natural := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
-      Resume_Active          : Boolean          := False;
-      Resume_Token_Goal      : Base_Token_Index := Invalid_Token_Index;
-      Conflict_During_Resume : Boolean          := False;
+      Resume_Active          : Boolean    := False;
+      Resume_Token_Goal      : Buffer_Pos := Invalid_Buffer_Pos;
+      Conflict_During_Resume : Boolean    := False;
       --  Resume is complete for this parser Shared_Token reaches this
       --  Resume_Token_Goal.
 
@@ -117,9 +103,7 @@ package WisiToken.Parse.LR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function New_List (Shared_Tree : in Syntax_Trees.Base_Tree_Access) return List;
-
-   function Last_Label (List : in Parser_Lists.List) return Natural;
+   function New_List (Tree : in out Syntax_Trees.Tree) return List;
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 
@@ -129,7 +113,7 @@ package WisiToken.Parse.LR.Parser_Lists is
    procedure Next (Cursor : in out Parser_Lists.Cursor);
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Has_Element (Cursor : in Parser_Lists.Cursor) return Boolean is (not Is_Done (Cursor));
-   function Label (Cursor : in Parser_Lists.Cursor) return Natural;
+   function Stream_ID (Cursor : in Parser_Lists.Cursor) return Syntax_Trees.Stream_ID;
    function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer;
    function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
    function Min_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer;
@@ -138,20 +122,20 @@ package WisiToken.Parse.LR.Parser_Lists is
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
 
    procedure Terminate_Parser
-     (Parsers   : in out List;
-      Current   : in out Cursor'Class;
-      Message   : in     String;
-      Trace     : in out WisiToken.Trace'Class;
-      Terminals : in     Base_Token_Arrays.Vector);
+     (Parsers : in out List;
+      Current : in out Cursor'Class;
+      Tree    : in     Syntax_Trees.Tree;
+      Message : in     String;
+      Trace   : in out WisiToken.Trace'Class);
    --  Terminate Current. Current is set to next element.
    --
-   --  Terminals is used to report the current token in the message.
+   --  Tree is used to report the current token in the message.
 
    procedure Duplicate_State
-     (Parsers   : in out List;
-      Current   : in out Cursor'Class;
-      Trace     : in out WisiToken.Trace'Class;
-      Terminals : in     Base_Token_Arrays.Vector);
+     (Parsers : in out List;
+      Current : in out Cursor'Class;
+      Tree    : in     Syntax_Trees.Tree;
+      Trace   : in out WisiToken.Trace'Class);
    --  If any other parser in Parsers has a stack equivalent to Current,
    --  Terminate one of them. Current is either unchanged, or advanced to
    --  the next parser.
@@ -176,10 +160,10 @@ package WisiToken.Parse.LR.Parser_Lists is
    with Pre => List.Count > 0;
    --  Direct access to visible components of first parser's Parser_State
 
-   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
-   --  Put image of top 10 stack items to Trace.
-
-   procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
+   procedure Prepend_Copy
+     (List   : in out Parser_Lists.List;
+      Cursor : in     Parser_Lists.Cursor'Class;
+      Tree   : in out Syntax_Trees.Tree);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
    --
@@ -240,16 +224,16 @@ package WisiToken.Parse.LR.Parser_Lists is
 
    function Iterate (Container : aliased in out List) return Iterator_Interfaces.Forward_Iterator'Class;
 
-   --  Access to some private Parser_State components
+   --  Access to private Parser_State components
 
-   function Label (Iterator : in Parser_State) return Natural;
-   procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
-   function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
+   function Stream_ID (State : in Parser_State) return Syntax_Trees.Stream_ID;
+   procedure Set_Verb (State : in out Parser_State; Verb : in All_Parse_Action_Verbs);
+   function Verb (State : in Parser_State) return All_Parse_Action_Verbs;
 
 private
 
    type Parser_State is new Base_Parser_State with record
-      Label : Natural; -- for debugging/verbosity
+      Stream_ID : Syntax_Trees.Stream_ID;
 
       Verb : All_Parse_Action_Verbs := Shift; -- current action to perform
    end record;
@@ -257,8 +241,7 @@ private
    package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);
 
    type List is tagged record
-      Elements     : aliased Parser_State_Lists.List;
-      Parser_Label : Natural; -- label of last added parser.
+      Elements : aliased Parser_State_Lists.List;
    end record;
 
    type Cursor (Elements : access Parser_State_Lists.List) is tagged

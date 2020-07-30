@@ -327,8 +327,7 @@ begin
 
       Lexer_Done : Lexer_Set := (others => False);
 
-      Saved_EBNF_Base_Tree : aliased Syntax_Trees.Base_Tree;
-      Saved_EBNF_Tree      : Syntax_Trees.Tree;
+      Saved_EBNF_Tree : Syntax_Trees.Tree;
 
       --  In general, all of the data in Generate_Utils.Generate_Data
       --  depends on the generate tuple parameters. However, if
@@ -407,11 +406,9 @@ begin
 
          declare
             Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-            Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+            Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
          begin
-            Tree.Complete_Copy
-              (New_Base_Tree => Saved_EBNF_Base_Tree'Unrestricted_Access,
-               New_Tree      => Saved_EBNF_Tree);
+            Saved_EBNF_Tree := Tree;
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
@@ -485,7 +482,7 @@ begin
 
                if Saved_EBNF_Tree.Is_Empty then
                   declare
-                     Tree : Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+                     Tree : Syntax_Trees.Tree renames Grammar_Parser.Tree;
                   begin
                      Translate (Tree);
                   end;

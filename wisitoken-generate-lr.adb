@@ -1290,7 +1290,7 @@ package body WisiToken.Generate.LR is
       Put_Line ("Matching_Begin    => " & Integer'Image (Item.Matching_Begin));
       Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
       Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
-      Put_Line ("Check_Limit       =>" & Token_Index'Image (Item.Check_Limit));
+      Put_Line ("Check_Limit       =>" & Item.Check_Limit'Image);
       Put_Line ("Check_Delta_Limit =>" & Integer'Image (Item.Check_Delta_Limit));
       Put_Line ("Enqueue_Limit     =>" & Integer'Image (Item.Enqueue_Limit));
    end Put;

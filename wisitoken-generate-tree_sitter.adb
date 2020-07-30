@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF.Output_Ada_Common;
 with WisiToken.Generate;
@@ -27,6 +26,7 @@ with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken_Grammar_Editing;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 package body WisiToken.Generate.Tree_Sitter is
+   use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
      (Data            : in out WisiToken_Grammar_Runtime.User_Data_Type;
@@ -39,18 +39,15 @@ package body WisiToken.Generate.Tree_Sitter is
 
       type Empty_Nonterm is record
          Name       : Ada.Strings.Unbounded.Unbounded_String;
-         Empty_Node : Valid_Node_Index := Valid_Node_Index'Last;
-         --  Trace of nodes descending tree from nonterminal to empty node.
+         Empty_Node : WisiToken.Syntax_Trees.Node_Index := WisiToken.Syntax_Trees.Invalid_Node_Index;
       end record;
 
       package Empty_Nonterm_Lists is new SAL.Gen_Unbounded_Definite_Vectors
         (Positive_Index_Type, Empty_Nonterm, Default_Element => (others => <>));
 
-      package Valid_Node_Index_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Valid_Node_Index);
-
       Empty_Nonterms  : Empty_Nonterm_Lists.Vector;
-      Nodes_To_Delete : Valid_Node_Index_Arrays.Vector;
-      Nodes_To_Check  : Valid_Node_Index_Lists.List;
+      Nodes_To_Delete : WisiToken_Grammar_Editing.Valid_Node_Index_Lists.List;
+      Nodes_To_Check  : WisiToken_Grammar_Editing.Valid_Node_Index_Lists.List;
       --  If we edit a node to now contain an optional item, it might become
       --  possibly empty.
 
@@ -190,8 +187,8 @@ package body WisiToken.Generate.Tree_Sitter is
 
                      if Trace_Generate_EBNF > Outline then
                         Ada.Text_IO.Put_Line
-                          ("ignore lines " & Ignore_Lines'Image & " line" & Data.Terminals.all
-                             (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
+                          ("ignore lines " & Ignore_Lines'Image & " line" &
+                             Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
                      end if;
                   end;
 
@@ -200,8 +197,8 @@ package body WisiToken.Generate.Tree_Sitter is
                   Ignore_Lines := False;
                   if Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
-                       ("ignore lines false line" & Data.Terminals.all
-                          (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
+                       ("ignore lines false line" &
+                          Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
                   end if;
 
                when others =>
@@ -214,7 +211,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
             when compilation_unit_list_ID =>
                declare
-                  Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+                  Children : constant Node_Index_Array := Tree.Children (Node);
                begin
                   case To_Token_Enum (Tree.ID (Children (1))) is
                   when compilation_unit_list_ID =>
@@ -244,7 +241,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when compilation_unit_list_ID =>
             declare
-               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+               Children : constant Node_Index_Array := Tree.Children (Node);
             begin
                case To_Token_Enum (Tree.ID (Children (1))) is
                when compilation_unit_list_ID =>
@@ -279,8 +276,8 @@ package body WisiToken.Generate.Tree_Sitter is
 
                   if Ignore_Lines and Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
-                       ("ignore lines true line" & Data.Terminals.all
-                          (Tree.Terminal (Tree.Child (Node, 1))).Line'Image);
+                       ("ignore lines true line" &
+                          Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
                   end if;
 
                end;
@@ -490,7 +487,7 @@ package body WisiToken.Generate.Tree_Sitter is
       is
          procedure Find_Nodes (Node : in Valid_Node_Index)
          is
-            use all type Ada.Containers.Count_Type;
+            use all type SAL.Base_Peek_Type;
          begin
             case To_Token_Enum (Tree.ID (Node)) is
             --  common code first, then Enum_Token_ID alphabetical order
@@ -500,7 +497,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
             when compilation_unit_list_ID | rhs_alternative_list_ID | rhs_item_list_ID | rhs_list_ID =>
                declare
-                  Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+                  Children : constant Node_Index_Array := Tree.Children (Node);
                begin
                   case Tree.RHS_Index (Node) is
                   when 0 =>
@@ -633,7 +630,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree
-        (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Outline then
@@ -654,7 +651,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       for Nonterm of Empty_Nonterms loop
@@ -667,11 +664,11 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
-         use Valid_Node_Index_Lists;
+         use WisiToken_Grammar_Editing.Valid_Node_Index_Lists;
          Cur  : Cursor := Nodes_To_Check.First;
          Temp : Cursor;
       begin
@@ -708,7 +705,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Terminals, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Detail then
@@ -726,7 +723,6 @@ package body WisiToken.Generate.Tree_Sitter is
       Language_Name    : in     String)
    is
       use all type Ada.Containers.Count_Type;
-      use WisiToken.Syntax_Trees;
 
       File : File_Type;
 
@@ -746,7 +742,7 @@ package body WisiToken.Generate.Tree_Sitter is
       is
          function Strip_Delimiters (Tree_Index : in Valid_Node_Index) return String
          is
-            Region : Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tree_Index)).Byte_Region;
+            Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
          begin
             if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
                --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
@@ -797,7 +793,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Put_Line
            (Current_Error,
             Tree.Error_Message
-              (Data.Terminals.all, Node, Input_File_Name,
+              (Node, Input_File_Name,
                "not translated: " &
                Tree.Image
                  (Node, Wisitoken_Grammar_Actions.Descriptor,
@@ -986,7 +982,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
       procedure Put_RHS_Item_List (Node : in Valid_Node_Index; First : in Boolean)
       is
-         Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+         Children : constant Node_Index_Array := Tree.Children (Node);
       begin
          if Children'Length = 1 then
             Put_RHS_Element (Children (1));
@@ -1035,7 +1031,7 @@ package body WisiToken.Generate.Tree_Sitter is
       procedure Put_RHS_List (Node : in Valid_Node_Index; First : in Boolean)
       with Pre => Tree.ID (Node) = +rhs_list_ID
       is
-         Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+         Children : constant Node_Index_Array := Tree.Children (Node);
       begin
          case Tree.RHS_Index (Node) is
          when 0 =>
@@ -1078,7 +1074,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when compilation_unit_list_ID =>
             declare
-               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+               Children : constant Node_Index_Array := Tree.Children (Node);
             begin
                case To_Token_Enum (Tree.ID (Children (1))) is
                when compilation_unit_list_ID =>
@@ -1203,7 +1199,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when nonterminal_ID =>
             declare
-               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+               Children : constant Node_Index_Array := Tree.Children (Node);
             begin
                Put (File, Get_Text (Children (1)) & ": $ => ");
 

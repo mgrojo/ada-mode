@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,15 +27,15 @@ package body WisiToken.Semantic_Checks is
          return Check_Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Check_Status_Label'Image (Item.Label) & ", " &
-           Image (Item.Begin_Name, Descriptor) & ',' &
-           Image (Item.End_Name, Descriptor) & ')';
+           Syntax_Trees.Image (Item.Begin_Name, Descriptor) & ',' &
+           Syntax_Trees.Image (Item.End_Name, Descriptor) & ')';
       end case;
    end Image;
 
    function Match_Names
      (Lexer        : access constant WisiToken.Lexer.Instance'Class;
       Descriptor   : in     WisiToken.Descriptor;
-      Tokens       : in     Recover_Token_Array;
+      Tokens       : in     Syntax_Trees.Recover_Token_Array;
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;
       End_Optional : in     Boolean)
@@ -101,8 +101,8 @@ package body WisiToken.Semantic_Checks is
    end Match_Names;
 
    function Propagate_Name
-     (Nonterm    : in out Recover_Token;
-      Tokens     : in     Recover_Token_Array;
+     (Nonterm    : in out Syntax_Trees.Recover_Token;
+      Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
      return Check_Status
    is begin
@@ -115,8 +115,8 @@ package body WisiToken.Semantic_Checks is
    end Propagate_Name;
 
    function Merge_Names
-     (Nonterm     : in out Recover_Token;
-      Tokens      : in     Recover_Token_Array;
+     (Nonterm     : in out Syntax_Trees.Recover_Token;
+      Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Check_Status
@@ -136,7 +136,7 @@ package body WisiToken.Semantic_Checks is
      (Partial_Parse_Active    : in Boolean;
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
-      Nonterm                 : in Recover_Token)
+      Nonterm                 : in Syntax_Trees.Recover_Token)
      return Check_Status
    is begin
       if Partial_Parse_Active and then

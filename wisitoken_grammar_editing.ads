@@ -17,109 +17,99 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Syntax_Trees;
-with Wisitoken_Grammar_Actions;
-with WisiToken_Grammar_Runtime;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees.LR_Utils;
+with WisiToken.Syntax_Trees;
+with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
 package WisiToken_Grammar_Editing is
    use all type WisiToken.Production_ID;
-   use all type WisiToken.Node_Index;
    use all type WisiToken.Token_ID;
-   use all type WisiToken.Base_Token_Index;
    use all type WisiToken.Base_Identifier_Index;
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
    use all type WisiToken.Syntax_Trees.Node_Label;
+   use all type WisiToken.Syntax_Trees.Node_Index;
+
+   package Valid_Node_Index_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
+     (WisiToken.Syntax_Trees.Valid_Node_Index);
 
    type Identifier_Token_Index
      (Label : WisiToken.Syntax_Trees.Terminal_Label := WisiToken.Syntax_Trees.Terminal_Label'First)
    is record
+      ID          : WisiToken.Token_ID;
+      Byte_Region : WisiToken.Buffer_Region;
+
       case Label is
       when Shared_Terminal =>
-         Shared_Token : WisiToken.Token_Index;
-         Shared_ID    : WisiToken.Token_ID; --  So function ID does not require Terminals.
+         Debug_Index : WisiToken.Syntax_Trees.Debug_Index;
+         Line        : WisiToken.Line_Number_Type;
 
       when Virtual_Terminal =>
-         Virtual_ID : WisiToken.Token_ID;
+         null;
 
       when Virtual_Identifier =>
-         Identifier    : WisiToken.Identifier_Index;
-         Identifier_ID : WisiToken.Token_ID;
-         Byte_Region   : WisiToken.Buffer_Region;
-
+         Identifier : WisiToken.Identifier_Index;
       end case;
    end record;
 
    function Image (Item : in Identifier_Token_Index) return String
-   is (case Item.Label is
-       when Shared_Terminal => Trimmed_Image (Item.Shared_Token) & ":" &
-            Image (Item.Shared_ID, Wisitoken_Grammar_Actions.Descriptor),
-       when Virtual_Terminal => Image (Item.Virtual_ID, Wisitoken_Grammar_Actions.Descriptor),
-       when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";" &
-            Image (Item.Identifier_ID, Wisitoken_Grammar_Actions.Descriptor));
-
-   function ID (Item : in Identifier_Token_Index) return WisiToken.Token_ID
-   is (case Item.Label is
-       when Shared_Terminal    => Item.Shared_ID,
-       when Virtual_Terminal   => Item.Virtual_ID,
-       when Virtual_Identifier => Item.Identifier_ID);
+   is ((case Item.Label is
+        when Shared_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Debug_Index) & ":",
+        when Virtual_Terminal => "",
+        when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";") &
+         Image (Item.ID, Wisitoken_Grammar_Actions.Descriptor));
 
    Invalid_Identifier_Token : constant Identifier_Token_Index :=
-     (Label => WisiToken.Syntax_Trees.Virtual_Terminal, Virtual_ID => WisiToken.Invalid_Token_ID);
+     (Label       => WisiToken.Syntax_Trees.Virtual_Terminal,
+      Byte_Region => WisiToken.Null_Buffer_Region,
+      ID          => WisiToken.Invalid_Token_ID);
 
    function To_Identifier_Token
-     (Item      : in WisiToken.Token_Index;
-      Terminals : in WisiToken.Base_Token_Array_Access_Constant)
-     return Identifier_Token_Index;
-
-   function To_Identifier_Token
-     (Item : in WisiToken.Identifier_Index;
+     (Item        : in WisiToken.Identifier_Index;
       Byte_Region : in WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region)
      return Identifier_Token_Index
-   is ((Virtual_Identifier, Item, +IDENTIFIER_ID, Byte_Region));
+   is ((Virtual_Identifier, +IDENTIFIER_ID, Byte_Region, Item));
 
    function To_Identifier_Token
-     (Item      : in WisiToken.Valid_Node_Index;
-      Tree      : in WisiToken.Syntax_Trees.Tree;
-      Terminals : in WisiToken.Base_Token_Array_Access_Constant)
+     (Item : in WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tree : in WisiToken.Syntax_Trees.Tree)
      return Identifier_Token_Index
    with Pre => To_Token_Enum (Tree.ID (Item)) in rhs_element_ID | rhs_item_ID | IDENTIFIER_ID;
 
    function Add_RHS_Group_Item
      (Tree      : in out WisiToken.Syntax_Trees.Tree;
       RHS_Index : in     Natural;
-      Content   : in     WisiToken.Valid_Node_Index)
-     return WisiToken.Valid_Node_Index
+      Content   : in     WisiToken.Syntax_Trees.Valid_Node_Index)
+     return WisiToken.Syntax_Trees.Valid_Node_Index
    with Pre => Tree.ID (Content) = +rhs_alternative_list_ID,
      Post => Tree.ID (Add_RHS_Group_Item'Result) = +rhs_group_item_ID;
 
    function Add_RHS_Optional_Item
      (Tree      : in out WisiToken.Syntax_Trees.Tree;
       RHS_Index : in     Natural;
-      Content   : in     WisiToken.Valid_Node_Index)
-     return WisiToken.Valid_Node_Index
+      Content   : in     WisiToken.Syntax_Trees.Valid_Node_Index)
+     return WisiToken.Syntax_Trees.Valid_Node_Index
    with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | IDENTIFIER_ID | STRING_LITERAL_2_ID and
                RHS_Index <= 3,
      Post => Tree.ID (Add_RHS_Optional_Item'Result) = +rhs_optional_item_ID;
 
    function Add_Identifier_Token
-     (Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Item      : in     Identifier_Token_Index;
-      Terminals : in     WisiToken.Base_Token_Array_Access_Constant)
-     return WisiToken.Valid_Node_Index;
+     (Tree : in out WisiToken.Syntax_Trees.Tree;
+      Item : in     Identifier_Token_Index)
+     return WisiToken.Syntax_Trees.Valid_Node_Index;
 
    function Add_RHS_Item
      (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     WisiToken.Valid_Node_Index)
-     return WisiToken.Valid_Node_Index
+      Item : in     WisiToken.Syntax_Trees.Valid_Node_Index)
+     return WisiToken.Syntax_Trees.Valid_Node_Index
    with Pre => Tree.ID (Item) = +IDENTIFIER_ID,
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
      (Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Item  : in     WisiToken.Valid_Node_Index;
+      Item  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Label : in     Identifier_Token_Index := Invalid_Identifier_Token)
-     return WisiToken.Valid_Node_Index
+     return WisiToken.Syntax_Trees.Valid_Node_Index
    with Pre => Tree.ID (Item) = +rhs_item_ID,
      Post => Tree.Production_ID (Add_RHS_Element'Result) =
              (+rhs_element_ID, (if Label = Invalid_Identifier_Token then 0 else 1));
@@ -134,34 +124,34 @@ package WisiToken_Grammar_Editing is
 
    function Add_RHS
      (Tree              : in out WisiToken.Syntax_Trees.Tree;
-      Item              : in     WisiToken.Valid_Node_Index;
+      Item              : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Auto_Token_Labels : in     Boolean;
       Edited_Token_List : in     Boolean;
-      Post_Parse_Action : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index;
-      In_Parse_Action   : in     WisiToken.Node_Index := WisiToken.Invalid_Node_Index)
-     return WisiToken.Valid_Node_Index
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Node_Index := WisiToken.Syntax_Trees.Invalid_Node_Index;
+      In_Parse_Action   : in     WisiToken.Syntax_Trees.Node_Index := WisiToken.Syntax_Trees.Invalid_Node_Index)
+     return WisiToken.Syntax_Trees.Valid_Node_Index
    with Pre => Tree.ID (Item) = +rhs_item_list_ID and
-               (Post_Parse_Action = WisiToken.Invalid_Node_Index or else Tree.ID (Post_Parse_Action) = +ACTION_ID) and
-               (In_Parse_Action = WisiToken.Invalid_Node_Index or else Tree.ID (In_Parse_Action) = +ACTION_ID),
+               (Post_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Index or else
+                Tree.ID (Post_Parse_Action) = +ACTION_ID) and
+               (In_Parse_Action = WisiToken.Syntax_Trees.Invalid_Node_Index or else
+                Tree.ID (In_Parse_Action) = +ACTION_ID),
      Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
 
    function Find_Declaration
      (Data : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree : in out WisiToken.Syntax_Trees.Tree;
       Name : in     String)
-     return WisiToken.Node_Index
-   with Post => Find_Declaration'Result = WisiToken.Invalid_Node_Index or else
+     return WisiToken.Syntax_Trees.Node_Index
+   with Post => Find_Declaration'Result = WisiToken.Syntax_Trees.Invalid_Node_Index or else
                 To_Token_Enum (Tree.ID (Find_Declaration'Result)) in declaration_ID | nonterminal_ID;
    --  Return the node that declares Name, Invalid_Node_Index if none.
 
    procedure Validate_Node
      (Tree                : in     WisiToken.Syntax_Trees.Tree;
-      Node                : in     WisiToken.Valid_Node_Index;
+      Node                : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Terminals           : in     WisiToken.Base_Token_Array_Access_Constant;
       Descriptor          : in     WisiToken.Descriptor;
       File_Name           : in     String;
-      Error_Reported      : in out WisiToken.Node_Array_Booleans.Vector;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Verify that all nodes match wisitoken_grammar.wy. Data must be of

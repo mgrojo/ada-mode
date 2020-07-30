@@ -38,7 +38,7 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Token_Index);
 
-   package Base_Token_Arrays_Aunit is new Base_Token_Arrays.Gen_AUnit
+   package Base_Token_Arrays_AUnit is new Base_Token_Arrays.Gen_AUnit
      (Check_Index   => Check,
       Check_Element => Check);
 

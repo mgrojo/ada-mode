@@ -32,7 +32,7 @@ package body WisiToken_Grammar_Runtime is
    function Get_Line
      (Data : in User_Data_Type;
       Tree : in Syntax_Trees.Tree;
-      Node : in WisiToken.Valid_Node_Index)
+      Node : in WisiToken.Syntax_Trees.Valid_Node_Index)
      return WisiToken.Line_Number_Type
    is
       --  Find a source line for Node.
@@ -42,31 +42,31 @@ package body WisiToken_Grammar_Runtime is
       Temp : Node_Index := Node;
    begin
       loop
-         if Tree.First_Shared_Terminal (Temp) = Invalid_Token_Index then
+         if Tree.First_Shared_Terminal (Temp) = Syntax_Trees.Invalid_Node_Index then
             --  Node is empty or all virtual_identifiers; try parents.
             Temp := Tree.Parent (Temp);
             exit when Temp = Invalid_Node_Index;
          else
-            return Data.Terminals.all (Tree.First_Shared_Terminal (Temp)).Line;
+            return Tree.Base_Token (Tree.First_Shared_Terminal (Temp)).Line;
          end if;
       end loop;
       return Invalid_Line_Number;
    end Get_Line;
 
    function Get_Text
-     (Terminals           : in WisiToken.Base_Token_Arrays.Vector;
-      Grammar_Lexer       : in WisiToken.Lexer.Handle;
+     (Grammar_Lexer       : in WisiToken.Lexer.Handle;
       Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
       Tree                : in WisiToken.Syntax_Trees.Tree;
-      Tree_Index          : in WisiToken.Valid_Node_Index;
+      Tree_Index          : in WisiToken.Syntax_Trees.Node_Index;
       Strip_Quotes        : in Boolean := False)
      return String
    is
+      use all type WisiToken.Syntax_Trees.Node_Index;
       use all type Syntax_Trees.Node_Label;
 
-      function Strip_Delimiters (Tree_Index : in Valid_Node_Index) return String
+      function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Index) return String
       is
-         Region : Buffer_Region renames Terminals (Tree.Terminal (Tree_Index)).Byte_Region;
+         Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
             --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
@@ -80,7 +80,7 @@ package body WisiToken_Grammar_Runtime is
       end Strip_Delimiters;
 
    begin
-      if Tree_Index = Deleted_Child then
+      if Tree_Index = Syntax_Trees.Invalid_Node_Index then
          return "<deleted child>";
       end if;
 
@@ -108,12 +108,12 @@ package body WisiToken_Grammar_Runtime is
          declare
             use all type Ada.Strings.Unbounded.Unbounded_String;
             Result       : Ada.Strings.Unbounded.Unbounded_String;
-            Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals (Tree_Index);
-            Need_Space   : Boolean                         := False;
+            Tree_Indices : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tree_Index);
+            Need_Space   : Boolean                                      := False;
          begin
             for Tree_Index of Tree_Indices loop
                Result := Result & (if Need_Space then " " else "") &
-                 Get_Text (Terminals, Grammar_Lexer, Virtual_Identifiers, Tree, Tree_Index, Strip_Quotes);
+                 Get_Text (Grammar_Lexer, Virtual_Identifiers, Tree, Tree_Index, Strip_Quotes);
                Need_Space := True;
             end loop;
             return -Result;
@@ -124,19 +124,19 @@ package body WisiToken_Grammar_Runtime is
    function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in Syntax_Trees.Tree;
-      Tree_Index   : in Valid_Node_Index;
+      Tree_Index   : in WisiToken.Syntax_Trees.Valid_Node_Index;
       Strip_Quotes : in Boolean := False)
      return String
    is begin
       return Get_Text
-        (Data.Terminals.all, Data.Grammar_Lexer, Data.Tokens.Virtual_Identifiers,
+        (Data.Grammar_Lexer, Data.Tokens.Virtual_Identifiers,
          Tree, Tree_Index, Strip_Quotes);
    end Get_Text;
 
    function Get_Item_Text
      (Data         : in User_Data_Type;
-      Tree         : in WisiToken.Syntax_Trees.Tree;
-      Node         : in WisiToken.Valid_Node_Index;
+      Tree         : in Syntax_Trees.Tree;
+      Node         : in Syntax_Trees.Valid_Node_Index;
       Strip_Quotes : in Boolean := False)
      return String
    is begin
@@ -146,12 +146,12 @@ package body WisiToken_Grammar_Runtime is
    function Get_Child_Text
      (Data         : in User_Data_Type;
       Tree         : in Syntax_Trees.Tree;
-      Parent       : in Valid_Node_Index;
+      Parent       : in Syntax_Trees.Valid_Node_Index;
       Child        : in SAL.Peek_Type;
       Strip_Quotes : in Boolean := False)
      return String
    is
-      Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals (Parent);
+      Tree_Indices : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Parent);
    begin
       return Get_Text (Data, Tree, Tree_Indices (Child), Strip_Quotes);
    end Get_Child_Text;
@@ -159,8 +159,8 @@ package body WisiToken_Grammar_Runtime is
    procedure Start_If_1
      (Data    : in out User_Data_Type;
       Tree    : in out Syntax_Trees.Tree;
-      A_Index : in     Valid_Node_Index;
-      B_Index : in     Valid_Node_Index)
+      A_Index : in     Syntax_Trees.Valid_Node_Index;
+      B_Index : in     Syntax_Trees.Valid_Node_Index)
    is
       use WisiToken.BNF;
 
@@ -185,7 +185,7 @@ package body WisiToken_Grammar_Runtime is
       else
          raise Grammar_Error with
            Error_Message
-             (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.First_Shared_Terminal (A_Index)).Line,
+             (Data.Grammar_Lexer.File_Name, Tree.Base_Token (Tree.First_Shared_Terminal (A_Index)).Line,
               "invalid '%if'; must be one of {lexer | parser}");
       end if;
    end Start_If_1;
@@ -194,12 +194,12 @@ package body WisiToken_Grammar_Runtime is
      (Data   : in out User_Data_Type;
       Tree   : in     Syntax_Trees.Tree;
       Labels : in out WisiToken.BNF.String_Arrays.Vector;
-      Token  : in     Valid_Node_Index)
+      Token  : in     Syntax_Trees.Valid_Node_Index)
      return WisiToken.BNF.RHS_Type
    with Pre => Tree.ID (Token) = +rhs_ID
    is
       use all type SAL.Base_Peek_Type;
-      Children : constant Valid_Node_Index_Array := Tree.Children (Token);
+      Children : constant Syntax_Trees.Node_Index_Array := Tree.Children (Token);
    begin
       return RHS : WisiToken.BNF.RHS_Type do
          RHS.Source_Line := Get_Line (Data, Tree, Token);
@@ -214,7 +214,7 @@ package body WisiToken_Grammar_Runtime is
          end if;
 
          if Children'Length > 0 then
-            for I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop
+            for  I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop
                case Tree.RHS_Index (I) is
                when 0 =>
                   --  rhs_item
@@ -274,10 +274,10 @@ package body WisiToken_Grammar_Runtime is
       Tree             : in out WisiToken.Syntax_Trees.Tree;
       Right_Hand_Sides : in out WisiToken.BNF.RHS_Lists.List;
       Labels           : in out WisiToken.BNF.String_Arrays.Vector;
-      Token            : in     WisiToken.Valid_Node_Index)
+      Token            : in     WisiToken.Syntax_Trees.Valid_Node_Index)
    with Pre => Tree.ID (Token) = +rhs_list_ID
    is
-      Tokens : constant Valid_Node_Index_Array := Tree.Children (Token);
+      Tokens : constant Syntax_Trees.Node_Index_Array := Tree.Children (Token);
    begin
       case Tree.RHS_Index (Token) is
       when 0 =>
@@ -318,14 +318,12 @@ package body WisiToken_Grammar_Runtime is
    --  Public subprograms, declaration order
 
    overriding
-   procedure Set_Lexer_Terminals
+   procedure Set_Lexer
      (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     Base_Token_Array_Access_Constant)
+      Lexer     : in     WisiToken.Lexer.Handle)
    is begin
       User_Data.Grammar_Lexer := Lexer;
-      User_Data.Terminals     := Terminals;
-   end Set_Lexer_Terminals;
+   end Set_Lexer;
 
    overriding procedure Reset (Data : in out User_Data_Type)
    is begin
@@ -364,46 +362,12 @@ package body WisiToken_Grammar_Runtime is
       Tree : in     WisiToken.Syntax_Trees.Tree'Class)
    is begin
       Data.EBNF_Nodes.Clear;
-      Data.EBNF_Nodes.Set_First_Last (Tree.First_Index, Tree.Last_Index);
    end Initialize_Actions;
-
-   overriding
-   procedure Lexer_To_Augmented
-     (Data  : in out          User_Data_Type;
-      Tree  : in out          WisiToken.Syntax_Trees.Tree'Class;
-      Token : in              WisiToken.Base_Token;
-      Lexer : not null access WisiToken.Lexer.Instance'Class)
-   is
-      pragma Unreferenced (Lexer);
-      use all type Ada.Containers.Count_Type;
-   begin
-      if Token.ID < Wisitoken_Grammar_Actions.Descriptor.First_Terminal then
-         --  Non-grammar token
-         if Data.Terminals.Length = 0 then
-            Data.Leading_Non_Grammar.Append (Token);
-         else
-            declare
-               Containing_Aug : Augmented_Token_Access := Augmented_Token_Access
-                 (Tree.Augmented (Data.Last_Terminal_Node));
-            begin
-               if Containing_Aug = null then
-                  Containing_Aug := new Augmented_Token'
-                    (Data.Terminals.all (Tree.First_Shared_Terminal (Data.Last_Terminal_Node)) with others => <>);
-                  Tree.Set_Augmented (Data.Last_Terminal_Node, WisiToken.Base_Token_Class_Access (Containing_Aug));
-               end if;
-
-               Containing_Aug.Non_Grammar.Append (Token);
-            end;
-         end if;
-      else
-         Data.Last_Terminal_Node := Token.Tree_Index;
-      end if;
-   end Lexer_To_Augmented;
 
    function Get_Lexer_Set
      (User_Data : in out User_Data_Type;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Node      : in     Valid_Node_Index)
+      Node      : in     Syntax_Trees.Valid_Node_Index)
      return WisiToken.BNF.Lexer_Set
    is
       use WisiToken.BNF;
@@ -428,7 +392,7 @@ package body WisiToken_Grammar_Runtime is
    function Get_Generate_Algorithm_Set
      (User_Data : in out User_Data_Type;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Node      : in     Valid_Node_Index)
+      Node      : in     Syntax_Trees.Valid_Node_Index)
      return WisiToken.BNF.Generate_Algorithm_Set
    is
       use WisiToken.BNF;
@@ -453,7 +417,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array)
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is begin
       --  all phases
       Start_If_1 (User_Data_Type (User_Data), Tree, Tokens (3), Tokens (5));
@@ -470,7 +434,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array)
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       use all type WisiToken.Syntax_Trees.Node_Label;
       use all type Ada.Strings.Unbounded.Unbounded_String;
@@ -488,7 +452,7 @@ package body WisiToken_Grammar_Runtime is
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
               ", expecting Shared_Terminal";
          else
-            return Data.Terminals.all (Tree.Terminal (Tokens (Index)));
+            return Tree.Base_Token (Tokens (Index));
          end if;
       end Token;
 
@@ -509,7 +473,7 @@ package body WisiToken_Grammar_Runtime is
                   elsif Kind = "generate" then
                      declare
                         use all type SAL.Base_Peek_Type;
-                        Children : constant Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
+                        Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
                         Tuple    : WisiToken.BNF.Generate_Tuple;
                      begin
                         Tuple.Gen_Alg  := WisiToken.BNF.To_Generate_Algorithm (Get_Text (Data, Tree, Children (1)));
@@ -530,7 +494,7 @@ package body WisiToken_Grammar_Runtime is
                                  Tuple.Interface_Kind := WisiToken.BNF.Valid_Interface'Value (Text);
                               else
                                  declare
-                                    Token : Base_Token renames Data.Terminals.all (Tree.Terminal (Children (I)));
+                                    Token : Base_Token renames Tree.Base_Token (Children (I));
                                  begin
                                     raise Grammar_Error with Error_Message
                                       (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
@@ -552,7 +516,7 @@ package body WisiToken_Grammar_Runtime is
                               Data.Meta_Syntax := BNF_Syntax;
                            elsif Value_Str = "ebnf" then
                               Data.Meta_Syntax := EBNF_Syntax;
-                              Data.EBNF_Nodes (Tree.Find_Ancestor (Tokens (2), +declaration_ID)) := True;
+                              Data.EBNF_Nodes.Insert (Tree.Find_Ancestor (Tokens (2), +declaration_ID));
 
                            else
                               Put_Error ("invalid value for %meta_syntax; must be BNF | EBNF.");
@@ -579,13 +543,13 @@ package body WisiToken_Grammar_Runtime is
       when Syntax_Trees.Nonterm =>
          --  must be token_keyword_non_grammar
          declare
-            Children_2 : constant Valid_Node_Index_Array := Tree.Children (Tokens (2));
+            Children_2 : constant Syntax_Trees.Node_Index_Array := Tree.Children (Tokens (2));
             Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
          begin
             case Child_1_ID is
             when Wisitoken_Grammar_Actions.TOKEN_ID =>
                declare
-                  Children_4 : constant Valid_Node_Index_Array := Tree.Children (Tokens (4));
+                  Children_4 : constant Syntax_Trees.Node_Index_Array := Tree.Children (Tokens (4));
                begin
                   WisiToken.BNF.Add_Token
                     (Data.Tokens.Tokens,
@@ -627,31 +591,31 @@ package body WisiToken_Grammar_Runtime is
                --  identifier_list children = identifier_list IDENTIFIER_ID
                --  children = identifier_list IDENTIFIER_ID
                --  children = IDENTIFIER_ID
-               function Get_Loc_List return Base_Token_Array
+               function Get_Loc_List return Syntax_Trees.Valid_Node_Index_Array
                with Pre => Tree.ID (Tokens (3)) = +identifier_list_ID
                is
                   use all type SAL.Base_Peek_Type;
                   use WisiToken.Syntax_Trees;
                   Node   : Valid_Node_Index := Tokens (3);
-                  Result : Base_Token_Array (1 .. 3);
+                  Result : Valid_Node_Index_Array (1 .. 3) := (others => Dummy_Node);
                   First  : SAL.Peek_Type    := Result'Last + 1;
                begin
                   loop
                      pragma Assert (Tree.ID (Node) = +identifier_list_ID);
                      exit when not Tree.Has_Children (Node);
                      declare
-                        Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+                        Children : constant Node_Index_Array := Tree.Children (Node);
                      begin
                         if Children'Length = 1 then
                            --  identifier_list : IDENTIFIER
                            First := First - 1;
-                           Result (First) := Data.Terminals.all (Tree.Terminal (Children (1)));
+                           Result (First) := Children (1);
                            exit;
 
                         elsif Children'Length = 2 then
                            --  identifier_list : identifier_list IDENTIFIER
                            First := First - 1;
-                           Result (First) := Data.Terminals.all (Tree.Terminal (Children (2)));
+                           Result (First) := Children (2);
 
                            Node := Children (1);
                         else
@@ -662,10 +626,10 @@ package body WisiToken_Grammar_Runtime is
                   return Result (First .. Result'Last);
                end Get_Loc_List;
 
-               Loc_List : constant Base_Token_Array := Get_Loc_List;
+               Loc_List : constant Syntax_Trees.Valid_Node_Index_Array := Get_Loc_List;
 
                function Get_Loc (Index : in SAL.Peek_Type) return String
-               is (Data.Grammar_Lexer.Buffer_Text (Loc_List (Index).Byte_Region));
+               is (Data.Grammar_Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index))));
 
             begin
                if Get_Loc (Loc_List'First) = "actions" then
@@ -676,7 +640,7 @@ package body WisiToken_Grammar_Runtime is
                         elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Spec_Post
                         else raise Grammar_Error with
                           Error_Message
-                            (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
+                            (Data.Grammar_Lexer.File_Name, Tree.Base_Token (Loc_List (2)).Line,
                              "expecting {context | pre | post}"))
 
                      elsif Get_Loc (2) = "body" then
@@ -685,7 +649,7 @@ package body WisiToken_Grammar_Runtime is
                         elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Body_Post
                         else raise Grammar_Error with
                           Error_Message
-                            (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
+                            (Data.Grammar_Lexer.File_Name, Tree.Base_Token (Loc_List (2)).Line,
                              "expecting {context | pre | post}"))
 
                      else raise Grammar_Error);
@@ -696,7 +660,7 @@ package body WisiToken_Grammar_Runtime is
                else
                   raise Grammar_Error with
                     Error_Message
-                      (Data.Grammar_Lexer.File_Name, Loc_List (Loc_List'First).Line,
+                      (Data.Grammar_Lexer.File_Name, Tree.Base_Token (Loc_List (Loc_List'First)).Line,
                        "expecting {actions | copyright_license}");
                end if;
 
@@ -721,7 +685,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "conflict" then
                   declare
-                     Tree_Indices : constant Valid_Node_Index_Array := Tree.Get_Terminals
+                     Tree_Indices : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals
                        (Tokens (3));
 
                      --  Old LR1, LALR format:
@@ -737,7 +701,7 @@ package body WisiToken_Grammar_Runtime is
 
                      Conflict : BNF.Conflict;
                   begin
-                     Conflict.Source_Line := Data.Terminals.all (Tree.Terminal (Tree_Indices (1))).Line;
+                     Conflict.Source_Line := Tree.Base_Token (Tree_Indices (1)).Line;
 
                      if Tree_Indices'Length < 3 or else
                        (Tree.ID (Tree_Indices (3)) /= +BAR_ID and
@@ -818,7 +782,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.McKenzie_Recover.Check_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
                   Data.Language_Params.Error_Recover := True;
@@ -829,13 +793,13 @@ package body WisiToken_Grammar_Runtime is
                      raise Grammar_Error with
                        Error_Message
                          (Data.Grammar_Lexer.File_Name,
-                          Data.Terminals.all (Tree.First_Shared_Terminal (Tokens (3))).Line,
+                          Tree.Base_Token (Tree.First_Shared_Terminal (Tokens (3))).Line,
                           "too " & (if Tree.Get_Terminals (Tokens (3))'Length > 4 then "many" else "few") &
                             " default costs; should be 'insert, delete, push back, ignore check fail'.");
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line := Data.Terminals.all
+                  Data.McKenzie_Recover.Source_Line := Tree.Base_Token
                     (Tree.First_Shared_Terminal (Tokens (1))).Line;
 
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
@@ -931,7 +895,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array)
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       use all type Ada.Containers.Count_Type;
       use WisiToken.Syntax_Trees;
@@ -956,7 +920,7 @@ package body WisiToken_Grammar_Runtime is
          case Tree.Label (LHS_Node) is
          when Shared_Terminal =>
             declare
-               LHS_Token : Base_Token renames Data.Terminals.all (Tree.Terminal (LHS_Node));
+               LHS_Token : WisiToken.Base_Token renames Tree.Base_Token (LHS_Node);
             begin
                raise Grammar_Error with Error_Message
                  (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm");
@@ -976,7 +940,7 @@ package body WisiToken_Grammar_Runtime is
            ((+LHS_String, Right_Hand_Sides, Labels,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
-                when Shared_Terminal    => Data.Terminals.all (Tree.First_Shared_Terminal (LHS_Node)).Line,
+                when Shared_Terminal    => Tree.Base_Token (Tree.First_Shared_Terminal (LHS_Node)).Line,
                 when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;
@@ -992,7 +956,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
       Token     : in     WisiToken.Positive_Index_Type)
    is
       Data : User_Data_Type renames User_Data_Type (User_Data);
@@ -1003,11 +967,11 @@ package body WisiToken_Grammar_Runtime is
 
       case Data.Phase is
       when Meta =>
-         Data.EBNF_Nodes (Tokens (Token)) := True;
+         Data.EBNF_Nodes.Insert (Tokens (Token));
 
          if Data.Meta_Syntax /= EBNF_Syntax then
             declare
-               Tok  : Base_Token renames Data.Terminals.all (Tree.First_Shared_Terminal (Tokens (Token)));
+               Tok  : Base_Token renames Tree.Base_Token (Tree.First_Shared_Terminal (Tokens (Token)));
             begin
                raise Grammar_Error with Error_Message
                  (Data.Grammar_Lexer.File_Name, Tok.Line, Tok.Column,
@@ -1023,10 +987,10 @@ package body WisiToken_Grammar_Runtime is
      (Label : in String;
       Data  : in User_Data_Type;
       Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in WisiToken.Node_Index)
+      Node  : in WisiToken.Syntax_Trees.Node_Index)
    is begin
       WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Data.Terminals.all, Node);
+        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Node);
    end Raise_Programmer_Error;
 
 end WisiToken_Grammar_Runtime;

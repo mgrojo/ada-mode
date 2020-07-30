@@ -179,8 +179,7 @@ package body WisiToken.Lexer.re2c is
       procedure Build_Token
       is begin
          Token :=
-           (ID         => Lexer.ID,
-            Tree_Index => Invalid_Node_Index,
+           (ID => Lexer.ID,
 
             Byte_Region =>
               (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
@@ -250,7 +249,7 @@ package body WisiToken.Lexer.re2c is
                      --  char after '.
                      Lexer.Errors.Append
                        ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
-                         Invalid_Token_Index,
+                         Lexer.Line,
                          (1 => ''', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_1_ID;
@@ -261,9 +260,9 @@ package body WisiToken.Lexer.re2c is
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
                      Lexer.Errors.Append
-                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
-                         Invalid_Token_Index,
-                         (1 => '"', others => ASCII.NUL)));
+                       ((Char_Pos     => To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                         Line         => Lexer.Line,
+                         Recover_Char =>  (1 => '"', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_2_ID;
                      Build_Token;
@@ -272,7 +271,7 @@ package body WisiToken.Lexer.re2c is
                   else
                      --  Just skip the character; call Next_Token again.
                      Lexer.Errors.Append
-                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), Invalid_Token_Index, (others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), Lexer.Line, (others => ASCII.NUL)));
                   end if;
                end;
 

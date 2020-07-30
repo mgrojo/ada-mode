@@ -32,19 +32,12 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    Default_Max_Parallel : constant := 15;
 
    type Parser is new WisiToken.Parse.Base_Parser with record
-      Table       : Parse_Table_Ptr;
-      Shared_Tree : aliased Syntax_Trees.Base_Tree;
-      --  Each parser has its own branched syntax tree, all branched from
-      --  this tree.
-      --
-      --  See WisiToken.LR.Parser_Lists Parser_State for more discussion of
-      --  Shared_Tree.
-
+      Table   : Parse_Table_Ptr;
       Parsers : aliased Parser_Lists.List;
 
       Max_Parallel         : SAL.Base_Peek_Type;
       First_Parser_Label   : Integer;
-      Terminate_Same_State : Boolean;
+      Terminate_Same_State : Boolean; -- IMPROVEME: delete, never set False
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser_No_Recover.Parser);
@@ -70,16 +63,6 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
-
-   overriding
-   function Tree
-     (Parser : aliased in LR.Parser_No_Recover.Parser)
-     return Syntax_Trees.Tree_Constant_Reference;
-
-   overriding
-   function Tree_Var_Ref
-     (Parser : aliased in out LR.Parser_No_Recover.Parser)
-     return Syntax_Trees.Tree_Variable_Reference;
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 

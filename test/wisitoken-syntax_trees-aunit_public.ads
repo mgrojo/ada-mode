@@ -25,4 +25,9 @@ package WisiToken.Syntax_Trees.AUnit_Public is
       Computed : in Semantic_Action;
       Expected : in Semantic_Action);
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Tree;
+      Expected : in Tree);
+
 end WisiToken.Syntax_Trees.AUnit_Public;

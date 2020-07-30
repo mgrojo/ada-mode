@@ -2,7 +2,7 @@
 --
 --  Grammar semantic check routines.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
+with WisiToken.Syntax_Trees;
 package WisiToken.Semantic_Checks is
 
    type Check_Status_Label is
@@ -34,8 +35,8 @@ package WisiToken.Semantic_Checks is
          null;
 
       when Error =>
-         Begin_Name : Recover_Token;
-         End_Name   : Recover_Token;
+         Begin_Name : Syntax_Trees.Recover_Token;
+         End_Name   : Syntax_Trees.Recover_Token;
       end case;
    end record;
 
@@ -46,8 +47,8 @@ package WisiToken.Semantic_Checks is
 
    type Semantic_Check is access function
      (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-      Nonterm        : in out Recover_Token;
-      Tokens         : in     Recover_Token_Array;
+      Nonterm        : in out Syntax_Trees.Recover_Token;
+      Tokens         : in     Syntax_Trees.Recover_Token_Array;
       Recover_Active : in     Boolean)
      return Check_Status;
    --  Called during parsing and error recovery to implement higher level
@@ -58,7 +59,7 @@ package WisiToken.Semantic_Checks is
    function Match_Names
      (Lexer        : access constant WisiToken.Lexer.Instance'Class;
       Descriptor   : in     WisiToken.Descriptor;
-      Tokens       : in     Recover_Token_Array;
+      Tokens       : in     Syntax_Trees.Recover_Token_Array;
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;
       End_Optional : in     Boolean)
@@ -68,13 +69,13 @@ package WisiToken.Semantic_Checks is
    --  Descriptor.Case_Insensitive.
 
    function Propagate_Name
-     (Nonterm    : in out Recover_Token;
-      Tokens     : in     Recover_Token_Array;
+     (Nonterm    : in out Syntax_Trees.Recover_Token;
+      Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
      return Check_Status;
    function Merge_Names
-     (Nonterm     : in out Recover_Token;
-      Tokens      : in     Recover_Token_Array;
+     (Nonterm     : in out Syntax_Trees.Recover_Token;
+      Tokens      : in     Syntax_Trees.Recover_Token_Array;
       Name_Index  : in     Positive_Index_Type)
      return Check_Status
    renames Propagate_Name;
@@ -82,8 +83,8 @@ package WisiToken.Semantic_Checks is
    --  .Name is Null_Buffer_Region. Return Ok.
 
    function Merge_Names
-     (Nonterm     : in out Recover_Token;
-      Tokens      : in     Recover_Token_Array;
+     (Nonterm     : in out Syntax_Trees.Recover_Token;
+      Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Check_Status;
@@ -97,7 +98,7 @@ package WisiToken.Semantic_Checks is
      (Partial_Parse_Active    : in Boolean;
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
-      Nonterm                 : in Recover_Token)
+      Nonterm                 : in Syntax_Trees.Recover_Token)
      return Check_Status;
    pragma Inline (Terminate_Partial_Parse);
    --  If partial parse is complete, raise Wisitoken.Partial_Parse;

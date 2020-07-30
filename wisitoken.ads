@@ -46,12 +46,10 @@ with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-with SAL.Generic_Decimal_Image;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
-with SAL.Gen_Unconstrained_Array_Image;
 package WisiToken is
 
    Partial_Parse : exception; -- a partial parse terminated.
@@ -297,40 +295,13 @@ package WisiToken is
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
-   --  Syntax tree nodes.
-   type Node_Index is range 0 .. Integer'Last;
-   subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
-   --  Note that Valid_Node_Index includes Deleted_Child.
-
-   Invalid_Node_Index : constant Node_Index := Node_Index'First;
-   Deleted_Child      : constant Node_Index := Node_Index'Last;
-
-   type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
-   --  Index matches Base_Token_Array, Augmented_Token_Array
-
-   function Image is new SAL.Generic_Decimal_Image (Valid_Node_Index);
-   --  Has Width parameter
-
-   function Image (Item : in Valid_Node_Index) return String
-     is (Image (Item, 4));
-
-   function Image is new SAL.Gen_Unconstrained_Array_Image
-     (Positive_Index_Type, Valid_Node_Index, Valid_Node_Index_Array, Image);
-
-   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'Last);
-   --  Index matches Valid_Node_Index_Array.
-
-   package Node_Array_Booleans is new SAL.Gen_Unbounded_Definite_Vectors
-     (Valid_Node_Index, Boolean, False);
-
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser. The parser only needs ID and Tree_Index;
-      --  semantic checks need Byte_Region to compare names. Line, Col, and
-      --  Char_Region are included for error messages.
+      --  Base_Token is used in the core parser. The parser only needs ID
+      --  and Tree_Index; semantic checks need Byte_Region to compare names.
+      --  Line, Col, and Char_Region are included for error messages and
+      --  interfacing with other tools.
 
-      ID         : Token_ID   := Invalid_Token_ID;
-      Tree_Index : Node_Index := Invalid_Node_Index;
+      ID : Token_ID := Invalid_Token_ID;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
@@ -357,73 +328,14 @@ package WisiToken is
 
    Invalid_Token : constant Base_Token := (others => <>);
 
-   type Base_Token_Index is range 0 .. Integer'Last;
-   subtype Token_Index is Base_Token_Index range 1 .. Base_Token_Index'Last;
-
-   Invalid_Token_Index : constant Base_Token_Index := Base_Token_Index'First;
-
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Token_Index);
-
-   type Token_Index_Array is array (Natural range <>) of Token_Index;
-
-   package Recover_Token_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, Base_Token_Index, Default_Element => Invalid_Token_Index);
-
-   type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
-
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_Index, Base_Token, Default_Element => (others => <>));
-   type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
-   type Base_Token_Array_Access_Constant is access constant Base_Token_Arrays.Vector;
+     (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
 
-   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
+   type Base_Token_Arrays_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
 
-   function Image
-     (Token      : in Base_Token_Index;
-      Terminals  : in Base_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
-
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);
-
-   type Recover_Token is record
-      --  Maintaining a syntax tree during error recovery is too slow, so we
-      --  store enough information in the recover stack to perform
-      --  Semantic_Checks, Language_Fixes, and Push_Back operations. and to
-      --  apply the solution to the main parser state. We make thousands of
-      --  copies of the parse stack during recover, so minimizing size and
-      --  compute time for this is critical.
-      ID : Token_ID := Invalid_Token_ID;
-
-      Byte_Region : Buffer_Region := Null_Buffer_Region;
-      --  Byte_Region is used to detect empty tokens, for cost and other issues.
-
-      Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
-      --  For terminals, index of this token in Shared_Parser.Terminals. For
-      --  nonterminals, minimum of contained tokens (Invalid_Token_Index if
-      --  empty). For virtuals, Invalid_Token_Index. Used for push_back of
-      --  nonterminals.
-
-      Name : Buffer_Region := Null_Buffer_Region;
-      --  Set and used by semantic_checks.
-
-      Virtual : Boolean := True;
-      --  For terminals, True if inserted by recover. For nonterminals, True
-      --  if any contained token has Virtual = True.
-   end record;
-
-   function Image
-     (Item       : in Recover_Token;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
-
-   type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
-
-   package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_Index, Recover_Token, Default_Element => (others => <>));
-
-   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
+   type Base_Token_Arrays_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
 
    type Base_Identifier_Index is range 0 .. Integer'Last;
    subtype Identifier_Index is Base_Identifier_Index range 1 .. Base_Identifier_Index'Last;
@@ -517,5 +429,15 @@ package WisiToken is
    type Names_Array_Access is access Names_Array;
    type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
    type Names_Array_Array_Access is access Names_Array_Array;
+
+private
+
+   type Base_Token_Arrays_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Base_Token_Arrays_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
 end WisiToken;

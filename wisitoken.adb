@@ -345,30 +345,4 @@ package body WisiToken is
       end if;
    end Image;
 
-   function Image
-     (Token      : in Base_Token_Index;
-      Terminals  : in Base_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-   is begin
-      if Token = Invalid_Token_Index then
-         return "<invalid_token_index>";
-      else
-         return Token_Index'Image (Token) & ":" & Image (Terminals (Token), Descriptor);
-      end if;
-   end Image;
-
-   function Image
-     (Item       : in Recover_Token;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-   is begin
-      return
-        (if Item.Min_Terminal_Index = Invalid_Token_Index
-         then ""
-         else Trimmed_Image (Item.Min_Terminal_Index) & ":") &
-        "(" & Image (Item.ID, Descriptor) &
-        (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
-   end Image;
-
 end WisiToken;

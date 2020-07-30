@@ -272,9 +272,9 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Check_Limit       : Token_Index; -- max tokens to parse ahead when checking a configuration.
-      Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
-      Enqueue_Limit     : Natural;     -- max configs enqueued.
+      Check_Limit       : Natural; -- max tokens to parse ahead when checking a configuration.
+      Check_Delta_Limit : Natural; -- max configs checked, delta over successful parser.
+      Enqueue_Limit     : Natural; -- max configs enqueued.
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -401,7 +401,7 @@ package WisiToken.Parse.LR is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : WisiToken.Token_Index;
+         FF_Token_Index : Syntax_Trees.Node_Index;
          --  Config.Current_Shared_Token after the operation is done; the last
          --  token shifted.
 
@@ -416,23 +416,22 @@ package WisiToken.Parse.LR is
          PB_ID : Token_ID;
          --  The nonterm ID popped off the stack.
 
-         PB_Token_Index : WisiToken.Base_Token_Index;
-         --  Config.Current_Shared_Token after
-         --  the operation is done. If the token is empty, Token_Index is
-         --  Invalid_Token_Index.
+         PB_Token_Index : Syntax_Trees.Node_Index;
+         --  Config.Current_Shared_Token after the operation is done;
+         --  Invalid_Node_Index if the pushed_back nonterm is empty.
 
       when Insert =>
          Ins_ID : Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : WisiToken.Base_Token_Index;
+         Ins_Token_Index : Syntax_Trees.Node_Index;
          --  Ins_ID is inserted before Token_Index.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
-         Del_Token_Index : WisiToken.Base_Token_Index;
+         Del_Token_Index : Syntax_Trees.Node_Index;
          --  Token at Token_Index is deleted.
 
       end case;
@@ -440,7 +439,7 @@ package WisiToken.Parse.LR is
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
    subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
-   function Token_Index (Op : in Insert_Delete_Op) return WisiToken.Token_Index
+   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Node_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
          when Insert => Op.Ins_Token_Index,
          when Delete => Op.Del_Token_Index);
@@ -450,14 +449,11 @@ package WisiToken.Parse.LR is
          when Insert => Op.Ins_ID,
          when Delete => Op.Del_ID);
 
-   function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result;
-   --  Compare token_index.
-
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean;
-   --  Ignore state, stack_depth
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Default_Element => (Fast_Forward, Base_Token_Index'Last), Capacity => 80);
+     (Positive_Index_Type, Config_Op, Default_Element =>
+        (Fast_Forward, Syntax_Trees.Invalid_Node_Index), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -470,17 +466,14 @@ package WisiToken.Parse.LR is
 
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
-           (case Item.Op is
-            when Fast_Forward => WisiToken.Token_Index'Image (Item.FF_Token_Index),
-            when Undo_Reduce => Image (Item.Nonterm, Descriptor) & "," &
-                 Ada.Containers.Count_Type'Image (Item.Token_Count),
-            when Push_Back => Image (Item.PB_ID, Descriptor) & "," &
-                 WisiToken.Token_Index'Image (Item.PB_Token_Index),
-            when Insert => Image (Item.Ins_ID, Descriptor) & "," &
-                 WisiToken.Token_Index'Image (Item.Ins_Token_Index),
-            when Delete => Image (Item.Del_ID, Descriptor) & "," &
-                 WisiToken.Token_Index'Image (Item.Del_Token_Index))
-           & ")");
+         (case Item.Op is
+          when Fast_Forward => "",
+          when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
+               Ada.Containers.Count_Type'Image (Item.Token_Count),
+          when Push_Back    => Image (Item.PB_ID, Descriptor),
+          when Insert       => Image (Item.Ins_ID, Descriptor),
+          when Delete       => Image (Item.Del_ID, Descriptor))
+         & ")");
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      renames Config_Op_Image;
@@ -512,16 +505,17 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID := Invalid_Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : Base_Token_Index := Invalid_Token_Index;
+         Ins_Token_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
          --  Ins_ID is inserted before Token_Index.
 
-         Ins_Tree_Node : Node_Index := Invalid_Node_Index;
+         Ins_Tree_Node : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+         --  The node holding the inserted token.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
-         Del_Token_Index : Base_Token_Index;
+         Del_Token_Index : Syntax_Trees.Node_Index;
          --  Token at Token_Index is deleted.
 
       end case;
@@ -529,7 +523,7 @@ package WisiToken.Parse.LR is
 
    package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Recover_Op,
-      Default_Element => (Delete, Invalid_Token_ID, Invalid_Token_Index),
+      Default_Element => (others => <>),
       Capacity => 80);
 
    package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
@@ -537,11 +531,8 @@ package WisiToken.Parse.LR is
    function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Item.Op'Image & ", " &
            (case Item.Op is
-            when Insert => Image (Item.Ins_ID, Descriptor) & "," &
-                 Item.Ins_Token_Index'Image & "," &
-                 Item.Ins_Tree_Node'Image,
-            when Delete => Image (Item.Del_ID, Descriptor) & "," &
-                 Item.Del_Token_Index'Image)
+            when Insert => Image (Item.Ins_ID, Descriptor),
+            when Delete => Image (Item.Del_ID, Descriptor))
            & ")");
 
    function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
@@ -549,11 +540,11 @@ package WisiToken.Parse.LR is
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
 
-      Tree_Index : Node_Index := Invalid_Node_Index;
+      Tree_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Valid if copied at recover initialize, Invalid if pushed during
       --  recover.
 
-      Token : Recover_Token;
+      Token : Syntax_Trees.Recover_Token;
       --  Virtual is False if token is from input text; True if inserted
       --  during recover.
    end record;
@@ -562,7 +553,7 @@ package WisiToken.Parse.LR is
 
    function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor) return String
      is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
-           Image (Item.Token, Descriptor));
+           Syntax_Trees.Image (Item.Token, Descriptor));
 
    function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor, Image);
    --  Unique name for calling from debugger
@@ -600,13 +591,13 @@ package WisiToken.Parse.LR is
       --
       --  Emacs Ada mode wisi.adb needs > 50
 
-      Resume_Token_Goal : WisiToken.Token_Index := WisiToken.Token_Index'Last;
+      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  A successful solution shifts this token. Per-config because it
       --  increases with Delete; we increase Shared_Parser.Resume_Token_Goal
       --  only from successful configs.
 
-      Current_Shared_Token : Base_Token_Index := WisiToken.Token_Index'Last;
-      --  Index into Shared_Parser.Terminals for current input token, after
+      Current_Shared_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  Index into Shared_Parser.Tree for current input token, after
       --  all of Inserted is input. Initially the error token.
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
@@ -620,7 +611,7 @@ package WisiToken.Parse.LR is
       --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
       --  Current_Shared_Token.
 
-      Error_Token       : Recover_Token;
+      Error_Token       : Syntax_Trees.Recover_Token;
       Check_Token_Count : Ada.Containers.Count_Type;
       Check_Status      : Semantic_Checks.Check_Status;
       --  If parsing this config ended with a parse error, Error_Token is
@@ -687,7 +678,7 @@ package WisiToken.Parse.LR is
 
       case Label is
       when Action =>
-         Error_Token : Valid_Node_Index; -- index into Parser.Tree
+         Error_Token : Syntax_Trees.Stream_Index;
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>

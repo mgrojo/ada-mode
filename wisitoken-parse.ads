@@ -22,14 +22,17 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Syntax_Trees.Node_Index, Default_Element => Syntax_Trees.Invalid_Node_Index);
+
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled with record
       Trace     : access WisiToken.Trace'Class;
       Lexer     : WisiToken.Lexer.Handle;
+      Tree      : Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
-      Terminals : aliased WisiToken.Base_Token_Arrays.Vector;
 
-      Line_Begin_Token : aliased WisiToken.Line_Begin_Token_Vectors.Vector;
-      --  Line_Begin_Token (I) is the index into Terminals of the first
+      Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
+      --  Line_Begin_Token (I) is the index into Tree of the first
       --  grammar token on line I. Line_Begin_Token.First_Index is the first
       --  line containing a grammar token (after leading comments). However,
       --  if the only token on line I is a non_grammar token (ie a comment,
@@ -37,6 +40,11 @@ package WisiToken.Parse is
       --  grammar token on the previous non-blank line. If Line (I) is a
       --  non-first line in a multi-line terminal token, Line_Begin_Token
       --  (I) is Invalid_Token_Index.
+
+      Last_Grammar_Node : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  Last grammar token returned from Lexer; for storing non_grammar
+      --  tokens in it.
+
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -48,8 +56,8 @@ package WisiToken.Parse is
    --  Propagates Fatal_Error from Lexer.
 
    procedure Lex_All (Parser : in out Base_Parser'Class);
-   --  Clear Terminals, Line_Begin_Token; reset User_Data. Then call
-   --  Next_Grammar_Token repeatedly until EOF_ID is returned.
+   --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
+   --  call Next_Grammar_Token repeatedly until EOF_ID is returned.
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 
@@ -63,16 +71,6 @@ package WisiToken.Parse is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
-
-   function Tree (Parser : aliased in Base_Parser) return Syntax_Trees.Tree_Constant_Reference is abstract;
-   --  Return the syntax tree resulting from the parse.
-   --
-   --  If the parse was ambiguous, raises Parse_Error.
-
-   function Tree_Var_Ref (Parser : aliased in out Base_Parser) return Syntax_Trees.Tree_Variable_Reference is abstract;
-   --  Return a writable reference to the syntax tree resulting from the parse.
-   --
-   --  If the parse was ambiguous, raises Parse_Error.
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

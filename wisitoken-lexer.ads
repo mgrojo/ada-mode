@@ -2,7 +2,7 @@
 --
 --  An abstract lexer interface.
 --
---  Copyright (C) 2014 - 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2014 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -39,9 +39,11 @@ package WisiToken.Lexer is
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
 
-      Recover_Token : Base_Token_Index := Invalid_Token_Index;
-      --  If the error was corrected by inserting a missing quote, the token
-      --  (in shared parser Terminals) that was returned.
+      Line : Line_Number_Type := Invalid_Line_Number;
+
+      --  We don't store Recover_Token : Syntax_Trees.Node_Index here to
+      --  avoid circular 'with'; Syntax_Trees with's Lexer for User_Data
+      --  operations.
 
       Recover_Char : String (1 .. 4) := (others => ASCII.NUL);
       --  If the error was corrected, the character (in UTF-8 encoding) that
@@ -103,7 +105,8 @@ package WisiToken.Lexer is
    --  Return text from internal buffer, given region in byte position.
 
    function First (Lexer : in Instance) return Boolean is abstract;
-   --  True if most recent token is first on a line.
+   --  True if most recent token is first on a line; it is the token
+   --  after a New_Line.
 
    function Find_Next
      (Lexer : in out Instance;

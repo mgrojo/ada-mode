@@ -24,12 +24,35 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+incremental parse
+    test/test_incremental.adb
+
+    parse tree
+        but recover needs static list for push-back
+            parser.terminals is array of node_index? try to avoid that
+
+        wisitoken-bnf-generate compiles
+            commit
+
+    apply edit:
+        wi.parse.lr.incremental?
+        kmn list; must also store inserted text
+            paper assumes versioned file contents directly available; we don't
+
+        LSP didchangeTextDocumentParams sends changed range, inserted text.
+            presumably a delete is represented by a non-null range and an empty insert.
+
+        Parser.line_begin_token must be updated; used in error recover
+
+    review fixmes
+
+
 auto_token_labels
     check for empty statement-action params
-        wisitoken_grammar_1_bnf.wy nontemrinal_009
+        wisitoken_grammar_1_bnf.wy nonterminal_009
 
 doc ebnf vs actions in wisitoken.texi
 
@@ -203,17 +226,6 @@ allow undo_reduce after insert/fast_forward
         or add None_At_All (Insert) to try_Undo_Reduce.
 
 test_mckenzie use lr-parser-gen_aunit
-
-change to incremental parse
-    integrate with tree-sitter?
-
-    change syntax tree; store lists in a single node
-        what does tree_sitter do?
-        needs syntax in .wy to indicate a list
-            ebnf recognize canonical list might be enough
-        fewer nodes in syntax tree; should be faster (for large files)
-            push_back part of a list?
-        simplifies syntax tree editing (translate_ebnf)
 
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1

@@ -23,17 +23,20 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Descriptor : in WisiToken.Descriptor;
       Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Terminals  : in WisiToken.Base_Token_Arrays.Vector;
       Node       : in Node_Index)
    is
-      Terminal_Index : constant Base_Token_Index := Tree.First_Shared_Terminal (Node);
+      Terminal_Index : constant Syntax_Trees.Node_Index := Tree.First_Shared_Terminal (Node);
    begin
       raise SAL.Programmer_Error with Error_Message
         (Lexer.File_Name,
-         --  Not clear why we need Line + 1 here, to match Emacs.
-         (if Terminal_Index = Invalid_Token_Index then 1 else Terminals (Terminal_Index).Line + 1), 0,
-         Label & ": " &
-           Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
+         --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
+         Line    =>
+           (if Terminal_Index = Syntax_Trees.Invalid_Node_Index then 1
+            else Tree.Base_Token (Terminal_Index).Line + 1),
+         Column  => 0,
+         Message =>
+           Label & ": " &
+             Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
    function Count (Container : Constant_List) return Ada.Containers.Count_Type
@@ -66,7 +69,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function First
      (Tree       : in WisiToken.Syntax_Trees.Tree;
-      Root       : in WisiToken.Node_Index;
+      Root       : in Node_Index;
       List_ID    : in WisiToken.Token_ID;
       Element_ID : in WisiToken.Token_ID)
      return Node_Index
@@ -78,9 +81,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Result := Root;
             loop
                declare
-                  Child : constant Valid_Node_Index := Tree.Child (Result, 1);
+                  Child : constant Node_Index := Tree.Child (Result, 1);
                begin
-                  if Child = Deleted_Child then
+                  if Child = null then
                      raise SAL.Programmer_Error with "deleted child";
                   elsif Tree.ID (Child) = List_ID then
                      Result := Child;
@@ -103,7 +106,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Last
      (Tree : in WisiToken.Syntax_Trees.Tree;
-      Root : in WisiToken.Node_Index)
+      Root : in Node_Index)
      return Node_Index
    is begin
       if Root = Invalid_Node_Index then
@@ -120,7 +123,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  | element_list
          --  | | element:
          --  | element: Last
-         return Tree.Child (Root, SAL.Base_Peek_Type (Tree.Child_Count (Root)));
+         return Tree.Child (Root, Tree.Child_Count (Root));
       end if;
    end Last;
 
@@ -173,7 +176,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
                Grand_Parent : constant Node_Index := Tree.Parent (Position, 2);
 
-               Aunts           : constant Valid_Node_Index_Array :=
+               Aunts : constant Node_Index_Array :=
                  (if Grand_Parent = Invalid_Node_Index or else Tree.ID (Grand_Parent) /= List_ID
                   then (1 .. 0 => Invalid_Node_Index)
                   else Tree.Children (Grand_Parent));
@@ -247,10 +250,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
                else
                   declare
-                     Prev_Children : constant Valid_Node_Index_Array := Tree.Children
-                       (Tree.Child (Parent, 1));
+                     Prev_Node : constant Node_Index := Tree.Child (Parent, 1);
                   begin
-                     Result := Prev_Children (Prev_Children'Last);
+                     Result := Tree.Child (Prev_Node, Tree.Child_Count (Prev_Node));
                   end;
                end if;
             end;
@@ -487,15 +489,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                     else (Old_Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
             if List_Parent = Invalid_Node_Index then
-               if Tree.Root = Old_Root then
-                  Tree.Root := Container.Root;
-               end if;
-
+               null;
             else
                Tree.Replace_Child
                  (List_Parent,
                   Child_Index,
-                  Old_Child => Deleted_Child,
+                  Old_Child => Invalid_Node_Index,
                   New_Child => Container.Root);
             end if;
          end;
@@ -625,7 +624,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Container.Tree.Replace_Child
               (Parent               => Parent,
                Child_Index          => Child_Index,
-               Old_Child            => Deleted_Child,
+               Old_Child            => Invalid_Node_Index,
                New_Child            => New_List_Nonterm,
                Old_Child_New_Parent => New_List_Nonterm);
          end;
@@ -666,16 +665,14 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             List_Parent : constant Node_Index := Tree.Parent (Container.Root);
          begin
             if List_Parent = Invalid_Node_Index then
-               if Tree.Root = Container.Root then
-                  Tree.Root := Invalid_Node_Index;
-               end if;
+               null;
 
             else
                Tree.Replace_Child
                  (List_Parent,
                   Child_Index => Tree.Child_Index (List_Parent, Container.Root),
-                  Old_Child => Container.Root,
-                  New_Child => Deleted_Child);
+                  Old_Child   => Container.Root,
+                  New_Child   => Invalid_Node_Index);
             end if;
             Container.Root := Invalid_Node_Index;
          end;
@@ -853,8 +850,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS);
          else
             declare
-               Source_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
-               Dest_Children   : Valid_Node_Index_Array (Source_Children'Range);
+               Source_Children : constant Node_Index_Array := Tree.Children (Node);
+               Dest_Children   : Node_Index_Array (Source_Children'Range);
             begin
                for I in Source_Children'Range loop
                   if Source_Children (I) = Skip_This.List_Root then
@@ -875,7 +872,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                   end if;
                end loop;
 
-               return Tree.Add_Nonterm (Tree.Production_ID (Node), Dest_Children, Tree.Action (Node));
+               return Tree.Add_Nonterm
+                 (Tree.Production_ID (Node), To_Valid_Node_Index (Dest_Children), Tree.Action (Node));
             end;
          end if;
       end Get_Dest_Child;
