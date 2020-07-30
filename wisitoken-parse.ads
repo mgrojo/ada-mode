@@ -23,7 +23,7 @@ with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Syntax_Trees.Node_Index, Default_Element => Syntax_Trees.Invalid_Node_Index);
+     (Line_Number_Type, Syntax_Trees.Node_Access, Default_Element => Syntax_Trees.Invalid_Node_Access);
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled with record
       Trace     : access WisiToken.Trace'Class;
@@ -41,21 +41,21 @@ package WisiToken.Parse is
       --  non-first line in a multi-line terminal token, Line_Begin_Token
       --  (I) is Invalid_Token_Index.
 
-      Last_Grammar_Node : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Last grammar token returned from Lexer; for storing non_grammar
       --  tokens in it.
 
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
-   function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID;
+   function Next_Grammar_Token (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID) return Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
-   --  it is a grammar token, store in Terminals and return its id.
-   --  Otherwise, repeat.
+   --  it is a grammar token, store in Parser.Tree (Stream) and return
+   --  its ID. Otherwise, repeat.
    --
    --  Propagates Fatal_Error from Lexer.
 
-   procedure Lex_All (Parser : in out Base_Parser'Class);
+   procedure Lex_All (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
    --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
    --  call Next_Grammar_Token repeatedly until EOF_ID is returned.
    --

@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse is
 
-   function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID
+   function Next_Grammar_Token (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID) return Token_ID
    is
       use all type Ada.Containers.Count_Type;
       use Syntax_Trees;
@@ -40,7 +40,11 @@ package body WisiToken.Parse is
 
          if Token.ID >= Parser.Trace.Descriptor.First_Terminal then
 
-            Parser.Last_Grammar_Node := Parser.Tree.Add_Terminal (Token);
+            declare
+               Index : constant Stream_Index := Parser.Tree.Add_Terminal (Stream, Token);
+            begin
+               Parser.Last_Grammar_Node := Parser.Tree.Get_Node (Index);
+            end;
 
             if Parser.User_Data /= null then
                Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Parser.Last_Grammar_Node);
@@ -65,7 +69,7 @@ package body WisiToken.Parse is
             exit;
          else
             --  non-grammar
-            if Parser.Last_Grammar_Node = Invalid_Node_Index then
+            if Parser.Last_Grammar_Node = Invalid_Node_Access then
                Parser.Tree.Leading_Non_Grammar.Append (Token);
             else
                declare
@@ -83,16 +87,16 @@ package body WisiToken.Parse is
       return Token.ID;
    end Next_Grammar_Token;
 
-   procedure Lex_All (Parser : in out Base_Parser'Class)
+   procedure Lex_All (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID)
    is
       EOF_ID : constant Token_ID := Parser.Trace.Descriptor.EOI_ID;
    begin
       Parser.Lexer.Errors.Clear;
       Parser.Line_Begin_Token.Clear;
-      Parser.Last_Grammar_Node := WisiToken.Syntax_Trees.Invalid_Node_Index;
+      Parser.Last_Grammar_Node := WisiToken.Syntax_Trees.Invalid_Node_Access;
 
       loop
-         exit when EOF_ID = Next_Grammar_Token (Parser);
+         exit when EOF_ID = Next_Grammar_Token (Parser, Stream);
       end loop;
       if Trace_Parse > Outline then
          Parser.Trace.Put_Line (Syntax_Trees.Get_Debug_Index (Parser.Last_Grammar_Node)'Image & " tokens lexed");

@@ -481,11 +481,7 @@ begin
             begin
 
                if Saved_EBNF_Tree.Is_Empty then
-                  declare
-                     Tree : Syntax_Trees.Tree renames Grammar_Parser.Tree;
-                  begin
-                     Translate (Tree);
-                  end;
+                  Translate (Grammar_Parser.Tree);
                else
                   Translate (Saved_EBNF_Tree);
                end if;

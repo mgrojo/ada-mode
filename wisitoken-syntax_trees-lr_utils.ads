@@ -33,7 +33,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
       Descriptor : in WisiToken.Descriptor;
       Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Node       : in WisiToken.Syntax_Trees.Node_Index);
+      Node       : in WisiToken.Syntax_Trees.Node_Access);
    pragma No_Return (Raise_Programmer_Error);
 
    ----------
@@ -63,7 +63,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    type Constant_List (<>) is tagged private with
      Constant_Indexing => List_Constant_Ref,
      Default_Iterator  => Iterate_Constant,
-     Iterator_Element  => Valid_Node_Index;
+     Iterator_Element  => Valid_Node_Access;
 
    function Tree (Container : in Constant_List) return Tree_Constant_Reference
    with Pre => not Container.Is_Invalid;
@@ -73,7 +73,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Is_Empty (Container : in Constant_List) return Boolean;
    --  Returns True if Container is invalid, or if Container is empty
 
-   function Root (Container : in Constant_List) return Node_Index
+   function Root (Container : in Constant_List) return Node_Access
    with Pre => not Container.Is_Invalid;
 
    function List_ID (Container : in Constant_List) return Token_ID
@@ -85,14 +85,14 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Count (Container : in Constant_List) return Ada.Containers.Count_Type
    with Pre => not Container.Is_Invalid;
 
-   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
+   function Contains (Container : in Constant_List; Node : in Valid_Node_Access) return Boolean
    with Pre => not Container.Is_Invalid;
 
    type Cursor is private;
 
    No_Element : constant Cursor;
 
-   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
+   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Access) return Cursor
    with Pre => (not Container.Is_Invalid) and then
                (Container.Contains (Node) and Container.Tree.ID (Node) = Container.Element_ID);
 
@@ -101,8 +101,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean;
 
-   function Element (Cursor : in LR_Utils.Cursor) return Node_Index;
-   --  Invalid_Node_Index if not Has_Element (Cursor).
+   function Element (Cursor : in LR_Utils.Cursor) return Node_Access;
+   --  Invalid_Node_Access if not Has_Element (Cursor).
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
@@ -121,7 +121,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function List_Constant_Ref
      (Container : aliased in Constant_List'Class;
       Position  :         in Cursor)
-     return Valid_Node_Index;
+     return Valid_Node_Access;
 
    type Constant_Iterator (Container : not null access constant Constant_List) is new
      Iterator_Interfaces.Reversible_Iterator
@@ -138,7 +138,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    type Find_Equal is access function
      (Target : in String;
       List   : in Constant_List'Class;
-      Node   : in Valid_Node_Index)
+      Node   : in Valid_Node_Access)
    return Boolean;
    --  Function called by Find to compare Target to Node. Target, List
    --  are the Find arguments; Node is an element of List. Return True if
@@ -146,7 +146,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Find
      (Container : in Constant_List;
-      Target    : in Valid_Node_Index)
+      Target    : in Valid_Node_Access)
      return Cursor
    with Pre => not Container.Is_Invalid and Container.Tree.ID (Target) = Container.Element_ID;
 
@@ -159,7 +159,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    type List (<>) is new Constant_List with private with
      Default_Iterator  => Iterate,
-     Iterator_Element  => Valid_Node_Index;
+     Iterator_Element  => Valid_Node_Access;
 
    function Separator_ID (Container : in List) return Token_ID
    with Pre => not Container.Is_Invalid;
@@ -173,7 +173,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_List
         (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root         :         in     Valid_Node_Index;
+         Root         :         in     Valid_Node_Access;
          List_ID      :         in     WisiToken.Token_ID;
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
@@ -184,7 +184,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_List
         (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root       :         in     Valid_Node_Index;
+         Root       :         in     Valid_Node_Access;
          List_ID    :         in     WisiToken.Token_ID;
          Element_ID :         in     WisiToken.Token_ID)
         return Constant_List
@@ -194,7 +194,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
       function Create_List
         (Container :         in     Constant_List;
          Tree      : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root      :         in     Valid_Node_Index)
+         Root      :         in     Valid_Node_Access)
         return Constant_List
       with Pre => (Container.Tree.Is_Nonterm (Root) and then
                    Container.Tree.Has_Children (Root)) and
@@ -202,14 +202,14 @@ package WisiToken.Syntax_Trees.LR_Utils is
       --  Same as Create_List, get all other params from Container.
       --  Need Tree for non-constant view.
 
-      function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
+      function Create_List (Container : in out List; Root : in Valid_Node_Access) return List
       with Pre => (Container.Tree.Is_Nonterm (Root) and then Container.Tree.Has_Children (Root)) and
                   Container.Tree.ID (Root) = Container.List_ID;
       --  Same as Create_List, get all other params from Container.
 
       function Create_From_Element
         (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-         Element      :         in     Valid_Node_Index;
+         Element      :         in     Valid_Node_Access;
          List_ID      :         in     WisiToken.Token_ID;
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
@@ -220,7 +220,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
       --  Same as Create_List, but it first finds the root as an ancestor of
       --  Element.
 
-      function Create_From_Element (Container : in out List; Element : in Valid_Node_Index) return List
+      function Create_From_Element (Container : in out List; Element : in Valid_Node_Access) return List
       with Pre => Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID and
                   Container.Tree.ID (Element) = Container.Element_ID and
                   Container.Tree.ID (Container.Tree.Parent (Element)) = Container.List_ID;
@@ -228,7 +228,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_From_Element
         (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
-         Element    :         in     Valid_Node_Index;
+         Element    :         in     Valid_Node_Access;
          List_ID    :         in     WisiToken.Token_ID;
          Element_ID :         in     WisiToken.Token_ID)
         return Constant_List
@@ -253,7 +253,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
          Element_ID        :         in     WisiToken.Token_ID;
          Separator_ID      :         in     WisiToken.Token_ID)
         return List;
-      --  Result Root returns Invalid_Node_Index; First, Last return empty
+      --  Result Root returns Invalid_Node_Access; First, Last return empty
       --  cursor, count returns 0; Append works correctly.
 
       function Empty_List (Container : in out List) return List;
@@ -267,7 +267,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Append
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index)
+      New_Element : in     Valid_Node_Access)
    with Pre => not Container.Is_Invalid and then Container.Tree.ID (New_Element) = Container.Element_ID;
    --  Append New_Item to Container, including Container.Separator_ID if
    --  it is not Invalid_Token_Index.
@@ -278,7 +278,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Prepend
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index)
+      New_Element : in     Valid_Node_Access)
    with Pre => not Container.Is_Invalid and then Container.Tree.ID (New_Element) = Container.Element_ID;
    --  Prepend New_Item to Container, including Container.Separator_ID if
    --  it is not Invalid_Token_Index.
@@ -287,7 +287,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Insert
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index;
+      New_Element : in     Valid_Node_Access;
       After       : in     Cursor)
    with Pre => not Container.Is_Invalid and then
                (Container.Tree.ID (New_Element) = Container.Element_ID and
@@ -324,13 +324,13 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    type Skip_Item (Label : Skip_Label := Skip_Label'First) is
    record
-      Element : Valid_Node_Index;
+      Element : Valid_Node_Access;
       case Label is
       when Nested =>
          --  Element is an element in the list currently being copied
          --  containing a nested list with an element to skip (given by Element
          --  in the next Skip_Item). The nested list is defined by:
-         List_Root         : Valid_Node_Index;
+         List_Root         : Valid_Node_Access;
          List_ID           : Token_ID;
          Element_ID        : Token_ID;
          Separator_ID      : Token_ID;
@@ -356,7 +356,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    record
       --  Skip_Last may be Positive_Index_Type'First - 1 to indicate an
       --  empty or invalid skip list.
-      Start_List_Root         : Node_Index := Invalid_Node_Index;
+      Start_List_Root         : Node_Access := Invalid_Node_Access;
       Start_List_ID           : Token_ID   := Invalid_Token_ID;
       Start_Element_ID        : Token_ID   := Invalid_Token_ID;
       Start_Separator_ID      : Token_ID   := Invalid_Token_ID;
@@ -385,14 +385,14 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
       Tree      : aliased in out Syntax_Trees.Tree)
-     return Node_Index
+     return Node_Access
    with Pre => Skip_List.Start_List_ID /= Invalid_Token_ID and then
                (Valid_Skip_List (Tree, Skip_List.Skips) and
                 Skip_List.Start_List_ID /= Skip_List.Start_Element_ID);
    --  Copy list rooted at Skip_List.Start_List, skipping one element as
    --  indicated by Skip_List.Skip. Return root of copied list.
    --
-   --  Result is Invalid_Node_Index (indicating an empty list) if
+   --  Result is Invalid_Node_Access (indicating an empty list) if
    --  Skip_List has only one item (Skip), and Skip_List.Start_List_Root
    --  has only that item.
    --
@@ -401,17 +401,17 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function List_Root
      (Tree    : in Syntax_Trees.Tree;
-      Node    : in Valid_Node_Index;
+      Node    : in Valid_Node_Access;
       List_ID : in Token_ID)
-     return Valid_Node_Index
+     return Valid_Node_Access
    with Pre => Tree.ID (Node) = List_ID;
 
 private
    type Cursor is record
-      Node : Node_Index;
+      Node : Node_Access;
    end record;
 
-   No_Element : constant Cursor := (Node => Invalid_Node_Index);
+   No_Element : constant Cursor := (Node => Invalid_Node_Access);
 
    type Constant_List (Tree : not null access WisiToken.Syntax_Trees.Tree) is tagged
      --  We'd prefer to have Tree be 'constant' here, but then it would
@@ -423,7 +423,7 @@ private
      --  work either. Since most applications using LR_Utils are editing
      --  the tree anyway, we live with requiring variable access.
    record
-      Root       : WisiToken.Syntax_Trees.Node_Index;
+      Root       : WisiToken.Syntax_Trees.Node_Access;
       List_ID    : WisiToken.Token_ID;
       Element_ID : WisiToken.Token_ID;
    end record;
@@ -442,9 +442,9 @@ private
    is (Container.List_ID = Invalid_Token_ID);
 
    function Is_Empty (Container : in Constant_List) return Boolean
-   is (Container.Root = Invalid_Node_Index);
+   is (Container.Root = Invalid_Node_Access);
 
-   function Root (Container : in Constant_List) return Node_Index
+   function Root (Container : in Constant_List) return Node_Access
    is (Container.Root);
 
    function List_ID (Container : in Constant_List) return Token_ID
@@ -454,9 +454,9 @@ private
    is (Container.Element_ID);
 
    function Has_Element (Cursor : in LR_Utils.Cursor) return Boolean
-   is (Cursor.Node /= Invalid_Node_Index);
+   is (Cursor.Node /= Invalid_Node_Access);
 
-   function Element (Cursor : in LR_Utils.Cursor) return Node_Index
+   function Element (Cursor : in LR_Utils.Cursor) return Node_Access
    is (Cursor.Node);
 
    function Separator_ID (Container : in List) return Token_ID

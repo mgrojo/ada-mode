@@ -28,6 +28,16 @@ update-wisitoken_grammar
 
  current work
 incremental parse
+    run_wisitoken_grammar.exe ada_ebnf.wy
+        finalize (tree) dies with segfault
+            free called on node twice
+            because multiple streams reference same node
+                 implement node_index_array_node_access
+                 first rename node_index to node_access
+                 then rename debug_index to node_index.
+
+                same for stream_access?
+
     test/test_incremental.adb
 
     parse tree
@@ -49,6 +59,8 @@ incremental parse
 
     review fixmes
 
+    consider switch back to array tree
+        measure parse speed, memory use
 
 auto_token_labels
     check for empty statement-action params

@@ -203,8 +203,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
                     return Boolean
                   is
                      use Syntax_Trees;
-                     Node_1 : constant Valid_Node_Index := Tree.Get_Node (Index_1);
-                     Node_2 : constant Valid_Node_Index := Tree.Get_Node (Index_2);
+                     Node_1 : constant Valid_Node_Access := Tree.Get_Node (Index_1);
+                     Node_2 : constant Valid_Node_Access := Tree.Get_Node (Index_2);
                   begin
                      return (Tree.Label (Node_1) = Tree.Label (Node_2) and then
                                Tree.ID (Node_1) = Tree.ID (Node_2) and then

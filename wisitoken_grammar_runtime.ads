@@ -111,33 +111,33 @@ package WisiToken_Grammar_Runtime is
    function Get_Lexer_Set
      (User_Data : in out User_Data_Type;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Node      : in     WisiToken.Syntax_Trees.Valid_Node_Index)
+      Node      : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.BNF.Lexer_Set
    with Pre => To_Token_Enum (Tree.ID (Node)) in IDENTIFIER_ID | IDENTIFIER_BAR_list_ID;
 
    function Get_Generate_Algorithm_Set
      (User_Data : in out User_Data_Type;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Node      : in     WisiToken.Syntax_Trees.Valid_Node_Index)
+      Node      : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.BNF.Generate_Algorithm_Set
    with Pre => To_Token_Enum (Tree.ID (Node)) in IDENTIFIER_ID | IDENTIFIER_BAR_list_ID;
 
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
 
    procedure End_If (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class);
 
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
 
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
 
    function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String;
    --  For Syntax_Trees.Print_Tree.
@@ -145,7 +145,7 @@ package WisiToken_Grammar_Runtime is
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Token     : in     WisiToken.Positive_Index_Type);
 
    ----------
@@ -154,20 +154,20 @@ package WisiToken_Grammar_Runtime is
    function Get_Line
      (Data : in User_Data_Type;
       Tree : in WisiToken.Syntax_Trees.Tree;
-      Node : in WisiToken.Syntax_Trees.Valid_Node_Index)
+      Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Line_Number_Type;
 
    function Get_Text
      (Grammar_Lexer       : in WisiToken.Lexer.Handle;
       Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
       Tree                : in WisiToken.Syntax_Trees.Tree;
-      Tree_Index          : in WisiToken.Syntax_Trees.Node_Index;
+      Tree_Index          : in WisiToken.Syntax_Trees.Node_Access;
       Strip_Quotes        : in Boolean := False)
      return String;
    function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in WisiToken.Syntax_Trees.Tree;
-      Tree_Index   : in WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tree_Index   : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Strip_Quotes : in Boolean := False)
      return String;
    --  Return source text for Tree_Index. This fetches each token
@@ -176,7 +176,7 @@ package WisiToken_Grammar_Runtime is
    function Get_Item_Text
      (Data         : in User_Data_Type;
       Tree         : in WisiToken.Syntax_Trees.Tree;
-      Node         : in WisiToken.Syntax_Trees.Valid_Node_Index;
+      Node         : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Strip_Quotes : in Boolean := False)
      return String
    with Pre => Tree.Is_Nonterm (Node);
@@ -187,7 +187,7 @@ package WisiToken_Grammar_Runtime is
      (Label : in String;
       Data  : in User_Data_Type;
       Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in WisiToken.Syntax_Trees.Node_Index);
+      Node  : in WisiToken.Syntax_Trees.Node_Access);
    pragma No_Return (Raise_Programmer_Error);
 
 end WisiToken_Grammar_Runtime;

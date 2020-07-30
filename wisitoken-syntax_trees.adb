@@ -28,16 +28,16 @@ package body WisiToken.Syntax_Trees is
    function Append_Stream_Element
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
-      Node   : in     Valid_Node_Index)
+      Node   : in     Valid_Node_Access)
      return Stream_Index;
 
-      function Process_Tree
+   function Process_Tree
      (Tree         : in Syntax_Trees.Tree;
-      Node         : in Valid_Node_Index;
+      Node         : in Valid_Node_Access;
       Visit_Parent : in Visit_Parent_Mode;
       Process_Node : access function
         (Tree : in Syntax_Trees.Tree;
-         Node : in Valid_Node_Index)
+         Node : in Valid_Node_Access)
         return Boolean)
      return Boolean;
    --  Call Process_Node on nodes in tree rooted at Node. Return when
@@ -46,17 +46,17 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Node_Index_Array);
+      Parent   : in     Valid_Node_Access;
+      Children : in     Node_Access_Array);
 
-   procedure Update_Cache (Node : in Valid_Node_Index);
+   procedure Update_Cache (Node : in Valid_Node_Access);
 
    ----------
    --  Public and body operations, alphabetical
 
    function Action
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Semantic_Action
    is
       pragma Unreferenced (Tree);
@@ -69,9 +69,9 @@ package body WisiToken.Syntax_Trees is
       ID          : in     Token_ID;
       Identifier  : in     Identifier_Index;
       Byte_Region : in     WisiToken.Buffer_Region)
-     return Valid_Node_Index
+     return Valid_Node_Access
    is begin
-      return Result : constant Valid_Node_Index := new Node'
+      return Result : constant Valid_Node_Access := new Node'
         (Label       => Virtual_Identifier,
          Child_Count => 0,
          ID          => ID,
@@ -84,19 +84,48 @@ package body WisiToken.Syntax_Trees is
       end return;
    end Add_Identifier;
 
+   function Add_Nonterm_1
+     (Tree            : in out Syntax_Trees.Tree;
+      Production      : in     WisiToken.Production_ID;
+      Children        : in     Valid_Node_Access_Array;
+      Action          : in     Semantic_Action := null;
+      Default_Virtual : in     Boolean         := False)
+     return Valid_Node_Access
+   is
+      Nonterm_Node : constant Valid_Node_Access := new Node'
+        (Label       => Syntax_Trees.Nonterm,
+         Child_Count => Children'Last,
+         ID          => Production.LHS,
+         Debug_Index => Tree.Next_Debug_Index,
+         Children    => To_Node_Access (Children),
+         Action      => Action,
+         RHS_Index   => Production.RHS,
+         Virtual     => (if Children'Length = 0 then Default_Virtual else False),
+         others      => <>);
+   begin
+      Tree.Next_Debug_Index := @ + 1;
+
+      if Children'Length > 0 then
+         Update_Cache (Nonterm_Node);
+      end if;
+
+      return Nonterm_Node;
+   end Add_Nonterm_1;
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Stream          : in     Stream_ID;
       Production      : in     WisiToken.Production_ID;
+      Current_Token   : in     Stream_Index;
       Children        : in     Stream_Index_Array;
       Action          : in     Semantic_Action := null;
       State           : in     State_Index;
       Default_Virtual : in     Boolean         := False)
      return Stream_Index
    is
-      function Node_Children return Valid_Node_Index_Array
+      function Node_Children return Valid_Node_Access_Array
       is begin
-         return Result : Valid_Node_Index_Array (Children'Range) := (others => Children (Children'First).Node) do
+         return Result : Valid_Node_Access_Array (Children'Range) := (others => Children (Children'First).Node) do
             for I in Result'Range loop
                Result (I) := Children (I).Node;
             end loop;
@@ -104,9 +133,9 @@ package body WisiToken.Syntax_Trees is
       end Node_Children;
 
       New_Element : constant Stream_Index := new Stream_Element'
-        (Prev => Children (Children'First).Prev,
-         Next => Children (Children'Last).Next,
-         Node => Tree.Add_Nonterm (Production, Node_Children, Action, Default_Virtual));
+        (Prev => (if Children'Length = 0 then Current_Token.Prev else Children (Children'First).Prev),
+         Next => (if Children'Length = 0 then Current_Token.Next else Children (Children'Last).Next),
+         Node => Tree.Add_Nonterm_1 (Production, Node_Children, Action, Default_Virtual));
 
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream);
    begin
@@ -130,46 +159,18 @@ package body WisiToken.Syntax_Trees is
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Index_Array;
+      Children        : in     Valid_Node_Access_Array;
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
-     return Valid_Node_Index
-   is
-      Nonterm_Node : constant Valid_Node_Index := new Node'
-        (Label       => Syntax_Trees.Nonterm,
-         Child_Count => Children'Last,
-         ID          => Production.LHS,
-         Debug_Index => Tree.Next_Debug_Index,
-         Children    => To_Node_Index (Children),
-         Action      => Action,
-         RHS_Index   => Production.RHS,
-         Virtual     => (if Children'Length = 0 then Default_Virtual else False),
-         others      => <>);
-   begin
-      Tree.Next_Debug_Index := @ + 1;
+     return Valid_Node_Access
+   is (Add_Nonterm_1 (Tree, Production, Children, Action, Default_Virtual));
 
-      if Children'Length > 0 then
-         Update_Cache (Nonterm_Node);
-      end if;
-
-      return Nonterm_Node;
-   end Add_Nonterm;
-
-   function Add_Terminal
-     (Tree     : in out Syntax_Trees.Tree;
-      Stream   : in     Stream_ID;
-      Terminal : in     WisiToken.Base_Token)
-     return Stream_Index
-   is begin
-      return Append_Stream_Element (Tree, Stream, Tree.Add_Terminal (Terminal));
-   end Add_Terminal;
-
-   function Add_Terminal
+   function Add_Terminal_1
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     WisiToken.Base_Token)
-     return Valid_Node_Index
+     return Valid_Node_Access
    is begin
-      return Result : constant Valid_Node_Index := new Node'
+      return Result : constant Valid_Node_Access := new Node'
         (Label       => Shared_Terminal,
          Child_Count => 0,
          ID          => Terminal.ID,
@@ -182,13 +183,28 @@ package body WisiToken.Syntax_Trees is
       do
          Tree.Next_Debug_Index := @ + 1;
       end return;
+   end Add_Terminal_1;
+
+   function Add_Terminal
+     (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
+      Terminal : in     WisiToken.Base_Token)
+     return Stream_Index
+   is begin
+      return Append_Stream_Element (Tree, Stream, Tree.Add_Terminal_1 (Terminal));
    end Add_Terminal;
+
+   function Add_Terminal
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     WisiToken.Base_Token)
+     return Valid_Node_Access
+   is (Add_Terminal_1 (Tree, Terminal));
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
-      Before   : in     Valid_Node_Index)
+      Before   : in     Valid_Node_Access)
      return Stream_Index
    is begin
       return Result : constant Stream_Index := Append_Stream_Element
@@ -207,9 +223,9 @@ package body WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_ID)
-     return Valid_Node_Index
+     return Valid_Node_Access
    is begin
-      return Result : constant Valid_Node_Index := new Node'
+      return Result : constant Valid_Node_Access := new Node'
         (Label       => Virtual_Terminal,
          Child_Count => 0,
          ID          => Terminal,
@@ -223,7 +239,7 @@ package body WisiToken.Syntax_Trees is
    function Append_Stream_Element
      (Tree    : in out Syntax_Trees.Tree;
       Stream  : in     Stream_ID;
-      Node   : in     Valid_Node_Index)
+      Node   : in     Valid_Node_Access)
      return Stream_Index
    is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream);
@@ -235,13 +251,14 @@ package body WisiToken.Syntax_Trees is
       else
          New_Element.Prev       := Parse_Stream.Last;
          Parse_Stream.Last.Next := New_Element;
+         Parse_Stream.Last      := New_Element;
       end if;
       return New_Element;
    end Append_Stream_Element;
 
    function Augmented
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Base_Token_Class_Access
    is begin
       return Node.Augmented;
@@ -249,33 +266,33 @@ package body WisiToken.Syntax_Trees is
 
    function Augmented_Const
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Base_Token_Class_Access_Constant
    is begin
       return Base_Token_Class_Access_Constant (Node.Augmented);
    end Augmented_Const;
 
-   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token
+   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    is begin
       return (Node.ID, Node.Byte_Region, Node.Line, Node.Column, Node.Char_Region);
    end Base_Token;
 
    function Before
      (Tree             : in Syntax_Trees.Tree;
-      Virtual_Terminal : in Valid_Node_Index)
-     return Node_Index
+      Virtual_Terminal : in Valid_Node_Access)
+     return Node_Access
    is begin
       return Virtual_Terminal.Before;
    end Before;
 
-   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Byte_Region = Null_Buffer_Region;
    end Buffer_Region_Is_Empty;
 
    function Byte_Region
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return WisiToken.Buffer_Region
    is begin
       return Node.Byte_Region;
@@ -283,26 +300,26 @@ package body WisiToken.Syntax_Trees is
 
    function Child
      (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Index;
+      Node        : in Valid_Node_Access;
       Child_Index : in Positive_Index_Type)
-     return Node_Index
+     return Node_Access
    is
    begin
       if Child_Index in Node.Children'Range then
          return Node.Children (Child_Index);
       else
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       end if;
    end Child;
 
-   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return SAL.Base_Peek_Type
+   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return SAL.Base_Peek_Type
    is begin
       return Node.Children'Last;
    end Child_Count;
 
    function Child_Index
      (N     : in Node;
-      Child : in Valid_Node_Index)
+      Child : in Valid_Node_Access)
      return SAL.Peek_Type
    is begin
       for I in N.Children'Range loop
@@ -315,8 +332,8 @@ package body WisiToken.Syntax_Trees is
 
    function Child_Index
      (Tree   : in out Syntax_Trees.Tree;
-      Parent : in     Valid_Node_Index;
-      Child  : in     Valid_Node_Index)
+      Parent : in     Valid_Node_Access;
+      Child  : in     Valid_Node_Access)
      return SAL.Peek_Type
    is
       pragma Unreferenced (Tree);
@@ -324,7 +341,7 @@ package body WisiToken.Syntax_Trees is
       return Child_Index (Parent.all, Child);
    end Child_Index;
 
-   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index_Array
+   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access_Array
    is begin
       return Node.Children;
    end Children;
@@ -346,7 +363,7 @@ package body WisiToken.Syntax_Trees is
          end;
       end loop;
 
-      Tree.Leading_Non_Trammar.Clear;
+      Tree.Leading_Non_Grammar.Clear;
       Tree.Traversing       := False;
       Tree.Parents_Set      := False;
       Tree.Next_Debug_Index := 1;
@@ -354,17 +371,17 @@ package body WisiToken.Syntax_Trees is
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Node_Index)
-     return Node_Index
+      Root : in     Node_Access)
+     return Node_Access
    is
       function Copy_Node
         (Tree   : in out Syntax_Trees.Tree;
-         Index  : in     Valid_Node_Index;
-         Parent : in     Node_Index)
-        return Valid_Node_Index
+         Index  : in     Valid_Node_Access;
+         Parent : in     Node_Access)
+        return Valid_Node_Access
       is
          Node : Syntax_Trees.Node renames Index.all;
-         New_Node : Node_Index;
+         New_Node : Node_Access;
       begin
          case Node.Label is
          when Shared_Terminal =>
@@ -408,7 +425,7 @@ package body WisiToken.Syntax_Trees is
 
          when Nonterm =>
             declare
-               New_Children : Node_Index_Array (Index.Children'Range);
+               New_Children : Node_Access_Array (Index.Children'Range);
             begin
                for I in New_Children'Range loop
                   New_Children (I) := Copy_Node (Tree, Index.Children (I), Parent);
@@ -436,20 +453,20 @@ package body WisiToken.Syntax_Trees is
       end Copy_Node;
 
    begin
-      if Root = Invalid_Node_Index then
-         return Invalid_Node_Index;
+      if Root = Invalid_Node_Access then
+         return Invalid_Node_Access;
       else
-         return Copy_Node (Tree, Root, Invalid_Node_Index);
+         return Copy_Node (Tree, Root, Invalid_Node_Access);
       end if;
    end Copy_Subtree;
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in out Node_Index)
+      Root : in out Node_Access)
    is
       procedure Delete_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in out Node_Index)
+         Node : in out Node_Access)
       is begin
          Free (Node.Augmented);
          case Node.Label is
@@ -465,7 +482,7 @@ package body WisiToken.Syntax_Trees is
          end case;
       end Delete_Node;
    begin
-      if Root = Invalid_Node_Index then
+      if Root = Invalid_Node_Access then
          null;
       else
          Delete_Node (Tree, Root);
@@ -474,7 +491,7 @@ package body WisiToken.Syntax_Trees is
 
    function Count_IDs
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
      return SAL.Base_Peek_Type
    is begin
@@ -497,7 +514,7 @@ package body WisiToken.Syntax_Trees is
 
    function Count_Terminals
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Integer
    --  Count_Terminals must return Integer for Get_Terminals,
    --  Positive_Index_Type for Get_Terminal_IDs.
@@ -520,7 +537,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Delete_Parent
      (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Index)
+      Node : in     Valid_Node_Access)
    is
    begin
       Node.Parent.Children (Child_Index (Node.Parent.all, Node)) := null;
@@ -534,16 +551,16 @@ package body WisiToken.Syntax_Trees is
 
    function Error_Message
      (Tree      : in Syntax_Trees.Tree;
-      Node      : in Valid_Node_Index;
+      Node      : in Valid_Node_Access;
       File_Name : in String;
       Message   : in String)
      return String
    is
-      First_Terminal : constant Node_Index := Tree.First_Terminal (Node);
+      First_Terminal : constant Node_Access := Tree.First_Terminal (Node);
       Line           : Line_Number_Type    := Line_Number_Type'First;
       Column         : Ada.Text_IO.Count   := Ada.Text_IO.Count'First;
    begin
-      if First_Terminal = Invalid_Node_Index then
+      if First_Terminal = Invalid_Node_Access then
          --  Node is empty
          null;
       else
@@ -569,18 +586,18 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
+      Node       : in Valid_Node_Access;
       ID         : in Token_ID;
       Max_Parent : in Boolean := False)
-     return Node_Index
+     return Node_Access
    is
-      N           : Node_Index := Node;
-      Last_Parent : Node_Index := Invalid_Node_Index;
+      N           : Node_Access := Node;
+      Last_Parent : Node_Access := Invalid_Node_Access;
    begin
       loop
          N := N.Parent;
 
-         exit when N = Invalid_Node_Index;
+         exit when N = Invalid_Node_Access;
          Last_Parent := N;
 
          exit when ID = N.ID;
@@ -591,18 +608,18 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
+      Node       : in Valid_Node_Access;
       IDs        : in Token_ID_Array;
       Max_Parent : in Boolean := False)
-     return Node_Index
+     return Node_Access
    is
-      N           : Node_Index := Node;
-      Last_Parent : Node_Index := Invalid_Node_Index;
+      N           : Node_Access := Node;
+      Last_Parent : Node_Access := Invalid_Node_Access;
    begin
       loop
          N := N.Parent;
 
-         exit when N = Invalid_Node_Index;
+         exit when N = Invalid_Node_Access;
          Last_Parent := N;
 
          exit when (for some ID of IDs => ID = N.ID);
@@ -613,13 +630,13 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Child
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index
+     return Node_Access
    is begin
       case Node.Label is
       when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       when Nonterm =>
          for C of Node.Children loop
             if C /= null then
@@ -628,19 +645,19 @@ package body WisiToken.Syntax_Trees is
                end if;
             end if;
          end loop;
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       end case;
    end Find_Child;
 
    function Find_Descendant
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index
+     return Node_Access
    is
-      Found : Node_Index := Invalid_Node_Index;
+      Found : Node_Access := Invalid_Node_Access;
 
-      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
       is
          pragma Unreferenced (Tree);
       begin
@@ -660,13 +677,13 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Descendant
      (Tree      : in     Syntax_Trees.Tree;
-      Node      : in     Valid_Node_Index;
-      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean)
-     return Node_Index
+      Node      : in     Valid_Node_Access;
+      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean)
+     return Node_Access
    is
-      Found : Node_Index := Invalid_Node_Index;
+      Found : Node_Access := Invalid_Node_Access;
 
-      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
       is begin
          if Predicate (Tree, Node) then
             Found := Node;
@@ -684,18 +701,18 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index
+     return Node_Access
    is
    begin
-      if Node.Parent = Invalid_Node_Index then
-         return Invalid_Node_Index;
+      if Node.Parent = Invalid_Node_Access then
+         return Invalid_Node_Access;
 
       else
          case Node.Label is
          when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-            return Invalid_Node_Index;
+            return Invalid_Node_Access;
 
          when Nonterm =>
             for C of Node.Children loop
@@ -705,12 +722,12 @@ package body WisiToken.Syntax_Trees is
                   end if;
                end if;
             end loop;
-            return Invalid_Node_Index;
+            return Invalid_Node_Access;
          end case;
       end if;
    end Find_Sibling;
 
-   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
    begin
       case Node.Label is
@@ -721,23 +738,23 @@ package body WisiToken.Syntax_Trees is
             --  This may be called from Error_Message
             if C /= null then
                declare
-                  Term : constant Node_Index := First_Terminal (Tree, C);
+                  Term : constant Node_Access := First_Terminal (Tree, C);
                begin
-                  if Term /= Invalid_Node_Index then
+                  if Term /= Invalid_Node_Access then
                      return Term;
                   end if;
                end;
             end if;
          end loop;
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       end case;
    end First_Terminal;
 
    procedure Get_IDs
      (Tree   : in     Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
+      Node   : in     Valid_Node_Access;
       ID     : in     Token_ID;
-      Result : in out Valid_Node_Index_Array;
+      Result : in out Valid_Node_Access_Array;
       Last   : in out SAL.Base_Peek_Type)
    is begin
       if Node.ID = ID then
@@ -757,18 +774,18 @@ package body WisiToken.Syntax_Trees is
 
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Valid_Node_Index_Array
+     return Valid_Node_Access_Array
    is
       Last : SAL.Base_Peek_Type := 0;
    begin
-      return Result : Valid_Node_Index_Array (1 .. Count_IDs (Tree, Node, ID)) := (others => Dummy_Node) do
+      return Result : Valid_Node_Access_Array (1 .. Count_IDs (Tree, Node, ID)) := (others => Dummy_Node) do
          Get_IDs (Tree, Node, ID, Result, Last);
       end return;
    end Get_IDs;
 
-   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Index
+   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
    is
       pragma Unreferenced (Tree);
    begin
@@ -777,7 +794,7 @@ package body WisiToken.Syntax_Trees is
 
    function Get_Recover_Token
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Recover_Token
    is begin
       case Node.Label is
@@ -793,7 +810,7 @@ package body WisiToken.Syntax_Trees is
          return
            (ID                   => Node.ID,
             Byte_Region          => Null_Buffer_Region,
-            First_Terminal_Index => Invalid_Node_Index,
+            First_Terminal_Index => Invalid_Node_Access,
             Name                 => Null_Buffer_Region,
             Virtual              => True);
 
@@ -809,7 +826,7 @@ package body WisiToken.Syntax_Trees is
 
    function Get_Recover_Token_Array
      (Tree  : in Syntax_Trees.Tree;
-      Nodes : in Valid_Node_Index_Array)
+      Nodes : in Valid_Node_Access_Array)
      return Recover_Token_Array
    is begin
       return Result : Recover_Token_Array (Nodes'First .. Nodes'Last) do
@@ -821,8 +838,8 @@ package body WisiToken.Syntax_Trees is
 
    procedure Get_Terminals
      (Tree   : in     Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
-      Result : in out Valid_Node_Index_Array;
+      Node   : in     Valid_Node_Access;
+      Result : in out Valid_Node_Access_Array;
       Last   : in out SAL.Base_Peek_Type)
    is begin
       case Node.Label is
@@ -840,11 +857,11 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Get_Terminals;
 
-   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
+   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
    is
       Last : SAL.Base_Peek_Type := 0;
    begin
-      return Result : Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Count_Terminals (Tree, Node))) :=
+      return Result : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (Count_Terminals (Tree, Node))) :=
         (others => Dummy_Node)
       do
          Get_Terminals (Tree, Node, Result, Last);
@@ -853,7 +870,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Get_Terminal_IDs
      (Tree   : in     Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
+      Node   : in     Valid_Node_Access;
       Result : in out Token_ID_Array;
       Last   : in out SAL.Base_Peek_Type)
    is begin
@@ -870,7 +887,7 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Get_Terminal_IDs;
 
-   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array
+   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array
    is
       Last : SAL.Base_Peek_Type := 0;
    begin
@@ -879,17 +896,17 @@ package body WisiToken.Syntax_Trees is
       end return;
    end Get_Terminal_IDs;
 
-   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is begin
       return
         (case Node.Label is
          when Shared_Terminal => Node,
          when Virtual_Terminal |
-           Virtual_Identifier => Invalid_Node_Index,
+           Virtual_Identifier => Invalid_Node_Access,
          when Nonterm         => Node.First_Terminal_Index);
    end First_Shared_Terminal;
 
-   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID
+   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID
    is
    begin
       case Node.Label is
@@ -914,8 +931,8 @@ package body WisiToken.Syntax_Trees is
 
    function Has_Child
      (Tree  : in Syntax_Trees.Tree;
-      Node  : in Valid_Node_Index;
-      Child : in Valid_Node_Index)
+      Node  : in Valid_Node_Access;
+      Child : in Valid_Node_Access)
      return Boolean
    is begin
       for C of Node.Children loop
@@ -926,14 +943,14 @@ package body WisiToken.Syntax_Trees is
       return False;
    end Has_Child;
 
-   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Children'Length > 0;
    end Has_Children;
 
-   function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Index) return Boolean
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Access) return Boolean
    is begin
-      return Child.Parent /= Invalid_Node_Index;
+      return Child.Parent /= Invalid_Node_Access;
    end Has_Parent;
 
    function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
@@ -945,13 +962,13 @@ package body WisiToken.Syntax_Trees is
 
    function ID
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Token_ID
    is begin
       return Node.ID;
    end ID;
 
-   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Identifier_Index
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
    is begin
       return Node.Identifier;
    end Identifier;
@@ -959,7 +976,7 @@ package body WisiToken.Syntax_Trees is
    function Insert_After
      (User_Data            : in out User_Data_Type;
       Tree                 : in     Syntax_Trees.Tree'Class;
-      Token                : in     Valid_Node_Index;
+      Token                : in     Valid_Node_Access;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
@@ -974,7 +991,7 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       return
-        (if Item.First_Terminal_Index = Invalid_Node_Index
+        (if Item.First_Terminal_Index = Invalid_Node_Access
          then ""
          else Trimmed_Image (Item.First_Terminal_Index.Debug_Index) & ":") &
         "(" & Image (Item.ID, Descriptor) &
@@ -995,7 +1012,7 @@ package body WisiToken.Syntax_Trees is
 
    function Image
      (Tree              : in Syntax_Trees.Tree;
-      Node              : in Node_Index;
+      Node              : in Node_Access;
       Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean := False;
       Include_RHS_Index : in Boolean := False;
@@ -1030,7 +1047,7 @@ package body WisiToken.Syntax_Trees is
 
    function Image
      (Tree       : in Syntax_Trees.Tree;
-      Nodes      : in Node_Index_Array;
+      Nodes      : in Node_Access_Array;
       Descriptor : in WisiToken.Descriptor;
       Node_Numbers : in Boolean := False)
      return String
@@ -1051,14 +1068,14 @@ package body WisiToken.Syntax_Trees is
 
    function Is_Descendant_Of
      (Tree       : in Syntax_Trees.Tree;
-      Root       : in Valid_Node_Index;
-      Descendant : in Valid_Node_Index)
+      Root       : in Valid_Node_Access;
+      Descendant : in Valid_Node_Access)
      return Boolean
    is
-      Node : Node_Index := Descendant;
+      Node : Node_Access := Descendant;
    begin
       loop
-         exit when Node = Invalid_Node_Index;
+         exit when Node = Invalid_Node_Access;
          if Node = Root then
             return True;
          end if;
@@ -1068,38 +1085,38 @@ package body WisiToken.Syntax_Trees is
       return False;
    end Is_Descendant_Of;
 
-   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Nonterm;
    end Is_Nonterm;
 
-   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Shared_Terminal;
    end Is_Shared_Terminal;
 
-   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Virtual_Terminal;
    end Is_Virtual_Terminal;
 
-   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is
    begin
       return Node.Label in Virtual_Terminal | Virtual_Identifier or (Node.Label = Nonterm and then Node.Virtual);
    end Is_Virtual;
 
-   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Virtual_Identifier;
    end Is_Virtual_Identifier;
 
-   function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label
+   function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
    is begin
       return Node.Label;
    end Label;
 
-   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
       --  Last_Terminal_Index is not cached, because it is not needed in recover.
    begin
@@ -1108,24 +1125,24 @@ package body WisiToken.Syntax_Trees is
          return Node;
 
       when Virtual_Terminal | Virtual_Identifier =>
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
 
       when Nonterm =>
          for C of reverse Node.Children loop
             --  Encountering a deleted child here is an error in the user algorithm.
             declare
-               Last_Term : constant Node_Index := Tree.Last_Shared_Terminal (C);
+               Last_Term : constant Node_Access := Tree.Last_Shared_Terminal (C);
             begin
-               if Last_Term /= Invalid_Node_Index then
+               if Last_Term /= Invalid_Node_Access then
                   return Last_Term;
                end if;
             end;
          end loop;
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       end case;
    end Last_Shared_Terminal;
 
-   function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
    begin
       case Node.Label is
@@ -1135,14 +1152,14 @@ package body WisiToken.Syntax_Trees is
          for C of reverse Node.Children loop
             --  Encountering a deleted child here is an error in the user algorithm.
             declare
-               Term : constant Node_Index := Last_Terminal (Tree, C);
+               Term : constant Node_Access := Last_Terminal (Tree, C);
             begin
-               if Term /= Invalid_Node_Index then
+               if Term /= Invalid_Node_Access then
                   return Term;
                end if;
             end;
          end loop;
-         return Invalid_Node_Index;
+         return Invalid_Node_Access;
       end case;
    end Last_Terminal;
 
@@ -1167,9 +1184,9 @@ package body WisiToken.Syntax_Trees is
       return Tree.Streams.Last_Index + 1;
    end Next_Stream_ID;
 
-   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
-      function First_Child (Node : in Valid_Node_Index) return Node_Index
+      function First_Child (Node : in Valid_Node_Access) return Node_Access
       is
       begin
          case Node.Label is
@@ -1181,23 +1198,23 @@ package body WisiToken.Syntax_Trees is
                --  Encountering a deleted child here is an error in the user
                --  algorithm.
                declare
-                  Result : constant Node_Index := First_Child (J);
+                  Result : constant Node_Access := First_Child (J);
                begin
-                  if Result /= Invalid_Node_Index then
+                  if Result /= Invalid_Node_Access then
                      return Result;
                   end if;
                end;
             end loop;
             --  All Children are empty
-            return Invalid_Node_Index;
+            return Invalid_Node_Access;
          end case;
       end First_Child;
 
-      function Next_Child (Child : in Valid_Node_Index; Node : in Node_Index) return Node_Index
+      function Next_Child (Child : in Valid_Node_Access; Node : in Node_Access) return Node_Access
       is begin
          --  Node is Parent of Child; return node immediately after Child.
-         if Node = Invalid_Node_Index then
-            return Invalid_Node_Index;
+         if Node = Invalid_Node_Access then
+            return Invalid_Node_Access;
          else
             pragma Assert (Node.Label = Nonterm);
             for I in Node.Children'Range loop
@@ -1207,9 +1224,9 @@ package body WisiToken.Syntax_Trees is
                   --  Use first non-empty next from I + 1.
                   for J in I + 1 .. Node.Children'Last loop
                      declare
-                        Result : constant Node_Index := First_Child (Node.Children (J));
+                        Result : constant Node_Access := First_Child (Node.Children (J));
                      begin
-                        if Result /= Invalid_Node_Index then
+                        if Result /= Invalid_Node_Access then
                            return Result;
                         end if;
                      end;
@@ -1225,14 +1242,14 @@ package body WisiToken.Syntax_Trees is
       return Next_Child (Node, Node.Parent);
    end Next_Terminal;
 
-   function Node_Index_Compare (Left, Right : in Node_Index) return SAL.Compare_Result
+   function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
    is (if Left.Debug_Index > Right.Debug_Index then SAL.Greater
        elsif Left.Debug_Index < Right.Debug_Index then SAL.Less
        else SAL.Equal);
 
    function Non_Grammar
      (Tree      : in out Syntax_Trees.Tree;
-      Terminal  : in     Valid_Node_Index)
+      Terminal  : in     Valid_Node_Access)
      return Base_Token_Arrays_Var_Ref
    is begin
       return (Element => Terminal.Non_Grammar'Access, Dummy => 0);
@@ -1240,7 +1257,7 @@ package body WisiToken.Syntax_Trees is
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
-      Terminal : in Valid_Node_Index)
+      Terminal : in Valid_Node_Access)
      return Base_Token_Arrays_Const_Ref
    is begin
       return (Element => Terminal.Non_Grammar'Access, Dummy => 0);
@@ -1248,24 +1265,24 @@ package body WisiToken.Syntax_Trees is
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
-      Node  : in Valid_Node_Index;
+      Node  : in Valid_Node_Access;
       Count : in Positive := 1)
-     return Node_Index
+     return Node_Access
    is
-      Result : Node_Index := Node;
+      Result : Node_Access := Node;
       N      : Natural    := 0;
    begin
       loop
          Result := Result.Parent;
          N := N + 1;
-         exit when N = Count or Result = Invalid_Node_Index;
+         exit when N = Count or Result = Invalid_Node_Access;
       end loop;
       return Result;
    end Parent;
 
-   function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
-      function Last_Child (Node : in Valid_Node_Index) return Node_Index
+      function Last_Child (Node : in Valid_Node_Access) return Node_Access
       is begin
          case Node.Label is
          when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
@@ -1276,23 +1293,23 @@ package body WisiToken.Syntax_Trees is
                --  Encountering a deleted child here is an error in the user
                --  algorithm.
                declare
-                  Result : constant Node_Index := Last_Child (J);
+                  Result : constant Node_Access := Last_Child (J);
                begin
-                  if Result /= Invalid_Node_Index then
+                  if Result /= Invalid_Node_Access then
                      return Result;
                   end if;
                end;
             end loop;
             --  All Children are empty
-            return Invalid_Node_Index;
+            return Invalid_Node_Access;
          end case;
       end Last_Child;
 
-      function Prev_Child (Child : in Valid_Node_Index; Node : in Node_Index) return Node_Index
+      function Prev_Child (Child : in Valid_Node_Access; Node : in Node_Access) return Node_Access
       is begin
          --  Node is Parent of Child; return node immediately previous to Child.
-         if Node = Invalid_Node_Index then
-            return Invalid_Node_Index;
+         if Node = Invalid_Node_Access then
+            return Invalid_Node_Access;
          else
             pragma Assert (Node.Label = Nonterm);
             for I in reverse Node.Children'Range loop
@@ -1302,9 +1319,9 @@ package body WisiToken.Syntax_Trees is
                   --  Use first non-empty from I - 1.
                   for J in reverse Node.Children'First .. I - 1 loop
                      declare
-                        Result : constant Node_Index := Last_Child (Node.Children (J));
+                        Result : constant Node_Access := Last_Child (Node.Children (J));
                      begin
-                        if Result /= Invalid_Node_Index then
+                        if Result /= Invalid_Node_Access then
                            return Result;
                         end if;
                      end;
@@ -1323,7 +1340,7 @@ package body WisiToken.Syntax_Trees is
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
       Descriptor      : in WisiToken.Descriptor;
-      Root            : in Node_Index                   := Invalid_Node_Index;
+      Root            : in Node_Access                   := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
       Image_Action    : in Syntax_Trees.Image_Action    := null)
    is
@@ -1331,7 +1348,7 @@ package body WisiToken.Syntax_Trees is
 
       Node_Printed : Node_Sets.Set;
 
-      procedure Print_Node (Node : in Valid_Node_Index; Level : in Integer)
+      procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
          if Node_Printed.Contains (Node) then
             --  This does not catch all possible tree edit errors, but it does
@@ -1369,9 +1386,9 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Print_Node;
 
-      Print_Root : constant Node_Index := (if Root = Invalid_Node_Index then Tree.Root else Root);
+      Print_Root : constant Node_Access := (if Root = Invalid_Node_Access then Tree.Root else Root);
    begin
-      if Print_Root = Invalid_Node_Index then
+      if Print_Root = Invalid_Node_Access then
          Put_Line ("<empty tree>");
       else
          Print_Node (Print_Root, 0);
@@ -1380,11 +1397,11 @@ package body WisiToken.Syntax_Trees is
 
    function Process_Tree
      (Tree         : in Syntax_Trees.Tree;
-      Node         : in Valid_Node_Index;
+      Node         : in Valid_Node_Access;
       Visit_Parent : in Visit_Parent_Mode;
       Process_Node : access function
         (Tree : in Syntax_Trees.Tree;
-         Node : in Valid_Node_Index)
+         Node : in Valid_Node_Access)
         return Boolean)
      return Boolean
    is
@@ -1414,10 +1431,10 @@ package body WisiToken.Syntax_Trees is
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
-      Node         : in     Valid_Node_Index;
+      Node         : in     Valid_Node_Access;
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index))
+         Node : in     Valid_Node_Access))
    is begin
       if Node.Label = Nonterm then
          for Child of Node.Children loop
@@ -1434,11 +1451,11 @@ package body WisiToken.Syntax_Trees is
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index);
-      Root         : in     Node_Index := Invalid_Node_Index)
+         Node : in     Valid_Node_Access);
+      Root         : in     Node_Access := Invalid_Node_Access)
    is begin
       Tree.Traversing := True;
-      Process_Tree (Tree, (if Root = Invalid_Node_Index then Tree.Root else Root), Process_Node);
+      Process_Tree (Tree, (if Root = Invalid_Node_Access then Tree.Root else Root), Process_Node);
       Tree.Traversing := False;
    exception
    when others =>
@@ -1448,7 +1465,7 @@ package body WisiToken.Syntax_Trees is
 
    function Production_ID
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return WisiToken.Production_ID
    is begin
       return (Node.ID, Node.RHS_Index);
@@ -1456,11 +1473,11 @@ package body WisiToken.Syntax_Trees is
 
    procedure Replace_Child
      (Tree                 : in out Syntax_Trees.Tree;
-      Parent               : in     Valid_Node_Index;
+      Parent               : in     Valid_Node_Access;
       Child_Index          : in     SAL.Peek_Type;
-      Old_Child            : in     Node_Index;
-      New_Child            : in     Node_Index;
-      Old_Child_New_Parent : in     Node_Index := Invalid_Node_Index)
+      Old_Child            : in     Node_Access;
+      New_Child            : in     Node_Access;
+      Old_Child_New_Parent : in     Node_Access := Invalid_Node_Access)
    is begin
       Parent.Children (Child_Index) := New_Child;
 
@@ -1475,7 +1492,7 @@ package body WisiToken.Syntax_Trees is
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Natural
    is begin
       return Node.RHS_Index;
@@ -1485,8 +1502,8 @@ package body WisiToken.Syntax_Trees is
    is
       procedure Set_Parents
         (Tree   : in out Syntax_Trees.Tree;
-         Node   : in     Valid_Node_Index;
-         Parent : in     Node_Index)
+         Node   : in     Valid_Node_Access;
+         Parent : in     Node_Access)
       is
       begin
          Node.Parent := Parent;
@@ -1506,13 +1523,13 @@ package body WisiToken.Syntax_Trees is
          end case;
       end Set_Parents;
    begin
-      Set_Parents (Tree, Root (Tree), Invalid_Node_Index);
+      Set_Parents (Tree, Root (Tree), Invalid_Node_Access);
       Tree.Parents_Set := True;
    end Set_Parents;
 
    procedure Set_Augmented
      (Tree  : in out Syntax_Trees.Tree;
-      Node  : in     Valid_Node_Index;
+      Node  : in     Valid_Node_Access;
       Value : in     Base_Token_Class_Access)
    is begin
       Node.Augmented := Value;
@@ -1520,10 +1537,10 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Node_Index_Array)
+      Parent   : in     Valid_Node_Access;
+      Children : in     Node_Access_Array)
    is
-      Realloc_Parent : Node_Index := Parent;
+      Realloc_Parent : Node_Access := Parent;
    begin
       --  See Design note in spec about Parents, Parent_Set.
 
@@ -1532,7 +1549,7 @@ package body WisiToken.Syntax_Trees is
          --  children.
          for C of Parent.Children loop
             if C /= null then
-               C.Parent := Invalid_Node_Index;
+               C.Parent := Invalid_Node_Access;
             end if;
          end loop;
       end if;
@@ -1568,12 +1585,12 @@ package body WisiToken.Syntax_Trees is
 
       for I in Children'Range loop
          declare
-            Child : constant Node_Index := Children (I);
+            Child : constant Node_Access := Children (I);
          begin
             if Tree.Parents_Set then
-               if Child.Parent /= Invalid_Node_Index then
+               if Child.Parent /= Invalid_Node_Access then
                   declare
-                     Other_Parent : constant Node_Index := Child.Parent;
+                     Other_Parent : constant Node_Access := Child.Parent;
                      Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
                        (Other_Parent.all, Children (I));
                   begin
@@ -1591,9 +1608,9 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Node     : in     Valid_Node_Index;
+      Node     : in     Valid_Node_Access;
       New_ID   : in     WisiToken.Production_ID;
-      Children : in     Node_Index_Array)
+      Children : in     Node_Access_Array)
    is
    begin
       if New_ID /= (Node.ID, Node.RHS_Index) then
@@ -1616,11 +1633,19 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Name_Region
      (Tree   : in out Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
+      Node   : in     Valid_Node_Access;
       Region : in     Buffer_Region)
    is begin
       Node.Name := Region;
    end Set_Name_Region;
+
+   function Stream_First
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
+     return Stream_Index
+   is begin
+      return Tree.Streams (Stream).First;
+   end Stream_First;
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
@@ -1635,34 +1660,34 @@ package body WisiToken.Syntax_Trees is
       return Element.Next;
    end Stream_Next;
 
-   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
+   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access
    is
-      N : Valid_Node_Index := Node;
+      N : Valid_Node_Access := Node;
    begin
       loop
-         exit when N.Parent = Invalid_Node_Index;
+         exit when N.Parent = Invalid_Node_Access;
          N := N.Parent;
       end loop;
       return N;
    end Sub_Tree_Root;
 
-   function To_Node_Index (Item : in Valid_Node_Index_Array) return Node_Index_Array
+   function To_Node_Access (Item : in Valid_Node_Access_Array) return Node_Access_Array
    is begin
-      return Result : Node_Index_Array (Item'Range) do
+      return Result : Node_Access_Array (Item'Range) do
          for I in Result'Range loop
             Result (I) := Item (I);
          end loop;
       end return;
-   end To_Node_Index;
+   end To_Node_Access;
 
-   function To_Valid_Node_Index (Item : in Node_Index_Array) return Valid_Node_Index_Array
+   function To_Valid_Node_Access (Item : in Node_Access_Array) return Valid_Node_Access_Array
    is begin
-      return Result : Valid_Node_Index_Array (Item'Range) := (others => Dummy_Node) do
+      return Result : Valid_Node_Access_Array (Item'Range) := (others => Dummy_Node) do
          for I in Result'Range loop
             Result (I) := Item (I);
          end loop;
       end return;
-   end To_Valid_Node_Index;
+   end To_Valid_Node_Access;
 
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean
    is begin
@@ -1677,13 +1702,13 @@ package body WisiToken.Syntax_Trees is
    function State (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Unknown_State_Index
    is (Element.Node.State);
 
-   procedure Update_Cache (Node : in Valid_Node_Index)
+   procedure Update_Cache (Node : in Valid_Node_Access)
    is
       First_Terminal_Index_Set : Boolean := False;
    begin
       for I in Node.Children'Range loop
          declare
-            Child : constant Node_Index := Node.Children (I);
+            Child : constant Node_Access := Node.Children (I);
          begin
             Node.Virtual := Node.Virtual or
               (case Child.Label is
@@ -1709,7 +1734,7 @@ package body WisiToken.Syntax_Trees is
                   null;
 
                when Nonterm =>
-                  if Child.First_Terminal_Index /= Invalid_Node_Index then
+                  if Child.First_Terminal_Index /= Invalid_Node_Access then
                      --  not an empty nonterm
                      First_Terminal_Index_Set  := True;
                      Node.First_Terminal_Index := Child.First_Terminal_Index;
@@ -1726,12 +1751,12 @@ package body WisiToken.Syntax_Trees is
       Descriptor     : in     WisiToken.Descriptor;
       File_Name      : in     String;
       Error_Reported : in out Node_Sets.Set;
-      Root           : in     Node_Index                 := Invalid_Node_Index;
+      Root           : in     Node_Access                 := Invalid_Node_Access;
       Validate_Node  : in     Syntax_Trees.Validate_Node := null)
    is
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index)
+         Node : in     Valid_Node_Access)
       is
          use Ada.Text_IO;
 
@@ -1767,11 +1792,11 @@ package body WisiToken.Syntax_Trees is
 
                else
                   declare
-                     Child_Parent : constant Node_Index := Node.Children (I).Parent;
+                     Child_Parent : constant Node_Access := Node.Children (I).Parent;
                   begin
                      if Child_Parent /= Node then
                         Put_Error
-                          (if Child_Parent = Invalid_Node_Index
+                          (if Child_Parent = Invalid_Node_Access
                            then "child.parent invalid"
                            else "child.parent" & Child_Parent'Image & " incorrect");
                      end if;
@@ -1794,7 +1819,7 @@ package body WisiToken.Syntax_Trees is
       end Process_Node;
 
    begin
-      Process_Tree (Tree, (if Root = Invalid_Node_Index then Tree.Root else Root), Process_Node'Access);
+      Process_Tree (Tree, (if Root = Invalid_Node_Access then Tree.Root else Root), Process_Node'Access);
    end Validate_Tree;
 
 end WisiToken.Syntax_Trees;

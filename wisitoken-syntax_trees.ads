@@ -35,7 +35,7 @@
 --  error recovery. After calling Set_Parents (ie, while editing the
 --  syntax tree after parse), any functions that modify children or
 --  parents update the corresponding links, setting them to
---  Invalid_Node_Index as appropriate.
+--  Invalid_Node_Access as appropriate.
 --
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
@@ -62,21 +62,21 @@ package WisiToken.Syntax_Trees is
    use all type SAL.Base_Peek_Type;
 
    type Node (<>) is private;
-   type Node_Index is access Node;
-   subtype Valid_Node_Index is not null Node_Index;
+   type Node_Access is access Node;
+   subtype Valid_Node_Access is not null Node_Access;
 
-   Invalid_Node_Index : constant Node_Index := null;
-   Dummy_Node : constant Valid_Node_Index;
-   --  Use when you must initialize a Valid_Node_Index before overwritting it.
+   Invalid_Node_Access : constant Node_Access := null;
+   Dummy_Node : constant Valid_Node_Access;
+   --  Use when you must initialize a Valid_Node_Access before overwritting it.
 
-   type Node_Index_Array is array (Positive_Index_Type range <>) of Node_Index;
-   type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
+   type Node_Access_Array is array (Positive_Index_Type range <>) of Node_Access;
+   type Valid_Node_Access_Array is array (Positive_Index_Type range <>) of Valid_Node_Access;
 
-   function To_Node_Index (Item : in Valid_Node_Index_Array) return Node_Index_Array;
-   function To_Valid_Node_Index (Item : in Node_Index_Array) return Valid_Node_Index_Array;
+   function To_Node_Access (Item : in Valid_Node_Access_Array) return Node_Access_Array;
+   function To_Valid_Node_Access (Item : in Node_Access_Array) return Valid_Node_Access_Array;
 
    type Recover_Token is record
-      --  Declared here because it needs Node_Index.
+      --  Declared here because it needs Node_Access.
 
       --  Maintaining a syntax tree during error recovery is too slow, so we
       --  store enough information in the recover stack to perform
@@ -89,10 +89,10 @@ package WisiToken.Syntax_Trees is
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Byte_Region is used to detect empty tokens, for cost and other issues.
 
-      First_Terminal_Index : Node_Index := Invalid_Node_Index;
+      First_Terminal_Index : Node_Access := Invalid_Node_Access;
       --  For terminals, index of this token in Shared_Parser.Tree. For
-      --  nonterminals, first of contained tokens (Invalid_Node_Index if
-      --  empty). For virtuals, Invalid_Node_Index. Used for push_back of
+      --  nonterminals, first of contained tokens (Invalid_Node_Access if
+      --  empty). For virtuals, Invalid_Node_Access. Used for push_back of
       --  nonterminals.
 
       Name : Buffer_Region := Null_Buffer_Region;
@@ -119,7 +119,7 @@ package WisiToken.Syntax_Trees is
      Implicit_Dereference => Element;
 
    --  We don't declare Is_Empty (Tree) because it is not easy to keep
-   --  track of. Root (Tree) = Invalid_Node_Index is correct for most use
+   --  track of. Root (Tree) = Invalid_Node_Access is correct for most use
    --  cases.
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
@@ -177,7 +177,7 @@ package WisiToken.Syntax_Trees is
    procedure Lexer_To_Augmented
      (User_Data : in out User_Data_Type;
       Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Node_Index)
+      Token     : in     Node_Access)
      is null;
    --  Token is a grammar token that was just returned by
    --  User_Data.Lexer; read auxiliary data from User_Data.Lexer, do
@@ -190,7 +190,7 @@ package WisiToken.Syntax_Trees is
      (User_Data          : in out User_Data_Type;
       Tree               : in out Syntax_Trees.Tree'Class;
       Token              : in     Base_Token;
-      Prev_Grammar_Token : in     Node_Index)
+      Prev_Grammar_Token : in     Node_Access)
      is null;
    --  Token is a non-grammar token that was just returned by
    --  User_Data.Lexer; it has already been added to Prev_Grammar_Token,
@@ -202,7 +202,7 @@ package WisiToken.Syntax_Trees is
    function Insert_After
      (User_Data            : in out User_Data_Type;
       Tree                 : in     Syntax_Trees.Tree'Class;
-      Token                : in     Valid_Node_Index;
+      Token                : in     Valid_Node_Access;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
    --  Return True if ID should be treated as if inserted after the
@@ -215,7 +215,7 @@ package WisiToken.Syntax_Trees is
    procedure Insert_Token
      (User_Data : in out User_Data_Type;
       Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Valid_Node_Index)
+      Token     : in     Valid_Node_Access)
      is null;
    --  Token was inserted in error recovery; update other tokens and Tree
    --  as needed. Called from Execute_Actions for each inserted token,
@@ -224,7 +224,7 @@ package WisiToken.Syntax_Trees is
    procedure Delete_Token
      (User_Data : in out User_Data_Type;
       Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Valid_Node_Index)
+      Token     : in     Valid_Node_Access)
      is null;
    --  Token was deleted in error recovery; update
    --  remaining tokens as needed. Called from Execute_Actions for each
@@ -233,8 +233,8 @@ package WisiToken.Syntax_Trees is
    procedure Reduce
      (User_Data : in out User_Data_Type;
       Tree      : in out Syntax_Trees.Tree'Class;
-      Nonterm   : in     Valid_Node_Index;
-      Tokens    : in     Node_Index_Array)
+      Nonterm   : in     Valid_Node_Access;
+      Tokens    : in     Node_Access_Array)
      is null;
    --  Reduce Tokens to Nonterm. Nonterm.Byte_Region is computed by
    --  caller.
@@ -242,8 +242,8 @@ package WisiToken.Syntax_Trees is
    type Semantic_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
       Tree      : in out Syntax_Trees.Tree;
-      Nonterm   : in     Valid_Node_Index;
-      Tokens    : in     Valid_Node_Index_Array);
+      Nonterm   : in     Valid_Node_Access;
+      Tokens    : in     Valid_Node_Access_Array);
    --  Routines of this type are called by
    --  WisiToken.LR.Parser.Execute_Actions when it processes a Nonterm
    --  node in the syntax tree. Tokens are the children of Nonterm.
@@ -270,7 +270,13 @@ package WisiToken.Syntax_Trees is
    --  True if there is only one stream, and it has only one element.
 
    --  FIXME: replace with Tree_Root with pre=> fullY_parsed, or delete
-   --  function Stream_Root (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Index;
+   --  function Stream_Root (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Access;
+
+   function Stream_First
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
+     return Stream_Index
+   with Pre => Stream /= Invalid_Stream_ID;
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
@@ -279,12 +285,13 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Stream /= Invalid_Stream_ID;
 
-   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Index;
+   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access;
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Stream          : in     Stream_ID;
       Production      : in     WisiToken.Production_ID;
+      Current_Token   : in     Stream_Index;
       Children        : in     Stream_Index_Array;
       Action          : in     Semantic_Action := null;
       State           : in     State_Index;
@@ -311,13 +318,13 @@ package WisiToken.Syntax_Trees is
 
    function Non_Grammar
      (Tree      : in out Syntax_Trees.Tree;
-      Terminal  : in     Valid_Node_Index)
+      Terminal  : in     Valid_Node_Access)
      return Base_Token_Arrays_Var_Ref
    with Pre => Tree.Is_Shared_Terminal (Terminal);
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
-      Terminal : in Valid_Node_Index)
+      Terminal : in Valid_Node_Access)
      return Base_Token_Arrays_Const_Ref
    with Pre => Tree.Is_Shared_Terminal (Terminal);
 
@@ -325,7 +332,7 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
-      Before   : in     Valid_Node_Index)
+      Before   : in     Valid_Node_Access)
      return Stream_Index
    with Pre => not Tree.Traversing and Stream /= Invalid_Stream_ID;
    --  Add a new Virtual_Terminal element on Stream. Before is the node
@@ -334,8 +341,8 @@ package WisiToken.Syntax_Trees is
 
    function Before
      (Tree             : in Syntax_Trees.Tree;
-      Virtual_Terminal : in Valid_Node_Index)
-     return Node_Index
+      Virtual_Terminal : in Valid_Node_Access)
+     return Node_Access
    with Pre => Tree.Is_Virtual_Terminal (Virtual_Terminal);
 
    procedure Set_State
@@ -344,175 +351,176 @@ package WisiToken.Syntax_Trees is
       State   : in     State_Index);
 
    function State (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Unknown_State_Index;
-   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID;
+   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
+   with Pre => Element /= Invalid_Stream_Index;
 
-   function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
+   function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
 
-   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return SAL.Base_Peek_Type
+   function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return SAL.Base_Peek_Type
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index_Array
+   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access_Array
    with Pre => Tree.Is_Nonterm (Node);
    --  Any children that were cleared by Add_Nonterm are returned as
-   --  Invalid_Node_Index.
+   --  Invalid_Node_Access.
 
    function Child
      (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Index;
+      Node        : in Valid_Node_Access;
       Child_Index : in Positive_Index_Type)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    with Pre => Tree.Is_Nonterm (Node);
 
    function Has_Child
      (Tree  : in Syntax_Trees.Tree;
-      Node  : in Valid_Node_Index;
-      Child : in Valid_Node_Index)
+      Node  : in Valid_Node_Access;
+      Child : in Valid_Node_Access)
      return Boolean
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Index) return Boolean;
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Access) return Boolean;
 
-   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    --  True if contained buffer region is empty; always the case for
    --  virtual tokens, and for most copied tokens. Use Has_Children or
    --  Child_Count to see if Node has children.
 
-   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
 
-   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    --  Virtual_Terminal, Virtual_Identifier, or Nonterm that contains some Virtual tokens.
 
-   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    procedure Set_Name_Region
      (Tree   : in out Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
+      Node   : in     Valid_Node_Access;
       Region : in     Buffer_Region)
    with Pre => Tree.Is_Nonterm (Node);
 
    function ID
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return WisiToken.Token_ID;
 
    function Production_ID
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return WisiToken.Production_ID
    with Pre => Tree.Is_Nonterm (Node);
 
    function Byte_Region
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return WisiToken.Buffer_Region;
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Natural
    with Pre => Tree.Is_Nonterm (Node);
 
    function Get_Recover_Token
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Recover_Token;
 
    function Get_Recover_Token_Array
      (Tree  : in Syntax_Trees.Tree;
-      Nodes : in Valid_Node_Index_Array)
+      Nodes : in Valid_Node_Access_Array)
      return Recover_Token_Array;
 
    procedure Set_Augmented
      (Tree  : in out Syntax_Trees.Tree;
-      Node  : in     Valid_Node_Index;
+      Node  : in     Valid_Node_Access;
       Value : in     Base_Token_Class_Access);
    --  Value will be deallocated when Tree is finalized.
 
    function Augmented
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Base_Token_Class_Access;
    --  Returns result of Set_Augmented.
 
    function Augmented_Const
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Base_Token_Class_Access_Constant;
 
    function Action
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
+      Node : in Valid_Node_Access)
      return Semantic_Action
    with Pre => Tree.Is_Nonterm (Node);
 
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
+      Node       : in Valid_Node_Access;
       ID         : in Token_ID;
       Max_Parent : in Boolean := False)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Parents_Set;
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
+      Node       : in Valid_Node_Access;
       IDs        : in Token_ID_Array;
       Max_Parent : in Boolean := False)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Parents_Set;
    --  Return the ancestor of Node that contains ID (starting search with
-   --  Node.Parent), or Invalid_Node_Index if none match.
+   --  Node.Parent), or Invalid_Node_Access if none match.
    --
    --  If Max_Parent, return max parent found if none match; this will be
-   --  Invalid_Node_Index if Node has no parent.
+   --  Invalid_Node_Access if Node has no parent.
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Parents_Set and then Tree.Has_Parent (Node);
-   --  Return the sibling of Node that contains ID, or Invalid_Node_Index if
+   --  Return the sibling of Node that contains ID, or Invalid_Node_Access if
    --  none match.
 
    function Find_Child
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Is_Nonterm (Node);
-   --  Return the child of Node whose ID is ID, or Invalid_Node_Index if
+   --  Return the child of Node whose ID is ID, or Invalid_Node_Access if
    --  none match.
 
    function Find_Descendant
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Node_Index;
+     return Node_Access;
    --  Return the descendant of Node (may be Node) whose ID is ID, or
-   --  Invalid_Node_Index if none match.
+   --  Invalid_Node_Access if none match.
 
    function Find_Descendant
      (Tree      : in     Syntax_Trees.Tree;
-      Node      : in     Valid_Node_Index;
-      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean)
-     return Node_Index;
+      Node      : in     Valid_Node_Access;
+      Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean)
+     return Node_Access;
    --  Return the descendant of Node (may be Node) for which Predicate
-   --  returns True, or Invalid_Node_Index if none do.
+   --  returns True, or Invalid_Node_Access if none do.
 
    function Is_Descendant_Of
      (Tree       : in Syntax_Trees.Tree;
-      Root       : in Valid_Node_Index;
-      Descendant : in Valid_Node_Index)
+      Root       : in Valid_Node_Access;
+      Descendant : in Valid_Node_Access)
      return Boolean
    with Pre => Tree.Parents_Set and Tree.Is_Nonterm (Root);
 
-   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
+   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access
    with Pre => Tree.Parents_Set;
    --  Return top ancestor of Node.
 
@@ -520,62 +528,62 @@ package WisiToken.Syntax_Trees is
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index);
-      Root         : in     Node_Index := Invalid_Node_Index)
-   with Pre => Root /= Invalid_Node_Index or Tree.Fully_Parsed;
+         Node : in     Valid_Node_Access);
+      Root         : in     Node_Access := Invalid_Node_Access)
+   with Pre => Root /= Invalid_Node_Access or Tree.Fully_Parsed;
    --  Traverse subtree of Tree rooted at Root (default single remaining
    --  stream element) in depth-first order, calling Process_Node on each
    --  node.
 
-   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Identifier_Index
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);
 
-   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token
+   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    with Pre => Tree.Is_Shared_Terminal (Node);
 
-   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  Returns first shared terminal node in subtree under Node
-   --  (ignoring virtual terminals). If result is Invalid_Node_Index,
+   --  (ignoring virtual terminals). If result is Invalid_Node_Access,
    --  all terminals are virtual, or the root nonterm is empty.
 
-   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  Returns last shared terminal node in subtree under Node (ignoring
-   --  virtual terminals). If result is Invalid_Node_Index, all
+   --  virtual terminals). If result is Invalid_Node_Access, all
    --  terminals are virtual, or a nonterm is empty.
 
-   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
+   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array;
    --  Return sequence of terminals in Node.
    --
    --  "Terminals" can be Shared_Terminal, Virtual_Terminal,
    --  Virtual_Identifier.
 
-   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
-   --  First of Get_Terminals. Invalid_Node_Index if Node is an empty nonterminal.
+   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
+   --  First of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
 
-   function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
-   --  Last of Get_Terminals. Invalid_Node_Index if Node is an empty nonterminal.
+   function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
+   --  Last of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
 
-   function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
    --  Return the terminal that is immediately before Node in Tree;
-   --  Invalid_Node_Index if Node is the first terminal in Tree.
+   --  Invalid_Node_Access if Node is the first terminal in Tree.
 
-   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
+   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
    --  Return the terminal that is immediately after Node in Tree;
-   --  Invalid_Node_Index if Node is the last terminal in Tree.
+   --  Invalid_Node_Access if Node is the last terminal in Tree.
 
-   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
+   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
    --  Same as Get_Terminals, but return the IDs.
 
-   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID;
+   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID;
    --  First of Get_Terminal_IDs; Invalid_Token_ID if Node is empty.
 
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index;
+      Node : in Valid_Node_Access;
       ID   : in Token_ID)
-     return Valid_Node_Index_Array;
+     return Valid_Node_Access_Array;
    --  Return all descendants of Node matching ID.
 
    ----------
@@ -588,24 +596,24 @@ package WisiToken.Syntax_Trees is
    procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
    with Pre => Tree.Fully_Parsed;
 
-   function Root (Tree : in Syntax_Trees.Tree) return Node_Index
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    with Pre => Tree.Fully_Parsed;
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
-      Node  : in Valid_Node_Index;
+      Node  : in Valid_Node_Access;
       Count : in Positive := 1)
-     return Node_Index
+     return Node_Access
    with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Index_Array;
+      Children        : in     Valid_Node_Access_Array;
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
-     return Valid_Node_Index
+     return Valid_Node_Access
    with Pre => not Tree.Traversing and Children'First = 1 and
                Tree.Parents_Set and Tree.Fully_Parsed;
    --  Add a new Nonterm node (not on any stream), containing
@@ -619,7 +627,7 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     WisiToken.Base_Token)
-     return Valid_Node_Index
+     return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Fully_Parsed;
    --  Add a new Terminal node with no parent, on no stream. Result
    --  points to the added node.
@@ -627,36 +635,37 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_ID)
-     return Valid_Node_Index
+     return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Fully_Parsed;
    --  Add a new Virtual_Terminal node with no parent.
    --  Result points to the added node.
 
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in     Node_Index)
-     return Node_Index
+      Root : in     Node_Access)
+     return Node_Access
    with Pre => Tree.Parents_Set and Tree.Fully_Parsed;
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
    --  of new subtree; it has no parent.
    --
-   --  If Root is Invalid_Node_Index, returns Invalid_Node_Index
+   --  If Root is Invalid_Node_Access, returns Invalid_Node_Access
    --
    --  Parents of new child nodes are set. References to objects external
    --  to tree are shallow copied (Augmented, Action).
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
-      Root : in out Node_Index)
-   with Pre => Tree.Fully_Parsed;
+      Root : in out Node_Access);
    --  Free all nodes under Root
+   --
+   --  No precondition; called from Finalize.
 
    function Add_Identifier
      (Tree        : in out Syntax_Trees.Tree;
       ID          : in     Token_ID;
       Identifier  : in     Identifier_Index;
       Byte_Region : in     WisiToken.Buffer_Region)
-     return Valid_Node_Index
+     return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Fully_Parsed;
    --  Add a new Virtual_Identifier node with no parent. Byte_Region
    --  should point to an area in the source buffer related to the new
@@ -664,40 +673,40 @@ package WisiToken.Syntax_Trees is
 
    function Child_Index
      (Tree   : in out Syntax_Trees.Tree;
-      Parent : in     Valid_Node_Index;
-      Child  : in     Valid_Node_Index)
+      Parent : in     Valid_Node_Access;
+      Child  : in     Valid_Node_Access)
      return SAL.Peek_Type
    with Pre => Tree.Has_Child (Parent, Child);
 
    procedure Replace_Child
      (Tree                 : in out Syntax_Trees.Tree;
-      Parent               : in     Valid_Node_Index;
+      Parent               : in     Valid_Node_Access;
       Child_Index          : in     SAL.Peek_Type;
-      Old_Child            : in     Node_Index;
-      New_Child            : in     Node_Index;
-      Old_Child_New_Parent : in     Node_Index := Invalid_Node_Index)
+      Old_Child            : in     Node_Access;
+      New_Child            : in     Node_Access;
+      Old_Child_New_Parent : in     Node_Access := Invalid_Node_Access)
    with
      Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
             (Tree.Is_Nonterm (Parent) and then
              (Tree.Child (Parent, Child_Index) = Old_Child and
-              (Old_Child = Invalid_Node_Index or else
+              (Old_Child = Invalid_Node_Access or else
                Tree.Parent (Old_Child) = Parent)));
    --  In Parent.Children, replace child at Child_Index with New_Child.
-   --  Unless Old_Child is Invalid_Node_Index, set Old_Child.Parent to
-   --  Old_Child_New_Parent (may be Invalid_Node_Index). Unless New_Child
-   --  is Invalid_Node_Index, set New_Child.Parent to Parent.
+   --  Unless Old_Child is Invalid_Node_Access, set Old_Child.Parent to
+   --  Old_Child_New_Parent (may be Invalid_Node_Access). Unless New_Child
+   --  is Invalid_Node_Access, set New_Child.Parent to Parent.
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Node     : in     Valid_Node_Index;
+      Node     : in     Valid_Node_Access;
       New_ID   : in     WisiToken.Production_ID;
-      Children : in     Node_Index_Array)
+      Children : in     Node_Access_Array)
    with
      Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
-            Tree.Is_Nonterm (Node) and (for all C of Children => C /= Invalid_Node_Index);
-   --  If parents of current Node.Children are not Invalid_Node_Index,
-   --  set corresponding entry in those parents to Invalid_Node_Index,
-   --  then set the child parent to Invalid_Node_Index.
+            Tree.Is_Nonterm (Node) and (for all C of Children => C /= Invalid_Node_Access);
+   --  If parents of current Node.Children are not Invalid_Node_Access,
+   --  set corresponding entry in those parents to Invalid_Node_Access,
+   --  then set the child parent to Invalid_Node_Access.
    --
    --  Then set ID of Node to New_ID, and Node.Children to Children; set
    --  parents of Children to Node.
@@ -706,7 +715,7 @@ package WisiToken.Syntax_Trees is
    --  to null, because the old Action probably no longer applies.
    --
    --  We use a precondition on Children, rather than
-   --  Valid_Node_Index_Array, so constructs like:
+   --  Valid_Node_Access_Array, so constructs like:
    --
    --     Tree.Set_Children (node, new_id, tree.childrend())
    --
@@ -714,13 +723,13 @@ package WisiToken.Syntax_Trees is
 
    procedure Delete_Parent
      (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Index)
+      Node : in     Valid_Node_Access)
    with
      Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
-            Tree.Parent (Node) /= Invalid_Node_Index;
-   --  Set child in Node.Parent to Invalid_Node_Index. If Node.Parent =
+            Tree.Parent (Node) /= Invalid_Node_Access;
+   --  Set child in Node.Parent to Invalid_Node_Access. If Node.Parent =
    --  Tree.Root, set Tree.Root to Node. Set Node.Parent to
-   --  Invalid_Node_Index.
+   --  Invalid_Node_Access.
 
    ----------
    --  Debug and error message utils
@@ -735,7 +744,7 @@ package WisiToken.Syntax_Trees is
      return String;
    function Image
      (Tree              : in Syntax_Trees.Tree;
-      Node              : in Node_Index;
+      Node              : in Node_Access;
       Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean := False;
       Include_RHS_Index : in Boolean := False;
@@ -743,33 +752,33 @@ package WisiToken.Syntax_Trees is
      return String;
    function Image
      (Tree         : in Syntax_Trees.Tree;
-      Nodes        : in Node_Index_Array;
+      Nodes        : in Node_Access_Array;
       Descriptor   : in WisiToken.Descriptor;
       Node_Numbers : in Boolean := False)
      return String;
    --  Includes Node.Debug_Index, Node.ID
 
-   type Debug_Index is mod 2 ** 32; -- no exception on rollover.
+   type Debug_Index is mod 2 ** 32; -- no exception on rollover. FIXME: rename, used for more than debug
 
    function Decimal_Image is new SAL.Generic_Decimal_Image_Unsigned (Debug_Index);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image_Unsigned (Debug_Index);
 
-   function Get_Debug_Index (Node : in Node_Index) return Debug_Index;
+   function Get_Debug_Index (Node : in Node_Access) return Debug_Index;
 
-   function Node_Index_Compare (Left, Right : in Node_Index) return SAL.Compare_Result;
+   function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result;
 
-   package Node_Sets is new SAL.Gen_Unbounded_Sparse_Ordered_Sets (Node_Index, Node_Index_Compare);
+   package Node_Sets is new SAL.Gen_Unbounded_Sparse_Ordered_Sets (Node_Access, Node_Access_Compare);
 
    function Error_Message
      (Tree      : in Syntax_Trees.Tree;
-      Node      : in Valid_Node_Index;
+      Node      : in Valid_Node_Access;
       File_Name : in String;
       Message   : in String)
      return String;
 
    type Validate_Node is access procedure
      (Tree                : in     Syntax_Trees.Tree;
-      Node                : in     Valid_Node_Index;
+      Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
       Descriptor          : in     WisiToken.Descriptor;
       File_Name           : in     String;
@@ -790,7 +799,7 @@ package WisiToken.Syntax_Trees is
       Descriptor     : in     WisiToken.Descriptor;
       File_Name      : in     String;
       Error_Reported : in out Node_Sets.Set;
-      Root           : in     Node_Index                 := Invalid_Node_Index;
+      Root           : in     Node_Access                 := Invalid_Node_Access;
       Validate_Node  : in     Syntax_Trees.Validate_Node := null)
    with Pre'Class => Tree.Parents_Set;
    --  Verify child/parent links, and that no children are Deleted_Child.
@@ -804,7 +813,7 @@ package WisiToken.Syntax_Trees is
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
       Descriptor      : in WisiToken.Descriptor;
-      Root            : in Node_Index                   := Invalid_Node_Index;
+      Root            : in Node_Access                   := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
       Image_Action    : in Syntax_Trees.Image_Action    := null);
    --  Print tree rooted at Root (default Tree.Root) to
@@ -834,7 +843,7 @@ private
       --  Computed by Set_Children, used in Semantic_Check actions and debug
       --  messages.
 
-      Parent : Node_Index := Invalid_Node_Index;
+      Parent : Node_Access := Invalid_Node_Access;
 
       State : Unknown_State_Index := Unknown_State;
       --  Parse state that was on stack with this token, to allow
@@ -854,7 +863,7 @@ private
          Non_Grammar : aliased Base_Token_Arrays.Vector; -- immediately following Terminal
 
       when Virtual_Terminal =>
-         Before : Node_Index := Invalid_Node_Index;
+         Before : Node_Access := Invalid_Node_Access;
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
@@ -873,19 +882,19 @@ private
          Name : Buffer_Region := Null_Buffer_Region;
          --  Name is set and checked by Semantic_Check actions.
 
-         Children : Node_Index_Array (1 .. Child_Count);
+         Children : Node_Access_Array (1 .. Child_Count);
          --  We use an explicit array, rather than a pointer to the first
          --  child, to preserve child indices while editing the tree.
 
-         First_Terminal_Index : Node_Index := Invalid_Node_Index;
+         First_Terminal_Index : Node_Access := Invalid_Node_Access;
          --  Cached for push_back of nonterminals during recovery
       end case;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Index);
+   procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   function Get_Debug_Index (Node : in Node_Index) return Debug_Index
-   is (if Node = Invalid_Node_Index then 0 else Node.Debug_Index);
+   function Get_Debug_Index (Node : in Node_Access) return Debug_Index
+   is (if Node = Invalid_Node_Access then 0 else Node.Debug_Index);
 
    type Parse_Stream is record
       First : Stream_Index := Invalid_Stream_Index;
@@ -899,7 +908,7 @@ private
       --  deleting during editing.
       Next : Stream_Index := Invalid_Stream_Index;
       Prev : Stream_Index := Invalid_Stream_Index;
-      Node : Node_Index   := Invalid_Node_Index;
+      Node : Node_Access   := Invalid_Node_Access;
    end record;
 
    procedure Free is new Ada.Unchecked_Deallocation (Stream_Element, Stream_Index);
@@ -945,12 +954,12 @@ private
    is (Tree.Streams.Length = 1 and
          Tree.Streams (Tree.Streams.First_Index).First = Tree.Streams (Tree.Streams.First_Index).Last);
 
-   function Root (Tree : in Syntax_Trees.Tree) return Node_Index
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    is (Tree.Streams (Tree.Streams.First_Index).First.Node);
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set);
 
-   Dummy_Node : constant Node_Index := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
+   Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 
 end WisiToken.Syntax_Trees;

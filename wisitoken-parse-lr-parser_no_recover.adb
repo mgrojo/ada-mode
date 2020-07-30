@@ -51,7 +51,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end Pop_Children;
    begin
       return Nonterm : constant Syntax_Trees.Stream_Index := Shared_Parser.Tree.Add_Nonterm
-        (Current_Parser.Stream_ID, Action.Production, Pop_Children, Action.Action, New_State,
+        (Parser_State.Stream_ID, Action.Production, Parser_State.Current_Token, Pop_Children, Action.Action, New_State,
          Default_Virtual => False)
       do
 
@@ -245,6 +245,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
    overriding procedure Parse (Shared_Parser : aliased in out Parser)
    is
+      use all type WisiToken.Syntax_Trees.Stream_Index;
       use all type Syntax_Trees.User_Data_Access;
 
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
@@ -278,7 +279,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
 
-      Shared_Parser.Lex_All;
+      Shared_Parser.Lex_All (Shared_Parser.Parsers.First.State_Ref.Stream_ID);
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
@@ -293,8 +294,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             --  All parsers just shifted a token; get the next token
 
             for Parser_State of Shared_Parser.Parsers loop
-               Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_Next
-                 (Parser_State.Stream_ID, Parser_State.Shared_Token);
+               if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Index then
+                  Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Parser_State.Stream_ID);
+               else
+                  Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_Next
+                    (Parser_State.Stream_ID, Parser_State.Shared_Token);
+               end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;
 
@@ -450,7 +455,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Index)
+         Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use Syntax_Trees;
       begin
@@ -460,21 +465,21 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          declare
             use all type Syntax_Trees.Semantic_Action;
-            Tree_Children : constant Node_Index_Array := Tree.Children (Node);
+            Tree_Children : constant Node_Access_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 
             if Tree.Action (Node) /= null then
                begin
                   Tree.Action (Node)
-                    (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Index (Tree_Children));
+                    (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
                exception
                when E : others =>
                   declare
                      Line   : Line_Number_Type  := Line_Number_Type'First;
                      Column : Ada.Text_IO.Count := Ada.Text_IO.Count'First;
                   begin
-                     if Tree.First_Shared_Terminal (Node) = Invalid_Node_Index then
+                     if Tree.First_Shared_Terminal (Node) = Invalid_Node_Access then
                         declare
                            Byte_Region : Buffer_Region renames Tree.Byte_Region (Node);
                         begin

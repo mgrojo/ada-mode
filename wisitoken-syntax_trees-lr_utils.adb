@@ -23,15 +23,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Descriptor : in WisiToken.Descriptor;
       Lexer      : in WisiToken.Lexer.Handle;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Node       : in Node_Index)
+      Node       : in Node_Access)
    is
-      Terminal_Index : constant Syntax_Trees.Node_Index := Tree.First_Shared_Terminal (Node);
+      Terminal_Index : constant Syntax_Trees.Node_Access := Tree.First_Shared_Terminal (Node);
    begin
       raise SAL.Programmer_Error with Error_Message
         (Lexer.File_Name,
          --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
          Line    =>
-           (if Terminal_Index = Syntax_Trees.Invalid_Node_Index then 1
+           (if Terminal_Index = Syntax_Trees.Invalid_Node_Access then 1
             else Tree.Base_Token (Terminal_Index).Line + 1),
          Column  => 0,
          Message =>
@@ -50,12 +50,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return Result;
    end Count;
 
-   function Contains (Container : in Constant_List; Node : in Valid_Node_Index) return Boolean
+   function Contains (Container : in Constant_List; Node : in Valid_Node_Access) return Boolean
    is begin
       return (for some N of Container => N = Node);
    end Contains;
 
-   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Index) return Cursor
+   function To_Cursor (Container : in Constant_List; Node : in Valid_Node_Access) return Cursor
    is
       pragma Unreferenced (Container);
    begin
@@ -69,19 +69,19 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function First
      (Tree       : in WisiToken.Syntax_Trees.Tree;
-      Root       : in Node_Index;
+      Root       : in Node_Access;
       List_ID    : in WisiToken.Token_ID;
       Element_ID : in WisiToken.Token_ID)
-     return Node_Index
+     return Node_Access
    is begin
-      if Root = Invalid_Node_Index then
-         return Invalid_Node_Index;
+      if Root = Invalid_Node_Access then
+         return Invalid_Node_Access;
       else
-         return Result : Node_Index do
+         return Result : Node_Access do
             Result := Root;
             loop
                declare
-                  Child : constant Node_Index := Tree.Child (Result, 1);
+                  Child : constant Node_Access := Tree.Child (Result, 1);
                begin
                   if Child = null then
                      raise SAL.Programmer_Error with "deleted child";
@@ -106,11 +106,11 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Last
      (Tree : in WisiToken.Syntax_Trees.Tree;
-      Root : in Node_Index)
-     return Node_Index
+      Root : in Node_Access)
+     return Node_Access
    is begin
-      if Root = Invalid_Node_Index then
-         return Invalid_Node_Index;
+      if Root = Invalid_Node_Access then
+         return Invalid_Node_Access;
       else
          --  Tree is one of:
          --
@@ -136,13 +136,13 @@ package body WisiToken.Syntax_Trees.LR_Utils is
      (Tree       : in Syntax_Trees.Tree;
       List_ID    : in Token_ID;
       Element_ID : in Token_ID;
-      Position   : in Node_Index)
-     return Node_Index
+      Position   : in Node_Access)
+     return Node_Access
    is begin
-      if Position = Invalid_Node_Index then
+      if Position = Invalid_Node_Access then
          return Position;
       else
-         return Result : Node_Index do
+         return Result : Node_Access do
             declare
                --  Tree is one of:
                --
@@ -174,18 +174,18 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                --  | | rhs_item: Element
                --  | rhs_item: next element : Aunt
 
-               Grand_Parent : constant Node_Index := Tree.Parent (Position, 2);
+               Grand_Parent : constant Node_Access := Tree.Parent (Position, 2);
 
-               Aunts : constant Node_Index_Array :=
-                 (if Grand_Parent = Invalid_Node_Index or else Tree.ID (Grand_Parent) /= List_ID
-                  then (1 .. 0 => Invalid_Node_Index)
+               Aunts : constant Node_Access_Array :=
+                 (if Grand_Parent = Invalid_Node_Access or else Tree.ID (Grand_Parent) /= List_ID
+                  then (1 .. 0 => Invalid_Node_Access)
                   else Tree.Children (Grand_Parent));
 
                Last_List_Child : SAL.Base_Peek_Type := Aunts'First - 1;
             begin
-               if Grand_Parent = Invalid_Node_Index or else Tree.ID (Grand_Parent) /= List_ID then
+               if Grand_Parent = Invalid_Node_Access or else Tree.ID (Grand_Parent) /= List_ID then
                   --  No next
-                  Result := Invalid_Node_Index;
+                  Result := Invalid_Node_Access;
                else
                   for I in Aunts'Range loop
                      if Tree.ID (Aunts (I)) in List_ID | Element_ID then
@@ -195,7 +195,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
                   if Last_List_Child = 1 then
                      --  No next
-                     Result := Invalid_Node_Index;
+                     Result := Invalid_Node_Access;
                   else
                      Result := Aunts (Last_List_Child);
                   end if;
@@ -214,13 +214,13 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Previous
      (Tree     : in Syntax_Trees.Tree;
-      Position : in Node_Index)
-     return Node_Index
+      Position : in Node_Access)
+     return Node_Access
    is begin
-      if Position = Invalid_Node_Index then
+      if Position = Invalid_Node_Access then
          return Position;
       else
-         return Result : Node_Index do
+         return Result : Node_Access do
             --  Tree is one of:
             --
             --  case a: first element, no prev
@@ -242,15 +242,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             --  | | rhs_item: prev element
             --  | rhs_item: Element
             declare
-               Parent : constant Valid_Node_Index := Tree.Parent (Position);
+               Parent : constant Valid_Node_Access := Tree.Parent (Position);
             begin
                if Position = Tree.Child (Parent, 1) then
                   --  No prev
-                  Result := Invalid_Node_Index;
+                  Result := Invalid_Node_Access;
 
                else
                   declare
-                     Prev_Node : constant Node_Index := Tree.Child (Parent, 1);
+                     Prev_Node : constant Node_Access := Tree.Child (Parent, 1);
                   begin
                      Result := Tree.Child (Prev_Node, Tree.Child_Count (Prev_Node));
                   end;
@@ -265,7 +265,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       return (Node => Previous (Iter.Container.Tree.all, Position.Node));
    end Previous;
 
-   function List_Constant_Ref (Container : aliased in Constant_List'Class; Position : in Cursor) return Valid_Node_Index
+   function List_Constant_Ref
+     (Container : aliased in Constant_List'Class;
+      Position  :         in Cursor)
+     return Valid_Node_Access
    is
       pragma Unreferenced (Container);
    begin
@@ -284,7 +287,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Find
      (Container : in Constant_List;
-      Target    : in Valid_Node_Index)
+      Target    : in Valid_Node_Access)
      return Cursor
    is begin
       for Cur in Container.Iterate_Constant loop
@@ -313,7 +316,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_List
         (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root         :         in     Valid_Node_Index;
+         Root         :         in     Valid_Node_Access;
          List_ID      :         in     WisiToken.Token_ID;
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
@@ -339,7 +342,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_List
         (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root       :         in     Valid_Node_Index;
+         Root       :         in     Valid_Node_Access;
          List_ID    :         in     WisiToken.Token_ID;
          Element_ID :         in     WisiToken.Token_ID)
         return Constant_List
@@ -355,35 +358,35 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       function Create_List
         (Container :         in     Constant_List;
          Tree      : aliased in out WisiToken.Syntax_Trees.Tree;
-         Root      :         in     Valid_Node_Index)
+         Root      :         in     Valid_Node_Access)
         return Constant_List
       is begin
          return Create_List (Tree, Root, Container.List_ID, Container.Element_ID);
       end Create_List;
 
-      function Create_List (Container : in out List; Root : in Valid_Node_Index) return List
+      function Create_List (Container : in out List; Root : in Valid_Node_Access) return List
       is begin
          return Create_List (Container.Tree.all, Root, Container.List_ID, Container.Element_ID, Container.Separator_ID);
       end Create_List;
 
       function Create_From_Element
         (Tree         : aliased in out WisiToken.Syntax_Trees.Tree;
-         Element      :         in     Valid_Node_Index;
+         Element      :         in     Valid_Node_Access;
          List_ID      :         in     WisiToken.Token_ID;
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
         return List
       is
-         Root : Valid_Node_Index := Tree.Parent (Element);
+         Root : Valid_Node_Access := Tree.Parent (Element);
       begin
          loop
-            exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+            exit when Tree.Parent (Root) = Invalid_Node_Access or else Tree.ID (Tree.Parent (Root)) /= List_ID;
             Root := Tree.Parent (Root);
          end loop;
          return Create_List (Tree, Root, List_ID, Element_ID, Separator_ID);
       end Create_From_Element;
 
-      function Create_From_Element (Container : in out List; Element : in Valid_Node_Index) return List
+      function Create_From_Element (Container : in out List; Element : in Valid_Node_Access) return List
       is begin
          return Create_From_Element
            (Container.Tree.all, Element, Container.List_ID, Container.Element_ID, Container.Separator_ID);
@@ -391,15 +394,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
       function Create_From_Element
         (Tree       : aliased in out WisiToken.Syntax_Trees.Tree;
-         Element    :         in     Valid_Node_Index;
+         Element    :         in     Valid_Node_Access;
          List_ID    :         in     WisiToken.Token_ID;
          Element_ID :         in     WisiToken.Token_ID)
         return Constant_List
       is
-         Root : Valid_Node_Index := Tree.Parent (Element);
+         Root : Valid_Node_Access := Tree.Parent (Element);
       begin
          loop
-            exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+            exit when Tree.Parent (Root) = Invalid_Node_Access or else Tree.ID (Tree.Parent (Root)) /= List_ID;
             Root := Tree.Parent (Root);
          end loop;
          return Create_List (Tree, Root, List_ID, Element_ID);
@@ -409,7 +412,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       is begin
          return
            (Tree              => Tree'Access,
-            Root              => Invalid_Node_Index,
+            Root              => Invalid_Node_Access,
             List_ID           => Invalid_Token_ID,
             One_Element_RHS   => 0,
             Multi_Element_RHS => 0,
@@ -421,7 +424,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       is begin
          return
            (Tree       => Tree'Access,
-            Root       => Invalid_Node_Index,
+            Root       => Invalid_Node_Access,
             List_ID    => Invalid_Token_ID,
             Element_ID => Invalid_Token_ID);
       end Invalid_List;
@@ -436,7 +439,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       is begin
          return
            (Tree'Access,
-            Root              => Invalid_Node_Index,
+            Root              => Invalid_Node_Access,
             List_ID           => List_ID,
             One_Element_RHS   => (if Multi_Element_RHS = 0 then 1 else 0),
             Multi_Element_RHS => Multi_Element_RHS,
@@ -454,11 +457,11 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Append
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index)
+      New_Element : in     Valid_Node_Access)
    is
       Tree : Syntax_Trees.Tree renames Container.Tree.all;
    begin
-      if Container.Root = Invalid_Node_Index then
+      if Container.Root = Invalid_Node_Access then
          Container :=
            (Container.Tree,
             List_ID           => Container.List_ID,
@@ -473,10 +476,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       else
          --  Adding element Last in spec example
          declare
-            List_Parent : constant Node_Index         := Tree.Parent (Container.Root);
-            Old_Root    : constant Valid_Node_Index   := Container.Root;
+            List_Parent : constant Node_Access         := Tree.Parent (Container.Root);
+            Old_Root    : constant Valid_Node_Access   := Container.Root;
             Child_Index : constant SAL.Base_Peek_Type :=
-              (if List_Parent = Invalid_Node_Index
+              (if List_Parent = Invalid_Node_Access
                then 0
                else Tree.Child_Index (List_Parent, Old_Root));
          begin
@@ -488,13 +491,13 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                     then (Old_Root, New_Element)
                     else (Old_Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
 
-            if List_Parent = Invalid_Node_Index then
+            if List_Parent = Invalid_Node_Access then
                null;
             else
                Tree.Replace_Child
                  (List_Parent,
                   Child_Index,
-                  Old_Child => Invalid_Node_Index,
+                  Old_Child => Invalid_Node_Access,
                   New_Child => Container.Root);
             end if;
          end;
@@ -503,11 +506,11 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Prepend
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index)
+      New_Element : in     Valid_Node_Access)
    is
       Tree : Syntax_Trees.Tree renames Container.Tree.all;
    begin
-      if Container.Root = Invalid_Node_Index then
+      if Container.Root = Invalid_Node_Access then
          Container :=
            (Container.Tree,
             List_ID           => Container.List_ID,
@@ -522,10 +525,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       else
          --  Inserting element First (with list parent node and separator) in spec example
          declare
-            Old_First  : constant Valid_Node_Index := Container.First.Node;
-            Parent : constant Valid_Node_Index := Tree.Parent (Old_First);
+            Old_First  : constant Valid_Node_Access := Container.First.Node;
+            Parent : constant Valid_Node_Access := Tree.Parent (Old_First);
 
-            List_Node : constant Valid_Node_Index := Tree.Add_Nonterm
+            List_Node : constant Valid_Node_Access := Tree.Add_Nonterm
               ((Container.List_ID, Container.One_Element_RHS),
                (1 => New_Element));
          begin
@@ -542,7 +545,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Insert
      (Container   : in out List;
-      New_Element : in     Valid_Node_Index;
+      New_Element : in     Valid_Node_Access;
       After       : in     Cursor)
    is
       --  Current Tree (see wisitoken_syntax_trees-test.adb Test_Insert_1):
@@ -576,19 +579,19 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       --  | separator
       --  | element: Last
       Iter   : constant Iterator   := Container.Iterate;
-      Before : constant Node_Index := Iter.Next (After).Node;
+      Before : constant Node_Access := Iter.Next (After).Node;
    begin
-      if After.Node = Invalid_Node_Index then
+      if After.Node = Invalid_Node_Access then
          Prepend (Container, New_Element);
-      elsif Before = Invalid_Node_Index then
+      elsif Before = Invalid_Node_Access then
          Append (Container, New_Element);
       else
          declare
-            Parent      : constant Valid_Node_Index := Container.Tree.Parent (Before);
-            Old_Child   : constant Valid_Node_Index := Container.Tree.Parent (After.Node);
+            Parent      : constant Valid_Node_Access := Container.Tree.Parent (Before);
+            Old_Child   : constant Valid_Node_Access := Container.Tree.Parent (After.Node);
             Child_Index : constant SAL.Peek_Type    := Container.Tree.Child_Index (Parent, Old_Child);
 
-            New_List_Nonterm : constant Valid_Node_Index := Container.Tree.Add_Nonterm
+            New_List_Nonterm : constant Valid_Node_Access := Container.Tree.Add_Nonterm
               (Production => (Container.List_ID, Container.Multi_Element_RHS),
                Children   =>
                  (if Container.Separator_ID = Invalid_Token_ID
@@ -624,7 +627,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Container.Tree.Replace_Child
               (Parent               => Parent,
                Child_Index          => Child_Index,
-               Old_Child            => Invalid_Node_Index,
+               Old_Child            => Invalid_Node_Access,
                New_Child            => New_List_Nonterm,
                Old_Child_New_Parent => New_List_Nonterm);
          end;
@@ -662,9 +665,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       if Container.First = Container.Last then
          --  result is empty
          declare
-            List_Parent : constant Node_Index := Tree.Parent (Container.Root);
+            List_Parent : constant Node_Access := Tree.Parent (Container.Root);
          begin
-            if List_Parent = Invalid_Node_Index then
+            if List_Parent = Invalid_Node_Access then
                null;
 
             else
@@ -672,9 +675,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                  (List_Parent,
                   Child_Index => Tree.Child_Index (List_Parent, Container.Root),
                   Old_Child   => Container.Root,
-                  New_Child   => Invalid_Node_Index);
+                  New_Child   => Invalid_Node_Access);
             end if;
-            Container.Root := Invalid_Node_Index;
+            Container.Root := Invalid_Node_Access;
          end;
 
       elsif Item = Container.First then
@@ -696,7 +699,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  0003: | | | ...
 
          declare
-            Parent_2 : constant Valid_Node_Index := Tree.Parent (Item.Node, 2);
+            Parent_2 : constant Valid_Node_Access := Tree.Parent (Item.Node, 2);
          begin
             Tree.Set_Children
               (Parent_2,
@@ -722,10 +725,10 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  03: | ...
 
          declare
-            List_Parent : constant Node_Index       := Tree.Parent (Container.Root);
-            New_Root    : constant Valid_Node_Index := Tree.Child (Container.Root, 1);
+            List_Parent : constant Node_Access       := Tree.Parent (Container.Root);
+            New_Root    : constant Valid_Node_Access := Tree.Child (Container.Root, 1);
          begin
-            if List_Parent = Invalid_Node_Index then
+            if List_Parent = Invalid_Node_Access then
                Tree.Delete_Parent (New_Root);
                Container.Root := New_Root;
 
@@ -737,7 +740,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                     (List_Parent, Parent_Index,
                      Old_Child            => Container.Root,
                      New_Child            => New_Root,
-                     Old_Child_New_Parent => Invalid_Node_Index);
+                     Old_Child_New_Parent => Invalid_Node_Access);
                end;
             end if;
 
@@ -771,19 +774,19 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  14: | element: 4, Last
 
          declare
-            Parent_1         : constant Valid_Node_Index := Tree.Parent (Item.Node);
-            Parent_2         : constant Valid_Node_Index := Tree.Parent (Parent_1);
-            Parent_1_Child_1 : constant Valid_Node_Index := Tree.Child (Parent_1, 1);
+            Parent_1         : constant Valid_Node_Access := Tree.Parent (Item.Node);
+            Parent_2         : constant Valid_Node_Access := Tree.Parent (Parent_1);
+            Parent_1_Child_1 : constant Valid_Node_Access := Tree.Child (Parent_1, 1);
          begin
             Tree.Replace_Child
               (Parent_2, 1,
                Old_Child            => Parent_1,
                New_Child            => Parent_1_Child_1,
-               Old_Child_New_Parent => Invalid_Node_Index);
+               Old_Child_New_Parent => Invalid_Node_Access);
          end;
       end if;
 
-      Item.Node := Invalid_Node_Index;
+      Item.Node := Invalid_Node_Access;
    end Delete;
 
    function Valid_Skip_List (Tree : aliased in out Syntax_Trees.Tree; Skip_List : in Skip_Array) return Boolean
@@ -824,15 +827,15 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural)
-      return Node_Index
+      return Node_Access
    is
       Dest_List : List := Creators.Empty_List
         (Tree, Source_List.List_ID, Multi_Element_RHS, Source_List.Element_ID, Separator_ID);
 
       function Get_Dest_Child
-        (Node      : in Valid_Node_Index;
+        (Node      : in Valid_Node_Access;
          Skip_List : in Skip_Array)
-        return Valid_Node_Index
+        return Valid_Node_Access
       with Pre => Tree.Is_Nonterm (Node) and
                   (Skip_List'Length > 1 and then
                    (Skip_List (Skip_List'First).Label = Nested and Skip_List (Skip_List'Last).Label = Skip))
@@ -850,8 +853,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS);
          else
             declare
-               Source_Children : constant Node_Index_Array := Tree.Children (Node);
-               Dest_Children   : Node_Index_Array (Source_Children'Range);
+               Source_Children : constant Node_Access_Array := Tree.Children (Node);
+               Dest_Children   : Node_Access_Array (Source_Children'Range);
             begin
                for I in Source_Children'Range loop
                   if Source_Children (I) = Skip_This.List_Root then
@@ -873,7 +876,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                end loop;
 
                return Tree.Add_Nonterm
-                 (Tree.Production_ID (Node), To_Valid_Node_Index (Dest_Children), Tree.Action (Node));
+                 (Tree.Production_ID (Node), To_Valid_Node_Access (Dest_Children), Tree.Action (Node));
             end;
          end if;
       end Get_Dest_Child;
@@ -901,7 +904,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
       Tree      : aliased in out Syntax_Trees.Tree)
-     return Node_Index
+     return Node_Access
    is
       Source_List : constant Constant_List := Creators.Create_List
         (Tree,
@@ -911,7 +914,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
       Skip_Found : Boolean := False;
    begin
-      return Result : constant Node_Index := Copy_Skip_Nested
+      return Result : constant Node_Access := Copy_Skip_Nested
         (Source_List, Skip_List.Skips, Skip_Found, Tree, Skip_List.Start_Separator_ID,
          Skip_List.Start_Multi_Element_RHS)
       do
@@ -923,14 +926,14 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function List_Root
      (Tree    : in Syntax_Trees.Tree;
-      Node    : in Valid_Node_Index;
+      Node    : in Valid_Node_Access;
       List_ID : in Token_ID)
-     return Valid_Node_Index
+     return Valid_Node_Access
    is
-      Root : Node_Index := Node;
+      Root : Node_Access := Node;
    begin
       loop
-         exit when Tree.Parent (Root) = Invalid_Node_Index or else Tree.ID (Tree.Parent (Root)) /= List_ID;
+         exit when Tree.Parent (Root) = Invalid_Node_Access or else Tree.ID (Tree.Parent (Root)) /= List_ID;
          Root := Tree.Parent (Root);
       end loop;
       return Root;
