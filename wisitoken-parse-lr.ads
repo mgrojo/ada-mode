@@ -54,6 +54,16 @@ package WisiToken.Parse.LR is
    --  Pause is only used for error recovery, to allow parallel parsers
    --  to re-sync on the same input terminal.
 
+   --  WORKAROUND: GNAT Community 2020 with -gnat2020 S'Image outputs
+   --  integer when S is a subtype.
+   function Image (Item : in All_Parse_Action_Verbs) return String
+   is (case Item is
+       when Pause     => "PAUSE",
+       when Shift     => "SHIFT",
+       when Reduce    => "REDUCE",
+       when Accept_It => "ACCEPT_IT",
+       when Error     => "ERROR");
+
    subtype Token_ID_Array_1_3 is Token_ID_Array (1 .. 3);
    --  For Language_Matching_Begin_Tokens.
 

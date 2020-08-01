@@ -48,16 +48,17 @@ package WisiToken.Parse is
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
-   function Next_Grammar_Token (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID) return Token_ID;
+   function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
    --  it is a grammar token, store in Parser.Tree (Stream) and return
    --  its ID. Otherwise, repeat.
    --
    --  Propagates Fatal_Error from Lexer.
 
-   procedure Lex_All (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
+   procedure Lex_All (Parser : in out Base_Parser'Class);
    --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
-   --  call Next_Grammar_Token repeatedly until EOF_ID is returned.
+   --  call Next_Grammar_Token repeatedly until EOF_ID is returned,
+   --  storing all tokens in Parser.Tree Terminal_Stream.
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 

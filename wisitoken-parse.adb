@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse is
 
-   function Next_Grammar_Token (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID) return Token_ID
+   function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID
    is
       use all type Ada.Containers.Count_Type;
       use Syntax_Trees;
@@ -41,7 +41,7 @@ package body WisiToken.Parse is
          if Token.ID >= Parser.Trace.Descriptor.First_Terminal then
 
             declare
-               Index : constant Stream_Index := Parser.Tree.Add_Terminal (Stream, Token);
+               Index : constant Stream_Index := Parser.Tree.Add_Terminal (Token);
             begin
                Parser.Last_Grammar_Node := Parser.Tree.Get_Node (Index);
             end;
@@ -87,7 +87,7 @@ package body WisiToken.Parse is
       return Token.ID;
    end Next_Grammar_Token;
 
-   procedure Lex_All (Parser : in out Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID)
+   procedure Lex_All (Parser : in out Base_Parser'Class)
    is
       EOF_ID : constant Token_ID := Parser.Trace.Descriptor.EOI_ID;
    begin
@@ -96,7 +96,7 @@ package body WisiToken.Parse is
       Parser.Last_Grammar_Node := WisiToken.Syntax_Trees.Invalid_Node_Access;
 
       loop
-         exit when EOF_ID = Next_Grammar_Token (Parser, Stream);
+         exit when EOF_ID = Next_Grammar_Token (Parser);
       end loop;
       if Trace_Parse > Outline then
          Parser.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Parser.Last_Grammar_Node)'Image & " tokens lexed");

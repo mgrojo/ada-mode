@@ -21,7 +21,7 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.LR.Parser_Lists is
 
    function Parser_Stack_Image
-     (Stack      : in Parser_Stacks.Stack;
+     (Stack      : in Syntax_Trees.Stream_ID;
       Descriptor : in WisiToken.Descriptor;
       Tree       : in Syntax_Trees.Tree;
       Depth      : in SAL.Base_Peek_Type := 0)
@@ -29,26 +29,25 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       use Ada.Strings.Unbounded;
 
+      Stack_Depth : constant SAL.Base_Peek_Type := Tree.Stream_Length (Stack);
+
       Last : constant SAL.Base_Peek_Type :=
         (if Depth = 0
-         then Stack.Depth
-         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
+         then Stack_Depth
+         else SAL.Base_Peek_Type'Min (Depth, Stack_Depth));
 
       Result : Unbounded_String := +"(";
    begin
       for I in 1 .. Last loop
          declare
-            use all type WisiToken.Syntax_Trees.Stream_Index;
-            Item : Parser_Stack_Item renames Stack.Peek (I);
+            Item : constant Syntax_Trees.Stream_Index := Tree.Peek (Stack, I);
+            State : constant Unknown_State_Index := Tree.State (Stack, Item);
          begin
             Result := Result &
-              ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " :" &
-                 (if I = Stack.Depth
-                  then ""
-                  else
-                    (if Item.Token = Syntax_Trees.Invalid_Stream_Index -- From recover fast-forward
-                     then ""
-                     else Tree.Image (Item.Token, Descriptor) & ", ")));
+              (if State = Unknown_State then " " else Trimmed_Image (State) & " :") &
+              (if I = Stack_Depth
+               then ""
+               else Tree.Image (Tree.Get_Node (Item), Descriptor) & ", ");
          end;
       end loop;
       return To_String (Result & ")");
@@ -58,7 +57,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is begin
       return Result : List
       do
-         Result.Elements.Append ((Stream_ID => Tree.New_Stream, others => <>));
+         Result.Elements.Append ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID), others => <>));
       end return;
    end New_List;
 
@@ -84,10 +83,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Cursor.Ptr = No_Element;
    end Is_Done;
 
-   function Stream_ID (Cursor : in Parser_Lists.Cursor) return Syntax_Trees.Stream_ID
+   function Stream (Cursor : in Parser_Lists.Cursor) return Syntax_Trees.Stream_ID
    is begin
-      return Parser_State_Lists.Constant_Ref (Cursor.Ptr).Stream_ID;
-   end Stream_ID;
+      return Parser_State_Lists.Constant_Ref (Cursor.Ptr).Stream;
+   end Stream;
 
    function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer
    is
@@ -140,12 +139,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
    procedure Terminate_Parser
      (Parsers : in out List;
       Current : in out Cursor'Class;
-      Tree    : in     Syntax_Trees.Tree;
+      Tree    : in out Syntax_Trees.Tree;
       Message : in     String;
       Trace   : in out WisiToken.Trace'Class)
    is
-      State : Parser_State renames Parser_State_Lists.Constant_Ref (Current.Ptr);
-
       procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
       is
          Temp : Parser_State_Lists.Cursor := Cursor.Ptr;
@@ -154,71 +151,61 @@ package body WisiToken.Parse.LR.Parser_Lists is
          Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
       end Free;
    begin
-      if Trace_Parse > Outline then
-         Trace.Put_Line
-           (Syntax_Trees.Trimmed_Image (Current.Stream_ID) & ": terminate (" &
-              Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-              ": " & Message & Tree.Image
-                (Tree.First_Shared_Terminal (Tree.Get_Node (State.Current_Token)),
-                 Trace.Descriptor.all));
-      end if;
+      declare
+         State : Parser_State renames Parser_State_Lists.Variable_Ref (Current.Ptr);
+      begin
+         if Trace_Parse > Outline then
+            Trace.Put_Line
+              (Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
+                 Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
+                 ": " & Message & Tree.Image
+                   (Tree.First_Shared_Terminal (Tree.Get_Node (State.Current_Token)),
+                    Trace.Descriptor.all));
+         end if;
 
-      --  We don't delete the Tree nodes created by this parser, because it
-      --  is too hard to keep track of the nodes that are also used by other
-      --  parsers. After parsing is finished, we can prune the tree by
-      --  copying the surviving tree from it's root, and finalizing this
-      --  tree.
+         Tree.Delete_Stream (State.Stream);
+      end;
       Free (Current);
    end Terminate_Parser;
 
    procedure Duplicate_State
      (Parsers : in out List;
       Current : in out Cursor'Class;
-      Tree    : in     Syntax_Trees.Tree;
+      Tree    : in out Syntax_Trees.Tree;
       Trace   : in out WisiToken.Trace'Class)
    is
       use all type Ada.Containers.Count_Type;
 
       function Compare
-        (Stack_1 : in Parser_Stacks.Stack;
-         Stack_2 : in Parser_Stacks.Stack)
+        (Stack_1 : in Syntax_Trees.Stream_ID;
+         Stack_2 : in Syntax_Trees.Stream_ID)
         return Boolean
+      --  True if equal
       is
       begin
-         if Stack_1.Depth /= Stack_2.Depth then
+         if Tree.Stream_Length (Stack_1) /= Tree.Stream_Length (Stack_2) then
             return False;
          else
-            for I in reverse 1 .. Stack_1.Depth - 1 loop
+            for I in reverse 1 .. Tree.Stream_Length (Stack_1) - 1 loop
                --  Assume they differ near the top; no point in comparing bottom
-               --  item. The syntax trees will differ even if the tokens on the stack
-               --  are the same, so compare the tokens.
-               declare
-                  use all type WisiToken.Syntax_Trees.Node_Label;
-                  Item_1 : Parser_Stack_Item renames Stack_1 (I);
-                  Item_2 : Parser_Stack_Item renames Stack_2 (I);
-
-                  function Same_Token
-                    (Index_1 : in Syntax_Trees.Stream_Index;
-                     Index_2 : in Syntax_Trees.Stream_Index)
-                    return Boolean
-                  is
+               --  item. The syntax tree nodes will differ even if the tokens are the
+               --  same, so only compare the tokens.
+               if Tree.State (Stack_1) /= Tree.State (Stack_2) then
+                  return False;
+               else
+                  declare
                      use Syntax_Trees;
-                     Node_1 : constant Valid_Node_Access := Tree.Get_Node (Index_1);
-                     Node_2 : constant Valid_Node_Access := Tree.Get_Node (Index_2);
+                     Node_1 : constant Valid_Node_Access := Tree.Get_Node (Tree.Peek (Stack_1, I));
+                     Node_2 : constant Valid_Node_Access := Tree.Get_Node (Tree.Peek (Stack_2, I));
                   begin
-                     return (Tree.Label (Node_1) = Tree.Label (Node_2) and then
+                     if not (Tree.Label (Node_1) = Tree.Label (Node_2) and then
                                Tree.ID (Node_1) = Tree.ID (Node_2) and then
-                               Tree.Byte_Region (Node_1) = Tree.Byte_Region (Node_2));
-                  end Same_Token;
-               begin
-                  if Item_1.State /= Item_2.State then
-                     return False;
-                  else
-                     if not Same_Token (Item_1.Token, Item_2.Token) then
+                               Tree.Byte_Region (Node_1) = Tree.Byte_Region (Node_2))
+                     then
                         return False;
                      end if;
-                  end if;
-               end;
+                  end;
+               end if;
             end loop;
             return True;
          end if;
@@ -232,9 +219,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
             use all type WisiToken.Syntax_Trees.Stream_ID;
             Other_Parser : Parser_State renames Other.State_Ref;
          begin
-            if Other.Stream_ID /= Current.Stream_ID and then
+            if Other.Stream /= Current.Stream and then
               Other.Verb /= Error and then
-              Compare (Other_Parser.Stack, Current.State_Ref.Stack)
+              Compare (Other_Parser.Stream, Current.Stream)
             then
                exit;
             end if;
@@ -288,15 +275,23 @@ package body WisiToken.Parse.LR.Parser_Lists is
    procedure Prepend_Copy
      (List   : in out Parser_Lists.List;
       Cursor : in     Parser_Lists.Cursor'Class;
-      Tree   : in out Syntax_Trees.Tree)
+      Tree   : in out Syntax_Trees.Tree;
+      Trace  : in out WisiToken.Trace'Class)
    is
       New_Item : Parser_State;
    begin
       declare
+         use all type WisiToken.Syntax_Trees.Stream_Index;
+
          Item : Parser_State renames Parser_State_Lists.Variable_Ref (Cursor.Ptr);
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
       begin
+         if Item.Shared_Token /= Item.Current_Token then
+            --  Resume after error recover not finished; need to copy current_token somehow.
+            raise SAL.Not_Implemented with "spawn parser during resume";
+         end if;
+
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          --  We copy Recover.Enqueue_Count .. Check_Count for unit tests.
@@ -304,22 +299,28 @@ package body WisiToken.Parse.LR.Parser_Lists is
            (Shared_Token                  => Item.Shared_Token,
             Recover_Insert_Delete         => Item.Recover_Insert_Delete,
             Recover_Insert_Delete_Current => Item.Recover_Insert_Delete_Current,
-            Current_Token                 => Item.Current_Token,
+            Current_Token                 => Item.Shared_Token, -- See FIXME:
             Inc_Shared_Token              => Item.Inc_Shared_Token,
-            Stack                         => Item.Stack,
             Recover                       =>
               (Enqueue_Count              => Item.Recover.Enqueue_Count,
                Config_Full_Count          => Item.Recover.Config_Full_Count,
                Check_Count                => Item.Recover.Check_Count,
                others                     => <>),
             Resume_Active                 => Item.Resume_Active,
-            Resume_Token_Goal             => Item.Resume_Token_Goal,
+            Resume_Goal                   => Item.Resume_Goal,
             Conflict_During_Resume        => Item.Conflict_During_Resume,
             Zombie_Token_Count            => 0,
             Errors                        => Item.Errors,
-            Stream_ID                     => Tree.New_Stream,
+            Stream                        => Tree.New_Stream (Item.Stream),
             Verb                          => Item.Verb);
       end;
+
+      if Trace_Parse > Extra then
+         Trace.Put (Tree.Trimmed_Image (New_Item.Stream) & ": stack: ");
+         Trace.Put_Line
+           (Parser_Lists.Image (New_Item.Stream, Trace.Descriptor.all, Tree));
+      end if;
+
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
 
@@ -390,10 +391,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Parser_State_Lists.Has_Element (Iterator.Ptr);
    end Has_Element;
 
-   function Stream_ID (State : in Parser_State) return Syntax_Trees.Stream_ID
+   function Stream (State : in Parser_State) return Syntax_Trees.Stream_ID
    is begin
-      return State.Stream_ID;
-   end Stream_ID;
+      return State.Stream;
+   end Stream;
 
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs
    is begin

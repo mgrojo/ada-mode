@@ -28,24 +28,14 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    run_wisitoken_grammar.exe ada_ebnf.wy
-        finalize (tree) dies with segfault
-            free called on node twice
-            because multiple streams reference same node
-                 implement node_index_array_node_access
-                 first rename node_index to node_access
-                 then rename debug_index to node_index.
+    wisitoken-bnf-generate.exe ada_ebnf.wy
+        runs
 
-                same for stream_access?
+    wisitoken-bnf-generate.exe ada_lite.wy
+
+    run all tests
 
     test/test_incremental.adb
-
-    parse tree
-        but recover needs static list for push-back
-            parser.terminals is array of node_index? try to avoid that
-
-        wisitoken-bnf-generate compiles
-            commit
 
     apply edit:
         wi.parse.lr.incremental?
@@ -61,6 +51,10 @@ incremental parse
 
     consider switch back to array tree
         measure parse speed, memory use
+
+    branched parse stack eliminates need for duplicate_state check?
+        but have to move branch point in error recover for push_back, undo_reduce.
+            or not; the other parser will do that?
 
 auto_token_labels
     check for empty statement-action params
