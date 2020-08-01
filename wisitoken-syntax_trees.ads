@@ -900,7 +900,7 @@ private
    record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
-      Node_Index : Syntax_Trees.Node_Index;
+      Node_Index : Syntax_Trees.Node_Index := 0;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Computed by Set_Children, used in Semantic_Check actions and debug
@@ -1043,7 +1043,8 @@ private
    is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Streams.Length = 1);
+   is (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
+   --  1 stream for Terminals, one for the remaining parser.
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0);
@@ -1058,7 +1059,7 @@ private
    is (Tree.Parents_Set);
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
-   is (Parse_Stream_Lists.Element (Tree.Streams.First).First.Node);
+   is (Parse_Stream_Lists.Element (Tree.Streams.Last).Last.Node);
 
    function State
      (Tree    : in Syntax_Trees.Tree;

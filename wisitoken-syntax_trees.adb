@@ -32,6 +32,8 @@ package body WisiToken.Syntax_Trees is
       Node   : in     Valid_Node_Access)
      return Stream_Index;
 
+   function Child_Index (N : in Node; Child : in Valid_Node_Access) return SAL.Peek_Type;
+
    procedure Finalize (Cur : in Parse_Stream_Lists.Cursor);
 
    function Process_Tree
@@ -52,7 +54,8 @@ package body WisiToken.Syntax_Trees is
       Parent   : in     Valid_Node_Access;
       Children : in     Node_Access_Array);
 
-   procedure Update_Cache (Node : in Valid_Node_Access);
+   procedure Update_Cache (Node : in Valid_Node_Access)
+   with Pre => Node.Label = Nonterm;
 
    ----------
    --  Public and body operations, alphabetical
@@ -109,6 +112,22 @@ package body WisiToken.Syntax_Trees is
       Tree.Nodes.Append (Nonterm_Node);
 
       if Children'Length > 0 then
+         if Tree.Parents_Set then
+            for Child of Children loop
+               if Child.Parent /= Invalid_Node_Access then
+                  declare
+                     Other_Parent : constant Node_Access := Child.Parent;
+                     Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
+                       (Other_Parent.all, Child);
+                  begin
+                     Other_Parent.Children (Child_Index) := null;
+                  end;
+               end if;
+
+               Child.Parent := Nonterm_Node;
+            end loop;
+         end if;
+
          Update_Cache (Nonterm_Node);
       end if;
 
@@ -285,10 +304,7 @@ package body WisiToken.Syntax_Trees is
       return Node.Children'Last;
    end Child_Count;
 
-   function Child_Index
-     (N     : in Node;
-      Child : in Valid_Node_Access)
-     return SAL.Peek_Type
+   function Child_Index (N : in Node; Child : in Valid_Node_Access) return SAL.Peek_Type
    is begin
       for I in N.Children'Range loop
          if N.Children (I) = Child then
@@ -560,8 +576,8 @@ package body WisiToken.Syntax_Trees is
       loop
          exit when E = null;
          Temp := E;
-         Free (Temp);
          E := E.Next;
+         Free (Temp);
       end loop;
    end Finalize;
 
@@ -1541,7 +1557,7 @@ package body WisiToken.Syntax_Trees is
          Temp          : Stream_Index;
       begin
          return Result : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (Child_Count)) := (others => Dummy_Node) do
-            for I in Result'Range loop
+            for I in reverse Result'Range loop
                Result (I)    := Child_Element.Node;
                Temp := Child_Element;
                Child_Element := Child_Element.Prev;
@@ -1690,25 +1706,21 @@ package body WisiToken.Syntax_Trees is
          end if;
       end if;
 
-      for I in Children'Range loop
-         declare
-            Child : constant Node_Access := Children (I);
-         begin
-            if Tree.Parents_Set then
-               if Child.Parent /= Invalid_Node_Access then
-                  declare
-                     Other_Parent : constant Node_Access := Child.Parent;
-                     Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
-                       (Other_Parent.all, Children (I));
-                  begin
-                     Other_Parent.Children (Child_Index) := null;
-                  end;
-               end if;
-
-               Child.Parent := Parent;
+      if Tree.Parents_Set then
+         for Child of Children loop
+            if Child.Parent /= Invalid_Node_Access then
+               declare
+                  Other_Parent : constant Node_Access := Child.Parent;
+                  Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
+                    (Other_Parent.all, Child);
+               begin
+                  Other_Parent.Children (Child_Index) := null;
+               end;
             end if;
-         end;
-      end loop;
+
+            Child.Parent := Parent;
+         end loop;
+      end if;
 
       Update_Cache (Realloc_Parent);
    end Set_Children;

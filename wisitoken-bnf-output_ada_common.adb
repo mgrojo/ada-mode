@@ -212,8 +212,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("procedure " & Name.all);
                   Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                   Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
-                  Indent_Line ("  Nonterm   : in     WisiToken.Valid_Node_Index;");
-                  Indent_Line ("  Tokens    : in     WisiToken.Valid_Node_Index_Array);");
+                  Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
+                  Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);");
                end if;
             end loop;
          end if;
@@ -225,8 +225,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                if Name /= null then
                   Indent_Line ("function " & Name.all);
                   Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
-                  Indent_Line ("  Nonterm        : in out WisiToken.Recover_Token;");
-                  Indent_Line ("  Tokens         : in     WisiToken.Recover_Token_Array;");
+                  Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
+                  Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
                   Indent_Line (" return WisiToken.Semantic_Checks.Check_Status;");
                end if;

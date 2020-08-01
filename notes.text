@@ -28,14 +28,19 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    wisitoken-bnf-generate.exe ada_ebnf.wy
+    run_wisitoken_grammar.exe ada_ebnf.wy
+        runs
+
+    wisitoken-bnf-generate.exe empty_production_3.wy
         runs
 
     wisitoken-bnf-generate.exe ada_lite.wy
-
-    run all tests
+        runs
 
     test/test_incremental.adb
+
+    run all tests
+        fixing parser, mckenzie_recover
 
     apply edit:
         wi.parse.lr.incremental?
