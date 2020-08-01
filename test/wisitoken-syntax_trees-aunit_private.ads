@@ -19,18 +19,21 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
-with WisiToken.AUnit;
 private package WisiToken.Syntax_Trees.AUnit_Private is
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
+   procedure Check is new AUnit.Checks.Gen_Check_Access (Node_Access);
 
    procedure Check
      (Label    : in String;
       Computed : in Node;
       Expected : in Node);
 
-   package Node_Arrays_AUnit is new Node_Arrays.Gen_AUnit (WisiToken.AUnit.Check, Check);
+   procedure Check
+     (Label           : in String;
+      Computed_Tree   : in Syntax_Trees.Tree;
+      Computed_Stream : in Stream_ID;
+      Expected_Tree   : in Syntax_Trees.Tree;
+      Expected_Stream : in Stream_ID);
 
    procedure Check
      (Label    : in String;

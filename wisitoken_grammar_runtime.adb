@@ -34,24 +34,7 @@ package body WisiToken_Grammar_Runtime is
       Tree : in Syntax_Trees.Tree;
       Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Line_Number_Type
-   is
-      --  Find a source line for Node.
-
-      use WisiToken.Syntax_Trees;
-
-      Temp : Node_Access := Node;
-   begin
-      loop
-         if Tree.First_Shared_Terminal (Temp) = Syntax_Trees.Invalid_Node_Access then
-            --  Node is empty or all virtual_identifiers; try parents.
-            Temp := Tree.Parent (Temp);
-            exit when Temp = Invalid_Node_Access;
-         else
-            return Tree.Base_Token (Tree.First_Shared_Terminal (Temp)).Line;
-         end if;
-      end loop;
-      return Invalid_Line_Number;
-   end Get_Line;
+   is (Tree.Base_Token (Node).Line); --  FIXME: delete function
 
    function Get_Text
      (Grammar_Lexer       : in WisiToken.Lexer.Handle;
@@ -185,7 +168,7 @@ package body WisiToken_Grammar_Runtime is
       else
          raise Grammar_Error with
            Error_Message
-             (Data.Grammar_Lexer.File_Name, Tree.Base_Token (Tree.First_Shared_Terminal (A_Index)).Line,
+             (Data.Grammar_Lexer.File_Name, Tree.Base_Token (A_Index).Line,
               "invalid '%if'; must be one of {lexer | parser}");
       end if;
    end Start_If_1;
@@ -793,14 +776,13 @@ package body WisiToken_Grammar_Runtime is
                      raise Grammar_Error with
                        Error_Message
                          (Data.Grammar_Lexer.File_Name,
-                          Tree.Base_Token (Tree.First_Shared_Terminal (Tokens (3))).Line,
+                          Tree.Base_Token (Tokens (3)).Line,
                           "too " & (if Tree.Get_Terminals (Tokens (3))'Length > 4 then "many" else "few") &
                             " default costs; should be 'insert, delete, push back, ignore check fail'.");
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line := Tree.Base_Token
-                    (Tree.First_Shared_Terminal (Tokens (1))).Line;
+                  Data.McKenzie_Recover.Source_Line  := Tree.Base_Token (Tokens (1)).Line;
 
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 1));
@@ -940,7 +922,7 @@ package body WisiToken_Grammar_Runtime is
            ((+LHS_String, Right_Hand_Sides, Labels,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
-                when Shared_Terminal    => Tree.Base_Token (Tree.First_Shared_Terminal (LHS_Node)).Line,
+                when Shared_Terminal    => Tree.Base_Token (LHS_Node).Line,
                 when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;
@@ -971,7 +953,7 @@ package body WisiToken_Grammar_Runtime is
 
          if Data.Meta_Syntax /= EBNF_Syntax then
             declare
-               Tok  : Base_Token renames Tree.Base_Token (Tree.First_Shared_Terminal (Tokens (Token)));
+               Tok  : Base_Token renames Tree.Base_Token (Tokens (Token));
             begin
                raise Grammar_Error with Error_Message
                  (Data.Grammar_Lexer.File_Name, Tok.Line, Tok.Column,

@@ -22,12 +22,29 @@ with AUnit.Assertions;
 with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.AUnit_Public is
 
+   procedure Check (Label : in String; Computed, Expected : in Recover_Token)
+   is begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
+   end Check;
+
    procedure Check
      (Label    : in String;
       Computed : in Semantic_Action;
       Expected : in Semantic_Action)
    is begin
       Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
+
+   procedure Check
+     (Label           : in String;
+      Computed_Tree   : in Syntax_Trees.Tree;
+      Computed_Stream : in Stream_ID;
+      Expected_Tree   : in Syntax_Trees.Tree;
+      Expected_Stream : in Stream_ID)
+   is begin
+      WisiToken.Syntax_Trees.AUnit_Private.Check
+        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream);
    end Check;
 
    procedure Check

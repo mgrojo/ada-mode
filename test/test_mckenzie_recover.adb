@@ -18,7 +18,7 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
+with AUnit.Checks.Containers;
 with Ada.Containers;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
@@ -33,7 +33,10 @@ with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
    use Ada_Lite_Actions;
-   use WisiToken.Parse.LR.Config_Op_Arrays;
+   use AUnit.Checks;
+   use AUnit.Checks.Containers;
+   use WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays;
+   use WisiToken.AUnit;
    use all type WisiToken.BNF.LR_Generate_Algorithm;
    use all type WisiToken.Parse.LR.Config_Op_Label;
    use all type WisiToken.Parse.LR.Strategies;
@@ -59,9 +62,7 @@ package body Test_McKenzie_Recover is
      (Text             : in String;
       Multiple_Tasks   : in Boolean := False;
       Expect_Exception : in Boolean := False)
-   is
-      use AUnit.Checks;
-   begin
+   is begin
       Action_Count := (others => 0);
 
       if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -92,18 +93,14 @@ package body Test_McKenzie_Recover is
       Check ("exception", True, Expect_Exception);
    end Parse_Text;
 
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
-
-   Empty_Vector : constant WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
-     WisiToken.Parse.LR.Config_Op_Arrays."+" ((others => <>));
-
    procedure Check_Recover
      (Label                   : in String                                       := "";
       Errors_Length           : in Ada.Containers.Count_Type;
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   := Empty_Vector;
+      Ops                     : in WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Vector :=
+        WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer                                      := 0;
       Enqueue_High            : in Integer                                      := Integer'Last;
@@ -117,8 +114,6 @@ package body Test_McKenzie_Recover is
       --  Only set Ops_Race_Condition True when Parse_Text.Multiple_Tasks is
       --  True; otherwise, add case on LALR | LR1.
 
-      use AUnit.Checks;
-      use WisiToken.AUnit;
       use WisiToken.Parse.LR.AUnit;
       use WisiToken.Semantic_Checks.AUnit;
       use all type WisiToken.Buffer_Region;
@@ -148,7 +143,8 @@ package body Test_McKenzie_Recover is
             --  Expecting an Action error. Label is "code" so prj.el wisitoken-goto-aunit-fail can find it.
             Check (Label_I & ".Code", Error.Label, Action);
             declare
-               Token : WisiToken.Recover_Token renames Parser_State.Tree.Recover_Token (Error.Error_Token);
+               Token : WisiToken.Syntax_Trees.Recover_Token renames
+                 Parser.Tree.Get_Recover_Token (Parser_State.Stream, Error.Error_Token);
             begin
                Check (Label_I & ".Error.TOKEN_ID", Token.ID, Error_Token_ID);
                if Error_Token_ID /= +Wisi_EOI_ID then
@@ -175,7 +171,7 @@ package body Test_McKenzie_Recover is
          end if;
 
          if not Ops_Race_Condition then
-            Check (Label_I & ".Ops", Error.Recover.Ops, Ops);
+            Check (Label_I & ".Ops", Parser.Tree, Error.Recover.Ops, Ops);
             Check (Label_I & ".Strategy_Counts", Error.Recover.Strategy_Counts, Strategy_Counts);
          end if;
 
@@ -269,7 +265,6 @@ package body Test_McKenzie_Recover is
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
    begin
       Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
       --           1        |10       |20       |30       |40
@@ -293,7 +288,6 @@ package body Test_McKenzie_Recover is
    procedure Error_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc; ");
@@ -327,7 +321,6 @@ package body Test_McKenzie_Recover is
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; "
@@ -411,7 +404,6 @@ package body Test_McKenzie_Recover is
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Debug is begin procedure Put_Top_10 is begin end Put_Top_10; begin end Debug; ");
@@ -554,7 +546,6 @@ package body Test_McKenzie_Recover is
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use WisiToken.AUnit;
    begin
       Check ("Check_Limit", Parser.Table.McKenzie_Param.Check_Limit, 3);
 

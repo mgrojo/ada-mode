@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017, 2018, 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -33,12 +33,6 @@ package body WisiToken.AUnit is
    end To_Base_Token_Array;
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token)
-   is begin
-      Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
-   end Check;
-
-   procedure Check (Label : in String; Computed, Expected : in Recover_Token)
    is begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
       Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);

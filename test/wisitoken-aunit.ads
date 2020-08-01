@@ -33,13 +33,8 @@ package WisiToken.AUnit is
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token);
 
-   procedure Check (Label : in String; Computed, Expected : in Recover_Token);
-   --  Not all components checked.
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Token_Index);
-
    package Base_Token_Arrays_AUnit is new Base_Token_Arrays.Gen_AUnit
-     (Check_Index   => Check,
+     (Check_Index   => SAL.AUnit.Check,
       Check_Element => Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Unconstrained_Array
@@ -73,11 +68,5 @@ package WisiToken.AUnit is
      (Label    : in String;
       Computed : in Buffer_Region;
       Expected : in Buffer_Region);
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
-
-   package Valid_Node_Index_Arrays_AUnit is new WisiToken.Valid_Node_Index_Arrays.Gen_AUnit
-     (Check_Index   => SAL.AUnit.Check,
-      Check_Element => Check);
 
 end WisiToken.AUnit;

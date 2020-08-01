@@ -37,10 +37,16 @@ incremental parse
     wisitoken-bnf-generate.exe ada_lite.wy
         runs
 
-    test/test_incremental.adb
+    t_mck
+        fixing parser, mckenzie_recover
+        need tree.undo_reduce
+            which requires state in node, not in stream_element
+
+    t_bnf
 
     run all tests
-        fixing parser, mckenzie_recover
+
+    test/test_incremental.adb
 
     apply edit:
         wi.parse.lr.incremental?

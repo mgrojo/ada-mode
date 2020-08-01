@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
@@ -28,21 +29,45 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use WisiToken.AUnit.Valid_Node_Index_Arrays_AUnit;
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
       Check (Label & ".id", Computed.ID, Expected.ID);
+      Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
 
       case Computed.Label is
       when Shared_Terminal =>
-         Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
+         null;
       when Virtual_Terminal | Virtual_Identifier =>
          null;
       when Nonterm =>
-         Check (Label & ".children", Computed.Children, Expected.Children);
+         Check (Label & ".children'length", Computed.Child_Count, Expected.Child_Count);
+         for I in Computed.Children'Range loop
+            Check (Label & ".child." & I'Image, Computed.Children (I), Expected.Children (I));
+         end loop;
          Check (Label & ".action", Computed.Action, Expected.Action);
       end case;
+   end Check;
+
+   procedure Check
+     (Label           : in String;
+      Computed_Tree   : in Syntax_Trees.Tree;
+      Computed_Stream : in Stream_ID;
+      Expected_Tree   : in Syntax_Trees.Tree;
+      Expected_Stream : in Stream_ID)
+   is
+      Computed_Element : Stream_Index := Computed_Tree.Streams (Computed_Stream.Cur).First;
+      Expected_Element : Stream_Index := Expected_Tree.Streams (Expected_Stream.Cur).First;
+   begin
+      Check (Label & ".length", Computed_Tree.Length (Computed_Stream), Expected_Tree.Length (Expected_Stream));
+      loop
+         exit when Computed_Element = null or Expeced_Element = null;
+         Check (Label & ".state", Computed_Element.State, Expected_Element.State);
+         Check (Label & ".node", Computed_Element.Node, Expected_Element.Node);
+
+         Computed_Element := @.Next;
+         Expected_Element := @.Next;
+      end loop;
    end Check;
 
    procedure Check
@@ -52,13 +77,10 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      use Node_Arrays_AUnit;
    begin
-      --  Ignoring shared_tree
-      Check (Label & ".last_shared_node", Computed.Last_Shared_Node, Expected.Last_Shared_Node);
-      Check (Label & ".branched_nodes", Computed.Branched_Nodes, Expected.Branched_Nodes);
-      Check (Label & ".Flush", Computed.Flush, Expected.Flush);
-      Check (Label & ".root", Computed.Root, Expected.Root);
+      Check (Label & ".leading_non_grammar", Computed.Leading_Non_Grammar, Expected.Leading_Non_Grammar);
+      Check (Label & ".streams", Computed.Streams, Expected.Streams);
+      Check (Label & ".nodes", Computed.Nodes, Expected.Nodes);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

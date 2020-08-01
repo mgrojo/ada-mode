@@ -23,7 +23,6 @@ with AUnit.Checks;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
-with WisiToken.AUnit;
 with WisiToken.Parse.LR;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -48,8 +47,6 @@ package body Test_Incremental is
    is
       use Ada.Text_IO;
       use AUnit.Checks;
-      use WisiToken.AUnit;
-      use WisiToken.AUnit.Base_Token_Arrays_AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
 
       Initial_First  : Integer := Initial'First;
@@ -102,7 +99,7 @@ package body Test_Incremental is
       if WisiToken.Trace_Action > WisiToken.Outline then
          Parser.Put_Errors;
 
-         Put_Line ("initial terminals:" & Parser.Tree.Image (WisiToken.Syntax_Trees.Terminal_Stream, Descriptor));
+         Put_Line ("initial terminals:" & Parser.Tree.Image (Parser.Tree.Terminal_Stream, Descriptor));
       end if;
 
       --  FIXME: apply edit to Parser
@@ -114,12 +111,13 @@ package body Test_Incremental is
       if WisiToken.Trace_Action > WisiToken.Outline then
          Expected_Parser.Put_Errors;
 
-         Put_Line ("edited terminals  :" & Parser.Tree.Image (WisiToken.Syntax_Trees.Terminal_Stream, Descriptor));
+         Put_Line ("edited terminals  :" & Parser.Tree.Image (Parser.Tree.Terminal_Stream, Descriptor));
          Put_Line
-           ("expected terminals:" & Expected_Parser.Tree.Image (WisiToken.Syntax_Trees.Terminal_Stream, Descriptor));
+           ("expected terminals:" & Expected_Parser.Tree.Image (Expected_Parser.Tree.Terminal_Stream, Descriptor));
       end if;
 
-      Check ("terminals", Parser.Tree.Terminal_Stream, Expected_Parser.Tree.Terminal_Stream);
+      Check ("terminals", Parser.Tree, Parser.Tree.Terminal_Stream, Expected_Parser.Tree,
+             Expected_Parser.Tree.Terminal_Stream);
       Check ("syntax_tree", Parser.Tree, Expected_Parser.Tree);
 
    exception

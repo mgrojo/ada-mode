@@ -34,9 +34,10 @@ with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
 
    function Reduce_Stack_1
-     (Current_Parser : in     Parser_Lists.Cursor;
+     (Shared_Parser  : in out Parser;
+      Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Nonterm        :    out WisiToken.Valid_Node_Index;
+      New_State      : in     State_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
       Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
@@ -49,34 +50,33 @@ package body WisiToken.Parse.LR.Parser is
       use all type Semantic_Checks.Semantic_Check;
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Children_Tree : Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+
+      Nonterm : constant Syntax_Trees.Stream_Index := Shared_Parser.Tree.Reduce
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State,
+         Default_Virtual => False);
    begin
-      for I in reverse Children_Tree'Range loop
-         Children_Tree (I) := Parser_State.Stack.Pop.Token;
-      end loop;
-
-      Nonterm := Parser_State.Tree.Add_Nonterm
-        (Action.Production, Children_Tree, Action.Action,
-         Default_Virtual => Parser_State.Tree.Is_Virtual (Parser_State.Current_Token));
-      --  Computes Nonterm.Byte_Region, Virtual
-
       if Trace_Parse > Detail then
-         Trace.Put_Line (Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
+         Trace.Put_Line (Shared_Parser.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
       end if;
 
       if Action.Check = null then
          return Ok;
 
       else
+         --  We have to call the semantic action even when Resume_Active,
+         --  because it might do other things than return a status.
          declare
-            Nonterm_Token  : Recover_Token                := Parser_State.Tree.Recover_Token (Nonterm);
-            Children_Token : constant Recover_Token_Array := Parser_State.Tree.Recover_Token_Array (Children_Tree);
+            Nonterm_Token : Syntax_Trees.Recover_Token :=
+              Shared_Parser.Tree.Get_Recover_Token (Parser_State.Stream, Nonterm);
+
+            Children_Token : constant Syntax_Trees.Recover_Token_Array :=
+              Shared_Parser.Tree.Children_Recover_Tokens (Parser_State.Stream, Nonterm);
             Status         : Semantic_Checks.Check_Status;
          begin
             Status := Action.Check (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Nonterm_Token.Name /= Null_Buffer_Region then
-               Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
+               Shared_Parser.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
             end if;
 
             if Trace_Parse > Detail then
@@ -102,11 +102,6 @@ package body WisiToken.Parse.LR.Parser is
                   return Status.Label;
                end if;
             end case;
-         exception
-         when Partial_Parse =>
-            --  From Action.Check
-            Parser_State.Tree.Set_Root (Nonterm);
-            raise;
          end;
       end if;
    end Reduce_Stack_1;
@@ -120,7 +115,7 @@ package body WisiToken.Parse.LR.Parser is
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-      Nonterm      : WisiToken.Valid_Node_Index;
+      Nonterm      : Syntax_Trees.Valid_Node_Access;
       Status       : Semantic_Checks.Check_Status_Label;
    begin
       if Trace_Parse > Detail then
@@ -129,7 +124,7 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Parser_State.Stack.Peek.State) & ": ") &
-              Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
+              Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
          Trace.New_Line;
       end if;
@@ -138,7 +133,7 @@ package body WisiToken.Parse.LR.Parser is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
          Parser_State.Stack.Push ((Action.State, Parser_State.Current_Token));
-         Parser_State.Tree.Set_State (Parser_State.Current_Token, Action.State);
+         Shared_Parser.Tree.Set_State (Parser_State.Current_Token, Action.State);
 
       when Reduce =>
          declare
@@ -162,7 +157,7 @@ package body WisiToken.Parse.LR.Parser is
                --  push Nonterm.
                Parser_State.Stack.Push ((New_State, Nonterm));
 
-               Parser_State.Tree.Set_State (Nonterm, New_State);
+               Shared_Parser.Tree.Set_State (Nonterm, New_State);
 
                case Status is
                when Ok =>
@@ -192,7 +187,7 @@ package body WisiToken.Parse.LR.Parser is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
 
-            Parser_State.Tree.Set_Root (Nonterm);
+            Shared_Parser.Tree.Set_Root (Nonterm);
 
          when Semantic_Checks.Error =>
             Current_Parser.Set_Verb (Error);
@@ -550,7 +545,7 @@ package body WisiToken.Parse.LR.Parser is
                               then
                                  Result := True;
 
-                                 Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                                 Parser_State.Current_Token := Shared_Parser.Tree.Add_Terminal
                                    (Op.Ins_ID, Before => Op.Ins_Token_Index);
 
                                  Op.Ins_Tree_Node := Parser_State.Current_Token;
@@ -588,7 +583,7 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Trace_Parse > Extra then
                         Trace.Put_Line
-                          (Integer'Image (Parser_State.Label) & ": current_token " & Parser_State.Tree.Image
+                          (Integer'Image (Parser_State.Label) & ": current_token " & Shared_Parser.Tree.Image
                              (Parser_State.Current_Token, Trace.Descriptor.all) &
                              " recover_insert_delete:" &
                              (if Parser_State.Recover_Insert_Delete_Current = No_Index
@@ -823,7 +818,7 @@ package body WisiToken.Parse.LR.Parser is
                      if Trace_Parse > Outline then
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": Current_Token " &
-                             Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
+                             Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                              " Shared_Token " & Image
                                (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all) &
                              " recover_insert_delete:" &
@@ -1026,8 +1021,8 @@ package body WisiToken.Parse.LR.Parser is
                                        "branched syntax tree growing too large (>" &
                                          Shared_Parser.Branched_Tree_Limit'Image &
                                          "), last shared node " &
-                                         Parser_State.Tree.Image
-                                           (Parser_State.Tree.Max_Shared_Node, Trace.Descriptor.all) &
+                                         Shared_Parser.Tree.Image
+                                           (Shared_Parser.Tree.Max_Shared_Node, Trace.Descriptor.all) &
                                          "; improve grammar or increase Parser.Branched_Tree_Limit.");
                                  end;
                               end if;
@@ -1040,12 +1035,12 @@ package body WisiToken.Parse.LR.Parser is
                                  Trace.Put_Line
                                    (Integer'Image (Current_Parser.Label) & ": " &
                                       Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
-                                      Parser_State.Tree.Image
+                                      Shared_Parser.Tree.Image
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
                                       "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
                                       Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                                  if Debug_Mode then
-                                    Trace.Put_Line ("tree size: " & Parser_State.Tree.Tree_Size_Image);
+                                    Trace.Put_Line ("tree size: " & Shared_Parser.Tree.Tree_Size_Image);
                                  end if;
                               end;
                            end if;
@@ -1206,18 +1201,18 @@ package body WisiToken.Parse.LR.Parser is
             use Recover_Op_Arrays, Recover_Op_Array_Refs;
             Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
          begin
-            pragma Assert (Parser_State.Tree.Flushed);
+            pragma Assert (Shared_Parser.Tree.Flushed);
 
-            Parser_State.Tree.Set_Parents;
+            Shared_Parser.Tree.Set_Parents;
 
             if Trace_Action > Outline then
                if Trace_Action > Extra then
-                  Parser_State.Tree.Print_Tree (Descriptor, Parser_State.Tree.Root, Image_Augmented);
+                  Shared_Parser.Tree.Print_Tree (Descriptor, Shared_Parser.Tree.Root, Image_Augmented);
                   Parser.Trace.New_Line;
                end if;
                Parser.Trace.Put_Line
-                 (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
-                    (Parser_State.Tree.Root, Descriptor));
+                 (Integer'Image (Parser_State.Label) & ": root node: " & Shared_Parser.Tree.Image
+                    (Shared_Parser.Tree.Root, Descriptor));
             end if;
 
             for I in First_Index (Parser_State.Recover_Insert_Delete) ..
@@ -1228,15 +1223,15 @@ package body WisiToken.Parse.LR.Parser is
                begin
                   case Op.Op is
                   when Insert =>
-                     Parser.User_Data.Insert_Token (Parser_State.Tree, Op.Ins_Tree_Node);
+                     Parser.User_Data.Insert_Token (Shared_Parser.Tree, Op.Ins_Tree_Node);
                   when Delete =>
-                     Parser.User_Data.Delete_Token (Parser_State.Tree, Op.Del_Token_Index);
+                     Parser.User_Data.Delete_Token (Shared_Parser.Tree, Op.Del_Token_Index);
                   end case;
                end;
             end loop;
 
-            Parser.User_Data.Initialize_Actions (Parser_State.Tree);
-            Parser_State.Tree.Process_Tree (Process_Node'Access);
+            Parser.User_Data.Initialize_Actions (Shared_Parser.Tree);
+            Shared_Parser.Tree.Process_Tree (Process_Node'Access);
          end;
       end if;
    end Execute_Actions;
@@ -1246,7 +1241,7 @@ package body WisiToken.Parse.LR.Parser is
       use all type Ada.Containers.Count_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
    begin
-      pragma Assert (Parser_State.Tree.Flushed);
+      pragma Assert (Shared_Parser.Tree.Flushed);
       return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
    end Any_Errors;
 
@@ -1267,7 +1262,7 @@ package body WisiToken.Parse.LR.Parser is
          case Item.Label is
          when Action =>
             declare
-               Index : constant Base_Token_Index := Parser_State.Tree.First_Shared_Terminal (Item.Error_Token);
+               Index : constant Base_Token_Index := Shared_Parser.Tree.First_Shared_Terminal (Item.Error_Token);
             begin
                if Index = Invalid_Token_Index then
                   --  Error_Token is virtual
@@ -1276,7 +1271,7 @@ package body WisiToken.Parse.LR.Parser is
                      Error_Message
                        (Parser.Lexer.File_Name, 1, 0,
                         "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                          ", found " & Image (Parser_State.Tree.ID (Item.Error_Token), Descriptor)));
+                          ", found " & Image (Shared_Parser.Tree.ID (Item.Error_Token), Descriptor)));
                else
                   declare
                      Token : Base_Token renames Parser.Terminals (Index);

@@ -411,7 +411,7 @@ package WisiToken.Parse.LR is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Node_Access;
+         FF_Token_Index : Syntax_Trees.Stream_Index;
          --  Config.Current_Shared_Token after the operation is done; the last
          --  token shifted.
 
@@ -426,22 +426,22 @@ package WisiToken.Parse.LR is
          PB_ID : Token_ID;
          --  The nonterm ID popped off the stack.
 
-         PB_Token_Index : Syntax_Trees.Node_Access;
+         PB_Token_Index : Syntax_Trees.Stream_Index;
          --  Config.Current_Shared_Token after the operation is done;
-         --  Invalid_Node_Access if the pushed_back nonterm is empty.
+         --  Invalid_Stream_Index if the pushed_back nonterm is empty.
 
       when Insert =>
          Ins_ID : Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : Syntax_Trees.Node_Access;
+         Ins_Token_Index : Syntax_Trees.Stream_Index;
          --  Ins_ID is inserted before Token_Index.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
-         Del_Token_Index : Syntax_Trees.Node_Access;
+         Del_Token_Index : Syntax_Trees.Stream_Index;
          --  Token at Token_Index is deleted.
 
       end case;
@@ -449,7 +449,7 @@ package WisiToken.Parse.LR is
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
    subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
-   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Node_Access
+   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Stream_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
          when Insert => Op.Ins_Token_Index,
          when Delete => Op.Del_Token_Index);
@@ -463,7 +463,7 @@ package WisiToken.Parse.LR is
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Default_Element =>
-        (Fast_Forward, Syntax_Trees.Invalid_Node_Access), Capacity => 80);
+        (Fast_Forward, Syntax_Trees.Invalid_Stream_Index), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -515,17 +515,17 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID := Invalid_Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         Ins_Token_Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
          --  Ins_ID is inserted before Token_Index.
 
-         Ins_Tree_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         Ins_Tree_Node : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
          --  The node holding the inserted token.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
-         Del_Token_Index : Syntax_Trees.Node_Access;
+         Del_Token_Index : Syntax_Trees.Stream_Index;
          --  Token at Token_Index is deleted.
 
       end case;
@@ -550,7 +550,7 @@ package WisiToken.Parse.LR is
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
 
-      Tree_Index : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+      Tree_Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
       --  Valid if copied at recover initialize, Invalid if pushed during
       --  recover.
 
@@ -601,14 +601,14 @@ package WisiToken.Parse.LR is
       --
       --  Emacs Ada mode wisi.adb needs > 50
 
-      Resume_Token_Goal : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-      --  A successful solution shifts this token. Per-config because it
-      --  increases with Delete; we increase Shared_Parser.Resume_Token_Goal
-      --  only from successful configs.
+      Resume_Token_Goal : Syntax_Trees.Element_Index := Syntax_Trees.Element_Index'First;
+      --  A successful solution shifts this token from Tree.Terminal_Stream.
+      --  Per-config because it increases with Delete; we increase
+      --  Shared_Parser.Resume_Token_Goal only from successful configs.
 
-      Current_Shared_Token : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-      --  Index into Shared_Parser.Tree for current input token, after
-      --  all of Inserted is input. Initially the error token.
+      Current_Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+      --  Index into Shared_Parser.Tree.Terminal_Stream for current input
+      --  token, after all of Inserted is input. Initially the error token.
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.

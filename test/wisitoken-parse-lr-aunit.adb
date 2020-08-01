@@ -20,6 +20,7 @@ pragma License (GPL); --  AUnit
 
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
+with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
@@ -158,16 +159,18 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
+      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op;
-      Expected : in Config_Op)
+      Expected : in Test_Config_Op)
    is
       use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
       use Standard.AUnit.Checks.Containers;
    begin
       Check (Label & ".op", Computed.Op, Expected.Op);
       case Computed.Op is
       when Fast_Forward =>
-         Check (Label & ".ff_token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
+         Check (Label & ".ff_token_index", Tree.Get_Element_Index (Computed.FF_Token_Index), Expected.FF_Token_Index);
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
@@ -175,29 +178,33 @@ package body WisiToken.Parse.LR.AUnit is
 
       when Push_Back =>
          Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);
-         Check (Label & ".token_index", Computed.PB_Token_Index, Expected.PB_Token_Index);
+         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.PB_Token_Index), Expected.PB_Token_Index);
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
-         Check (Label & ".token_index", Computed.Ins_Token_Index, Expected.Ins_Token_Index);
-         --  Don't check State, stack_depth; only used to detect cycles, tedious to maintain
-         --  in expected.
+         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Ins_Token_Index), Expected.Ins_Token_Index);
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
-         Check (Label & ".token_index", Computed.Del_Token_Index, Expected.Del_Token_Index);
+         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Del_Token_Index), Expected.Del_Token_Index);
       end case;
    end Check;
 
    procedure Check
      (Label    : in String;
-      Computed : in Parse_Error;
-      Expected : in Parse_Error)
+      Tree     : in Syntax_Trees.Tree;
+      Computed : in Config_Op_Arrays.Vector;
+      Expected : in Test_Config_Op_Arrays.Vector)
    is
-      use WisiToken.AUnit;
+      use SAL.AUnit;
+      use Config_Op_Arrays;
+      use Test_Config_Op_Arrays;
    begin
-      Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
-      Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
+      Check (Label & ".First_Index", First_Index (Computed), First_Index (Expected));
+      Check (Label & ".Last_Index", Last_Index (Computed), Last_Index (Expected));
+      for I in First_Index (Computed) .. Last_Index (Computed) loop
+         Check (Label & "." & I'Image, Element (Computed, I), Element (Expected, I));
+      end loop;
    end Check;
 
 end WisiToken.Parse.LR.AUnit;

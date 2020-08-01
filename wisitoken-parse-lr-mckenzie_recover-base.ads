@@ -2,7 +2,7 @@
 --
 --  Base utilities for McKenzie_Recover
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -91,8 +91,8 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       --  There is only one object of this type, declared in Recover.
 
       procedure Initialize
-        (Parsers   : not null access Parser_Lists.List;
-         Terminals : not null access constant Base_Token_Arrays.Vector);
+        (Parsers : not null access Parser_Lists.List;
+         Tree    : not null access constant Syntax_Trees.Tree);
 
       entry Get
         (Parser_Index : out SAL.Base_Peek_Type;
@@ -164,7 +164,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Language_Fixes                 : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
       Language_Matching_Begin_Tokens : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Terminals                      : not null access constant Base_Token_Arrays.Vector;
+      Tree                           : not null access constant Syntax_Trees.Tree;
       Line_Begin_Token               : not null access constant Line_Begin_Token_Vectors.Vector)
      is null record;
    --  There is only one object of this type, declared in Recover. It

@@ -74,9 +74,9 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
-      Resume_Active          : Boolean    := False;
-      Resume_Goal            : Buffer_Pos := Invalid_Buffer_Pos;
-      Conflict_During_Resume : Boolean    := False;
+      Resume_Active          : Boolean                    := False;
+      Resume_Token_Goal      : Syntax_Trees.Element_Index := Syntax_Trees.Element_Index'First;
+      Conflict_During_Resume : Boolean                    := False;
 
       Errors : Parse_Error_Lists.List;
    end record;

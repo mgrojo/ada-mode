@@ -168,7 +168,11 @@ package body WisiToken.Syntax_Trees is
       Terminal : in     WisiToken.Base_Token)
      return Stream_Index
    is begin
-      return Append_Stream_Element (Tree, Tree.Terminal_Stream, Unknown_State, Tree.Add_Terminal_1 (Terminal));
+      return Result : constant Stream_Index :=
+        Append_Stream_Element (Tree, Tree.Terminal_Stream, Unknown_State, Tree.Add_Terminal_1 (Terminal))
+      do
+         Result.Node.Terminal_Index := Result;
+      end return;
    end Add_Terminal;
 
    function Add_Terminal
@@ -229,9 +233,16 @@ package body WisiToken.Syntax_Trees is
          State => State,
          Node  => Node,
          Label => Parse_Stream.Label,
-         Index => Tree.Next_Element_Index);
+         Index =>
+           (if Stream = Tree.Terminal_Stream
+            then Tree.Next_Terminal_Element_Index
+            else Tree.Next_Stream_Element_Index));
    begin
-      Tree.Next_Element_Index := @ + 1;
+      if Stream = Tree.Terminal_Stream then
+         Tree.Next_Terminal_Element_Index := @ + 1;
+      else
+         Tree.Next_Stream_Element_Index := @ + 1;
+      end if;
 
       if Parse_Stream.First = null then
          Parse_Stream.First := New_Element;
@@ -261,7 +272,11 @@ package body WisiToken.Syntax_Trees is
 
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    is begin
-      return (Node.ID, Node.Byte_Region, Node.Line, Node.Column, Node.Char_Region);
+      return
+        (Node.ID, Node.Byte_Region, Node.Line, Node.Column,
+         (case Node.Label is
+          when Shared_Terminal => Node.Char_Region,
+          when others          => Null_Buffer_Region));
    end Base_Token;
 
    function Before
@@ -330,6 +345,17 @@ package body WisiToken.Syntax_Trees is
       return Node.Children;
    end Children;
 
+   function Children_Recover_Tokens
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Recover_Token_Array
+   is begin
+      --  WORKAROUND: GNAT Community 2020 doesn't support 'of' here, and it
+      --  hangs if there are any errors in the statement.
+      return (for I in Element.Node.Children'Range => Tree.Get_Recover_Token (Element.Node.Children (I)));
+   end Children_Recover_Tokens;
+
    procedure Clear (Tree : in out Syntax_Trees.Tree; Free_Memory : in Boolean := False)
    is begin
       for Cur in Tree.Streams.Iterate loop
@@ -370,26 +396,31 @@ package body WisiToken.Syntax_Trees is
       begin
          case Node.Label is
          when Shared_Terminal =>
+
             New_Node := new Syntax_Trees.Node'
               (Label          => Shared_Terminal,
                Child_Count    => 0,
                ID             => Node.ID,
-               Node_Index  => Tree.Nodes.Last_Index + 1,
+               Node_Index     => Tree.Nodes.Last_Index + 1,
                Byte_Region    => Node.Byte_Region,
                Parent         => Parent,
                Augmented      => Node.Augmented,
                Line           => Node.Line,
                Column         => Node.Column,
                Char_Region    => Node.Char_Region,
+               Terminal_Index => Node.Terminal_Index,
                Non_Grammar    => Node.Non_Grammar);
 
-         when Virtual_Terminal =>
+         when Virtual_Terminal     =>
+
             New_Node := new Syntax_Trees.Node'
               (Label       => Virtual_Terminal,
                Child_Count => 0,
                ID          => Node.ID,
                Node_Index  => Tree.Nodes.Last_Index + 1,
                Byte_Region => Node.Byte_Region,
+               Line        => Node.Line,
+               Column      => Node.Column,
                Parent      => Parent,
                Augmented   => Node.Augmented,
                Before      => Node.Before);
@@ -401,6 +432,8 @@ package body WisiToken.Syntax_Trees is
                ID          => Node.ID,
                Node_Index  => Tree.Nodes.Last_Index + 1,
                Byte_Region => Node.Byte_Region,
+               Line        => Node.Line,
+               Column      => Node.Column,
                Parent      => Parent,
                Augmented   => Node.Augmented,
                Identifier  => Node.Identifier);
@@ -419,6 +452,8 @@ package body WisiToken.Syntax_Trees is
                   ID                   => Node.ID,
                   Node_Index           => Tree.Nodes.Last_Index + 1,
                   Byte_Region          => Node.Byte_Region,
+                  Line                 => Node.Line,
+                  Column               => Node.Column,
                   Parent               => Parent,
                   Augmented            => Node.Augmented,
                   Virtual              => Node.Virtual,
@@ -753,14 +788,20 @@ package body WisiToken.Syntax_Trees is
       end case;
    end First_Terminal;
 
-   function First_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   is begin
+   function First_Shared_Terminal
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Index
+   is
+      pragma Unreferenced (Tree, Stream);
+   begin
       return
-        (case Node.Label is
-         when Shared_Terminal => Node,
+        (case Element.Node.Label is
+         when Shared_Terminal => Element,
          when Virtual_Terminal |
-           Virtual_Identifier => Invalid_Node_Access,
-         when Nonterm         => Node.First_Terminal_Index);
+           Virtual_Identifier => Invalid_Stream_Index,
+         when Nonterm         => Element.Node.First_Terminal_Index);
    end First_Shared_Terminal;
 
    function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID
@@ -831,7 +872,7 @@ package body WisiToken.Syntax_Trees is
          return
            (ID                   => Node.ID,
             Byte_Region          => Node.Byte_Region,
-            First_Terminal_Index => Node,
+            First_Terminal_Index => Node.Terminal_Index,
             Name                 => Null_Buffer_Region,
             Virtual              => False);
 
@@ -839,7 +880,7 @@ package body WisiToken.Syntax_Trees is
          return
            (ID                   => Node.ID,
             Byte_Region          => Null_Buffer_Region,
-            First_Terminal_Index => Invalid_Node_Access,
+            First_Terminal_Index => Invalid_Stream_Index,
             Name                 => Null_Buffer_Region,
             Virtual              => True);
 
@@ -853,17 +894,16 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Get_Recover_Token;
 
-   function Get_Recover_Token_Array
-     (Tree  : in Syntax_Trees.Tree;
-      Nodes : in Valid_Node_Access_Array)
-     return Recover_Token_Array
-   is begin
-      return Result : Recover_Token_Array (Nodes'First .. Nodes'Last) do
-         for I in Result'Range loop
-            Result (I) := Tree.Get_Recover_Token (Nodes (I));
-         end loop;
-      end return;
-   end Get_Recover_Token_Array;
+   function Get_Recover_Token
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Recover_Token
+   is
+      pragma Unreferenced (Stream);
+   begin
+      return Get_Recover_Token (Tree, Element.Node);
+   end Get_Recover_Token;
 
    procedure Get_Terminals
      (Tree   : in     Syntax_Trees.Tree;
@@ -987,11 +1027,49 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       return
-        (if Item.First_Terminal_Index = Invalid_Node_Access
+        (if Item.First_Terminal_Index = Invalid_Stream_Index
          then ""
-         else Trimmed_Image (Item.First_Terminal_Index.Node_Index) & ":") &
+         else Trimmed_Image (Item.First_Terminal_Index.Index) & ":") &
         "(" & Image (Item.ID, Descriptor) &
         (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
+   end Image;
+
+   function Image
+     (Tree       : in Syntax_Trees.Tree;
+      Stream     : in Stream_ID;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String := +"(";
+      Element    : Stream_Index     := Tree.Streams (Stream.Cur).First;
+      Need_Comma : Boolean          := False;
+   begin
+      loop
+         exit when Element = Invalid_Stream_Index;
+         if Need_Comma then
+            Result := @ & ", ";
+         else
+            Need_Comma := True;
+         end if;
+         Result := @ & "(" & Trimmed_Image (Element.State) & ", " & Tree.Image (Element.Node, Descriptor);
+
+         Element := Element.Next;
+      end loop;
+      return -Result;
+   end Image;
+
+   function Image
+     (Tree              : in Syntax_Trees.Tree;
+      Element           : in Stream_Index;
+      Descriptor        : in WisiToken.Descriptor;
+      Stream            : in Stream_ID;
+      Include_Children  : in Boolean   := False;
+      Include_RHS_Index : in Boolean   := False;
+      Node_Numbers      : in Boolean   := False)
+     return String
+   is begin
+      return Image (Tree, Element.Node, Descriptor, Include_Children, Include_RHS_Index, Node_Numbers);
    end Image;
 
    function Image
@@ -1111,34 +1189,59 @@ package body WisiToken.Syntax_Trees is
       return Node.Label = Virtual_Identifier;
    end Is_Virtual_Identifier;
 
-   function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
+   function Last_Shared_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Stream_Index
    is begin
-      return Node.Label;
-   end Label;
-
-   function Last_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   is
-      --  Last_Terminal_Index is not cached, because it is not needed in recover.
-   begin
       case Node.Label is
       when Shared_Terminal =>
-         return Node;
+         return Node.Terminal_Index;
 
       when Virtual_Terminal | Virtual_Identifier =>
-         return Invalid_Node_Access;
+         return Invalid_Stream_Index;
 
       when Nonterm =>
          for C of reverse Node.Children loop
             --  Encountering a deleted child here is an error in the user algorithm.
             declare
-               Last_Term : constant Node_Access := Tree.Last_Shared_Terminal (C);
+               Last_Term : constant Stream_Index := Last_Shared_Terminal (Tree, C);
             begin
-               if Last_Term /= Invalid_Node_Access then
+               if Last_Term /= Invalid_Stream_Index then
                   return Last_Term;
                end if;
             end;
          end loop;
-         return Invalid_Node_Access;
+         return Invalid_Stream_Index;
+      end case;
+   end Last_Shared_Terminal;
+
+   function Last_Shared_Terminal
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Index
+   is begin
+      --  Last_Terminal_Index is not cached, because it is not needed in recover.
+      case Element.Node.Label is
+      when Shared_Terminal =>
+         return Element;
+
+      when Virtual_Terminal | Virtual_Identifier =>
+         return Invalid_Stream_Index;
+
+      when Nonterm =>
+         for C of reverse Element.Node.Children loop
+            --  Encountering a deleted child here is an error in the user algorithm.
+            declare
+               Last_Term : constant Stream_Index := Last_Shared_Terminal (Tree, C);
+            begin
+               if Last_Term /= Invalid_Stream_Index then
+                  return Last_Term;
+               end if;
+            end;
+         end loop;
+         return Invalid_Stream_Index;
       end case;
    end Last_Shared_Terminal;
 
@@ -1197,7 +1300,7 @@ package body WisiToken.Syntax_Trees is
                State => Old_Element.State,
                Node  => Old_Element.Node,
                Label => Tree.Next_Stream_Label,
-               Index => Tree.Next_Element_Index);
+               Index => Tree.Next_Stream_Element_Index);
 
             Prev_New_Element : Stream_Index := New_Element;
 
@@ -1209,7 +1312,7 @@ package body WisiToken.Syntax_Trees is
 
             New_Stream : Parse_Stream renames Tree.Streams (Cur);
          begin
-            Tree.Next_Element_Index := @ + 1;
+            Tree.Next_Stream_Element_Index := @ + 1;
 
             loop
                Old_Element := Old_Element.Next;
@@ -1222,12 +1325,12 @@ package body WisiToken.Syntax_Trees is
                   State  => Old_Element.State,
                   Node   => Old_Element.Node,
                   Label  => Tree.Next_Stream_Label,
-                  Index  => Tree.Next_Element_Index);
+                  Index  => Tree.Next_Stream_Element_Index);
 
                Prev_New_Element.Next := New_Element;
                Prev_New_Element      := New_Element;
 
-               Tree.Next_Element_Index := @ + 1;
+               Tree.Next_Stream_Element_Index := @ + 1;
             end loop;
             New_Stream.Last := New_Element;
 
@@ -1346,6 +1449,16 @@ package body WisiToken.Syntax_Trees is
       end loop;
       return Result;
    end Peek;
+
+   function Pop (Parse_Stream : in out Syntax_Trees.Parse_Stream) return Valid_Node_Access
+   is
+      Temp : Stream_Index := Parse_Stream.Last;
+   begin
+      return Result : constant Valid_Node_Access := Parse_Stream.Last.Node do
+         Parse_Stream.Last := Parse_Stream.Last.Prev;
+         Free (Temp);
+      end return;
+   end Pop;
 
    function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
@@ -1538,6 +1651,22 @@ package body WisiToken.Syntax_Trees is
       return (Node.ID, Node.RHS_Index);
    end Production_ID;
 
+   procedure Push
+     (Tree         : in out Syntax_Trees.Tree;
+      Parse_Stream : in out Syntax_Trees.Parse_Stream;
+      Node         : in     Valid_Node_Access)
+   is begin
+      Parse_Stream.Last := new Stream_Element'
+        (Next  => null,
+         Prev  => Parse_Stream.Last,
+         State => Unknown_State, --  FIXME: move state to node; debugging compiler hang
+         Node  => Node,
+         Label => Parse_Stream.Label,
+         Index => Tree.Next_Stream_Element_Index);
+
+      Tree.Next_Stream_Element_Index := @ + 1;
+   end Push;
+
    function Reduce
      (Tree            : in out Syntax_Trees.Tree;
       Stream          : in     Stream_ID;
@@ -1575,9 +1704,9 @@ package body WisiToken.Syntax_Trees is
          Node  => New_Node,
          Label => Parse_Stream.Label,
          State => State,
-         Index => Tree.Next_Element_Index);
+         Index => Tree.Next_Stream_Element_Index);
    begin
-      Tree.Next_Element_Index := @ + 1;
+      Tree.Next_Stream_Element_Index := @ + 1;
 
       --  New_Element cannot be the first element in Stream; there is always
       --  the preceding start state element.
@@ -1673,6 +1802,8 @@ package body WisiToken.Syntax_Trees is
       if Parent.Children'Length = Children'Length then
          --  reuse current node
          Realloc_Parent.Byte_Region := Null_Buffer_Region;
+         Realloc_Parent.Line        := Invalid_Line_Number;
+         Realloc_Parent.Column      := 0;
          Realloc_Parent.Virtual     := False;
          Realloc_Parent.Children    := Children;
 
@@ -1684,6 +1815,8 @@ package body WisiToken.Syntax_Trees is
             ID                   => Parent.ID,
             Node_Index           => Tree.Nodes.Last_Index + 1,
             Byte_Region          => Null_Buffer_Region,
+            Line                 => Invalid_Line_Number,
+            Column               => 0,
             Parent               => Parent.Parent,
             Augmented            => Parent.Augmented,
             Virtual              => False,
@@ -1833,10 +1966,23 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes.Last_Index'Image;
    end Tree_Size_Image;
 
-   procedure Update_Cache (Node : in Valid_Node_Access)
+   procedure Undo_Reduce
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
    is
-      First_Terminal_Index_Set : Boolean := False;
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+      Nonterm : constant Node_Access := Pop (Parse_Stream);
    begin
+      for Child of Nonterm.Children loop
+         Push (Tree, Parse_Stream, Child);
+      end loop;
+   end Undo_Reduce;
+
+   procedure Update_Cache (Node : in Valid_Node_Access)
+   is begin
+      Node.First_Terminal_Index := Invalid_Stream_Index;
+      Node.Line := Invalid_Line_Number;
+
       for I in Node.Children'Range loop
          declare
             Child : constant Node_Access := Node.Children (I);
@@ -1855,19 +2001,22 @@ package body WisiToken.Syntax_Trees is
                Node.Byte_Region.Last := Child.Byte_Region.Last;
             end if;
 
-            if not First_Terminal_Index_Set then
+            if Child.Line < Node.Line then
+               Node.Line   := Child.Line;
+               Node.Column := Child.Column;
+            end if;
+
+            if Node.First_Terminal_Index = Invalid_Stream_Index then
                case Child.Label is
                when Shared_Terminal =>
-                  First_Terminal_Index_Set  := True;
-                  Node.First_Terminal_Index := Child;
+                  Node.First_Terminal_Index := Child.Terminal_Index;
 
                when Virtual_Terminal | Virtual_Identifier =>
                   null;
 
                when Nonterm =>
-                  if Child.First_Terminal_Index /= Invalid_Node_Access then
+                  if Child.First_Terminal_Index /= Invalid_Stream_Index then
                      --  not an empty nonterm
-                     First_Terminal_Index_Set  := True;
                      Node.First_Terminal_Index := Child.First_Terminal_Index;
                   end if;
                end case;

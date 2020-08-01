@@ -92,25 +92,6 @@ package WisiToken.Parse.LR.Parser is
       Post_Recover : Post_Recover_Access;
       --  Gather data for tests.
 
-      Shared_Tree : aliased Syntax_Trees.Base_Tree;
-      --  Each parser (normal and recover) has its own branched syntax tree,
-      --  all branched from this tree. Terminals are added to the tree when
-      --  they become the current token.
-      --
-      --  It is never the case that terminals are added to this shared tree
-      --  when there is more than one task active, so we don't need a
-      --  protected tree.
-      --
-      --  See WisiToken.LR.Parser_Lists Parser_State for more discussion of
-      --  Shared_Tree.
-
-      Branched_Tree_Limit : Ada.Containers.Count_Type := Default_Branched_Tree_Limit;
-      --  When Wisitoken.Debug_Mode, raise Parse_Error if Branched_Tree
-      --  Branched_Nodes length > limit; this indicates the tree is not
-      --  being flushed because the parser count is not getting down to 1,
-      --  which significantly slows parsing due to the time it takes to copy
-      --  a large syntax tree.
-
       Parsers : aliased Parser_Lists.List;
 
       Max_Parallel            : SAL.Base_Peek_Type;
@@ -147,11 +128,6 @@ package WisiToken.Parse.LR.Parser is
    --
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
-
-   overriding function Tree (Shared_Parser : aliased in Parser) return Syntax_Trees.Tree_Constant_Reference;
-   overriding function Tree_Var_Ref (Shared_Parser : aliased in out Parser) return Syntax_Trees.Tree_Variable_Reference;
-   --  If there is one parser in Parsers, return its tree. Otherwise,
-   --  raise Parse_Error for an ambiguous parse.
 
    overriding procedure Execute_Actions
      (Parser          : in out LR.Parser.Parser;

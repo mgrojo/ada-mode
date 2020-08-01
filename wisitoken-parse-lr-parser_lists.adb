@@ -159,8 +159,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
               (Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
                  ": " & Message & Tree.Image
-                   (Tree.First_Shared_Terminal (Tree.Get_Node (State.Current_Token)),
-                    Trace.Descriptor.all));
+                   (Tree.First_Shared_Terminal (State.Stream, State.Current_Token), Trace.Descriptor.all));
          end if;
 
          Tree.Delete_Stream (State.Stream);
@@ -307,7 +306,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                Check_Count                => Item.Recover.Check_Count,
                others                     => <>),
             Resume_Active                 => Item.Resume_Active,
-            Resume_Goal                   => Item.Resume_Goal,
+            Resume_Token_Goal             => Item.Resume_Token_Goal,
             Conflict_During_Resume        => Item.Conflict_During_Resume,
             Zombie_Token_Count            => 0,
             Errors                        => Item.Errors,

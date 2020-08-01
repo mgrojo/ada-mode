@@ -92,11 +92,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    --  is never restarted.
 
    procedure To_Recover
-     (Parser_Stack : in     Parser_Lists.Parser_Stacks.Stack;
+     (Parser_Stack : in     Syntax_Trees.Stream_ID;
       Tree         : in     Syntax_Trees.Tree;
       Stack        : in out Recover_Stacks.Stack)
    is
-      Depth : constant SAL.Peek_Type := Parser_Stack.Depth;
+      Depth : constant SAL.Peek_Type := Tree.Stream_Length (Parser_Stack);
    begin
       pragma Assert (Stack.Depth = 0);
       if Stack.Size < Depth then
@@ -104,10 +104,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
       for I in reverse 1 .. Depth loop
          declare
-            Item  : Parser_Lists.Parser_Stack_Item renames Parser_Stack (I);
-            Token : constant Recover_Token := (if I = Depth then (others => <>) else Tree.Recover_Token (Item.Token));
+            Element : constant Syntax_Trees.Stream_Index  := Tree.Peek (Parser_Stack, I);
+            Token   : constant Syntax_Trees.Recover_Token :=
+              (if I = Depth then (others => <>) else Tree.Get_Recover_Token (Parser_Stack, Element));
          begin
-            Stack.Push ((Item.State, Item.Token, Token));
+            Stack.Push ((Tree.State (Parser_Stack, Element), Element, Token));
          end;
       end loop;
    end To_Recover;
@@ -124,15 +125,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    begin
       Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;
 
-      Config.Resume_Token_Goal := Parser_State.Shared_Token + Shared_Parser.Table.McKenzie_Param.Check_Limit;
+      Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Element_Index (Parser_State.Shared_Token) +
+        Syntax_Trees.Element_Index (Shared_Parser.Table.McKenzie_Param.Check_Limit);
 
       if Trace_McKenzie > Outline then
          Trace.New_Line;
          Trace.Put_Line
-           ("parser" & Integer'Image (Parser_State.Label) &
-              ": State" & State_Index'Image (Parser_State.Stack (1).State) &
-              " Current_Token " & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
-              " Resume_Token_Goal" & WisiToken.Token_Index'Image (Config.Resume_Token_Goal));
+           ("parser " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+              ": State" & Shared_Parser.Tree.State (Parser_State.Stream)'Image &
+              " Current_Token " & Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
+              " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
            ((case Error.Label is
              when Action => "Action",
@@ -140,15 +142,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
              when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Extra then
             Put_Line
-              (Trace, Parser_State.Label, "stack: " & Parser_Lists.Image
-                 (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
+              (Trace, Parser_State.Stream, "stack: " & Parser_Lists.Image
+                 (Parser_State.Stream, Trace.Descriptor.all, Shared_Parser.Tree));
          end if;
       end if;
 
       --  Additional initialization of Parser_State.Recover is done in
       --  Supervisor.Initialize.
 
-      To_Recover (Parser_State.Stack, Parser_State.Tree, Config.Stack);
+      To_Recover (Parser_State.Stream, Shared_Parser.Tree, Config.Stack);
 
       --  Parser_State.Recover_Insert_Delete must be empty (else we would not get
       --  here). Therefore Parser_State current token is in
@@ -158,10 +160,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       case Error.Label is
       when Action =>
-         Config.Error_Token := Parser_State.Tree.Recover_Token (Error.Error_Token);
+         Config.Error_Token := Shared_Parser.Tree.Get_Recover_Token (Parser_State.Stream, Error.Error_Token);
          if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
-                 Task_ID => False);
+            Put ("enqueue", Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
          end if;
 
       when Check =>
@@ -169,8 +170,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
                Config.Strategy_Counts (Ignore_Error) := 1;
-               Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
-                    Task_ID => False);
+               Put ("enqueue", Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
             end if;
 
          else
@@ -181,14 +181,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             Config.Check_Status      := Error.Check_Status;
             Config.Error_Token       := Config.Stack.Peek.Token;
-            Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
+            Config.Check_Token_Count := Undo_Reduce (Config.Stack, Shared_Parser.Tree);
 
             Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
 
             if Trace_McKenzie > Detail then
                Put ("undo_reduce " & Image
-                      (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
-                    Shared_Parser.Terminals, Config, Task_ID => False);
+                      (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Shared_Parser.Tree, Parser_State.Stream,
+                    Config, Task_ID => False);
             end if;
          end if;
 
@@ -223,7 +223,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Shared_Parser.Language_Fixes,
          Shared_Parser.Language_Matching_Begin_Tokens,
          Shared_Parser.Language_String_ID_Set,
-         Shared_Parser.Terminals'Access,
+         Shared_Parser.Tree'Access,
          Shared_Parser.Line_Begin_Token'Access);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
@@ -237,7 +237,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Trace.Put_Line (" McKenzie error recovery");
       end if;
 
-      Super.Initialize (Parsers'Unrestricted_Access, Shared_Parser.Terminals'Unrestricted_Access);
+      Super.Initialize (Parsers'Unrestricted_Access, Shared_Parser.Tree'Unrestricted_Access);
 
       for Parser_State of Parsers loop
          Recover_Init (Shared_Parser, Parser_State);
@@ -319,12 +319,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
          loop
             declare
-               Data : McKenzie_Data renames State_Ref (Cur).Recover;
+               Data : McKenzie_Data renames Cur.State_Ref.Recover;
             begin
                if Data.Success then
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (Integer'Image (Label (Cur)) &
+                       (Tree.Trimmed_Image (Cur.Stream) &
                           ": succeed" & SAL.Base_Peek_Type'Image (Data.Results.Count) &
                           ", enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
@@ -333,13 +333,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   if Data.Results.Count > 1 then
                      for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
-                        Parsers.Prepend_Copy (Cur); --  does not copy recover
+                        Parsers.Prepend_Copy (Cur, Shared_Parser.Tree, Trace); --  does not copy recover
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
-                             ("spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
-                                Trimmed_Image (Cur.Label) & " (" & Trimmed_Image (Integer (Parsers.Count)) &
+                             ("spawn parser" & Integer'Image (Parsers.First.Stream) & " from " &
+                                Syntax_Trees.Trimmed_Image (Cur.Stream) & " (" &
+                                Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
-                           Put ("", Trace, Parsers.First.Label, Shared_Parser.Terminals,
+                           Put ("", Trace, Shared_Parser.Tree, Parsers.First.Stream,
                                 Data.Results.Peek, Task_ID => False, Strategy => True);
                         end if;
 
@@ -349,17 +350,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end if;
 
                   if Trace_McKenzie > Outline or Trace_Parse > Outline then
-                     Put ("", Trace, Cur.State_Ref.Label, Shared_Parser.Terminals, Data.Results.Peek,
+                     Put ("", Trace, Shared_Parser.Tree, Cur.Stream, Data.Results.Peek,
                           Task_ID => False, Strategy => True);
                   end if;
                else
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (Integer'Image (Cur.Label) &
+                       (Integer'Image (Cur.Stream) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                           (if Data.Config_Full_Count > 0 then ", config_full" & Data.Config_Full_Count'Image else "") &
-                          ", check " & Integer'Image (Data.Check_Count) &
-                          ", max shared_token " & WisiToken.Token_Index'Image (Shared_Parser.Terminals.Last_Index));
+                          ", check " & Integer'Image (Data.Check_Count));
                   end if;
                end if;
 
@@ -389,8 +389,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
 
                      Descriptor : WisiToken.Descriptor renames Shared_Parser.Trace.Descriptor.all;
-                     Stack      : Parser_Stacks.Stack renames Parser_State.Stack;
-                     Tree       : Syntax_Trees.Tree renames Parser_State.Tree;
+                     Stack      : Syntax_Trees.Stream_ID renames Parser_State.Stream;
+                     Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
                      Data       : McKenzie_Data renames Parser_State.Recover;
                      Result     : Configuration renames Data.Results.Peek;
 
@@ -408,16 +408,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Parser_State.Label, "before Ops applied:", Task_ID => False);
+                        Put_Line (Trace, Parser_State.Stream, "before Ops applied:", Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "stack " & Image (Stack, Descriptor, Tree),
+                          (Trace, Parser_State.Stream, "stack " & Image (Stack, Descriptor, Tree),
                            Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "Shared_Token  " & Image
-                             (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor),
+                          (Trace, Parser_State.Stream, "Shared_Token  " & Tree.Image
+                             (Parser_State.Shared_Token, Descriptor),
                            Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "Current_Token " & Parser_State.Tree.Image
+                          (Trace, Parser_State.Stream, "Current_Token " & Shared_Parser.Tree.Image
                              (Parser_State.Current_Token, Descriptor),
                            Task_ID => False);
                      end if;
@@ -428,7 +428,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  all ops up to the first insert.
                      --
                      --  Other than Add_Terminal, there's no need to modify
-                     --  Parser_State.Tree. Any tree nodes created by the failed parse that
+                     --  Shared_Parser.Tree. Any tree nodes created by the failed parse that
                      --  are pushed back are useful for error repair, and will just be
                      --  ignored in future parsing. This also avoids enlarging a
                      --  non-flushed branched tree, which saves time and space.
@@ -457,23 +457,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  See test_mckenzie_recover.adb Extra_Begin for an example of Undo_Reduce
                               --  after other ops.
                               if Stack_Matches_Ops then
-                                 if not (Tree.Is_Nonterm (Stack.Peek.Token) and
+                                 if not (Nonterm = Tree.Label (Tree.Peek (Stack)) and
                                            (I = First_Index (Result.Ops) or else
                                               Push_Back_Valid
-                                                (Tree.First_Shared_Terminal (Stack.Peek.Token), Result.Ops, I - 1)))
+                                                (Tree.First_Shared_Terminal (Stack, Tree.Peek (Stack)),
+                                                 Result.Ops, I - 1)))
                                  then
                                     pragma Assert (False);
                                     if Trace_McKenzie > Outline then
                                        Put_Line
-                                         (Trace, Parser_State.Label, "invalid Undo_Reduce in apply config",
+                                         (Trace, Parser_State.Stream, "invalid Undo_Reduce in apply config",
                                           Task_ID => False);
                                     end if;
                                     raise Bad_Config;
                                  end if;
 
-                                 for C of Tree.Children (Stack.Pop.Token) loop
-                                    Stack.Push ((Tree.State (C), C));
-                                 end loop;
+                                 Tree.Undo_Reduce (Stack);
                               end if;
 
                            when Push_Back =>
@@ -498,7 +497,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               then
                                  if Trace_McKenzie > Outline then
                                     Put_Line
-                                      (Trace, Parser_State.Label, "invalid Push_Back in apply config op" & I'Image,
+                                      (Trace, Parser_State.Stream, "invalid Push_Back in apply config op" & I'Image,
                                        Task_ID => False);
                                  end if;
                                  pragma Assert (False);
@@ -541,7 +540,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  Stack_Matches_Ops := False;
 
                                  --  Add_Terminal is normally done in the lexer phase, so we do this here.
-                                 Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                                 Parser_State.Current_Token := Shared_Parser.Tree.Add_Terminal
                                    (Op.Ins_ID, Op.Ins_Token_Index);
                                  Recover_Op_Array_Refs.Variable_Ref
                                    (Parser_State.Recover_Insert_Delete,
@@ -604,23 +603,23 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      end if;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Parser_State.Label, "after Ops applied:", Task_ID => False);
+                        Put_Line (Trace, Parser_State.Stream, "after Ops applied:", Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "stack " & Parser_Lists.Image
+                          (Trace, Parser_State.Stream, "stack " & Parser_Lists.Image
                              (Stack, Descriptor, Tree),
                            Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "Shared_Token  " & Image
+                          (Trace, Parser_State.Stream, "Shared_Token  " & Image
                              (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor), Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "Current_Token " & Parser_State.Tree.Image
+                          (Trace, Parser_State.Stream, "Current_Token " & Shared_Parser.Tree.Image
                              (Parser_State.Current_Token, Descriptor), Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "recover_insert_delete" &
+                          (Trace, Parser_State.Stream, "recover_insert_delete" &
                              Parser_State.Recover_Insert_Delete_Current'Image & ":" &
                              Image (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
                         Put_Line
-                          (Trace, Parser_State.Label, "inc_shared_token " &
+                          (Trace, Parser_State.Stream, "inc_shared_token " &
                              Boolean'Image (Parser_State.Inc_Shared_Token),
                            Task_ID => False);
                      end if;
@@ -946,7 +945,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       loop
          exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token       : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+            Token       : Syntax_Trees.Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
                then Token.Byte_Region
@@ -980,7 +979,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       loop
          exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token       : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+            Token       : Syntax_Trees.Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
             Name_Region : constant Buffer_Region :=
               (if Token.Name = Null_Buffer_Region
                then Token.Byte_Region
@@ -1075,7 +1074,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Next_Token;
 
    function Push_Back_Valid
-     (Target_Token_Index : in WisiToken.Base_Token_Index;
+     (Target_Token_Index : in Syntax_Trees.Stream_Index;
       Ops             : in Config_Op_Arrays.Vector;
       Prev_Op         : in Positive_Index_Type)
      return Boolean
@@ -1202,7 +1201,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Put
      (Message      : in     String;
       Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
+      Parser_Label : in     Syntax_Trees.Stream_ID;
       Terminals    : in     Base_Token_Arrays.Vector;
       Config       : in     Configuration;
       Task_ID      : in     Boolean := True;
@@ -1219,8 +1218,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        (if Task_ID then +"task" & Task_Attributes.Value'Image else +"") &
-        Integer'Image (Parser_Label) & ": " &
+        (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +"") &
+        Tree.Trimmed_Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
       Result := Result & Natural'Image (Config.Cost);
@@ -1256,13 +1255,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Put_Line
      (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
+      Tree         : in     Syntax_Trees.Tree;
+      Parser_Label : in     Syntax_Trees.Stream_ID;
       Message      : in     String;
       Task_ID      : in     Boolean := True)
    is begin
       Trace.Put_Line
         ((if Task_ID then "task" & Task_Attributes.Value'Image else "") &
-           Integer'Image (Parser_Label) & ": " & Message);
+           Tree.Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
    function Undo_Reduce
@@ -1276,7 +1276,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
       begin
          for C of Children loop
-            Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
+            Stack.Push ((Tree.State (C), C, Tree.Get_Recover_Token (C)));
          end loop;
          return Children'Length;
       end;

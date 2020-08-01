@@ -25,15 +25,13 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Tree       : in WisiToken.Syntax_Trees.Tree;
       Node       : in Node_Access)
    is
-      Terminal_Index : constant Syntax_Trees.Node_Access := Tree.First_Shared_Terminal (Node);
+      Base_Token : constant WisiToken.Base_Token := Tree.Base_Token (Node);
    begin
       raise SAL.Programmer_Error with Error_Message
         (Lexer.File_Name,
          --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
-         Line    =>
-           (if Terminal_Index = Syntax_Trees.Invalid_Node_Access then 1
-            else Tree.Base_Token (Terminal_Index).Line + 1),
-         Column  => 0,
+         Line    => Base_Token.Line + 1,
+         Column  => Base_Token.Column,
          Message =>
            Label & ": " &
              Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));

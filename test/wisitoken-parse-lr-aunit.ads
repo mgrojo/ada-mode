@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,14 +19,22 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with SAL.AUnit;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit;
 package WisiToken.Parse.LR.AUnit is
 
    Strict : Boolean := False;
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (All_Parse_Action_Verbs);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_Action_Rec;
+      Expected : in Parse_Action_Rec);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_Action_Node_Ptr;
+      Expected : in Parse_Action_Node_Ptr);
 
    procedure Check
      (Label    : in String;
@@ -60,12 +68,45 @@ package WisiToken.Parse.LR.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Config_Op_Label);
 
+   type Test_Config_Op (Op : Config_Op_Label := Fast_Forward) is record
+      --  Replace Stream_Index with Element_Index
+
+      case Op is
+      when Fast_Forward =>
+         FF_Token_Index : Syntax_Trees.Element_Index;
+
+      when Undo_Reduce =>
+         Nonterm     : Token_ID;
+         Token_Count : Ada.Containers.Count_Type;
+
+      when Push_Back =>
+         PB_ID          : Token_ID;
+         PB_Token_Index : Syntax_Trees.Element_Index;
+
+      when Insert =>
+         Ins_ID          : Token_ID;
+         Ins_Token_Index : Syntax_Trees.Element_Index;
+
+      when Delete =>
+         Del_ID          : Token_ID;
+         Del_Token_Index : Syntax_Trees.Element_Index;
+      end case;
+   end record;
+
+   package Test_Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Test_Config_Op, Default_Element => (Fast_Forward, 0), Capacity => 80);
+
    procedure Check
      (Label    : in String;
+      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op;
-      Expected : in Config_Op);
+      Expected : in Test_Config_Op);
 
-   procedure Check is new Config_Op_Arrays.Gen_AUnit (SAL.AUnit.Check, Check);
+   procedure Check
+     (Label    : in String;
+      Tree     : in Syntax_Trees.Tree;
+      Computed : in Config_Op_Arrays.Vector;
+      Expected : in Test_Config_Op_Arrays.Vector);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Strategies);
 
@@ -77,11 +118,5 @@ package WisiToken.Parse.LR.AUnit is
       Check_Item  => Standard.AUnit.Checks.Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Parse_Error;
-      Expected : in Parse_Error);
-   --  Does not check all fields
 
 end WisiToken.Parse.LR.AUnit;

@@ -82,7 +82,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       loop
          exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token : Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+            Token : Syntax_Trees.Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
          begin
             exit when Token.Name /= Null_Buffer_Region and then
               Match_Name =
@@ -112,14 +112,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    with Pre => Config.Check_Status.Label /= Ok
    is
       use Config_Op_Arrays;
+      use all type WisiToken.Syntax_Trees.Node_Access;
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
 
-      Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
-      End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
+      Begin_Name_Token : Syntax_Trees.Recover_Token renames Config.Check_Status.Begin_Name;
+      End_Name_Token   : Syntax_Trees.Recover_Token renames Config.Check_Status.End_Name;
    begin
       if not Begin_Name_IDs (Begin_Name_Token.ID) then
          raise SAL.Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
@@ -205,7 +206,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                        then +identifier_opt_ID
                        else +name_opt_ID)));
 
-                  if New_Config.Stack.Peek (1).Token.Min_Terminal_Index = Invalid_Token_Index then
+                  if New_Config.Stack.Peek (1).Token.First_Terminal_Index = Syntax_Trees.Invalid_Stream_Index then
                      --  'end' is on top of stack. We want to set Current_Shared_Token to
                      --  'end'; we can't if it has an invalid index (which it has if it was
                      --  pushed after a previous fix).
@@ -283,7 +284,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          end if;
 
          if Config.Stack.Depth >= 4 and then
-           Invalid_Node_Index = Tree.Find_Child (Config.Stack.Peek (4).Tree_Index, +EXCEPTION_ID)
+           Config.Stack.Peek (4).Tree_Index /= Syntax_Trees.Invalid_Stream_Index and then
+           Tree.Find_Child (Tree.Get_Node (Config.Stack.Peek (4).Tree_Index), +EXCEPTION_ID) =
+           Syntax_Trees.Invalid_Node_Access
          then
             --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
@@ -319,11 +322,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Check (New_Config.Stack.Peek (1).Token.ID, +nonterminal_029_list_ID);
 #end if;
 
-               Check (+END_ID, Terminals (End_Item.Token.Min_Terminal_Index).ID);
-               Append (Ops, (Delete, +END_ID, End_Item.Token.Min_Terminal_Index));
+               Check (+END_ID, Tree.ID (End_Item.Token.First_Terminal_Index));
+               Append (Ops, (Delete, +END_ID, End_Item.Token.First_Terminal_Index));
 
-               Check (+SEMICOLON_ID, Terminals (Semicolon_Item.Token.Min_Terminal_Index).ID);
-               Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.Min_Terminal_Index));
+               Check (+SEMICOLON_ID, Tree.ID (Semicolon_Item.Token.First_Terminal_Index));
+               Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.First_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
@@ -443,10 +446,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      declare
                         Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
                      begin
-                        Append (Ops, (Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
+                        Append (Ops, (Push_Back, Item.Token.ID, Item.Token.First_Terminal_Index));
                      end;
                   end loop;
-                  New_Config.Current_Shared_Token := New_Config.Error_Token.Min_Terminal_Index;
+                  New_Config.Current_Shared_Token := New_Config.Error_Token.First_Terminal_Index;
 
                   Insert (New_Config, +END_ID);
                   --  We don't insert ';' here, because we may need to insert other
