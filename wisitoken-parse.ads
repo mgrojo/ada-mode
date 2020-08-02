@@ -17,29 +17,42 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Syntax_Trees.Node_Access, Default_Element => Syntax_Trees.Invalid_Node_Access);
+     (Line_Number_Type, Syntax_Trees.Stream_Index, Default_Element => Syntax_Trees.Invalid_Stream_Index);
+
+   type Wrapped_Lexer_Error is record
+      Recover_Token : Syntax_Trees.Stream_Index;
+      --  Token that lexer returned at the error
+
+      Error : WisiToken.Lexer.Error;
+   end record;
+
+   package Wrapped_Lexer_Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Wrapped_Lexer_Error);
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled with record
       Trace     : access WisiToken.Trace'Class;
       Lexer     : WisiToken.Lexer.Handle;
-      Tree      : Syntax_Trees.Tree;
+      Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
+      Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
+
       Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
-      --  Line_Begin_Token (I) is the index into Tree of the first
-      --  grammar token on line I. Line_Begin_Token.First_Index is the first
-      --  line containing a grammar token (after leading comments). However,
-      --  if the only token on line I is a non_grammar token (ie a comment,
-      --  or a newline for a blank line), Line_Begin_Token (I) is the last
-      --  grammar token on the previous non-blank line. If Line (I) is a
-      --  non-first line in a multi-line terminal token, Line_Begin_Token
-      --  (I) is Invalid_Token_Index.
+      --  Line_Begin_Token (I) is the index into Tree.Terminal_Stream of the
+      --  first terminal grammar token on line I.
+      --  Line_Begin_Token.First_Index is the first line containing a
+      --  grammar token (after leading comments). However, if the only token
+      --  on line I is a non_grammar token (ie a comment, or a newline for a
+      --  blank line), Line_Begin_Token (I) is the last grammar token on the
+      --  previous non-blank line. If Line (I) is a non-first line in a
+      --  multi-line terminal token, Line_Begin_Token (I) is
+      --  Invalid_Token_Index.
 
       Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Last grammar token returned from Lexer; for storing non_grammar

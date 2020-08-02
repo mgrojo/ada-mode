@@ -26,7 +26,7 @@ package body WisiToken.Parse is
 
       Token : Base_Token;
       Error : Boolean;
-      pragma Unreferenced (Error); --  FIXME: delete Error
+      Index : Stream_Index;
    begin
       loop
          Error := Parser.Lexer.Find_Next (Token);
@@ -39,12 +39,10 @@ package body WisiToken.Parse is
          end if;
 
          if Token.ID >= Parser.Trace.Descriptor.First_Terminal then
+            --  grammar token
+            Index := Parser.Tree.Add_Terminal (Token);
 
-            declare
-               Index : constant Stream_Index := Parser.Tree.Add_Terminal (Token);
-            begin
-               Parser.Last_Grammar_Node := Parser.Tree.Get_Node (Index);
-            end;
+            Parser.Last_Grammar_Node := Parser.Tree.Get_Node (Index);
 
             if Parser.User_Data /= null then
                Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Parser.Last_Grammar_Node);
@@ -58,11 +56,11 @@ package body WisiToken.Parse is
                   else
                      Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line);
                   end if;
-                  Parser.Line_Begin_Token (Token.Line) := Parser.Last_Grammar_Node;
+                  Parser.Line_Begin_Token (Token.Line) := Index;
 
                elsif Token.ID = Parser.Trace.Descriptor.EOI_ID then
                   Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line + 1);
-                  Parser.Line_Begin_Token (Token.Line + 1) := Parser.Last_Grammar_Node;
+                  Parser.Line_Begin_Token (Token.Line + 1) := Index;
                end if;
             end if;
 
@@ -83,6 +81,10 @@ package body WisiToken.Parse is
             end if;
          end if;
       end loop;
+
+      if Error then
+         Parser.Wrapped_Lexer_Errors.Append ((Index, Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
+      end if;
 
       return Token.ID;
    end Next_Grammar_Token;

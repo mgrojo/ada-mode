@@ -2,7 +2,7 @@
 --
 --  Ada_Lite language specific algorithms for McKenzie_Recover
 --
---  Copyright (C) 2018, 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -22,9 +22,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
-      Parser_Label      : in     Natural;
+      Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);

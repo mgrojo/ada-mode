@@ -182,7 +182,7 @@ package body WisiToken.Parse.LR.AUnit is
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
-         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Ins_Token_Index), Expected.Ins_Token_Index);
+         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Ins_Before), Expected.Ins_Before);
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
@@ -203,7 +203,7 @@ package body WisiToken.Parse.LR.AUnit is
       Check (Label & ".First_Index", First_Index (Computed), First_Index (Expected));
       Check (Label & ".Last_Index", Last_Index (Computed), Last_Index (Expected));
       for I in First_Index (Computed) .. Last_Index (Computed) loop
-         Check (Label & "." & I'Image, Element (Computed, I), Element (Expected, I));
+         Check (Label & "." & I'Image, Tree, Element (Computed, I), Element (Expected, I));
       end loop;
    end Check;
 

@@ -70,12 +70,12 @@ package WisiToken.Parse.LR.Parser_Lists is
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Natural := 0;
+      Zombie_Token_Count : Syntax_Trees.Element_Index := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
       Resume_Active          : Boolean                    := False;
-      Resume_Token_Goal      : Syntax_Trees.Element_Index := Syntax_Trees.Element_Index'First;
+      Resume_Token_Goal      : Syntax_Trees.Element_Index := Syntax_Trees.Invalid_Element_Index;
       Conflict_During_Resume : Boolean                    := False;
 
       Errors : Parse_Error_Lists.List;

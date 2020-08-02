@@ -39,12 +39,6 @@ package WisiToken.Lexer is
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
 
-      Line : Line_Number_Type := Invalid_Line_Number;
-
-      --  We don't store Recover_Token : Syntax_Trees.Node_Index here to
-      --  avoid circular 'with'; Syntax_Trees with's Lexer for User_Data
-      --  operations.
-
       Recover_Char : String (1 .. 4) := (others => ASCII.NUL);
       --  If the error was corrected, the character (in UTF-8 encoding) that
       --  was inserted; unused trailing bytes set to ASCII.NUL. Otherwise,

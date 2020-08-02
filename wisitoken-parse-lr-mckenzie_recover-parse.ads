@@ -25,7 +25,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Shared          : not null access Base.Shared;
       Stack           : in out          Recover_Stacks.Stack;
       Action          : in              Reduce_Action_Rec;
-      Nonterm         :    out          Recover_Token;
+      Nonterm         :    out          Syntax_Trees.Recover_Token;
       Default_Virtual : in              Boolean)
      return Semantic_Checks.Check_Status;
    --  Reduce Stack according to Action, setting Nonterm. If
@@ -63,7 +63,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Base_Token_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean;

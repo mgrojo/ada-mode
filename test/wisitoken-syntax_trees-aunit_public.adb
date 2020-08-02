@@ -19,11 +19,14 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token)
-   is begin
+   is
+      use WisiToken.AUnit;
+   begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
       Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;

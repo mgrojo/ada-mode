@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
@@ -27,6 +28,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed : in Node;
       Expected : in Node)
    is
+      use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
    begin
@@ -56,13 +58,19 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected_Tree   : in Syntax_Trees.Tree;
       Expected_Stream : in Stream_ID)
    is
+      use SAL.AUnit;
+      use WisiToken.AUnit;
       Computed_Element : Stream_Index := Computed_Tree.Streams (Computed_Stream.Cur).First;
       Expected_Element : Stream_Index := Expected_Tree.Streams (Expected_Stream.Cur).First;
    begin
-      Check (Label & ".length", Computed_Tree.Length (Computed_Stream), Expected_Tree.Length (Expected_Stream));
+      Check (Label & ".length",
+             Computed_Tree.Stream_Length (Computed_Stream),
+             Expected_Tree.Stream_Length (Expected_Stream));
       loop
-         exit when Computed_Element = null or Expeced_Element = null;
-         Check (Label & ".state", Computed_Element.State, Expected_Element.State);
+         exit when Computed_Element = null or Expected_Element = null;
+         Check (Label & ".state",
+                Computed_Tree.State (Computed_Stream, Computed_Element),
+                Expected_Tree.State (Expected_Stream, Expected_Element));
          Check (Label & ".node", Computed_Element.Node, Expected_Element.Node);
 
          Computed_Element := @.Next;
@@ -76,11 +84,30 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected : in Tree)
    is
       use Standard.AUnit.Checks;
-      use WisiToken.AUnit;
+      use WisiToken.AUnit.Base_Token_Arrays_AUnit;
+      use Parse_Stream_Lists;
+
+      Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;
+      Expected_Stream : Parse_Stream_Lists.Cursor := Expected.Streams.First;
+
    begin
       Check (Label & ".leading_non_grammar", Computed.Leading_Non_Grammar, Expected.Leading_Non_Grammar);
-      Check (Label & ".streams", Computed.Streams, Expected.Streams);
-      Check (Label & ".nodes", Computed.Nodes, Expected.Nodes);
+      Check (Label & ".stream_count", Computed.Stream_Count, Expected.Stream_Count);
+      loop
+         exit when not (Has_Element (Computed_Stream) and Has_Element (Expected_Stream));
+         Check
+           (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
+            Computed, (Cur => Computed_Stream),
+            Expected, (Cur => Expected_Stream));
+
+         Next (Expected_Stream);
+         Next (Computed_Stream);
+      end loop;
+
+      --  We can't check Tree.Nodes; that's in arbitrary order, and will
+      --  differ between batch parse of edited source and edited tree.
+      --  FIXME: need to walk both trees in sync, compare nodes.
+      raise SAL.Not_Implemented;
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

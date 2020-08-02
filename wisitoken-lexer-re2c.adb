@@ -249,7 +249,6 @@ package body WisiToken.Lexer.re2c is
                      --  char after '.
                      Lexer.Errors.Append
                        ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
-                         Lexer.Line,
                          (1 => ''', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_1_ID;
@@ -261,7 +260,6 @@ package body WisiToken.Lexer.re2c is
                      --  char after ".
                      Lexer.Errors.Append
                        ((Char_Pos     => To_Char_Pos (Lexer.Source, Lexer.Char_Position),
-                         Line         => Lexer.Line,
                          Recover_Char =>  (1 => '"', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_2_ID;
@@ -271,7 +269,7 @@ package body WisiToken.Lexer.re2c is
                   else
                      --  Just skip the character; call Next_Token again.
                      Lexer.Errors.Append
-                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), Lexer.Line, (others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), (others => ASCII.NUL)));
                   end if;
                end;
 

@@ -39,6 +39,7 @@ with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 with System.Multiprocessors;
 with WisiToken.Parse.LR;
+with WisiToken.Syntax_Trees;
 package WisiToken.BNF is
 
    --  See also WisiToken exceptions
@@ -255,7 +256,7 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Matching_Begin;
       Ignore_Check_Fail                     : Natural               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
-      Check_Limit                           : Natural :=
+      Check_Limit                           : Syntax_Trees.Element_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
       Check_Delta_Limit                     : Natural               :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Delta_Limit;

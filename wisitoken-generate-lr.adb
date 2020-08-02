@@ -21,6 +21,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with System.Multiprocessors;
 with WisiToken.Generate;
+with WisiToken.Syntax_Trees;
 package body WisiToken.Generate.LR is
 
    package RHS_Set is new SAL.Gen_Unbounded_Definite_Vectors (Natural, Boolean, Default_Element => False);
@@ -1415,8 +1416,10 @@ package body WisiToken.Generate.LR is
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False)
    is
+      use all type WisiToken.Syntax_Trees.Element_Index;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
+
       Parse_Table_File : File_Type;
 
       Minimal_Complete_Action_States : Integer := 0;

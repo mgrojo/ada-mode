@@ -765,7 +765,8 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Element_Index'Value
+                    (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
                   Data.Language_Params.Error_Recover := True;

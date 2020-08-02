@@ -22,11 +22,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    procedure Compute_Nonterm
      (ID              : in     Token_ID;
       Stack           : in     Recover_Stacks.Stack;
-      Tokens          : in out Recover_Token_Array;
-      Nonterm         :    out Recover_Token;
+      Tokens          : in out Syntax_Trees.Recover_Token_Array;
+      Nonterm         :    out Syntax_Trees.Recover_Token;
       Default_Virtual : in     Boolean)
    is
-      Min_Terminal_Index_Set : Boolean := False;
+      First_Terminal_Index_Set : Boolean := False;
    begin
       Nonterm :=
         (ID      => ID,
@@ -48,10 +48,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Nonterm.Byte_Region.Last := T.Byte_Region.Last;
          end if;
 
-         if not Min_Terminal_Index_Set then
-            if T.Min_Terminal_Index /= Invalid_Token_Index then
-               Min_Terminal_Index_Set     := True;
-               Nonterm.Min_Terminal_Index := T.Min_Terminal_Index;
+         if not First_Terminal_Index_Set then
+            if T.First_Terminal_Index /= Syntax_Trees.Invalid_Stream_Index then
+               First_Terminal_Index_Set     := True;
+               Nonterm.First_Terminal_Index := T.First_Terminal_Index;
             end if;
          end if;
       end loop;
@@ -61,7 +61,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Shared          : not null access Base.Shared;
       Stack           : in out          Recover_Stacks.Stack;
       Action          : in              Reduce_Action_Rec;
-      Nonterm         :    out          Recover_Token;
+      Nonterm         :    out          Syntax_Trees.Recover_Token;
       Default_Virtual : in              Boolean)
      return Semantic_Checks.Check_Status
    is
@@ -69,7 +69,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use all type Semantic_Checks.Check_Status_Label;
 
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
-      Tokens : Recover_Token_Array (1 .. Last);
+      Tokens : Syntax_Trees.Recover_Token_Array (1 .. Last);
    begin
       pragma Assert (Stack.Depth > Last);
       Compute_Nonterm (Action.Production.LHS, Stack, Tokens, Nonterm, Default_Virtual);
@@ -95,7 +95,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased in out          Parse_Item_Arrays.Vector;
       Parse_Item_Index  :         in              Positive;
-      Shared_Token_Goal :         in              Base_Token_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
       Trace_Prefix      :         in              String)
      return Boolean
    is
@@ -123,9 +123,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Conflict : Parse_Action_Node_Ptr;
 
-      Restore_Terminals_Current : Base_Token_Index;
+      Restore_Terminals_Current : Syntax_Trees.Stream_Index;
       Current_Token             : Base_Token := McKenzie_Recover.Current_Token
-        (Terminals                 => Shared.Terminals.all,
+        (Tree                      => Super.Tree.all,
          Terminals_Current         => Config.Current_Shared_Token,
          Restore_Terminals_Current => Restore_Terminals_Current,
          Insert_Delete             => Config.Insert_Delete,
@@ -138,15 +138,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       if Trace_McKenzie > Detail then
          if Trace_McKenzie > Extra then
             if Config.Current_Insert_Delete /= No_Insert_Delete then
-               Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
+               Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
                            Image (Config.Insert_Delete, Trace.Descriptor.all));
             end if;
          end if;
 
-         Base.Put (Trace_Prefix & ": " & Image (Current_Token, Descriptor), Super, Shared, Parser_Index, Config);
-         if Shared_Token_Goal /= Invalid_Token_Index then
-            Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
-                        WisiToken.Token_Index'Image (Shared_Token_Goal));
+         Base.Put (Trace_Prefix & ": " & Image (Current_Token, Descriptor), Super, Parser_Index, Config);
+         if Shared_Token_Goal /= Syntax_Trees.Invalid_Element_Index then
+            Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
+                        Shared_Token_Goal'Image);
          end if;
       end if;
 
@@ -162,7 +162,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             exit when Conflict = null;
             if Is_Full (Parse_Items) then
                if Trace_McKenzie > Outline then
-                  Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
+                  Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index),
+                            Trace_Prefix & ": too many conflicts; abandoning");
                end if;
             else
                declare
@@ -172,7 +173,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                   if Trace_McKenzie > Detail then
                      Put_Line
-                       (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                       (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
                           (New_Config.Stack.Peek.State) & ": add conflict " &
                           Image (Conflict.Item, Descriptor));
                   end if;
@@ -185,8 +186,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          if Trace_McKenzie > Extra then
             Put_Line
-              (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image (Config.Stack.Peek.State) &
-                 " :" & WisiToken.Token_Index'Image (Config.Current_Shared_Token) &
+              (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" &
+                 Config.Stack.Peek.State'Image &
+                 " :" & Config.Current_Shared_Token'Image &
                  ":" & Image (Current_Token, Descriptor) &
                  " : " & Image (Action.Item, Descriptor) &
                  (if Action.Item.Verb = Reduce
@@ -200,18 +202,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
             Config.Stack.Push
               ((Action.Item.State,
-                Invalid_Node_Index,
+                Syntax_Trees.Invalid_Node_Access,
                 (Current_Token.ID,
                  Byte_Region        => Current_Token.Byte_Region,
-                 Min_Terminal_Index =>
+                 First_Terminal_Index =>
                    (if Config.Current_Insert_Delete = No_Insert_Delete
                     then Config.Current_Shared_Token
-                    else Invalid_Token_Index),
+                    else Syntax_Trees.Invalid_Stream_Index),
                  Name              => Null_Buffer_Region,
                  Virtual           => Config.Current_Insert_Delete /= No_Insert_Delete)));
 
             Current_Token := Next_Token
-              (Terminals                 => Shared.Terminals.all,
+              (Tree                      => Super.Tree.all,
                Terminals_Current         => Config.Current_Shared_Token,
                Restore_Terminals_Current => Restore_Terminals_Current,
                Insert_Delete             => Config.Insert_Delete,
@@ -219,7 +221,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          when Reduce =>
             declare
-               Nonterm : Recover_Token;
+               Nonterm : Syntax_Trees.Recover_Token;
             begin
                Config.Check_Status := Reduce_Stack
                  (Shared, Config.Stack, Action.Item, Nonterm,
@@ -233,7 +235,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   if New_State = Unknown_State then
                      --  Most likely from an inappropriate language fix.
                      if Trace_McKenzie > Outline then
-                        Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Shared, Parser_Index, Config);
+                        Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Parser_Index, Config);
                         Put_Line (Trace, Trace_Prefix & ": stack: " & Image (Config.Stack, Descriptor));
                      end if;
 
@@ -241,7 +243,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      raise Bad_Config;
                   end if;
 
-                  Config.Stack.Push ((New_State, Invalid_Node_Index, Nonterm));
+                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Access, Nonterm));
 
                when Semantic_Checks.Error =>
                   Config.Error_Token       := Nonterm;
@@ -264,9 +266,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          exit when not Success or
            Action.Item.Verb = Accept_It or
-           (if Shared_Token_Goal = Invalid_Token_Index
+           (if Shared_Token_Goal = Syntax_Trees.Invalid_Element_Index
             then Length (Config.Insert_Delete) = 0
-            else Config.Current_Shared_Token > Shared_Token_Goal);
+            else Super.Tree.Get_Element_Index (Config.Current_Shared_Token) > Shared_Token_Goal);
 
          Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
       end loop;
@@ -282,7 +284,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Base_Token_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean
@@ -317,7 +319,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          Last_Parsed := Last_Parsed + 1;
          if Trace_McKenzie > Detail then
-            Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": parse conflict");
+            Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": parse conflict");
          end if;
       end loop;
 

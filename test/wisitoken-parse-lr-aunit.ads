@@ -84,8 +84,8 @@ package WisiToken.Parse.LR.AUnit is
          PB_Token_Index : Syntax_Trees.Element_Index;
 
       when Insert =>
-         Ins_ID          : Token_ID;
-         Ins_Token_Index : Syntax_Trees.Element_Index;
+         Ins_ID     : Token_ID;
+         Ins_Before : Syntax_Trees.Element_Index;
 
       when Delete =>
          Del_ID          : Token_ID;

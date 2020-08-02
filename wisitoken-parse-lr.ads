@@ -46,6 +46,7 @@ with System.Multiprocessors;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type WisiToken.Syntax_Trees.Element_Index;
    use all type SAL.Base_Peek_Type;
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
@@ -282,7 +283,7 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Check_Limit       : Natural; -- max tokens to parse ahead when checking a configuration.
+      Check_Limit       : Syntax_Trees.Element_Index; -- max tokens to parse ahead when checking a configuration.
       Check_Delta_Limit : Natural; -- max configs checked, delta over successful parser.
       Enqueue_Limit     : Natural; -- max configs enqueued.
    end record;
@@ -434,8 +435,8 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : Syntax_Trees.Stream_Index;
-         --  Ins_ID is inserted before Token_Index.
+         Ins_Before : Syntax_Trees.Stream_Index;
+         --  Ins_ID is inserted before Ins_Before.
 
       when Delete =>
          Del_ID : Token_ID;
@@ -451,7 +452,7 @@ package WisiToken.Parse.LR is
 
    function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Stream_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
-         when Insert => Op.Ins_Token_Index,
+         when Insert => Op.Ins_Before,
          when Delete => Op.Del_Token_Index);
 
    function ID (Op : in Insert_Delete_Op) return WisiToken.Token_ID
@@ -515,18 +516,18 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID := Invalid_Token_ID;
          --  The token ID inserted.
 
-         Ins_Token_Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-         --  Ins_ID is inserted before Token_Index.
+         Ins_Before : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+         --  Ins_ID is inserted before Ins_Before in the Terminal_Stream.
 
-         Ins_Tree_Node : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-         --  The node holding the inserted token.
+         Ins_Tree_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         --  The node holding the inserted token; valid after parse is complete.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
          Del_Token_Index : Syntax_Trees.Stream_Index;
-         --  Token at Token_Index is deleted.
+         --  Token in Terminal_Stream is deleted.
 
       end case;
    end record;
@@ -550,7 +551,7 @@ package WisiToken.Parse.LR is
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
 
-      Tree_Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+      Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Valid if copied at recover initialize, Invalid if pushed during
       --  recover.
 
@@ -601,7 +602,7 @@ package WisiToken.Parse.LR is
       --
       --  Emacs Ada mode wisi.adb needs > 50
 
-      Resume_Token_Goal : Syntax_Trees.Element_Index := Syntax_Trees.Element_Index'First;
+      Resume_Token_Goal : Syntax_Trees.Element_Index := Syntax_Trees.Invalid_Element_Index;
       --  A successful solution shifts this token from Tree.Terminal_Stream.
       --  Per-config because it increases with Delete; we increase
       --  Shared_Parser.Resume_Token_Goal only from successful configs.

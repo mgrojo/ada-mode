@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Checks;
 private package WisiToken.Syntax_Trees.AUnit_Private is
 
-   procedure Check is new AUnit.Checks.Gen_Check_Access (Node_Access);
+   procedure Check is new AUnit.Checks.Gen_Check_Access (Node, Node_Access);
 
    procedure Check
      (Label    : in String;

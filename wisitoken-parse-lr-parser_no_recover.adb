@@ -45,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
+           (Shared_Parser.Tree.Image (Parser_State.Stream, Nonterm, Trace.Descriptor.all, Include_Children => True));
          if Trace_Parse > Extra then
             Trace.Put_Line (" ... stream length" & Shared_Parser.Tree.Stream_Length (Parser_State.Stream)'Image);
             Shared_Parser.Tree.Validate_Stream (Parser_State.Stream);
@@ -284,8 +284,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Index then
                   Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Terminal_Stream);
                else
-                  Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_Next
-                    (Parser_State.Stream, Parser_State.Shared_Token);
+                  Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
                end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;

@@ -30,7 +30,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
-with WisiToken.Syntax_Trees;
+with WisiToken.Syntax_Trees.AUnit_Public;
 package body Test_McKenzie_Recover is
    use Ada_Lite_Actions;
    use AUnit.Checks;
@@ -546,6 +546,7 @@ package body Test_McKenzie_Recover is
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
+      use WisiToken.Syntax_Trees.AUnit_Public;
    begin
       Check ("Check_Limit", Parser.Table.McKenzie_Param.Check_Limit, 3);
 

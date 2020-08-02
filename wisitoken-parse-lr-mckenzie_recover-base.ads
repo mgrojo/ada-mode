@@ -84,15 +84,14 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    protected type Supervisor
      (Trace             : not null access WisiToken.Trace'Class;
+      Tree              : not null access constant Syntax_Trees.Tree;
       Check_Delta_Limit : Natural;
       Enqueue_Limit     : Natural;
       Parser_Count      : SAL.Peek_Type)
    is
       --  There is only one object of this type, declared in Recover.
 
-      procedure Initialize
-        (Parsers : not null access Parser_Lists.List;
-         Tree    : not null access constant Syntax_Trees.Tree);
+      procedure Initialize (Parsers : not null access Parser_Lists.List);
 
       entry Get
         (Parser_Index : out SAL.Base_Peek_Type;
@@ -140,11 +139,10 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       --  If Error_ID is not Null_Id, an error occured.
 
       function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type;
-      function Label (Parser_Index : in SAL.Peek_Type) return Natural;
+      function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
    private
-      Parsers   : access Parser_Lists.List;
-      Terminals : access constant Base_Token_Arrays.Vector;
+      Parsers : access Parser_Lists.List;
 
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
@@ -158,26 +156,25 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
    end Supervisor;
 
    type Shared
-     (Trace                          : not null access WisiToken.Trace'Class;
-      Lexer                          : not null access constant WisiToken.Lexer.Instance'Class;
+     --  Don't duplicate values that are in Supervisor discriminants.
+     (Lexer                          : not null access constant WisiToken.Lexer.Instance'Class; --  FIXME: delete?
       Table                          : not null access constant Parse_Table;
       Language_Fixes                 : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
       Language_Matching_Begin_Tokens : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Tree                           : not null access constant Syntax_Trees.Tree;
+      Wrapped_Lexer_Errors           : not null access constant Wrapped_Lexer_Error_Lists.List;
       Line_Begin_Token               : not null access constant Line_Begin_Token_Vectors.Vector)
      is null record;
-   --  There is only one object of this type, declared in Recover. It
-   --  provides appropriate access to Shared_Parser components.
+   --  There is only one object of this type, declared in Recover. Along
+   --  with Supervisor, it provides appropriate access to Shared_Parser
+   --  components.
    --
-   --  Since all the accessible objects are read-only (except Trace),
-   --  there are no protected operations, and this is not a protected
-   --  type.
+   --  Since all the accessible objects are read-only, there are no
+   --  protected operations, and this is not a protected type.
 
    procedure Put
      (Message      : in              String;
       Super        : not null access Base.Supervisor;
-      Shared       : not null access Base.Shared;
       Parser_Index : in              SAL.Peek_Type;
       Config       : in              Configuration;
       Task_ID      : in              Boolean := True);
