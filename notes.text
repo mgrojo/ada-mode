@@ -28,17 +28,12 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    run_wisitoken_grammar.exe ada_ebnf.wy
-        runs
-
-    wisitoken-bnf-generate.exe empty_production_3.wy
-        runs
-
-    wisitoken-bnf-generate.exe ada_lite.wy
-        runs
-
     t_mck
-        compiles, runs, fails.
+        compiles, runs
+        no_error passes
+        Empty_Comment:
+            added Parse_Stream.Stack_Top, broke parse ada_lite.wy!
+
 
     t_bnf
 

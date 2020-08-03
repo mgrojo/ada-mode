@@ -39,6 +39,13 @@ project WisiToken is
            Standard_Common.Compiler.Base_Debug_Switches &
            Standard_Common.Compiler.Style_Checks & ("-gnat2012");
 
+         --  -gnatX seems to cause compiler hang a lot in this file
+         for Switches ("wisitoken-syntax_trees.adb") use
+           Standard_Common.Compiler.Base_Debug_Switches & ("-gnat2020") & -- turn off -gnatX
+           Standard_Common.Compiler.Style_Checks
+           -- & ("-gnatdO") -- immediate error messages; requires gprbuild -v
+         ;
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &

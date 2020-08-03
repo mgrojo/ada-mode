@@ -160,7 +160,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       case Error.Label is
       when Action =>
-         Config.Error_Token := Shared_Parser.Tree.Get_Recover_Token (Parser_State.Stream, Error.Error_Token);
+         Config.Error_Token := Shared_Parser.Tree.Get_Recover_Token (Error.Error_Token);
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
          end if;
@@ -542,10 +542,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
                                  Stack_Matches_Ops := False;
-
-                                 --  Add_Terminal is normally done in the lexer phase, so we do this here.
-                                 Parser_State.Current_Token := Shared_Parser.Tree.Add_Terminal
-                                   (Parser_State.Stream, Op.Ins_ID, Op.Ins_Before);
 
                                  Recover_Op_Array_Refs.Variable_Ref
                                    (Parser_State.Recover_Insert_Delete,

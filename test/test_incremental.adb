@@ -57,6 +57,7 @@ package body Test_Incremental is
       Expected_Last   : Integer := Expected'First - 1;
 
    begin
+      --  FIXME: use Validate_Stream
       if Delete_At in Initial'Range then
          Expected_Last  := Delete_At - 1;
          Initial_Last := Expected_Last;

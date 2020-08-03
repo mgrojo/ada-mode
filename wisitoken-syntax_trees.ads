@@ -386,12 +386,15 @@ package WisiToken.Syntax_Trees is
    --  Undo reduction of nonterm at end of Stream.
 
    procedure Shift
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      State  : in     State_Index;
-      Token  : in     Stream_Index)
+     (Tree          : in out Syntax_Trees.Tree;
+      Stream        : in     Stream_ID;
+      State         : in     State_Index;
+      Token         : in     Stream_Index;
+      From_Terminal : in     Boolean := True)
    with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Contains (Tree.Terminal_Stream, Token);
-   --  Copy Token from Terminal_Stream to Stream.Last, set State in Token.
+   --  If From_Terminal, copy Token from Terminal_Stream to
+   --  Stream.Stack_Top; otherwise move from Stream input to
+   --  Stream.Stack_Top. Then set State in Token.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -426,6 +429,9 @@ package WisiToken.Syntax_Trees is
    --  Return Count element before last element in Stream; Count = 1
    --  returns last element (= stack top).
 
+   procedure Pop (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID)
+   with Pre => Tree.Is_Valid (Stream);
+
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Base_Token)
@@ -453,7 +459,7 @@ package WisiToken.Syntax_Trees is
       Before   : in     Stream_Index)
      return Stream_Index
    with
-     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream),
+     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream,
      Post => Tree.Contains (Stream, Add_Terminal'Result);
    --  Add a new Virtual_Terminal element on Stream. Before is the node
    --  containing the terminal that this virtual is inserted before
@@ -552,6 +558,13 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Recover_Token
    with Pre => Tree.Contains (Stream, Element);
+
+   function Get_Recover_Token
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Stream_Index)
+     return Recover_Token
+   is (Tree.Get_Recover_Token (Tree.Terminal_Stream, Element))
+   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Get_Recover_Token
      (Tree : in Syntax_Trees.Tree;
@@ -1092,6 +1105,13 @@ private
       Label : Stream_Label := Invalid_Stream_Label;
       First : Stream_Index := Invalid_Stream_Index;
       Last  : Stream_Index := Invalid_Stream_Index;
+
+      Stack_Top : Stream_Index := Invalid_Stream_Index;
+      --  The top of the parse stack. The stack is Stack_Top and previous
+      --  elements, the input stream is the following elements, or
+      --  Terminal_Stream if Stack_Top.Next is Invalid_Stream_Index. In
+      --  batch parsing with no error correction, this is always Last. In
+      --  Terminal_Stream, always Invalid_Stream_Index.
    end record;
 
    type Stream_Element is record

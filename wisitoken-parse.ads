@@ -42,6 +42,7 @@ package WisiToken.Parse is
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
+      --  For access by error recover.
 
       Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
       --  Line_Begin_Token (I) is the index into Tree.Terminal_Stream of the
