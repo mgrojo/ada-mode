@@ -66,6 +66,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Check (Label & ".length",
              Computed_Tree.Stream_Length (Computed_Stream),
              Expected_Tree.Stream_Length (Expected_Stream));
+      Check (Label & ".stack_depth",
+             Computed_Tree.Stack_Depth (Computed_Stream),
+             Expected_Tree.Stack_Depth (Expected_Stream));
       loop
          exit when Computed_Element = null or Expected_Element = null;
          Check (Label & ".state",

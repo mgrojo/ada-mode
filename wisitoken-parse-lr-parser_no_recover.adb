@@ -45,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Parser_State.Stream, Nonterm, Trace.Descriptor.all, Include_Children => True));
+           (Shared_Parser.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
          if Trace_Parse > Extra then
             Trace.Put_Line (" ... stream length" & Shared_Parser.Tree.Stream_Length (Parser_State.Stream)'Image);
             Shared_Parser.Tree.Validate_Stream (Parser_State.Stream);

@@ -291,7 +291,16 @@ package WisiToken.Syntax_Trees is
    --  Create a new parse stream, initially copied from Old_Stream.
 
    function Stream_Count (Tree : in Syntax_Trees.Tree) return Natural;
+   --  Number of active streams.
+
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
+   with Pre => Tree.Is_Valid (Stream);
+   --  Stack + input
+
+   function Stream_Input_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
+   with Pre => Tree.Is_Valid (Stream);
+
+   function Stack_Depth (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    with Pre => Tree.Is_Valid (Stream);
 
    procedure Delete_Stream (Tree : in out Syntax_Trees.Tree; Stream : in out Stream_ID)
@@ -389,10 +398,10 @@ package WisiToken.Syntax_Trees is
      (Tree          : in out Syntax_Trees.Tree;
       Stream        : in     Stream_ID;
       State         : in     State_Index;
-      Token         : in     Stream_Index;
-      From_Terminal : in     Boolean := True)
-   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Contains (Tree.Terminal_Stream, Token);
-   --  If From_Terminal, copy Token from Terminal_Stream to
+      Token         : in     Stream_Index)
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and
+               (Tree.Contains (Tree.Terminal_Stream, Token) or Tree.Contains (Stream, Token));
+   --  If Token is in Terminal_Stream, copy Token from Terminal_Stream to
    --  Stream.Stack_Top; otherwise move from Stream input to
    --  Stream.Stack_Top. Then set State in Token.
 
@@ -452,7 +461,7 @@ package WisiToken.Syntax_Trees is
      return Base_Token_Arrays_Const_Ref
    with Pre => Tree.Is_Shared_Terminal (Terminal);
 
-   function Add_Terminal
+   function Insert_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
@@ -460,10 +469,11 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with
      Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream,
-     Post => Tree.Contains (Stream, Add_Terminal'Result);
-   --  Add a new Virtual_Terminal element on Stream. Before is the node
-   --  containing the terminal that this virtual is inserted before
-   --  during error recover. Result points to the added node.
+     Post => Tree.Contains (Stream, Insert_Terminal'Result);
+   --  Insert a new Virtual_Terminal element into Stream, after
+   --  Stack_Top. Before is the Shared_Terminal that this virtual is
+   --  inserted before during error recover. Result points to the added
+   --  node.
 
    function Before
      (Tree             : in Syntax_Trees.Tree;
@@ -911,23 +921,14 @@ package WisiToken.Syntax_Trees is
 
    function Image
      (Tree              : in Syntax_Trees.Tree;
-      Stream            : in Stream_ID;
       Element           : in Stream_Index;
       Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean   := False;
       Include_RHS_Index : in Boolean   := False;
       Node_Numbers      : in Boolean   := False)
-     return String
-   with Pre => Tree.Contains (Stream, Element);
-   function Image
-     (Tree              : in Syntax_Trees.Tree;
-      Element           : in Stream_Index;
-      Descriptor        : in WisiToken.Descriptor;
-      Include_Children  : in Boolean   := False;
-      Include_RHS_Index : in Boolean   := False;
-      Node_Numbers      : in Boolean   := False)
-     return String
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
+     return String;
+   --  Element can be from any stream, or Invalid_Stream_Index
+
    function Image
      (Tree              : in Syntax_Trees.Tree;
       Node              : in Node_Access;
@@ -1028,7 +1029,9 @@ private
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
       Node_Index : Syntax_Trees.Node_Index := 0;
-      --  Unique and arbitrary, for debugging.
+      --  Corresponds to text order if in Terminal_Stream. Copied from
+      --  Terminal_Stream in other streams, for unit test.
+      --  If not Terminal_Stream, unique and arbitrary, for debugging.
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Computed by Update_Cache, used in Semantic_Check actions and debug
@@ -1056,8 +1059,6 @@ private
          Char_Region : Buffer_Region := Null_Buffer_Region;
 
          Terminal_Index : Stream_Index := Invalid_Stream_Index;
-         --  Corresponds to text order if in Terminal_Stream. Copied from
-         --  Terminal_Stream in other streams, for unit test.
 
          Non_Grammar : aliased Base_Token_Arrays.Vector; -- immediately following Terminal
 
@@ -1095,9 +1096,11 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   type Stream_Label is range 0 .. Integer'Last;
-   Invalid_Stream_Label  : constant Stream_Label := 0;
-   Terminal_Stream_Label : constant Stream_Label := 1;
+   type Stream_Label is range -2 .. Integer'Last;
+   --  First parser has label 0, for compatibility with tests, and for
+   --  general sanity.
+   Invalid_Stream_Label  : constant Stream_Label := -2;
+   Terminal_Stream_Label : constant Stream_Label := -1;
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Stream_Label);
 
@@ -1247,7 +1250,7 @@ private
    is (Element.Node.State);
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
-   is (Tree.Streams (Stream.Cur).Last.Node.State);
+   is (Tree.Streams (Stream.Cur).Stack_Top.Node.State);
 
    function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Unknown_State_Index
    is (Node.State);

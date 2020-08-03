@@ -29,7 +29,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       use Ada.Strings.Unbounded;
 
-      Stack_Depth : constant SAL.Base_Peek_Type := Tree.Stream_Length (Stack);
+      Stack_Depth : constant SAL.Base_Peek_Type := Tree.Stack_Depth (Stack);
 
       Last : constant SAL.Base_Peek_Type :=
         (if Depth = 0
@@ -44,7 +44,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             State : constant Unknown_State_Index := Tree.State (Stack, Item);
          begin
             Result := Result &
-              (if State = Unknown_State then " " else Trimmed_Image (State) & " :") &
+              (if State = Unknown_State then " - : " else Trimmed_Image (State) & " : ") &
               (if I = Stack_Depth
                then ""
                else Tree.Image (Tree.Get_Node (Item), Descriptor) & ", ");

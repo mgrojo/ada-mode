@@ -143,8 +143,7 @@ package body Test_McKenzie_Recover is
             --  Expecting an Action error. Label is "code" so prj.el wisitoken-goto-aunit-fail can find it.
             Check (Label_I & ".Code", Error.Label, Action);
             declare
-               Token : WisiToken.Syntax_Trees.Recover_Token renames
-                 Parser.Tree.Get_Recover_Token (Parser_State.Stream, Error.Error_Token);
+               Token : WisiToken.Syntax_Trees.Recover_Token renames Parser.Tree.Get_Recover_Token (Error.Error_Token);
             begin
                Check (Label_I & ".Error.TOKEN_ID", Token.ID, Error_Token_ID);
                if Error_Token_ID /= +Wisi_EOI_ID then

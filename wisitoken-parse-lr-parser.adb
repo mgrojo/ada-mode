@@ -57,7 +57,11 @@ package body WisiToken.Parse.LR.Parser is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Parser_State.Stream, Nonterm, Trace.Descriptor.all, Include_Children => True));
+           (Shared_Parser.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
+         if Trace_Parse > Extra then
+            Trace.Put_Line (" ... stream length" & Shared_Parser.Tree.Stream_Length (Parser_State.Stream)'Image);
+            Shared_Parser.Tree.Validate_Stream (Parser_State.Stream);
+         end if;
       end if;
 
       if Action.Check = null then
@@ -253,7 +257,7 @@ package body WisiToken.Parse.LR.Parser is
          end;
       end loop;
 
-      if Trace_Parse > Extra then
+      if Trace_Parse > Extra and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Index then
          Shared_Parser.Trace.Put_Line
            (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": (do_deletes) shared_token:" &
               Shared_Parser.Tree.Get_Element_Index (Parser_State.Shared_Token)'Image &
@@ -545,7 +549,7 @@ package body WisiToken.Parse.LR.Parser is
                               then
                                  Result := True;
 
-                                 Parser_State.Current_Token := Shared_Parser.Tree.Add_Terminal
+                                 Parser_State.Current_Token := Shared_Parser.Tree.Insert_Terminal
                                    (Parser_State.Stream, Op.Ins_ID, Before => Op.Ins_Before);
 
                                  Op.Ins_Tree_Node := Shared_Parser.Tree.Get_Node (Parser_State.Current_Token);

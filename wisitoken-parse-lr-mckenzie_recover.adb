@@ -336,7 +336,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                         Parsers.Prepend_Copy (Cur, Shared_Parser.Tree, Trace); --  does not copy recover
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
-                             ("spawn parser" & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
+                             ("spawn parser " & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
                                 Shared_Parser.Tree.Trimmed_Image (Cur.Stream) & " (" &
                                 Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
@@ -538,6 +538,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  --  get here). See test_mckenzie_recover.adb Missing_Name_3
 
                                  First_Insert := False;
+
+                                 Parser_State.Current_Token := Tree.Insert_Terminal
+                                   (Parser_State.Stream, Op.Ins_ID, Op.Ins_Before);
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.

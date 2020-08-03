@@ -31,8 +31,7 @@ incremental parse
     t_mck
         compiles, runs
         no_error passes
-        Empty_Comment:
-            added Parse_Stream.Stack_Top, broke parse ada_lite.wy!
+        Empty_Comment: '' passes, '   ' fails
 
 
     t_bnf
