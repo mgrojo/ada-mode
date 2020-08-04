@@ -349,8 +349,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          loop
             exit when Configs.Count = 0;
 
-            --  [1] has a check for duplicate configs here; that only happens with
-            --  higher costs, which take too long for our application.
+            pragma Assert (Configs.Peek.Current_Shared_Token /= Syntax_Trees.Invalid_Stream_Index);
             Data.Config_Heap.Add (Configs.Remove);
          end loop;
 

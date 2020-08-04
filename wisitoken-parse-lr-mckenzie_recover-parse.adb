@@ -71,7 +71,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Syntax_Trees.Recover_Token_Array (1 .. Last);
    begin
-      pragma Assert (Stack.Depth > Last);
+      if Stack.Depth <= Last then
+         raise Bad_Config;
+      end if;
+
       Compute_Nonterm (Action.Production.LHS, Stack, Tokens, Nonterm, Default_Virtual);
 
       if Action.Check = null then

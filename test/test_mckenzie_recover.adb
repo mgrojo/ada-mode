@@ -2,6 +2,10 @@
 --
 --  See spec.
 --
+--  The test names are often misleading; they were correct when first
+--  written, but as the algorithm evolved, the tests behavior changed.
+--  They all still test something useful.
+--
 --  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
@@ -1938,7 +1942,9 @@ package body Test_McKenzie_Recover is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      --  Finish current Minimal_Complete chain before declare done.
+      --  Matching_Begin returns the correct start for a name with a dot.
+      --  Also tests handling a conflict during resume, and inserting
+      --  multiple virtual tokens.
 
       Parse_Text ("procedure Proc_1; end Ada_Mode.Debbugs_35124;");
 

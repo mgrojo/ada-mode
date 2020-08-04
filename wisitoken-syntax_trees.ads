@@ -329,7 +329,11 @@ package WisiToken.Syntax_Trees is
      (Tree   : in Syntax_Trees.Tree;
       Token  : in Stream_Index)
      return Element_Index
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Token);
+   with Pre => Token = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Token);
+   --  Result may be Invalid_Element_Index
+
+   function Trimmed_Image (Item : in Stream_Index) return String;
+   --  Trimmed_Image of item.node_index.
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if there is only one stream, and it has only one element.
@@ -345,7 +349,8 @@ package WisiToken.Syntax_Trees is
      (Tree    : in Syntax_Trees.Tree;
       Element : in Stream_Index)
      return Stream_Index
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
+   with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Element);
+   --  If Element is Invalid_Stream_Index, result is Stream_First
 
    function Stream_Prev
      (Tree    : in Syntax_Trees.Tree;
@@ -418,8 +423,8 @@ package WisiToken.Syntax_Trees is
    function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Unknown_State_Index;
 
    function Stream_First
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
 
@@ -476,13 +481,31 @@ package WisiToken.Syntax_Trees is
    --  node.
 
    function Before
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in     Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream;
+
+   function Before
      (Tree             : in Syntax_Trees.Tree;
       Virtual_Terminal : in Valid_Node_Access)
      return Node_Access
    with Pre => Tree.Is_Virtual_Terminal (Virtual_Terminal);
 
+   function ID
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Token_ID
+   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
+   --  For example, Parser.Current_Token is either a Shared_Terminal from
+   --  Terminal_Stream or a Virtual_Terminal on Stream from error
+   --  recovery; in incremental parse, it could be a Shared_Terminal
+   --  Stream from breakdown.
+
    function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
-   with Pre => Element /= Invalid_Stream_Index;
+   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
@@ -909,7 +932,7 @@ package WisiToken.Syntax_Trees is
    --  detected by other preconditions.
 
    function Trimmed_Image (Tree : in Syntax_Trees.Tree; Item : in Stream_ID) return String;
-   function Next_Stream_ID_Image (Tree : in Syntax_Trees.Tree) return String;
+   function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String;
    --  Trimmed integer.
 
    function Image
@@ -1029,9 +1052,9 @@ private
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
       Node_Index : Syntax_Trees.Node_Index := 0;
-      --  Corresponds to text order if in Terminal_Stream. Copied from
-      --  Terminal_Stream in other streams, for unit test.
-      --  If not Terminal_Stream, unique and arbitrary, for debugging.
+      --  If Shared_Terminal, corresponds to text order; copied from
+      --  Terminal_Stream Element_Index; for unit tests. If not
+      --  Shared_Terminal, unique and arbitrary, for debugging.
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Computed by Update_Cache, used in Semantic_Check actions and debug
@@ -1187,6 +1210,13 @@ private
         when Shared_Terminal => Node.Char_Region,
         when others          => Null_Buffer_Region));
 
+   function Before
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in     Stream_Index)
+     return Stream_Index
+   is (Element.Node.Before.Terminal_Index);
+
    function Contains
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
@@ -1210,13 +1240,20 @@ private
      (Tree   : in Syntax_Trees.Tree;
       Token  : in Stream_Index)
      return Element_Index
-   is (Token.Index);
+   is (if Token = Invalid_Stream_Index then Invalid_Element_Index else Token.Index);
 
    function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
    is (Element.Node);
 
    function Get_Node_Index (Node : in Node_Access) return Node_Index
    is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
+
+   function ID
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Token_ID
+   is (Element.Node.ID);
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0);
@@ -1233,7 +1270,7 @@ private
    function Label (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Label
    is (Tree.Streams (Stream.Cur).Last.Node.Label);
 
-   function Next_Stream_ID_Image (Tree : in Syntax_Trees.Tree) return String
+   function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String
    is (Trimmed_Image (Tree.Next_Stream_Label));
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean
@@ -1259,8 +1296,8 @@ private
    is (Natural (Tree.Streams.Length));
 
    function Stream_First
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Stream_Index
    is (Tree.Streams (Stream.Cur).First);
 
@@ -1278,7 +1315,9 @@ private
    is (Element.Next);
 
    function Stream_Next (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Stream_Index
-   is (Element.Next);
+   is (if Element = Invalid_Stream_Index
+       then Tree.Streams (Tree.Terminal_Stream.Cur).First
+       else Element.Next);
 
    function Stream_Prev
      (Tree    : in Syntax_Trees.Tree;
@@ -1295,6 +1334,9 @@ private
 
    function Trimmed_Image (Tree : in Syntax_Trees.Tree; Item : in Stream_ID) return String
    is (Trimmed_Image (Tree.Streams (Item.Cur).Label));
+
+   function Trimmed_Image (Item : in Stream_Index) return String
+   is (if Item = Invalid_Stream_Index then "-" else Trimmed_Image (Item.Node.Node_Index));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 

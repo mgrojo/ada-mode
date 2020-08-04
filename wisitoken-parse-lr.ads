@@ -405,6 +405,16 @@ package WisiToken.Parse.LR is
    --  Delete deletes one item from the token input stream, at the given
    --  point.
 
+   --  WORKAROUND: GNAT Community 2020 with -gnat2020 S'Image outputs
+   --  integer when S is a subtype.
+   function Image (Item : in Config_Op_Label) return String
+   is (case Item is
+       when Fast_Forward => "FAST_FORWARD",
+       when Undo_Reduce  => "UNDO_REDUCE",
+       when Push_Back    => "PUSH_BACK",
+       when Insert       => "INSERT",
+       when Delete       => "DELETE");
+
    type Config_Op (Op : Config_Op_Label := Fast_Forward) is record
       --  We store enough information to perform the operation on the main
       --  parser stack and input stream when the config is the result
@@ -476,14 +486,15 @@ package WisiToken.Parse.LR is
    package Config_Op_Array_Refs is new Config_Op_Arrays.Gen_Refs;
 
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
-     is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
+   is ("(" & Image (Item.Op) & ", " &
          (case Item.Op is
-          when Fast_Forward => "",
+          when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
           when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
                Ada.Containers.Count_Type'Image (Item.Token_Count),
-          when Push_Back    => Image (Item.PB_ID, Descriptor),
-          when Insert       => Image (Item.Ins_ID, Descriptor),
-          when Delete       => Image (Item.Del_ID, Descriptor))
+          when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
+          when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
+          when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
+               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
          & ")");
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
@@ -540,10 +551,11 @@ package WisiToken.Parse.LR is
    package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
 
    function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
-     is ("(" & Item.Op'Image & ", " &
+     is ("(" & Image (Item.Op) & ", " &
            (case Item.Op is
-            when Insert => Image (Item.Ins_ID, Descriptor),
-            when Delete => Image (Item.Del_ID, Descriptor))
+            when Insert => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
+            when Delete => Image (Item.Del_ID, Descriptor) & ", " &
+               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
            & ")");
 
    function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);

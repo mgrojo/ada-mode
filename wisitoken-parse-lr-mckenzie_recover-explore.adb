@@ -1140,7 +1140,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
 
       declare
-         New_Config  : Configuration := Config;
+         New_Config : Configuration := Config;
       begin
          for ID of Matching_Begin_Tokens loop
             Insert (New_Config, ID);
@@ -1263,10 +1263,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  We are assuming the list of lexer errors is short, so binary
          --  search would not be significantly faster.
          for Err of Shared.Wrapped_Lexer_Errors.all loop
-            Lexer_Error_Token := Super.Tree.all.Base_Token (Err.Recover_Token);
+            if Err.Recover_Token /= Syntax_Trees.Invalid_Stream_Index then
+               Lexer_Error_Token := Super.Tree.all.Base_Token (Err.Recover_Token);
 
-            if Lexer_Error_Token.Line = Current_Line then
-               return Err.Recover_Token;
+               if Lexer_Error_Token.Line = Current_Line then
+                  return Err.Recover_Token;
+               end if;
             end if;
          end loop;
          return Syntax_Trees.Invalid_Stream_Index;
@@ -1318,7 +1320,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          J := Super.Tree.Stream_Prev (Saved_Shared_Token);
          loop
             exit when Super.Tree.ID (J) = String_Literal_ID;
-            J := Super.Tree.Stream_Prev (Saved_Shared_Token);
+            J := Super.Tree.Stream_Prev (J);
          end loop;
 
          begin
@@ -1493,7 +1495,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Config.String_Quote_Checked := Current_Line;
 
-      if Lexer_Error_Token_Index = Syntax_Trees.Invalid_Stream_Index then
+      if Lexer_Error_Token_Index = Syntax_Trees.Invalid_Stream_Index or else
+        Lexer_Error_Token.ID not in Descriptor.String_1_ID | Descriptor.String_2_ID
+      then
          return;
       end if;
 

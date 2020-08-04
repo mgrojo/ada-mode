@@ -240,11 +240,10 @@ package body WisiToken.Parse.LR.Parser is
             if Op.Op = Delete and then
               Op.Del_Token_Index =
               (if Parser_State.Inc_Shared_Token
-               then Shared_Parser.Tree.Stream_Next (Parser_State.Stream, Parser_State.Shared_Token)
+               then Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token)
                else Parser_State.Shared_Token)
             then
-               Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next
-                 (Parser_State.Stream, Parser_State.Shared_Token);
+               Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
                --  We don't reset Inc_Shared_Token here; only after the next token is
                --  actually used.
                Ins_Del_Cur := Ins_Del_Cur + 1;
@@ -479,17 +478,22 @@ package body WisiToken.Parse.LR.Parser is
       end Check_Error;
 
    begin
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("start");
       end if;
 
+      --  Reset parser for new parse; in Base_Parser, Parser order. Lexer
+      --  done by caller to set input text.
+      Shared_Parser.Tree.Clear;
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
       end if;
+      Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
+      --  Line_Begin_Token, Last_Grammar_Node done by Lex_All
       Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
-      Shared_Parser.Tree.Clear;
-      Shared_Parser.Parsers              := Parser_Lists.New_List (Shared_Parser.Tree);
+
+      Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
 
       Shared_Parser.Lex_All;
 
@@ -502,7 +506,7 @@ package body WisiToken.Parse.LR.Parser is
          Parse_Verb (Shared_Parser, Current_Verb, Zombie_Count);
 
          if Trace_Parse > Extra then
-            Trace.Put_Line ("cycle start; current_verb: " & Parse_Action_Verbs'Image (Current_Verb));
+            Trace.Put_Line ("cycle start; current_verb: " & Image (Current_Verb));
          end if;
 
          case Current_Verb is
@@ -544,7 +548,7 @@ package body WisiToken.Parse.LR.Parser is
                               if Op.Op = Insert and then
                                 Op.Ins_Before =
                                 (if Parser_State.Inc_Shared_Token
-                                 then Shared_Parser.Tree.Stream_Next (Parser_State.Stream, Parser_State.Shared_Token)
+                                 then Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token)
                                  else Parser_State.Shared_Token)
                               then
                                  Result := True;
@@ -580,8 +584,7 @@ package body WisiToken.Parse.LR.Parser is
                               Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First
                                 (Shared_Parser.Tree.Terminal_Stream);
                            else
-                              Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next
-                                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token);
+                              Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
                            end if;
                         else
                            Parser_State.Inc_Shared_Token := True;
@@ -755,12 +758,12 @@ package body WisiToken.Parse.LR.Parser is
                --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Shared_Parser.Enable_McKenzie_Recover then
-                  if Debug_Mode then
+                  if Trace_Time then
                      Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
                      Start := Ada.Calendar.Clock;
                   end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
-                  if Debug_Mode then
+                  if Trace_Time then
                      declare
                         use Ada.Calendar;
                         Recover_Duration : constant Duration := Clock - Start;
@@ -920,9 +923,9 @@ package body WisiToken.Parse.LR.Parser is
 
                if Trace_Parse > Extra then
                   Trace.Put_Line
-                    ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
+                    ("current_verb: " & Image (Current_Verb) &
                        "," & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
-                       ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
+                       ".verb: " & Image (Current_Parser.Verb));
                end if;
 
                --  Each branch of the following 'if' calls either Current_Parser.Free
@@ -959,7 +962,7 @@ package body WisiToken.Parse.LR.Parser is
                      Action := Action_For
                        (Table => Shared_Parser.Table.all,
                         State => Shared_Parser.Tree.State (Parser_State.Stream),
-                        ID    => Shared_Parser.Tree.ID (Parser_State.Current_Token));
+                        ID    => Shared_Parser.Tree.ID (Parser_State.Stream, Parser_State.Current_Token));
                   end;
 
                   declare
@@ -1055,7 +1058,7 @@ package body WisiToken.Parse.LR.Parser is
                                       Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
                                       Shared_Parser.Tree.Image
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
-                                      "spawn" & Shared_Parser.Tree.Next_Stream_ID_Image & ", (" &
+                                      "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image & ", (" &
                                       Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                                  if Debug_Mode then
                                     Trace.Put_Line ("tree size: " & Shared_Parser.Tree.Tree_Size_Image);
@@ -1094,7 +1097,7 @@ package body WisiToken.Parse.LR.Parser is
          Trace.Put_Line (Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
       end if;
 
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("finish parse");
       end if;
 
@@ -1103,7 +1106,7 @@ package body WisiToken.Parse.LR.Parser is
       --  character.
    exception
    when Syntax_Error | WisiToken.Parse_Error | Partial_Parse =>
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("finish - error");
       end if;
       raise;

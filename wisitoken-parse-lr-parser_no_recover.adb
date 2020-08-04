@@ -403,7 +403,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                       Shared_Parser.Tree.State (Parser_State.Stream)'Image & ": " &
                                       Shared_Parser.Tree.Image
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
-                                      "spawn " & Shared_Parser.Tree.Next_Stream_ID_Image &
+                                      "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image &
                                       ", (" & Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                               end;
                            end if;

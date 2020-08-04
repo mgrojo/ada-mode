@@ -65,6 +65,8 @@ package body WisiToken.Syntax_Trees is
    procedure Update_Cache (Node : in Valid_Node_Access)
    with Pre => Node.Label = Nonterm;
 
+   procedure Validate_Stream (Parse_Stream : in Syntax_Trees.Parse_Stream; Abort_On_Error : in Boolean := True);
+
    ----------
    --  Public and body operations, alphabetical
 
@@ -165,7 +167,10 @@ package body WisiToken.Syntax_Trees is
         (Label       => Shared_Terminal,
          Child_Count => 0,
          ID          => Terminal.ID,
+
          Node_Index  => Tree.Nodes.Last_Index + 1,
+         --  overwritten by Terminal_Stream Element_Index in Append_Stream_Element
+
          Byte_Region => Terminal.Byte_Region,
          Line        => Terminal.Line,
          Column      => Terminal.Column,
@@ -228,6 +233,7 @@ package body WisiToken.Syntax_Trees is
             else Tree.Next_Stream_Element_Index));
    begin
       if Stream = Tree.Terminal_Stream then
+         Node.Node_Index := Syntax_Trees.Node_Index (Tree.Next_Terminal_Element_Index);
          Tree.Next_Terminal_Element_Index := @ + 1;
       else
          Tree.Next_Stream_Element_Index := @ + 1;
@@ -246,6 +252,9 @@ package body WisiToken.Syntax_Trees is
 
          Parse_Stream.Last.Next := New_Element;
          Parse_Stream.Last      := New_Element;
+      end if;
+      if Debug_Mode then
+         Validate_Stream (Parse_Stream);
       end if;
       return New_Element;
    end Append_Stream_Element;
@@ -345,6 +354,12 @@ package body WisiToken.Syntax_Trees is
 
    procedure Clear (Tree : in out Syntax_Trees.Tree; Free_Memory : in Boolean := False)
    is begin
+      if Debug_Mode then
+         for Stream of Tree.Streams loop
+            Validate_Stream (Stream);
+         end loop;
+      end if;
+
       for Cur in Tree.Streams.Iterate loop
          Finalize (Cur);
       end loop;
@@ -356,8 +371,13 @@ package body WisiToken.Syntax_Trees is
       Tree.Leading_Non_Grammar.Clear (Free_Memory);
       Tree.Streams.Clear;
       Tree.Nodes.Clear (Free_Memory);
-      Tree.Traversing  := False;
-      Tree.Parents_Set := False;
+
+      --  Set up for new parse:
+      Tree.Next_Stream_Label           := Terminal_Stream_Label + 1;
+      Tree.Next_Stream_Element_Index   := 1;
+      Tree.Next_Terminal_Element_Index := 1;
+      Tree.Traversing                  := False;
+      Tree.Parents_Set                 := False;
 
       Tree.Terminal_Stream :=
         (Cur             => Tree.Streams.Append
@@ -791,7 +811,7 @@ package body WisiToken.Syntax_Trees is
    begin
       return
         (case Element.Node.Label is
-         when Shared_Terminal => Element,
+         when Shared_Terminal => Element.Node.Terminal_Index,
          when Virtual_Terminal |
            Virtual_Identifier => Invalid_Stream_Index,
          when Nonterm         => Element.Node.First_Terminal_Index);
@@ -1143,14 +1163,20 @@ package body WisiToken.Syntax_Trees is
    begin
       Tree.Next_Stream_Element_Index := @ + 1;
 
-      if Parse_Stream.Stack_Top.Next = Invalid_Stream_Index or
-        Parse_Stream.Stack_Top.Next = Parse_Stream.Last
-      then
+      if Parse_Stream.Stack_Top.Next = Invalid_Stream_Index then
+         pragma Assert (Parse_Stream.Last = Parse_Stream.Stack_Top);
          Parse_Stream.Last := New_Element;
+      end if;
+
+      if Parse_Stream.Stack_Top.Next /= Invalid_Stream_Index then
+         Parse_Stream.Stack_Top.Next.Prev := New_Element;
       end if;
 
       Parse_Stream.Stack_Top.Next := New_Element;
 
+      if Debug_Mode then
+         Validate_Stream (Parse_Stream);
+      end if;
       return New_Element;
    end Insert_Stream_Element;
 
@@ -1372,6 +1398,10 @@ package body WisiToken.Syntax_Trees is
             New_Stream.Last := New_Element;
 
             Tree.Next_Stream_Label := @ + 1;
+
+            if Debug_Mode then
+               Validate_Stream (New_Stream);
+            end if;
             return (Cur => Cur);
          end;
       end if;
@@ -1503,6 +1533,9 @@ package body WisiToken.Syntax_Trees is
             Parse_Stream.Stack_Top := Parse_Stream.Stack_Top.Prev;
          end if;
          Free (Temp);
+         if Debug_Mode then
+            Validate_Stream (Parse_Stream);
+         end if;
       end return;
    end Pop;
 
@@ -1729,11 +1762,28 @@ package body WisiToken.Syntax_Trees is
          Parse_Stream.Last      := New_Element;
          Parse_Stream.Stack_Top := Parse_Stream.Last;
       else
+         --  1: stack_top.prev; may be null
+         --  2: stack_top
+         --  3: stack_top.next
+         --
+         --            1   2   3
+         --  next:     ?   3   -
+         --  prev:     ?   1   2
+         --
+         --  push 4 between 2 and 3, leave stack_top at 4:
+         --
+         --            1   2   4   3
+         --  new_next: ?   4   3   -
+         --  new_prev: ?   1   2   4
+
          Parse_Stream.Stack_Top.Next.Prev := New_Element;
-         if Parse_Stream.Stack_Top.Prev /= Invalid_Stream_Index then
-            Parse_Stream.Stack_Top.Prev.Next := New_Element;
-         end if;
+         Parse_Stream.Stack_Top.Next      := New_Element;
+         --  4:New_Element done above
          Parse_Stream.Stack_Top           := New_Element;
+      end if;
+
+      if Debug_Mode then
+         Validate_Stream (Parse_Stream);
       end if;
       return New_Element;
    end Push;
@@ -1984,6 +2034,7 @@ package body WisiToken.Syntax_Trees is
             pragma Assert (Parse_Stream.Stack_Top.Next /= Invalid_Stream_Index);
             Parse_Stream.Stack_Top := Parse_Stream.Stack_Top.Next;
             Parse_Stream.Stack_Top.Node.State := State;
+            --  Nothing to validate.
          end;
       end if;
    end Shift;
@@ -2138,13 +2189,9 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Update_Cache;
 
-   procedure Validate_Stream
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+   procedure Validate_Stream (Parse_Stream : in Syntax_Trees.Parse_Stream; Abort_On_Error : in Boolean := True)
    is
       use Ada.Text_IO;
-
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
       Element      : Stream_Index := Parse_Stream.First;
       Prev_Element : Stream_Index := null;
 
@@ -2152,6 +2199,9 @@ package body WisiToken.Syntax_Trees is
       is begin
          if not Valid then
             Put_Line (Current_Error, " ... invalid stream:" & Element.Index'Image);
+            if Abort_On_Error then
+               raise SAL.Programmer_Error with " ... invalid stream:" & Element.Index'Image;
+            end if;
          end if;
       end Check;
 
@@ -2175,6 +2225,13 @@ package body WisiToken.Syntax_Trees is
          Prev_Element := Element;
          Element      := Element.Next;
       end loop;
+   end Validate_Stream;
+
+   procedure Validate_Stream
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
+   is begin
+      Validate_Stream (Tree.Streams (Stream.Cur), Abort_On_Error => False);
    end Validate_Stream;
 
    procedure Validate_Tree

@@ -28,10 +28,7 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    t_mck
-        compiles, runs
-        no_error passes
-        Empty_Comment: '' passes, '   ' fails
+    t_mck only 1 failure
 
 
     t_bnf

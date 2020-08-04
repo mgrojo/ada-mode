@@ -84,7 +84,7 @@ begin
 
    WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Debug_Mode     := WisiToken.Trace_McKenzie > 0;
+   WisiToken.Debug_Mode     := True;
    WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
    if Alg in None | LALR then

@@ -786,7 +786,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if Terminals_Next /= Syntax_Trees.Invalid_Stream_Index then
          Tokens (2) := Tree.ID (Terminals_Next);
 
-         Terminals_Next := Tree.Stream_Next (Terminals_Current);
+         Terminals_Next := Tree.Stream_Next (Terminals_Next);
          if Terminals_Next /= Syntax_Trees.Invalid_Stream_Index then
             Tokens (3) := Tree.ID (Terminals_Next);
          end if;
@@ -1273,7 +1273,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Task_ID      : in     Boolean := True)
    is begin
       Trace.Put_Line
-        ((if Task_ID then "task" & Task_Attributes.Value'Image else "") &
+        ((if Task_ID then "task" & Task_Attributes.Value'Image & " " else "") &
            Tree.Trimmed_Image (Parser_Label) & ": " & Message);
    end Put_Line;
 

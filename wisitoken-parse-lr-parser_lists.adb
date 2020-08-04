@@ -158,7 +158,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Trace.Put_Line
               (Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-                 ": " & Message & Tree.Image (State.Current_Token, Trace.Descriptor.all));
+                 ": " & Message & " " & Tree.Image (State.Current_Token, Trace.Descriptor.all));
          end if;
 
          Tree.Delete_Stream (State.Stream);
@@ -285,11 +285,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
       begin
-         if Item.Shared_Token /= Item.Current_Token then
-            --  Resume after error recover not finished; need to copy current_token somehow.
-            raise SAL.Not_Implemented with "spawn parser during resume";
-         end if;
-
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          --  We copy Recover.Enqueue_Count .. Check_Count for unit tests.
@@ -297,7 +292,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
            (Shared_Token                  => Item.Shared_Token,
             Recover_Insert_Delete         => Item.Recover_Insert_Delete,
             Recover_Insert_Delete_Current => Item.Recover_Insert_Delete_Current,
-            Current_Token                 => Item.Shared_Token, -- See FIXME:
+            Current_Token                 =>
+              (if Item.Shared_Token = Item.Current_Token
+               then Item.Current_Token
+               else Syntax_Trees.Invalid_Stream_Index), --  corrected below.
             Inc_Shared_Token              => Item.Inc_Shared_Token,
             Recover                       =>
               (Enqueue_Count              => Item.Recover.Enqueue_Count,
@@ -311,6 +309,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Errors                        => Item.Errors,
             Stream                        => Tree.New_Stream (Item.Stream),
             Verb                          => Item.Verb);
+
+         if Item.Shared_Token /= Item.Current_Token then
+            New_Item.Current_Token := Tree.Stream_Next (New_Item.Stream, Tree.Peek (New_Item.Stream));
+         end if;
       end;
 
       if Trace_Parse > Extra then
