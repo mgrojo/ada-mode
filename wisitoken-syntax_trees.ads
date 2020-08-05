@@ -25,7 +25,6 @@
 --
 --  Tree are not limited to allow wisitoken-bnf-generate to copy them
 --  in order to translate EBNF to BNF, and other similar operations.
---  No Adjust is needed; Augmented pointers are shared.
 --
 --  We can't traverse Tree.Streams to deallocate tree Nodes, either
 --  when streams are terminated or during Finalize; in general Nodes
@@ -95,9 +94,8 @@ package WisiToken.Syntax_Trees is
    type Stream_ID is private;
    Invalid_Stream_ID : constant Stream_ID;
 
-   type Stream_Element is private;
-   type Stream_Index is access Stream_Element;
-   Invalid_Stream_Index : constant Stream_Index := null;
+   type Stream_Index is private;
+   Invalid_Stream_Index : constant Stream_Index;
 
    type Element_Index is range 0 .. Integer'Last;
    Invalid_Element_Index : constant Element_Index := 0;
@@ -1006,10 +1004,6 @@ package WisiToken.Syntax_Trees is
       Message   : in String)
      return String;
 
-   procedure Validate_Stream
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID);
-
    type Validate_Node is access procedure
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
@@ -1139,8 +1133,6 @@ private
       end case;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
-
    type Stream_Label is range -2 .. Integer'Last;
    --  First parser has label 0, for compatibility with tests, and for
    --  general sanity.
@@ -1149,26 +1141,11 @@ private
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Stream_Label);
 
-   type Parse_Stream is record
-      Label : Stream_Label := Invalid_Stream_Label;
-      First : Stream_Index := Invalid_Stream_Index;
-      Last  : Stream_Index := Invalid_Stream_Index;
-
-      Stack_Top : Stream_Index := Invalid_Stream_Index;
-      --  The top of the parse stack. The stack is Stack_Top and previous
-      --  elements, the input stream is the following elements, or
-      --  Terminal_Stream if Stack_Top.Next is Invalid_Stream_Index. In
-      --  batch parsing with no error correction, this is always Last. In
-      --  Terminal_Stream, always Invalid_Stream_Index.
-   end record;
-
    type Stream_Element is record
       --  We use separate stream pointers, rather than reusing the nonterm
       --  child pointers as in [1], to allow each parallel parser to have
       --  its own stream. This also preserves Child_Index when children are
       --  deleting during editing.
-      Next : Stream_Index := Invalid_Stream_Index;
-      Prev : Stream_Index := Invalid_Stream_Index;
       Node : Node_Access  := Invalid_Node_Access;
 
       Label : Stream_Label; -- For validity checks, error messages
@@ -1178,7 +1155,26 @@ private
       --  In other streams, unique but arbitrary, for debugging.
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Stream_Element, Stream_Index);
+   package Stream_Element_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Stream_Element);
+
+   type Stream_Index is record
+      Cur : Stream_Element_Lists.Cursor;
+   end record;
+
+   Invalid_Stream_Index : constant Stream_Index := (Cur => Stream_Element_Lists.No_Element);
+
+   type Parse_Stream is record
+      Label : Stream_Label := Invalid_Stream_Label;
+
+      Stack_Top : Stream_Element_Lists.Cursor := Stream_Element_Lists.No_Element;
+      --  The top of the parse stack. The stack is Stack_Top and previous
+      --  elements, the input stream is the following elements, or
+      --  Terminal_Stream if Stack_Top.Next is Invalid_Stream_Index. In
+      --  batch parsing with no error correction, this is always Last. In
+      --  Terminal_Stream, always Invalid_Stream_Index.
+
+      Elements : Stream_Element_Lists.List;
+   end record;
 
    package Parse_Stream_Lists is new SAL.Gen_Definite_Doubly_Linked_lists (Parse_Stream);
    use all type Parse_Stream_Lists.Cursor;
@@ -1226,8 +1222,10 @@ private
       --  note above.
    end record;
 
+   procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
+
    function Base_Token (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return WisiToken.Base_Token
-   is (Base_Token (Tree, Element.Node));
+   is (Base_Token (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
 
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    is (Node.ID, Node.Byte_Region, Node.Line, Node.Column,
@@ -1240,7 +1238,7 @@ private
       Stream  : in     Stream_ID;
       Element : in     Stream_Index)
      return Stream_Index
-   is (Element.Node.Before.Terminal_Index);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.Before.Terminal_Index);
 
    function Contains
      (Tree   : in Syntax_Trees.Tree;
@@ -1248,7 +1246,7 @@ private
       Token  : in Stream_Index)
      return Boolean
    is ((Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index) and then
-         Token.Label = Tree.Streams (Stream.Cur).Label);
+         Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label);
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set and Tree.Streams.Length = 1 and Tree.Terminal_Stream.Cur = Tree.Streams.Last);
@@ -1264,16 +1262,18 @@ private
       Stream : in Stream_ID;
       Token  : in Stream_Index)
      return Element_Index
-   is (Token.Index);
+   is (Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;
       Token  : in Stream_Index)
      return Element_Index
-   is (if Token = Invalid_Stream_Index then Invalid_Element_Index else Token.Index);
+   is (if Token = Invalid_Stream_Index
+       then Invalid_Element_Index
+       else Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
 
    function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
-   is (Element.Node);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);
 
    function Get_Node_Index (Node : in Node_Access) return Node_Index
    is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
@@ -1283,7 +1283,7 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Token_ID
-   is (Element.Node.ID);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.ID);
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0);
@@ -1296,16 +1296,16 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Boolean
-   is (Is_Virtual (Tree, Element.Node));
+   is (Is_Virtual (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
    is (Node.Label);
 
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
-   is (Element.Node.Label);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.Label);
 
    function Label (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Label
-   is (Tree.Streams (Stream.Cur).Last.Node.Label);
+   is (Stream_Element_Lists.Constant_Ref (Tree.Streams (Stream.Cur).Elements.Last).Node.Label);
 
    function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String
    is (Trimmed_Image (Tree.Next_Stream_Label));
@@ -1315,7 +1315,7 @@ private
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    is ((if Tree.Root = Invalid_Node_Access
-        then Parse_Stream_Lists.Element (Tree.Streams.Last).Last.Node
+        then Stream_Element_Lists.Constant_Ref (Tree.Streams (Tree.Streams.Last).Elements.Last).Node
         else Tree.Root));
 
    function State
@@ -1323,10 +1323,10 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Unknown_State_Index
-   is (Element.Node.State);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.State);
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
-   is (Tree.Streams (Stream.Cur).Stack_Top.Node.State);
+   is (Stream_Element_Lists.Constant_Ref (Tree.Streams (Stream.Cur).Stack_Top).Node.State);
 
    function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Unknown_State_Index
    is (Node.State);
@@ -1338,35 +1338,35 @@ private
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
      return Stream_Index
-   is (Tree.Streams (Stream.Cur).First);
+   is ((Cur => Tree.Streams (Stream.Cur).Elements.First));
 
    function Stream_Last
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID)
      return Stream_Index
-   is (Tree.Streams (Stream.Cur).Last);
+   is ((Cur => Tree.Streams (Stream.Cur).Elements.Last));
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Stream_Index
-   is (Element.Next);
+   is ((Cur => Stream_Element_Lists.Next (Element.Cur)));
 
    function Stream_Next (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Stream_Index
    is (if Element = Invalid_Stream_Index
-       then Tree.Streams (Tree.Terminal_Stream.Cur).First
-       else Element.Next);
+       then (Cur => Tree.Streams (Tree.Terminal_Stream.Cur).Elements.First)
+       else (Cur => Stream_Element_Lists.Next (Element.Cur)));
 
    function Stream_Prev
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Stream_Index
-   is (Element.Prev);
+   is ((Cur => Stream_Element_Lists.Previous (Element.Cur)));
 
    function Stream_Prev (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Stream_Index
-   is (Element.Prev);
+   is ((Cur => Stream_Element_Lists.Previous (Element.Cur)));
 
    function Terminal_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
    is (Tree.Terminal_Stream);
@@ -1375,7 +1375,9 @@ private
    is (Trimmed_Image (Tree.Streams (Item.Cur).Label));
 
    function Trimmed_Image (Item : in Stream_Index) return String
-   is (if Item = Invalid_Stream_Index then "-" else Trimmed_Image (Item.Node.Node_Index));
+   is (if Item = Invalid_Stream_Index
+       then "-"
+       else Trimmed_Image (Stream_Element_Lists.Constant_Ref (Item.Cur).Node.Node_Index));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 

@@ -30,8 +30,8 @@ update-wisitoken_grammar
 incremental parse
     t_bnf
         ada_ebnf.wy
-            need Adjust to deep copy streams
-                or use sal.list for streams; just maintain stack_top as a cursor
+        need syntax_trees.adjust; allocate new, rebuild tree.nodes.
+            use copy_subtree, add dest_tree.
 
 node_printed.nil = 0x104b4f0
 
