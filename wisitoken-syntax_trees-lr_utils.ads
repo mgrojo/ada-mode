@@ -286,7 +286,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    --  Prepend New_Item to Container, including Container.Separator_ID if
    --  it is not Invalid_Token_Index.
    --
-   --  Container.Root parent is unchanged.
+   --  Container.Root parent is updated.
 
    procedure Insert
      (Container   : in out List;
@@ -430,6 +430,9 @@ private
      --  tighten the constraint on Tree in Constant_List. But that doesn't
      --  work either. Since most applications using LR_Utils are editing
      --  the tree anyway, we live with requiring variable access.
+     --
+     --  The current design also means we can't specify Variable_Indexing
+     --  on List.
    record
       Root       : WisiToken.Syntax_Trees.Node_Access;
       List_ID    : WisiToken.Token_ID;

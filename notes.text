@@ -29,11 +29,8 @@ update-wisitoken_grammar
  current work
 incremental parse
     t_bnf
-        ada_ebnf.wy
-        need syntax_trees.adjust; allocate new, rebuild tree.nodes.
-            use copy_subtree, add dest_tree.
-
-node_printed.nil = 0x104b4f0
+        all generated
+        conflict_name_actions doesn't compile
 
     run all tests
 

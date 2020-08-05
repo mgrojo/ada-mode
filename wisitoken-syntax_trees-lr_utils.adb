@@ -523,20 +523,24 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       else
          --  Inserting element First (with list parent node and separator) in spec example
          declare
-            Old_First  : constant Valid_Node_Access := Container.First.Node;
-            Parent : constant Valid_Node_Access := Tree.Parent (Old_First);
+            Old_First   : constant Valid_Node_Access := Container.First.Node;
+            Update_Root : constant Boolean           := Old_First.Parent = Container.Root;
 
             List_Node : constant Valid_Node_Access := Tree.Add_Nonterm
               ((Container.List_ID, Container.One_Element_RHS),
                (1 => New_Element));
          begin
             Tree.Set_Children
-              (Node     => Parent,
+              (Node     => Old_First.Parent,
                New_ID   => (Container.List_ID, Container.Multi_Element_RHS),
                Children =>
                  (if Container.Separator_ID = Invalid_Token_ID
                   then (List_Node, Old_First)
                   else (List_Node, Tree.Add_Terminal (Container.Separator_ID), Old_First)));
+
+            if Update_Root then
+               Container.Root := Old_First.Parent;
+            end if;
          end;
       end if;
    end Prepend;
@@ -697,7 +701,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  0003: | | | ...
 
          declare
-            Parent_2 : constant Valid_Node_Access := Tree.Parent (Item.Node, 2);
+            Parent_2 : Valid_Node_Access := Tree.Parent (Item.Node, 2);
          begin
             Tree.Set_Children
               (Parent_2,

@@ -79,7 +79,7 @@ package WisiToken.Syntax_Trees is
    use all type SAL.Base_Peek_Type;
 
    type Node (<>) is private;
-   type Node_Access is access Node;
+   type Node_Access is access all Node;
    subtype Valid_Node_Access is not null Node_Access;
 
    Invalid_Node_Access : constant Node_Access := null;
@@ -926,7 +926,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Node     : in     Valid_Node_Access;
+      Node     : in out Valid_Node_Access;
       New_ID   : in     WisiToken.Production_ID;
       Children : in     Node_Access_Array)
    with
@@ -948,6 +948,11 @@ package WisiToken.Syntax_Trees is
    --     Tree.Set_Children (node, new_id, tree.childrend())
    --
    --  are legal.
+   --
+   --  Node is 'in out' because it must be reallocated if Children'length
+   --  /= Node.Children'length. If it is reallocated,
+   --  Node.Parent.Children is updated; the caller must update any other
+   --  copies of Node.
 
    procedure Delete_Parent
      (Tree : in out Syntax_Trees.Tree;

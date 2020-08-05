@@ -366,14 +366,16 @@ package body WisiToken.Generate.Tree_Sitter is
 
          procedure Make_Non_Empty_RHS_Item (Item : in Valid_Node_Access)
          with Pre => Tree.ID (Item) = +rhs_item_ID
-         is begin
+         is
+            Item_Var : Valid_Node_Access := Item;
+         begin
             case Tree.RHS_Index (Item) is
             when 0 | 1 | 2 =>
                raise SAL.Programmer_Error;
 
             when 3 => -- rhs_optional_item
                declare
-                  Optional_Item : constant Valid_Node_Access := Tree.Child (Item, 1);
+                  Optional_Item :  Valid_Node_Access := Tree.Child (Item, 1);
                begin
                   case Tree.RHS_Index (Optional_Item) is
                   when 0         =>
@@ -386,7 +388,7 @@ package body WisiToken.Generate.Tree_Sitter is
                            3     => Tree.Add_Terminal (+RIGHT_PAREN_ID)));
 
                      Tree.Set_Children
-                       (Node     => Item,
+                       (Node     => Item_Var,
                         New_ID   => (+rhs_item_ID, 5),
                         Children =>
                           (1     => Optional_Item));
@@ -398,20 +400,20 @@ package body WisiToken.Generate.Tree_Sitter is
                         Children => Tree.Children (Optional_Item) (1 .. 3));
 
                      Tree.Set_Children
-                       (Node     => Item,
+                       (Node     => Item_Var,
                         New_ID   => (+rhs_item_ID, 5),
                         Children =>
                           (1     => Optional_Item));
 
                   when 2         =>
                      Tree.Set_Children
-                       (Node     => Item,
+                       (Node     => Item_Var,
                         New_ID   => (+rhs_item_ID, 0),
                         Children => (1 => Tree.Child (Optional_Item, 1)));
 
                   when 3         =>
                      Tree.Set_Children
-                       (Node     => Item,
+                       (Node     => Item_Var,
                         New_ID   => (+rhs_item_ID, 1),
                         Children => (1 => Tree.Child (Optional_Item, 1)));
 
@@ -422,7 +424,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
             when 4 =>
                declare
-                  Multiple_Item : constant Valid_Node_Access := Tree.Child (Item, 1);
+                  Multiple_Item : Valid_Node_Access := Tree.Child (Item, 1);
                begin
                   case Tree.RHS_Index (Multiple_Item) is
                   when 0 | 3 | 5 =>
@@ -488,6 +490,7 @@ package body WisiToken.Generate.Tree_Sitter is
          procedure Find_Nodes (Node : in Valid_Node_Access)
          is
             use all type SAL.Base_Peek_Type;
+            Node_Var : Node_Access := Node;
          begin
             case To_Token_Enum (Tree.ID (Node)) is
             --  common code first, then Enum_Token_ID alphabetical order
@@ -545,7 +548,7 @@ package body WisiToken.Generate.Tree_Sitter is
                            RHS_Index => (if Tree.RHS_Index (Node) = 0 then 2 else 3),
                            Content   => Tree.Child (Node, 1));
                      begin
-                        Tree.Set_Children (Node, (+rhs_item_ID, 3), (1 => Child));
+                        Tree.Set_Children (Node_Var, (+rhs_item_ID, 3), (1 => Child));
                      end;
                   end if;
 
@@ -568,7 +571,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   Nodes_To_Check.Append (Node);
 
                   Tree.Set_Children
-                    (Node, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+PLUS_ID)));
+                    (Node_Var, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+PLUS_ID)));
 
                when 5 =>
                   --  already optional

@@ -66,7 +66,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Parent   : in     Valid_Node_Access;
+      Parent   : in out Valid_Node_Access;
       Children : in     Node_Access_Array);
 
    procedure Update_Cache (Node : in Valid_Node_Access)
@@ -137,7 +137,7 @@ package body WisiToken.Syntax_Trees is
                      Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
                        (Other_Parent.all, Child);
                   begin
-                     Other_Parent.Children (Child_Index) := null;
+                     Other_Parent.Children (Child_Index) := Invalid_Node_Access;
                   end;
                end if;
 
@@ -158,7 +158,6 @@ package body WisiToken.Syntax_Trees is
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
-   --  FIXME: need State
    is begin
       return Add_Nonterm_1 (Tree, Unknown_State, Production, Children, Action, Default_Virtual);
    end Add_Nonterm;
@@ -1991,11 +1990,9 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Parent   : in     Valid_Node_Access;
+      Parent   : in out Valid_Node_Access;
       Children : in     Node_Access_Array)
-   is
-      Realloc_Parent : Node_Access := Parent;
-   begin
+   is begin
       --  See Design note in spec about Parents, Parent_Set.
 
       if Tree.Parents_Set then
@@ -2010,46 +2007,42 @@ package body WisiToken.Syntax_Trees is
 
       if Parent.Children'Length = Children'Length then
          --  reuse current node
-         Realloc_Parent.Byte_Region := Null_Buffer_Region;
-         Realloc_Parent.Line        := Invalid_Line_Number;
-         Realloc_Parent.Column      := 0;
-         Realloc_Parent.Virtual     := False;
-         Realloc_Parent.Children    := Children;
+         Parent.Byte_Region := Null_Buffer_Region;
+         Parent.Line        := Invalid_Line_Number;
+         Parent.Column      := 0;
+         Parent.Virtual     := False;
+         Parent.Children    := Children;
 
       else
          --  reallocate node with new child_count
-         Realloc_Parent := new Node'
-           (Label                => Nonterm,
-            Child_Count          => Children'Last,
-            ID                   => Parent.ID,
-            Node_Index           => Tree.Nodes.Last_Index + 1,
-            Byte_Region          => Null_Buffer_Region,
-            Line                 => Invalid_Line_Number,
-            Column               => 0,
-            Parent               => Parent.Parent,
-            State                => Parent.State,
-            Augmented            => Parent.Augmented,
-            Non_Grammar          => Parent.Non_Grammar,
-            Virtual              => False,
-            RHS_Index            => Parent.RHS_Index,
-            Action               => Parent.Action,
-            Name                 => Parent.Name,
-            Children             => Children,
-            First_Terminal_Index => Parent.First_Terminal_Index);
+         declare
+            Realloc_Parent : constant Node_Access := new Node'
+              (Label                => Nonterm,
+               Child_Count          => Children'Last,
+               ID                   => Parent.ID,
+               Node_Index           => Tree.Nodes.Last_Index + 1,
+               Byte_Region          => Null_Buffer_Region,
+               Line                 => Invalid_Line_Number,
+               Column               => 0,
+               Parent               => Parent.Parent,
+               State                => Parent.State,
+               Augmented            => Parent.Augmented,
+               Non_Grammar          => Parent.Non_Grammar,
+               Virtual              => False,
+               RHS_Index            => Parent.RHS_Index,
+               Action               => Parent.Action,
+               Name                 => Parent.Name,
+               Children             => Children,
+               First_Terminal_Index => Parent.First_Terminal_Index);
+         begin
+            Tree.Nodes.Append (Realloc_Parent);
 
-         Tree.Nodes.Append (Realloc_Parent);
+            if Parent.Parent /= null then
+               Parent.Parent.Children (Child_Index (Parent.Parent.all, Parent)) := Realloc_Parent;
+            end if;
 
-         if Parent.Parent /= null then
-            Parent.Parent.Children (Child_Index (Parent.Parent.all, Parent)) := Realloc_Parent;
-         else
-            --  Parent is a tree root.
-            --
-            --  FIXME: if Tree.Fully_Parsed, the calling code has a reference to
-            --  Parent that must change; Parent should be 'in out'.
-            --
-            --  FIXME: There may be a stream element that references Parent.
-            raise SAL.Not_Implemented with "Tree.Set_Children tree root; update calling ref";
-         end if;
+            Parent := Realloc_Parent;
+         end;
       end if;
 
       if Tree.Parents_Set then
@@ -2068,12 +2061,12 @@ package body WisiToken.Syntax_Trees is
          end loop;
       end if;
 
-      Update_Cache (Realloc_Parent);
+      Update_Cache (Parent);
    end Set_Children;
 
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
-      Node     : in     Valid_Node_Access;
+      Node     : in out Valid_Node_Access;
       New_ID   : in     WisiToken.Production_ID;
       Children : in     Node_Access_Array)
    is
