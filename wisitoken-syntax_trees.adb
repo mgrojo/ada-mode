@@ -55,6 +55,15 @@ package body WisiToken.Syntax_Trees is
    --  Process_Node returns False (Process_Tree returns False), or when
    --  all nodes have been processed (Process_Tree returns True).
 
+   function Push
+     (Tree         : in out Syntax_Trees.Tree;
+      Parse_Stream : in out Syntax_Trees.Parse_Stream;
+      Node         : in     Valid_Node_Access)
+     return Stream_Index
+   with Pre => Node.State /= Unknown_State;
+   --  Add Node to Parse_Stream at Stack_Top. If Node is originally from
+   --  Terminal_Stream, it has been copied and State set.
+
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Access;
@@ -245,7 +254,7 @@ package body WisiToken.Syntax_Trees is
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Base_Token_Class_Access
+     return Augmented_Class_Access
    is begin
       return Node.Augmented;
    end Augmented;
@@ -253,9 +262,9 @@ package body WisiToken.Syntax_Trees is
    function Augmented_Const
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Base_Token_Class_Access_Constant
+     return Augmented_Class_Access_Constant
    is begin
-      return Base_Token_Class_Access_Constant (Node.Augmented);
+      return Augmented_Class_Access_Constant (Node.Augmented);
    end Augmented_Const;
 
    function Before
@@ -460,7 +469,7 @@ package body WisiToken.Syntax_Trees is
                New_Children : Node_Access_Array (Node.Children'Range);
             begin
                for I in New_Children'Range loop
-                  New_Children (I) := Copy_Node (Tree, Node.Children (I), Parent);
+                  New_Children (I) := Copy_Node (Tree, Node.Children (I), Dummy_Node);
                end loop;
 
                New_Node := new Syntax_Trees.Node'
@@ -498,6 +507,164 @@ package body WisiToken.Syntax_Trees is
          return Copy_Node (Tree, Root, Invalid_Node_Access);
       end if;
    end Copy_Subtree;
+
+   procedure Copy_Tree
+     (Source         : in     Tree;
+      Destination    :    out Tree;
+      Copy_Augmented : access function (Item : in Augmented_Class_Access) return Augmented_Class_Access)
+   is
+      function Find_Dest_Terminal_Index (Source_Terminal_Index : in Stream_Index) return Stream_Index
+      is begin
+         if Source_Terminal_Index = Invalid_Stream_Index then
+            return Invalid_Stream_Index;
+         else
+            declare
+               use Stream_Element_Lists;
+               Source_Index : constant Element_Index := Constant_Ref (Source_Terminal_Index.Cur).Index;
+            begin
+               --  FIXME: use binary search.
+               for Dest_Cur in Destination.Streams (Destination.Terminal_Stream.Cur).Elements.Iterate loop
+                  if Source_Index = Constant_Ref (Dest_Cur).Index then
+                     return (Cur => Dest_Cur);
+                  end if;
+               end loop;
+               raise SAL.Programmer_Error;
+            end;
+         end if;
+      end Find_Dest_Terminal_Index;
+
+      function Copy_Node
+        (Source_Node : in Valid_Node_Access;
+         Dest_Parent : in Node_Access)
+        return Valid_Node_Access
+      is
+         New_Dest_Node : Node_Access;
+      begin
+         case Source_Node.Label is
+         when Shared_Terminal =>
+
+            New_Dest_Node := new Syntax_Trees.Node'
+              (Label          => Shared_Terminal,
+               Child_Count    => 0,
+               ID             => Source_Node.ID,
+               Node_Index     => Destination.Nodes.Last_Index + 1,
+               Byte_Region    => Source_Node.Byte_Region,
+               Parent         => Dest_Parent,
+               State          => Source_Node.State,
+               Augmented      => Copy_Augmented (Source_Node.Augmented),
+               Non_Grammar    => Source_Node.Non_Grammar,
+               Line           => Source_Node.Line,
+               Column         => Source_Node.Column,
+               Char_Region    => Source_Node.Char_Region,
+               Terminal_Index => Find_Dest_Terminal_Index (Source_Node.Terminal_Index));
+
+         when Virtual_Terminal     =>
+
+            New_Dest_Node := new Syntax_Trees.Node'
+              (Label       => Virtual_Terminal,
+               Child_Count => 0,
+               ID          => Source_Node.ID,
+               Node_Index  => Destination.Nodes.Last_Index + 1,
+               Byte_Region => Source_Node.Byte_Region,
+               Line        => Source_Node.Line,
+               Column      => Source_Node.Column,
+               Parent      => Dest_Parent,
+               State       => Source_Node.State,
+               Augmented   => Copy_Augmented (Source_Node.Augmented),
+               Non_Grammar => Source_Node.Non_Grammar,
+               Before      => Source_Node.Before);
+
+         when Virtual_Identifier =>
+
+            New_Dest_Node := new Syntax_Trees.Node'
+              (Label       => Virtual_Identifier,
+               Child_Count => 0,
+               ID          => Source_Node.ID,
+               Node_Index  => Destination.Nodes.Last_Index + 1,
+               Byte_Region => Source_Node.Byte_Region,
+               Line        => Source_Node.Line,
+               Column      => Source_Node.Column,
+               Parent      => Dest_Parent,
+               State       => Source_Node.State,
+               Augmented   => Copy_Augmented (Source_Node.Augmented),
+               Non_Grammar => Source_Node.Non_Grammar,
+               Identifier  => Source_Node.Identifier);
+
+         when Nonterm =>
+            declare
+               New_Children : Node_Access_Array (Source_Node.Children'Range);
+            begin
+               for I in New_Children'Range loop
+                  New_Children (I) := Copy_Node (Source_Node.Children (I), Dummy_Node);
+               end loop;
+
+               New_Dest_Node := new Syntax_Trees.Node'
+                 (Label                => Nonterm,
+                  Child_Count          => New_Children'Last,
+                  ID                   => Source_Node.ID,
+                  Node_Index           => Destination.Nodes.Last_Index + 1,
+                  Byte_Region          => Source_Node.Byte_Region,
+                  Line                 => Source_Node.Line,
+                  Column               => Source_Node.Column,
+                  Parent               => Dest_Parent,
+                  State                => Source_Node.State,
+                  Augmented            => Copy_Augmented (Source_Node.Augmented),
+                  Non_Grammar          => Source_Node.Non_Grammar,
+                  Virtual              => Source_Node.Virtual,
+                  RHS_Index            => Source_Node.RHS_Index,
+                  Action               => Source_Node.Action,
+                  Name                 => Source_Node.Name,
+                  Children             => New_Children,
+                  First_Terminal_Index => Find_Dest_Terminal_Index (Source_Node.First_Terminal_Index));
+
+               for Child of New_Dest_Node.Children loop
+                  Child.Parent := New_Dest_Node;
+               end loop;
+            end;
+         end case;
+         Destination.Nodes.Append (New_Dest_Node);
+         return New_Dest_Node;
+      end Copy_Node;
+   begin
+      Destination.Leading_Non_Grammar := Source.Leading_Non_Grammar;
+      Destination.Traversing          := False;
+      Destination.Parents_Set         := Source.Parents_Set;
+
+      Destination.Terminal_Stream :=
+        (Cur           => Destination.Streams.Append
+           ((Label     => Terminal_Stream_Label,
+             Stack_Top => Stream_Element_Lists.No_Element,
+             Elements  => <>)));
+
+      for Element of Source.Streams (Source.Terminal_Stream.Cur).Elements loop
+         declare
+            Junk : Stream_Index := Add_Terminal (Destination, Source.Base_Token (Element.Node));
+            pragma Unreferenced (Junk);
+         begin
+            null;
+         end;
+      end loop;
+
+      declare
+         Source_Root_Element : Stream_Element renames Stream_Element_Lists.Constant_Ref
+           (Source.Streams (Source.Streams.Last).Elements.Last);
+      begin
+         Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
+
+         if Source.Streams.Length = 2 then
+            declare
+               Dest_Stream_ID : constant Stream_ID := New_Stream (Destination, Invalid_Stream_ID);
+
+               Dest_Parse_Stream : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
+               Junk : Stream_Index;
+               pragma Unreferenced (Junk);
+            begin
+               Start_Parse (Destination, Dest_Stream_ID, State => Source_Root_Element.Node.State);
+               Junk := Push (Destination, Dest_Parse_Stream, Destination.Root);
+            end;
+         end if;
+      end;
+   end Copy_Tree;
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
@@ -1703,9 +1870,6 @@ package body WisiToken.Syntax_Trees is
       Parse_Stream : in out Syntax_Trees.Parse_Stream;
       Node         : in     Valid_Node_Access)
      return Stream_Index
-   with Pre => Node.State /= Unknown_State
-   --  Add Node to Parse_Stream at Stack_Top. If Node is originally from
-   --  Terminal_Stream, it has been copied and State set.
    is
       use Stream_Element_Lists;
       New_Element : constant Cursor := Parse_Stream.Elements.Insert
@@ -1820,7 +1984,7 @@ package body WisiToken.Syntax_Trees is
    procedure Set_Augmented
      (Tree  : in out Syntax_Trees.Tree;
       Node  : in     Valid_Node_Access;
-      Value : in     Base_Token_Class_Access)
+      Value : in     Augmented_Class_Access)
    is begin
       Node.Augmented := Value;
    end Set_Augmented;
@@ -1876,13 +2040,15 @@ package body WisiToken.Syntax_Trees is
          Tree.Nodes.Append (Realloc_Parent);
 
          if Parent.Parent /= null then
-            Parent.Children (Child_Index (Parent.Parent.all, Parent)) := Realloc_Parent;
+            Parent.Parent.Children (Child_Index (Parent.Parent.all, Parent)) := Realloc_Parent;
          else
+            --  Parent is a tree root.
+            --
             --  FIXME: if Tree.Fully_Parsed, the calling code has a reference to
             --  Parent that must change; Parent should be 'in out'.
             --
             --  FIXME: There may be a stream element that references Parent.
-            raise SAL.Not_Implemented with "Tree.Set_Children update Parent ref";
+            raise SAL.Not_Implemented with "Tree.Set_Children tree root; update calling ref";
          end if;
       end if;
 

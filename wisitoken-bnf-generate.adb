@@ -317,6 +317,8 @@ begin
       raise;
    end;
 
+   Grammar_Parser.Tree.Clear_Parse_Streams;
+
    declare
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use Ada.Text_IO;
@@ -408,7 +410,10 @@ begin
             Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
             Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
          begin
-            Saved_EBNF_Tree := Tree;
+            Syntax_Trees.Copy_Tree
+              (Source => Tree,
+               Destination => Saved_EBNF_Tree,
+              Copy_Augmented => WisiToken_Grammar_Runtime.Copy_Augmented'Access);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
@@ -417,7 +422,6 @@ begin
                   Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
-            Tree.Clear_Parse_Streams;
             WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
 
             if Trace_Generate_EBNF > Detail then

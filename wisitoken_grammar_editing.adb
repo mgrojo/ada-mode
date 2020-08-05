@@ -203,10 +203,9 @@ package body WisiToken_Grammar_Editing is
       In_Parse_Action   : in     Node_Access := Invalid_Node_Access)
      return Valid_Node_Access
    is
-      Aug : constant Augmented_Token_Access := new Augmented_Token'
+      Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
         (Auto_Token_Labels => Auto_Token_Labels,
-         Edited_Token_List => Edited_Token_List,
-         others => <>);
+         Edited_Token_List => Edited_Token_List);
 
       RHS : constant Valid_Node_Access :=
         (if In_Parse_Action = Invalid_Node_Access
@@ -219,7 +218,7 @@ package body WisiToken_Grammar_Editing is
             then Tree.Add_Nonterm ((+rhs_ID, 3), (Item, Tree.Add_Terminal (+ACTION_ID), In_Parse_Action))
             else Tree.Add_Nonterm ((+rhs_ID, 3), (Item, Post_Parse_Action, In_Parse_Action))));
    begin
-      Tree.Set_Augmented (RHS, WisiToken.Base_Token_Class_Access (Aug));
+      Tree.Set_Augmented (RHS, WisiToken.Syntax_Trees.Augmented_Class_Access (Aug));
       return RHS;
    end Add_RHS;
 
@@ -874,11 +873,11 @@ package body WisiToken_Grammar_Editing is
 
          when 2 | 3 =>
             declare
-               Aug : Augmented_Token_Access := Augmented_Token_Access (Tree.Augmented (RHS));
+               Aug : Augmented_Access := Augmented_Access (Tree.Augmented (RHS));
             begin
                if Aug = null then
-                  Aug := new Augmented_Token'(Auto_Token_Labels => True, others => <>);
-                  Tree.Set_Augmented (RHS, WisiToken.Base_Token_Class_Access (Aug));
+                  Aug := new WisiToken_Grammar_Runtime.Augmented'(Auto_Token_Labels => True, others => <>);
+                  Tree.Set_Augmented (RHS, WisiToken.Syntax_Trees.Augmented_Class_Access (Aug));
                else
                   Aug.Auto_Token_Labels := True;
                end if;
@@ -1002,12 +1001,11 @@ package body WisiToken_Grammar_Editing is
                           Tree.Copy_Subtree (Tree.Child (After, 3))),
                when others => raise SAL.Programmer_Error));
 
-         Aug : constant Augmented_Token_Access := new Augmented_Token'
+         Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
            (Auto_Token_Labels => Auto_Token_Labels,
-            Edited_Token_List => True,
-            others => <>);
+            Edited_Token_List => True);
       begin
-         Tree.Set_Augmented (RHS, WisiToken.Base_Token_Class_Access (Aug));
+         Tree.Set_Augmented (RHS, WisiToken.Syntax_Trees.Augmented_Class_Access (Aug));
 
          RHS_List.Insert
            (New_Element => RHS,
@@ -1072,7 +1070,7 @@ package body WisiToken_Grammar_Editing is
       is
          RHS : constant Valid_Node_Access :=
            (if Tree.ID (Node) = +rhs_ID then Node else Tree.Find_Ancestor (Node, +rhs_ID));
-         Aug : constant Augmented_Token_Access := Augmented_Token_Access (Tree.Augmented (RHS));
+         Aug : constant Augmented_Access := Augmented_Access (Tree.Augmented (RHS));
       begin
          if Aug = null then
             return False;
@@ -1329,17 +1327,16 @@ package body WisiToken_Grammar_Editing is
                   declare
                      After : Valid_Node_Access := B;
 
-                     Aug : constant Augmented_Token_Access := new Augmented_Token'
+                     Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
                        (Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
-                        Edited_Token_List => True,
-                        others => <>);
+                        Edited_Token_List => True);
                   begin
                      loop
                         After := List_Root (Tree, Tree.Find_Ancestor (After, +rhs_item_list_ID), +rhs_item_list_ID);
                         exit when Container_List.Contains (After);
                      end loop;
 
-                     Tree.Set_Augmented (New_RHS_AC, WisiToken.Base_Token_Class_Access (Aug));
+                     Tree.Set_Augmented (New_RHS_AC, WisiToken.Syntax_Trees.Augmented_Class_Access (Aug));
 
                      Container_List.Insert
                        (New_Element => New_RHS_AC,

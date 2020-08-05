@@ -23,8 +23,8 @@
 --
 --  Each parallel parser uses one stream as the parse stack.
 --
---  Tree are not limited to allow wisitoken-bnf-generate to copy them
---  in order to translate EBNF to BNF, and other similar operations.
+--  Tree are limited because a bit-copy is not a good start on copy
+--  for assign; use Copy_Tree.
 --
 --  We can't traverse Tree.Streams to deallocate tree Nodes, either
 --  when streams are terminated or during Finalize; in general Nodes
@@ -68,6 +68,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
+with Ada.Unchecked_Deallocation;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Vectors;
@@ -136,7 +137,8 @@ package WisiToken.Syntax_Trees is
 
    type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
 
-   type Tree is new Ada.Finalization.Controlled with private;
+   type Tree is new Ada.Finalization.Limited_Controlled with private;
+   --  Use Copy_Tree to get a copy.
 
    type Tree_Variable_Reference (Element : not null access Tree) is null record with
      Implicit_Dereference => Element;
@@ -172,6 +174,12 @@ package WisiToken.Syntax_Trees is
 
    ----------
    --  User_Data_Type
+
+   type Base_Augmented is tagged null record;
+   type Augmented_Class_Access is access all Base_Augmented'Class;
+   type Augmented_Class_Access_Constant is access constant Base_Augmented'Class;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Base_Augmented'Class, Augmented_Class_Access);
 
    type User_Data_Type is tagged limited null record;
    --  Many test languages don't need this, so we default the procedures
@@ -615,19 +623,19 @@ package WisiToken.Syntax_Trees is
    procedure Set_Augmented
      (Tree  : in out Syntax_Trees.Tree;
       Node  : in     Valid_Node_Access;
-      Value : in     Base_Token_Class_Access);
+      Value : in     Augmented_Class_Access);
    --  Value will be deallocated when Tree is finalized.
 
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Base_Token_Class_Access;
+     return Augmented_Class_Access;
    --  Returns result of Set_Augmented.
 
    function Augmented_Const
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Base_Token_Class_Access_Constant;
+     return Augmented_Class_Access_Constant;
 
    function Action
      (Tree : in Syntax_Trees.Tree;
@@ -792,6 +800,15 @@ package WisiToken.Syntax_Trees is
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if Clear_Parse_Streams and Set_Parents have been called.
+
+   procedure Copy_Tree
+     (Source         : in     Tree;
+      Destination    :    out Tree;
+      Copy_Augmented : access function (Item : in Augmented_Class_Access) return Augmented_Class_Access)
+   with Pre => Fully_Parsed (Source) or Editable (Source);
+   --  The subtree rooted in the single remaining parse stream (if any)
+   --  is copied, and the parse stream and terminal stream. All
+   --  references are deep copied; Source many be finalized.
 
    procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
    with Pre => Tree.Fully_Parsed, Post => Tree.Editable;
@@ -1035,7 +1052,7 @@ package WisiToken.Syntax_Trees is
    --  message to Text_IO.Current_Error. Error_Reported is used to avoid
    --  outputing an error for a node more than once.
 
-   type Image_Augmented is access function (Aug : in Base_Token_Class_Access) return String;
+   type Image_Augmented is access function (Aug : in Augmented_Class_Access) return String;
    type Image_Action is access function (Action : in Semantic_Action) return String;
 
    procedure Print_Tree
@@ -1085,7 +1102,7 @@ private
       --  it's required for error recover Undo_Reduce, and incremental parse
       --  breakdown.
 
-      Augmented : Base_Token_Class_Access := null;
+      Augmented : Augmented_Class_Access := null;
       --  IMPROVEME: Augmented should not derive from Base_Token; that
       --  duplicates information. Not changing yet for compatibility with
       --  main devel branch.
@@ -1187,7 +1204,7 @@ private
 
    package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
 
-   type Tree is new Ada.Finalization.Controlled with record
+   type Tree is new Ada.Finalization.Limited_Controlled with record
       Leading_Non_Grammar : aliased WisiToken.Base_Token_Arrays.Vector;
       --  Non-grammar tokens before first grammar token; leading blank lines
       --  and comments.
@@ -1200,8 +1217,6 @@ private
       Root : Node_Access := Invalid_Node_Access;
 
       Streams : Parse_Stream_Lists.List;
-      --  The number of Streams is limited by the max number of parallel
-      --  parsers, default 15, so linear search to find stream ID is fast.
 
       Terminal_Stream : Stream_ID;
 

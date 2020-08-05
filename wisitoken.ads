@@ -45,7 +45,6 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
@@ -295,11 +294,10 @@ package WisiToken is
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
-   type Base_Token is tagged record
-      --  Base_Token is used in the core parser. The parser only needs ID
-      --  and Tree_Index; semantic checks need Byte_Region to compare names.
-      --  Line, Col, and Char_Region are included for error messages and
-      --  interfacing with other tools.
+   type Base_Token is record
+      --  The parser only needs ID; semantic checks need Byte_Region to
+      --  compare names. Line, Col, and Char_Region are included for error
+      --  messages and interfacing with other tools.
 
       ID : Token_ID := Invalid_Token_ID;
 
@@ -315,16 +313,11 @@ package WisiToken is
       --  buffers.
    end record;
 
-   type Base_Token_Class_Access is access all Base_Token'Class;
-   type Base_Token_Class_Access_Constant is access constant Base_Token'Class;
-
    function Image
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor)
      return String;
    --  For debug/test messages.
-
-   procedure Free is new Ada.Unchecked_Deallocation (Base_Token'Class, Base_Token_Class_Access);
 
    Invalid_Token : constant Base_Token := (others => <>);
 

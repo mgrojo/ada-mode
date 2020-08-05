@@ -181,6 +181,7 @@ package body WisiToken_Grammar_Runtime is
      return WisiToken.BNF.RHS_Type
    with Pre => Tree.ID (Token) = +rhs_ID
    is
+      use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
       use all type SAL.Base_Peek_Type;
       Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Token);
    begin
@@ -189,7 +190,7 @@ package body WisiToken_Grammar_Runtime is
 
          if Tree.Augmented (Token) /= null then
             declare
-               Aug : constant Augmented_Token_Access := Augmented_Token_Access (Tree.Augmented (Token));
+               Aug : constant Augmented_Access := Augmented_Access (Tree.Augmented (Token));
             begin
                RHS.Auto_Token_Labels := Aug.Auto_Token_Labels;
                RHS.Edited_Token_List := Aug.Edited_Token_List;
@@ -299,6 +300,24 @@ package body WisiToken_Grammar_Runtime is
 
    ----------
    --  Public subprograms, declaration order
+
+   function Copy_Augmented
+     (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access)
+     return WisiToken.Syntax_Trees.Augmented_Class_Access
+   is
+      use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
+   begin
+      if Item = null then
+         return null;
+      else
+         declare
+            Old_Aug : Augmented renames Augmented_Access (Item).all;
+            New_Aug : constant Augmented_Access := new Augmented'(Old_Aug.Auto_Token_Labels, Old_Aug.Edited_Token_List);
+         begin
+            return WisiToken.Syntax_Trees.Augmented_Class_Access (New_Aug);
+         end;
+      end if;
+   end Copy_Augmented;
 
    overriding
    procedure Set_Lexer
