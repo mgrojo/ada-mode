@@ -28,10 +28,12 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    t_mck only 1 failure
-
-
     t_bnf
+        ada_ebnf.wy
+            need Adjust to deep copy streams
+                or use sal.list for streams; just maintain stack_top as a cursor
+
+node_printed.nil = 0x104b4f0
 
     run all tests
 

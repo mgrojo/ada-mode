@@ -40,8 +40,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Stream_Index := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State,
-         Default_Virtual => False);
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State);
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line

@@ -417,6 +417,7 @@ begin
                   Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
+            Tree.Clear_Parse_Streams;
             WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
 
             if Trace_Generate_EBNF > Detail then

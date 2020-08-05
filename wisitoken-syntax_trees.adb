@@ -373,6 +373,7 @@ package body WisiToken.Syntax_Trees is
       Tree.Nodes.Clear (Free_Memory);
 
       --  Set up for new parse:
+      Tree.Root                        := Invalid_Node_Access;
       Tree.Next_Stream_Label           := Terminal_Stream_Label + 1;
       Tree.Next_Stream_Element_Index   := 1;
       Tree.Next_Terminal_Element_Index := 1;
@@ -388,6 +389,31 @@ package body WisiToken.Syntax_Trees is
                Stack_Top => Invalid_Stream_Index)));
    end Clear;
 
+   procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
+   is
+      use Parse_Stream_Lists;
+      Cur  : Cursor := Tree.Streams.First;
+      Temp : Cursor;
+   begin
+      if Tree.Root = Invalid_Node_Access then
+         Tree.Root := Syntax_Trees.Root (Tree);
+      end if;
+      loop
+         exit when not Has_Element (Cur);
+         if Cur /= Tree.Terminal_Stream.Cur then
+            Temp := Cur;
+            Cur := Next (Cur);
+            Tree.Streams.Delete (Temp); -- FIXME: Finalize (Cur)
+         else
+            Cur := Next (Cur);
+         end if;
+      end loop;
+
+      if not Tree.Parents_Set then
+         Tree.Set_Parents;
+      end if;
+   end Clear_Parse_Streams;
+
    function Copy_Subtree
      (Tree : in out Syntax_Trees.Tree;
       Root : in     Node_Access)
@@ -395,11 +421,10 @@ package body WisiToken.Syntax_Trees is
    is
       function Copy_Node
         (Tree   : in out Syntax_Trees.Tree;
-         Index  : in     Valid_Node_Access;
+         Node   : in     Valid_Node_Access;
          Parent : in     Node_Access)
         return Valid_Node_Access
       is
-         Node : Syntax_Trees.Node renames Index.all;
          New_Node : Node_Access;
       begin
          case Node.Label is
@@ -414,11 +439,11 @@ package body WisiToken.Syntax_Trees is
                Parent         => Parent,
                State          => Node.State,
                Augmented      => Node.Augmented,
+               Non_Grammar    => Node.Non_Grammar,
                Line           => Node.Line,
                Column         => Node.Column,
                Char_Region    => Node.Char_Region,
-               Terminal_Index => Node.Terminal_Index,
-               Non_Grammar    => Node.Non_Grammar);
+               Terminal_Index => Node.Terminal_Index);
 
          when Virtual_Terminal     =>
 
@@ -433,6 +458,7 @@ package body WisiToken.Syntax_Trees is
                Parent      => Parent,
                State       => Node.State,
                Augmented   => Node.Augmented,
+               Non_Grammar => Node.Non_Grammar,
                Before      => Node.Before);
 
          when Virtual_Identifier =>
@@ -448,14 +474,15 @@ package body WisiToken.Syntax_Trees is
                Parent      => Parent,
                State       => Node.State,
                Augmented   => Node.Augmented,
+               Non_Grammar => Node.Non_Grammar,
                Identifier  => Node.Identifier);
 
          when Nonterm =>
             declare
-               New_Children : Node_Access_Array (Index.Children'Range);
+               New_Children : Node_Access_Array (Node.Children'Range);
             begin
                for I in New_Children'Range loop
-                  New_Children (I) := Copy_Node (Tree, Index.Children (I), Parent);
+                  New_Children (I) := Copy_Node (Tree, Node.Children (I), Parent);
                end loop;
 
                New_Node := new Syntax_Trees.Node'
@@ -469,12 +496,17 @@ package body WisiToken.Syntax_Trees is
                   Parent               => Parent,
                   State                => Node.State,
                   Augmented            => Node.Augmented,
+                  Non_Grammar          => Node.Non_Grammar,
                   Virtual              => Node.Virtual,
                   RHS_Index            => Node.RHS_Index,
                   Action               => Node.Action,
                   Name                 => Node.Name,
                   Children             => New_Children,
                   First_Terminal_Index => Node.First_Terminal_Index);
+
+               for Child of New_Node.Children loop
+                  Child.Parent := New_Node;
+               end loop;
             end;
          end case;
          Tree.Nodes.Append (New_Node);
@@ -572,7 +604,7 @@ package body WisiToken.Syntax_Trees is
       Node.Parent.Children (Child_Index (Node.Parent.all, Node)) := null;
 
       if Node.Parent = Tree.Root then
-         Tree.Streams (Tree.Streams.First).First.Node := Node;
+         Tree.Root := Node;
       end if;
 
       Node.Parent := null;
@@ -1654,7 +1686,7 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Print_Node;
 
-      Print_Root : constant Node_Access := (if Root = Invalid_Node_Access then Tree.Root else Root);
+      Print_Root : constant Node_Access := (if Root = Invalid_Node_Access then Syntax_Trees.Root (Tree) else Root);
    begin
       if Print_Root = Invalid_Node_Access then
          Put_Line ("<empty tree>");
@@ -1723,7 +1755,7 @@ package body WisiToken.Syntax_Trees is
       Root         : in     Node_Access := Invalid_Node_Access)
    is begin
       Tree.Traversing := True;
-      Process_Tree (Tree, (if Root = Invalid_Node_Access then Tree.Root else Root), Process_Node);
+      Process_Tree (Tree, (if Root = Invalid_Node_Access then Syntax_Trees.Root (Tree) else Root), Process_Node);
       Tree.Traversing := False;
    exception
    when others =>
@@ -1933,6 +1965,7 @@ package body WisiToken.Syntax_Trees is
             Parent               => Parent.Parent,
             State                => Parent.State,
             Augmented            => Parent.Augmented,
+            Non_Grammar          => Parent.Non_Grammar,
             Virtual              => False,
             RHS_Index            => Parent.RHS_Index,
             Action               => Parent.Action,

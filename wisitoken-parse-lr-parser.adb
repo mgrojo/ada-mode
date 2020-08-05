@@ -53,7 +53,11 @@ package body WisiToken.Parse.LR.Parser is
 
       Nonterm : constant Syntax_Trees.Stream_Index := Shared_Parser.Tree.Reduce
         (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State,
-         Default_Virtual => False);
+         Default_Virtual => Shared_Parser.Tree.Is_Virtual (Parser_State.Stream, Parser_State.Current_Token));
+      --  If the token that triggered the reduce is virtual (inserted by
+      --  error recover), and the nonterm is empty, then assume it should be
+      --  virtual also; it would have been if error recover had put any
+      --  tokens in it.
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line

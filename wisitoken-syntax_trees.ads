@@ -335,9 +335,6 @@ package WisiToken.Syntax_Trees is
    function Trimmed_Image (Item : in Stream_Index) return String;
    --  Trimmed_Image of item.node_index.
 
-   function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
-   --  True if there is only one stream, and it has only one element.
-
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
@@ -458,13 +455,13 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Terminal  : in     Valid_Node_Access)
      return Base_Token_Arrays_Var_Ref
-   with Pre => Tree.Is_Shared_Terminal (Terminal);
+   with Pre => Tree.Label (Terminal) /= Nonterm;
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
      return Base_Token_Arrays_Const_Ref
-   with Pre => Tree.Is_Shared_Terminal (Terminal);
+   with Pre => Tree.Label (Terminal) /= Nonterm;
 
    function Insert_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -551,6 +548,12 @@ package WisiToken.Syntax_Trees is
    function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
 
+   function Is_Virtual
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Boolean
+   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    --  Virtual_Terminal, Virtual_Identifier, or Nonterm that contains some Virtual tokens.
 
@@ -785,6 +788,21 @@ package WisiToken.Syntax_Trees is
    --  Post-parsing operations; editing the tree. The tree has only one
    --  stream, so these subprograms have no stream argument.
 
+   function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
+   --  True if there is only one stream, and it has only two elements;
+   --  the start state and the tree root.
+
+   function Editable (Tree : in Syntax_Trees.Tree) return Boolean;
+   --  True if Clear_Parse_Streams and Set_Parents have been called.
+
+   procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
+   with Pre => Tree.Fully_Parsed, Post => Tree.Editable;
+   --  If Tree.Root is not set, first set Tree.Root to the root of the
+   --  single remaining parse stream, then delete the parse stream, but
+   --  not the nodes it contains. This allows Tree to be edited without
+   --  corrupting the parse stream. Also call Set_Parents if not
+   --  Parents_Set.
+
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 
    procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
@@ -792,6 +810,7 @@ package WisiToken.Syntax_Trees is
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    with Pre => Tree.Fully_Parsed;
+   --  Tree.Root, or the root in the single stream if Tree.Root is not set.
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
@@ -919,7 +938,7 @@ package WisiToken.Syntax_Trees is
      (Tree : in out Syntax_Trees.Tree;
       Node : in     Valid_Node_Access)
    with
-     Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
+     Pre => Tree.Editable and (not Tree.Traversing) and
             Tree.Parent (Node) /= Invalid_Node_Access;
    --  Set child in Node.Parent to Invalid_Node_Access. If Node.Parent =
    --  Tree.Root, set Tree.Root to Node. Set Node.Parent to
@@ -1077,13 +1096,16 @@ private
       --  duplicates information. Not changing yet for compatibility with
       --  main devel branch.
 
+      Non_Grammar : aliased Base_Token_Arrays.Vector;
+      --  Immediately following Node. In initial parse, this can only be in
+      --  a Shared_Terminal node. But editing the tree can put it in another
+      --  node. FIXME: if not placed after nonterm, move into variant_part.
+
       case Label is
       when Shared_Terminal =>
          Char_Region : Buffer_Region := Null_Buffer_Region;
 
          Terminal_Index : Stream_Index := Invalid_Stream_Index;
-
-         Non_Grammar : aliased Base_Token_Arrays.Vector; -- immediately following Terminal
 
       when Virtual_Terminal =>
          Before : Node_Access := Invalid_Node_Access;
@@ -1159,6 +1181,7 @@ private
    procedure Free is new Ada.Unchecked_Deallocation (Stream_Element, Stream_Index);
 
    package Parse_Stream_Lists is new SAL.Gen_Definite_Doubly_Linked_lists (Parse_Stream);
+   use all type Parse_Stream_Lists.Cursor;
 
    type Stream_ID is record
       Cur : Parse_Stream_Lists.Cursor;
@@ -1177,6 +1200,8 @@ private
 
       Next_Stream_Element_Index   : Element_Index := 1;
       Next_Terminal_Element_Index : Element_Index := 1;
+
+      Root : Node_Access := Invalid_Node_Access;
 
       Streams : Parse_Stream_Lists.List;
       --  The number of Streams is limited by the max number of parallel
@@ -1225,8 +1250,13 @@ private
    is ((Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index) and then
          Token.Label = Tree.Streams (Stream.Cur).Label);
 
+   function Editable (Tree : in Syntax_Trees.Tree) return Boolean
+   is (Tree.Parents_Set and Tree.Streams.Length = 1 and Tree.Terminal_Stream.Cur = Tree.Streams.Last);
+
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
+   is ((Tree.Streams.Length = 1 and Tree.Root /= Invalid_Node_Access) -- from Clear_Parse_Streams
+         or else
+         (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2));
    --  1 stream for Terminals, one for the remaining parser.
 
    function Get_Element_Index
@@ -1261,6 +1291,13 @@ private
    function Is_Valid (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Boolean
    is (Parse_Stream_Lists.Has_Element (Stream.Cur));
 
+   function Is_Virtual
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Boolean
+   is (Is_Virtual (Tree, Element.Node));
+
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
    is (Node.Label);
 
@@ -1277,7 +1314,9 @@ private
    is (Tree.Parents_Set);
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
-   is (Parse_Stream_Lists.Element (Tree.Streams.Last).Last.Node);
+   is ((if Tree.Root = Invalid_Node_Access
+        then Parse_Stream_Lists.Element (Tree.Streams.Last).Last.Node
+        else Tree.Root));
 
    function State
      (Tree    : in Syntax_Trees.Tree;

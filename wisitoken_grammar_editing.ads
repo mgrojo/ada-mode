@@ -162,9 +162,13 @@ package WisiToken_Grammar_Editing is
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Data : in out WisiToken_Grammar_Runtime.User_Data_Type);
-   --  Process EBNF nonterms, adding new nonterms as needed, resulting in
+      Data : in out WisiToken_Grammar_Runtime.User_Data_Type)
+   with Pre => Tree.Editable;
+   --  Edit EBNF nonterms, adding new nonterms as needed, resulting in
    --  a BNF tree.
+   --
+   --  Tree.Root is updated as necessary; all streams must be cleared, or
+   --  they might be corrupted.
    --
    --  Generator.LR.*_Generate requires a BNF grammar.
 

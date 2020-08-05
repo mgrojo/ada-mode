@@ -178,7 +178,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
         return List
-      with Pre => (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and Tree.ID (Root) = List_ID;
+      with Pre => Tree.Editable and (Tree.Is_Nonterm (Root) and then Tree.Has_Children (Root)) and
+                  Tree.ID (Root) = List_ID;
       --  If there is no separator, set Separator_ID = WisiToken.Invalid_Token_ID
       --  The list cannot be empty; use Empty_List for an empty list.
 
@@ -214,7 +215,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
          Element_ID   :         in     WisiToken.Token_ID;
          Separator_ID :         in     WisiToken.Token_ID)
         return List
-      with Pre => Tree.ID (Tree.Parent (Element)) = List_ID and
+      with Pre => Tree.Editable and
+                  Tree.ID (Tree.Parent (Element)) = List_ID and
                   Tree.ID (Element) = Element_ID and
                   Tree.ID (Tree.Parent (Element)) = List_ID;
       --  Same as Create_List, but it first finds the root as an ancestor of
@@ -252,7 +254,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
          Multi_Element_RHS :         in     Natural;
          Element_ID        :         in     WisiToken.Token_ID;
          Separator_ID      :         in     WisiToken.Token_ID)
-        return List;
+        return List
+      with Pre => Tree.Editable;
       --  Result Root returns Invalid_Node_Access; First, Last return empty
       --  cursor, count returns 0; Append works correctly.
 
@@ -322,9 +325,11 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    type Skip_Label is (Nested, Skip);
 
-   type Skip_Item (Label : Skip_Label := Skip_Label'First) is
+   type Skip_Item (Label : Skip_Label := Skip) is
+   --  The default values must be valid to allow Skip_Info to be default
+   --  initialized.
    record
-      Element : Valid_Node_Access;
+      Element : Node_Access := null;
       case Label is
       when Nested =>
          --  Element is an element in the list currently being copied
@@ -344,9 +349,10 @@ package WisiToken.Syntax_Trees.LR_Utils is
    subtype Nested_Skip_Item is Skip_Item (Nested);
 
    function Image (Item : in Skip_Item; Descriptor : in WisiToken.Descriptor) return String
-   is ("(" & Item.Label'Image & ", " & Item.Element'Image &
+   is ("(" & Item.Label'Image & ", " & Trimmed_Image (Get_Node_Index (Item.Element)) &
          (case Item.Label is
-          when Nested => "," & Item.List_Root'Image & ", " & Image (Item.List_ID, Descriptor),
+          when Nested => "," & Trimmed_Image (Get_Node_Index (Item.List_Root)) & ", " &
+               Image (Item.List_ID, Descriptor),
           when Skip => "") &
          ")");
 
@@ -371,7 +377,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
    is ("(" &
          (if Item.Start_List_ID = Invalid_Token_ID
           then ""
-          else Item.Start_List_Root'Image & ", " & Image (Item.Start_List_ID, Descriptor) & ", " &
+          else Trimmed_Image (Get_Node_Index (Item.Start_List_Root)) & ", " &
+             Image (Item.Start_List_ID, Descriptor) & ", " &
              Image (Item.Skips, Descriptor))
          & ")");
 
@@ -386,9 +393,10 @@ package WisiToken.Syntax_Trees.LR_Utils is
      (Skip_List :         in     Skip_Info;
       Tree      : aliased in out Syntax_Trees.Tree)
      return Node_Access
-   with Pre => Skip_List.Start_List_ID /= Invalid_Token_ID and then
-               (Valid_Skip_List (Tree, Skip_List.Skips) and
-                Skip_List.Start_List_ID /= Skip_List.Start_Element_ID);
+   with Pre => Tree.Editable and
+               (Skip_List.Start_List_ID /= Invalid_Token_ID and then
+                (Valid_Skip_List (Tree, Skip_List.Skips) and
+                 Skip_List.Start_List_ID /= Skip_List.Start_Element_ID));
    --  Copy list rooted at Skip_List.Start_List, skipping one element as
    --  indicated by Skip_List.Skip. Return root of copied list.
    --
