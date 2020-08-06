@@ -47,7 +47,8 @@ is
    procedure Put_Parser_Spec (Name : in String)
    is begin
       Indent_Line ("function " & Name);
-      Indent_Start ("  (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type");
+      Indent_Start
+        ("  (Parser : in out Generated.Parser; Last_Pos : in Syntax_Trees.Element_Index) return Result_Type");
    end Put_Parser_Spec;
 
    function Var_Suffix (I, J : in Integer) return String
@@ -69,8 +70,9 @@ is
       Indent := Indent + 3;
 
       Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;");
-      Indent_Line ("Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm");
-      Indent_Line ("Pos        : Base_Token_Index := Last_Pos; --  last token parsed.");
+      Indent_Line
+        ("Start_Pos  : constant Syntax_Trees.Element_Index := Last_Pos + 1; --  first token in current nonterm");
+      Indent_Line ("Pos        : Syntax_Trees.Element_Index := Last_Pos; --  last token parsed.");
 
       for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
          declare
@@ -78,7 +80,7 @@ is
          begin
             for Token_Index in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
                if RHS.Tokens (Token_Index) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                  Indent_Line ("Pos_" & Var_Suffix (RHS_Index, Token_Index) & "  : Token_Index;");
+                  Indent_Line ("Pos_" & Var_Suffix (RHS_Index, Token_Index) & "  : Syntax_Trees.Element_Index;");
                else
                   Indent_Line ("Memo_" & Var_Suffix (RHS_Index, Token_Index) & " : Memo_Entry;");
                end if;
@@ -87,7 +89,7 @@ is
       end loop;
 
       if Data.Direct_Left_Recursive (Prod.LHS) then
-         Indent_Line ("Pos_Recurse_Last : Base_Token_Index := Last_Pos;");
+         Indent_Line ("Pos_Recurse_Last : Syntax_Trees.Element_Index := Last_Pos;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
 
@@ -95,7 +97,7 @@ is
       Indent_Line ("begin");
       Indent := Indent + 3;
 
-      Indent_Line ("if Pos = Parser.Terminals.Last_Index then");
+      Indent_Line ("if Pos = Parser.Tree.Last_Index then");
       Indent_Line ("   return (State => Failure);");
       Indent_Line ("end if;");
       Indent_Line ("declare");
@@ -113,7 +115,7 @@ is
       Indent_Line ("when No_Result =>");
       Indent_Line ("   if Memo.Recursive then");
       Indent_Start ("      raise Recursive with Image (" & Result_ID & ", Descriptor) &");
-      Put_Line (" Token_Index'Image (Start_Pos) & "": recursive"";");
+      Put_Line (" Syntax_Trees.Element_Index'Image (Start_Pos) & "": recursive"";");
       Indent_Line ("   end if;");
       Indent_Line ("   Memo.Recursive := True;");
       Indent_Line ("end case;");

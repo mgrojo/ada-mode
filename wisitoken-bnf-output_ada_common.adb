@@ -115,7 +115,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       if not (Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0) then
          Put_Line ("with WisiToken;");
       end if;
-      if Input_Data.Action_Count > 0 then
+      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       if Input_Data.Check_Count > 0 then

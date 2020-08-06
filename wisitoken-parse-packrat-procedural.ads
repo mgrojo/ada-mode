@@ -43,14 +43,14 @@ package WisiToken.Parse.Packrat.Procedural is
          null;
 
       when Success =>
-         Result   : WisiToken.Valid_Node_Index;
-         Last_Pos : Base_Token_Index;
+         Result   : Syntax_Trees.Valid_Node_Index;
+         Last_Pos : Syntax_Trees.Element_Index;
 
       end case;
    end record;
 
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_Index, Memo_Entry, Default_Element => (others => <>));
+     (Syntax_Trees.Element_Index, Memo_Entry, Default_Element => (others => <>));
    type Derivs is array (Token_ID range <>) of Memos.Vector;
 
    type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser with
@@ -71,10 +71,6 @@ package WisiToken.Parse.Packrat.Procedural is
      return Procedural.Parser;
 
    overriding procedure Parse (Parser : aliased in out Procedural.Parser);
-   overriding function Tree (Parser : aliased in Procedural.Parser) return Syntax_Trees.Tree_Constant_Reference;
-   overriding function Tree_Var_Ref
-     (Parser : aliased in out Procedural.Parser)
-     return Syntax_Trees.Tree_Variable_Reference;
 
    overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean
      is (False);

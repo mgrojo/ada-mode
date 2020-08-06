@@ -29,8 +29,8 @@ update-wisitoken_grammar
  current work
 incremental parse
     t_bnf
-        all generated
-        conflict_name_actions doesn't compile
+        packrat doesn't compile
+            need to match syntax_tree changes
 
     run all tests
 

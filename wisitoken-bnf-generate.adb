@@ -216,7 +216,7 @@ begin
             begin
                begin
                   Tuple.Gen_Alg := Generate_Algorithm'Value (Argument (Arg_Next));
-                  Arg_Next     := Arg_Next + 1;
+                  Arg_Next      := Arg_Next + 1;
                exception
                when Constraint_Error =>
                   raise User_Error with "invalid value for generator_algorithm: '" & Argument (Arg_Next) & ";";
@@ -470,6 +470,11 @@ begin
 
                procedure Translate (Tree : in out Syntax_Trees.Tree)
                is begin
+                  if Trace_Generate_EBNF > Detail then
+                     Ada.Text_IO.New_Line;
+                     Ada.Text_IO.Put_Line ("output tree_sitter grammar");
+                  end if;
+
                   Eliminate_Empty_Productions (Input_Data, Tree, Input_Data.Grammar_Lexer.File_Name);
 
                   Print_Tree_Sitter

@@ -546,7 +546,7 @@ package body WisiToken.Syntax_Trees is
               (Label          => Shared_Terminal,
                Child_Count    => 0,
                ID             => Source_Node.ID,
-               Node_Index     => Destination.Nodes.Last_Index + 1,
+               Node_Index     => Source_Node.Node_Index,
                Byte_Region    => Source_Node.Byte_Region,
                Parent         => Dest_Parent,
                State          => Source_Node.State,
@@ -644,25 +644,25 @@ package body WisiToken.Syntax_Trees is
          end;
       end loop;
 
-      declare
-         Source_Root_Element : Stream_Element renames Stream_Element_Lists.Constant_Ref
-           (Source.Streams (Source.Streams.Last).Elements.Last);
-      begin
-         Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
+      if Source.Streams.Length = 2 then
+         declare
+            Source_Root_Element : Stream_Element renames Stream_Element_Lists.Constant_Ref
+              (Source.Streams (Source.Streams.Last).Elements.Last);
 
-         if Source.Streams.Length = 2 then
-            declare
-               Dest_Stream_ID : constant Stream_ID := New_Stream (Destination, Invalid_Stream_ID);
+            Dest_Stream_ID : constant Stream_ID := New_Stream (Destination, Invalid_Stream_ID);
 
-               Dest_Parse_Stream : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
-               Junk : Stream_Index;
-               pragma Unreferenced (Junk);
-            begin
-               Start_Parse (Destination, Dest_Stream_ID, State => Source_Root_Element.Node.State);
-               Junk := Push (Destination, Dest_Parse_Stream, Destination.Root);
-            end;
-         end if;
-      end;
+            Dest_Parse_Stream : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
+            Junk : Stream_Index;
+            pragma Unreferenced (Junk);
+         begin
+            Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
+
+            Start_Parse (Destination, Dest_Stream_ID, State => Source_Root_Element.Node.State);
+            Junk := Push (Destination, Dest_Parse_Stream, Destination.Root);
+         end;
+      else
+         Destination.Root := Copy_Node (Source.Root, Invalid_Node_Access);
+      end if;
    end Copy_Tree;
 
    procedure Delete_Subtree
