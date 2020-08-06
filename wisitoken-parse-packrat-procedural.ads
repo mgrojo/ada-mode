@@ -43,8 +43,8 @@ package WisiToken.Parse.Packrat.Procedural is
          null;
 
       when Success =>
-         Result   : Syntax_Trees.Valid_Node_Index;
-         Last_Pos : Syntax_Trees.Element_Index;
+         Result   : Syntax_Trees.Node_Access;
+         Last_Pos : Syntax_Trees.Stream_Index;
 
       end case;
    end record;
@@ -70,7 +70,7 @@ package WisiToken.Parse.Packrat.Procedural is
       User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
-   overriding procedure Parse (Parser : aliased in out Procedural.Parser);
+   overriding procedure Parse (Parser : in out Procedural.Parser);
 
    overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean
      is (False);

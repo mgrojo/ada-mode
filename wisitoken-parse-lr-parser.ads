@@ -116,7 +116,7 @@ package WisiToken.Parse.LR.Parser is
       Max_Parallel                   : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       Terminate_Same_State           : in              Boolean            := True);
 
-   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser);
+   overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --

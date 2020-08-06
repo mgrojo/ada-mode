@@ -22,12 +22,12 @@ package body Test_Skip_To_Aux is
 
    Decl_Count : Integer := 0;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Valid_Node_Index)
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
    is begin
       if Enable then
          declare
-            Chars : constant WisiToken.Buffer_Region := Parser.Terminals
-              (Parser.Tree.First_Shared_Terminal (Parser.Tree.Last_Terminal (Nonterm))).Char_Region;
+            Chars : constant WisiToken.Buffer_Region := Parser.Tree.Base_Token
+              (Parser.Tree.Last_Terminal (Nonterm)).Char_Region;
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
          begin
             if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -64,7 +64,7 @@ package body Test_Skip_To_Aux is
       end if;
    end Test_Declaration_0;
 
-   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Valid_Node_Index)
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
    is begin
       if Enable then
          if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -74,7 +74,7 @@ package body Test_Skip_To_Aux is
          --  See comment in Test_Declaration_0 for source of expected values.
 
          Check ("compilation_unit_0 PREAMBLE char region",
-                Parser.Terminals (Parser.Tree.First_Shared_Terminal (Nonterm)).Char_Region,
+                Parser.Tree.Base_Token (Parser.Tree.First_Shared_Terminal (Nonterm)).Char_Region,
                 (1, 5));
          declare
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);

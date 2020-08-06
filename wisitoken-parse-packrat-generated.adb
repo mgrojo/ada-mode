@@ -19,36 +19,34 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse.Packrat.Generated is
 
-   overriding procedure Parse (Parser : aliased in out Generated.Parser)
+   overriding procedure Parse (Parser : in out Generated.Parser)
    is
-      --  'aliased' required for Base_Tree'Access. WORKAROUND: that was
-      --  enough when Parser type was declared in generated Main; now that
-      --  it's a derived type, it doesn't work. So we use Unchecked_Access.
+      use all type WisiToken.Syntax_Trees.User_Data_Access;
 
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
-      Junk : WisiToken.Valid_Node_Index;
-      pragma Unreferenced (Junk);
-
       Result : Memo_Entry;
    begin
-      Parser.Base_Tree.Clear;
       Parser.Tree.Clear;
-      Parser.Tree.Initialize (Parser.Base_Tree'Unchecked_Access);
+      if Parser.User_Data /= null then
+         Parser.User_Data.Reset;
+      end if;
+      Parser.Wrapped_Lexer_Errors.Clear;
       Parser.Lex_All;
+
+      --  We don't use syntax tree parse streams.
+      Parser.Tree.Force_Set_Parents;
+
       Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
 
       for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-         Parser.Derivs (Nonterm).Set_First_Last (Parser.Terminals.First_Index, Parser.Terminals.Last_Index);
+         Parser.Derivs (Nonterm).Set_First_Last
+           (Parser.Tree.Get_Element_Index (Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
+            Parser.Tree.Get_Element_Index (Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
       end loop;
 
-      for Token_Index in Parser.Terminals.First_Index .. Parser.Terminals.Last_Index loop
-         Junk := Parser.Tree.Add_Terminal (Token_Index, Parser.Terminals);
-         --  FIXME: move this into Lex_All, delete Terminals, just use Syntax_Tree
-      end loop;
-
-      Result := Parser.Parse_WisiToken_Accept (Parser, Parser.Terminals.First_Index - 1);
+      Result := Parser.Parse_WisiToken_Accept (Parser, Syntax_Trees.Invalid_Stream_Index);
 
       if Result.State /= Success then
          if Trace_Parse > Outline then
@@ -61,18 +59,6 @@ package body WisiToken.Parse.Packrat.Generated is
       end if;
 
    end Parse;
-
-   overriding function Tree (Parser : aliased in Generated.Parser) return Syntax_Trees.Tree_Constant_Reference
-   is begin
-      return (Element => Parser.Tree'Access);
-   end Tree;
-
-   overriding function Tree_Var_Ref
-     (Parser : aliased in out Generated.Parser)
-     return Syntax_Trees.Tree_Variable_Reference
-   is begin
-      return (Element => Parser.Tree'Access);
-   end Tree_Var_Ref;
 
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean
    is
@@ -93,5 +79,19 @@ package body WisiToken.Parse.Packrat.Generated is
 
       --  FIXME: Packrat parser does not report errors yet.
    end Put_Errors;
+
+   function Image_Pos
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Syntax_Trees.Stream_Index)
+     return String
+   is
+      use Syntax_Trees;
+   begin
+      if Element = Invalid_Stream_Index then
+         return "0";
+      else
+         return Tree.Get_Element_Index (Element)'Image;
+      end if;
+   end Image_Pos;
 
 end WisiToken.Parse.Packrat.Generated;

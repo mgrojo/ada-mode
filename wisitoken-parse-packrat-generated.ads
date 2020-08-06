@@ -39,9 +39,9 @@ package WisiToken.Parse.Packrat.Generated is
          null;
 
       when Success =>
-         Result : aliased Syntax_Trees.Valid_Node_Index;
+         Result : aliased Syntax_Trees.Node_Access;
 
-         Last_Pos : Syntax_Trees.Element_Index;
+         Last_Pos : Syntax_Trees.Stream_Index;
       end case;
    end record;
 
@@ -56,7 +56,7 @@ package WisiToken.Parse.Packrat.Generated is
 
    type Parse_WisiToken_Accept is access
      --  WORKAROUND: using Packrat.Parser'Class here hits a GNAT Bug box in GPL 2018.
-     function (Parser : in out Base_Parser'Class; Last_Pos : in Syntax_Trees.Element_Index) return Result_Type;
+     function (Parser : in out Base_Parser'Class; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type;
 
    type Parser is new Packrat.Parser with record
       Derivs : Generated.Derivs.Vector; --  FIXME: use discriminated array, as in procedural
@@ -64,8 +64,14 @@ package WisiToken.Parse.Packrat.Generated is
       Parse_WisiToken_Accept : Generated.Parse_WisiToken_Accept;
    end record;
 
-   overriding procedure Parse (Parser : aliased in out Generated.Parser);
+   overriding procedure Parse (Parser : in out Generated.Parser);
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;
    overriding procedure Put_Errors (Parser : in Generated.Parser);
+
+   function Image_Pos
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Syntax_Trees.Stream_Index)
+     return String;
+   --  "0" for Invalid_Stream_Index, Node_Index'image otherwise.
 
 end WisiToken.Parse.Packrat.Generated;

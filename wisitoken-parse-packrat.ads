@@ -54,4 +54,9 @@ package WisiToken.Parse.Packrat is
      (Parser          : in out Packrat.Parser;
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
 
+   function Image_Pos
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Syntax_Trees.Stream_Index)
+     return String;
+   --  "0" for Invalid_Stream_Index, Node_Index'Image otherwise.
 end WisiToken.Parse.Packrat;

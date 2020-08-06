@@ -41,7 +41,7 @@
 
 %code actions body pre %{
    procedure Handle_Aspect
-      (Tokens : in WisiToken.Valid_Node_Index_Array;
+      (Tokens : in WisiToken.Syntax_Trees.Valid_Node_Access_Array;
        Aspect : in SAL.Base_Peek_Type)
    is
       pragma Unreferenced (Tokens, Aspect);

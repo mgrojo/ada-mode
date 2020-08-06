@@ -28,7 +28,7 @@ package body WisiToken.Parse.Packrat is
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index)
+         Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use all type Syntax_Trees.Node_Label;
       begin
@@ -38,12 +38,12 @@ package body WisiToken.Parse.Packrat is
 
          declare
             use all type Syntax_Trees.Semantic_Action;
-            Tree_Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+            Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 
             if Tree.Action (Node) /= null then
-               Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
+               Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
             end if;
          end;
       end Process_Node;
@@ -59,5 +59,19 @@ package body WisiToken.Parse.Packrat is
 
       Parser.Tree.Process_Tree (Process_Node'Access);
    end Execute_Actions;
+
+   function Image_Pos
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Syntax_Trees.Stream_Index)
+     return String
+   is
+      use Syntax_Trees;
+   begin
+      if Element = Invalid_Stream_Index then
+         return "0";
+      else
+         return Tree.Get_Element_Index (Element)'Image;
+      end if;
+   end Image_Pos;
 
 end WisiToken.Parse.Packrat;

@@ -156,7 +156,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       begin
          if Trace_Parse > Outline then
             Trace.Put_Line
-              (Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
+              (" " & Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
                  ": " & Message & " " & Tree.Image (State.Current_Token, Trace.Descriptor.all));
          end if;

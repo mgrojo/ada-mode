@@ -22,30 +22,28 @@ package Warth_Left_Recurse_Expr_1_Runtime is
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Lexer     : WisiToken.Lexer.Handle;
-      Terminals : WisiToken.Base_Token_Array_Access_Constant;
-      Stack     : Integer_Stacks.Stack;
+      Lexer : WisiToken.Lexer.Handle;
+      Stack : Integer_Stacks.Stack;
    end record;
 
    overriding
-   procedure Set_Lexer_Terminals
+   procedure Set_Lexer
      (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     WisiToken.Base_Token_Array_Access_Constant);
+      Lexer     : in     WisiToken.Lexer.Handle);
 
    overriding procedure Reset (Data : in out User_Data_Type);
 
    procedure Push
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Arg_Index : in     WisiToken.Positive_Index_Type);
    --  Push value of Tree (Tokens (Arg_Index)) onto User_Data.Stack.
 
    procedure Subtract
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array);
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
    --  Pop two values, subtract them, push result.
 
 end Warth_Left_Recurse_Expr_1_Runtime;

@@ -22,7 +22,7 @@ package Test_Skip_To_Aux is
 
    Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Valid_Node_Index);
-   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Valid_Node_Index);
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access);
 
 end Test_Skip_To_Aux;

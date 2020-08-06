@@ -15,7 +15,7 @@ Action
  0:  3, ( 0 0 0 0 0 0 1 0 0), (12 : (Identifier))| 3:(Wisi_EOI, (66 . 65))|((INSERT, Identifier, 3))
 
 recover: succeed, parser count 1
- 0: Current_Token (Identifier) Shared_Token  3:(Wisi_EOI, (66 . 65)) recover_insert_delete:
+ 0: Current_Token (Identifier) Shared_Token 3:(Wisi_EOI, (66 . 65)) recover_insert_delete:
  0: resume_active: True, token goal 7, inc_shared_token: FALSE
 
  0: 7: (Identifier) : reduce 1 tokens to ClassType

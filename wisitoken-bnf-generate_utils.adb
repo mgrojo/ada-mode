@@ -302,6 +302,7 @@ package body WisiToken.BNF.Generate_Utils is
       Grammar_Parser.Execute_Actions; -- Meta phase.
 
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
+         Grammar_Parser.Tree.Clear_Parse_Streams;
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Tree, Input_Data);
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";

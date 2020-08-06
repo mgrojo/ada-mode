@@ -162,8 +162,9 @@ package body BNF_WY_Test is
       when EBNF_Syntax =>
          --  The BNF file is output by rules.make, and debugged separately. We
          --  need to translate this here in order to set McKenzie_Recover.
+         Grammar_Parser.Tree.Clear_Parse_Streams;
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
-           (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
+           (Grammar_Parser.Tree, Input_Data);
       end case;
 
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;

@@ -242,7 +242,6 @@ package body WisiToken.Lexer.Regexp is
 
       Token :=
         (ID          => Lexer.ID,
-         Tree_Index  => Invalid_Node_Index,
          Byte_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)),
          Line        => Invalid_Line_Number,
          Column      => Ada.Text_IO.Count (Lexer.Lexeme_Head),

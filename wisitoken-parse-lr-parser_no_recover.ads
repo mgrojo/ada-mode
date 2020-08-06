@@ -53,7 +53,7 @@ package WisiToken.Parse.LR.Parser_No_Recover is
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True);
 
-   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser_No_Recover.Parser);
+   overriding procedure Parse (Shared_Parser : in out LR.Parser_No_Recover.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --

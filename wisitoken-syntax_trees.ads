@@ -728,6 +728,10 @@ package WisiToken.Syntax_Trees is
    --  If Node is not Shared_Terminal, Char_Region is Null_Buffer_Region.
 
    function First_Shared_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Stream_Index;
+   function First_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)
@@ -823,9 +827,16 @@ package WisiToken.Syntax_Trees is
    procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
    with Pre => Tree.Fully_Parsed;
 
+   procedure Force_Set_Parents (Tree : in out Syntax_Trees.Tree);
+   --  Set Tree.Set_Parents True, and Tree.Root to Dummy_Node, so tree
+   --  editing functions are callable. Required by the packrat parser,
+   --  which does not use parse streams.
+
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    with Pre => Tree.Fully_Parsed;
    --  Tree.Root, or the root in the single stream if Tree.Root is not set.
+
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access);
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;

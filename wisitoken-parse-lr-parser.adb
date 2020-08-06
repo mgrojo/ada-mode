@@ -124,7 +124,8 @@ package body WisiToken.Parse.LR.Parser is
    begin
       if Trace_Parse > Detail then
          Trace.Put
-           (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
+           --  Leading space for compatibility with existing tests.
+           (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Current_Parser.Stream)) & ": ") &
@@ -211,7 +212,7 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Parse > Outline then
                Put
                  (Trace,
-                  Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
+                  " " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
                     (if Trace_Parse_No_State_Numbers
                      then "--"
                      else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": expecting: " &
@@ -258,7 +259,7 @@ package body WisiToken.Parse.LR.Parser is
 
       if Trace_Parse > Extra and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Index then
          Shared_Parser.Trace.Put_Line
-           (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": (do_deletes) shared_token:" &
+           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": (do_deletes) shared_token:" &
               Shared_Parser.Tree.Get_Element_Index (Parser_State.Shared_Token)'Image &
               " inc_shared_token: " & Parser_State.Inc_Shared_Token'Image &
               " recover_insert_delete:" &
@@ -316,7 +317,7 @@ package body WisiToken.Parse.LR.Parser is
                   Parser_State.Resume_Active := False;
                   if Trace_Parse > Detail then
                      Shared_Parser.Trace.Put_Line
-                       (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
                   end if;
                else
                   Resume_Active := True;
@@ -409,7 +410,7 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end New_Parser;
 
-   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser)
+   overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser)
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Syntax_Trees.User_Data_Access;
@@ -452,7 +453,7 @@ package body WisiToken.Parse.LR.Parser is
             if not Check_Parser.State_Ref.Resume_Active then
                --  Parser is now a zombie
                if Trace_Parse > Detail then
-                  Trace.Put_Line (Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) & ": zombie");
+                  Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) & ": zombie");
                end if;
                Check_Parser.Next;
 
@@ -523,7 +524,7 @@ package body WisiToken.Parse.LR.Parser is
                      Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
                      if Trace_Parse > Extra then
                         Trace.Put_Line
-                          (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
                              Syntax_Trees.Element_Index'Image
                                (Shared_Parser.Table.McKenzie_Param.Check_Limit - Parser_State.Zombie_Token_Count) &
                              " tokens remaining)");
@@ -596,7 +597,7 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Trace_Parse > Extra then
                         Trace.Put_Line
-                          (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
                              ": current_token " & Shared_Parser.Tree.Image
                              (Parser_State.Current_Token, Trace.Descriptor.all) &
                              " recover_insert_delete:" &
@@ -832,7 +833,7 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Trace_Parse > Outline then
                         Trace.Put_Line
-                          (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": Current_Token " &
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": Current_Token " &
                              Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                              " Shared_Token " & Shared_Parser.Tree.Image
                                (Parser_State.Shared_Token, Trace.Descriptor.all) &
@@ -844,7 +845,7 @@ package body WisiToken.Parse.LR.Parser is
 
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
-                             (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
                                 ": resume_active: True, token goal" &
                                 Parser_State.Resume_Token_Goal'Image &
                                 ", inc_shared_token: " & Parser_State.Inc_Shared_Token'Image);
@@ -924,7 +925,7 @@ package body WisiToken.Parse.LR.Parser is
                if Trace_Parse > Extra then
                   Trace.Put_Line
                     ("current_verb: " & Image (Current_Verb) &
-                       "," & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
+                       ", " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
                        ".verb: " & Image (Current_Parser.Verb));
                end if;
 
@@ -939,7 +940,7 @@ package body WisiToken.Parse.LR.Parser is
                     Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Check_Limit
                   then
                      if Trace_Parse > Detail then
-                        Trace.Put_Line (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": zombie");
+                        Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": zombie");
                      end if;
 
                      Current_Parser.Next;
@@ -951,7 +952,7 @@ package body WisiToken.Parse.LR.Parser is
                elsif Current_Parser.Verb = Current_Verb then
 
                   if Trace_Parse > Extra then
-                     Trace.Put (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": stack: ");
+                     Trace.Put (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": stack: ");
                      Trace.Put_Line
                        (Parser_Lists.Image (Current_Parser.Stream, Trace.Descriptor.all, Shared_Parser.Tree));
                   end if;
@@ -1054,7 +1055,7 @@ package body WisiToken.Parse.LR.Parser is
                                  Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                               begin
                                  Trace.Put_Line
-                                   (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
+                                   (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
                                       Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
                                       Shared_Parser.Tree.Image
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
@@ -1094,7 +1095,7 @@ package body WisiToken.Parse.LR.Parser is
       end loop Main_Loop;
 
       if Trace_Parse > Outline then
-         Trace.Put_Line (Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
+         Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
       end if;
 
       if Trace_Time then

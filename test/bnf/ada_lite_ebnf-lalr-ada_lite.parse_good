@@ -59,7 +59,7 @@ semantic check OK
 (name, (209 . 215)) <= (9:(IDENTIFIER, (209 . 215)))
 semantic check OK
  ... goto state 189
- 0: terminate (1 active): zombie 7:(IDENTIFIER, (203 . 203))
+ 0: terminate (1 active): zombie 7:(IDENTIFIER, (205 . 205))
  1: 189: 10:(COLON_EQUAL, (217 . 218)) : reduce 1 tokens to subtype_indication
 (subtype_indication, (209 . 215)) <= ((name, (209 . 215)))
  ... goto state 239
@@ -458,7 +458,7 @@ semantic check OK
 (name, (465 . 471)) <= (70:(IDENTIFIER, (465 . 471)))
 semantic check OK
  ... goto state 189
- 1: terminate (1 active): zombie 68:(IDENTIFIER, (459 . 459))
+ 1: terminate (1 active): zombie 68:(IDENTIFIER, (461 . 461))
  2: 189: 71:(SEMICOLON, (472 . 472)) : reduce 1 tokens to subtype_indication
 (subtype_indication, (465 . 471)) <= ((name, (465 . 471)))
  ... goto state 239
@@ -797,7 +797,7 @@ semantic check OK
 (name, (655 . 661)) <= (112:(IDENTIFIER, (655 . 661)))
 semantic check OK
  ... goto state 189
- 2: terminate (1 active): zombie 110:(IDENTIFIER, (649 . 649))
+ 2: terminate (1 active): zombie 110:(IDENTIFIER, (651 . 651))
  3: 189: 113:(SEMICOLON, (662 . 662)) : reduce 1 tokens to subtype_indication
 (subtype_indication, (655 . 661)) <= ((name, (655 . 661)))
  ... goto state 239

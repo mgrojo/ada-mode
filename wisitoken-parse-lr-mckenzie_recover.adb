@@ -324,7 +324,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Data.Success then
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
                           ": succeed" & SAL.Base_Peek_Type'Image (Data.Results.Count) &
                           ", enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
@@ -356,7 +356,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                else
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                           (if Data.Config_Full_Count > 0 then ", config_full" & Data.Config_Full_Count'Image else "") &
                           ", check " & Integer'Image (Data.Check_Count));
@@ -1230,7 +1230,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +"") &
+        (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +" ") &
         Tree.Trimmed_Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
@@ -1252,9 +1252,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Result := Result & Image (Config.Stack, Descriptor, Depth => 1);
 
       if Config.Current_Insert_Delete = No_Insert_Delete then
-         Result := Result & "|" & Tree.Image (Config.Current_Shared_Token, Descriptor) & "|";
+         Result := Result & "| " & Tree.Image (Config.Current_Shared_Token, Descriptor) & "|";
       else
-         Result := Result & "/" & Trimmed_Image (Config.Current_Insert_Delete) & ":" &
+         Result := Result & "/ " & Trimmed_Image (Config.Current_Insert_Delete) & ":" &
            Image (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete), Descriptor) & "/";
       end if;
 

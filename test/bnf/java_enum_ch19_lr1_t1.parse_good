@@ -30,7 +30,7 @@ Action
  0:  1, ( 0 0 1 0 0 0 0 0 0), (9 : (RIGHT_CURLY_BRACKET))| 6:(Wisi_EOI, (23 . 22))|((INSERT, RIGHT_CURLY_BRACKET, 6)) minimal_complete ACTIVE
 
 recover: succeed, parser count 1
- 0: Current_Token (RIGHT_CURLY_BRACKET) Shared_Token  6:(Wisi_EOI, (23 . 22)) recover_insert_delete:
+ 0: Current_Token (RIGHT_CURLY_BRACKET) Shared_Token 6:(Wisi_EOI, (23 . 22)) recover_insert_delete:
  0: resume_active: True, token goal 10, inc_shared_token: FALSE
 
  0: 8: (RIGHT_CURLY_BRACKET) : shift and goto state 9

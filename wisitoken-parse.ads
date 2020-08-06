@@ -76,7 +76,7 @@ package WisiToken.Parse is
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 
-   procedure Parse (Parser : aliased in out Base_Parser) is abstract;
+   procedure Parse (Parser : in out Base_Parser) is abstract;
    --  Call Lex_All, then execute parse algorithm to parse the tokens,
    --  storing the result in Parser for Execute_Actions.
    --

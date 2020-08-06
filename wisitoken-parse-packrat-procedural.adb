@@ -22,14 +22,14 @@ package body WisiToken.Parse.Packrat.Procedural is
    function Apply_Rule
      (Parser   : in out Procedural.Parser;
       R        : in     Token_ID;
-      Last_Pos : in     Base_Token_Index)
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    with Post => Apply_Rule'Result.State in Failure .. Success;
 
    function Eval
      (Parser   : in out Procedural.Parser;
       R        : in     Token_ID;
-      Last_Pos : in     Base_Token_Index)
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    with Post => Eval'Result.State in Failure .. Success;
 
@@ -39,14 +39,18 @@ package body WisiToken.Parse.Packrat.Procedural is
    function Eval
      (Parser   : in out Procedural.Parser;
       R        : in     Token_ID;
-      Last_Pos : in     Base_Token_Index)
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    is
+      use all type WisiToken.Syntax_Trees.Stream_Index;
+
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Tree       : Syntax_Trees.Tree renames Parser.Tree;
 
       subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 
-      Pos : Base_Token_Index := Last_Pos; --  last token parsed.
+      Pos      : Syntax_Trees.Stream_Index := Last_Pos; --  last token parsed.
+      Next_Pos : Syntax_Trees.Stream_Index := Tree.Stream_Next (Pos);
    begin
       for RHS_Index in Parser.Grammar (R).RHSs.First_Index .. Parser.Grammar (R).RHSs.Last_Index loop
          declare
@@ -56,26 +60,26 @@ package body WisiToken.Parse.Packrat.Procedural is
          begin
             if RHS.Tokens.Length = 0 then
                return
-                 (State              => Success,
-                  Result             => Parser.Tree.Add_Nonterm
-                    (Production      => (R, RHS_Index),
-                     Action          => RHS.Action,
-                     Children        => (1 .. 0 => Invalid_Node_Index),
-                     Default_Virtual => False),
-                  Last_Pos           => Pos);
+                 (State         => Success,
+                  Result        => Tree.Add_Nonterm
+                    (Production => (R, RHS_Index),
+                     Action     => RHS.Action,
+                     Children   => (1 .. 0 => Syntax_Trees.Invalid_Node_Access)),
+                  Last_Pos      => Pos);
             else
                declare
-                  Children : Valid_Node_Index_Array
+                  Children : Syntax_Trees.Node_Access_Array
                     (SAL.Base_Peek_Type (RHS.Tokens.First_Index) .. SAL.Base_Peek_Type (RHS.Tokens.Last_Index));
                begin
                   for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
                      if RHS.Tokens (I) in Terminal then
-                        if Pos = Parser.Terminals.Last_Index then
+                        if Next_Pos = Syntax_Trees.Invalid_Stream_Index then
                            goto Fail_RHS;
 
-                        elsif Parser.Terminals (Pos + 1).ID = RHS.Tokens (I) then
-                           Pos := Pos + 1;
-                           Children (SAL.Base_Peek_Type (I)) := Tree_Index (Pos);
+                        elsif Tree.ID (Next_Pos) = RHS.Tokens (I) then
+                           Pos := Next_Pos;
+                           Next_Pos := Tree.Stream_Next (Pos);
+                           Children (SAL.Base_Peek_Type (I)) := Tree.Get_Node (Pos);
                         else
                            goto Fail_RHS;
                         end if;
@@ -85,6 +89,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                         when Success =>
                            Children (SAL.Base_Peek_Type (I)) := Memo.Result;
                            Pos := Memo.Last_Pos;
+                           Next_Pos := Tree.Stream_Next (Pos);
 
                         when Failure =>
                            goto Fail_RHS;
@@ -99,12 +104,13 @@ package body WisiToken.Parse.Packrat.Procedural is
                      Result             => Parser.Tree.Add_Nonterm
                        (Production      => (R, RHS_Index),
                         Action          => RHS.Action,
-                        Children        => Children,
+                        Children        => Syntax_Trees.To_Valid_Node_Access (Children),
                         Default_Virtual => False),
                      Last_Pos           => Pos);
 
                   <<Fail_RHS>>
                   Pos := Last_Pos;
+                  Next_Pos := Tree.Stream_Next (Pos);
                end;
             end if;
          end;
@@ -117,16 +123,20 @@ package body WisiToken.Parse.Packrat.Procedural is
    function Apply_Rule
      (Parser   : in out Procedural.Parser;
       R        : in     Token_ID;
-      Last_Pos : in     Base_Token_Index)
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    is
+      use all type WisiToken.Syntax_Trees.Stream_Index;
+      use all type WisiToken.Syntax_Trees.Element_Index;
+
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Tree       : Syntax_Trees.Tree renames Parser.Tree;
 
-      Pos       : Base_Token_Index     := Last_Pos;     --  last token parsed.
-      Start_Pos : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
-      Memo      : Memo_Entry           := Parser.Derivs (R)(Start_Pos);
+      Pos       : Syntax_Trees.Stream_Index          := Last_Pos;                    --  last token parsed.
+      Start_Pos : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Last_Pos); --  first token in current nonterm
+      Memo      : Memo_Entry                         := Parser.Derivs (R)(Tree.Get_Element_Index (Start_Pos));
 
-      Pos_Recurse_Last : Base_Token_Index := Last_Pos;
+      Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;
       Result_Recurse   : Memo_Entry;
    begin
       case Memo.State is
@@ -138,7 +148,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
       when No_Result =>
          if Parser.Direct_Left_Recursive (R) then
-            Parser.Derivs (R).Replace_Element (Start_Pos, (State => Failure));
+            Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Start_Pos), (State => Failure));
          else
             Memo := Eval (Parser, R, Last_Pos);
             if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
@@ -146,29 +156,29 @@ package body WisiToken.Parse.Packrat.Procedural is
                when Success =>
                   Parser.Trace.Put_Line (Parser.Tree.Image (Memo.Result, Descriptor, Include_Children => True));
                when Failure =>
-                  Parser.Trace.Put_Line (Image (R, Descriptor) & " failed at pos" & Last_Pos'Image);
+                  Parser.Trace.Put_Line (Image (R, Descriptor) & " failed at pos" & Image_Pos (Tree, Last_Pos));
                when No_Result =>
                   raise SAL.Programmer_Error;
                end case;
             end if;
-            Parser.Derivs (R).Replace_Element (Start_Pos, Memo);
+            Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Start_Pos), Memo);
             return Memo;
          end if;
       end case;
 
       loop
+         --  Production is like: list : list element | element
+         --
+         --  Each time around this loop starts at the same point, but
+         --  accumulates more tokens in the first 'list'; it exits when
+         --  'element' does not match the remaining input.
          Pos := Last_Pos;
-
-         if Pos > Parser.Terminals.Last_Index then --  FIXME: this can't pass here; Last_Pos never > last_index
-            --  There might be an empty nonterm after the last token
-            return (State => Failure);
-         end if;
 
          Result_Recurse := Eval (Parser, R, Pos);
 
          if Result_Recurse.State = Success then
-            if Result_Recurse.Last_Pos > Pos_Recurse_Last then
-               Parser.Derivs (R).Replace_Element (Start_Pos, Result_Recurse);
+            if Tree.Get_Element_Index (Result_Recurse.Last_Pos) > Tree.Get_Element_Index (Pos_Recurse_Last) then
+               Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Start_Pos), Result_Recurse);
                Pos              := Result_Recurse.Last_Pos;
                Pos_Recurse_Last := Pos;
 
@@ -180,7 +190,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
             elsif Result_Recurse.Last_Pos = Pos_Recurse_Last then
                if Parser.Tree.Buffer_Region_Is_Empty (Result_Recurse.Result) then
-                  Parser.Derivs (R).Replace_Element (Start_Pos, Result_Recurse);
+                  Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Start_Pos), Result_Recurse);
                end if;
                exit;
             else
@@ -191,7 +201,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             exit;
          end if;
       end loop;
-      return Parser.Derivs (R)(Start_Pos);
+      return Parser.Derivs (R)(Tree.Get_Element_Index (Start_Pos));
    end Apply_Rule;
 
    ----------
@@ -216,31 +226,32 @@ package body WisiToken.Parse.Packrat.Procedural is
       end return;
    end Create;
 
-   overriding procedure Parse (Parser : aliased in out Procedural.Parser)
+   overriding procedure Parse (Parser : in out Procedural.Parser)
    is
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      use all type WisiToken.Syntax_Trees.User_Data_Access;
 
-      Junk : Valid_Node_Index;
-      pragma Unreferenced (Junk);
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
       Result : Memo_Entry;
    begin
-      Parser.Base_Tree.Clear;
       Parser.Tree.Clear;
-      Parser.Tree.Initialize (Parser.Base_Tree'Unchecked_Access);
+      if Parser.User_Data /= null then
+         Parser.User_Data.Reset;
+      end if;
+      Parser.Wrapped_Lexer_Errors.Clear;
       Parser.Lex_All;
 
-      for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
+      --  We don't use syntax tree parse streams.
+      Parser.Tree.Force_Set_Parents;
+
+      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-         Parser.Derivs (Nonterm).Set_First_Last (Parser.Terminals.First_Index, Parser.Terminals.Last_Index + 1);
-         --  There might be an empty nonterm after the last token
+         Parser.Derivs (Nonterm).Set_First_Last
+           (Parser.Tree.Get_Element_Index (Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
+            Parser.Tree.Get_Element_Index (Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
       end loop;
 
-      for Token_Index in Parser.Terminals.First_Index .. Parser.Terminals.Last_Index loop
-         Junk := Parser.Tree.Add_Terminal (Token_Index, Parser.Terminals);
-      end loop;
-
-      Result := Apply_Rule (Parser, Parser.Start_ID, Parser.Terminals.First_Index - 1);
+      Result := Apply_Rule (Parser, Parser.Start_ID, Syntax_Trees.Invalid_Stream_Index);
 
       if Result.State /= Success then
          if Trace_Parse > Outline then
@@ -252,17 +263,5 @@ package body WisiToken.Parse.Packrat.Procedural is
          Parser.Tree.Set_Root (Result.Result);
       end if;
    end Parse;
-
-   overriding function Tree (Parser : aliased in Procedural.Parser) return Syntax_Trees.Tree_Constant_Reference
-   is begin
-      return (Element => Parser.Tree'Access);
-   end Tree;
-
-   overriding function Tree_Var_Ref
-     (Parser : aliased in out Procedural.Parser)
-     return Syntax_Trees.Tree_Variable_Reference
-   is begin
-      return (Element => Parser.Tree'Access);
-   end Tree_Var_Ref;
 
 end WisiToken.Parse.Packrat.Procedural;

@@ -61,7 +61,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put
-           (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
+           (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
               Trimmed_Image (Shared_Parser.Tree.State (Current_Parser.Stream)) & ": " &
               Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
@@ -129,7 +129,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Trace_Parse > Outline then
                Put
                  (Trace,
-                  Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": expecting: " &
+                  " " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": expecting: " &
                     Image (Expecting, Trace.Descriptor.all));
                Trace.New_Line;
             end if;
@@ -222,7 +222,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end if;
    end New_Parser;
 
-   overriding procedure Parse (Shared_Parser : aliased in out Parser)
+   overriding procedure Parse (Shared_Parser : in out Parser)
    is
       use all type WisiToken.Syntax_Trees.Stream_Index;
       use all type Syntax_Trees.User_Data_Access;
@@ -293,7 +293,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                if Count = 1 then
                   --  Nothing more to do
                   if Trace_Parse > Outline then
-                     Trace.Put_Line (Shared_Parser.Tree.Trimmed_Image (State.Stream) & ": succeed");
+                     Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (State.Stream) & ": succeed");
                   end if;
                   exit Main_Loop;
 
@@ -357,7 +357,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
                   begin
                      if Trace_Parse > Extra then
-                        Trace.Put (Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack: ");
+                        Trace.Put (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack: ");
                         Trace.Put_Line
                           (Parser_Lists.Image (Parser_State.Stream, Trace.Descriptor.all, Shared_Parser.Tree));
                      end if;
@@ -394,7 +394,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                  Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                               begin
                                  Trace.Put_Line
-                                   (Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ":" &
+                                   (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ":" &
                                       Shared_Parser.Tree.State (Parser_State.Stream)'Image & ": " &
                                       Shared_Parser.Tree.Image
                                         (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &

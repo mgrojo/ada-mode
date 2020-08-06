@@ -24,9 +24,9 @@ spawn parser 1 from 0 (2 active)
  0:  1, ( 0 0 3 0 0 0 0 0 0), (93 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
 
 recover: succeed, parser count 2
- 1: Current_Token (RIGHT_PAREN) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete:
+ 1: Current_Token (RIGHT_PAREN) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete:
  1: resume_active: True, token goal 11, inc_shared_token: FALSE
- 0: Current_Token (MINUS_GREATER) Shared_Token  7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete: 2 (( 3, MINUS_GREATER, 7, 25), ( 3, Identifier, 7, 0), ( 3, RIGHT_PAREN, 7, 0))
+ 0: Current_Token (MINUS_GREATER) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete: 2 ((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7))
  0: resume_active: True, token goal 11, inc_shared_token: FALSE
 
  1: 21: (RIGHT_PAREN) : reduce 1 tokens to ClassType
@@ -168,9 +168,9 @@ spawn parser 2 from 1 (2 active)
  1:  6, ( 0 0 0 0 0 0 2 0 0), (20 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
 
 recover: succeed, parser count 2
- 2: Current_Token (MINUS_MINUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 (( 3, RIGHT_PAREN, 7, 25), ( 3, MINUS_MINUS, 13, 49), ( 3, SEMICOLON, 13, 0))
+ 2: Current_Token (MINUS_MINUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, RIGHT_PAREN, 7), (INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
  2: resume_active: True, token goal 17, inc_shared_token: FALSE
- 1: Current_Token (PLUS_PLUS) Shared_Token  13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 (( 3, RIGHT_PAREN, 7, 25), ( 3, PLUS_PLUS, 13, 49), ( 3, SEMICOLON, 13, 0))
+ 1: Current_Token (PLUS_PLUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, RIGHT_PAREN, 7), (INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
  1: resume_active: True, token goal 17, inc_shared_token: FALSE
 
  2: 61: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
@@ -277,7 +277,7 @@ Action
  2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (417 . 417))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
 
 recover: succeed, parser count 1
- 2: Current_Token (Identifier) Shared_Token  22:(RIGHT_CURLY_BRACKET, (417 . 417)) recover_insert_delete:
+ 2: Current_Token (Identifier) Shared_Token 22:(RIGHT_CURLY_BRACKET, (417 . 417)) recover_insert_delete:
  2: resume_active: True, token goal 26, inc_shared_token: FALSE
 
  2: 16: (Identifier) : shift and goto state 35

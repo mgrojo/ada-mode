@@ -964,6 +964,19 @@ package body WisiToken.Syntax_Trees is
    end First_Terminal;
 
    function First_Shared_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Stream_Index
+   is begin
+      return
+        (case Node.Label is
+         when Shared_Terminal => Node.Terminal_Index,
+         when Virtual_Terminal |
+           Virtual_Identifier => Invalid_Stream_Index,
+         when Nonterm         => Node.First_Terminal_Index);
+   end First_Shared_Terminal;
+
+   function First_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)
@@ -1002,6 +1015,12 @@ package body WisiToken.Syntax_Trees is
          return Invalid_Token_ID;
       end case;
    end First_Terminal_ID;
+
+   procedure Force_Set_Parents (Tree : in out Syntax_Trees.Tree)
+   is begin
+      Tree.Parents_Set := True;
+      Tree.Root        := Dummy_Node;
+   end Force_Set_Parents;
 
    procedure Get_IDs
      (Tree   : in     Syntax_Trees.Tree;
@@ -2088,6 +2107,11 @@ package body WisiToken.Syntax_Trees is
    is begin
       Node.Name := Region;
    end Set_Name_Region;
+
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
+   is begin
+      Tree.Root := New_Root;
+   end Set_Root;
 
    procedure Shift
      (Tree   : in out Syntax_Trees.Tree;

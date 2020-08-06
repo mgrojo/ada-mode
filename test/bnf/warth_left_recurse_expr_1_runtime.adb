@@ -19,14 +19,12 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    --  Public subprograms, declaration order
 
    overriding
-   procedure Set_Lexer_Terminals
+   procedure Set_Lexer
      (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle;
-      Terminals : in     WisiToken.Base_Token_Array_Access_Constant)
+      Lexer     : in     WisiToken.Lexer.Handle)
    is begin
-      User_Data.Lexer     := Lexer;
-      User_Data.Terminals := Terminals;
-   end Set_Lexer_Terminals;
+      User_Data.Lexer := Lexer;
+   end Set_Lexer;
 
    overriding procedure Reset (Data : in out User_Data_Type)
    is begin
@@ -37,11 +35,11 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    procedure Push
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Arg_Index : in     WisiToken.Positive_Index_Type)
    is
       Data   : User_Data_Type renames User_Data_Type (User_Data);
-      Region : WisiToken.Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tokens (Arg_Index))).Byte_Region;
+      Region : constant WisiToken.Buffer_Region := Tree.Byte_Region (Tokens (Arg_Index));
    begin
       Data.Stack.Push (Integer'Value (Data.Lexer.Buffer_Text (Region)));
    end Push;
@@ -49,7 +47,7 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
    procedure Subtract
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Valid_Node_Index_Array)
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Tree, Tokens);
 
