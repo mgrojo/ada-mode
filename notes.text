@@ -28,9 +28,6 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    t_all
-        test_lr_utils.adb needs a lot of work, or just delete; thoroughly tested in bnf tests
-
     test/test_incremental.adb
 
     apply edit:

@@ -42,28 +42,32 @@
 
 (add-hook 'ada-gnat-fix-error-hook 'wisitoken-gnat-fix-error)
 
-(defun wisitoken-ediff-good ()
-  ;; point is on the file name (from `wisitoken-dtrt') in a diff test fail message:
-  ;;
-  ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
-  ;;     ^empty_production_2_lalr.parse_table:91
-  ;;
-  ;; ediff that file against the corresponding _good file.
-  ;;
-  ;; (thing-at-point ’filename) includes the trailing line number, so
-  ;; we need to strip it off.
+(defun wisitoken-ediff-good (good computed)
+  "GOOD is the string name of the known good file (may be nil), COMPUTED the computed file"
+  (cond
+   ((and good computed)
+    ;;  Names are accurate paths relative to current directory, with
+    ;;  no line numbers.
+    (ediff good computed)
+    )
 
-  (let* ((filename-line (thing-at-point 'filename))
-	 (end (string-match ":[0-9]+$" filename-line))
-	 (filename (if end (substring filename-line 0 end) filename-line))
-	 (filename-good (concat filename "_good"))
-	 (loc-filename (locate-file filename compilation-search-path))
-	 (loc-filename-good (locate-file filename-good compilation-search-path)))
-    (unless loc-filename
-      (user-error "'%s' not found; wrong project?" filename))
-    (unless loc-filename-good
-      (user-error "'%s' not found; wrong project?" filename-good))
-    (ediff loc-filename-good loc-filename)))
+   ((and (null good) computed)
+    ;; ediff COMPUTED against the corresponding _good file.
+    ;;
+    ;; COMPUTED includes the trailing line number, so we need to strip
+    ;; it off.
+    (let* ((filename-line computed)
+	   (end (string-match ":[0-9]+$" filename-line))
+	   (filename (if end (substring filename-line 0 end) filename-line))
+	   (filename-good (concat filename "_good"))
+	   (loc-filename (locate-file filename compilation-search-path))
+	   (loc-filename-good (locate-file filename-good compilation-search-path)))
+      (unless loc-filename
+	(user-error "'%s' not found; wrong project?" filename))
+      (unless loc-filename-good
+	(user-error "'%s' not found; wrong project?" filename-good))
+      (ediff loc-filename-good loc-filename)))
+   ))
 
 (defun wisitoken-update-good ()
   (interactive)
@@ -211,13 +215,22 @@
   (forward-line)
   (back-to-indentation)
 
-  (if (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+")
-      (wisitoken-ediff-good)
+  (cond
+   ((looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+")
+    ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
+    ;;     ^empty_production_2_lalr.parse_table:91
+    (wisitoken-ediff-good nil (match-string 0)))
+
+   ((looking-at "\\([./a-z-_]+\\) longer than \\([./a-z-_]+\\)")
+    ;; ^../test/bnf/body.parse_good longer than body.parse
+    (wisitoken-ediff-good (match-string 1) (match-string 2)))
+
+   (t
     (forward-line -1)
     (forward-word 1)
     (forward-char 1)
-    (wisitoken-goto-aunit-fail)
-    ))
+    (wisitoken-goto-aunit-fail))
+   ))
 
 (define-key compilation-mode-map "d" #'wisitoken-dtrt)
 (define-key compilation-mode-map "u" #'wisitoken-update-good)

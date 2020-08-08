@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -85,7 +85,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer_Terminals (Parser.Lexer, Parser.Terminals'Unrestricted_Access);
+      User_Data.Set_Lexer (Parser.Lexer);
 
       Execute_Parse ("1 - 3", Success, -2);
       Execute_Parse ("1", Success, 1);
@@ -139,7 +139,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer_Terminals (Parser.Lexer, Parser.Terminals'Unchecked_Access);
+      User_Data.Set_Lexer (Parser.Lexer);
 
       declare
          Expected : WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID) := (others => False);

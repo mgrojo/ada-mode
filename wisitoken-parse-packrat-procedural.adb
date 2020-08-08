@@ -99,14 +99,20 @@ package body WisiToken.Parse.Packrat.Procedural is
                      end if;
                   end loop;
 
-                  return
+                  return Result : constant Memo_Entry :=
                     (State              => Success,
                      Result             => Parser.Tree.Add_Nonterm
                        (Production      => (R, RHS_Index),
                         Action          => RHS.Action,
                         Children        => Syntax_Trees.To_Valid_Node_Access (Children),
                         Default_Virtual => False),
-                     Last_Pos           => Pos);
+                     Last_Pos           => Pos)
+                  do
+                     if Trace_Parse > Extra then
+                        Parser.Trace.Put_Line
+                          ("eval: " & Parser.Tree.Image (Result.Result, Descriptor, Include_Children => True));
+                     end if;
+                  end return;
 
                   <<Fail_RHS>>
                   Pos := Last_Pos;
@@ -151,6 +157,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Start_Pos), (State => Failure));
          else
             Memo := Eval (Parser, R, Last_Pos);
+
             if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
                case Memo.State is
                when Success =>
@@ -242,7 +249,6 @@ package body WisiToken.Parse.Packrat.Procedural is
       Parser.Lex_All;
 
       --  We don't use syntax tree parse streams.
-      Parser.Tree.Force_Set_Parents;
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
@@ -261,6 +267,7 @@ package body WisiToken.Parse.Packrat.Procedural is
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);
+         Parser.Tree.Set_Parents;
       end if;
    end Parse;
 

@@ -34,9 +34,6 @@ package body WisiToken.Parse.Packrat.Generated is
       Parser.Wrapped_Lexer_Errors.Clear;
       Parser.Lex_All;
 
-      --  We don't use syntax tree parse streams.
-      Parser.Tree.Force_Set_Parents;
-
       Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
 
       for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
@@ -56,6 +53,7 @@ package body WisiToken.Parse.Packrat.Generated is
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);
+         Parser.Tree.Set_Parents;
       end if;
 
    end Parse;

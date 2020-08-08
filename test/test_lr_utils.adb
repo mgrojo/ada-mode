@@ -26,6 +26,7 @@ with Ada.Text_IO;
 with SAL.Gen_Bounded_Definite_Stacks;
 with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.LR_Utils; use WisiToken.Syntax_Trees.LR_Utils;
+with WisiToken.Syntax_Trees.AUnit_Public;
 package body Test_LR_Utils is
    use WisiToken;
    use WisiToken.Syntax_Trees;
@@ -33,13 +34,14 @@ package body Test_LR_Utils is
    procedure Check
      (Label    : in String;
       Computed : in Constant_List'Class;
-      Expected : in Valid_Node_Index_Array)
+      Expected : in Valid_Node_Access_Array)
    is
       use all type SAL.Base_Peek_Type;
       use AUnit.Checks.Containers;
       use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
       Iter : constant Constant_Iterator := Computed.Iterate_Constant;
-      Cur  : Cursor            := Computed.First;
+      Cur  : Cursor                     := Computed.First;
    begin
       Check (Label & ".count", Computed.Count, Ada.Containers.Count_Type (Expected'Length));
 
@@ -61,7 +63,7 @@ package body Test_LR_Utils is
       end loop;
    end Check;
 
-   package Stacks is new SAL.Gen_Bounded_Definite_Stacks (Node_Index);
+   package Stacks is new SAL.Gen_Bounded_Definite_Stacks (Node_Access);
 
    generic
       type Token_Enum_ID is (<>);
@@ -78,12 +80,12 @@ package body Test_LR_Utils is
       LHS         : in Token_Enum_ID;
       RHS         : in Natural)
    is
-      Children : Valid_Node_Index_Array (1 .. Token_Count);
+      Children : Node_Access_Array (1 .. Token_Count);
    begin
       for I in reverse Children'Range loop
          Children (I) := Stack.Pop;
       end loop;
-      Stack.Push (Tree.Add_Nonterm ((+LHS, RHS), Children));
+      Stack.Push (Tree.Add_Nonterm ((+LHS, RHS), To_Valid_Node_Access (Children)));
    end Gen_Reduce;
 
    ----------
@@ -124,13 +126,13 @@ package body Test_LR_Utils is
          Image_Width          => 21,
          Last_Lookahead       => Invalid_Token_ID);
 
-      Terminals   : aliased Base_Token_Arrays.Vector;
-      Shared_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
-      Tree        : WisiToken.Syntax_Trees.Tree;
-      Stack       : Stacks.Stack (10);
+      Tree  : WisiToken.Syntax_Trees.Tree;
+      Stack : Stacks.Stack (10);
 
       procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
 
+      Junk : Node_Access;
+      pragma Unreferenced (Junk);
    begin
       --  Create a tree duplicating example in LR_Utils.Insert:
       --
@@ -147,28 +149,15 @@ package body Test_LR_Utils is
       --  06: | | separator
       --  14: | | element: Last
 
-      Tree.Initialize (Shared_Tree'Unchecked_Access, Parents_Set => True);
+      Tree.Force_Set_Parents;
 
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (1, 1), others => <>));
-      Terminals (1).Tree_Index := Tree.Add_Terminal (1, Terminals);
-
-      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (2, 2), others => <>));
-      Terminals (2).Tree_Index := Tree.Add_Terminal (2, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (3, 3), others => <>));
-      Terminals (3).Tree_Index := Tree.Add_Terminal (3, Terminals);
-
-      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (4, 4), others => <>));
-      Terminals (4).Tree_Index := Tree.Add_Terminal (4, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (5, 5), others => <>));
-      Terminals (5).Tree_Index := Tree.Add_Terminal (5, Terminals);
-
-      Terminals.Append ((+SEPARATOR_ID, Invalid_Node_Index, (6, 6), others => <>));
-      Terminals (6).Tree_Index := Tree.Add_Terminal (6, Terminals);
-
-      Terminals.Append ((+IDENTIFIER_ID, Invalid_Node_Index, (7, 7), others => <>));
-      Terminals (7).Tree_Index := Tree.Add_Terminal (7, Terminals);
+      Junk := Tree.Add_Terminal ((+IDENTIFIER_ID, (1, 1), others => <>));
+      Junk := Tree.Add_Terminal ((+SEPARATOR_ID, (2, 2), others => <>));
+      Junk := Tree.Add_Terminal ((+IDENTIFIER_ID, (3, 3), others => <>));
+      Junk := Tree.Add_Terminal ((+SEPARATOR_ID, (4, 4), others => <>));
+      Junk := Tree.Add_Terminal ((+IDENTIFIER_ID, (5, 5), others => <>));
+      Junk := Tree.Add_Terminal ((+SEPARATOR_ID, (6, 6), others => <>));
+      Junk := Tree.Add_Terminal ((+IDENTIFIER_ID, (7, 7), others => <>));
 
       Stack.Push (1);
       Reduce (1, Element_ID, 0); -- node 8
@@ -536,8 +525,8 @@ package body Test_LR_Utils is
 
       procedure Reduce is new Gen_Reduce (Token_Enum_ID, Tree, Stack, "+");
 
-      List_Root    : Valid_Node_Index_Array (1 .. 3);
-      Skip_Element : Valid_Node_Index_Array (1 .. 3);
+      List_Root    : Valid_Node_Access_Array (1 .. 3);
+      Skip_Element : Valid_Node_Access_Array (1 .. 3);
    begin
       --  Create a tree containing a nested list, copy it excluding one item in the nested list.
       --
@@ -655,8 +644,8 @@ package body Test_LR_Utils is
             Start_Multi_Element_RHS => 1,
             Skips                   => (1 => (Skip, Skip_Element (3))));
 
-         Pre_Expected  : constant Valid_Node_Index_Array := (13, 15);
-         Post_Expected : constant Valid_Node_Index_Array := (1 => 28);
+         Pre_Expected  : constant Valid_Node_Access_Array := (13, 15);
+         Post_Expected : constant Valid_Node_Access_Array := (1 => 28);
 
          Inner_List_Copy : Node_Index;
       begin
@@ -721,11 +710,11 @@ package body Test_LR_Utils is
                3                    =>
                (Skip, Skip_Element (3))));
 
-         Pre_Outer_Expected  : constant Valid_Node_Index_Array := (11, 20, 22, 24);
-         Pre_Inner_Expected  : constant Valid_Node_Index_Array := (13, 15);
+         Pre_Outer_Expected  : constant Valid_Node_Access_Array := (11, 20, 22, 24);
+         Pre_Inner_Expected  : constant Valid_Node_Access_Array := (13, 15);
 
-         Post_Outer_Expected : constant Valid_Node_Index_Array := (32, 42, 46, 50);
-         Post_Inner_Expected : constant Valid_Node_Index_Array := (1 => 36);
+         Post_Outer_Expected : constant Valid_Node_Access_Array := (32, 42, 46, 50);
+         Post_Inner_Expected : constant Valid_Node_Access_Array := (1 => 36);
 
          Outer_List_Copy : Node_Index;
       begin

@@ -69,4 +69,6 @@ package WisiToken.AUnit is
       Computed : in Buffer_Region;
       Expected : in Buffer_Region);
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Identifier_Index);
+
 end WisiToken.AUnit;

@@ -1016,12 +1016,6 @@ package body WisiToken.Syntax_Trees is
       end case;
    end First_Terminal_ID;
 
-   procedure Force_Set_Parents (Tree : in out Syntax_Trees.Tree)
-   is begin
-      Tree.Parents_Set := True;
-      Tree.Root        := Dummy_Node;
-   end Force_Set_Parents;
-
    procedure Get_IDs
      (Tree   : in     Syntax_Trees.Tree;
       Node   : in     Valid_Node_Access;

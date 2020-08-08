@@ -44,11 +44,12 @@ package body Test_Partial_Parse is
    is
       use AUnit.Checks;
       use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees;
 
       procedure Finish
       is
          use all type WisiToken.Token_ID;
-         Node  : WisiToken.Valid_Node_Index := Parser.Tree.Root;
+         Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
          Parser.Execute_Actions;
 
@@ -68,8 +69,7 @@ package body Test_Partial_Parse is
             Check (Label & ".parsed ID", Parser.Tree.ID (Node), Action_ID);
 
             declare
-               Token : constant WisiToken.Base_Token := Parser.Terminals
-                 (Parser.Tree.First_Shared_Terminal (Node));
+               Token : constant WisiToken.Base_Token := Parser.Tree.Base_Token (Parser.Tree.First_Terminal (Node));
             begin
                Check (Label & ".parse begin byte", Token.Byte_Region.First, Begin_Byte_Pos);
                Check (Label & ".parse begin char", Token.Char_Region.First, Begin_Char_Pos);
@@ -78,7 +78,7 @@ package body Test_Partial_Parse is
 
             Check
               (Label & ".parse end byte",
-               Parser.Terminals (Parser.Tree.Last_Shared_Terminal (Node)).Byte_Region.Last,
+               Parser.Tree.Byte_Region (Parser.Tree.Last_Terminal (Node)).Last,
                Parse_End_Byte_Pos);
 
             Check (Label & ".action_count", Action_Count (Action_ID), 1);

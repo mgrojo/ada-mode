@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2018 Stephe Leake
+--  Copyright (C) 2018, 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -84,6 +84,11 @@ begin
    Parser.Parse;
 
    --  No user data, so no point in Execute_Actions
+
+   if WisiToken.Trace_Parse > WisiToken.Extra then
+      Parser.Tree.Print_Tree (Descriptor, Parser.Tree.Root, null);
+      Parser.Trace.New_Line;
+   end if;
 
    Parser.Put_Errors;
 

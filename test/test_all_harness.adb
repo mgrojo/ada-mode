@@ -37,14 +37,12 @@ with Test_Accept_State;
 with Test_BNF_Suite;
 with Test_Follow;
 with Test_LR_Expecting_Terminal_Sequence;
-with Test_LR_Utils;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
 with Test_Skip_To;
 with Trivial_Productions_Test;
 with Warth_Left_Recurse_Expr_1;
 with WisiToken.BNF;
-with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
    --  command line arguments (all optional, order matters):
@@ -113,14 +111,14 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
    --  FIXME: Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR_Utils.Test_Case));
+   --  FIXME: broken Add_Test (Suite, Test_Case_Access'(new Test_LR_Utils.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Warth_Left_Recurse_Expr_1.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
+   --   Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
 
    --  end test cases
 

@@ -797,6 +797,9 @@ package WisiToken.Syntax_Trees is
    --
    --  Post-parsing operations; editing the tree. The tree has only one
    --  stream, so these subprograms have no stream argument.
+   --
+   --  Some of these are also used for Packrat parsing, and don't have a
+   --  precondition of Fully_Parsed.
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if there is only one stream, and it has only two elements;
@@ -827,11 +830,6 @@ package WisiToken.Syntax_Trees is
    procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
    with Pre => Tree.Fully_Parsed;
 
-   procedure Force_Set_Parents (Tree : in out Syntax_Trees.Tree);
-   --  Set Tree.Set_Parents True, and Tree.Root to Dummy_Node, so tree
-   --  editing functions are callable. Required by the packrat parser,
-   --  which does not use parse streams.
-
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    with Pre => Tree.Fully_Parsed;
    --  Tree.Root, or the root in the single stream if Tree.Root is not set.
@@ -853,13 +851,12 @@ package WisiToken.Syntax_Trees is
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
-   with Pre => not Tree.Traversing and Children'First = 1 and
-               Tree.Parents_Set and Tree.Fully_Parsed;
+   with Pre => not Tree.Traversing and Children'First = 1;
    --  Add a new Nonterm node (not on any stream), containing
    --  Children, with no parent. Result points to the added node. If
    --  Children'Length = 0, set Nonterm.Virtual := Default_Virtual.
    --
-   --  Children.Parent are set to the new node,
+   --  If Parents_Set, Children.Parent are set to the new node,
    --  and in previous parents of those children (if any), the
    --  corresponding entry in Children is set to null.
 
