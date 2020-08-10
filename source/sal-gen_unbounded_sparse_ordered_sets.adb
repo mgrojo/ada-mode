@@ -21,6 +21,18 @@ package body SAL.Gen_Unbounded_Sparse_Ordered_Sets is
       Set.Tree.Initialize;
    end Clear;
 
+   function Count (Set : in Pkg.Set) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Result : Count_Type := 0;
+   begin
+      for N of Set loop
+         Result := @ + 1;
+      end loop;
+      return Result;
+   end Count;
+
+
    procedure Insert (Set : in out Pkg.Set; Item : in Index_Type)
    is begin
       Set.Tree.Insert (Item);

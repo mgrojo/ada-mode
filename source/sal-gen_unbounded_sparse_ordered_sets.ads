@@ -39,6 +39,8 @@ package SAL.Gen_Unbounded_Sparse_Ordered_Sets is
    procedure Clear (Set : in out Pkg.Set);
    --  Set Set to empty.
 
+   function Count (Set : in Pkg.Set) return Ada.Containers.Count_Type;
+
    procedure Insert (Set : in out Pkg.Set; Item : in Index_Type);
    function Contains (Set : in Pkg.Set; Item : in Index_Type) return Boolean;
 
