@@ -64,6 +64,190 @@ was often confusing when the syntax was incorrect, as it usually is in
 an interactive editing environment. This motivated the search for
 error correction algorithms.
 
+After reviewing the literature (see \ref{sect:background}), we decided
+to implement the algorithm given by McKenzie, Yeatman, and De Vere
+\citep{McKenzie_1995}. Practical experience with that implentation in
+Emacs ada-mode showed that it was inadequate, so several extensions
+were added.
+
+The rest of this paper is organized as follows:
+\begin{enumerate}
+  \setcounter{enumi}{1}
+%\ref{sect:background}
+\item Summarizes previous work, and presents the
+  notation used in this paper.
+%\ref{sect:extensions}
+\item Presents the extensions to the McKenzie algorithm
+%\ref{sect:minimal-complete-compute}
+\item Presents the algorithm for
+  computing the minimal complete data needed at runtime.
+%\ref{sect:implementation}
+\item Gives some details on imlemention the algorithm.
+%\ref{sect:results}
+\item Gives a summary of how the algorithm performs,
+  including some metrics that allow comparing it to other similar
+  algorithms.
+
+\end{enumerate}
+
+\pagebreak
+\section{Background}
+\label{sect:background}
+\subsection{Notation}
+First we provide background on LR parsing and parser generators, to
+establish our notation.
+
+Following DeRemer and Pennello \citep{DeRemer_1982}, a {\it symbol} is
+a grammar element, such as \code{compilation} or \code{STRING}; we
+represent symbols by Greek letters. A {\it vocabulary} $V$ is a set of
+symbols; $V^*$ denotes the set of all strings of symbols from $V$;
+$\epsilon$ denotes the empty string. Symbols are often called {\it
+  tokens}.
+
+A {\it context-free grammar} (CFG) is a quadruple
+$G = \langle T, N, S, P \rangle$ where $T$ is a finite set of {\it terminal} symbols, $N$
+is a is a finite set of {\it nonterminal} symbols such that
+$T \cap N = \O$, $S \in N$ is the {\it start} symbol, and $P$ is a finite subset
+of $N \times V^*$ where $V = T \cup N$ and each member $(A, \omega)$
+is called a production, written $A \Rightarrow \omega$. In a
+production, the symbol on the left is called the {\it left hand side},
+the sequence of symbols on the right the {\it right hand side}.
+
+For convenience, we often use the ASCII \verb|==>| instead of the
+typeset $\Rightarrow$ when the rest of the production is all text. For
+example, the grammar for a simple 'if' statement can be written:
+\begin{verbatim}
+if_statement ==> IF expression_opt THEN sequence_of_statements END IF SEMICOLON
+\end{verbatim}
+Here \verb|IF, THEN, END, IF, SEMICOLON| are terminal symbols,
+\verb|if_statement, expression_opt, sequence_of_statements| are
+nonterminals. In the complete grammar, there are productions for
+\verb|expression_opt| and \verb|sequence_of_statements|; every
+nonterminal can be expanded to a sequence of terminals.
+
+Following Aho, Sethi, and Ullman \citep{dragon} section 4.7, an {\it
+  LR(0) item} (often abbreviated {\it item}) is a grammar production
+with a dot at some point;
+\begin{displaymath}
+  A \Rightarrow \bullet X Y Z
+\end{displaymath}
+We use a caret \verb|^| instead of a dot \verb|.| when presenting
+actual LR(0) items, since it is more visible:
+\begin{verbatim}
+if_statement ==> IF expression_opt ^ THEN sequence_of_statements END IF SEMICOLON
+\end{verbatim}
+
+In a parser generator, the dot is a placeholder, indicating where the
+algorithm is while processing a production. At runtime, the dot is the
+{\it parse point}, which indicates where the parser is in processing
+the production.
+
+A {\it parser state} (often abbreviated {\it state}), is a collection
+of LR(0) items. The {\it kernel} of a state is the subset of the items
+that have dot at some point other than the left end; the kernel is
+sufficient to uniquely identify the state.
+
+In a canonical LR parser, the productions and items are not needed at
+runtime; each state is represented by a simple integer. In the error
+correction algorithm presented here, we need the kernel of each state
+at runtime.
+
+An LR parser works in effect by matching the symbols following the
+dots in the current parser state against the next symbol in the input
+to decide which production to use; that determines the next parser
+state. The parser generator computes tables that give the next state
+for each possible terminal. The parser uses a stack containing a
+grammar symbol and a parser state. There are two actions a parser can
+take; {\it reduce} and {\it shift}. {\it reduce} action pops several
+symbols from the stack, corresponding to the right hand side of a
+production, and pushes the left hand side with a  state. A {\it
+  shift} action pushes a terminal symbol and new state on the stack.
+
+``LR'' stands for ``Left to right scanning, Rightmost derivation'';
+the input terminals are read left to right, matching the right hand
+side of productions. An alternative mode of parsing is LL; the second
+``L'' is ``Leftmost derivation''. In an LL parser, the left hand side
+of a production is chosen by some means, and the following tokens
+scanned to see if they match the right hand side. This is also called
+``top-down'' parsing; LR is ``bottom-up'' parsing. LL parsers do not
+use a parse table, and therefore cannot use the error correction
+algorithm presented here.
+
+Using the next input terminal is called {\it lookahead}; LR(k) means a
+parser using k lookahead symbols to determine the next state. A
+grammar that has no conflicts for a given k is called an LR(k)
+grammar. In practice, using k higher than 1 is not very helpful.
+
+A {\it conflict} in an LR parser for a grammar is a situation where
+one terminal results in more than one action. For example,
+these items from the Ada language:
+\begin{verbatim}
+generic_instantiation ==> PROCEDURE name ^ IS NEW name SEMICOLON
+subprogram_body_stub <= subprogram_specification ^ IS SEPARATE SEMICOLON
+procedure_specification ==> PROCEDURE name ^ parameter_profile
+parameter_profile ==>
+subprogram_specification <= procedure_specification
+\end{verbatim}
+give rise to a conflict on \verb|IS|. At this point, the parser has
+seen \verb|PROCEDURE name| and the next input terminal is \verb|IS|.
+The parser can shift \verb|IS| for the \verb|generic_instantiation|
+production, or reduce 0 symbols to \verb|parameter_profile| for the
+production \verb|subprogram_body_stub|. A canonical LR parser cannot
+handle this situation; the parser generator will report an error. In
+general, there can be only one shift action in a conflict, but
+multiple reduce actions.
+
+It is often possible to rewrite a grammar to eliminate conflicts. This
+can be undesirable, since the grammar then does not match the natural
+structure of the language being parsed.
+
+A {\it generalized LR parser} \citet{Tomita_1986} (abbreviated GLR)
+handles conflicts by using parallel parsers follow each action in the
+conflict. In the above conflict, one parser would do the shift, and
+another the reduce. Each parser would then proceed to the next input
+terminal; if it is \verb|SEPARATE|, the \verb|subprogram_body_stub|
+would continue, while the \verb|generic_instantiation| would report an
+error and be eliminated.
+
+Note that if the parser was using two lookaheads here, there would not
+be a conflict; \verb|IS SEPARATE| gives a unique state, as does
+\verb|IS IDENTIFIER| (where \verb|IDENTIFIER| starts a \verb|name|).
+However, it is impossible in general to pick k such that all conflicts
+are resolved; there may be an arbitrary number of tokens in the input
+before the conflict is resolved. In this example, \verb|name| can be
+\verb|A.B.C ...|, with an indeterminate number of components. If the
+other action in the conflict also has an indeterminate number of
+tokens, there is no k that guarantees resolvinv the conflict. A GLR
+parser handles this by parsing as many tokens as needed in the actual
+input to resolve the conflict.
+
+GLR was originally invented to handle natural languages, where the
+grammar is often inherently ambiguous, and the parser can produce
+more than one sequence of productions that produces the input. Typical
+computer programming languages are not ambiguous, and thus we require
+the GLR parser to produce only one sequence of productions.
+
+Using GLR allows using an Ada grammar that is close to the one given
+in the ISO Ada language standard appendix P \citep{Ada_2012}, which is
+not LR(1). Using that grammar as faithfully as possible ensures we are
+implementing the correct language, and simplifies updating the parser
+to a new language version.
+
+A {\it syntax tree} is a tree data structure holding the result of
+parsing. A {\it concrete syntax tree} has the same structure as the
+grammar; there is a node for each nonterminal; the node's children are
+the tokens in the right hand side that produced the nonterminal. Each
+leaf in the tree is a terminal or an empty nonterminal. An {\it
+abstract syntax tree} may have a different structure, and contain
+additional information.
+
+GLR parallel parsers use a {\it syntax tree forest}; essentially one
+syntax tree for each parser, although there are more efficient ways to
+represent the data. Error correction may insert ``virtual tokens'' in
+the syntax tree, to represent tokens that are missing from the actual
+input but are required to match the grammar.
+
+\subsection{Previous work}
 \citet{Grune_2008} provides a thorough overview of error
 correction algorithms in LR and LL parsers. Of those, the work by
 McKenzie, Yeatman, and De Vere \citep{McKenzie_1995} provides the
@@ -98,7 +282,7 @@ not statements (in Ada, declarations occur between \code{in} and
 \code{begin}; statements between \code{begin} and \code{end}).
 
 To fix this, the McKenzie algorithm must insert\\ \code{; end; begin
-  IDENTIFIER}, or delete \code{constant String; begin} and then insert
+  IDENTIFIER} after \code{Msg}, or delete \code{: constant String; begin} and then insert
 \code{;}. A much better solution would be to ``push back'' \code{begin
   Msg}, and then delete \code{begin}.
 
@@ -123,93 +307,39 @@ Here we are missing several tokens: \code{end loop; end if; end if;}.
 McKenzie will theoretically find the solution that inserts all of
 these, but along the way it will try inserting every possible
 statement as well, wasting a lot of time, and in practice hitting a
-time-out limit. This article introduces the \code{Minimal\_Complete}
-algorithm, which quickly finds the minimal number of tokens to insert
+time-out limit. This paper introduces the \code{Minimal\_Complete}
+algorithm, which quickly finds the minimal number of tokens
 to complete the trailing statement in situations like this.
 
-This article also introduces several other new operations for the core
-McKenzie algorithm to try at the error point, and adapts the algorithm
-to work with a generalized parser.
-
-Unless quoting from another source, we use the notation described by
-DeRemer and Pennello \citep{DeRemer_1982} or Aho, Sethi, and Ullman
-\citep{dragon}.
-
-\section{The parsing context}
-\subsection{Generalized parsing}
-We use a generalized LR parser \citet{Tomita_1986}, to tolerate
-conflicts in the parse table. This allows using an Ada grammar that is
-close to the one given in the ISO Ada language standard appendix P
-\citep{Ada_2012}, which is not LR(1). Using that grammar as faithfully
-as possible ensures we are implementing the correct language, and
-simplifies updating the parser to a new language version.
-
-This means the main parser may have several parallel parsers executing
-when an error is encountered. The McKenzie error correction algorithm
-is enhanced to maintain state information for each parser. When more
-than one solution is found with the same cost, additional parsers are
-created to use them.
-
-The parser builds a syntax tree; to handle parallel parsers, we use a
-branched tree similar to Tomita's sub-tree sharing. The syntax tree
-will contain ``virtual tokens'' that are inserted by error correction.
-
-The entire input token sequence is kept in memory, to allow arbitrary
-push back.
-
-\subsection{Partial parse}
-In order to handle very large files, the parser supports ``partial
-parse''; parsing only part of a file.
-
-Note that this is not the same as ``incremental parse'', where an
-existing syntax tree from a previous parse is modified based on a text
-edit. Integrating this error correction algorithm with incremental
-parse is the subject of future work.
-
-In order to minimize the amount of text passed from the editor to the
-parser, we modify the grammar to allow smaller chunks of code to be
-accepted as a complete parse. In Ada, this means adding
-\code{declaration} and \code{statement} to \code{compilation\_unit}.
-
-When the file length is greater than a threshold, Emacs invokes a
-partial parse whenever a parse is needed. It first uses a regular
-expression search to find a reasonable start point, then finds a
-possible matching end that includes the requested parse position, and
-passes that region to the parser.
-
-In Ada, the search for a start point finds a block begin, or the point
-after a block end. If a block begin was found, the matching end is
-looked for; otherwise, the requested parse point is the end point;
-\code{Minimal\_Complete} will provide the missing tokens.
-
 \section{Extensions to McKenzie}
+\label{sect:extensions}
 We define the following operations that are tried in each McKenzie
 step:
 \begin{itemize}
-\item \code{push\_back}
-\item \code{undo\_reduce}
+\item \code{Push\_Back}
+\item \code{Undo\_Reduce}
 \item \code{Try\_Insert\_Quote}
 \item \code{Minimal\_Complete}
 \item \code{Language\_Matching\_Begin\_Tokens}
 \item \code{Language\_Fixes}
 \end{itemize}
 
-\subsection{push\_back}
-\code{push\_back} pops the top parse stack item, and moves the input
+\subsection{Push\_Back}
+\code{Push\_Back} pops the top parse stack item, and moves the input
 stream pointer back to the first terminal contained by that item. We
 call the point in the input stream at which insert and delete is done
-the ``edit point''; it may not be an error point. \code{push\_back}
+the ``edit point''; it may not be an error point. \code{Push\_Back}
 moves the edit point.
 
-\subsection{undo\_reduce}
-\code{undo\_reduce} undoes the reduce that produced the top stack item
+\subsection{Undo\_Reduce}
+\code{Undo\_Reduce} undoes the reduce that produced the top stack item
 (which must be a nonterminal), replacing the top stack item by the
 sequence of stack items just before the reduction, without moving the
-edit point. This requires a syntax tree that records the shifts and
-reductions done during the parse (a ``concrete'' syntax tree). This
-operation serves two purposes;
+edit point. This requires a concrete syntax tree that records the
+shifts and reductions done during the parse. This operation serves two
+purposes;
 \begin{enumerate}
-\item It allows a subsequenct \code{push\_back} to push back fewer tokens.
+\item It allows a subsequenct \code{Push\_Back} to push back fewer tokens.
 
 \item It allows token insertions that would otherwise be forbidden by the
 grammar.
@@ -245,19 +375,19 @@ nonterminals in lowercase.
 
 The grammar productions relevant to this example are:
 \begin{verbatim}
-declarative_part <= declarations |  ;
-declarations <= declarations declaration | declaration ;
-declaration <= subprogram_declaration | ... ;
+declarative_part ==> declarations |  ;
+declarations ==> declarations declaration | declaration ;
+declaration ==> subprogram_declaration | ... ;
 \end{verbatim}
 
-Fixing the parse error starts by \code{push\_back BEGIN, delete BEGIN},
+Fixing the parse error starts by \code{Push\_Back BEGIN, delete BEGIN},
 leaving \code{declarative\_part} on top of the stack. \code{procedure}
 is the next token, which is illegal in state 208; it starts a
 \code{subprogram\_declaration}, but we've already ``closed'' the
 declaration section by reducing to \code{declarative\_part}. We could
-do \code{push\_back declarative\_part}, but that moves the edit point to
+do \code{Push\_Back declarative\_part}, but that moves the edit point to
 before the object declaration for \code{I}, where there is no error
-and nothing helpful to insert or delete. Instead, \code{undo\_reduce}
+and nothing helpful to insert or delete. Instead, \code{Undo\_Reduce}
 leaves the stack as:
 
 \begin{verbatim}
@@ -267,7 +397,7 @@ and now inserting \code{procedure} is legal.
 
 We do not maintain a syntax tree for the parsing done during error
 correction; doing that proved to be much too slow. Therefore the
-\code{undo\_reduce} operation can only be applied to configurations
+\code{Undo\_Reduce} operation can only be applied to configurations
 where the top stack item was produced by the main parse, so it has a
 valid syntax tree entry. An exception is when the nonterminal is
 empty; that is easy to undo.
@@ -359,7 +489,7 @@ of tokens to finish the current grammar production. This is supported
 by precomputing a set of \code{Minimal\_Complete\_Action} for each
 parser state.
 
-Section \ref{minimal-complete-compute} gives the algorithm for
+Section \ref{sect:minimal-complete-compute} gives the algorithm for
 computing the \code{Minimal\_Complete\_Actions}; here we describe how
 they are used in error correction.
 
@@ -371,10 +501,10 @@ parsing this code, an error is detected at the final \code{;}; the
 parser is expecting \code{end loop;}. The kernel of that state has one
 production:
 \begin{verbatim}
-loop_statement <= LOOP sequence_of_statements END ^ LOOP
+loop_statement ==> LOOP sequence_of_statements END ^ LOOP
    identifier_opt SEMICOLON
 \end{verbatim}
-where the carrot (\verb|^|) shows the parse point (also known as
+where the caret (\verb|^|) shows the parse point (also known as
 ``dot'' in an LR(1) item). In this case, it is easy to see that
 \code{Minimal\_Complete\_Action} must be ``insert \code{loop} ''.
 Similarly, after parsing \code{loop}, \code{Minimal\_Complete\_Action}
@@ -437,7 +567,7 @@ which causes another syntax error later in the code (missing
 \code{end loop;}). Here three tokens were inserted by
 \code{Minimal\_Complete}; \code{.. loop ;}.
 
-In the production Ada parser, -3 proves to be a good compromise for\\
+In the production Ada parser, -3 proves to be a good compromise for
 \code{Minimal\_Complete} cost.
 
 In some cases, the action required for \code{Minimal\_Complete} is
@@ -454,17 +584,17 @@ end if;
 Here the user is in the middle of converting an \code{if} statement to
 a \code{case} statement. The relevant grammar productions are:
 \begin{verbatim}
-if_statement <=
+if_statement ==>
     IF expression_opt THEN sequence_of_statements
     elsif_statement_list ELSE sequence_of_statements
     END IF SEMICOLON
-case_statement <=
+case_statement ==>
     CASE expression_opt IS case_statement_alternative_list
     END CASE SEMICOLON
 \end{verbatim}
-An error is detected at \code{=}; \code{Minimal\_Complete} inserts\\
+An error is detected at \code{=}; \code{Minimal\_Complete} inserts
 \code{when NUMERIC\_LITERAL =>}, then the original McKenzie algorithm
-inserts \\\code{if NUMERIC\_LITERAL}, which makes the remaining code
+inserts \code{if NUMERIC\_LITERAL}, which makes the remaining code
 legal, terminating one error correction session. Then parsing proceeds
 to then end of the input, where another error is enountered; missing
 \code{end case;}. At that point, the parse state kernel has one
@@ -473,21 +603,21 @@ production:
 %% 98.1:
 %% reduces to
 \begin{verbatim}
-if_statement <= IF expression_opt THEN sequence_of_statements
+if_statement ==> IF expression_opt THEN sequence_of_statements
    ELSE sequence_of_statements END IF SEMICOLON ^;
 
-Minimal_Complete_Action => if_statement
+Minimal_Complete_Action : if_statement
 \end{verbatim}
 Since the \code{Minimal\_Complete\_Action} token is a nonterminal, the action
-is reduce, not shift. That leads to several more states where the\\
+is reduce, not shift. That leads to several more states where the
 \code{Minimal\_Complete\_Action} is reduce:
 %% states 1711, 1708
 \begin{verbatim}
-compound_statement <= if_statement ^
-Minimal_Complete_Action => compound_statement
+compound_statement ==> if_statement ^
+Minimal_Complete_Action : compound_statement
 
-statement <= compound_statement ^
-Minimal_Complete_Action => statement
+statement ==> compound_statement ^
+Minimal_Complete_Action : statement
 
   ...
 \end{verbatim}
@@ -495,19 +625,19 @@ Minimal_Complete_Action => statement
 and finally arrives at the state:
 %% state 370
 \begin{verbatim}
-case_statement <= CASE expression_opt IS
+case_statement ==> CASE expression_opt IS
    case_statement_alternative_list ^ END CASE SEMICOLON
-case_statement_alternative_list <=
+case_statement_alternative_list ==>
    case_statement_alternative_list ^ case_statement_alternative
 
-Minimal_Complete_Action => END
+Minimal_Complete_Action : END
 \end{verbatim}
 which inserts \code{end}. \code{Minimal\_Complete} does all required
 reductions, and one insertion, in one McKenzie step (similar to
 McKenzie insert).
 
 If there is more than one production in the kernel for a parse state
-that gives the minimum length for that state, there is more than one\\
+that gives the minimum length for that state, there is more than one
 \code{Minimal\_Complete\_Action} for that state. In that case, we look
 at the length after the parse point for each production in the kernel
 for the state that the shift or reduce goes to; if one of the actions
@@ -535,12 +665,12 @@ This is missing \code{);} after \code{A}. The error is detected at
 `\lstinline|}|'. At that point, the kernel is:
 %% java_expressions_ch19_lr1.parse_table state 21
 \begin{verbatim}
-LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
-LeftHandSide <= Identifier ^
-ClassType <= Identifier ^
-MethodInvocation <= Identifier ^ LEFT_PAREN ArgumentList RIGHT_PAREN
+LambdaExpression ==> Identifier ^ MINUS_GREATER Identifier
+LeftHandSide ==> Identifier ^
+ClassType ==> Identifier ^
+MethodInvocation ==> Identifier ^ LEFT_PAREN ArgumentList RIGHT_PAREN
 
-Minimal_Complete_Action => (MINUS_GREATER, LeftHandSide, ClassType)
+Minimal_Complete_Action : (MINUS_GREATER, LeftHandSide, ClassType)
 \end{verbatim}
 Here two actions are reduce, and therefore there are no tokens in
 these productions after the parse point, so we have to look at the
@@ -548,22 +678,22 @@ next state to find the minimal length production. Reducing to
 \code{LeftHandSide} goes to the state:
 %% java_expressions_ch19_lr1.parse_table state 26
 \begin{verbatim}
-Assignment <= LeftHandSide ^ EQUAL Expression
+Assignment ==> LeftHandSide ^ EQUAL Expression
 \end{verbatim}
 where there are two tokens needed to complete the production.
 
 Reducing to \code{ClassType} goes to the state:
 %% java_expressions_ch19_lr1.parse_table state 32
 \begin{verbatim}
-PostfixExpression <= ClassType ^
-ClassType <= ClassType ^ DOT Identifier
+PostfixExpression ==> ClassType ^
+ClassType ==> ClassType ^ DOT Identifier
 \end{verbatim}
 Once again, we reduce \code{ClassType} to the next state, and the
 next, until we find a shift. This ends in the state:
 %% states 30 29 28 27 24 22 83
 \begin{verbatim}
-MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
-ArgumentList <= ArgumentList ^ COMMA Expression
+MethodInvocation ==> Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
+ArgumentList ==> ArgumentList ^ COMMA Expression
 \end{verbatim}
 which has 1 token after the parse point; this is the minimal length.
 All of these reductions, and the final shift, are done in one McKenzie
@@ -579,22 +709,22 @@ parse. Consider the following Java code:
 In the subset of Java we are using for this example, this is not a
 complete statement. The relevant productions are:
 \begin{verbatim}
-StatementExpression     <= PostIncrementExpression | PostDecrementExpression ;
-PostIncrementExpression <= PostfixExpression '++' ;
-PostDecrementExpression <= PostfixExpression '--' ;
-PostfixExpression       <=
+StatementExpression     ==> PostIncrementExpression | PostDecrementExpression ;
+PostIncrementExpression ==> PostfixExpression '++' ;
+PostDecrementExpression ==> PostfixExpression '--' ;
+PostfixExpression       ==>
    ClassType | MethodInvocation | PostIncrementExpression
  | PostDecrementExpression ;
-ClassType               <= Identifier | ClassType '.' Identifier ;
+ClassType               ==> Identifier | ClassType '.' Identifier ;
 \end{verbatim}
 To complete the code fragment, we have to insert either
 \code{++} or \code{--}. The error is detected at the closing brace;
 the state is:
 % java_expressions_ch19_lr1.parse_table state 61
 \begin{verbatim}
-PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS
-PostDecrementExpression <= PostfixExpression ^ MINUS_MINUS
-Minimal_Complete_Action => (PLUS_PLUS, MINUS_MINUS)
+PostIncrementExpression ==> PostfixExpression ^ PLUS_PLUS
+PostDecrementExpression ==> PostfixExpression ^ MINUS_MINUS
+Minimal_Complete_Action : (PLUS_PLUS, MINUS_MINUS)
 \end{verbatim}
 There are two actions, neither reduce, so we enqueue both. The next
 McKenzie step inserts \code{;} in each, completing the error recovery
@@ -607,7 +737,7 @@ cost and minimum recover ops length is chosen to be the final parse.
 
 In general, we can rely on cost to exclude cycles in error recovery,
 but this is not true for \code{Minimal\_Complete}, since it has
-negative cost. We will see in section \ref{minimal-complete-compute}
+negative cost. We will see in section \ref{sect:minimal-complete-compute}
 that minimal actions that might lead to a cycle are dropped at
 compile time, so there is no need for detecting cycles at runtime.
 
@@ -677,14 +807,13 @@ must be a simple identifier, with no dots, so the third token must be
 \code{;}.
 
 In Ada, \code{Language\_Matching\_Begin\_Tokens} returns the proper
-statement start token for \code{end ... }, and for
-\code{then, else, elsif, exception}. For \code{when}, it returns
-\code{case IDENTIFIER is}, which assumes a partial case statement is
-more common than a partial exception handler. For any other error
-token, it returns an empty token list; no guess is better than a bad
-guess.
+statement start token for \code{end ... }, \code{then}, \code{else},
+\code{elsif}, \code{exception}. For \code{when}, it returns \code{case
+  IDENTIFIER is}, which assumes a partial case statement is more
+common than a partial exception handler. For any other error token, it
+returns an empty token list; no guess is better than a bad guess.
 
-\code{Language\_Matching\_Begin\_Tokens} also returns a flag\\
+\code{Language\_Matching\_Begin\_Tokens} also returns a flag
 \code{Forbid\_Minimal\_Complete}, which is True when
 \code{Minimal\_Complete} would be harmful. In Ada, this is set True
 when the error point is after \code{end} in one of the \code{end}
@@ -708,7 +837,7 @@ in the compilation process. To take advantage of it for error
 correction, we add that check as a parse-time action in the grammar
 declaration:
 \begin{verbatim}
-block_statement <=
+block_statement ==>
     block_label_opt BEGIN handled_sequence_of_statements END
     identifier_opt SEMICOLON
     %()%
@@ -726,7 +855,7 @@ Here \code{Match\_Names} will return a status of
 \code{Match\_Names\_Error} if the names do not match, with the error
 point after the final \code{;}, and the production not reduced (so it
 is possible to edit the token sequence without an
-\code{undo\_reduce}). \code{Language\_Fixes} then tries to determine
+\code{Undo\_Reduce}). \code{Language\_Fixes} then tries to determine
 the best fix based on the name information.
 
 In this example, the error is reported after \code{end Proc\_1;}.\\
@@ -764,14 +893,14 @@ More complex patterns can be recognized in \code{Language\_Fixes}; see
 the production code for the Ada parser.
 
 \section{Computing Minimal\_Complete}
-\label{minimal-complete-compute}
+\label{sect:minimal-complete-compute}
 
 \subsection{Grammar recursions}
 We first compute the recursions in the grammar, so we can exclude
 cycles from \code{Minimal\_Complete}. A `{\it recursion}' is
 the result of a cycle in the grammar productions; for example:
 \begin{verbatim}
-association_list <=
+association_list ==>
     association_list COMMA association_opt
   | association_opt
 \end{verbatim}
@@ -780,11 +909,11 @@ is not recursive.
 
 Recursion can also be indirect; consider:
 \begin{verbatim}
-name <=
+name ==>
     IDENTIFIER
   | selected_component
 
-selected_component <= name DOT IDENTIFIER
+selected_component ==> name DOT IDENTIFIER
 \end{verbatim}
 Together, \code{name, selected\_component} are indirect recursive.
 
@@ -894,8 +1023,18 @@ the token in the state.
 \end{figure}
 
 \section{Implementation}
+\label{sect:implementation}
 The algorithm presented here is implemented in the WisiToken parser
 \citep{wisitoken}, and used in Emacs ada-mode.
+
+Since we are using a generalized parser, there may be several parallel
+parsers executing when an error is encountered. The McKenzie error
+correction algorithm is enhanced to maintain state information for
+each parser. When more than one solution is found with the same cost,
+additional parsers are created to use them.
+
+The entire input token sequence is kept in memory, to allow arbitrary
+push back.
 
 McKenzie uses a bit map to prune redundant (but presumably higher
 cost) configurations from the queue; instead, we use a Fibonacci min
@@ -930,6 +1069,7 @@ using multiple tasks, the total time spent in recovery is about the
 same between the LALR and LR1 parsers; 1.10 seconds in this case.
 
 \section{Results}
+\label{sect:result}
 This error correction algorithm has been in production use in Emacs
 ada-mode since November 2018. The parser can be configured to output
 information about each error recovery; that is summarized in figures
@@ -952,15 +1092,15 @@ majority of cases, along with insert.
                    & count    & percent \\
 \midrule
 fail enqueue limit & 1\_126   & 3\%     \\
-ignore\_error      & 2\_130   & 1\%     \\
-language\_fix      & 11\_138  & 6\%     \\
-minimal\_complete  & 151\_977 & 78\%    \\
-matching\_begin    & 2\_848   & 1\%     \\
-push\_back         & 13\_694  & 7\%     \\
-undo\_reduce       & 7\_491   & 4\%     \\
-insert             & 141\_629 & 72\%    \\
-delete             & 18\_557  & 9\%     \\
-string\_quote      & 2\_615   & 1\%     \\
+Ignore\_Error      & 2\_130   & 1\%     \\
+Language\_Fix      & 11\_138  & 6\%     \\
+Minimal\_Complete  & 151\_977 & 78\%    \\
+Matching\_Begin    & 2\_848   & 1\%     \\
+Push\_Back         & 13\_694  & 7\%     \\
+Undo\_Reduce       & 7\_491   & 4\%     \\
+Insert             & 141\_629 & 72\%    \\
+Delete             & 18\_557  & 9\%     \\
+String\_Quote      & 2\_615   & 1\%     \\
 \bottomrule
                    & mean     & max     \\
 \midrule
@@ -969,34 +1109,6 @@ check              & 61.8     & 5496    \\
 \bottomrule
 \end{tabular}
 \label{table:full-recover-stats}
-\end{figure}
-
-\begin{figure}[H]
-\caption{Error recovery statistics for partial file parsing}
-\Description{table giving percent use of each McKenzie operation
-  during full file parsing}
-\begin{tabular}{l r r}
-\toprule
-                   & count    & percent \\
-\midrule
-fail enqueue limit & 16      & 0\%      \\
-ignore\_error      & 850     & 5\%     \\
-language\_fix      & 356     & 2\%     \\
-minimal\_complete  & 14\_579 & 77\%    \\
-matching\_begin    & 2\_355    & 13\%    \\
-push\_back         & 1\_019    & 5\%     \\
-undo\_reduce       & 544     & 3\%     \\
-insert             & 6\_076    & 32\%    \\
-delete             & 1\_266    & 7\%     \\
-string\_quote      & 11      & 0\%     \\
-\bottomrule
-                   & mean    & max     \\
-\midrule
-enqueue            & 922.6   & 49\_286 \\
-check              & 78.5    & 4201    \\
-\bottomrule
-\end{tabular}
-\label{table:partial-recover-stats}
 \end{figure}
 
 To compare our error correction to other parsers, we use a set of 59 Ada

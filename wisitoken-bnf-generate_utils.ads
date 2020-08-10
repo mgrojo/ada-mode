@@ -56,8 +56,8 @@ package WisiToken.BNF.Generate_Utils is
    end record;
 
    function Initialize
-     (Input_Data       : aliased in WisiToken_Grammar_Runtime.User_Data_Type;
-      Ignore_Conflicts :         in Boolean := False)
+     (Input_Data       : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Ignore_Conflicts : in Boolean := False)
      return Generate_Data;
 
    procedure Parse_Grammar_File
@@ -66,17 +66,10 @@ package WisiToken.BNF.Generate_Utils is
 
    function Parse_Grammar_File
      (Grammar_File_Name  : in String;
+      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
       Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
       Lexer              : in WisiToken.BNF.Lexer_Type;
       Ignore_Conflicts   : in Boolean)
-     return Generate_Data;
-
-   function Parse_Grammar_File
-     (Grammar_File_Name  :         in     String;
-      Input_Data         : aliased in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Generate_Algorithm :         in     WisiToken.BNF.Generate_Algorithm;
-      Lexer              :         in     WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   :         in     Boolean)
      return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
@@ -118,9 +111,9 @@ package WisiToken.BNF.Generate_Utils is
    function Has_Element (Cursor : in Token_Cursor) return Boolean is (not Is_Done (Cursor));
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
    function Iterate
-     (Container    : aliased    Token_Container;
-      Non_Grammar  :         in Boolean := True;
-      Nonterminals :         in Boolean := True)
+     (Container    : in Token_Container;
+      Non_Grammar  : in Boolean := True;
+      Nonterminals : in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
    function First

@@ -191,8 +191,8 @@ package body WisiToken.BNF.Generate_Utils is
    --  Public subprograms, declaration order
 
    function Initialize
-     (Input_Data       : aliased in WisiToken_Grammar_Runtime.User_Data_Type;
-      Ignore_Conflicts :         in Boolean := False)
+     (Input_Data       : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Ignore_Conflicts : in Boolean := False)
      return Generate_Data
    is
       EOI_ID : constant Token_ID := Token_ID
@@ -280,11 +280,11 @@ package body WisiToken.BNF.Generate_Utils is
    end Parse_Grammar_File;
 
    function Parse_Grammar_File
-     (Grammar_File_Name  :         in     String;
-      Input_Data         : aliased in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Generate_Algorithm :         in     WisiToken.BNF.Generate_Algorithm;
-      Lexer              :         in     WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   :         in     Boolean)
+     (Grammar_File_Name  : in String;
+      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in WisiToken.BNF.Lexer_Type;
+      Ignore_Conflicts   : in Boolean)
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
@@ -294,7 +294,7 @@ package body WisiToken.BNF.Generate_Utils is
       Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
-         User_Data => Input_Data'Unchecked_Access);
+         User_Data => Syntax_Trees.User_Data_Access (Input_Data));
 
       Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
 
@@ -302,7 +302,9 @@ package body WisiToken.BNF.Generate_Utils is
       Grammar_Parser.Execute_Actions; -- Meta phase.
 
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
-         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree, Input_Data);
+         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
+           (Grammar_Parser.Parsers.First_State_Ref.Tree,
+            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all));
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
          end if;
@@ -327,18 +329,6 @@ package body WisiToken.BNF.Generate_Utils is
    when E : WisiToken.Parse_Error =>
       WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
       raise;
-   end Parse_Grammar_File;
-
-   function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
-     return Generate_Data
-   is
-      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   begin
-      return Parse_Grammar_File (Grammar_File_Name, Input_Data, Generate_Algorithm, Lexer, Ignore_Conflicts);
    end Parse_Grammar_File;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID
@@ -386,7 +376,7 @@ package body WisiToken.BNF.Generate_Utils is
       end case;
    end Constant_Reference;
 
-   type Iterator (Container : not null access constant Token_Container)
+   type Iterator (Data : not null access constant Generate_Data)
    is new Iterator_Interfaces.Forward_Iterator with record
       Non_Grammar  : Boolean;
       Nonterminals : Boolean;
@@ -397,7 +387,7 @@ package body WisiToken.BNF.Generate_Utils is
 
    overriding function First (Object : Iterator) return Token_Cursor
    is begin
-      return First (Object.Container.Data.all, Object.Non_Grammar, Object.Nonterminals);
+      return First (Object.Data.all, Object.Non_Grammar, Object.Nonterminals);
    end First;
 
    overriding function Next (Object  : Iterator; Position : Token_Cursor) return Token_Cursor
@@ -409,12 +399,12 @@ package body WisiToken.BNF.Generate_Utils is
    end Next;
 
    function Iterate
-     (Container    : aliased    Token_Container;
-      Non_Grammar  :         in Boolean := True;
-      Nonterminals :         in Boolean := True)
+     (Container    : in Token_Container;
+      Non_Grammar  : in Boolean := True;
+      Nonterminals : in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      return Iterator'(Container'Access, Non_Grammar, Nonterminals);
+      return Iterator'(Container.Data, Non_Grammar, Nonterminals);
    end Iterate;
 
    function Next_Kind_Internal

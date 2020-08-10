@@ -17,6 +17,7 @@ with Ada.Command_Line;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Generate;
 with WisiToken.Productions;
+with WisiToken_Grammar_Runtime;
 procedure WisiToken.Followed_By
 is
    procedure Put_Usage
@@ -180,9 +181,11 @@ begin
    declare
       use Ada.Text_IO;
 
+      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
         WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-          (-Grammar_File_Name, BNF.LALR, BNF.re2c_Lexer, Ignore_Conflicts => True);
+          (-Grammar_File_Name, Input_Data'Unchecked_Access, BNF.LALR, BNF.re2c_Lexer, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Token_A : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);
