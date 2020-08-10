@@ -263,6 +263,9 @@ Prompt user if more than one."
 	     ;;
 	     ;; the lines after that may contain alternate matches;
 	     ;; collect all, let user choose.
+	     ;;
+	     ;; However, a line that contains 'ada-secondary-error may be from the next error message:
+	     ;; parser_no_recover.adb:297:60: no selector "Tree" for type "Parser_State" defined at lists.ads:96
 	     (forward-line 1)
 	     (when (looking-at ".* multiple use clauses cause hiding")
 	       (forward-line 1))
@@ -271,7 +274,7 @@ Prompt user if more than one."
 		 ;; 1- because next compilation error is at next line beginning
 		 (setq done (not
 			     (and
-			      (equal file-line-struct err-msg)
+			      (equal file-line-struct err-msg) ;; same error message?
 			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
 			      (< pos limit))))
 		 (when (not done)
@@ -282,7 +285,9 @@ Prompt user if more than one."
 		     (unless (member choice choices) (push choice choices))
 		     (goto-char (1+ pos))
 		     (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
-		     (when (eolp) (forward-line 1))
+		     (when (eolp)
+		       (forward-line 1)
+		       (setq file-line-struct (get-text-property (point) 'compilation-message)))
 		     ))
 		 ))
 

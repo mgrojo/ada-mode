@@ -182,13 +182,20 @@ parse region."
 		      (line-number-at-pos begin)
 		      (line-number-at-pos send-end)
 
-		      ;; begin_indent - skip empty lines.
+		      ;; begin_indent. Example:
+		      ;;
+		      ;; end if;
+		      ;;
+		      ;;    if ...
+		      ;;    end if;
+		      ;;
+		      ;; Indenting 'if ...'; ada-wisi-expand-region
+		      ;; returns BEGIN after first 'end if;', SEND-END
+		      ;; after second 'end if'. Begin_indent is first
+		      ;; 'end if;'
 		      (save-excursion
 			(goto-char begin)
-			(skip-syntax-forward " ")
-			(while (eolp)
-			  (forward-line 1)
-			  (skip-syntax-forward " "))
+			(back-to-indentation)
 			(current-column))
 
 		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
@@ -235,7 +242,7 @@ one or more Edit messages."
 		      parse-begin ;; char_pos
 		      (line-number-at-pos parse-begin)
 		      (line-number-at-pos parse-end)
-		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; indent-begin
+		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; begin_indent
 		      (if (> wisi-debug 0) 1 0) ;; debug-mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-action

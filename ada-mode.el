@@ -852,6 +852,8 @@ compiler-specific compilation filters."
   ;; doesn't change, at least on Windows.
   (let ((start-buffer (current-buffer))
 	pos item file)
+    (when (eq major-mode 'compilation-mode)
+      (setq compilation-last-buffer (current-buffer)))
     ;; We use `pop-to-buffer', not `set-buffer', so point is correct
     ;; for the current window showing compilation-last-buffer, and
     ;; moving point in that window works. But that might eat an
@@ -1157,11 +1159,22 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 	  ))
 
 (defconst ada-wisi-named-begin-regexp
-  "\\_<function\\_>\\|\\_<package\\_>\\|\\_<procedure\\_>\\|\\_<task\\_>"
+  "\\(?:\\_<overriding\\_> +\\)?\\(?:\\_<function\\_>\\|\\_<package\\_>\\|\\_<procedure\\_>\\|\\_<task\\_>\\)"
   )
 
 (defconst ada-wisi-partial-begin-regexp
-  (concat "\\_<begin\\_>\\|\\_<declare\\_>\\|"
+  ;; We have to include 'begin' here:
+  ;;
+  ;;
+   ;;    end Copy_Node;
+   ;; begin
+   ;;    Destination.Leading_Non_Grammar;
+   ;;
+   ;; indenting 'Destination'. If we don't include 'begin', then
+   ;; 'Destination' is indented ada-indent relative to 'end
+   ;; Copy_Node', and there is no error to allow us to correct it.
+
+  (concat "\\_<begin\\_>\\|\\_<declare\\_>\\|\\_<do\\_>\\|"
 	  ada-wisi-named-begin-regexp
 	  "\\|\\_<end;\\|\\_<end " ada-name-regexp ";"))
 
@@ -1193,11 +1206,8 @@ Must match wisi-ada.ads Language_Protocol_Version.")
   ;;
   ;; This is handled by the set of keywords in
   ;; ada-wisi-partial-begin-regexp.
-  (cond
-   ((looking-at "[ \t]*\\_<begin\\_>")
-    ;; indenting 'begin'; best option is to assume it is indented properly
-    (point))
 
+  (cond
    ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
      (lambda () (or (wisi-in-string-or-comment-p)
@@ -1262,7 +1272,7 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Point is at bol
     (back-to-indentation)
     (when (looking-at ada-wisi-named-begin-regexp)
-      (skip-syntax-forward "ws")
+      (goto-char (match-end 0))
       (skip-syntax-forward " ")
       (when (looking-at "body\\|type")
 	(goto-char (match-end 0))
@@ -1310,7 +1320,15 @@ Point must have been set by `ada-wisi-find-begin'."
   (cond
    ((or (wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
 	(wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END)))
-    ;; Error token terminates the block containing the start token
+    ;; case 1:
+    ;;
+    ;;     end;
+    ;;  else
+    ;;  declare
+    ;;
+    ;; Indenting 'declare'; parse begin after 'end;', recover inserted
+    ;; 'if then' before 'else', so result is ada-indent relative to
+    ;; 'end;', but we want 0 relative to end
     (- indent ada-indent))
 
    ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
@@ -1520,8 +1538,8 @@ Prompts with completion, defaults to filename at point."
 
 ;;;; ada-mode
 
-(defvar which-func-functions nil) ;; which-func.el
-(defvar which-func-non-auto-modes nil) ;; ""
+(defvar which-func-functions) ;; which-func.el
+(defvar which-func-non-auto-modes) ;; ""
 
 ;;;###autoload
 (define-derived-mode ada-mode prog-mode "Ada"
@@ -1578,7 +1596,8 @@ Prompts with completion, defaults to filename at point."
   ;; loaded later, it will use the add-log which-function, which
   ;; forces a navigate parse.
   (add-hook 'which-func-functions #'ada-which-function nil t)
-  (add-to-list 'which-func-non-auto-modes 'ada-mode)
+  (when (boundp 'which-func-non-auto-modes)
+    (add-to-list 'which-func-non-auto-modes 'ada-mode))
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)
@@ -1678,6 +1697,9 @@ Prompts with completion, defaults to filename at point."
 (put 'ada-mode 'custom-mode-group 'ada)
 
 ;;;;; Global initializations
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.ad[abs]\\'" . ada-mode))
 
 (when (featurep 'imenu)
   (require 'ada-imenu))

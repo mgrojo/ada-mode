@@ -1251,7 +1251,7 @@ package body Wisi is
                      Cache.Containing_Pos := Containing_Pos;
                      if WisiToken.Trace_Action > Detail then
                         Ada.Text_IO.Put_Line
-                          ("   " & Cache.Pos'Image & " containing to " & Cache.Containing_Pos.Item'Image);
+                          ("   " & Cache.Pos'Image & " containing to " & Image (Cache.Containing_Pos));
                      end if;
                   end;
                else
