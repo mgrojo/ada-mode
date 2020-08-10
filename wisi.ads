@@ -477,6 +477,9 @@ private
 
    Nil : constant Nil_Buffer_Pos := (Set => False);
 
+   function Image (Item : in Nil_Buffer_Pos) return String
+   is (if Item.Set then Item.Item'Image else "nil");
+
    type Navigate_Cache_Type is record
       Pos            : WisiToken.Buffer_Pos; -- implicit in [1] wisi-cache
       Statement_ID   : WisiToken.Token_ID;   -- [1] wisi-cache-nonterm

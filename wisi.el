@@ -112,6 +112,18 @@
 (require 'wisi-fringe)
 (require 'xref)
 
+(defgroup wisi nil
+  "Options for Wisi package."
+  :group 'programming)
+
+(defcustom wisi-process-time-out 5.0
+  "Time out waiting for parser response. An error occurs if there
+  is no response from the parser after waiting this amount (in
+  seconds)."
+  :type 'float
+  :safe 'numberp)
+(make-variable-buffer-local 'wisi-process-time-out)
+
 (defcustom wisi-size-threshold most-positive-fixnum
   "Max size (in characters) for using wisi parser results for anything."
   :type 'integer
@@ -768,8 +780,13 @@ Usefull if the parser appears to be hung."
 
 (defun wisi--run-parse (begin parse-end)
   "Run the parser, on at least region BEGIN PARSE-END."
-  (unless (or (buffer-narrowed-p)
-	      (= (point-min) (point-max))) ;; some parsers can’t handle an empty buffer.
+  ;; The buffer might be narrowed for several reasons: the user
+  ;; narrowed to focus on a region or subprogram, or we are in an
+  ;; mmm-mode and indenting an Ada subregion. In the latter two cases,
+  ;; we don't need to widen; the narrowed region contains a complete
+  ;; production. If the user has narrowed to an arbitrary region, the
+  ;; parse will probably be incorrect.
+  (unless (= (point-min) (point-max)) ;; some parsers can’t handle an empty buffer.
     (let* ((partial-parse-p (wisi-partial-parse-p begin parse-end))
 	   (msg (when (> wisi-debug 0)
 		  (format "wisi: %sparsing %s %s:%d %d %d ..."
@@ -874,6 +891,11 @@ Usefull if the parser appears to be hung."
 
 (defun wisi-validate-cache (begin end error-on-fail parse-action)
   "Ensure cached data for PARSE-ACTION is valid in region BEGIN END in current buffer."
+
+  ;; Tolerate (point) +- size exeeding buffer limits.
+  (setq begin (max begin (point-min)))
+  (setq end (min end (point-max)))
+
   (if (and (not wisi-inhibit-parse)
 	   (< (point-max) wisi-size-threshold))
       (let ((wisi--parse-action parse-action))
@@ -1011,7 +1033,8 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-forward-sexp (&optional arg)
-  "For `forward-sexp-function'."
+  "If on paren or string quote, move to matching one. Otherwise move to next statement keyword.
+For `forward-sexp-function'."
   (interactive "^p")
   (or arg (setq arg 1))
   (cond

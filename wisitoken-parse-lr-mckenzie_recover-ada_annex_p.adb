@@ -18,14 +18,14 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
-with Ada_Process_Actions;
+with Ada_Annex_P_Process_Actions;
 with System.Assertions;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
 
-   use all type Ada_Process_Actions.Token_Enum_ID; -- token names
+   use all type Ada_Annex_P_Process_Actions.Token_Enum_ID; -- token names
    use all type Semantic_Checks.Check_Status_Label;
 
-   Descriptor : WisiToken.Descriptor renames Ada_Process_Actions.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Ada_Annex_P_Process_Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
@@ -145,7 +145,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0 or 2.
 
-               if Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in
+               if Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in
                  protected_body_ID | protected_type_declaration_ID |
                  single_protected_declaration_ID | single_task_declaration_ID
                then
@@ -164,9 +164,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
-                  case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+                  case Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                   when block_statement_ID =>
-                     Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
+                     Push_Back_Check (New_Config, +SEMICOLON_ID);
+                     if New_Config.Stack.Peek.ID = +IDENTIFIER_ID then
+                        Push_Back_Check (New_Config, +IDENTIFIER_ID);
+                     end if;
+                     Push_Back_Check (New_Config, +END_ID);
                      Insert (New_Config, +BEGIN_ID);
 
                   when entry_body_ID =>
@@ -241,7 +245,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
-                      (case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+                      (case Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                        when package_body_ID | package_specification_ID | subprogram_body_ID => +name_opt_ID,
                        when protected_type_declaration_ID | single_protected_declaration_ID => +protected_definition_ID,
                        when others =>  +identifier_opt_ID)));
@@ -546,7 +550,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
 
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-            case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+            case Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
             when block_statement_ID =>
                --  There is almost always an open block of some sort; not worth
                --  checking.
@@ -1273,7 +1277,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean)
    is
-      use Ada_Process_Actions;
+      use Ada_Annex_P_Process_Actions;
       use Token_ID_Arrays;
 
       function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector
@@ -1343,7 +1347,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Annex_P is
       String_Literal_ID : in Token_ID)
      return Token_ID_Set
    is
-      use Ada_Process_Actions;
+      use Ada_Annex_P_Process_Actions;
    begin
       --  Character literal can be part of a string primary, so the nonterms
       --  are independent of String_Literal_ID.

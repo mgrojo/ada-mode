@@ -164,9 +164,17 @@ Symbol can be a nonterminal name, or a state number."
      (match-string-no-properties 0))))
 
 ;;;###autoload
-(defun wisitoken-parse_table-conflict-goto ()
-  "Get conflict at point, switch to `wisitoken-parse_table-last-buffer', goto first occurance."
-  (interactive)
+(defun wisitoken-parse_table-conflict-goto (&optional prompt)
+  "Get conflict at point, switch to `wisitoken-parse_table-last-buffer', goto first occurance.
+With user arg, prompt for parse table buffer."
+  (interactive "P")
+  (when prompt
+    (setq wisitoken-parse_table-last-buffer
+	  (get-buffer
+	   (read-buffer
+	    (format "parse table buffer (%s): " wisitoken-parse_table-last-buffer)
+	    wisitoken-parse_table-last-buffer
+	    t))))
   (let ((conflict (wisitoken-parse_table--get-conflict)))
     (pop-to-buffer wisitoken-parse_table-last-buffer)
     ;; IMPROVEME: we may need to cache the completion table in a large buffer

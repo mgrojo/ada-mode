@@ -639,6 +639,9 @@ package body Wisi is
          begin
             if Cache.Pos in Containing_Pos .. End_Pos then
                Cache.End_Pos := (True, End_Pos);
+               if WisiToken.Trace_Action > Detail then
+                  Ada.Text_IO.Put_Line ("   " & Cache.Pos'Image & " end to " & Cache.End_Pos.Item'Image);
+               end if;
                Delete_Cache := True;
             else
                Delete_Cache := False;
@@ -675,6 +678,10 @@ package body Wisi is
       Data.Line_Begin_Char_Pos.Set_First_Last
         (First   => Begin_Line,
          Last    => End_Line);
+
+      for Pos of Data.Line_Begin_Char_Pos loop
+         Pos := Invalid_Buffer_Pos;
+      end loop;
 
       --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Paren_State.Set_First_Last
@@ -755,25 +762,39 @@ package body Wisi is
    begin
       if Lexer.First then
          Data.Line_Begin_Char_Pos (Token.Line) := Token.Char_Region.First;
+      end if;
 
-         if Token.Line > Data.Line_Begin_Char_Pos.First_Index and then
-           Data.Line_Begin_Char_Pos (Token.Line - 1) = Invalid_Buffer_Pos
-         then
-            --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
+      if Token.Line > Data.Line_Begin_Char_Pos.First_Index and then
+        Data.Line_Begin_Char_Pos (Token.Line - 1) = Invalid_Buffer_Pos
+      then
+         --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
+         declare
+            First_Set_Line : Line_Number_Type;
+         begin
+            for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Token.Line - 1 loop
+               if Data.Line_Begin_Char_Pos (Line) /= Invalid_Buffer_Pos then
+                  First_Set_Line := Line;
+                  exit;
+               end if;
+            end loop;
+            for Line in First_Set_Line + 1 .. Token.Line - 1 loop
+               Data.Line_Begin_Char_Pos (Line) := Data.Line_Begin_Char_Pos (First_Set_Line); -- good enough
+            end loop;
+
+            --  Correct Last_Indent_Line in previous token, if it was a grammar token
             declare
-               First_Set_Line : Line_Number_Type;
+               Prev_Terminal_Index : constant Token_Index := Data.Terminals.Last_Index -
+                 (if Token.ID < Data.Descriptor.First_Terminal then 0 else 1);
+
+               Prev_Node : constant Valid_Node_Index := Data.Terminals.all (Prev_Terminal_Index).Tree_Index;
+
+               Prev_Aug : Aug_Token_Var_Ref renames Get_Aug_Token_Var (Tree, Prev_Node);
             begin
-               for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Token.Line - 1 loop
-                  if Data.Line_Begin_Char_Pos (Line) /= Invalid_Buffer_Pos then
-                     First_Set_Line := Line;
-                     exit;
-                  end if;
-               end loop;
-               for Line in First_Set_Line + 1 .. Token.Line - 1 loop
-                  Data.Line_Begin_Char_Pos (Line) := Data.Line_Begin_Char_Pos (First_Set_Line); -- good enough
-               end loop;
+               if Prev_Aug.Non_Grammar.Length = 0 then
+                  Prev_Aug.Last_Indent_Line := Token.Line;
+               end if;
             end;
-         end if;
+         end;
       end if;
 
       if Token.ID < Data.Descriptor.First_Terminal then
@@ -1177,6 +1198,12 @@ package body Wisi is
       Override_Start_Set : Boolean                := False;
       Containing_Pos     : Nil_Buffer_Pos         := Nil;
    begin
+      if WisiToken.Trace_Action > Outline then
+         Ada.Text_IO.Put_Line
+           ("Statement_Action " & Image (Tree.ID (Nonterm), Data.Descriptor.all) & " " &
+              Tree.Image (Tokens, Data.Descriptor.all));
+      end if;
+
       for Pair of Params loop
          if not (Pair.Index in Tokens'Range) then
             raise Fatal_Error with Error_Message
@@ -1222,6 +1249,10 @@ package body Wisi is
                      end if;
                      Cache.Statement_ID   := Tree.ID (Nonterm);
                      Cache.Containing_Pos := Containing_Pos;
+                     if WisiToken.Trace_Action > Detail then
+                        Ada.Text_IO.Put_Line
+                          ("   " & Cache.Pos'Image & " containing to " & Image (Cache.Containing_Pos));
+                     end if;
                   end;
                else
                   Cursor := Data.Navigate_Caches.Insert
@@ -1232,6 +1263,15 @@ package body Wisi is
                       Class          => (if Override_Start_Set then Statement_Start else Pair.Class),
                       Containing_Pos => Containing_Pos,
                       others         => Nil));
+                  if WisiToken.Trace_Action > Detail then
+                     declare
+                        Cache : Navigate_Cache_Type renames Data.Navigate_Caches.Constant_Ref (Cursor);
+                     begin
+                        Ada.Text_IO.Put_Line
+                          ("   " & Cache.Pos'Image & " create " & Image (Cache.ID, Data.Descriptor.all) &
+                             ", containing to " & Image (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
+                     end;
+                  end if;
                end if;
 
                Data.End_Positions.Append (Cursor);
@@ -1356,10 +1396,8 @@ package body Wisi is
    is
       use Navigate_Cache_Trees;
 
-      Start          : Nil_Buffer_Pos    := (Set => False);
       Iter           : constant Iterator := Data.Navigate_Caches.Iterate;
       Prev_Cache_Cur : Cursor;
-      Cache_Cur      : Cursor;
    begin
       if WisiToken.Trace_Action > Outline then
          Ada.Text_IO.Put_Line
@@ -1370,89 +1408,94 @@ package body Wisi is
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             declare
                use all type WisiToken.Syntax_Trees.Node_Label;
-               Token  : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Tree, Tokens (Param.Index));
-               Region : constant Buffer_Region := Token.Char_Region;
-               Skip   : Boolean                := False;
+               Token          : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Tree, Tokens (Param.Index));
+               Region         : constant Buffer_Region := Token.Char_Region;
+               Cache_Cur      : Cursor;
+               Skip           : Boolean;
+               Done           : Boolean                := False;
             begin
-               if not Start.Set then
-                  Start := (True, Region.First);
-               end if;
+               loop
+                  Skip := False;
 
-               case Tree.Label (Tokens (Param.Index)) is
-               when Shared_Terminal =>
-                  Cache_Cur := Find (Iter, Region.First);
-               when Virtual_Terminal | Virtual_Identifier =>
-                  return;
-
-               when Syntax_Trees.Nonterm =>
-                  if Param.ID = Invalid_Token_ID then
+                  case Tree.Label (Tokens (Param.Index)) is
+                  when Shared_Terminal =>
                      Cache_Cur := Find (Iter, Region.First);
+                     Done      := True;
 
-                  else
-                     Skip      := True;
-                     Cache_Cur := Find_In_Range (Iter, Ascending, Region.First, Region.Last);
-                     loop
-                        exit when not Has_Element (Cache_Cur);
-                        if Data.Navigate_Caches (Cache_Cur).Pos > Region.Last then
-                           Cache_Cur := No_Element;
-                           exit;
+                  when Virtual_Terminal | Virtual_Identifier =>
+                     Skip := True;
+                     Done := True;
 
-                        elsif Data.Navigate_Caches (Cache_Cur).ID = Param.ID and
-                          not Data.Navigate_Caches (Cache_Cur).Prev_Pos.Set
-                        then
-                           Skip := False;
-                           exit;
+                  when Syntax_Trees.Nonterm =>
+                     if Param.ID = Invalid_Token_ID then
+                        Cache_Cur := Find (Iter, Region.First);
+                        Done      := True;
+
+                     else
+                        Skip := True;
+
+                        if not Has_Element (Cache_Cur) then
+                           Cache_Cur := Find_In_Range (Iter, Ascending, Region.First, Region.Last);
                         end if;
 
-                        Cache_Cur := Next (Iter, Cache_Cur);
-                     end loop;
-                  end if;
-               end case;
+                        loop
+                           exit when not Has_Element (Cache_Cur);
+                           if Data.Navigate_Caches (Cache_Cur).Pos > Region.Last then
+                              Cache_Cur := No_Element;
+                              exit;
 
-               if not Skip then
-                  if not Has_Element (Cache_Cur) then
-                     raise Fatal_Error with Error_Message
-                       (File_Name => Data.Lexer.File_Name,
-                        Line      => Token.Line,
-                        Column    => Token.Column,
-                        Message   => "wisi-motion-action: token " &
-                          WisiToken.Image (Token.ID, Data.Descriptor.all) &
-                          " has no cache; add to statement-action for " &
-                          Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
-                  end if;
-
-                  if Has_Element (Prev_Cache_Cur) then
-                     declare
-                        Cache      : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
-                        Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
-                     begin
-                        if not Cache.Prev_Pos.Set then
-                           Cache.Prev_Pos := (True, Prev_Cache.Pos);
-                           if WisiToken.Trace_Action > Detail then
-                              Ada.Text_IO.Put_Line ("   " & Cache.Pos'Image & " prev to " & Cache.Prev_Pos.Item'Image);
+                           elsif Data.Navigate_Caches (Cache_Cur).ID = Param.ID and
+                             not Data.Navigate_Caches (Cache_Cur).Prev_Pos.Set
+                           then
+                              Skip := False;
+                              exit;
                            end if;
-                        end if;
 
-                        if not Prev_Cache.Next_Pos.Set then
-                           Prev_Cache.Next_Pos := (True, Cache.Pos);
-                           if WisiToken.Trace_Action > Detail then
-                              Ada.Text_IO.Put_Line
-                                ("   " & Prev_Cache.Pos'Image & " next to " & Prev_Cache.Next_Pos.Item'Image);
+                           Cache_Cur := Next (Iter, Cache_Cur);
+                        end loop;
+                     end if;
+                  end case;
+
+                  if not Skip then
+                     if not Has_Element (Cache_Cur) then
+                        raise Fatal_Error with Error_Message
+                          (File_Name => Data.Lexer.File_Name,
+                           Line      => Token.Line,
+                           Column    => Token.Column,
+                           Message   => "wisi-motion-action: token " &
+                             WisiToken.Image (Token.ID, Data.Descriptor.all) &
+                             " has no cache; add to statement-action for " &
+                             Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
+                     end if;
+
+                     if Has_Element (Prev_Cache_Cur) then
+                        declare
+                           Cache      : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
+                           Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
+                        begin
+                           if not Cache.Prev_Pos.Set then
+                              Cache.Prev_Pos := (True, Prev_Cache.Pos);
+                              if WisiToken.Trace_Action > Detail then
+                                 Ada.Text_IO.Put_Line
+                                   ("   " & Cache.Pos'Image & " prev to " & Cache.Prev_Pos.Item'Image);
+                              end if;
                            end if;
-                        end if;
-                     end;
+
+                           if not Prev_Cache.Next_Pos.Set then
+                              Prev_Cache.Next_Pos := (True, Cache.Pos);
+                              if WisiToken.Trace_Action > Detail then
+                                 Ada.Text_IO.Put_Line
+                                   ("   " & Prev_Cache.Pos'Image & " next to " & Prev_Cache.Next_Pos.Item'Image);
+                              end if;
+                           end if;
+                        end;
+                     end if;
+
+                     Prev_Cache_Cur := Cache_Cur;
+                     Cache_Cur      := Iter.Next (Cache_Cur);
                   end if;
-
-                  loop
-                     --  Set Prev_Cache_Cur to last motion cache in nonterm chain
-                     exit when not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set;
-
-                     Cache_Cur := Find (Iter, Data.Navigate_Caches (Cache_Cur).Next_Pos.Item);
-                     pragma Assert (Has_Element (Cache_Cur)); --  otherwise there's a bug in this subprogram.
-
-                  end loop;
-                  Prev_Cache_Cur := Cache_Cur;
-               end if;
+                  exit when Done or not Has_Element (Cache_Cur);
+               end loop;
             end;
          end if;
       end loop;
@@ -1475,6 +1518,12 @@ package body Wisi is
    begin
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+            if Trace_Action > Outline then
+               Ada.Text_IO.Put_Line
+                 (";; face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
+                    " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
+            end if;
+
             declare
                Token : Aug_Token_Const_Ref renames Get_Aug_Token_Const_1 (Tree, Tokens (Param.Index));
             begin

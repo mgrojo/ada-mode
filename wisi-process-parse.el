@@ -22,19 +22,7 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
-(defgroup wisi nil
-  "Options for Wisi package."
-  :group 'programming)
-
-(defcustom wisi-process-time-out 5.0
-  "Time out waiting for parser response. An error occurs if there
-  is no response from the parser after waiting this amount (in
-  seconds)."
-  :type 'float
-  :safe 'numberp)
-(make-variable-buffer-local 'wisi-process-time-out)
-
-(defconst wisi-process-parse-protocol-version "5"
+(defconst wisi-process-parse-protocol-version "6"
   "Defines data exchanged between this package and the background process.
 Must match emacs_wisi_common_parse.ads Protocol_Version.")
 
@@ -181,7 +169,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -193,7 +181,23 @@ parse region."
 		      begin ;; char_pos
 		      (line-number-at-pos begin)
 		      (line-number-at-pos send-end)
-		      (save-excursion (goto-char begin) (back-to-indentation) (current-column));; indent-begin
+
+		      ;; begin_indent. Example:
+		      ;;
+		      ;; end if;
+		      ;;
+		      ;;    if ...
+		      ;;    end if;
+		      ;;
+		      ;; Indenting 'if ...'; ada-wisi-expand-region
+		      ;; returns BEGIN after first 'end if;', SEND-END
+		      ;; after second 'end if'. Begin_indent is first
+		      ;; 'end if;'
+		      (save-excursion
+			(goto-char begin)
+			(back-to-indentation)
+			(current-column))
+
 		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
 			      (< (point-max) wisi-partial-parse-threshold))
 			  0 1) ;; partial parse active
@@ -206,7 +210,8 @@ parse region."
 		      (or wisi-mckenzie-check-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
 		      (or wisi-parse-max-parallel -1)
-		      (- (position-bytes send-end) (position-bytes begin)) ;; send-end is after last byte
+		      (or wisi-branched-tree-limit -1)
+		      (- (position-bytes send-end) (position-bytes begin)) ;; byte_count: send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -237,7 +242,7 @@ one or more Edit messages."
 		      parse-begin ;; char_pos
 		      (line-number-at-pos parse-begin)
 		      (line-number-at-pos parse-end)
-		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; indent-begin
+		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; begin_indent
 		      (if (> wisi-debug 0) 1 0) ;; debug-mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-action

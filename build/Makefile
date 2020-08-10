@@ -51,9 +51,11 @@ pub : docs pub-ada pub-wisi pub-ada-ref-man clean-elpa build-elpa uninstall-elpa
 
 docs : info html
 
-recover-compare : wisitoken-recover-compare.stamp
+recover-compare : wisitoken-ada-recover-compare.stamp
 recover-compare : libadalang-recover-compare.stamp
-recover-compare : wisitoken-libadalang-diff
+recover-compare : wisitoken-ada_lite-recover-compare.stamp
+recover-compare : tree_sitter-ada_lite-recover-compare.stamp
+recover-compare : compare_lengths.log
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
@@ -206,20 +208,6 @@ test-gpr-lalr-process.stamp : force
 	echo "test-gpr-lalr-process" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-wisitoken-recover-compare.stamp : correct-tokens wisitoken-tokens sum_diff_lengths force
-	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens wisitoken-tokens/$$file.tokens > $$file.diff ; done
-	../sum_diff_lengths
-	touch $@
-
-libadalang-recover-compare.stamp : correct-tokens libadalang-tokens sum_diff_lengths force
-	-for file in $(RECOVER_TEST_FILES) ; do diff -u correct-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
-	../sum_diff_lengths
-	touch $@
-
-wisitoken-libadalang-diff : wisitoken-tokens libadalang-tokens
-	rm -f *.diff
-	-for file in $(RECOVER_TEST_FILES) ; do diff -u wisitoken-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
-
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
 
@@ -242,30 +230,6 @@ INSTALL_BIN := $(dir $(GNAT_EXE))
 
 endif
 
-# default to LR1 for error correction
-DUMP_ALG ?= 1
-
-wisitoken-tokens/%.tokens : dump_wisitoken_corrected$(EXE_EXT)
-	../dump_wisitoken_corrected $(DUMP_ALG) ../test/$* $(DUMP_VERBOSE) > wisitoken-tokens/$*.tokens
-
-libadalang-tokens/%.tokens : dump_libadalang_corrected$(EXE_EXT)
-	../dump_libadalang_corrected  ../test/$* $(DUMP_VERBOSE) > libadalang-tokens/$*.tokens
-
-%.tokens.diff : wisitoken-tokens/%.tokens libadalang-tokens/%.tokens
-	diff -u wisitoken-tokens/$*.tokens libadalang-tokens/$*.tokens > $*.tokens.diff
-
-wisitoken-tokens : dump_wisitoken_corrected$(EXE_EXT)
-	mkdir -p wisitoken-tokens
-	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected  ../test/$$file > wisitoken-tokens/$$file.tokens ; done
-
-libadalang-tokens : dump_libadalang_corrected$(EXE_EXT)
-	mkdir -p libadalang-tokens
-	for file in $(RECOVER_TEST_FILES) ; do ../dump_libadalang_corrected  ../test/$$file > libadalang-tokens/$$file.tokens ; done
-
-correct-tokens : dump_wisitoken_corrected$(EXE_EXT)
-	mkdir -p correct-tokens
-	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected  ../test/correct/$$file > correct-tokens/$$file.tokens ; done
-
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.emacs.ada-mode)
@@ -273,6 +237,98 @@ ifeq ($(BRANCH),org.emacs.ada-mode)
 else
   TAR_FILE := $(BRANCH)
 endif
+
+wisitoken-ada-recover-compare.stamp : ada-correct-tokens.stamp wisitoken-tokens.stamp
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens wisitoken-tokens/$$file.tokens > wisitoken-tokens/$$file.diff ; done
+	touch $@
+
+wisitoken-ada_annex_p-recover-compare.stamp : ada-correct-tokens.stamp  wisitoken-ada_annex_p-tokens.stamp force
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens wisitoken-ada_annex_p-tokens/$$file.tokens > wisitoken-ada_annex_p-tokens/$$file.diff ; done
+	touch $@
+
+wisitoken-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  wisitoken-ada_lite-tokens.stamp force
+	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens wisitoken-ada_lite-tokens/$$file.tokens > wisitoken-ada_lite-tokens/$$file.diff ; fi ; done
+	touch $@
+
+tree_sitter-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  tree_sitter-ada_lite-tokens.stamp force
+	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens tree_sitter-ada_lite-tokens/$$file.tokens > tree_sitter-ada_lite-tokens/$$file.diff ; fi ; done
+	touch $@
+
+libadalang-recover-compare.stamp : ada-correct-tokens.stamp  libadalang-tokens force
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens libadalang-tokens/$$file.tokens > libadalang-tokens/$$file.diff ; done
+	touch $@
+
+wisitoken-libadalang-diff : wisitoken-tokens.stamp libadalang-tokens.stamp
+	rm -f *.diff
+	-for file in $(RECOVER_TEST_FILES) ; do diff -u wisitoken-tokens/$$file.tokens libadalang-tokens/$$file.tokens > $$file.diff ; done
+
+compare_lengths.log : compare_lengths$(EXE_EXT) sum_diff_lengths$(EXE_EXT)
+	cd wisitoken-tokens; ../../sum_diff_lengths > ../compare_lengths.log
+	cd libadalang-tokens; ../../sum_diff_lengths >> ../compare_lengths.log
+	cd wisitoken-ada_lite-tokens; ../../sum_diff_lengths >> ../compare_lengths.log
+	cd tree_sitter-ada_lite-tokens; ../../sum_diff_lengths >> ../compare_lengths.log
+	../compare_lengths wisitoken-tokens libadalang-tokens >> compare_lengths.log
+	../compare_lengths wisitoken-ada_lite-tokens tree_sitter-ada_lite-tokens >> compare_lengths.log
+
+# default to LR1 for error correction
+DUMP_ALG ?= LR1
+
+wisitoken-tokens.stamp : ../dump_wisitoken_corrected$(EXE_EXT)
+	mkdir -p wisitoken-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected $(DUMP_ALG)  ../test/$$file > wisitoken-tokens/$$file.tokens ; done
+	touch $@
+
+wisitoken-ada_annex_p-tokens : dump_wisitoken_ada_annex_p_corrected$(EXE_EXT)
+	mkdir -p wisitoken-ada_annex_p-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_ada_annex_p_corrected $(DUMP_ALG)  ../test/$$file > wisitoken-ada_annex_p-tokens/$$file.tokens ; done
+
+wisitoken-ada_annex_p-tokens/%.tokens : ../test/% ../dump_wisitoken_ada_annex_p_corrected$(EXE_EXT) force
+	../dump_wisitoken_ada_annex_p_corrected$(EXE_EXT) LR1 $< $(VERBOSITY) > $@
+
+wisitoken-ada_lite-tokens.stamp : $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected.exe
+	mkdir -p wisitoken-ada_lite-tokens
+	for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected $(DUMP_ALG) ../test/ada_lite/$$file > wisitoken-ada_lite-tokens/$$file.tokens ; fi ; done
+	touch $@
+
+$(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected.exe : force
+	$(MAKE) -C $(WISITOKEN)/build dump_wisitoken_ada_lite_corrected.exe
+
+wisitoken-ada_lite-tokens/%.tokens : ../test/ada_lite/% $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected.exe force
+	$(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected.exe LR1 $< $(VERBOSITY) > $@
+
+wisitoken-ada_lite-tokens/%.diff : wisitoken-ada_lite-tokens/%.tokens ada_lite-correct-tokens/%.tokens
+	-diff -u ada_lite-correct-tokens/$*.tokens wisitoken-ada_lite-tokens/$*.tokens > $@
+
+tree_sitter-ada_lite-tokens.stamp : $(WISITOKEN)/build/dump_tree_sitter_ada_lite_corrected.exe
+	mkdir -p tree_sitter-ada_lite-tokens
+	for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then $(WISITOKEN)/build/dump_tree_sitter_ada_lite_corrected.exe ../test/ada_lite/$$file > tree_sitter-ada_lite-tokens/$$file.tokens ; fi ; done
+	touch $@
+
+tree_sitter-ada_lite-tokens/%.tokens : ../test/ada_lite/% $(WISITOKEN)/build/dump_tree_sitter_ada_lite_corrected.exe force
+	$(WISITOKEN)/build/dump_tree_sitter_ada_lite_corrected.exe LR1 $< $(VERBOSITY) > $@
+
+tree_sitter-ada_lite-tokens/%.diff : tree_sitter-ada_lite-tokens/%.tokens ada_lite-correct-tokens/%.tokens
+	-diff -u ada_lite-correct-tokens/$*.tokens tree_sitter-ada_lite-tokens/$*.tokens > $@
+
+$(WISITOKEN)/build/dump_tree_sitter_ada_lite_corrected.exe : force
+	$(MAKE) -C $(WISITOKEN)/build dump_tree_sitter_ada_lite_corrected.exe
+
+libadalang-tokens : ../dump_libadalang_corrected$(EXE_EXT)
+	mkdir -p libadalang-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_libadalang_corrected  ../test/$$file > libadalang-tokens/$$file.tokens ; done
+
+ada-correct-tokens.stamp : ../dump_wisitoken_corrected$(EXE_EXT)
+	mkdir -p ada-correct-tokens
+	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected LALR ../test/correct/$$file > ada-correct-tokens/$$file.tokens ; done
+	touch $@
+
+ada_lite-correct-tokens.stamp : $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected$(EXE_EXT)
+	mkdir -p ada_lite-correct-tokens
+	for file in $(RECOVER_TEST_FILES) ; do $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected LALR ../test/ada_lite-correct/$$file > ada_lite-correct-tokens/$$file.tokens ; done
+	touch $@
+
+ada_lite-correct-tokens/%.tokens : ../test/ada_lite-correct/% $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected$(EXE_EXT)
+	$(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected$(EXE_EXT) LR1 $< $(VERBOSITY) > $@
 
 zip :
 	rm -rf ../../$(TAR_FILE)
@@ -335,6 +391,8 @@ pub-ada : force
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
+	rm -f $(ARM_INFO)/build/*2005.info
+	make -C $(ARM_INFO)/build create-dir
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
 	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
 	cp $(ARM_INFO)/NEWS $(ELPA_ROOT)/packages/ada-ref-man
@@ -342,6 +400,9 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/aarm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/source_2012/* $(ELPA_ROOT)/packages/ada-ref-man/source_2012
+	cp $(ARM_INFO)/build/arm2020.info $(ELPA_ROOT)/packages/ada-ref-man
+	cp $(ARM_INFO)/build/aarm2020.info $(ELPA_ROOT)/packages/ada-ref-man
+	cp $(ARM_INFO)/source_2020/* $(ELPA_ROOT)/packages/ada-ref-man/source_2020
 	cp $(ARM_INFO)/progs/* $(ELPA_ROOT)/packages/ada-ref-man/progs
 	cp $(ARM_INFO)/build/Makefile $(ELPA_ROOT)/packages/ada-ref-man/build
 	cp $(ARM_INFO)/build/arm_info.gpr $(ELPA_ROOT)/packages/ada-ref-man/build
@@ -446,18 +507,20 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
 
-# ../ada_annex_p_re2c.c
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c  force
+
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
-ada_annex_p_txt.wy : compare_annex_p.exe
-	../compare_annex_p.exe c:/Projects/org.adaic.arm_form/build/aarm2020.txt/aa-P.TXT ../ada_annex_p_txt.wy
+../ada_annex_p_txt.wy : ../ada_annex_p.txt annex_p_to_wy.exe
+	../annex_p_to_wy.exe ../ada_annex_p.txt ../ada_annex_p_txt.wy
+	dos2unix -q ../ada_annex_p_txt.wy
 
-ada_annex_p_txt.stamp : ada_annex_p_txt.wy
-	$(WISITOKEN)/build/wisitoken-bnf-generate.exe ../ada_annex_p_txt.wy
+compare_annex_p.stamp : ../ada_annex_p_txt.wy ../ada_annex_p.wy compare_annex_p.exe
+	../compare_annex_p.exe ../ada_annex_p_txt.wy ../ada_annex_p.wy
+	touch $@
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

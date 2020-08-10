@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Containers;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
@@ -188,6 +189,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Check_Limit          := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
          Result.Max_Parallel         := Get_Integer (Command_Line, Last);
+         Result.Branched_Tree_Limit  := Get_Integer (Command_Line, Last);
          Result.Byte_Count           := Get_Integer (Command_Line, Last);
       end return;
    end Get_Parse_Params;
@@ -344,6 +346,10 @@ package body Emacs_Wisi_Common_Parse is
 
                   if Params.Max_Parallel > 0 then
                      Parser.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
+                  end if;
+
+                  if Params.Branched_Tree_Limit > 0 then
+                     Parser.Branched_Tree_Limit := Ada.Containers.Count_Type (Params.Branched_Tree_Limit);
                   end if;
 
                   Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
