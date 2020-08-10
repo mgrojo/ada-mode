@@ -933,13 +933,12 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    is
       Nil          : Node_Access renames Tree.Nil;
       T            : Pkg.Tree renames Tree;
-      Z            : constant Node_Access :=
-        (if Position.Node = null then raise Parameter_Error else Position.Node);
+      Z            : constant Node_Access := Position.Node;
       Y            : Node_Access          := Z;
       Y_Orig_Color : Color                := Y.Color;
       X            : Node_Access;
    begin
-      --  Catch logic errors in use of Nil; these must all be set.
+      --  Catch logic errors in use of Nil; these should never be referenced.
       Nil.Parent := null;
       Nil.Left   := null;
       Nil.Right  := null;

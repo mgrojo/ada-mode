@@ -192,8 +192,10 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  it. Return a Cursor to the found or inserted element. , and return
    --  a cursor for it.
 
-   procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
+   procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor)
+   with Pre => Has_Element (Position);
    --  Delete element at Position, set Position to No_Element.
+   --  Invalid while an iterator is active; not enforced.
 
 private
 

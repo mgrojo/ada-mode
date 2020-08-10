@@ -103,6 +103,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Raises Constraint_Error if index of new item would be greater than
    --  Index_Type'Last.
 
+   function Append (Container : in out Vector; New_Item : in Element_Type) return Index_Type;
+   --  Same as Append, return index of new element.
+
    procedure Append (Container : in out Vector; New_Items : in Vector);
    --  Insert all elements of New_Items at end of Container.
 

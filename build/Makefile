@@ -15,8 +15,9 @@ t_all : test_all_harness.run
 
 # --report=all to see all successfull proofs.
 # -d debug; save proof files in build/obj/gnatprove/* (_not_ build/gnatprove!)
-prove :
-	gnatprove -P sal_test.gpr -j 0 --level 4 --no-subprojects --mode all -u prove_bounded_definite_queues.ads
+prove :: PACKAGE := bounded_definite_vectors
+prove ::
+	gnatprove -P sal_test.gpr -j 0 --level 4 --no-subprojects --mode all -u prove_$(PACKAGE).ads
 
 
 trace :
@@ -25,6 +26,13 @@ trace :
 GNAT_PROJECT := sal_test.gpr
 
 include rules.make
+
+one-clean :
+	touch ../source/sal-config_files.adb
+	touch ../source/sal-config_files-boolean.ads
+	touch ../test/test-config_files-error_message.adb
+	touch ../test/test-config_files-base_tests.adb
+	touch ../test/test_one_harness.adb
 
 one_mem : exec_pro/exercise_min_heap.exe
 	$< $(RUN_ARGS)
@@ -54,6 +62,6 @@ tag :
 
 #
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal main") "Makefile"))
+# eval: (unless dvc-doing-ediff-p (wisi-prj-select-cache "sal.prj" (create-ada-prj :name "sal stephe-1") "Makefile"))
 # End:
 # end of file

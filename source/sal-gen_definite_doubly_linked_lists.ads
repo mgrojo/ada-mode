@@ -86,10 +86,17 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Delete_First (Container : in out List);
 
+   function Append (Container : in out List; Element : in Element_Type) return Cursor;
+
    procedure Insert
      (Container : in out List;
       Before    : in     Cursor;
       Element   : in     Element_Type);
+   function Insert
+     (Container : in out List;
+      Before    : in     Cursor;
+      Element   : in     Element_Type)
+     return Cursor;
    --  If Before is No_Element, insert after Last.
 
    function Persistent_Ref (Position : in Cursor) return access Element_Type

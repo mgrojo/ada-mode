@@ -43,6 +43,7 @@ with Test_Min_Heaps_Fibonacci;
 with Test_Network_Order;
 with Test_Randomize_Lists;
 with Test_Red_Black_Trees;
+with Test_Sparse_Ordered_Sets;
 with Test_Stacks;
 with Test_Stats;
 with Test_Unbounded_Definite_Vectors;
@@ -121,6 +122,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Network_Order.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Randomize_Lists.Test_Case (Debug => False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Red_Black_Trees.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Sparse_Ordered_Sets.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Stacks.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Stats.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors.Test_Case));

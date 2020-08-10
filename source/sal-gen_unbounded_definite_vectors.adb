@@ -201,6 +201,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end;
    end Append;
 
+   function Append (Container : in out Vector; New_Item : in Element_Type) return Index_Type
+   is begin
+      Append (Container, New_Item);
+      return Container.Last_Index;
+   end Append;
+
    procedure Append (Container : in out Vector; New_Items : in Vector)
    is
       use all type Ada.Containers.Count_Type;
@@ -391,18 +397,20 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          Container.Last := First - 1;
       end if;
 
-      if Container.Last >= First then
-         if Container.Elements = null then
+      if Container.Elements = null then
+         if Container.Last >= First then
             --  We can't fill the aggregate with Default_Element here; it is
             --  allocated on the stack.
             Container.Elements := new Array_Type (J .. To_Peek_Type (Container.Last));
             for I in Container.Elements'Range loop
                Container.Elements (I) := Default_Element;
             end loop;
-
-         elsif Container.Elements'First > J then
-            Grow (Container.Elements, J);
          end if;
+
+      elsif Container.Elements'First > J then
+         --  We have to ensure Elements contains Container.First even if Last <
+         --  First, in case we are reusing Elements after Clear
+         Grow (Container.Elements, J);
       end if;
    end Set_First;
 
@@ -415,18 +423,19 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          Container.First := Last + 1;
       end if;
 
-      if Last >= Container.First then
-         if Container.Elements = null then
+      if Container.Elements = null then
+         if Last >= Container.First then
             --  We can't fill the aggregate with Default_Element here; it is
             --  allocated on the stack.
             Container.Elements := new Array_Type (To_Peek_Type (Container.First) .. J);
             for I in Container.Elements'Range loop
                Container.Elements (I) := Default_Element;
             end loop;
-
-         elsif Container.Elements'Last < J then
-            Grow (Container.Elements, J);
          end if;
+      elsif Container.Elements'Last < J then
+         --  We have to ensure Elements contains Container.Last even if Last <
+         --  First, in case we are reusing Elements after Clear
+         Grow (Container.Elements, J);
       end if;
    end Set_Last;
 
