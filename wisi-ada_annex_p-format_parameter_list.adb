@@ -52,7 +52,7 @@ is
       else Creators.Create_List
         (Tree,
          Root       => Tree.Child (Formal_Part, 2),
-         List_ID    => +parameter_specification_SEMICOLON_list_ID,
+         List_ID    => +parameter_specification_list_ID,
          Element_ID => +parameter_specification_ID));
 
    Edit_End    : Buffer_Pos;

@@ -265,15 +265,14 @@ tick : TICK_1 | TICK_2 ;
 
 %end_names_optional_option End_Names_Optional
 
+%conflict REDUCE defining_identifier_list | REDUCE IDENTIFIER_COMMA_list on token COMMA (472)
 %conflict REDUCE defining_identifier_list | REDUCE direct_name on token COMMA
 %conflict REDUCE direct_name | REDUCE selector_name on token BAR
 %conflict REDUCE direct_name | REDUCE selector_name on token EQUAL_GREATER
 %conflict REDUCE discrete_choice | REDUCE component_choice_list on token EQUAL_GREATER
-%conflict REDUCE discrete_subtype_definition | REDUCE discrete_choice on token EQUAL_GREATER
 %conflict REDUCE discriminant_association | REDUCE explicit_actual_parameter on token COMMA
 %conflict REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token COMMA
 %conflict REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token RIGHT_PAREN
-%conflict REDUCE iterated_component_association | REDUCE iterated_element_association on token RIGHT_SQUARE_BRACKET
 %conflict REDUCE iterator_parameter_association | REDUCE parameter_association_list on token COMMA
 %conflict REDUCE iterator_parameter_association | REDUCE parameter_association_list on token RIGHT_PAREN
 %conflict REDUCE name | REDUCE selector_name on token BAR
@@ -288,7 +287,6 @@ tick : TICK_1 | TICK_2 ;
 %conflict REDUCE subtype_indication | REDUCE primary on token BAR
 %conflict REDUCE subtype_indication | REDUCE primary on token COMMA
 %conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER
-%conflict REDUCE subtype_indication | REDUCE primary | REDUCE iterator_specification on token EQUAL_GREATER
 %conflict SHIFT at_clause | REDUCE name on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT attribute_designator | REDUCE attribute_designator on token LEFT_PAREN
@@ -331,6 +329,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT type_conversion | REDUCE explicit_actual_parameter on token RIGHT_PAREN
 %conflict SHIFT type_conversion | REDUCE explicit_actual_parameter | REDUCE explicit_generic_actual_parameter on token RIGHT_PAREN
 %conflict SHIFT type_conversion | REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
+%conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET (392)
 
 %if parser in LALR | LR1
 %conflict REDUCE formal_package_association | REDUCE generic_association_COMMA_list on token COMMA
@@ -382,11 +381,8 @@ pragma_argument_association ::=
   ;; aspect_mark '=>' name ;; redundant with expression
   | aspect_mark '=>'  expression
 
-;; pragma_g is not a 'basic_declaration' in ARM, but it must be in our
-;; grammar.
-basic_declaration ::=
-    pragma_g ;; new
-  | type_declaration
+basic_declaration
+  : type_declaration
   | subtype_declaration
   | object_declaration
   | number_declaration
@@ -409,10 +405,21 @@ type_declaration ::=  full_type_declaration
   | private_type_declaration
   | private_extension_declaration
 
-full_type_declaration ::=
-    'type' IDENTIFIER [known_discriminant_part] 'is' type_definition [aspect_specification]';'
+full_type_declaration
+  : 'type' IDENTIFIER [known_discriminant_part] 'is' type_definition [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-name-action 2)
+        (wisi-face-apply-action [2 nil font-lock-type-face])
+
+        ;; Indentation of comment after 'is' is
+        ;; ada-indent-record-rel-type if type_definition is a record.
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                                 [ada-indent-broken (ada-indent-record* 'TYPE 5 ada-indent-broken)]
+                                 (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                                 nil ada-indent-broken]))%
   | task_type_declaration
   | protected_type_declaration
+  ;
 
 type_definition ::=
     enumeration_type_definition
@@ -449,7 +456,13 @@ object_declaration ::=
   | single_task_declaration
   | single_protected_declaration
 
-defining_identifier_list ::= IDENTIFIER {',' IDENTIFIER}
+defining_identifier_list
+  : IDENTIFIER
+    %((wisi-name-action 1))%
+  | defining_identifier_list ',' IDENTIFIER
+    %((wisi-name-action 3)
+        (wisi-indent-action [nil nil ada-indent-broken]))%
+  ;
 
 number_declaration
   : defining_identifier_list ':' 'constant' ':=' expression ';'
@@ -642,15 +655,31 @@ access_definition
     %((wisi-indent-action [nil nil nil nil (wisi-anchored%- 4 ada-indent-broken)]))%
   ;
 
-incomplete_type_declaration ::= 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
+incomplete_type_declaration
+  : 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ';'
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+        (wisi-name-action 2)
+        (wisi-face-apply-action [2 nil font-lock-type-face])
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                                 ada-indent-broken]))%
 
-declarative_part ::= {declarative_item}
+  ;
+
+;; pragma_g is not a 'declarative_item' in ARM, but it must be in the
+;; grammar. We don't include it in 'declaration_item', to avoid conflicts
+;; with 'pragma_g' in statements via compilation_unit.
+declarative_item_list ;;:new
+  : pragma_g
+  | declarative_item
+  | declarative_item_list declarative_item
+  | declarative_item_list pragma_g
+  ;
+
+declarative_part ::= declarative_item_list
 
 declarative_item : basic_declarative_item | proper_body | body_stub ;
 
-basic_declarative_item
-  : basic_declaration | aspect_clause | use_clause
-  ;
+basic_declarative_item : basic_declaration | aspect_clause | use_clause ;
 
 ;; body  ;;:inlined
 ;; ::= proper_body | body_stub
@@ -813,24 +842,25 @@ array_component_association
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)
                            ada-indent-broken
                            ada-indent-broken]))%
-  | iterated_component_association
+  ;; iterated_component_association ;;:deleted
+  | iterated_element_association ;;:new: superset of iterated_component_association
   ;
 
-iterated_component_association
-  : 'for' IDENTIFIER 'in' discrete_choice_list '=>' expression
-    %((wisi-indent-action [nil
-                           ada-indent-broken
-                           ada-indent-broken
-                           (wisi-hanging nil ada-indent-broken)
-                           ada-indent-broken
-                           (ada-indent-anchored-expression 2)]))%
+;; iterated_component_association ;;:deleted; subset of iterated_element_association
+;;   : 'for' IDENTIFIER 'in' discrete_choice_list '=>' expression
+;;     %((wisi-indent-action [nil
+;;                            ada-indent-broken
+;;                            ada-indent-broken
+;;                            (wisi-hanging nil ada-indent-broken)
+;;                            ada-indent-broken
+;;                            (ada-indent-anchored-expression 2)]))%
 
-  | 'for' iterator_specification '=>' expression
-    %((wisi-indent-action [nil
-                           ada-indent-broken
-                           ada-indent-broken
-                           (ada-indent-anchored-expression 2)]))%
-  ;
+;;   | 'for' iterator_specification '=>' expression
+;;     %((wisi-indent-action [nil
+;;                            ada-indent-broken
+;;                            ada-indent-broken
+;;                            (ada-indent-anchored-expression 2)]))%
+;;   ;
 
 delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
 
@@ -862,7 +892,7 @@ array_delta_aggregate
                            (wisi-anchored 1 0)]))%
   ;
 
-;; container_aggregate ::= ;; deleted; subset of array_aggregate
+;; container_aggregate ::= ;; deleted; subset of array_aggregate except for iterated_element_association
 ;;     null_array_aggregate
 ;;   | positional_container_aggregate
 ;;   | named_container_aggregate
@@ -1051,15 +1081,17 @@ simple_statement ::= null_statement
   | goto_statement
   | procedure_call_statement
   | simple_return_statement
-  ;; entry_call_statement ;; redundant with procedure_call_statement
+  ;; entry_call_statement ;;:redundant with procedure_call_statement
   | requeue_statement
   | delay_statement
   | abort_statement
   | raise_statement
-  ;; code_statement ;; redundant with procedure_call_statement
+  ;; code_statement ;;:redundant with procedure_call_statement
+  | pragma_g ;;:new
+  ;
 
-compound_statement ::=
-    if_statement
+compound_statement
+  : if_statement
   | case_statement
   | loop_statement
   | block_statement
@@ -1067,10 +1099,15 @@ compound_statement ::=
   | parallel_block_statement
   | accept_statement
   | select_statement
+  ;
 
 null_statement ::= 'null' ';'
 
-label ::= '<<' statement_identifier '>>'
+label
+  : '<<' statement_identifier '>>'
+    %((wisi-face-apply-action [2 nil font-lock-constant-face])
+      (wisi-indent-action [ada-indent-label ada-indent-broken ada-indent-broken]))%
+  ;
 
 statement_identifier ::= direct_name
 
@@ -1186,15 +1223,18 @@ block_statement
       (wisi-motion-action [1 3 5 [6 WHEN] 9])
       (wisi-indent-action [ada-indent-label nil nil [ada-indent ada-indent] nil [ada-indent ada-indent]
                                             nil ada-indent-broken ada-indent-broken]))%
-    %((wisi-match-names 1 9))%
+    %((wisi-match-names 1 8))%
   ;
 
 parallel_block_statement ::=
     'parallel' 'do' handled_sequence_of_statements 'and' handled_sequence_of_statements
       {'and' handled_sequence_of_statements} 'end' 'do' ';'
 
-exit_statement ::=
-    'exit' [name] ['when' condition]';'
+exit_statement
+  : 'exit' [name] ['when' condition] ';'
+    %((wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken]))%
+  ;
 
 goto_statement ::= 'goto' name';'
 
@@ -1209,25 +1249,43 @@ subprogram_specification ::=
 
 procedure_specification ::= 'procedure' name parameter_profile
 
-function_specification ::= 'function' name parameter_and_result_profile
+function_specification
+  : 'function' name parameter_and_result_profile
+    %((wisi-statement-action [1 statement-start])
+        (wisi-name-action 2)
+        (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken]))%
+    %((wisi-propagate-name 2))%
+  ;
 
-  ;; designator ::= [name  '.'] IDENTIFIER | STRING_LITERAL ;; inlined to "name"
+;; designator ::= [name  '.'] IDENTIFIER | STRING_LITERAL ;;:inlined to "name"
 
-  ;; defining_designator ::= name | STRING_LITERAL ;; inlined to "name"
+;; defining_designator ::= name | STRING_LITERAL ;;:inlined to "name"
 
-  ;; defining_program_unit_name ::= [name  '.'] IDENTIFIER ;; inlined to "name"; redundant with selected_component in name
+;; defining_program_unit_name ::= [name  '.'] IDENTIFIER ;;:inlined to "name"; redundant with selected_component in name
 
-  ;; operator_symbol ::= STRING_LITERAL ;; inlined
+;; operator_symbol ::= STRING_LITERAL ;;:inlined
 
-  ;; defining_operator_symbol ::= STRING_LITERAL ;; inlined
+;; defining_operator_symbol ::= STRING_LITERAL ;;:inlined
 
 parameter_profile ::= [formal_part]
 
 parameter_and_result_profile ::=
     [formal_part] 'return' [null_exclusion] name
   | [formal_part] 'return' access_definition
+  ;
 
-formal_part ::= '(' parameter_specification {';' parameter_specification} ')'
+parameter_specification_list ;;:new
+  : parameter_specification {';' parameter_specification}
+  ;
+
+formal_part
+  : '(' parameter_specification_list ')'
+    %((wisi-statement-action [1 misc]) ;; for ada-wisi-in-paramlist-p, ada-goto-declarative-region-start
+      (wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
+  ;
 
 parameter_specification ::=
     defining_identifier_list ':' ['aliased'] mode [null_exclusion] name [':=' default_expression]
@@ -1304,20 +1362,40 @@ explicit_actual_parameter ::=
 
 simple_return_statement ::= 'return' [expression]';'
 
-extended_return_object_declaration ::=
-    IDENTIFIER ':' ['aliased'] ['constant'] return_subtype_indication [':=' expression]
+extended_return_object_declaration
+  : IDENTIFIER ':' ['aliased'] ['constant'] return_subtype_indication [':=' expression]
+    %((wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-anchored% 6 ada-indent-broken)]))%
+  ;
 
-extended_return_statement ::=
-    'return' extended_return_object_declaration ['do' handled_sequence_of_statements 'end' 'return'] ';'
+extended_return_statement
+  : 'return' extended_return_object_declaration ['do' handled_sequence_of_statements 'end' 'return'] ';'
+    ;; indent the same as a simple return statment
+    ;; test/ada_mode-nominal.adb
+    ;; return B : Integer :=
+    ;;   (Local_Function);
+    ;; (wisi-indent-action [nil nil nil]))
+    %((wisi-statement-action [1 statement-start 3 motion 7 statement-end])
+      (wisi-motion-action [1 3 [4 WHEN] 7])
+      (wisi-indent-action [[nil ada-indent] ada-indent-broken nil [ada-indent ada-indent] nil ada-indent-broken
+                           ada-indent-broken]))%
+  ;
 
 return_subtype_indication ::= subtype_indication | access_definition
 
 null_procedure_declaration ::=
     [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
 
-expression_function_declaration ::=
-    [overriding_indicator] function_specification 'is' '('expression')' [aspect_specification] ';'
+expression_function_declaration
+  : [overriding_indicator] function_specification 'is' '(' expression ')' [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
+      (wisi-indent-action [nil nil nil
+                               ada-indent-broken (ada-indent-anchored-expression 4) (wisi-anchored 4 0)
+                               ada-indent-broken ada-indent-broken]))%
   | [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
+      (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
 package_declaration ::= package_specification';'
 
@@ -1363,10 +1441,44 @@ package_renaming_declaration ::= 'package' name 'renames' name [aspect_specifica
 subprogram_renaming_declaration ::=
     [overriding_indicator] subprogram_specification 'renames' name [aspect_specification]';'
 
-generic_renaming_declaration ::=
-    'generic' 'package' name 'renames' name [aspect_specification]';'
-  | 'generic' 'procedure' name 'renames' name [aspect_specification]';'
-  | 'generic' 'function' name 'renames' name [aspect_specification]';'
+generic_renaming_declaration
+  : 'generic' 'package' name 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-name-action 3)
+        (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                   5 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             ada-indent-broken]))%
+  | 'generic' 'procedure' name 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-name-action 3)
+        (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                   5 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             ada-indent-broken]))%
+  | 'generic' 'function' name 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-name-action 3)
+        (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                   5 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken
+                             ada-indent-broken]))%
+  ;
 
 task_type_declaration ::=
     'task' 'type' IDENTIFIER [known_discriminant_part] [aspect_specification]
@@ -1619,7 +1731,19 @@ exception_declaration
     %((wisi-statement-action [1 statement-start 5 statement-end]))%
   ;
 
-handled_sequence_of_statements ::= sequence_of_statements ['exception' exception_handler {exception_handler}] ;
+exception_handler_list ;;:new
+  : exception_handler
+  | pragma_g ;;:new
+  | exception_handler_list exception_handler
+    %((wisi-motion-action [1 2]))%
+  ;
+
+handled_sequence_of_statements
+  : sequence_of_statements ['exception' exception_handler_list]
+    %((wisi-indent-action [[nil nil]
+                             (- ada-indent)
+                             [(- ada-indent-when ada-indent) (- ada-indent-when ada-indent)]]))%
+  ;
 
 exception_choice_list ;;:new
   : exception_choice {'|' exception_choice} ;
@@ -1641,24 +1765,70 @@ raise_statement ::=
 
 raise_expression ::= 'raise' name ['with' simple_expression]
 
-generic_declaration ::= generic_subprogram_declaration | generic_package_declaration
+generic_declaration : generic_subprogram_declaration | generic_package_declaration ;
 
-generic_subprogram_declaration ::= generic_formal_part subprogram_specification [aspect_specification] ';'
+generic_subprogram_declaration
+  : generic_formal_part subprogram_specification [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 4 statement-end])
+      (wisi-motion-action [1 2 4]))%
+  ;
 
-generic_package_declaration ::= generic_formal_part package_specification ';'
+generic_package_declaration
+  : generic_formal_part package_specification ';'
+    %((wisi-statement-action [1 statement-start 3 statement-end])
+      (wisi-motion-action [1 2 3])
+      (wisi-indent-action [[nil ada-indent] nil ada-indent-broken]))%
+  ;
 
-generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause}
+generic_formal_part
+  : 'generic' {generic_formal_parameter_declaration}
+    %((wisi-statement-action [1 statement-start])
+      (wisi-indent-action [nil ada-indent]))%
+  ;
 
-generic_formal_parameter_declaration ::=
-    formal_object_declaration
+generic_formal_parameter_declaration
+  : formal_object_declaration
   | formal_type_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
+  | use_clause ;;:new, moved here from generic_formal_part
+  | pragma_g ;;:new
+  ;
 
-generic_instantiation ::=
-    'package' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+generic_instantiation
+  : 'package' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 8 statement-end])
+        (wisi-name-action 2)
+        (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
+                                   5 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             nil ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken ada-indent-broken ada-indent-broken]))%
   | [overriding_indicator] 'procedure' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 9 statement-end])
+        (wisi-name-action 3)
+        (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                   6 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken ada-indent-broken ada-indent-broken]))%
   | [overriding_indicator] 'function' name 'is' 'new' name [generic_actual_part] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 9 statement-end])
+        (wisi-name-action 3)
+        (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                   6 font-lock-function-name-face font-lock-function-name-face])
+        (wisi-indent-action [nil
+                             nil
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken ada-indent-broken
+                             (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                             ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
 generic_actual_part ::= '(' generic_association {',' generic_association} ')'
 
@@ -1677,19 +1847,42 @@ explicit_generic_actual_parameter ::=
   ;; name ;; redundant subtype_mark
   ;; name ;; redundant <package_instance_>name
 
-formal_object_declaration ::=
-    defining_identifier_list ':' mode [null_exclusion] name [':=' default_expression] [aspect_specification]';'
-  | defining_identifier_list ':' mode access_definition [':=' default_expression] [aspect_specification]';'
+formal_object_declaration
+  : defining_identifier_list ':' mode [null_exclusion] name [':=' default_expression] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-face-apply-action [5 font-lock-function-name-face font-lock-type-face])
+      (wisi-indent-action [nil
+                           ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                           ada-indent-broken
+                           (ada-indent-anchored-expression 6) ada-indent-broken ada-indent-broken]))%
+  | defining_identifier_list ':' mode access_definition [':=' default_expression] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                             (ada-indent-anchored-expression 5) ada-indent-broken ada-indent-broken]))%
+  ;
 
-formal_type_declaration ::=
-    formal_complete_type_declaration
-  | formal_incomplete_type_declaration
+formal_type_declaration : formal_complete_type_declaration | formal_incomplete_type_declaration ;
 
-formal_complete_type_declaration ::=
-    'type' IDENTIFIER [discriminant_part] 'is' formal_type_definition [ 'or' 'use' name ] [aspect_specification] ';'
+formal_complete_type_declaration
+  : 'type' IDENTIFIER [discriminant_part] 'is' formal_type_definition [ 'or' 'use' name ] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 10 statement-end])
+      (wisi-face-apply-action [2 nil font-lock-type-face
+                                 8 nil font-lock-type-face])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken]))%
+  ;
 
-formal_incomplete_type_declaration ::=
-    'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ['or' 'use' name] ';'
+formal_incomplete_type_declaration
+  : 'type' IDENTIFIER [discriminant_part] ['is' 'tagged'] ['or' 'use' name] ';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-face-apply-action [2 nil font-lock-type-face
+                                 8 nil font-lock-type-face])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken]))%
+  ;
 
 formal_type_definition ::=
     formal_private_type_definition
@@ -1706,8 +1899,10 @@ formal_type_definition ::=
 
 formal_private_type_definition ::= [['abstract'] 'tagged'] ['limited'] 'private'
 
-formal_derived_type_definition ::=
-    ['abstract'] ['limited' | 'synchronized'] 'new' name [['and' interface_list] 'with' 'private']
+formal_derived_type_definition
+  : ['abstract'] ['limited' | 'synchronized'] 'new' name [['and' interface_list] 'with' 'private']
+    %((wisi-face-apply-action [5 font-lock-function-name-face font-lock-type-face]))%
+  ;
 
 formal_discrete_type_definition ::= '(' '<>' ')'
 
@@ -1727,31 +1922,42 @@ formal_access_type_definition ::= access_type_definition
 
 formal_interface_type_definition ::= interface_type_definition
 
-formal_subprogram_declaration ::=
-    formal_concrete_subprogram_declaration
-  | formal_abstract_subprogram_declaration
+formal_subprogram_declaration : formal_concrete_subprogram_declaration | formal_abstract_subprogram_declaration ;
 
-formal_concrete_subprogram_declaration ::=
-    'with' subprogram_specification ['is' subprogram_default] [aspect_specification]';'
+formal_concrete_subprogram_declaration
+  : 'with' subprogram_specification ['is' subprogram_default] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
-formal_abstract_subprogram_declaration ::=
-    'with' subprogram_specification 'is' 'abstract' [subprogram_default] [aspect_specification]';'
+formal_abstract_subprogram_declaration
+  : 'with' subprogram_specification 'is' 'abstract' [subprogram_default] [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                               ada-indent-broken]))%
+  ;
 
 subprogram_default ::= default_name | '<>' | 'null'
 
 default_name ::= name
 
-formal_package_declaration ::=
-    'with' 'package' IDENTIFIER 'is' 'new' name formal_package_actual_part [aspect_specification]';'
+formal_package_declaration
+  : 'with' 'package' IDENTIFIER 'is' 'new' name formal_package_actual_part [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+                                 6 font-lock-function-name-face font-lock-function-name-face])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                           ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
-formal_package_actual_part ::=
-    '(' ['others' '=>'] '<>' ')'
+formal_package_actual_part
+  : '(' ['others' '=>'] '<>' ')'
   | [generic_actual_part]
   | '(' formal_package_association {',' formal_package_association} [',' 'others' '=>' '<>'] ')'
+  ;
 
-formal_package_association ::=
-    generic_association
-  | selector_name '=>' '<>'
+formal_package_association : generic_association | selector_name '=>' '<>' ;
 
 aspect_clause ::=
     attribute_definition_clause

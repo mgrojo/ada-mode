@@ -47,7 +47,9 @@ ada_annex_p.wy
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order
-            done thru exception_handler
+            done thru goto_label
+
+        in block_statement, is match_names called when it can fail?
 
     compare_ada_annex_p
         arm_texi use bold underscore for bold, to distinguish keywords
