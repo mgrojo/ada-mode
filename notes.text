@@ -43,16 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-navigation broken on elsif
-    o.e.a.s-2/o.w.s-1
-    because elsif_statement_list has motion on ELSIF and THEN
-        test/ada_mode-nominal.adb tests for this; how did it work in last release?
-        it doesn't. sigh.
-
-    add second ID to wisi.ads Index_ID for Motion_Param
-        too complicated to add array
-        affects wisitoken-bnf-output_ada_emacs
-
 wisi.texi
     $FOO only sees vars defined in the current project
         workaround:

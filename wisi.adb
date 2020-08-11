@@ -1473,7 +1473,12 @@ package body Wisi is
                            Cache      : Navigate_Cache_Type renames Data.Navigate_Caches (Cache_Cur);
                            Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
                         begin
-                           if not Cache.Prev_Pos.Set then
+                           if Cache.Prev_Pos.Set then
+                              if WisiToken.Trace_Action > Detail then
+                                 Ada.Text_IO.Put_Line
+                                   ("   " & Cache.Pos'Image & " prev already at " & Cache.Prev_Pos.Item'Image);
+                              end if;
+                           else
                               Cache.Prev_Pos := (True, Prev_Cache.Pos);
                               if WisiToken.Trace_Action > Detail then
                                  Ada.Text_IO.Put_Line
@@ -1481,7 +1486,13 @@ package body Wisi is
                               end if;
                            end if;
 
-                           if not Prev_Cache.Next_Pos.Set then
+                           if Prev_Cache.Next_Pos.Set then
+                              if WisiToken.Trace_Action > Detail then
+                                 Ada.Text_IO.Put_Line
+                                   ("   " & Prev_Cache.Pos'Image & " next already at " &
+                                      Prev_Cache.Next_Pos.Item'Image);
+                              end if;
+                           else
                               Prev_Cache.Next_Pos := (True, Cache.Pos);
                               if WisiToken.Trace_Action > Detail then
                                  Ada.Text_IO.Put_Line
@@ -1491,8 +1502,16 @@ package body Wisi is
                         end;
                      end if;
 
+                     if Data.Navigate_Caches (Cache_Cur).Next_Pos.Set then
+                        --  Set Cache_Cur to end of Cache_Cur.Next chain.
+                        --  Handles 'elsif ... then' in if_statement.
+                        loop
+                           Cache_Cur := Find (Iter, Data.Navigate_Caches (Cache_Cur).Next_Pos.Item);
+                           exit when not Data.Navigate_Caches (Cache_Cur).Next_Pos.Set;
+                        end loop;
+                     end if;
                      Prev_Cache_Cur := Cache_Cur;
-                     Cache_Cur      := Iter.Next (Cache_Cur);
+                     Cache_Cur := Iter.Next (Cache_Cur);
                   end if;
                   exit when Done or not Has_Element (Cache_Cur);
                end loop;

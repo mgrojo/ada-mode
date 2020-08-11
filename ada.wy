@@ -658,7 +658,7 @@ case_expression_alternative_list
 case_statement
   : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
     %((wisi-statement-action [1 statement-start 7 statement-end])
-      (wisi-motion-action [1 [4 CASE] 7])
+      (wisi-motion-action [1 [4 WHEN] 7])
       (wisi-indent-action [nil ada-indent-broken nil [ada-indent-when ada-indent-when] nil ada-indent-broken ada-indent-broken]))%
   ;
 
@@ -674,7 +674,6 @@ case_statement_alternative
 ;; inserts an empty when =>
 case_statement_alternative_list
   : case_statement_alternative_list case_statement_alternative
-    %((wisi-motion-action [1 2]))%
   | case_statement_alternative
   ;
 
@@ -966,7 +965,6 @@ elsif_statement_item
 
 elsif_statement_list
   : elsif_statement_list elsif_statement_item
-    %((wisi-motion-action [1 2]))%
   | elsif_statement_item
   ;
 
@@ -987,7 +985,9 @@ entry_body
         ;; entry E3
         ;;   (X : Integer) when Local_1 = 0 and not
         ;;     (Local_2 = 1)
-        (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil
+        ;;
+        ;; 'when' is an entry barrier on an entry body, not an aspect_specification.
+        (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                  (wisi-anchored% 4 ada-indent-broken)
                                  nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
                                  ada-indent-broken]))%
