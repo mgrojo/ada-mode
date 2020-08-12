@@ -55,7 +55,7 @@ recover-compare : wisitoken-ada-recover-compare.stamp
 recover-compare : libadalang-recover-compare.stamp
 recover-compare : wisitoken-ada_lite-recover-compare.stamp
 recover-compare : tree_sitter-ada_lite-recover-compare.stamp
-recover-compare : compare_lengths.log
+recover-compare : compare_lengths.stamp
 
 # This updates elisp and related executables after any source change,
 # without running the tests.
@@ -96,7 +96,7 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-ada2020.adb
+ONE_TEST_FILES ?= ada_mode-nominal.adb
 one :: build_executables
 one :: byte-compile autoloads
 one :: compile-ada-test
@@ -107,16 +107,17 @@ one-clean :: force
 one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #	find . -name "*.diff" -not -size 0 >> test.log
-one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-two : RUN_ARGS ?= refactor 5 ../test/debug.adb 23 --verbosity 0 2
-two : build_executables
-	../run_ada_lalr_parse.exe $(RUN_ARGS)
+#two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_20.adb --verbosity 1 1 4
+two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
+two : ../ada_re2c.c ../run_ada_lalr_parse.exe
+	../run_ada_lalr_parse.exe parse navigate ../test/debug.adb --verbosity 0 0 2
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -244,11 +245,9 @@ wisitoken-ada-recover-compare.stamp : ada-correct-tokens.stamp wisitoken-tokens.
 
 wisitoken-ada_annex_p-recover-compare.stamp : ada-correct-tokens.stamp  wisitoken-ada_annex_p-tokens.stamp force
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens wisitoken-ada_annex_p-tokens/$$file.tokens > wisitoken-ada_annex_p-tokens/$$file.diff ; done
-	touch $@
 
 wisitoken-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  wisitoken-ada_lite-tokens.stamp force
 	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens wisitoken-ada_lite-tokens/$$file.tokens > wisitoken-ada_lite-tokens/$$file.diff ; fi ; done
-	touch $@
 
 tree_sitter-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  tree_sitter-ada_lite-tokens.stamp force
 	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens tree_sitter-ada_lite-tokens/$$file.tokens > tree_sitter-ada_lite-tokens/$$file.diff ; fi ; done
@@ -508,7 +507,8 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
 
 
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c ../ada_annex_p_re2c.c force
+#../ada_annex_p_re2c.c
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables
