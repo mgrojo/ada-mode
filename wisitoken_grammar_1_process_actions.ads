@@ -26,20 +26,21 @@ package Wisitoken_Grammar_1_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal     => 38,
-      First_Nonterminal => 39,
-      Last_Nonterminal  => 60,
-      EOI_ID            => 38,
-      Accept_ID         => 39,
+      Last_Terminal     => 39,
+      First_Nonterminal => 40,
+      Last_Nonterminal  => 61,
+      EOI_ID            => 39,
+      Accept_ID         => 40,
       Case_Insensitive  => False,
       New_Line_ID       => 1,
-      String_1_ID       => 37,
-      String_2_ID       => 36,
+      String_1_ID       => 38,
+      String_2_ID       => 37,
       Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
          new String'("CODE"),
+         new String'("CONFLICT"),
          new String'("END"),
          new String'("ELSIF"),
          new String'("IF"),
@@ -99,13 +100,14 @@ package Wisitoken_Grammar_1_Process_Actions is
          new String'("nonterminal_009")),
       Terminal_Image_Width => 17,
       Image_Width          => 25,
-      Last_Lookahead       => 38);
+      Last_Lookahead       => 39);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
       NEW_LINE_ID,
       COMMENT_ID,
       CODE_ID,
+      CONFLICT_ID,
       END_ID,
       ELSIF_ID,
       IF_ID,
@@ -213,6 +215,11 @@ package Wisitoken_Grammar_1_Process_Actions is
      Nonterm   : in     WisiToken.Valid_Node_Index;
      Tokens    : in     WisiToken.Valid_Node_Index_Array);
    procedure declaration_8
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Valid_Node_Index;
+     Tokens    : in     WisiToken.Valid_Node_Index_Array);
+   procedure declaration_9
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Valid_Node_Index;

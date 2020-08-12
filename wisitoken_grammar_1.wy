@@ -97,7 +97,7 @@
 ;; Handling ':
 ;;
 ;; 0x22 = "
-;; 0x27 = '
+;; 0x27 = \'
 %token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
 %token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
@@ -121,13 +121,13 @@
 ;; Because of conflicts, a new parser is spawned for every identifier
 ;; in an rhs or declaration_item_list; one parser becomes a zombie
 ;; immediately on "=" or identifier, and on "| ; ( { [". However, they
-;; are not terminated until after %mckenzie_check_limit more tokens,
-;; by which time more have been spawned, so the count does not get to
-;; 1 unless check_limit is 2. We need the parser count to get to 1
-;; periodically to keep the copied syntax trees in each parser small.
-;; With check limit 2, partial parse error recovery typically fails,
-;; but parse is fast enough that we don't need partial parse.
-%mckenzie_check_limit 2
+;; are not terminated until after %mckenzie_zombie_limit more tokens,
+;; by which time more have been spawned. We need the parser count to
+;; get to 1 periodically to keep the copied syntax trees in each
+;; parser small. This sets a max size on zombie_limit.
+%mckenzie_zombie_limit 1
+
+%mckenzie_check_limit 4
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
 %conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER

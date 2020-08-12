@@ -27,6 +27,7 @@
    NEW_LINE
    COMMENT
    CODE
+   CONFLICT
    END
    ELSIF
    IF
@@ -99,6 +100,7 @@
 (defconst wisitoken_grammar_1-process-repair-image
   '(
    (CODE . "code")
+   (CONFLICT . "conflict")
    (END . "end")
    (ELSIF . "elsif")
    (IF . "if")
