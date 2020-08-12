@@ -272,6 +272,12 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
+      Zombie_Limit : Base_Token_Index;
+      --  Shared tokens to wait before terminating parser that encountered
+      --  an error. See test_mckenzie_recover.adb Revive_Zombie for example
+      --  of why this is not hard-coded at 0. Setting it the same as
+      --  Check_Limit is often a good choice.
+
       Check_Limit       : Token_Index; -- max tokens to parse ahead when checking a configuration.
       Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
       Enqueue_Limit     : Natural;     -- max configs enqueued.
@@ -291,6 +297,7 @@ package WisiToken.Parse.LR is
       Matching_Begin              => 0,
       Ignore_Check_Fail           => 0,
       Task_Count                  => System.Multiprocessors.CPU_Range'Last,
+      Zombie_Limit                => 4,
       Check_Limit                 => 4,
       Check_Delta_Limit           => Natural'Last,
       Enqueue_Limit               => Natural'Last);

@@ -890,6 +890,10 @@ package body WisiToken_Grammar_Runtime is
                   Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
                     Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
+               elsif Kind = "mckenzie_zombie_limit" then
+                  Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Zombie_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));
+
                elsif Kind = "meta_syntax" then
                   --  not in Other phase
                   null;

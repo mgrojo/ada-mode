@@ -771,6 +771,7 @@ package body WisiToken.BNF.Generate_Utils is
          Matching_Begin              => Item.Matching_Begin,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,
          Task_Count                  => 0,
+         Zombie_Limit                => Item.Zombie_Limit,
          Check_Limit                 => Item.Check_Limit,
          Check_Delta_Limit           => Item.Check_Delta_Limit,
          Enqueue_Limit               => Item.Enqueue_Limit);

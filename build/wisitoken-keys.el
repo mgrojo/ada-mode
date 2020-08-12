@@ -200,6 +200,7 @@
   (interactive)
   (let ((case-fold-search nil))
     (unless (search-forward-regexp wisitoken-fail-re nil t)
+      (ding)
       (goto-char (point-min))
       (search-forward-regexp wisitoken-fail-re nil t)))
   )

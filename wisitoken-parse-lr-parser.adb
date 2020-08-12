@@ -523,7 +523,7 @@ package body WisiToken.Parse.LR.Parser is
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": zombie (" &
                              WisiToken.Token_Index'Image
-                               (Shared_Parser.Table.McKenzie_Param.Check_Limit - Parser_State.Zombie_Token_Count) &
+                               (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
                              " tokens remaining)");
                      end if;
                   end if;
@@ -846,7 +846,7 @@ package body WisiToken.Parse.LR.Parser is
                      when Error =>
                         --  Force this parser to be terminated.
                         if Shared_Parser.Enable_McKenzie_Recover then
-                           Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Check_Limit + 1;
+                           Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Zombie_Limit + 1;
                         end if;
 
                      when Shift =>
@@ -926,7 +926,7 @@ package body WisiToken.Parse.LR.Parser is
                   --
                   --  Check to see if it is time to terminate it
                   if Shared_Parser.Enable_McKenzie_Recover and then
-                    Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Check_Limit
+                    Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Zombie_Limit
                   then
                      if Trace_Parse > Detail then
                         Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");

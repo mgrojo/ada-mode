@@ -928,6 +928,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
             Matching_Begin              => Default_McKenzie_Param.Matching_Begin,
             Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,
             Task_Count                  => Default_McKenzie_Param.Task_Count,
+            Zombie_Limit                => Default_McKenzie_Param.Zombie_Limit,
             Check_Limit                 => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,
             Enqueue_Limit               => Default_McKenzie_Param.Enqueue_Limit);

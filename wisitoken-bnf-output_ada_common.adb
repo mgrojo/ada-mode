@@ -462,6 +462,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
                      (Table.McKenzie_Param.Task_Count) & ",");
       Indent_Line ("Check_Limit =>" & Token_Index'Image (Table.McKenzie_Param.Check_Limit) & ",");
+      Indent_Line ("Zombie_Limit =>" & Token_Index'Image (Table.McKenzie_Param.Zombie_Limit) & ",");
       Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
       Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
       Indent := Indent - 3;

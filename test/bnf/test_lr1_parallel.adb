@@ -33,6 +33,7 @@ with WisiToken.BNF.Generate_Utils;
 with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
+with WisiToken_Grammar_Runtime;
 package body Test_LR1_Parallel is
 
    type State_Map is array (WisiToken.State_Index range <>) of WisiToken.State_Index;
@@ -210,9 +211,11 @@ package body Test_LR1_Parallel is
 
       Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
 
+      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
         WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-          (Grammar_File_Name, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Ignore_Conflicts => True);
+          (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer,
+           Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;

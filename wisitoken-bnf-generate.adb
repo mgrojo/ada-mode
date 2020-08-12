@@ -512,7 +512,7 @@ begin
                Time_End   : Time;
 
                Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-                 WisiToken.BNF.Generate_Utils.Initialize (Input_Data, Ignore_Conflicts);
+                 WisiToken.BNF.Generate_Utils.Initialize (Input_Data'Unchecked_Access, Ignore_Conflicts);
 
                Packrat_Data : WisiToken.Generate.Packrat.Data
                  (Generate_Data.Descriptor.First_Terminal, Generate_Data.Descriptor.First_Nonterminal,
