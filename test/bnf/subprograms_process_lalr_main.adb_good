@@ -56,6 +56,7 @@ package body Subprograms_Process_LALR_Main is
          Ignore_Check_Fail  => 4,
          Task_Count  => 0,
          Check_Limit => 3,
+         Zombie_Limit => 3,
          Check_Delta_Limit => 200,
          Enqueue_Limit => 10000);
 

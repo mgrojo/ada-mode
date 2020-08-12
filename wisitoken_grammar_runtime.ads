@@ -79,6 +79,7 @@ package WisiToken_Grammar_Runtime is
       --  Used with Syntax_Trees.Validate_Tree.
 
    end record;
+   type User_Data_Access is access all User_Data_Type;
 
    type Augmented is new WisiToken.Syntax_Trees.Base_Augmented with
    record

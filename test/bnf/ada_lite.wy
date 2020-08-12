@@ -129,6 +129,7 @@
 
 %mckenzie_enqueue_limit 1000
 %mckenzie_check_limit 3
+%mckenzie_zombie_limit 3
 
 ;; Default cost for insert terminal, delete terminal, push back, ignore check fail.
 ;;

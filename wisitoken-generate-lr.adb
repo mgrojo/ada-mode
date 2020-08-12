@@ -22,6 +22,7 @@ with Ada.Text_IO;
 with System.Multiprocessors;
 with WisiToken.Generate;
 with WisiToken.Syntax_Trees;
+with SAL.Unix_Text_IO;
 package body WisiToken.Generate.LR is
 
    package RHS_Set is new SAL.Gen_Unbounded_Definite_Vectors (Natural, Boolean, Default_Element => False);
@@ -1107,13 +1108,16 @@ package body WisiToken.Generate.LR is
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Containers;
-      use Ada.Text_IO;
+      use SAL.Unix_Text_IO;
       File : File_Type;
    begin
       --  Only space, semicolon, newline delimit object values. Bounds of
       --  arrays output before each array, unless known from discriminants.
       --  End of lists indicated by semicolon. Action, Check subprograms are
       --  represented by True if present, False if not.
+      --
+      --  We use Unix_Text_IO to enforce Unix line endings; a later dos2unix
+      --  step is very slow on very large files.
 
       Create (File, Out_File, File_Name);
 

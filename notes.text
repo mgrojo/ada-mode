@@ -58,8 +58,28 @@ auto_token_labels
 
 doc ebnf vs actions in wisitoken.texi
 
-error_correction_algorithm.tex
+Docs/error_correction_algorithm.tex
+
+    give more detail on base McKenzie; don't use McKenzie notation.
+
+    tree-sitter can't handle ada:
+    it's using some very non-linear algorithm to generate the LALR states,
+so it takes forever on a language the size of Ada; I killed it after 90
+minutes
+
+    bogus input: In general, the error correction hits
+the enqueue_limit in cases like this - it enqueues lots of
+configurations that try to make progresss, but gets nowhere. The time to
+hit that limit is fairly consistent, and the user can set that limit.
+
     ada-mode/test compare
+        tree-sitter java
+            https://github.com/tree-sitter/tree-sitter-java
+                compare tree-sitter generate time to translating java_ch19.wy
+            find java test set on web; some error correction papers mention that
+            measure parse time difference correct code vs error correction
+            add totally bogus file; gpr file, text file in Ada parser
+
         Bison?
         ANTLR  https://github.com/Alex-Gamper/Ada-Grammar.git
 
@@ -79,6 +99,9 @@ error_correction_algorithm.tex
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
      Stefan Monnier paper on SMIE in  https://programming-journal.org/
+
+augmented_token does not need to derive from base_Token; don't duplicate info
+   wisi assumes it has all info?
 
 LR1 algorithm.tex:
     super needs C_Tree to compute unique state numbers.

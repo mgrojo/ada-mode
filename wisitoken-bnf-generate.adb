@@ -515,7 +515,7 @@ begin
                Time_End   : Time;
 
                Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-                 WisiToken.BNF.Generate_Utils.Initialize (Input_Data, Ignore_Conflicts);
+                 WisiToken.BNF.Generate_Utils.Initialize (Input_Data'Unchecked_Access, Ignore_Conflicts);
 
                Packrat_Data : WisiToken.Generate.Packrat.Data
                  (Generate_Data.Descriptor.First_Terminal, Generate_Data.Descriptor.First_Nonterminal,
@@ -524,7 +524,7 @@ begin
                Parse_Table_File_Name : constant String :=
                  (if WisiToken.Trace_Generate_Table = 0 and Tuple.Gen_Alg in LALR .. Packrat_Proc
                   then -Output_File_Name_Root & "_" & To_Lower (Tuple.Gen_Alg'Image) &
-                    (if Tuple.Gen_Alg = LR1
+                    (if Tuple.Gen_Alg = LR1 and Test_Main
                      then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
                      else "") &
                     (if Input_Data.If_Lexer_Present

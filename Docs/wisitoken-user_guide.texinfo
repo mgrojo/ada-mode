@@ -358,6 +358,38 @@ solution has been found for one parser, the other parsers are allowed
 to check only @code{mckenzie_check_delta_limit} possible solutions
 before they fail. This prevents long recovery times.
 
+@item %mckenzie_zombie_limit <limit>
+When a parser encounters an error, it is not terminated immediately;
+it becomes a zombie.  The other parsers must advance zombie limit
+tokens past the error point without error before the zombie is
+terminated.
+
+Smaller values give faster parsing, because parallel parsers are
+terminated sooner; in particular, in a language with conflicts that
+occur often, a small value gives the generalized parser a chance to
+get down to 1 parser, which is a significant gain in speed.
+
+Larger values give better error solutions, because they may include
+the original intended code. For example, consider the following Ada
+code:
+@example
+procedure Pattern_1 is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);
+procedure Pattern_2 is Ada : Integer; begin null; end;
+@end example
+Pattern_1 is a generic instantiation; Pattern_2 is a procedure body.
+There is a grammar conflict on ``is'', so a second parser is spawned
+there, with one expecting to see a generic instantiation, the other a
+procedure body. If the ``new'' is missing, the generic instantiation
+parser errors on ``Ada'', but the procedure body parser doesn't error
+until ``.'' (a variable declaration cannot have ``.'' in the name). If
+@code{mckenzie_zombie_limit} is 1, the generic instantiation parser is
+terminated before error recover is started, so the correct solution
+(insert ``new'') is not found.
+
+Setting @code{mckenzie_zombie_limit} the same as
+@code{mckenzie_check_limit} works well in practice, unless it needs to
+be smaller; default is 4.
+
 @item %mckenzie_cost_default <insert> <delete> <push back> <ignore check fail>
 McKenzie error recovery default costs for insert, delete, push back
 single tokens, and for ignoring a semantic check failure; four

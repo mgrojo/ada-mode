@@ -5,6 +5,7 @@
 %meta_syntax EBNF
 
 %mckenzie_check_limit 3
+%mckenzie_zombie_limit 3
 %mckenzie_cost_default 4 4 4 4
 %no_language_runtime
 

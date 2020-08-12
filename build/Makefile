@@ -45,17 +45,11 @@ one :: dump_tree_sitter_ada_lite_corrected.exe
 two-clean :
 	rm -rf debug*
 
-two :: ada_lite_tree_sitter_run.exe
-	./ada_lite_tree_sitter_run.exe -v 2 ../../org.emacs.ada-mode/test/ada_lite/ada_mode-recover_03.adb > ada_mode-recover_03.adb.parse
-
-# two :: VERBOSITY := 1 0 0
-# two :: two-clean
-# two :: wisitoken-bnf-generate.exe
-# 	./wisitoken-bnf-generate.exe --test_main --ignore_conflicts --output_bnf -v $(VERBOSITY) ../test/bnf/debug.wy
-# 	tree-sitter generate ./debug.js
-# 	mv src/parser.c debug_tree_sitter.c
-#	gprbuild -P wisitoken_test.gpr debug_tree_sitter_run.adb
-#	./debug_tree_sitter_run.exe -v 2 ../test/bnf/debug.input
+#two :: VERBOSITY := 1 0 0
+#two :: two-clean
+two :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --output_bnf --generate Tree_sitter Ada tree_sitter ../../org.emacs.java-wisi/source/java_ch19.wy
+	tree-sitter generate ./java_ch19.js
 
 three :: GENERATE_ARGS := -v 1 0 0
 three :: one-clean
@@ -81,6 +75,7 @@ generate_ada_lite_lr1.gprof : gmon.out
 
 doc :: error_correction_algorithm.dvi
 doc :: error_correction_algorithm.bbl
+doc :: error_correction_algorithm.ps
 doc :: error_correction_algorithm.pdf
 doc :: ../Docs/wisitoken-user_guide.info
 doc :: ../Docs/wisitoken-user_guide.html
