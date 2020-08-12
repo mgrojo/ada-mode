@@ -40,6 +40,12 @@ project Standard_Common is
    package Compiler is
       -- Switches for gcc
 
+      -- "-gnatd*" generates compiler debug info; see compiler source
+      -- debug.adb, in Archive/GNAT/*
+      --
+      --   From 20.2:
+      --   -gnatdO - Output immediate error messages
+
       Base_Style_Checks := "-gnaty3abcefhiklnOprtx";
       Line_Length := "-gnatyM120";
 
