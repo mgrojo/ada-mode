@@ -63,7 +63,6 @@ endif
 %.re2c : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) $(IGNORE_CONFLICTS) --time --output_bnf $(<F)
 	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
-	cd ./$(<D); dos2unix -q $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<

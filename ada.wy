@@ -291,6 +291,9 @@
 ;; 4 required for test/ada_mode-recover_match_names.adb.
 %mckenzie_check_limit 4
 
+;; same as check_limit
+%mckenzie_zombie_limit 4
+
 ;; After finding 1 solution, only check 100 more before giving up.
 ;; Reduces solution time on complex errors.
 %mckenzie_check_delta_limit 100
