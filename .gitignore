@@ -7,3 +7,4 @@ build/dir
 build/objects/
 build/*.stamp
 build/*.texinfo-index
+build/*.gz
