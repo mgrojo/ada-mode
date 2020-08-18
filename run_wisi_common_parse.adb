@@ -19,13 +19,13 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
-with Ada.Containers;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Text_IO;
 with SAL;
 with System.Multiprocessors;
+with WisiToken.Syntax_Trees;
 package body Run_Wisi_Common_Parse is
 
    procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser)
@@ -46,6 +46,9 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("   2 - add each parser cycle, error recovery enqueue/check");
       Put_Line ("   3 - parse stack in each cycle, error recovery parse actions");
       Put_Line ("   4 - add lexer debug, dump syntax tree");
+      Put_Line ("--zombie_limit n  : set error recover token zombie limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.McKenzie_Param.Zombie_Limit'Image));
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.McKenzie_Param.Check_Limit'Image));
@@ -57,8 +60,6 @@ package body Run_Wisi_Common_Parse is
                    else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   WisiToken.Parse.LR.Parser.Default_Max_Parallel'Image & ")");
-      Put_Line ("--branched_tree_limit n  : set branched tree size in parallel parsers (default" &
-                  WisiToken.Parse.LR.Parser.Default_Branched_Tree_Limit'Image & ")");
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
@@ -138,12 +139,14 @@ package body Run_Wisi_Common_Parse is
 
                WisiToken.Debug_Mode := WisiToken.Trace_Parse > Outline or WisiToken.Trace_McKenzie > Outline;
 
-            elsif Argument (Arg) = "--branched_tree_limit" then
-               Parser.Branched_Tree_Limit := Ada.Containers.Count_Type'Value (Argument (Arg + 1));
+            elsif Argument (Arg) = "--zombie_limit" then
+               Parser.Table.McKenzie_Param.Zombie_Limit := WisiToken.Syntax_Trees.Element_Index'Value
+                 (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--check_limit" then
-               Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
+               Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Element_Index'Value
+                 (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--check_delta" then
@@ -205,15 +208,8 @@ package body Run_Wisi_Common_Parse is
       use Ada.Text_IO;
       use WisiToken;
 
-      Start     : Ada.Real_Time.Time;
-      End_Line  : WisiToken.Line_Number_Type;
-
-      function Image_Augmented (Aug : in Base_Token_Class_Access) return String
-      is begin
-         --  For Syntax_Trees.Print_Tree
-         return Wisi.Image (Aug, Descriptor);
-      end Image_Augmented;
-
+      Start    : Ada.Real_Time.Time;
+      End_Line : WisiToken.Line_Number_Type;
    begin
       Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
 
@@ -261,7 +257,6 @@ package body Run_Wisi_Common_Parse is
                when Refactor => Wisi.Navigate),
             Lexer            => Parser.Lexer,
             Descriptor       => Descriptor'Unrestricted_Access,
-            Base_Terminals   => Parser.Terminals'Unrestricted_Access,
             Begin_Line       =>
               (case Cl_Params.Command is
                when Parse => Cl_Params.Begin_Line,
@@ -288,7 +283,7 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put
                        (Parser.Lexer.Errors,
                         Parser.Parsers.First.State_Ref.Errors,
-                        Parser.Parsers.First.State_Ref.Tree);
+                        Parser.Tree);
                   end if;
                end Clean_Up;
 
@@ -303,7 +298,7 @@ package body Run_Wisi_Common_Parse is
                   null;
                end;
 
-               Parser.Execute_Actions (Image_Augmented'Unrestricted_Access);
+               Parser.Execute_Actions (Wisi.Image_Augmented'Access);
 
                case Cl_Params.Command is
                when Parse =>
@@ -312,12 +307,12 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put
                        (Parser.Lexer.Errors,
                         Parser.Parsers.First.State_Ref.Errors,
-                        Parser.Parsers.First.State_Ref.Tree);
+                        Parser.Tree);
                   end if;
 
                when Refactor =>
                   Parse_Data.Refactor
-                    (Parser.Parsers.First_State_Ref.Tree,
+                    (Parser.Tree,
                      Cl_Params.Refactor_Action, Cl_Params.Edit_Begin);
                end case;
             exception

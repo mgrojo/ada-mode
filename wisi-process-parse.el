@@ -22,7 +22,7 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
-(defconst wisi-process-parse-protocol-version "6"
+(defconst wisi-process-parse-protocol-version "7"
   "Defines data exchanged between this package and the background process.
 Must match emacs_wisi_common_parse.ads Protocol_Version.")
 
@@ -207,10 +207,10 @@ parse region."
 		      wisi-trace-action
 		      (if wisi-mckenzie-disable 1 0)
 		      (or wisi-mckenzie-task-count -1)
+		      (or wisi-mckenzie-zombie-limit -1)
 		      (or wisi-mckenzie-check-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
 		      (or wisi-parse-max-parallel -1)
-		      (or wisi-branched-tree-limit -1)
 		      (- (position-bytes send-end) (position-bytes begin)) ;; byte_count: send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))

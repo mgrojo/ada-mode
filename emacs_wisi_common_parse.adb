@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
-with Ada.Containers;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
@@ -29,6 +28,7 @@ with SAL;
 with System.Multiprocessors;
 with System.Storage_Elements;
 with WisiToken.Lexer;
+with WisiToken.Syntax_Trees;
 package body Emacs_Wisi_Common_Parse is
 
    procedure Usage (Name : in String)
@@ -186,10 +186,10 @@ package body Emacs_Wisi_Common_Parse is
          Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
          Result.McKenzie_Disable     := Get_Integer (Command_Line, Last);
          Result.Task_Count           := Get_Integer (Command_Line, Last);
+         Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
          Result.Check_Limit          := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
          Result.Max_Parallel         := Get_Integer (Command_Line, Last);
-         Result.Branched_Tree_Limit  := Get_Integer (Command_Line, Last);
          Result.Byte_Count           := Get_Integer (Command_Line, Last);
       end return;
    end Get_Parse_Params;
@@ -300,7 +300,7 @@ package body Emacs_Wisi_Common_Parse is
                         Parse_Data.Put
                           (Parser.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
-                           Parser.Parsers.First.State_Ref.Tree);
+                           Parser.Tree);
                      end if;
                      Ada.Strings.Unbounded.Free (Buffer);
                   end Clean_Up;
@@ -328,7 +328,6 @@ package body Emacs_Wisi_Common_Parse is
                     (Post_Parse_Action => Params.Post_Parse_Action,
                      Lexer             => Parser.Lexer,
                      Descriptor        => Descriptor'Unrestricted_Access,
-                     Base_Terminals    => Parser.Terminals'Unrestricted_Access,
                      Begin_Line        => Params.Begin_Line,
                      End_Line          => Params.End_Line,
                      Begin_Indent      => Params.Begin_Indent,
@@ -337,8 +336,13 @@ package body Emacs_Wisi_Common_Parse is
                   if Params.Task_Count > 0 then
                      Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
                   end if;
+                  if Params.Zombie_Limit > 0 then
+                     Parser.Table.McKenzie_Param.Zombie_Limit :=
+                       WisiToken.Syntax_Trees.Element_Index (Params.Zombie_Limit);
+                  end if;
                   if Params.Check_Limit > 0 then
-                     Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Params.Check_Limit);
+                     Parser.Table.McKenzie_Param.Check_Limit :=
+                       WisiToken.Syntax_Trees.Element_Index (Params.Check_Limit);
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
@@ -346,10 +350,6 @@ package body Emacs_Wisi_Common_Parse is
 
                   if Params.Max_Parallel > 0 then
                      Parser.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
-                  end if;
-
-                  if Params.Branched_Tree_Limit > 0 then
-                     Parser.Branched_Tree_Limit := Ada.Containers.Count_Type (Params.Branched_Tree_Limit);
                   end if;
 
                   Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
@@ -403,7 +403,7 @@ package body Emacs_Wisi_Common_Parse is
                         Parse_Data.Put
                           (Parser.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
-                           Parser.Parsers.First.State_Ref.Tree);
+                           Parser.Tree);
                      end if;
                      Ada.Strings.Unbounded.Free (Buffer);
                   end Clean_Up;
@@ -419,7 +419,6 @@ package body Emacs_Wisi_Common_Parse is
                     (Post_Parse_Action => Wisi.Navigate, -- mostly ignored
                      Lexer             => Parser.Lexer,
                      Descriptor        => Descriptor'Unrestricted_Access,
-                     Base_Terminals    => Parser.Terminals'Unrestricted_Access,
                      Begin_Line        => Params.Parse_Begin_Line,
                      End_Line          => Params.Parse_End_Line,
                      Begin_Indent      => Params.Parse_Begin_Indent,
@@ -442,7 +441,7 @@ package body Emacs_Wisi_Common_Parse is
                      null;
                   end;
                   Parser.Execute_Actions;
-                  Parse_Data.Refactor (Parser.Parsers.First_State_Ref.Tree, Params.Refactor_Action, Params.Edit_Begin);
+                  Parse_Data.Refactor (Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
                   Clean_Up;
 
                exception

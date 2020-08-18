@@ -25,8 +25,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -43,6 +43,14 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+incremental parse
+    ./run_ada_lalr_parse.exe parse indent test/ada_mode.ads
+        constraint_error
+
+    run tests
+
+    run benchmarks
+
 wisi.texi
     $FOO only sees vars defined in the current project
         workaround:

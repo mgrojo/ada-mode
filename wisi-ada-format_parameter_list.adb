@@ -45,9 +45,9 @@ is
       Default_Exp : Buffer_Region := Null_Buffer_Region;
    end record;
 
-   Formal_Part : constant Node_Index := Find_ID_At (Tree, +formal_part_ID, Edit_Begin);
+   Formal_Part : constant Node_Access := Find_ID_At (Tree, +formal_part_ID, Edit_Begin);
    Param_List  : constant Constant_List :=
-     (if Formal_Part = Invalid_Node_Index
+     (if Formal_Part = Invalid_Node_Access
       then Creators.Invalid_List (Tree)
       else Creators.Create_List
         (Tree,
@@ -64,7 +64,7 @@ is
    end Get_Text;
 
 begin
-   if Formal_Part = Invalid_Node_Index then
+   if Formal_Part = Invalid_Node_Access then
       --  Most likely the edit point is wrong.
       raise SAL.Parameter_Error with "no parameter list found at byte_pos" & Edit_Begin'Image;
    end if;
@@ -86,14 +86,14 @@ begin
       Params           : array (1 .. Param_Count) of Parameter;
       Param_Cur        : Cursor                     := Param_List.First;
       Param_Iter       : constant Constant_Iterator := Param_List.Iterate_Constant;
-      First_Param_Node : constant Node_Index        := Element (Param_Cur);
-      Last_Param_Node  : Node_Index;
+      First_Param_Node : constant Node_Access        := Element (Param_Cur);
+      Last_Param_Node  : Node_Access;
    begin
       for Param of Params loop
          Last_Param_Node := Element (Param_Cur);
 
          declare
-            Children : constant Valid_Node_Index_Array := Tree.Children (Element (Param_Cur));
+            Children : constant Node_Access_Array := Tree.Children (Element (Param_Cur));
          begin
             for Ident of Creators.Create_List (Tree, Children (1), +identifier_list_ID, +IDENTIFIER_ID) loop
                Param.Identifiers.Append (Tree.Byte_Region (Ident));
@@ -123,7 +123,7 @@ begin
                   --  First two children are always:
                   --  null_exclusion_opt ACCESS
                   declare
-                     Access_Children : constant Valid_Node_Index_Array := Tree.Children (Children (I));
+                     Access_Children : constant Node_Access_Array := Tree.Children (Children (I));
                   begin
                      Param.Not_Null_P := not Tree.Buffer_Region_Is_Empty (Access_Children (1));
                      Param.Access_P := True;
@@ -149,7 +149,7 @@ begin
 
                when others =>
                   Raise_Programmer_Error
-                    ("format_parameter_list param id", Data.Descriptor.all, Data.Lexer, Tree, Data.Base_Terminals.all,
+                    ("format_parameter_list param id", Data.Descriptor.all, Data.Lexer, Tree,
                      Children (I));
                end case;
             end loop;
@@ -162,7 +162,7 @@ begin
          Result     : Unbounded_String := +"(";
          Line_End   : Integer          := 0;     --  Index of last LF char in Result.
          Multi_Line : constant Boolean :=
-           Tree.Augmented (First_Param_Node).Line < Tree.Augmented (Last_Param_Node).Line;
+           Tree.Base_Token (First_Param_Node).Line < Tree.Base_Token (Last_Param_Node).Line;
          Ident_Len  : Integer          := 0;     -- Maximum over all params, includes commas
          Type_Len   : Integer          := 0;
          Aliased_P  : Boolean          := False; -- "_P" for "present"
@@ -203,7 +203,7 @@ begin
             end loop;
             declare
                subtype Count is Standard.Ada.Text_IO.Count;
-               Open_Paren_Col : constant Count := Tree.Augmented (Formal_Part).Column;
+               Open_Paren_Col : constant Count := Tree.Base_Token (Formal_Part).Column;
                Ident_Col      : constant Count := Open_Paren_Col + 1;
                Colon_Col      : constant Count := Ident_Col + Count (Ident_Len) + 1;
                In_Col         : constant Count := Colon_Col + (if Aliased_P then 10 else 2);

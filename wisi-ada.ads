@@ -55,7 +55,6 @@ package Wisi.Ada is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -73,7 +72,7 @@ package Wisi.Ada is
    function Insert_After
      (User_Data            : in out Parse_Data_Type;
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
-      Token                : in     WisiToken.Valid_Node_Index;
+      Token                : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
 
@@ -81,8 +80,8 @@ package Wisi.Ada is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -104,8 +103,8 @@ package Wisi.Ada is
    function Ada_Indent_Aggregate
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -114,8 +113,8 @@ package Wisi.Ada is
    function Ada_Indent_Renames_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -124,8 +123,8 @@ package Wisi.Ada is
    function Ada_Indent_Return_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -134,8 +133,8 @@ package Wisi.Ada is
    function Ada_Indent_Record_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -145,8 +144,8 @@ package Wisi.Ada is
    function Ada_Indent_Record_1
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Valid_Node_Index_Array;
-      Tree_Indenting    : in     WisiToken.Valid_Node_Index;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
