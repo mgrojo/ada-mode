@@ -708,7 +708,7 @@ package WisiToken.Parse.LR is
 
       case Label is
       when Action =>
-         Error_Token : Syntax_Trees.Stream_Index;
+         Error_Token : Syntax_Trees.Valid_Node_Access;
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>

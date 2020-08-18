@@ -324,10 +324,10 @@ package WisiToken is
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
 
-   type Base_Token_Arrays_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
+   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;
 
-   type Base_Token_Arrays_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
+   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;
 
    type Base_Identifier_Index is range 0 .. Integer'Last;
@@ -425,11 +425,11 @@ package WisiToken is
 
 private
 
-   type Base_Token_Arrays_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is record
+   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
-   type Base_Token_Arrays_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is record
+   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 

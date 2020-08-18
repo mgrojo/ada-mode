@@ -49,6 +49,8 @@ incremental parse
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
+    since we are copying stream node to set state, might as well also set parent?
+
 recover supervisor should provide Put_Trace_line
     to control access to Trace
 

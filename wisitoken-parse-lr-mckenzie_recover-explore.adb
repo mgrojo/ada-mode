@@ -1263,11 +1263,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  We are assuming the list of lexer errors is short, so binary
          --  search would not be significantly faster.
          for Err of Shared.Wrapped_Lexer_Errors.all loop
-            if Err.Recover_Token /= Syntax_Trees.Invalid_Stream_Index then
-               Lexer_Error_Token := Super.Tree.all.Base_Token (Err.Recover_Token);
+            if Err.Recover_Token_Index /= Syntax_Trees.Invalid_Stream_Index then
+               Lexer_Error_Token := Super.Tree.all.Base_Token (Err.Recover_Token_Index);
 
                if Lexer_Error_Token.Line = Current_Line then
-                  return Err.Recover_Token;
+                  return Err.Recover_Token_Index;
                end if;
             end if;
          end loop;
@@ -1562,7 +1562,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                Finish
                  ("b", New_Config, Config.Current_Shared_Token,
-                  Super.Tree.Stream_Prev (Shared.Line_Begin_Token.all (Current_Line + 1)));
+                  Super.Tree.Stream_Prev (Shared.Line_Begin_Token.all (Current_Line + 1).Index));
                Local_Config_Heap.Add (New_Config);
             end;
          end;

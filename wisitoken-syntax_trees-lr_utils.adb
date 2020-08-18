@@ -640,7 +640,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
      (Source_List  : in     Constant_List'Class;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
-      Dest_List    : in out List'Class)
+      Dest_List    : in out List'Class;
+      User_Data    : in     User_Data_Type'Class)
    is
       Source_Iter : constant Constant_Iterator := Source_List.Iterate_Constant;
 
@@ -650,7 +651,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       for N of Source_List loop
          exit when not Has_Element (Item);
 
-         Dest_List.Append (Dest_List.Tree.Copy_Subtree (Item.Node));
+         Dest_List.Append (Dest_List.Tree.Copy_Subtree (Item.Node, User_Data));
 
          exit when Item = Last;
 
@@ -828,7 +829,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Skip_Found        :         in out Boolean;
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
-      Multi_Element_RHS :         in     Natural)
+      Multi_Element_RHS :         in     Natural;
+      User_Data         :         in     User_Data_Type'Class)
       return Node_Access
    is
       Dest_List : List := Creators.Empty_List
@@ -852,7 +854,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                   List_ID    => Skip_This.List_ID,
                   Element_ID => Skip_This.Element_ID),
                Skip_List (Skip_List'First + 1 .. Skip_List'Last),
-               Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS);
+               Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS, User_Data);
          else
             declare
                Source_Children : constant Node_Access_Array := Tree.Children (Node);
@@ -867,12 +869,12 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                            List_ID    => Skip_This.List_ID,
                            Element_ID => Skip_This.Element_ID),
                         Skip_List (Skip_List'First + 1 .. Skip_List'Last),
-                        Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS);
+                        Skip_Found, Tree, Skip_This.Separator_ID, Skip_This.Multi_Element_RHS, User_Data);
                   else
                      if Tree.Label (Source_Children (I)) = Nonterm then
                         Dest_Children (I) := Get_Dest_Child (Source_Children (I), Skip_List);
                      else
-                        Dest_Children (I) := Tree.Copy_Subtree (Source_Children (I));
+                        Dest_Children (I) := Tree.Copy_Subtree (Source_Children (I), User_Data);
                      end if;
                   end if;
                end loop;
@@ -897,7 +899,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Dest_List.Append (Get_Dest_Child (N, Skip_List));
             end case;
          else
-            Dest_List.Append (Tree.Copy_Subtree (N));
+            Dest_List.Append (Tree.Copy_Subtree (N, User_Data));
          end if;
       end loop;
       return Dest_List.Root;
@@ -905,7 +907,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
-      Tree      : aliased in out Syntax_Trees.Tree)
+      Tree      : aliased in out Syntax_Trees.Tree;
+      User_Data :         in     User_Data_Type'Class)
      return Node_Access
    is
       Source_List : constant Constant_List := Creators.Create_List
@@ -918,7 +921,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    begin
       return Result : constant Node_Access := Copy_Skip_Nested
         (Source_List, Skip_List.Skips, Skip_Found, Tree, Skip_List.Start_Separator_ID,
-         Skip_List.Start_Multi_Element_RHS)
+         Skip_List.Start_Multi_Element_RHS, User_Data)
       do
          if not Skip_Found then
             raise SAL.Programmer_Error with "Skip not found";

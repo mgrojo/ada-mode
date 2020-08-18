@@ -92,13 +92,16 @@ package WisiToken_Grammar_Runtime is
       --  an edited token list. Token labels are from original list.
    end record;
    type Augmented_Access is access all Augmented;
+   type Augmented_Access_Constant is access constant Augmented;
 
-   function Image (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return String
-   is (Augmented_Access (Item).Auto_Token_Labels'Image & " " &
-         Augmented_Access (Item).Edited_Token_List'Image);
+   function Image (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access_Constant) return String
+   is (Augmented_Access_Constant (Item).Auto_Token_Labels'Image & " " &
+         Augmented_Access_Constant (Item).Edited_Token_List'Image);
 
+   overriding
    function Copy_Augmented
-     (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access)
+     (User_Data : in User_Data_Type;
+      Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access;
 
    overriding

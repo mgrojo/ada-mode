@@ -301,22 +301,17 @@ package body WisiToken_Grammar_Runtime is
    ----------
    --  Public subprograms, declaration order
 
+   overriding
    function Copy_Augmented
-     (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access)
+     (User_Data : in User_Data_Type;
+      Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access
    is
-      use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
+      Old_Aug : WisiToken_Grammar_Runtime.Augmented renames Augmented_Access (Augmented).all;
+      New_Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
+        (Old_Aug.Auto_Token_Labels, Old_Aug.Edited_Token_List);
    begin
-      if Item = null then
-         return null;
-      else
-         declare
-            Old_Aug : Augmented renames Augmented_Access (Item).all;
-            New_Aug : constant Augmented_Access := new Augmented'(Old_Aug.Auto_Token_Labels, Old_Aug.Edited_Token_List);
-         begin
-            return WisiToken.Syntax_Trees.Augmented_Class_Access (New_Aug);
-         end;
-      end if;
+      return WisiToken.Syntax_Trees.Augmented_Class_Access (New_Aug);
    end Copy_Augmented;
 
    overriding
@@ -858,7 +853,8 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_zombie_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Zombie_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Element_Index'Value
+                    (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "meta_syntax" then
                   --  not in Other phase

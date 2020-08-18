@@ -23,12 +23,24 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
+   type Tree_Ref is record
+      --  Used in error recover for stream_prev/_next, so need stream_index.
+      --  Used in post-parse actions, so need Node_Access.
+      Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;
+      Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+   end record;
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Syntax_Trees.Stream_Index, Default_Element => Syntax_Trees.Invalid_Stream_Index);
+     (Line_Number_Type, Tree_Ref, Default_Element => (others => <>));
 
    type Wrapped_Lexer_Error is record
-      Recover_Token : Syntax_Trees.Stream_Index;
-      --  Token that lexer returned at the error
+      Recover_Token_Node  : Syntax_Trees.Valid_Node_Access;
+      Recover_Token_Index : Syntax_Trees.Stream_Index;
+      --  Token that lexer returned at the error.
+      --
+      --  Stream_Index is needed by error recovery, for Stream_Prev/_Next.
+      --
+      --  Node_Access is needed for post parse actions, when
+      --  Tree.Terminal_Stream does not exist.
 
       Error : WisiToken.Lexer.Error;
    end record;
@@ -45,15 +57,14 @@ package WisiToken.Parse is
       --  For access by error recover.
 
       Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
-      --  Line_Begin_Token (I) is the index into Tree.Terminal_Stream of the
-      --  first terminal grammar token on line I.
-      --  Line_Begin_Token.First_Index is the first line containing a
-      --  grammar token (after leading comments). However, if the only token
-      --  on line I is a non_grammar token (ie a comment, or a newline for a
-      --  blank line), Line_Begin_Token (I) is the last grammar token on the
-      --  previous non-blank line. If Line (I) is a non-first line in a
-      --  multi-line terminal token, Line_Begin_Token (I) is
-      --  Invalid_Token_Index.
+      --  Line_Begin_Token (I) is the node in Tree of the first
+      --  Shared_Terminal token on line I. Line_Begin_Token.First_Index is
+      --  the first line containing a grammar token (after leading
+      --  comments). However, if the only token on line I is a non_grammar
+      --  token (ie a comment, or a newline for a blank line),
+      --  Line_Begin_Token (I) is the last grammar token on the previous
+      --  non-blank line. If Line (I) is a non-first line in a multi-line
+      --  terminal token, Line_Begin_Token (I) is Invalid_Node_Access.
 
       Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Last grammar token returned from Lexer; for storing non_grammar

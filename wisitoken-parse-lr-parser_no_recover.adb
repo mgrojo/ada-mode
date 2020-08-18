@@ -71,7 +71,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       case Action.Verb is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
-         Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token);
+         Shared_Parser.Tree.Shift
+           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data.all);
 
       when Reduce =>
          Current_Parser.Set_Verb (Reduce);
@@ -122,7 +123,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               ((Label          => LR.Action,
                 First_Terminal => Trace.Descriptor.First_Terminal,
                 Last_Terminal  => Trace.Descriptor.Last_Terminal,
-                Error_Token    => Parser_State.Current_Token,
+                Error_Token    => Shared_Parser.Tree.Get_Node (Parser_State.Current_Token),
                 Expecting      => Expecting,
                 Recover        => (others => <>)));
 
@@ -481,7 +482,9 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             raise Syntax_Error with "ambiguous parse; can't execute actions";
          end if;
 
+         --  FIXME: move this to end of Parse, or justify why not.
          Parser.Tree.Set_Parents;
+         Parser.Tree.Clear_Parse_Streams;
          Parser.User_Data.Initialize_Actions (Parser.Tree);
          Parser.Tree.Process_Tree (Process_Node'Access);
       end if;
@@ -512,7 +515,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          case Item.Label is
          when Action =>
             declare
-               Token : Base_Token renames Parser.Tree.Base_Token (Parser.Tree.Get_Node (Item.Error_Token));
+               Token : Base_Token renames Parser.Tree.Base_Token (Item.Error_Token);
             begin
                Put_Line
                  (Current_Error,

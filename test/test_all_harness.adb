@@ -118,7 +118,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Warth_Left_Recurse_Expr_1.Test_Case));
-   --   Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
+   --  FIXME: Add_Test (Suite, Test_Case_Access'(new WisiToken.Syntax_Trees.Test.Test_Case));
 
    --  end test cases
 

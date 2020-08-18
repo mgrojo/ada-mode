@@ -137,7 +137,8 @@ package body WisiToken.Parse.LR.Parser is
       case Action.Verb is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
-         Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token);
+         Shared_Parser.Tree.Shift
+           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data.all);
 
       when Reduce =>
          declare
@@ -205,7 +206,7 @@ package body WisiToken.Parse.LR.Parser is
               ((Label          => LR.Action,
                 First_Terminal => Expecting'First,
                 Last_Terminal  => Expecting'Last,
-                Error_Token    => Parser_State.Current_Token,
+                Error_Token    => Shared_Parser.Tree.Get_Node (Parser_State.Current_Token),
                 Expecting      => Expecting,
                 Recover        => (others => <>)));
 
@@ -1191,7 +1192,9 @@ package body WisiToken.Parse.LR.Parser is
          begin
             pragma Assert (Parser.Tree.Fully_Parsed);
 
+            --  FIXME: move this to end of Parse, or justify why not.
             Parser.Tree.Set_Parents;
+            Parser.Tree.Clear_Parse_Streams;
 
             if Trace_Action > Outline then
                if Trace_Action > Extra then
@@ -1248,7 +1251,7 @@ package body WisiToken.Parse.LR.Parser is
       for Item of Parser_State.Errors loop
          case Item.Label is
          when Action =>
-            if Parser.Tree.Is_Virtual (Parser.Tree.Get_Node (Item.Error_Token)) then
+            if Parser.Tree.Is_Virtual (Item.Error_Token) then
                Put_Line
                  (Current_Error,
                   Error_Message
@@ -1257,7 +1260,7 @@ package body WisiToken.Parse.LR.Parser is
                        ", found " & Image (Parser.Tree.ID (Item.Error_Token), Descriptor)));
             else
                declare
-                  Token : constant Base_Token := Parser.Tree.Base_Token (Parser.Tree.Get_Node (Item.Error_Token));
+                  Token : constant Base_Token := Parser.Tree.Base_Token (Item.Error_Token);
                begin
                   Put_Line
                     (Current_Error,

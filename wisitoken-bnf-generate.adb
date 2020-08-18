@@ -411,9 +411,9 @@ begin
             Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
          begin
             Syntax_Trees.Copy_Tree
-              (Source => Tree,
+              (Source      => Tree,
                Destination => Saved_EBNF_Tree,
-              Copy_Augmented => WisiToken_Grammar_Runtime.Copy_Augmented'Access);
+               User_Data   => Input_Data);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");

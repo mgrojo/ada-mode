@@ -309,7 +309,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
      (Source_List  : in     Constant_List'Class;
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
-      Dest_List    : in out List'Class)
+      Dest_List    : in out List'Class;
+      User_Data    : in     User_Data_Type'Class)
    with Pre => Compatible (Source_List, Dest_List);
    --  Deep copy slice of Source_List, appending to Dest_List.
    --
@@ -391,7 +392,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
 
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
-      Tree      : aliased in out Syntax_Trees.Tree)
+      Tree      : aliased in out Syntax_Trees.Tree;
+      User_Data :         in     User_Data_Type'Class)
      return Node_Access
    with Pre => Tree.Editable and
                (Skip_List.Start_List_ID /= Invalid_Token_ID and then

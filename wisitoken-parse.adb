@@ -56,11 +56,15 @@ package body WisiToken.Parse is
                   else
                      Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line);
                   end if;
-                  Parser.Line_Begin_Token (Token.Line) := Index;
+                  Parser.Line_Begin_Token (Token.Line) :=
+                    (Node  => Parser.Last_Grammar_Node,
+                     Index => Index);
 
                elsif Token.ID = Parser.Trace.Descriptor.EOI_ID then
                   Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line + 1);
-                  Parser.Line_Begin_Token (Token.Line + 1) := Index;
+                  Parser.Line_Begin_Token (Token.Line + 1) :=
+                    (Node  => Parser.Last_Grammar_Node,
+                     Index => Index);
                end if;
             end if;
 
@@ -71,7 +75,7 @@ package body WisiToken.Parse is
                Parser.Tree.Leading_Non_Grammar.Append (Token);
             else
                declare
-                  Containing : Base_Token_Arrays_Var_Ref renames Parser.Tree.Non_Grammar (Parser.Last_Grammar_Node);
+                  Containing : Base_Token_Array_Var_Ref renames Parser.Tree.Non_Grammar_Var (Parser.Last_Grammar_Node);
                begin
                   Containing.Append (Token);
                end;
@@ -83,7 +87,10 @@ package body WisiToken.Parse is
       end loop;
 
       if Error then
-         Parser.Wrapped_Lexer_Errors.Append ((Index, Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
+         Parser.Wrapped_Lexer_Errors.Append
+           ((Recover_Token_Node  => Parser.Last_Grammar_Node,
+             Recover_Token_Index => Index,
+             Error               => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
       end if;
 
       return Token.ID;
