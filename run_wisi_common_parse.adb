@@ -283,6 +283,7 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put
                        (Parser.Lexer.Errors,
                         Parser.Parsers.First.State_Ref.Errors,
+                        Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                         Parser.Tree);
                   end if;
                end Clean_Up;
@@ -307,6 +308,7 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put
                        (Parser.Lexer.Errors,
                         Parser.Parsers.First.State_Ref.Errors,
+                        Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                         Parser.Tree);
                   end if;
 

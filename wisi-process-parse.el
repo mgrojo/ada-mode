@@ -398,9 +398,12 @@ complete."
 (defun wisi-process-parse--Recover (parser sexp)
   ;; sexp is [Recover [pos [inserted] [deleted] deleted-region]...]
   ;; see ‘wisi-process-parse--execute’
-  ;; convert to list of wisi--parse-error-repair, add to last error
+  ;; convert to list of wisi--parse-error-repair, add to corresponding error
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (last-error (car (wisi-parser-parse-errors parser))))
+
+    ;; FIXME: search for corresponding error
+
     (unless (= 1 (length sexp))
       (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
 	(push

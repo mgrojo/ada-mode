@@ -77,16 +77,23 @@ package Wisi is
      return WisiToken.Syntax_Trees.Augmented_Class_Access;
 
    overriding
+   procedure Initialize_Actions
+     (Data : in out Parse_Data_Type;
+      Tree : in     WisiToken.Syntax_Trees.Tree'Class);
+
+   overriding
    procedure Insert_Token
-     (Data  : in out Parse_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree'Class;
-      Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+     (Data            : in out Parse_Data_Type;
+      Tree            : in out WisiToken.Syntax_Trees.Tree'Class;
+      Inserted_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Inserted_Before : in     WisiToken.Syntax_Trees.Node_Access);
 
    overriding
    procedure Delete_Token
-     (Data  : in out Parse_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree'Class;
-      Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+     (Data          : in out Parse_Data_Type;
+      Tree          : in out WisiToken.Syntax_Trees.Tree'Class;
+      Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Prev_Token    : in     WisiToken.Syntax_Trees.Node_Access);
 
    overriding
    procedure Reduce
@@ -361,8 +368,9 @@ package Wisi is
      (Data         : in Parse_Data_Type;
       Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
       Parse_Errors : in WisiToken.Parse.LR.Parse_Error_Lists.List;
+      Recover      : in WisiToken.Parse.LR.Recover_Op_Arrays.Vector;
       Tree         : in WisiToken.Syntax_Trees.Tree);
-   --  Put Lexer_Errors and Parse_Errors to Ada.Text_IO.Current_Output,
+   --  Put Lexer_Errors, Parse_Errors, Recover to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
 
@@ -398,10 +406,6 @@ private
       --  Trailing comment or blank lines (after the last contained grammar
       --  token) that need indenting. Excludes comments following code on a
       --  line. If there are no such lines, these are Invalid_Line_Number.
-
-      Inserted_Before : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
-      --  Tokens inserted before this token by error recovery.
-
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;
@@ -554,17 +558,16 @@ private
 
       Line_Begin_Char_Pos : Line_Begin_Pos_Vectors.Vector;
       --  Character position at the start of the first grammar or
-      --  non-grammar token on each line. Cached by Lexer_To_Augmented to
+      --  non-grammar token on each line. Cached by Initialize_Actions to
       --  simplify indent computations.
 
       Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
-      --  Indent. Set by Lexer_To_Augmented on New_Line_ID, updated by
-      --  Insert_Token, Delete_Token.
+      --  Indent. Set by Initialize_Actions.
 
       Current_Paren_State : Integer;
       --  Current parenthesis nesting state; used by Indent. Set by
-      --  Lexer_To_Augmented on Left_Paren_ID, Right_Paren_ID.
+      --  Initialize_Actions.
 
       --  Data for post-parse actions
 
