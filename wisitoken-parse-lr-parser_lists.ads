@@ -63,6 +63,9 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  No_Index if all done.
 
       Current_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+      --  Shared_Token in Tree.Terminal_Stream when there are no error
+      --  recover tokens to insert; inserted token in parse stream when
+      --  there are.
 
       Inc_Shared_Token : Boolean := True;
 

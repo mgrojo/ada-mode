@@ -104,7 +104,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
       for I in reverse 1 .. Depth loop
          declare
-            Node : constant Syntax_Trees.Node_Access  := Tree.Get_Node (Tree.Peek (Parser_Stack, I));
+            Node : constant Syntax_Trees.Node_Access  := Tree.Get_Node (Parser_Stack, Tree.Peek (Parser_Stack, I));
             Token   : constant Syntax_Trees.Recover_Token :=
               (if I = Depth then (others => <>) else Tree.Get_Recover_Token (Node));
          begin
@@ -518,13 +518,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  end if;
                               end if;
 
-                           when Insert          =>
+                           when Insert            =>
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
-                                 (Op            => Insert,
-                                  Ins_ID        => Op.Ins_ID,
-                                  Ins_Before    => Op.Ins_Before,
-                                  Ins_Tree_Node => Syntax_Trees.Invalid_Node_Access));
+                                 (Op              => Insert,
+                                  Ins_ID          => Op.Ins_ID,
+                                  Ins_Before      => Op.Ins_Before,
+                                  Ins_Node        => Syntax_Trees.Invalid_Node_Access,
+                                  Ins_Before_Node => Syntax_Trees.Invalid_Node_Access));
 
                               if Parser_State.Recover_Insert_Delete_Current = No_Index then
                                  Parser_State.Recover_Insert_Delete_Current :=
@@ -548,7 +549,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                  Recover_Op_Array_Refs.Variable_Ref
                                    (Parser_State.Recover_Insert_Delete,
-                                    Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete)).Ins_Tree_Node :=
+                                    Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete)).Ins_Node :=
                                       Tree.Get_Node (Parser_State.Current_Token);
 
                                  Current_Token_Virtual                      := True;
@@ -558,20 +559,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  null;
                               end if;
 
-                           when Delete            =>
+                           when Delete           =>
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
-                                 (Op              => Delete,
-                                  Del_ID          => Op.Del_ID,
-                                  Del_Token_Index => Op.Del_Token_Index));
+                                 (Op             => Delete,
+                                  Del_ID         => Op.Del_ID,
+                                  Del_Index      => Op.Del_Token_Index,
+                                  Del_Node       => Tree.Get_Node (Op.Del_Token_Index),
+                                  Del_After_Node => Syntax_Trees.Invalid_Node_Access));
 
                               --  We don't check Stack_Matches_Ops here; if the current token needs
                               --  to be deleted, this is the only chance to do that. See
                               --  ada_mode-recover_02.adb with LR1 parser for example.
                               if Op.Del_Token_Index = Parser_State.Shared_Token then
                                  --  Delete has no effect on Stack, so we can apply multiple deletes.
-                                 Parser_State.Shared_Token := Tree.Stream_Next
-                                   (Tree.Terminal_Stream, Op.Del_Token_Index);
+                                 Parser_State.Shared_Token := Tree.Stream_Next (Op.Del_Token_Index);
                                  Shared_Token_Changed      := True;
 
                                  Parser_State.Recover_Insert_Delete_Current := No_Index;

@@ -203,19 +203,8 @@ package WisiToken.Syntax_Trees is
      (User_Data : in out User_Data_Type;
       Tree      : in     Syntax_Trees.Tree'Class)
      is null;
-   --  Called by Execute_Actions, before processing the tree.
-
-   procedure Lexer_To_Augmented
-     (User_Data : in out User_Data_Type;
-      Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Node_Access)
-     is null;
-   --  Token is a grammar token that was just returned by
-   --  User_Data.Lexer; read auxiliary data from User_Data.Lexer, do
-   --  something useful with it. Called before parsing, once for each
-   --  grammar token in the input stream.
-   --
-   --  Parser.Line_Begin_Token has already been updated.
+   --  Called by Execute_Actions, before processing the tree, after
+   --  Insert_Token/Delete_Token.
 
    procedure Lexer_To_Augmented
      (User_Data          : in out User_Data_Type;
@@ -223,9 +212,10 @@ package WisiToken.Syntax_Trees is
       Token              : in     Base_Token;
       Prev_Grammar_Token : in     Node_Access)
      is null;
-   --  Token is a non-grammar token that was just returned by
-   --  User_Data.Lexer; it has already been added to Prev_Grammar_Token,
-   --  or to Parser.Leading_Non_Grammar if Prev_Grammar_Token is
+   --  Token is a grammar or non-grammar token that was just returned by
+   --  User_Data.Lexer. If grammar, it is Prev_Grammar_Token; if
+   --  non-grammar, it has already been added to Prev_Grammar_Token, or
+   --  to Parser.Leading_Non_Grammar if Prev_Grammar_Token is
    --  Invalid_Token_Index. Read auxiliary data from User_Data.Lexer, do
    --  something useful with it. Called before parsing, once for each
    --  non-grammar token in the input stream.
@@ -251,24 +241,31 @@ package WisiToken.Syntax_Trees is
    --  The default implementation always returns False.
 
    procedure Insert_Token
-     (User_Data : in out User_Data_Type;
-      Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Valid_Node_Access)
+     (User_Data       : in out User_Data_Type;
+      Tree            : in out Syntax_Trees.Tree'Class;
+      Inserted_Token  : in     Syntax_Trees.Valid_Node_Access;
+      Inserted_Before : in     Syntax_Trees.Node_Access)
    is null
-   with Pre'Class => Tree.Is_Virtual_Terminal (Token);
-   --  Token was inserted in error recovery; update other tokens and Tree
-   --  as needed. Called from Execute_Actions for each inserted token,
-   --  before processing the syntax tree.
+   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token) and Tree.Is_Shared_Terminal (Inserted_Before);
+   --  Inserted_Token was inserted in error recovery. Inserted_Before is
+   --  the Shared_Terminal token the token was inserted before. Update
+   --  other tokens as needed. Called from Execute_Actions for each
+   --  inserted token, before Initialize_Actions.
 
    procedure Delete_Token
-     (User_Data : in out User_Data_Type;
-      Tree      : in out Syntax_Trees.Tree'Class;
-      Token     : in     Valid_Node_Access)
+     (User_Data     : in out User_Data_Type;
+      Tree          : in out Syntax_Trees.Tree'Class;
+      Deleted_Token : in     Valid_Node_Access;
+      Prev_Token    : in     Node_Access)
      is null
-     with Pre'Class => Tree.Label (Token) in Shared_Terminal | Virtual_Terminal;
-   --  Token was deleted in error recovery; update remaining tokens as
-   --  needed. Called from Execute_Actions for each deleted token, before
-   --  processing the syntax tree.
+     with Pre'Class =>
+       Tree.Label (Deleted_Token) = Shared_Terminal and
+       (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Shared_Terminal | Virtual_Terminal);
+   --  Deleted_Token was deleted in error recovery. Prev_Token is the
+   --  previous terminal token in the parse stream. Update remaining
+   --  tokens as needed; Deleted_Token.Non_Grammar has _not_ been moved
+   --  anywhere. Called from Execute_Actions for each deleted token,
+   --  before Initialize_Actions.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -276,8 +273,9 @@ package WisiToken.Syntax_Trees is
       Nonterm   : in     Valid_Node_Access;
       Tokens    : in     Node_Access_Array)
      is null;
-   --  Reduce Tokens to Nonterm. Nonterm.Byte_Region is computed by
-   --  caller.
+   --  Reduce Tokens to Nonterm. Nonterm Base_Token components are
+   --  computed by caller. Called by Parser.Execute_Actions, just before
+   --  processing Nonterm.
 
    type Semantic_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
@@ -351,6 +349,12 @@ package WisiToken.Syntax_Trees is
    with Pre => Token = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Token);
    --  Result may be Invalid_Element_Index
 
+   function Get_Element_Index
+     (Tree   : in Syntax_Trees.Tree;
+      Token  : in Valid_Node_Access)
+     return Element_Index
+   with Pre => Tree.Label (Token) = Shared_Terminal;
+
    function Trimmed_Image (Item : in Stream_Index) return String;
    --  Trimmed_Image of item.node_index.
 
@@ -381,7 +385,15 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
-   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access;
+   function Get_Node
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Valid_Node_Access
+   with Pre => Tree.Contains (Stream, Element);
+
+   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
+   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    procedure Start_Parse
      (Tree   : in out Syntax_Trees.Tree;
@@ -493,25 +505,13 @@ package WisiToken.Syntax_Trees is
       Before   : in     Stream_Index)
      return Stream_Index
    with
-     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream,
+     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream and
+             Tree.Contains (Tree.Terminal_Stream, Before),
      Post => Tree.Contains (Stream, Insert_Terminal'Result);
    --  Insert a new Virtual_Terminal element into Stream, after
-   --  Stack_Top. Before is the Shared_Terminal that this virtual is
-   --  inserted before during error recover. Result points to the added
-   --  node.
-
-   function Before
-     (Tree    : in out Syntax_Trees.Tree;
-      Stream  : in     Stream_ID;
-      Element : in     Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream;
-
-   function Before
-     (Tree             : in Syntax_Trees.Tree;
-      Virtual_Terminal : in Valid_Node_Access)
-     return Node_Access
-   with Pre => Tree.Is_Virtual_Terminal (Virtual_Terminal);
+   --  Stack_Top. Before should be Terminal_Stream token this token is
+   --  inserted before; new token Line is set to Before.Line. Result
+   --  points to the added node.
 
    procedure Update
      (Tree        : in Syntax_Trees.Tree;
@@ -1166,10 +1166,7 @@ private
          Terminal_Index : Stream_Index := Invalid_Stream_Index;
 
       when Virtual_Terminal =>
-         Before : Node_Access := Invalid_Node_Access;
-         --  Node_Access, not Stream_Index, because it must be valid when parse
-         --  is complete, for building the error correction instructions to the
-         --  editor.
+         null;
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
@@ -1292,13 +1289,6 @@ private
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    is (Node.ID, Node.Byte_Region, Node.Line, Node.Column, Node.Char_Region);
 
-   function Before
-     (Tree    : in out Syntax_Trees.Tree;
-      Stream  : in     Stream_ID;
-      Element : in     Stream_Index)
-     return Stream_Index
-   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.Before.Terminal_Index);
-
    function Contains
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
@@ -1330,6 +1320,19 @@ private
    is (if Token = Invalid_Stream_Index
        then Invalid_Element_Index
        else Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
+
+   function Get_Element_Index
+     (Tree   : in Syntax_Trees.Tree;
+      Token  : in Valid_Node_Access)
+     return Element_Index
+   is (Element_Index (Token.Node_Index));
+
+   function Get_Node
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Valid_Node_Access
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);
 
    function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);

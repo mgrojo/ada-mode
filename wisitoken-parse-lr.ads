@@ -537,15 +537,29 @@ package WisiToken.Parse.LR is
          Ins_Before : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
          --  Ins_ID is inserted before Ins_Before in the Terminal_Stream.
 
-         Ins_Tree_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The node holding the inserted token; valid after parse is complete.
+         Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         --  The parse stream node holding the inserted token; valid after
+         --  parse is complete.
+
+         Ins_Before_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         --  The parse stream Shared_Terminal node the token is inserted before; used
+         --  by post-parse actions.
 
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
 
-         Del_Token_Index : Syntax_Trees.Stream_Index;
-         --  Token in Terminal_Stream is deleted.
+         Del_Index : Syntax_Trees.Stream_Index;
+         --  Token at Del_Index in Terminal_Stream is deleted; used by parser
+         --  to skip the token.
+
+         Del_Node : Syntax_Trees.Node_Access;
+         --  Del_Node (was in terminal_stream) is deleted; used by post-parse
+         --  actions to adjust for the deleted token.
+
+         Del_After_Node : Syntax_Trees.Node_Access;
+         --  Previous terminal (shared or virtual) in parse stream; used by
+         --  post-parse actions to adjust for the deleted token.
 
       end case;
    end record;
@@ -562,7 +576,7 @@ package WisiToken.Parse.LR is
            (case Item.Op is
             when Insert => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
             when Delete => Image (Item.Del_ID, Descriptor) & ", " &
-               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
+               Syntax_Trees.Trimmed_Image (Item.Del_Index))
            & ")");
 
    function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
@@ -709,7 +723,9 @@ package WisiToken.Parse.LR is
       case Label is
       when Action =>
          Error_Token : Syntax_Trees.Valid_Node_Access;
-         Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+         --  Error_Token is used by post-parse actions, so need Node_Access.
+
+         Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>
          Check_Status : Semantic_Checks.Check_Status;

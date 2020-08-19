@@ -266,14 +266,6 @@ package body WisiToken.Syntax_Trees is
       return Augmented_Class_Access_Constant (Node.Augmented);
    end Augmented_Const;
 
-   function Before
-     (Tree             : in Syntax_Trees.Tree;
-      Virtual_Terminal : in Valid_Node_Access)
-     return Node_Access
-   is begin
-      return Virtual_Terminal.Before;
-   end Before;
-
    function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Byte_Region = Null_Buffer_Region;
@@ -451,8 +443,7 @@ package body WisiToken.Syntax_Trees is
                  (if Node.Augmented = null
                   then null
                   else Copy_Augmented (User_Data, Node.Augmented)),
-               Non_Grammar => Node.Non_Grammar,
-               Before      => Node.Before);
+               Non_Grammar => Node.Non_Grammar);
 
          when Virtual_Identifier =>
 
@@ -592,8 +583,7 @@ package body WisiToken.Syntax_Trees is
                  (if Source_Node.Augmented = null
                   then null
                   else Copy_Augmented (User_Data, Source_Node.Augmented)),
-               Non_Grammar => Source_Node.Non_Grammar,
-               Before      => Source_Node.Before);
+               Non_Grammar => Source_Node.Non_Grammar);
 
          when Virtual_Identifier =>
 
@@ -1404,7 +1394,7 @@ package body WisiToken.Syntax_Trees is
          Child_Count => 0,
          ID          => Terminal,
          Node_Index  => Tree.Nodes.Last_Index + 1,
-         Before      => Stream_Element_Lists.Constant_Ref (Before.Cur).Node,
+         Line        => Stream_Element_Lists.Element (Before.Cur).Node.Line,
          others      => <>);
    begin
       Tree.Nodes.Append (New_Node);

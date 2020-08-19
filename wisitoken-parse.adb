@@ -45,7 +45,7 @@ package body WisiToken.Parse is
             Parser.Last_Grammar_Node := Parser.Tree.Get_Node (Index);
 
             if Parser.User_Data /= null then
-               Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Parser.Last_Grammar_Node);
+               Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Parser.Last_Grammar_Node);
             end if;
 
             if Token.Line /= Invalid_Line_Number then
@@ -79,9 +79,9 @@ package body WisiToken.Parse is
                begin
                   Containing.Append (Token);
                end;
-               if Parser.User_Data /= null then
-                  Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Parser.Last_Grammar_Node);
-               end if;
+            end if;
+            if Parser.User_Data /= null then
+               Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Parser.Last_Grammar_Node);
             end if;
          end if;
       end loop;

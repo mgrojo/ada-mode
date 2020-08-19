@@ -271,6 +271,9 @@ package WisiToken is
 
    type Base_Buffer_Pos is range 0 .. Integer'Last;
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
+
    type Buffer_Region is record
       First : Buffer_Pos;
       Last  : Base_Buffer_Pos; --  allow representing null range.
