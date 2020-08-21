@@ -28,6 +28,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 package body WisiToken.Parse.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
@@ -72,7 +73,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
          Shared_Parser.Tree.Shift
-           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data.all);
+           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data);
 
       when Reduce =>
          Current_Parser.Set_Verb (Reduce);
@@ -466,6 +467,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   declare
                      Token : Base_Token renames Tree.Base_Token (Node);
                   begin
+                     if WisiToken.Debug_Mode then
+                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+                        Parser.Trace.New_Line;
+                     end if;
+
                      raise WisiToken.Parse_Error with Error_Message
                        (Parser.Lexer.File_Name, Token.Line, Token.Column,
                         "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &

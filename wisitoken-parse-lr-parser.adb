@@ -139,7 +139,7 @@ package body WisiToken.Parse.LR.Parser is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
          Shared_Parser.Tree.Shift
-           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data.all);
+           (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data);
 
       when Reduce =>
          declare
@@ -559,7 +559,8 @@ package body WisiToken.Parse.LR.Parser is
                                  Parser_State.Current_Token := Shared_Parser.Tree.Insert_Terminal
                                    (Parser_State.Stream, Op.Ins_ID, Op.Ins_Before);
 
-                                 Op.Ins_Node := Shared_Parser.Tree.Get_Node (Parser_State.Current_Token);
+                                 Op.Ins_Node := Shared_Parser.Tree.Get_Node
+                                   (Parser_State.Stream, Parser_State.Current_Token);
 
                                  Ins_Del_Cur := Ins_Del_Cur + 1;
                                  if Ins_Del_Cur > Last_Index (Ins_Del) then
@@ -1171,6 +1172,11 @@ package body WisiToken.Parse.LR.Parser is
                   declare
                      Token : Base_Token renames Tree.Base_Token (Node);
                   begin
+                     if WisiToken.Debug_Mode then
+                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+                        Parser.Trace.New_Line;
+                     end if;
+
                      raise WisiToken.Parse_Error with Error_Message
                        (Parser.Lexer.File_Name, Token.Line, Token.Column,
                         "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
@@ -1193,11 +1199,6 @@ package body WisiToken.Parse.LR.Parser is
          begin
             pragma Assert (Parser.Tree.Fully_Parsed);
 
-            --  We do this here, not at end of Parse, because we might re-parse
-            --  before doing any post-parse actions.
-            Parser.Tree.Set_Parents;
-            Parser.Tree.Clear_Parse_Streams;
-
             if Trace_Action > Outline then
                if Trace_Action > Extra then
                   Parser.Tree.Print_Tree (Descriptor, Parser.Tree.Root, Image_Augmented);
@@ -1208,9 +1209,15 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser.Tree.Root, Descriptor));
             end if;
 
+            --  We do this here, not at end of Parse, because we might re-parse
+            --  before doing any post-parse actions.
+            Parser.Tree.Set_Parents;
+
             declare
                --  Recompute Parser.Line_Begin_Token using final parse tree terminal
-               --  sequence, compute recover_op.inserted_before/deleted_after.
+               --  sequence; compute recover_op.inserted_before/deleted_after. This
+               --  uses Recover_Op Stream_Index values, so it must be done before
+               --  Tree.Clear_Parse_Streams, but after Tree.Set_Parents.
                --
                --  We do not move non_grammar from deleted tokens, because the user
                --  code may want to do something different.
@@ -1218,10 +1225,12 @@ package body WisiToken.Parse.LR.Parser is
                use Syntax_Trees;
                Tree : Syntax_Trees.Tree renames Parser.Tree;
 
-               I             : Node_Access        := Tree.First_Terminal (Tree.Root);
-               Last_Line     : Line_Number_Type   := Invalid_Line_Number;
-               Last_Terminal : Node_Access        := Invalid_Node_Access;
-               J             : SAL.Base_Peek_Type := Recover_Op_Arrays.First_Index (Parser_State.Recover_Insert_Delete);
+               I                    : Node_Access        := Tree.First_Terminal (Tree.Root);
+               Last_Line            : Line_Number_Type   := Invalid_Line_Number;
+               Last_Terminal        : Node_Access        := Invalid_Node_Access;
+               Last_Shared_Terminal : Node_Access        := Invalid_Node_Access;
+               J                    : SAL.Base_Peek_Type := Recover_Op_Arrays.First_Index
+                 (Parser_State.Recover_Insert_Delete);
 
                Next_Recover_Op       : Insert_Delete_Op_Label;
                Next_Recover_Op_Index : Element_Index;
@@ -1235,8 +1244,8 @@ package body WisiToken.Parse.LR.Parser is
                         Next_Recover_Op := Op.Op;
                         Next_Recover_Op_Index := Tree.Get_Element_Index
                           ((case Op.Op is
-                            when Insert => Op.Ins_Node,
-                            when Delete => Op.Del_Node));
+                            when Insert => Op.Ins_Before,
+                            when Delete => Op.Del_Index));
                      end;
                   else
                      Next_Recover_Op_Index := Invalid_Element_Index;
@@ -1260,8 +1269,8 @@ package body WisiToken.Parse.LR.Parser is
                      if Next_Recover_Op_Index /= Invalid_Element_Index then
                         loop
                            if Next_Recover_Op = Delete and then
-                             ((Last_Terminal = Invalid_Node_Access or else
-                                 Next_Recover_Op_Index > Tree.Get_Element_Index (Last_Terminal)) and
+                             ((Last_Shared_Terminal = Invalid_Node_Access or else
+                                 Next_Recover_Op_Index > Tree.Get_Element_Index (Last_Shared_Terminal)) and
                                 Next_Recover_Op_Index < Tree.Get_Element_Index (I))
                            then
                               declare
@@ -1269,6 +1278,7 @@ package body WisiToken.Parse.LR.Parser is
                                    (Parser_State.Recover_Insert_Delete, J);
                               begin
                                  pragma Assert (Op.Op = Delete);
+                                 Op.Del_Index      := Invalid_Stream_Index;
                                  Op.Del_After_Node := Last_Terminal;
                               end;
                            else
@@ -1287,6 +1297,7 @@ package body WisiToken.Parse.LR.Parser is
                         begin
                            case Op.Op is
                            when Insert =>
+                              Op.Ins_Before      := Invalid_Stream_Index;
                               Op.Ins_Before_Node := I;
                            when Delete =>
                               raise SAL.Programmer_Error with "deleted Shared_Terminal in parse tree";
@@ -1296,7 +1307,8 @@ package body WisiToken.Parse.LR.Parser is
                         Get_Next_Recover_Op;
                      end loop;
 
-                     Last_Terminal := I;
+                     Last_Terminal        := I;
+                     Last_Shared_Terminal := I;
 
                   when Virtual_Terminal =>
                      if Tree.Base_Token (I).Line /= Last_Line then
@@ -1320,6 +1332,8 @@ package body WisiToken.Parse.LR.Parser is
                   exit when I = Invalid_Node_Access;
                end loop;
             end;
+
+            Parser.Tree.Clear_Parse_Streams;
 
             for I in First_Index (Parser_State.Recover_Insert_Delete) ..
               Last_Index (Parser_State.Recover_Insert_Delete)

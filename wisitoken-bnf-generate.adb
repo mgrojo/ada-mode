@@ -413,7 +413,7 @@ begin
             Syntax_Trees.Copy_Tree
               (Source      => Tree,
                Destination => Saved_EBNF_Tree,
-               User_Data   => Input_Data);
+               User_Data   => Input_Data'Unchecked_Access);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");

@@ -28,8 +28,8 @@ package body Subprograms_Process_Actions is
    procedure block_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -59,8 +59,8 @@ package body Subprograms_Process_Actions is
 
    function block_0_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm        : in out WisiToken.Recover_Token;
-     Tokens         : in     WisiToken.Recover_Token_Array;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
@@ -74,8 +74,8 @@ package body Subprograms_Process_Actions is
    procedure block_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -103,8 +103,8 @@ package body Subprograms_Process_Actions is
    procedure block_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -128,8 +128,8 @@ package body Subprograms_Process_Actions is
 
    function block_2_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm        : in out WisiToken.Recover_Token;
-     Tokens         : in     WisiToken.Recover_Token_Array;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
@@ -143,8 +143,8 @@ package body Subprograms_Process_Actions is
    procedure block_3
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -168,8 +168,8 @@ package body Subprograms_Process_Actions is
    procedure block_4
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T3 : constant SAL.Peek_Type := 1;
@@ -196,8 +196,8 @@ package body Subprograms_Process_Actions is
    procedure block_5
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T3 : constant SAL.Peek_Type := 1;
@@ -222,8 +222,8 @@ package body Subprograms_Process_Actions is
    procedure block_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T3 : constant SAL.Peek_Type := 1;
@@ -246,8 +246,8 @@ package body Subprograms_Process_Actions is
    procedure block_7
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T3 : constant SAL.Peek_Type := 1;
@@ -267,8 +267,8 @@ package body Subprograms_Process_Actions is
 
    function compilation_unit_0_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm        : in out WisiToken.Recover_Token;
-     Tokens         : in     WisiToken.Recover_Token_Array;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
@@ -280,8 +280,8 @@ package body Subprograms_Process_Actions is
    procedure loop_statement_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       nam : constant SAL.Peek_Type := 4;
@@ -301,8 +301,8 @@ package body Subprograms_Process_Actions is
    procedure name_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       pre : constant SAL.Peek_Type := 1;
@@ -320,8 +320,8 @@ package body Subprograms_Process_Actions is
 
    function name_0_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm        : in out WisiToken.Recover_Token;
-     Tokens         : in     WisiToken.Recover_Token_Array;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
@@ -335,8 +335,8 @@ package body Subprograms_Process_Actions is
    procedure name_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       suf : constant SAL.Peek_Type := 1;
@@ -353,8 +353,8 @@ package body Subprograms_Process_Actions is
 
    function name_1_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm        : in out WisiToken.Recover_Token;
-     Tokens         : in     WisiToken.Recover_Token_Array;
+     Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
+     Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
@@ -367,8 +367,8 @@ package body Subprograms_Process_Actions is
    procedure name_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       pragma Unreferenced (Nonterm);
@@ -386,8 +386,8 @@ package body Subprograms_Process_Actions is
    procedure name_list_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
@@ -405,8 +405,8 @@ package body Subprograms_Process_Actions is
    procedure parameter_list_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -427,8 +427,8 @@ package body Subprograms_Process_Actions is
    procedure parameter_list_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -448,8 +448,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -477,8 +477,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -503,8 +503,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -530,8 +530,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_3
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -555,8 +555,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_4
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -582,8 +582,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_5
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -606,8 +606,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -631,8 +631,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_7
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       fun : constant SAL.Peek_Type := 1;
@@ -653,8 +653,8 @@ package body Subprograms_Process_Actions is
    procedure subprogram_8
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
@@ -673,8 +673,8 @@ package body Subprograms_Process_Actions is
    procedure subtype_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
@@ -691,8 +691,8 @@ package body Subprograms_Process_Actions is
    procedure use_clause_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T1 : constant SAL.Peek_Type := 1;
@@ -713,8 +713,8 @@ package body Subprograms_Process_Actions is
    procedure nonterminal_014_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Valid_Node_Index;
-     Tokens    : in     WisiToken.Valid_Node_Index_Array)
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
       T2 : constant SAL.Peek_Type := 1;

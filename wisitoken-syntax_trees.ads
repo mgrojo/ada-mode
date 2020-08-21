@@ -246,7 +246,8 @@ package WisiToken.Syntax_Trees is
       Inserted_Token  : in     Syntax_Trees.Valid_Node_Access;
       Inserted_Before : in     Syntax_Trees.Node_Access)
    is null
-   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token) and Tree.Is_Shared_Terminal (Inserted_Before);
+   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token) and
+                     (Inserted_Before = Invalid_Node_Access or else Tree.Is_Shared_Terminal (Inserted_Before));
    --  Inserted_Token was inserted in error recovery. Inserted_Before is
    --  the Shared_Terminal token the token was inserted before. Update
    --  other tokens as needed. Called from Execute_Actions for each
@@ -435,7 +436,7 @@ package WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       State     : in     State_Index;
       Token     : in     Stream_Index;
-      User_Data : in out User_Data_Type'Class)
+      User_Data : in     User_Data_Access)
    with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and
                (Tree.Contains (Tree.Terminal_Stream, Token) or Tree.Contains (Stream, Token));
    --  If Token is in Terminal_Stream, copy Token (and Token.Augmented)
@@ -579,6 +580,7 @@ package WisiToken.Syntax_Trees is
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
 
    function Is_Virtual
      (Tree    : in Syntax_Trees.Tree;
@@ -837,7 +839,7 @@ package WisiToken.Syntax_Trees is
    --  precondition of Fully_Parsed.
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
-   --  True if there is only one stream, and it has only two elements;
+   --  True if there is only one parse stream, and it has only two elements;
    --  the start state and the tree root.
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean;
@@ -846,7 +848,7 @@ package WisiToken.Syntax_Trees is
    procedure Copy_Tree
      (Source      : in     Tree;
       Destination :    out Tree;
-      User_Data   : in out User_Data_Type'Class)
+      User_Data   : in     User_Data_Access)
    with Pre => Fully_Parsed (Source) or Editable (Source);
    --  The subtree rooted in the single remaining parse stream (if any)
    --  is copied, and the parse stream and terminal stream. All
@@ -862,12 +864,12 @@ package WisiToken.Syntax_Trees is
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
-   with Pre => Tree.Fully_Parsed;
+   procedure Set_Parents (Tree : in out Syntax_Trees.Tree);
+   --  No precondition for packrat.
 
-   function Root (Tree : in Syntax_Trees.Tree) return Node_Access
-   with Pre => Tree.Fully_Parsed;
-   --  Tree.Root, or the root in the single stream if Tree.Root is not set.
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Access;
+   --  Tree.Root, or the root in the single stream if Tree.Root is not
+   --  set. No precondition for packrat.
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access);
 
@@ -1264,13 +1266,15 @@ private
 
       Terminal_Stream : Stream_ID;
 
-      Nodes : Node_Access_Arrays.Vector;
-      --  Stores ref to all nodes, for Finalize. Also provides Node_Index;
-      --  we may add access via Node_Index at some point.
+      Terminal_Nodes : Node_Access_Arrays.Vector;
+      Nonterm_Nodes : Node_Access_Arrays.Vector;
+      --  Stores ref to all nodes, for Finalize. Also provides Node_Index.
+      --  Separate Terminal and Nonterm to ensure that terminal Node_Index
+      --  order = parse stream terminal order after Copy_Tree.
       --
-      --  FIXME: Nodes gets unbounded large and nominally sparse during
-      --  incremental parse. One solution is to prune tree by copy/finalize
-      --  after N edits.
+      --  FIXME: Nodes (and Tree) gets unbounded large and nominally sparse
+      --  during incremental parse. One solution is to prune tree by
+      --  copy/finalize after N edits.
 
       Traversing : Boolean := False;
       --  True while traversing tree in Process_Tree.
@@ -1348,7 +1352,10 @@ private
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.ID);
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Streams.Length = 0);
+   is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);
+
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
+   is (Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier);
 
    function Is_Valid (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Boolean
    is (Parse_Stream_Lists.Has_Element (Stream.Cur));

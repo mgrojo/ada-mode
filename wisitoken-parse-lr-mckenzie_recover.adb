@@ -550,7 +550,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  Recover_Op_Array_Refs.Variable_Ref
                                    (Parser_State.Recover_Insert_Delete,
                                     Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete)).Ins_Node :=
-                                      Tree.Get_Node (Parser_State.Current_Token);
+                                      Tree.Get_Node (Parser_State.Stream, Parser_State.Current_Token);
 
                                  Current_Token_Virtual                      := True;
                                  Parser_State.Recover_Insert_Delete_Current := No_Index;

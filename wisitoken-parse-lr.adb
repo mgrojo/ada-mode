@@ -176,7 +176,7 @@ package body WisiToken.Parse.LR is
       when Shift =>
          return "Shift " & Image (Item.ID, Descriptor);
       when Reduce =>
-         return "Reduce to " & Image (Item.Production.LHS, Descriptor);
+         return "Reduce" & Item.Token_Count'Image & " tokens to " & Image (Item.Production.LHS, Descriptor);
       end case;
    end Image;
 

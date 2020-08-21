@@ -182,7 +182,13 @@ package body WisiToken.Parse.LR.AUnit is
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
-         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Ins_Before), Expected.Ins_Before);
+
+         if Tree.Editable then
+            --  Execute_Actions has been run; .ins_before is invalid
+            null;
+         else
+            Check (Label & ".ins_before", Tree.Get_Element_Index (Computed.Ins_Before), Expected.Ins_Before);
+         end if;
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);

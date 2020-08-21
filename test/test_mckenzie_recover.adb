@@ -81,7 +81,9 @@ package body Test_McKenzie_Recover is
       end if;
 
       Parser.Parse;
-      Parser.Execute_Actions;
+
+      --  We don't run Parser.Execute_Actions, so Error.Recover.Ops
+      --  Stream_Index values are still valid.
 
       if WisiToken.Trace_Action > WisiToken.Outline then
          Parser.Put_Errors;
@@ -276,7 +278,6 @@ package body Test_McKenzie_Recover is
       --
       --  error 1 at ';' 44, expecting 'if'. Inserts 'if', succeeds.
 
-      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +SEMICOLON_ID,
@@ -308,7 +309,6 @@ package body Test_McKenzie_Recover is
       --  sequence_of_statements_opt, insert 'begin') is also found, but
       --  terminated by duplicate state.
 
-      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
@@ -337,9 +337,6 @@ package body Test_McKenzie_Recover is
       --  below. That encounters a second error at 28:'Water' 100.
       --
       --  The desired solution (insert 'if ; end') is cost 3.
-
-      --  Confirm that the subprogram_body was parsed:
-      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       Check_Recover
         (Errors_Length           => 2,
@@ -429,9 +426,6 @@ package body Test_McKenzie_Recover is
       --
       --  For the generic_instantiation parser (0), error recovery is
       --  entered at 'begin 20'. It finds higher cost solutions.
-
-      --  Confirm that both subprogram_bodies were parsed:
-      Check ("action_count", Action_Count (+subprogram_body_ID), 2);
 
       Check_Recover
         (Errors_Length           => 1,

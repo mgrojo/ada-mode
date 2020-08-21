@@ -47,7 +47,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
               (if State = Unknown_State then " - : " else Trimmed_Image (State) & " : ") &
               (if I = Stack_Depth
                then ""
-               else Tree.Image (Tree.Get_Node (Item), Descriptor) & ", ");
+               else Tree.Image (Tree.Get_Node (Stack, Item), Descriptor) & ", ");
          end;
       end loop;
       return To_String (Result & ")");
@@ -193,8 +193,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
                else
                   declare
                      use Syntax_Trees;
-                     Node_1 : constant Valid_Node_Access := Tree.Get_Node (Tree.Peek (Stack_1, I));
-                     Node_2 : constant Valid_Node_Access := Tree.Get_Node (Tree.Peek (Stack_2, I));
+                     Node_1 : constant Valid_Node_Access := Tree.Get_Node (Stack_1, Tree.Peek (Stack_1, I));
+                     Node_2 : constant Valid_Node_Access := Tree.Get_Node (Stack_2, Tree.Peek (Stack_2, I));
                   begin
                      if not (Tree.Label (Node_1) = Tree.Label (Node_2) and then
                                Tree.ID (Node_1) = Tree.ID (Node_2) and then
