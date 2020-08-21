@@ -162,7 +162,7 @@ DIFF_OPT := -u -w
 # task_count 0 is tested in test_lr1_parallel.adb via test_bnf_suite.adb
 %.re2c : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
-	dos2unix -q $*.js $*_bnf.wy $*.parse_table
+	dos2unix -q $*_actions.adb $*.js $*_bnf.wy $**.parse_table
 
 %_lr1_t8_run.ads : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c --test_main $(GENERATE_ARGS) $<

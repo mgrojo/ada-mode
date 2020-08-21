@@ -188,7 +188,7 @@ State 0:
    CompilationUnit          goto state 2
    Statement                goto state 3
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      23.0:Statement <= LEFT_CURLY_BRACKET ^ Assignment RIGHT_CURLY_BRACKET
@@ -206,7 +206,7 @@ State 1:
    MethodInvocation         goto state 11
    StatementExpression      goto state 12
 
-   Minimal_Complete_Action => Identifier 28.0
+   Minimal_Complete_Actions => (Identifier 28.0)
 
 State 2:
      21.0:wisitoken_accept <= CompilationUnit ^ Wisi_EOI
@@ -218,7 +218,7 @@ State 2:
 
    Statement                goto state 13
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 3:
      22.0:CompilationUnit <= Statement ^
@@ -227,7 +227,7 @@ State 3:
    Wisi_EOI                 => reduce 1 tokens to CompilationUnit 22.0
    default                  => ERROR
 
-   Minimal_Complete_Action => CompilationUnit 22.0
+   Minimal_Complete_Actions => (1 CompilationUnit 22.0)
 
 State 4:
      28.0:LeftHandSide <= Identifier ^
@@ -241,7 +241,7 @@ State 4:
    PLUS_PLUS                => reduce 1 tokens to ClassType 34.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (LeftHandSide 28.0, ClassType 34.0, LEFT_PAREN 35.0)
+   Minimal_Complete_Actions => ((1 LeftHandSide 28.0), (1 ClassType 34.0), (LEFT_PAREN 35.0))
 
 State 5:
      23.0:Statement <= LEFT_CURLY_BRACKET Assignment ^ RIGHT_CURLY_BRACKET
@@ -249,7 +249,7 @@ State 5:
    RIGHT_CURLY_BRACKET      => shift and goto state 15 23.0
    default                  => ERROR
 
-   Minimal_Complete_Action => RIGHT_CURLY_BRACKET 23.0
+   Minimal_Complete_Actions => (RIGHT_CURLY_BRACKET 23.0)
 
 State 6:
      27.0:Assignment <= LeftHandSide ^ EQUAL Expression
@@ -257,7 +257,7 @@ State 6:
    EQUAL                    => shift and goto state 16 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => EQUAL 27.0
+   Minimal_Complete_Actions => (EQUAL 27.0)
 
 State 7:
      32.0:PostIncrementExpression <= PostfixExpression ^ PLUS_PLUS
@@ -267,7 +267,7 @@ State 7:
    PLUS_PLUS                => shift and goto state 18 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 8:
      31.2:PostfixExpression <= PostIncrementExpression ^
@@ -278,7 +278,7 @@ State 8:
    SEMICOLON                => reduce 1 tokens to StatementExpression 37.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (PostfixExpression 31.2, StatementExpression 37.0)
+   Minimal_Complete_Actions => ((1 PostfixExpression 31.2), (1 StatementExpression 37.0))
 
 State 9:
      31.3:PostfixExpression <= PostDecrementExpression ^
@@ -289,7 +289,7 @@ State 9:
    SEMICOLON                => reduce 1 tokens to StatementExpression 37.1
    default                  => ERROR
 
-   Minimal_Complete_Action => (PostfixExpression 31.3, StatementExpression 37.1)
+   Minimal_Complete_Actions => ((1 PostfixExpression 31.3), (1 StatementExpression 37.1))
 
 State 10:
      31.0:PostfixExpression <= ClassType ^
@@ -300,7 +300,7 @@ State 10:
    PLUS_PLUS                => reduce 1 tokens to PostfixExpression 31.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.0
+   Minimal_Complete_Actions => (1 PostfixExpression 31.0)
 
 State 11:
      31.1:PostfixExpression <= MethodInvocation ^
@@ -309,7 +309,7 @@ State 11:
    PLUS_PLUS                => reduce 1 tokens to PostfixExpression 31.1
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.1
+   Minimal_Complete_Actions => (1 PostfixExpression 31.1)
 
 State 12:
      23.1:Statement <= LEFT_CURLY_BRACKET StatementExpression ^ SEMICOLON RIGHT_CURLY_BRACKET
@@ -317,7 +317,7 @@ State 12:
    SEMICOLON                => shift and goto state 20 23.1
    default                  => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 23.1
+   Minimal_Complete_Actions => (SEMICOLON 23.1)
 
 State 13:
      22.1:CompilationUnit <= CompilationUnit Statement ^
@@ -326,7 +326,7 @@ State 13:
    Wisi_EOI                 => reduce 2 tokens to CompilationUnit 22.1
    default                  => ERROR
 
-   Minimal_Complete_Action => CompilationUnit 22.1
+   Minimal_Complete_Actions => (2 CompilationUnit 22.1)
 
 State 14:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ^ ArgumentList RIGHT_PAREN
@@ -348,7 +348,7 @@ State 14:
    MethodInvocation         goto state 33
    ArgumentList             goto state 34
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 15:
      23.0:Statement <= LEFT_CURLY_BRACKET Assignment RIGHT_CURLY_BRACKET ^
@@ -357,7 +357,7 @@ State 15:
    Wisi_EOI                 => reduce 3 tokens to Statement 23.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Statement 23.0
+   Minimal_Complete_Actions => (3 Statement 23.0)
 
 State 16:
      27.0:Assignment <= LeftHandSide EQUAL ^ Expression
@@ -378,7 +378,7 @@ State 16:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 17:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^
@@ -388,7 +388,7 @@ State 17:
    SEMICOLON                => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression 33.0
+   Minimal_Complete_Actions => (2 PostDecrementExpression 33.0)
 
 State 18:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^
@@ -398,7 +398,7 @@ State 18:
    SEMICOLON                => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression 32.0
+   Minimal_Complete_Actions => (2 PostIncrementExpression 32.0)
 
 State 19:
      34.1:ClassType <= ClassType DOT ^ Identifier
@@ -406,7 +406,7 @@ State 19:
    Identifier               => shift and goto state 47 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier 34.1
+   Minimal_Complete_Actions => (Identifier 34.1)
 
 State 20:
      23.1:Statement <= LEFT_CURLY_BRACKET StatementExpression SEMICOLON ^ RIGHT_CURLY_BRACKET
@@ -414,7 +414,7 @@ State 20:
    RIGHT_CURLY_BRACKET      => shift and goto state 48 23.1
    default                  => ERROR
 
-   Minimal_Complete_Action => RIGHT_CURLY_BRACKET 23.1
+   Minimal_Complete_Actions => (RIGHT_CURLY_BRACKET 23.1)
 
 State 21:
      25.0:LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
@@ -437,7 +437,7 @@ State 21:
    STAR                     => reduce 1 tokens to ClassType 34.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (MINUS_GREATER 25.0, LeftHandSide 28.0, ClassType 34.0)
+   Minimal_Complete_Actions => ((MINUS_GREATER 25.0), (1 LeftHandSide 28.0), (1 ClassType 34.0))
 
 State 22:
      36.0:ArgumentList <= Expression ^
@@ -446,7 +446,7 @@ State 22:
    RIGHT_PAREN              => reduce 1 tokens to ArgumentList 36.0
    default                  => ERROR
 
-   Minimal_Complete_Action => ArgumentList 36.0
+   Minimal_Complete_Actions => (1 ArgumentList 36.0)
 
 State 23:
      24.0:Expression <= LambdaExpression ^
@@ -455,7 +455,7 @@ State 23:
    RIGHT_PAREN              => reduce 1 tokens to Expression 24.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression 24.0
+   Minimal_Complete_Actions => (1 Expression 24.0)
 
 State 24:
      24.1:Expression <= AssignmentExpression ^
@@ -464,7 +464,7 @@ State 24:
    RIGHT_PAREN              => reduce 1 tokens to Expression 24.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression 24.1
+   Minimal_Complete_Actions => (1 Expression 24.1)
 
 State 25:
      26.1:AssignmentExpression <= Assignment ^
@@ -473,7 +473,7 @@ State 25:
    RIGHT_PAREN              => reduce 1 tokens to AssignmentExpression 26.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression 26.1
+   Minimal_Complete_Actions => (1 AssignmentExpression 26.1)
 
 State 26:
      27.0:Assignment <= LeftHandSide ^ EQUAL Expression
@@ -481,7 +481,7 @@ State 26:
    EQUAL                    => shift and goto state 51 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => EQUAL 27.0
+   Minimal_Complete_Actions => (EQUAL 27.0)
 
 State 27:
      26.0:AssignmentExpression <= AdditiveExpression ^
@@ -494,7 +494,7 @@ State 27:
    RIGHT_PAREN              => reduce 1 tokens to AssignmentExpression 26.0
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression 26.0
+   Minimal_Complete_Actions => (1 AssignmentExpression 26.0)
 
 State 28:
      29.0:AdditiveExpression <= MultiplicativeExpression ^
@@ -511,7 +511,7 @@ State 28:
    STAR                     => shift and goto state 56 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.0
+   Minimal_Complete_Actions => (1 AdditiveExpression 29.0)
 
 State 29:
      30.0:MultiplicativeExpression <= PostfixExpression ^
@@ -529,7 +529,7 @@ State 29:
    STAR                     => reduce 1 tokens to MultiplicativeExpression 30.0
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.0
+   Minimal_Complete_Actions => (1 MultiplicativeExpression 30.0)
 
 State 30:
      31.2:PostfixExpression <= PostIncrementExpression ^
@@ -545,7 +545,7 @@ State 30:
    STAR                     => reduce 1 tokens to PostfixExpression 31.2
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.2
+   Minimal_Complete_Actions => (1 PostfixExpression 31.2)
 
 State 31:
      31.3:PostfixExpression <= PostDecrementExpression ^
@@ -561,7 +561,7 @@ State 31:
    STAR                     => reduce 1 tokens to PostfixExpression 31.3
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.3
+   Minimal_Complete_Actions => (1 PostfixExpression 31.3)
 
 State 32:
      31.0:PostfixExpression <= ClassType ^
@@ -579,7 +579,7 @@ State 32:
    STAR                     => reduce 1 tokens to PostfixExpression 31.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.0
+   Minimal_Complete_Actions => (1 PostfixExpression 31.0)
 
 State 33:
      31.1:PostfixExpression <= MethodInvocation ^
@@ -595,7 +595,7 @@ State 33:
    STAR                     => reduce 1 tokens to PostfixExpression 31.1
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.1
+   Minimal_Complete_Actions => (1 PostfixExpression 31.1)
 
 State 34:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
@@ -605,7 +605,7 @@ State 34:
    RIGHT_PAREN              => shift and goto state 61 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 35.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 35.0)
 
 State 35:
      25.0:LambdaExpression <= Identifier ^ MINUS_GREATER Identifier
@@ -627,7 +627,7 @@ State 35:
    STAR                     => reduce 1 tokens to ClassType 34.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (MINUS_GREATER 25.0, LeftHandSide 28.0, ClassType 34.0)
+   Minimal_Complete_Actions => ((MINUS_GREATER 25.0), (1 LeftHandSide 28.0), (1 ClassType 34.0))
 
 State 36:
      27.0:Assignment <= LeftHandSide EQUAL Expression ^
@@ -635,7 +635,7 @@ State 36:
    RIGHT_CURLY_BRACKET      => reduce 3 tokens to Assignment 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Assignment 27.0
+   Minimal_Complete_Actions => (3 Assignment 27.0)
 
 State 37:
      24.0:Expression <= LambdaExpression ^
@@ -643,7 +643,7 @@ State 37:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to Expression 24.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression 24.0
+   Minimal_Complete_Actions => (1 Expression 24.0)
 
 State 38:
      24.1:Expression <= AssignmentExpression ^
@@ -651,7 +651,7 @@ State 38:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to Expression 24.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Expression 24.1
+   Minimal_Complete_Actions => (1 Expression 24.1)
 
 State 39:
      26.1:AssignmentExpression <= Assignment ^
@@ -659,7 +659,7 @@ State 39:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to AssignmentExpression 26.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression 26.1
+   Minimal_Complete_Actions => (1 AssignmentExpression 26.1)
 
 State 40:
      26.0:AssignmentExpression <= AdditiveExpression ^
@@ -671,7 +671,7 @@ State 40:
    RIGHT_CURLY_BRACKET      => reduce 1 tokens to AssignmentExpression 26.0
    default                  => ERROR
 
-   Minimal_Complete_Action => AssignmentExpression 26.0
+   Minimal_Complete_Actions => (1 AssignmentExpression 26.0)
 
 State 41:
      29.0:AdditiveExpression <= MultiplicativeExpression ^
@@ -687,7 +687,7 @@ State 41:
    STAR                     => shift and goto state 68 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.0
+   Minimal_Complete_Actions => (1 AdditiveExpression 29.0)
 
 State 42:
      30.0:MultiplicativeExpression <= PostfixExpression ^
@@ -704,7 +704,7 @@ State 42:
    STAR                     => reduce 1 tokens to MultiplicativeExpression 30.0
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.0
+   Minimal_Complete_Actions => (1 MultiplicativeExpression 30.0)
 
 State 43:
      31.2:PostfixExpression <= PostIncrementExpression ^
@@ -719,7 +719,7 @@ State 43:
    STAR                     => reduce 1 tokens to PostfixExpression 31.2
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.2
+   Minimal_Complete_Actions => (1 PostfixExpression 31.2)
 
 State 44:
      31.3:PostfixExpression <= PostDecrementExpression ^
@@ -734,7 +734,7 @@ State 44:
    STAR                     => reduce 1 tokens to PostfixExpression 31.3
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.3
+   Minimal_Complete_Actions => (1 PostfixExpression 31.3)
 
 State 45:
      31.0:PostfixExpression <= ClassType ^
@@ -751,7 +751,7 @@ State 45:
    STAR                     => reduce 1 tokens to PostfixExpression 31.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.0
+   Minimal_Complete_Actions => (1 PostfixExpression 31.0)
 
 State 46:
      31.1:PostfixExpression <= MethodInvocation ^
@@ -766,7 +766,7 @@ State 46:
    STAR                     => reduce 1 tokens to PostfixExpression 31.1
    default                  => ERROR
 
-   Minimal_Complete_Action => PostfixExpression 31.1
+   Minimal_Complete_Actions => (1 PostfixExpression 31.1)
 
 State 47:
      34.1:ClassType <= ClassType DOT Identifier ^
@@ -776,7 +776,7 @@ State 47:
    PLUS_PLUS                => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType 34.1
+   Minimal_Complete_Actions => (3 ClassType 34.1)
 
 State 48:
      23.1:Statement <= LEFT_CURLY_BRACKET StatementExpression SEMICOLON RIGHT_CURLY_BRACKET ^
@@ -785,7 +785,7 @@ State 48:
    Wisi_EOI                 => reduce 4 tokens to Statement 23.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Statement 23.1
+   Minimal_Complete_Actions => (4 Statement 23.1)
 
 State 49:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ^ ArgumentList RIGHT_PAREN
@@ -807,7 +807,7 @@ State 49:
    MethodInvocation         goto state 33
    ArgumentList             goto state 72
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 50:
      25.0:LambdaExpression <= Identifier MINUS_GREATER ^ Identifier
@@ -815,7 +815,7 @@ State 50:
    Identifier               => shift and goto state 73 25.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 51:
      27.0:Assignment <= LeftHandSide EQUAL ^ Expression
@@ -836,7 +836,7 @@ State 51:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 52:
      29.2:AdditiveExpression <= AdditiveExpression MINUS ^ MultiplicativeExpression
@@ -851,7 +851,7 @@ State 52:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 53:
      29.1:AdditiveExpression <= AdditiveExpression PLUS ^ MultiplicativeExpression
@@ -866,7 +866,7 @@ State 53:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 54:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT ^ PostfixExpression
@@ -880,7 +880,7 @@ State 54:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 55:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH ^ PostfixExpression
@@ -894,7 +894,7 @@ State 55:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 56:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR ^ PostfixExpression
@@ -908,7 +908,7 @@ State 56:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 57:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^
@@ -924,7 +924,7 @@ State 57:
    STAR                     => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression 33.0
+   Minimal_Complete_Actions => (2 PostDecrementExpression 33.0)
 
 State 58:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^
@@ -940,7 +940,7 @@ State 58:
    STAR                     => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression 32.0
+   Minimal_Complete_Actions => (2 PostIncrementExpression 32.0)
 
 State 59:
      34.1:ClassType <= ClassType DOT ^ Identifier
@@ -948,7 +948,7 @@ State 59:
    Identifier               => shift and goto state 81 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier 34.1
+   Minimal_Complete_Actions => (Identifier 34.1)
 
 State 60:
      36.1:ArgumentList <= ArgumentList COMMA ^ Expression
@@ -969,7 +969,7 @@ State 60:
    ClassType                goto state 32
    MethodInvocation         goto state 33
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 61:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^
@@ -978,7 +978,7 @@ State 61:
    PLUS_PLUS                => reduce 4 tokens to MethodInvocation 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => MethodInvocation 35.0
+   Minimal_Complete_Actions => (4 MethodInvocation 35.0)
 
 State 62:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ^ ArgumentList RIGHT_PAREN
@@ -1000,7 +1000,7 @@ State 62:
    MethodInvocation         goto state 33
    ArgumentList             goto state 83
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 63:
      25.0:LambdaExpression <= Identifier MINUS_GREATER ^ Identifier
@@ -1008,7 +1008,7 @@ State 63:
    Identifier               => shift and goto state 84 25.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier 25.0
+   Minimal_Complete_Actions => (Identifier 25.0)
 
 State 64:
      29.2:AdditiveExpression <= AdditiveExpression MINUS ^ MultiplicativeExpression
@@ -1023,7 +1023,7 @@ State 64:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 65:
      29.1:AdditiveExpression <= AdditiveExpression PLUS ^ MultiplicativeExpression
@@ -1038,7 +1038,7 @@ State 65:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 66:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT ^ PostfixExpression
@@ -1052,7 +1052,7 @@ State 66:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 67:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH ^ PostfixExpression
@@ -1066,7 +1066,7 @@ State 67:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 68:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR ^ PostfixExpression
@@ -1080,7 +1080,7 @@ State 68:
    ClassType                goto state 45
    MethodInvocation         goto state 46
 
-   Minimal_Complete_Action => Identifier 34.0
+   Minimal_Complete_Actions => (Identifier 34.0)
 
 State 69:
      33.0:PostDecrementExpression <= PostfixExpression MINUS_MINUS ^
@@ -1095,7 +1095,7 @@ State 69:
    STAR                     => reduce 2 tokens to PostDecrementExpression 33.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostDecrementExpression 33.0
+   Minimal_Complete_Actions => (2 PostDecrementExpression 33.0)
 
 State 70:
      32.0:PostIncrementExpression <= PostfixExpression PLUS_PLUS ^
@@ -1110,7 +1110,7 @@ State 70:
    STAR                     => reduce 2 tokens to PostIncrementExpression 32.0
    default                  => ERROR
 
-   Minimal_Complete_Action => PostIncrementExpression 32.0
+   Minimal_Complete_Actions => (2 PostIncrementExpression 32.0)
 
 State 71:
      34.1:ClassType <= ClassType DOT ^ Identifier
@@ -1118,7 +1118,7 @@ State 71:
    Identifier               => shift and goto state 91 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => Identifier 34.1
+   Minimal_Complete_Actions => (Identifier 34.1)
 
 State 72:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
@@ -1128,7 +1128,7 @@ State 72:
    RIGHT_PAREN              => shift and goto state 92 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 35.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 35.0)
 
 State 73:
      25.0:LambdaExpression <= Identifier MINUS_GREATER Identifier ^
@@ -1137,7 +1137,7 @@ State 73:
    RIGHT_PAREN              => reduce 3 tokens to LambdaExpression 25.0
    default                  => ERROR
 
-   Minimal_Complete_Action => LambdaExpression 25.0
+   Minimal_Complete_Actions => (3 LambdaExpression 25.0)
 
 State 74:
      27.0:Assignment <= LeftHandSide EQUAL Expression ^
@@ -1146,7 +1146,7 @@ State 74:
    RIGHT_PAREN              => reduce 3 tokens to Assignment 27.0
    default                  => ERROR
 
-   Minimal_Complete_Action => Assignment 27.0
+   Minimal_Complete_Actions => (3 Assignment 27.0)
 
 State 75:
      34.0:ClassType <= Identifier ^
@@ -1165,7 +1165,7 @@ State 75:
    STAR                     => reduce 1 tokens to ClassType 34.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (ClassType 34.0, LEFT_PAREN 35.0)
+   Minimal_Complete_Actions => ((1 ClassType 34.0), (LEFT_PAREN 35.0))
 
 State 76:
      29.2:AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression ^
@@ -1182,7 +1182,7 @@ State 76:
    STAR                     => shift and goto state 56 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.2
+   Minimal_Complete_Actions => (3 AdditiveExpression 29.2)
 
 State 77:
      29.1:AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ^
@@ -1199,7 +1199,7 @@ State 77:
    STAR                     => shift and goto state 56 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.1
+   Minimal_Complete_Actions => (3 AdditiveExpression 29.1)
 
 State 78:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ^
@@ -1217,7 +1217,7 @@ State 78:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.3
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.3
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.3)
 
 State 79:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ^
@@ -1235,7 +1235,7 @@ State 79:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.2
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.2
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.2)
 
 State 80:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ^
@@ -1253,7 +1253,7 @@ State 80:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.1
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.1)
 
 State 81:
      34.1:ClassType <= ClassType DOT Identifier ^
@@ -1270,7 +1270,7 @@ State 81:
    STAR                     => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType 34.1
+   Minimal_Complete_Actions => (3 ClassType 34.1)
 
 State 82:
      36.1:ArgumentList <= ArgumentList COMMA Expression ^
@@ -1279,7 +1279,7 @@ State 82:
    RIGHT_PAREN              => reduce 3 tokens to ArgumentList 36.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ArgumentList 36.1
+   Minimal_Complete_Actions => (3 ArgumentList 36.1)
 
 State 83:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList ^ RIGHT_PAREN
@@ -1289,7 +1289,7 @@ State 83:
    RIGHT_PAREN              => shift and goto state 93 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 35.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 35.0)
 
 State 84:
      25.0:LambdaExpression <= Identifier MINUS_GREATER Identifier ^
@@ -1297,7 +1297,7 @@ State 84:
    RIGHT_CURLY_BRACKET      => reduce 3 tokens to LambdaExpression 25.0
    default                  => ERROR
 
-   Minimal_Complete_Action => LambdaExpression 25.0
+   Minimal_Complete_Actions => (3 LambdaExpression 25.0)
 
 State 85:
      34.0:ClassType <= Identifier ^
@@ -1315,7 +1315,7 @@ State 85:
    STAR                     => reduce 1 tokens to ClassType 34.0
    default                  => ERROR
 
-   Minimal_Complete_Action => (ClassType 34.0, LEFT_PAREN 35.0)
+   Minimal_Complete_Actions => ((1 ClassType 34.0), (LEFT_PAREN 35.0))
 
 State 86:
      29.2:AdditiveExpression <= AdditiveExpression MINUS MultiplicativeExpression ^
@@ -1331,7 +1331,7 @@ State 86:
    STAR                     => shift and goto state 68 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.2
+   Minimal_Complete_Actions => (3 AdditiveExpression 29.2)
 
 State 87:
      29.1:AdditiveExpression <= AdditiveExpression PLUS MultiplicativeExpression ^
@@ -1347,7 +1347,7 @@ State 87:
    STAR                     => shift and goto state 68 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => AdditiveExpression 29.1
+   Minimal_Complete_Actions => (3 AdditiveExpression 29.1)
 
 State 88:
      30.3:MultiplicativeExpression <= MultiplicativeExpression PERCENT PostfixExpression ^
@@ -1364,7 +1364,7 @@ State 88:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.3
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.3
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.3)
 
 State 89:
      30.2:MultiplicativeExpression <= MultiplicativeExpression SLASH PostfixExpression ^
@@ -1381,7 +1381,7 @@ State 89:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.2
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.2
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.2)
 
 State 90:
      30.1:MultiplicativeExpression <= MultiplicativeExpression STAR PostfixExpression ^
@@ -1398,7 +1398,7 @@ State 90:
    STAR                     => reduce 3 tokens to MultiplicativeExpression 30.1
    default                  => ERROR
 
-   Minimal_Complete_Action => MultiplicativeExpression 30.1
+   Minimal_Complete_Actions => (3 MultiplicativeExpression 30.1)
 
 State 91:
      34.1:ClassType <= ClassType DOT Identifier ^
@@ -1414,7 +1414,7 @@ State 91:
    STAR                     => reduce 3 tokens to ClassType 34.1
    default                  => ERROR
 
-   Minimal_Complete_Action => ClassType 34.1
+   Minimal_Complete_Actions => (3 ClassType 34.1)
 
 State 92:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^
@@ -1430,7 +1430,7 @@ State 92:
    STAR                     => reduce 4 tokens to MethodInvocation 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => MethodInvocation 35.0
+   Minimal_Complete_Actions => (4 MethodInvocation 35.0)
 
 State 93:
      35.0:MethodInvocation <= Identifier LEFT_PAREN ArgumentList RIGHT_PAREN ^
@@ -1445,7 +1445,7 @@ State 93:
    STAR                     => reduce 4 tokens to MethodInvocation 35.0
    default                  => ERROR
 
-   Minimal_Complete_Action => MethodInvocation 35.0
+   Minimal_Complete_Actions => (4 MethodInvocation 35.0)
 
 91 states with minimal_complete_actions; 101 total minimal_complete_actions.
 

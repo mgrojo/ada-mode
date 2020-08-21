@@ -54,6 +54,8 @@ incremental parse
 recover supervisor should provide Put_Trace_line
     to control access to Trace
 
+Nullable can be a boolean array
+
 auto_token_labels
     check for empty statement-action params
         wisitoken_grammar_1_bnf.wy nonterminal_009
@@ -63,6 +65,8 @@ doc ebnf vs actions in wisitoken.texi
 Docs/error_correction_algorithm.tex
 
     give more detail on base McKenzie; don't use McKenzie notation.
+
+    Plot recover time as a function of task_count
 
     tree-sitter can't handle ada:
     it's using some very non-linear algorithm to generate the LALR states,
@@ -102,8 +106,7 @@ hit that limit is fairly consistent, and the user can set that limit.
      Fischer/Mauney in  Acta Informatica Springer
      Stefan Monnier paper on SMIE in  https://programming-journal.org/
 
-augmented_token does not need to derive from base_Token; don't duplicate info
-   wisi assumes it has all info?
+Plot generate time as a function of task_count
 
 LR1 algorithm.tex:
     super needs C_Tree to compute unique state numbers.

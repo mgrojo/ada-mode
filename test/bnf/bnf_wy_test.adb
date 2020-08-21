@@ -259,9 +259,10 @@ package body BNF_WY_Test is
       Args : GNAT.OS_Lib.String_List (1 .. 9) :=
         (1      => new String'("-v"),
          2      => new String'("2"),
+         3      => new String'("-debug"),
          others => null);
 
-      Last : Integer := 2;
+      Last : Integer := 3;
    begin
       if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Exe);

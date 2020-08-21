@@ -33,3 +33,4 @@ build/*.set_table
 build/*.bbl
 build/*.blg
 build/*.xcp
+build/*.ps

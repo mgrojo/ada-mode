@@ -35,7 +35,7 @@ State 0:
 
    if_statement     goto state 2
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      12.0:if_statement <= IF ^ expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
@@ -48,7 +48,7 @@ State 1:
 
    expression       goto state 4
 
-   Minimal_Complete_Action => TRUE 14.0
+   Minimal_Complete_Actions => (TRUE 14.0)
 
 State 2:
      11.0:wisitoken_accept <= if_statement ^ Wisi_EOI
@@ -56,7 +56,7 @@ State 2:
    Wisi_EOI         => accept it 11.0
    default          => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 3:
      14.0:expression <= TRUE ^
@@ -64,7 +64,7 @@ State 3:
    THEN             => reduce 1 tokens to expression 14.0
    default          => ERROR
 
-   Minimal_Complete_Action => expression 14.0
+   Minimal_Complete_Actions => (1 expression 14.0)
 
 State 4:
      12.0:if_statement <= IF expression ^ THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
@@ -75,7 +75,7 @@ State 4:
    THEN             => shift and goto state 5 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => THEN 12.0
+   Minimal_Complete_Actions => (THEN 12.0)
 
 State 5:
      12.0:if_statement <= IF expression THEN ^ statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
@@ -88,7 +88,7 @@ State 5:
 
    statement        goto state 7
 
-   Minimal_Complete_Action => GOTO 13.0
+   Minimal_Complete_Actions => (GOTO 13.0)
 
 State 6:
      13.0:statement <= GOTO ^ SEMICOLON
@@ -96,7 +96,7 @@ State 6:
    SEMICOLON        => shift and goto state 8 13.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 13.0
+   Minimal_Complete_Actions => (SEMICOLON 13.0)
 
 State 7:
      12.0:if_statement <= IF expression THEN statement ^ ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
@@ -108,7 +108,7 @@ State 7:
    ELSIF            => shift and goto state 10 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => END 12.3
+   Minimal_Complete_Actions => (END 12.3)
 
 State 8:
      13.0:statement <= GOTO SEMICOLON ^
@@ -118,7 +118,7 @@ State 8:
    ELSIF            => reduce 2 tokens to statement 13.0
    default          => ERROR
 
-   Minimal_Complete_Action => statement 13.0
+   Minimal_Complete_Actions => (2 statement 13.0)
 
 State 9:
      12.3:if_statement <= IF expression THEN statement END ^ IF SEMICOLON
@@ -126,7 +126,7 @@ State 9:
    IF               => shift and goto state 11 12.3
    default          => ERROR
 
-   Minimal_Complete_Action => IF 12.3
+   Minimal_Complete_Actions => (IF 12.3)
 
 State 10:
      12.0:if_statement <= IF expression THEN statement ELSIF ^ statement ELSIF statement ELSE statement END IF SEMICOLON
@@ -138,7 +138,7 @@ State 10:
 
    statement        goto state 12
 
-   Minimal_Complete_Action => GOTO 13.0
+   Minimal_Complete_Actions => (GOTO 13.0)
 
 State 11:
      12.3:if_statement <= IF expression THEN statement END IF ^ SEMICOLON
@@ -146,7 +146,7 @@ State 11:
    SEMICOLON        => shift and goto state 13 12.3
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 12.3
+   Minimal_Complete_Actions => (SEMICOLON 12.3)
 
 State 12:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ^ ELSIF statement ELSE statement END IF SEMICOLON
@@ -157,7 +157,7 @@ State 12:
    ELSIF            => shift and goto state 15 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => END 12.2
+   Minimal_Complete_Actions => (END 12.2)
 
 State 13:
      12.3:if_statement <= IF expression THEN statement END IF SEMICOLON ^
@@ -165,7 +165,7 @@ State 13:
    Wisi_EOI         => reduce 7 tokens to if_statement 12.3
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement 12.3
+   Minimal_Complete_Actions => (7 if_statement 12.3)
 
 State 14:
      12.2:if_statement <= IF expression THEN statement ELSIF statement END ^ IF SEMICOLON
@@ -173,7 +173,7 @@ State 14:
    IF               => shift and goto state 16 12.2
    default          => ERROR
 
-   Minimal_Complete_Action => IF 12.2
+   Minimal_Complete_Actions => (IF 12.2)
 
 State 15:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF ^ statement ELSE statement END IF SEMICOLON
@@ -184,7 +184,7 @@ State 15:
 
    statement        goto state 17
 
-   Minimal_Complete_Action => GOTO 13.0
+   Minimal_Complete_Actions => (GOTO 13.0)
 
 State 16:
      12.2:if_statement <= IF expression THEN statement ELSIF statement END IF ^ SEMICOLON
@@ -192,7 +192,7 @@ State 16:
    SEMICOLON        => shift and goto state 18 12.2
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 12.2
+   Minimal_Complete_Actions => (SEMICOLON 12.2)
 
 State 17:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ^ ELSE statement END IF SEMICOLON
@@ -202,7 +202,7 @@ State 17:
    ELSE             => shift and goto state 20 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => END 12.1
+   Minimal_Complete_Actions => (END 12.1)
 
 State 18:
      12.2:if_statement <= IF expression THEN statement ELSIF statement END IF SEMICOLON ^
@@ -210,7 +210,7 @@ State 18:
    Wisi_EOI         => reduce 9 tokens to if_statement 12.2
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement 12.2
+   Minimal_Complete_Actions => (9 if_statement 12.2)
 
 State 19:
      12.1:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement END ^ IF SEMICOLON
@@ -218,7 +218,7 @@ State 19:
    IF               => shift and goto state 21 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => IF 12.1
+   Minimal_Complete_Actions => (IF 12.1)
 
 State 20:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ELSE ^ statement END IF SEMICOLON
@@ -228,7 +228,7 @@ State 20:
 
    statement        goto state 22
 
-   Minimal_Complete_Action => GOTO 13.0
+   Minimal_Complete_Actions => (GOTO 13.0)
 
 State 21:
      12.1:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement END IF ^ SEMICOLON
@@ -236,7 +236,7 @@ State 21:
    SEMICOLON        => shift and goto state 23 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 12.1
+   Minimal_Complete_Actions => (SEMICOLON 12.1)
 
 State 22:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ELSE statement ^ END IF SEMICOLON
@@ -244,7 +244,7 @@ State 22:
    END              => shift and goto state 24 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => END 12.0
+   Minimal_Complete_Actions => (END 12.0)
 
 State 23:
      12.1:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement END IF SEMICOLON ^
@@ -252,7 +252,7 @@ State 23:
    Wisi_EOI         => reduce 11 tokens to if_statement 12.1
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement 12.1
+   Minimal_Complete_Actions => (11 if_statement 12.1)
 
 State 24:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END ^ IF SEMICOLON
@@ -260,7 +260,7 @@ State 24:
    IF               => shift and goto state 25 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => IF 12.0
+   Minimal_Complete_Actions => (IF 12.0)
 
 State 25:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF ^ SEMICOLON
@@ -268,7 +268,7 @@ State 25:
    SEMICOLON        => shift and goto state 26 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 12.0
+   Minimal_Complete_Actions => (SEMICOLON 12.0)
 
 State 26:
      12.0:if_statement <= IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON ^
@@ -276,7 +276,7 @@ State 26:
    Wisi_EOI         => reduce 13 tokens to if_statement 12.0
    default          => ERROR
 
-   Minimal_Complete_Action => if_statement 12.0
+   Minimal_Complete_Actions => (13 if_statement 12.0)
 
 25 states with minimal_complete_actions; 25 total minimal_complete_actions.
 

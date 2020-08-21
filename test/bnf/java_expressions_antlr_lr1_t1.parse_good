@@ -11,6 +11,7 @@ parser 0: State 28 Current_Token 3:(Wisi_EOI, (58 . 57)) Resume_Token_Goal 7
 Action
 
  1 parallel tasks
+new Worker_Task 1
  0: succeed 2, enqueue 36, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
  1:  1, ( 0 0 1 0 0 0 0 0 0), (57 : (RPAREN))| 3:(Wisi_EOI, (58 . 57))|((INSERT, RPAREN, 3)) minimal_complete ACTIVE

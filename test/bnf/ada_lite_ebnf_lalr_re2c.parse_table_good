@@ -722,7 +722,7 @@ State 0:
    subprogram_declaration                 goto state 34
    subprogram_specification               goto state 35
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      67.0:case_statement <= CASE ^ expression IS case_statement_alternative_list END CASE SEMICOLON
@@ -748,7 +748,7 @@ State 1:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 2:
      79.0:exit_statement <= EXIT ^ IDENTIFIER WHEN expression SEMICOLON
@@ -761,7 +761,7 @@ State 2:
    IDENTIFIER                             => shift and goto state 55 79.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 79.3
+   Minimal_Complete_Actions => (SEMICOLON 79.3)
 
 State 3:
      92.0:iteration_scheme <= FOR ^ IDENTIFIER IN discrete_subtype_definition
@@ -769,7 +769,7 @@ State 3:
    IDENTIFIER                             => shift and goto state 56 92.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 92.0
+   Minimal_Complete_Actions => (IDENTIFIER 92.0)
 
 State 4:
      86.0:function_specification <= FUNCTION ^ name parameter_and_result_profile
@@ -780,7 +780,7 @@ State 4:
    name                                   goto state 57
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 5:
      90.0:if_statement <= IF ^ expression THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END IF SEMICOLON
@@ -809,7 +809,7 @@ State 5:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 6:
      93.1:loop_statement <= LOOP ^ sequence_of_statements END LOOP identifier_opt SEMICOLON
@@ -845,7 +845,7 @@ State 6:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 7:
      87.0:generic_instantiation <= PACKAGE ^ name IS NEW name SEMICOLON
@@ -861,7 +861,7 @@ State 7:
    name                                   goto state 63
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => (IDENTIFIER 95.2, BODY 98.0)
+   Minimal_Complete_Actions => ((IDENTIFIER 95.2), (BODY 98.0))
 
 State 8:
      87.1:generic_instantiation <= PROCEDURE ^ name IS NEW name SEMICOLON
@@ -873,7 +873,7 @@ State 8:
    name                                   goto state 64
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 9:
      82.0:extended_return_statement <= RETURN ^ extended_return_object_declaration SEMICOLON
@@ -901,7 +901,7 @@ State 9:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 10:
      63.0:block_label_opt <= IDENTIFIER ^ COLON
@@ -914,7 +914,7 @@ State 10:
    SEMICOLON                              => reduce 1 tokens to name 95.2
    default                                => ERROR
 
-   Minimal_Complete_Action => (COLON 63.0, name 95.2)
+   Minimal_Complete_Actions => ((COLON 63.0), (1 name 95.2))
 
 State 11:
     115.0:simple_statement <= assignment_statement ^
@@ -939,7 +939,7 @@ State 11:
    Wisi_EOI                               => reduce 1 tokens to simple_statement 115.0
    default                                => ERROR
 
-   Minimal_Complete_Action => simple_statement 115.0
+   Minimal_Complete_Actions => (1 simple_statement 115.0)
 
 State 12:
      64.0:block_statement <= block_label_opt ^ DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -949,7 +949,7 @@ State 12:
    DECLARE                                => shift and goto state 70 64.0
    default                                => ERROR
 
-   Minimal_Complete_Action => BEGIN 64.1
+   Minimal_Complete_Actions => (BEGIN 64.1)
 
 State 13:
      71.3:compound_statement <= block_statement ^
@@ -974,7 +974,7 @@ State 13:
    Wisi_EOI                               => reduce 1 tokens to compound_statement 71.3
    default                                => ERROR
 
-   Minimal_Complete_Action => compound_statement 71.3
+   Minimal_Complete_Actions => (1 compound_statement 71.3)
 
 State 14:
      71.1:compound_statement <= case_statement ^
@@ -999,7 +999,7 @@ State 14:
    Wisi_EOI                               => reduce 1 tokens to compound_statement 71.1
    default                                => ERROR
 
-   Minimal_Complete_Action => compound_statement 71.1
+   Minimal_Complete_Actions => (1 compound_statement 71.1)
 
 State 15:
      70.0:compilation_unit_list <= compilation_unit ^
@@ -1019,7 +1019,7 @@ State 15:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit_list 70.0
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit_list 70.0
+   Minimal_Complete_Actions => (1 compilation_unit_list 70.0)
 
 State 16:
      56.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI
@@ -1065,7 +1065,7 @@ State 16:
    subprogram_declaration                 goto state 34
    subprogram_specification               goto state 35
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 17:
     116.1:statement <= compound_statement ^
@@ -1090,7 +1090,7 @@ State 17:
    Wisi_EOI                               => reduce 1 tokens to statement 116.1
    default                                => ERROR
 
-   Minimal_Complete_Action => statement 116.1
+   Minimal_Complete_Actions => (1 statement 116.1)
 
 State 18:
     115.1:simple_statement <= exit_statement ^
@@ -1115,7 +1115,7 @@ State 18:
    Wisi_EOI                               => reduce 1 tokens to simple_statement 115.1
    default                                => ERROR
 
-   Minimal_Complete_Action => simple_statement 115.1
+   Minimal_Complete_Actions => (1 simple_statement 115.1)
 
 State 19:
      71.4:compound_statement <= extended_return_statement ^
@@ -1140,7 +1140,7 @@ State 19:
    Wisi_EOI                               => reduce 1 tokens to compound_statement 71.4
    default                                => ERROR
 
-   Minimal_Complete_Action => compound_statement 71.4
+   Minimal_Complete_Actions => (1 compound_statement 71.4)
 
 State 20:
     120.1:subprogram_specification <= function_specification ^
@@ -1150,7 +1150,7 @@ State 20:
    SEMICOLON                              => reduce 1 tokens to subprogram_specification 120.1
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_specification 120.1
+   Minimal_Complete_Actions => (1 subprogram_specification 120.1)
 
 State 21:
      69.3:compilation_unit <= generic_instantiation ^
@@ -1170,7 +1170,7 @@ State 21:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit 69.3
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit 69.3
+   Minimal_Complete_Actions => (1 compilation_unit 69.3)
 
 State 22:
      71.0:compound_statement <= if_statement ^
@@ -1195,7 +1195,7 @@ State 22:
    Wisi_EOI                               => reduce 1 tokens to compound_statement 71.0
    default                                => ERROR
 
-   Minimal_Complete_Action => compound_statement 71.0
+   Minimal_Complete_Actions => (1 compound_statement 71.0)
 
 State 23:
      93.0:loop_statement <= iteration_scheme ^ LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
@@ -1203,7 +1203,7 @@ State 23:
    LOOP                                   => shift and goto state 72 93.0
    default                                => ERROR
 
-   Minimal_Complete_Action => LOOP 93.0
+   Minimal_Complete_Actions => (LOOP 93.0)
 
 State 24:
      71.2:compound_statement <= loop_statement ^
@@ -1228,7 +1228,7 @@ State 24:
    Wisi_EOI                               => reduce 1 tokens to compound_statement 71.2
    default                                => ERROR
 
-   Minimal_Complete_Action => compound_statement 71.2
+   Minimal_Complete_Actions => (1 compound_statement 71.2)
 
 State 25:
      59.0:assignment_statement <= name ^ COLON_EQUAL expression SEMICOLON
@@ -1245,7 +1245,7 @@ State 25:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => SEMICOLON 104.0
+   Minimal_Complete_Actions => (SEMICOLON 104.0)
 
 State 26:
      69.0:compilation_unit <= package_body ^
@@ -1265,7 +1265,7 @@ State 26:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit 69.0
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit 69.0
+   Minimal_Complete_Actions => (1 compilation_unit 69.0)
 
 State 27:
     115.2:simple_statement <= procedure_call_statement ^
@@ -1290,7 +1290,7 @@ State 27:
    Wisi_EOI                               => reduce 1 tokens to simple_statement 115.2
    default                                => ERROR
 
-   Minimal_Complete_Action => simple_statement 115.2
+   Minimal_Complete_Actions => (1 simple_statement 115.2)
 
 State 28:
     120.0:subprogram_specification <= procedure_specification ^
@@ -1300,7 +1300,7 @@ State 28:
    SEMICOLON                              => reduce 1 tokens to subprogram_specification 120.0
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_specification 120.0
+   Minimal_Complete_Actions => (1 subprogram_specification 120.0)
 
 State 29:
      95.3:name <= selected_component ^
@@ -1335,7 +1335,7 @@ State 29:
    STAR                                   => reduce 1 tokens to name 95.3
    default                                => ERROR
 
-   Minimal_Complete_Action => name 95.3
+   Minimal_Complete_Actions => (1 name 95.3)
 
 State 30:
     115.3:simple_statement <= simple_return_statement ^
@@ -1360,7 +1360,7 @@ State 30:
    Wisi_EOI                               => reduce 1 tokens to simple_statement 115.3
    default                                => ERROR
 
-   Minimal_Complete_Action => simple_statement 115.3
+   Minimal_Complete_Actions => (1 simple_statement 115.3)
 
 State 31:
     116.0:statement <= simple_statement ^
@@ -1385,7 +1385,7 @@ State 31:
    Wisi_EOI                               => reduce 1 tokens to statement 116.0
    default                                => ERROR
 
-   Minimal_Complete_Action => statement 116.0
+   Minimal_Complete_Actions => (1 statement 116.0)
 
 State 32:
      69.4:compilation_unit <= statement ^
@@ -1405,7 +1405,7 @@ State 32:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit 69.4
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit 69.4
+   Minimal_Complete_Actions => (1 compilation_unit 69.4)
 
 State 33:
      69.2:compilation_unit <= subprogram_body ^
@@ -1425,7 +1425,7 @@ State 33:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit 69.2
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit 69.2
+   Minimal_Complete_Actions => (1 compilation_unit 69.2)
 
 State 34:
      69.1:compilation_unit <= subprogram_declaration ^
@@ -1445,7 +1445,7 @@ State 34:
    Wisi_EOI                               => reduce 1 tokens to compilation_unit 69.1
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit 69.1
+   Minimal_Complete_Actions => (1 compilation_unit 69.1)
 
 State 35:
     117.0:subprogram_body <= subprogram_specification ^ aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -1459,7 +1459,7 @@ State 35:
 
    aspect_specification                   goto state 81
 
-   Minimal_Complete_Action => SEMICOLON 119.0
+   Minimal_Complete_Actions => (SEMICOLON 119.0)
 
 State 36:
     102.0:paren_expression <= LEFT_PAREN ^ expression RIGHT_PAREN
@@ -1485,7 +1485,7 @@ State 36:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 37:
      83.1:factor <= NOT ^ primary
@@ -1501,7 +1501,7 @@ State 37:
    primary                                goto state 83
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 38:
     125.1:unary_adding_operator <= MINUS ^
@@ -1513,7 +1513,7 @@ State 38:
    NUMERIC_LITERAL                        => reduce 1 tokens to unary_adding_operator 125.1
    default                                => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator 125.1
+   Minimal_Complete_Actions => (1 unary_adding_operator 125.1)
 
 State 39:
     125.0:unary_adding_operator <= PLUS ^
@@ -1525,7 +1525,7 @@ State 39:
    NUMERIC_LITERAL                        => reduce 1 tokens to unary_adding_operator 125.0
    default                                => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator 125.0
+   Minimal_Complete_Actions => (1 unary_adding_operator 125.0)
 
 State 40:
     103.1:primary <= STRING_LITERAL ^
@@ -1554,7 +1554,7 @@ State 40:
    STAR                                   => reduce 1 tokens to primary 103.1
    default                                => ERROR
 
-   Minimal_Complete_Action => primary 103.1
+   Minimal_Complete_Actions => (1 primary 103.1)
 
 State 41:
      95.2:name <= IDENTIFIER ^
@@ -1589,7 +1589,7 @@ State 41:
    STAR                                   => reduce 1 tokens to name 95.2
    default                                => ERROR
 
-   Minimal_Complete_Action => name 95.2
+   Minimal_Complete_Actions => (1 name 95.2)
 
 State 42:
     103.0:primary <= NUMERIC_LITERAL ^
@@ -1618,7 +1618,7 @@ State 42:
    STAR                                   => reduce 1 tokens to primary 103.0
    default                                => ERROR
 
-   Minimal_Complete_Action => primary 103.0
+   Minimal_Complete_Actions => (1 primary 103.0)
 
 State 43:
      67.0:case_statement <= CASE expression ^ IS case_statement_alternative_list END CASE SEMICOLON
@@ -1626,7 +1626,7 @@ State 43:
    IS                                     => shift and goto state 84 67.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IS 67.0
+   Minimal_Complete_Actions => (IS 67.0)
 
 State 44:
     122.0:term <= factor ^
@@ -1655,7 +1655,7 @@ State 44:
    STAR                                   => reduce 1 tokens to term 122.0
    default                                => ERROR
 
-   Minimal_Complete_Action => term 122.0
+   Minimal_Complete_Actions => (1 term 122.0)
 
 State 45:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -1691,7 +1691,7 @@ State 45:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => primary 103.2
+   Minimal_Complete_Actions => (1 primary 103.2)
 
 State 46:
     103.3:primary <= paren_expression ^
@@ -1720,7 +1720,7 @@ State 46:
    STAR                                   => reduce 1 tokens to primary 103.3
    default                                => ERROR
 
-   Minimal_Complete_Action => primary 103.3
+   Minimal_Complete_Actions => (1 primary 103.3)
 
 State 47:
      83.0:factor <= primary ^
@@ -1749,7 +1749,7 @@ State 47:
    STAR                                   => reduce 1 tokens to factor 83.0
    default                                => ERROR
 
-   Minimal_Complete_Action => factor 83.0
+   Minimal_Complete_Actions => (1 factor 83.0)
 
 State 48:
      80.0:expression <= relation ^
@@ -1771,7 +1771,7 @@ State 48:
    OR_relation_list                       goto state 89
    XOR_relation_list                      goto state 90
 
-   Minimal_Complete_Action => expression 80.0
+   Minimal_Complete_Actions => (1 expression 80.0)
 
 State 49:
     109.0:relation <= simple_expression ^ relational_operator simple_expression
@@ -1795,7 +1795,7 @@ State 49:
 
    relational_operator                    goto state 97
 
-   Minimal_Complete_Action => relation 109.1
+   Minimal_Complete_Actions => (1 relation 109.1)
 
 State 50:
     122.1:term <= term ^ multiplying_operator factor
@@ -1827,7 +1827,7 @@ State 50:
 
    multiplying_operator                   goto state 100
 
-   Minimal_Complete_Action => term_binary_adding_operator_list 136.0
+   Minimal_Complete_Actions => (1 term_binary_adding_operator_list 136.0)
 
 State 51:
     113.0:simple_expression <= unary_adding_operator ^ term_binary_adding_operator_list
@@ -1847,7 +1847,7 @@ State 51:
    term                                   goto state 50
    term_binary_adding_operator_list       goto state 101
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 52:
     113.1:simple_expression <= term_binary_adding_operator_list ^
@@ -1877,7 +1877,7 @@ State 52:
 
    binary_adding_operator                 goto state 105
 
-   Minimal_Complete_Action => simple_expression 113.1
+   Minimal_Complete_Actions => (1 simple_expression 113.1)
 
 State 53:
      79.2:exit_statement <= EXIT WHEN ^ expression SEMICOLON
@@ -1903,7 +1903,7 @@ State 53:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 54:
      79.3:exit_statement <= EXIT SEMICOLON ^
@@ -1928,7 +1928,7 @@ State 54:
    Wisi_EOI                               => reduce 2 tokens to exit_statement 79.3
    default                                => ERROR
 
-   Minimal_Complete_Action => exit_statement 79.3
+   Minimal_Complete_Actions => (2 exit_statement 79.3)
 
 State 55:
      79.0:exit_statement <= EXIT IDENTIFIER ^ WHEN expression SEMICOLON
@@ -1938,7 +1938,7 @@ State 55:
    SEMICOLON                              => shift and goto state 108 79.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 79.1
+   Minimal_Complete_Actions => (SEMICOLON 79.1)
 
 State 56:
      92.0:iteration_scheme <= FOR IDENTIFIER ^ IN discrete_subtype_definition
@@ -1946,7 +1946,7 @@ State 56:
    IN                                     => shift and goto state 109 92.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IN 92.0
+   Minimal_Complete_Actions => (IN 92.0)
 
 State 57:
      86.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
@@ -1963,7 +1963,7 @@ State 57:
    formal_part                            goto state 112
    parameter_and_result_profile           goto state 113
 
-   Minimal_Complete_Action => RETURN 99.1
+   Minimal_Complete_Actions => (RETURN 99.1)
 
 State 58:
      90.0:if_statement <= IF expression ^ THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END IF SEMICOLON
@@ -1974,7 +1974,7 @@ State 58:
    THEN                                   => shift and goto state 114 90.0
    default                                => ERROR
 
-   Minimal_Complete_Action => THEN 90.0
+   Minimal_Complete_Actions => (THEN 90.0)
 
 State 59:
      93.1:loop_statement <= LOOP sequence_of_statements ^ END LOOP identifier_opt SEMICOLON
@@ -1982,7 +1982,7 @@ State 59:
    END                                    => shift and goto state 115 93.1
    default                                => ERROR
 
-   Minimal_Complete_Action => END 93.1
+   Minimal_Complete_Actions => (END 93.1)
 
 State 60:
     135.0:statement_list <= statement ^
@@ -2003,7 +2003,7 @@ State 60:
    IDENTIFIER                             => reduce 1 tokens to statement_list 135.0
    default                                => ERROR
 
-   Minimal_Complete_Action => statement_list 135.0
+   Minimal_Complete_Actions => (1 statement_list 135.0)
 
 State 61:
     112.0:sequence_of_statements <= statement_list ^
@@ -2042,7 +2042,7 @@ State 61:
    simple_statement                       goto state 31
    statement                              goto state 116
 
-   Minimal_Complete_Action => sequence_of_statements 112.0
+   Minimal_Complete_Actions => (1 sequence_of_statements 112.0)
 
 State 62:
      98.0:package_body <= PACKAGE BODY ^ name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -2056,7 +2056,7 @@ State 62:
    name                                   goto state 117
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 63:
      87.0:generic_instantiation <= PACKAGE name ^ IS NEW name SEMICOLON
@@ -2071,7 +2071,7 @@ State 63:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => IS 87.0
+   Minimal_Complete_Actions => (IS 87.0)
 
 State 64:
      87.1:generic_instantiation <= PROCEDURE name ^ IS NEW name SEMICOLON
@@ -2092,7 +2092,7 @@ State 64:
    formal_part                            goto state 120
    parameter_profile                      goto state 121
 
-   Minimal_Complete_Action => (IS 87.1, parameter_profile 100.1)
+   Minimal_Complete_Actions => ((IS 87.1), (0 parameter_profile 100.1))
 
 State 65:
      81.0:extended_return_object_declaration <= IDENTIFIER ^ COLON subtype_indication
@@ -2118,7 +2118,7 @@ State 65:
    STAR                                   => reduce 1 tokens to name 95.2
    default                                => ERROR
 
-   Minimal_Complete_Action => (COLON 81.0, name 95.2)
+   Minimal_Complete_Actions => ((COLON 81.0), (1 name 95.2))
 
 State 66:
     114.0:simple_return_statement <= RETURN expression ^ SEMICOLON
@@ -2126,7 +2126,7 @@ State 66:
    SEMICOLON                              => shift and goto state 123 114.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 114.0
+   Minimal_Complete_Actions => (SEMICOLON 114.0)
 
 State 67:
      82.0:extended_return_statement <= RETURN extended_return_object_declaration ^ SEMICOLON
@@ -2134,7 +2134,7 @@ State 67:
    SEMICOLON                              => shift and goto state 124 82.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 82.0
+   Minimal_Complete_Actions => (SEMICOLON 82.0)
 
 State 68:
      63.0:block_label_opt <= IDENTIFIER COLON ^
@@ -2143,7 +2143,7 @@ State 68:
    DECLARE                                => reduce 2 tokens to block_label_opt 63.0
    default                                => ERROR
 
-   Minimal_Complete_Action => block_label_opt 63.0
+   Minimal_Complete_Actions => (2 block_label_opt 63.0)
 
 State 69:
      64.1:block_statement <= block_label_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -2181,7 +2181,7 @@ State 69:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 70:
      64.0:block_statement <= block_label_opt DECLARE ^ declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -2211,7 +2211,7 @@ State 70:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => declarative_part 74.1
+   Minimal_Complete_Actions => (0 declarative_part 74.1)
 
 State 71:
      70.1:compilation_unit_list <= compilation_unit_list compilation_unit ^
@@ -2231,7 +2231,7 @@ State 71:
    Wisi_EOI                               => reduce 2 tokens to compilation_unit_list 70.1
    default                                => ERROR
 
-   Minimal_Complete_Action => compilation_unit_list 70.1
+   Minimal_Complete_Actions => (2 compilation_unit_list 70.1)
 
 State 72:
      93.0:loop_statement <= iteration_scheme LOOP ^ sequence_of_statements END LOOP identifier_opt SEMICOLON
@@ -2267,7 +2267,7 @@ State 72:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 73:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
@@ -2298,7 +2298,7 @@ State 73:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 74:
      59.0:assignment_statement <= name COLON_EQUAL ^ expression SEMICOLON
@@ -2324,7 +2324,7 @@ State 74:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 75:
     111.0:selected_component <= name DOT ^ IDENTIFIER
@@ -2332,7 +2332,7 @@ State 75:
    IDENTIFIER                             => shift and goto state 154 111.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 111.0
+   Minimal_Complete_Actions => (IDENTIFIER 111.0)
 
 State 76:
     104.0:procedure_call_statement <= name SEMICOLON ^
@@ -2357,7 +2357,7 @@ State 76:
    Wisi_EOI                               => reduce 2 tokens to procedure_call_statement 104.0
    default                                => ERROR
 
-   Minimal_Complete_Action => procedure_call_statement 104.0
+   Minimal_Complete_Actions => (2 procedure_call_statement 104.0)
 
 State 77:
      95.1:name <= name actual_parameter_part ^
@@ -2392,7 +2392,7 @@ State 77:
    STAR                                   => reduce 2 tokens to name 95.1
    default                                => ERROR
 
-   Minimal_Complete_Action => name 95.1
+   Minimal_Complete_Actions => (2 name 95.1)
 
 State 78:
     117.1:subprogram_body <= subprogram_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -2422,7 +2422,7 @@ State 78:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => declarative_part 74.1
+   Minimal_Complete_Actions => (0 declarative_part 74.1)
 
 State 79:
      58.0:aspect_specification <= WITH ^ association_list
@@ -2450,7 +2450,7 @@ State 79:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 80:
     119.0:subprogram_declaration <= subprogram_specification SEMICOLON ^
@@ -2472,7 +2472,7 @@ State 80:
    Wisi_EOI                               => reduce 2 tokens to subprogram_declaration 119.0
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_declaration 119.0
+   Minimal_Complete_Actions => (2 subprogram_declaration 119.0)
 
 State 81:
     117.0:subprogram_body <= subprogram_specification aspect_specification ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -2480,7 +2480,7 @@ State 81:
    IS                                     => shift and goto state 157 117.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IS 117.0
+   Minimal_Complete_Actions => (IS 117.0)
 
 State 82:
     102.0:paren_expression <= LEFT_PAREN expression ^ RIGHT_PAREN
@@ -2488,7 +2488,7 @@ State 82:
    RIGHT_PAREN                            => shift and goto state 158 102.0
    default                                => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 102.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 102.0)
 
 State 83:
      83.1:factor <= NOT primary ^
@@ -2517,7 +2517,7 @@ State 83:
    STAR                                   => reduce 2 tokens to factor 83.1
    default                                => ERROR
 
-   Minimal_Complete_Action => factor 83.1
+   Minimal_Complete_Actions => (2 factor 83.1)
 
 State 84:
      67.0:case_statement <= CASE expression IS ^ case_statement_alternative_list END CASE SEMICOLON
@@ -2528,7 +2528,7 @@ State 84:
    case_statement_alternative             goto state 160
    case_statement_alternative_list        goto state 161
 
-   Minimal_Complete_Action => WHEN 68.0
+   Minimal_Complete_Actions => (WHEN 68.0)
 
 State 85:
     129.0:AND_relation_list <= AND ^ relation
@@ -2553,7 +2553,7 @@ State 85:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 86:
     130.0:OR_relation_list <= OR ^ relation
@@ -2578,7 +2578,7 @@ State 86:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 87:
     131.0:XOR_relation_list <= XOR ^ relation
@@ -2603,7 +2603,7 @@ State 87:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 88:
      80.1:expression <= relation AND_relation_list ^
@@ -2617,7 +2617,7 @@ State 88:
    SEMICOLON                              => reduce 2 tokens to expression 80.1
    default                                => ERROR
 
-   Minimal_Complete_Action => expression 80.1
+   Minimal_Complete_Actions => (2 expression 80.1)
 
 State 89:
      80.2:expression <= relation OR_relation_list ^
@@ -2631,7 +2631,7 @@ State 89:
    SEMICOLON                              => reduce 2 tokens to expression 80.2
    default                                => ERROR
 
-   Minimal_Complete_Action => expression 80.2
+   Minimal_Complete_Actions => (2 expression 80.2)
 
 State 90:
      80.3:expression <= relation XOR_relation_list ^
@@ -2645,7 +2645,7 @@ State 90:
    SEMICOLON                              => reduce 2 tokens to expression 80.3
    default                                => ERROR
 
-   Minimal_Complete_Action => expression 80.3
+   Minimal_Complete_Actions => (2 expression 80.3)
 
 State 91:
     110.0:relational_operator <= EQUAL ^
@@ -2659,7 +2659,7 @@ State 91:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.0
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.0
+   Minimal_Complete_Actions => (1 relational_operator 110.0)
 
 State 92:
     110.4:relational_operator <= GREATER ^
@@ -2673,7 +2673,7 @@ State 92:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.4
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.4
+   Minimal_Complete_Actions => (1 relational_operator 110.4)
 
 State 93:
     110.5:relational_operator <= GREATER_EQUAL ^
@@ -2687,7 +2687,7 @@ State 93:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.5
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.5
+   Minimal_Complete_Actions => (1 relational_operator 110.5)
 
 State 94:
     110.2:relational_operator <= LESS ^
@@ -2701,7 +2701,7 @@ State 94:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.2
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.2
+   Minimal_Complete_Actions => (1 relational_operator 110.2)
 
 State 95:
     110.3:relational_operator <= LESS_EQUAL ^
@@ -2715,7 +2715,7 @@ State 95:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.3
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.3
+   Minimal_Complete_Actions => (1 relational_operator 110.3)
 
 State 96:
     110.1:relational_operator <= SLASH_EQUAL ^
@@ -2729,7 +2729,7 @@ State 96:
    NUMERIC_LITERAL                        => reduce 1 tokens to relational_operator 110.1
    default                                => ERROR
 
-   Minimal_Complete_Action => relational_operator 110.1
+   Minimal_Complete_Actions => (1 relational_operator 110.1)
 
 State 97:
     109.0:relation <= simple_expression relational_operator ^ simple_expression
@@ -2753,7 +2753,7 @@ State 97:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 98:
      94.1:multiplying_operator <= SLASH ^
@@ -2765,7 +2765,7 @@ State 98:
    NUMERIC_LITERAL                        => reduce 1 tokens to multiplying_operator 94.1
    default                                => ERROR
 
-   Minimal_Complete_Action => multiplying_operator 94.1
+   Minimal_Complete_Actions => (1 multiplying_operator 94.1)
 
 State 99:
      94.0:multiplying_operator <= STAR ^
@@ -2777,7 +2777,7 @@ State 99:
    NUMERIC_LITERAL                        => reduce 1 tokens to multiplying_operator 94.0
    default                                => ERROR
 
-   Minimal_Complete_Action => multiplying_operator 94.0
+   Minimal_Complete_Actions => (1 multiplying_operator 94.0)
 
 State 100:
     122.1:term <= term multiplying_operator ^ factor
@@ -2795,7 +2795,7 @@ State 100:
    primary                                goto state 47
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 101:
     113.0:simple_expression <= unary_adding_operator term_binary_adding_operator_list ^
@@ -2825,7 +2825,7 @@ State 101:
 
    binary_adding_operator                 goto state 105
 
-   Minimal_Complete_Action => simple_expression 113.0
+   Minimal_Complete_Actions => (2 simple_expression 113.0)
 
 State 102:
      62.2:binary_adding_operator <= AMPERSAND ^
@@ -2837,7 +2837,7 @@ State 102:
    NUMERIC_LITERAL                        => reduce 1 tokens to binary_adding_operator 62.2
    default                                => ERROR
 
-   Minimal_Complete_Action => binary_adding_operator 62.2
+   Minimal_Complete_Actions => (1 binary_adding_operator 62.2)
 
 State 103:
      62.1:binary_adding_operator <= MINUS ^
@@ -2849,7 +2849,7 @@ State 103:
    NUMERIC_LITERAL                        => reduce 1 tokens to binary_adding_operator 62.1
    default                                => ERROR
 
-   Minimal_Complete_Action => binary_adding_operator 62.1
+   Minimal_Complete_Actions => (1 binary_adding_operator 62.1)
 
 State 104:
      62.0:binary_adding_operator <= PLUS ^
@@ -2861,7 +2861,7 @@ State 104:
    NUMERIC_LITERAL                        => reduce 1 tokens to binary_adding_operator 62.0
    default                                => ERROR
 
-   Minimal_Complete_Action => binary_adding_operator 62.0
+   Minimal_Complete_Actions => (1 binary_adding_operator 62.0)
 
 State 105:
     136.1:term_binary_adding_operator_list <= term_binary_adding_operator_list binary_adding_operator ^ term
@@ -2880,7 +2880,7 @@ State 105:
    selected_component                     goto state 29
    term                                   goto state 170
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 106:
      79.2:exit_statement <= EXIT WHEN expression ^ SEMICOLON
@@ -2888,7 +2888,7 @@ State 106:
    SEMICOLON                              => shift and goto state 171 79.2
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 79.2
+   Minimal_Complete_Actions => (SEMICOLON 79.2)
 
 State 107:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN ^ expression SEMICOLON
@@ -2914,7 +2914,7 @@ State 107:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 108:
      79.1:exit_statement <= EXIT IDENTIFIER SEMICOLON ^
@@ -2939,7 +2939,7 @@ State 108:
    Wisi_EOI                               => reduce 3 tokens to exit_statement 79.1
    default                                => ERROR
 
-   Minimal_Complete_Action => exit_statement 79.1
+   Minimal_Complete_Actions => (3 exit_statement 79.1)
 
 State 109:
      92.0:iteration_scheme <= FOR IDENTIFIER IN ^ discrete_subtype_definition
@@ -2966,7 +2966,7 @@ State 109:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 110:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
@@ -3000,7 +3000,7 @@ State 110:
    parameter_specification_SEMICOLON_list goto state 180
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 111:
      99.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER
@@ -3008,7 +3008,7 @@ State 111:
    IDENTIFIER                             => shift and goto state 181 99.1
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 99.1
+   Minimal_Complete_Actions => (IDENTIFIER 99.1)
 
 State 112:
      99.0:parameter_and_result_profile <= formal_part ^ RETURN IDENTIFIER
@@ -3016,7 +3016,7 @@ State 112:
    RETURN                                 => shift and goto state 182 99.0
    default                                => ERROR
 
-   Minimal_Complete_Action => RETURN 99.0
+   Minimal_Complete_Actions => (RETURN 99.0)
 
 State 113:
      86.0:function_specification <= FUNCTION name parameter_and_result_profile ^
@@ -3026,7 +3026,7 @@ State 113:
    SEMICOLON                              => reduce 3 tokens to function_specification 86.0
    default                                => ERROR
 
-   Minimal_Complete_Action => function_specification 86.0
+   Minimal_Complete_Actions => (3 function_specification 86.0)
 
 State 114:
      90.0:if_statement <= IF expression THEN ^ sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END IF SEMICOLON
@@ -3067,7 +3067,7 @@ State 114:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 115:
      93.1:loop_statement <= LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
@@ -3075,7 +3075,7 @@ State 115:
    LOOP                                   => shift and goto state 184 93.1
    default                                => ERROR
 
-   Minimal_Complete_Action => LOOP 93.1
+   Minimal_Complete_Actions => (LOOP 93.1)
 
 State 116:
     135.1:statement_list <= statement_list statement ^
@@ -3096,7 +3096,7 @@ State 116:
    IDENTIFIER                             => reduce 2 tokens to statement_list 135.1
    default                                => ERROR
 
-   Minimal_Complete_Action => statement_list 135.1
+   Minimal_Complete_Actions => (2 statement_list 135.1)
 
 State 117:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -3116,7 +3116,7 @@ State 117:
    actual_parameter_part                  goto state 77
    aspect_specification                   goto state 186
 
-   Minimal_Complete_Action => IS 98.2
+   Minimal_Complete_Actions => (IS 98.2)
 
 State 118:
      87.0:generic_instantiation <= PACKAGE name IS ^ NEW name SEMICOLON
@@ -3124,7 +3124,7 @@ State 118:
    NEW                                    => shift and goto state 187 87.0
    default                                => ERROR
 
-   Minimal_Complete_Action => NEW 87.0
+   Minimal_Complete_Actions => (NEW 87.0)
 
 State 119:
      87.1:generic_instantiation <= PROCEDURE name IS ^ NEW name SEMICOLON
@@ -3132,7 +3132,7 @@ State 119:
    NEW                                    => shift and goto state 188 87.1
    default                                => ERROR
 
-   Minimal_Complete_Action => NEW 87.1
+   Minimal_Complete_Actions => (NEW 87.1)
 
 State 120:
     100.0:parameter_profile <= formal_part ^
@@ -3142,7 +3142,7 @@ State 120:
    SEMICOLON                              => reduce 1 tokens to parameter_profile 100.0
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_profile 100.0
+   Minimal_Complete_Actions => (1 parameter_profile 100.0)
 
 State 121:
     105.0:procedure_specification <= PROCEDURE name parameter_profile ^
@@ -3152,7 +3152,7 @@ State 121:
    SEMICOLON                              => reduce 3 tokens to procedure_specification 105.0
    default                                => ERROR
 
-   Minimal_Complete_Action => procedure_specification 105.0
+   Minimal_Complete_Actions => (3 procedure_specification 105.0)
 
 State 122:
      81.0:extended_return_object_declaration <= IDENTIFIER COLON ^ subtype_indication
@@ -3164,7 +3164,7 @@ State 122:
    selected_component                     goto state 29
    subtype_indication                     goto state 190
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 123:
     114.0:simple_return_statement <= RETURN expression SEMICOLON ^
@@ -3189,7 +3189,7 @@ State 123:
    Wisi_EOI                               => reduce 3 tokens to simple_return_statement 114.0
    default                                => ERROR
 
-   Minimal_Complete_Action => simple_return_statement 114.0
+   Minimal_Complete_Actions => (3 simple_return_statement 114.0)
 
 State 124:
      82.0:extended_return_statement <= RETURN extended_return_object_declaration SEMICOLON ^
@@ -3214,7 +3214,7 @@ State 124:
    Wisi_EOI                               => reduce 3 tokens to extended_return_statement 82.0
    default                                => ERROR
 
-   Minimal_Complete_Action => extended_return_statement 82.0
+   Minimal_Complete_Actions => (3 extended_return_statement 82.0)
 
 State 125:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON
@@ -3222,7 +3222,7 @@ State 125:
    END                                    => shift and goto state 191 64.1
    default                                => ERROR
 
-   Minimal_Complete_Action => END 64.1
+   Minimal_Complete_Actions => (END 64.1)
 
 State 126:
      88.0:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION exception_handler_list
@@ -3233,7 +3233,7 @@ State 126:
    EXCEPTION                              => shift and goto state 192 88.0
    default                                => ERROR
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (1 handled_sequence_of_statements 88.2)
 
 State 127:
      98.0:package_body <= PACKAGE ^ BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -3244,7 +3244,7 @@ State 127:
    BODY                                   => shift and goto state 62 98.0
    default                                => ERROR
 
-   Minimal_Complete_Action => BODY 98.0
+   Minimal_Complete_Actions => (BODY 98.0)
 
 State 128:
     105.0:procedure_specification <= PROCEDURE ^ name parameter_profile
@@ -3255,7 +3255,7 @@ State 128:
    name                                   goto state 193
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 129:
      85.0:full_type_declaration <= TYPE ^ IDENTIFIER IS type_definition SEMICOLON
@@ -3263,7 +3263,7 @@ State 129:
    IDENTIFIER                             => shift and goto state 194 85.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 85.0
+   Minimal_Complete_Actions => (IDENTIFIER 85.0)
 
 State 130:
      97.0:object_declaration <= IDENTIFIER ^ COLON subtype_indication COLON_EQUAL expression SEMICOLON
@@ -3272,7 +3272,7 @@ State 130:
    COLON                                  => shift and goto state 195 97.0
    default                                => ERROR
 
-   Minimal_Complete_Action => COLON 97.0
+   Minimal_Complete_Actions => (COLON 97.0)
 
 State 131:
      73.0:declaration <= body_g ^
@@ -3286,7 +3286,7 @@ State 131:
    IDENTIFIER                             => reduce 1 tokens to declaration 73.0
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration 73.0
+   Minimal_Complete_Actions => (1 declaration 73.0)
 
 State 132:
      65.1:body_g <= body_stub ^
@@ -3300,7 +3300,7 @@ State 132:
    IDENTIFIER                             => reduce 1 tokens to body_g 65.1
    default                                => ERROR
 
-   Minimal_Complete_Action => body_g 65.1
+   Minimal_Complete_Actions => (1 body_g 65.1)
 
 State 133:
     127.0:declaration_list <= declaration ^
@@ -3314,7 +3314,7 @@ State 133:
    IDENTIFIER                             => reduce 1 tokens to declaration_list 127.0
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration_list 127.0
+   Minimal_Complete_Actions => (1 declaration_list 127.0)
 
 State 134:
      64.0:block_statement <= block_label_opt DECLARE declarative_part ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -3322,7 +3322,7 @@ State 134:
    BEGIN                                  => shift and goto state 196 64.0
    default                                => ERROR
 
-   Minimal_Complete_Action => BEGIN 64.0
+   Minimal_Complete_Actions => (BEGIN 64.0)
 
 State 135:
     123.0:type_declaration <= full_type_declaration ^
@@ -3336,7 +3336,7 @@ State 135:
    IDENTIFIER                             => reduce 1 tokens to type_declaration 123.0
    default                                => ERROR
 
-   Minimal_Complete_Action => type_declaration 123.0
+   Minimal_Complete_Actions => (1 type_declaration 123.0)
 
 State 136:
      73.1:declaration <= object_declaration ^
@@ -3350,7 +3350,7 @@ State 136:
    IDENTIFIER                             => reduce 1 tokens to declaration 73.1
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration 73.1
+   Minimal_Complete_Actions => (1 declaration 73.1)
 
 State 137:
     106.0:proper_body <= package_body ^
@@ -3364,7 +3364,7 @@ State 137:
    IDENTIFIER                             => reduce 1 tokens to proper_body 106.0
    default                                => ERROR
 
-   Minimal_Complete_Action => proper_body 106.0
+   Minimal_Complete_Actions => (1 proper_body 106.0)
 
 State 138:
      65.0:body_g <= proper_body ^
@@ -3378,7 +3378,7 @@ State 138:
    IDENTIFIER                             => reduce 1 tokens to body_g 65.0
    default                                => ERROR
 
-   Minimal_Complete_Action => body_g 65.0
+   Minimal_Complete_Actions => (1 body_g 65.0)
 
 State 139:
     106.1:proper_body <= subprogram_body ^
@@ -3392,7 +3392,7 @@ State 139:
    IDENTIFIER                             => reduce 1 tokens to proper_body 106.1
    default                                => ERROR
 
-   Minimal_Complete_Action => proper_body 106.1
+   Minimal_Complete_Actions => (1 proper_body 106.1)
 
 State 140:
      66.0:body_stub <= subprogram_body_stub ^
@@ -3406,7 +3406,7 @@ State 140:
    IDENTIFIER                             => reduce 1 tokens to body_stub 66.0
    default                                => ERROR
 
-   Minimal_Complete_Action => body_stub 66.0
+   Minimal_Complete_Actions => (1 body_stub 66.0)
 
 State 141:
      73.2:declaration <= subprogram_declaration ^
@@ -3420,7 +3420,7 @@ State 141:
    IDENTIFIER                             => reduce 1 tokens to declaration 73.2
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration 73.2
+   Minimal_Complete_Actions => (1 declaration 73.2)
 
 State 142:
     117.0:subprogram_body <= subprogram_specification ^ aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -3435,7 +3435,7 @@ State 142:
 
    aspect_specification                   goto state 81
 
-   Minimal_Complete_Action => SEMICOLON 119.0
+   Minimal_Complete_Actions => (SEMICOLON 119.0)
 
 State 143:
      73.3:declaration <= type_declaration ^
@@ -3449,7 +3449,7 @@ State 143:
    IDENTIFIER                             => reduce 1 tokens to declaration 73.3
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration 73.3
+   Minimal_Complete_Actions => (1 declaration 73.3)
 
 State 144:
      74.0:declarative_part <= declaration_list ^
@@ -3479,7 +3479,7 @@ State 144:
    subprogram_specification               goto state 142
    type_declaration                       goto state 143
 
-   Minimal_Complete_Action => declarative_part 74.0
+   Minimal_Complete_Actions => (1 declarative_part 74.0)
 
 State 145:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements ^ END LOOP identifier_opt SEMICOLON
@@ -3487,7 +3487,7 @@ State 145:
    END                                    => shift and goto state 199 93.0
    default                                => ERROR
 
-   Minimal_Complete_Action => END 93.0
+   Minimal_Complete_Actions => (END 93.0)
 
 State 146:
      60.0:association <= IDENTIFIER ^ EQUAL_GREATER expression
@@ -3517,7 +3517,7 @@ State 146:
    STAR                                   => reduce 1 tokens to name 95.2
    default                                => ERROR
 
-   Minimal_Complete_Action => (EQUAL_GREATER 60.0, name 95.2)
+   Minimal_Complete_Actions => ((EQUAL_GREATER 60.0), (1 name 95.2))
 
 State 147:
      61.0:association_list <= association ^
@@ -3527,7 +3527,7 @@ State 147:
    COMMA                                  => reduce 1 tokens to association_list 61.0
    default                                => ERROR
 
-   Minimal_Complete_Action => association_list 61.0
+   Minimal_Complete_Actions => (1 association_list 61.0)
 
 State 148:
      57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
@@ -3537,7 +3537,7 @@ State 148:
    COMMA                                  => shift and goto state 202 61.1
    default                                => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 57.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 57.0)
 
 State 149:
      60.1:association <= expression ^
@@ -3547,7 +3547,7 @@ State 149:
    COMMA                                  => reduce 1 tokens to association 60.1
    default                                => ERROR
 
-   Minimal_Complete_Action => association 60.1
+   Minimal_Complete_Actions => (1 association 60.1)
 
 State 150:
     108.1:range_list <= range_g ^
@@ -3556,7 +3556,7 @@ State 150:
    COMMA                                  => reduce 1 tokens to range_list 108.1
    default                                => ERROR
 
-   Minimal_Complete_Action => range_list 108.1
+   Minimal_Complete_Actions => (1 range_list 108.1)
 
 State 151:
      95.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN
@@ -3566,7 +3566,7 @@ State 151:
    COMMA                                  => shift and goto state 204 108.0
    default                                => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 152:
     107.0:range_g <= simple_expression ^ DOT_DOT simple_expression
@@ -3589,7 +3589,7 @@ State 152:
 
    relational_operator                    goto state 97
 
-   Minimal_Complete_Action => relation 109.1
+   Minimal_Complete_Actions => (1 relation 109.1)
 
 State 153:
      59.0:assignment_statement <= name COLON_EQUAL expression ^ SEMICOLON
@@ -3597,7 +3597,7 @@ State 153:
    SEMICOLON                              => shift and goto state 206 59.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 59.0
+   Minimal_Complete_Actions => (SEMICOLON 59.0)
 
 State 154:
     111.0:selected_component <= name DOT IDENTIFIER ^
@@ -3632,7 +3632,7 @@ State 154:
    STAR                                   => reduce 3 tokens to selected_component 111.0
    default                                => ERROR
 
-   Minimal_Complete_Action => selected_component 111.0
+   Minimal_Complete_Actions => (3 selected_component 111.0)
 
 State 155:
     117.1:subprogram_body <= subprogram_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -3640,7 +3640,7 @@ State 155:
    BEGIN                                  => shift and goto state 207 117.1
    default                                => ERROR
 
-   Minimal_Complete_Action => BEGIN 117.1
+   Minimal_Complete_Actions => (BEGIN 117.1)
 
 State 156:
      58.0:aspect_specification <= WITH association_list ^
@@ -3650,7 +3650,7 @@ State 156:
    COMMA                                  => shift and goto state 202 61.1
    default                                => ERROR
 
-   Minimal_Complete_Action => aspect_specification 58.0
+   Minimal_Complete_Actions => (2 aspect_specification 58.0)
 
 State 157:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -3680,7 +3680,7 @@ State 157:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => declarative_part 74.1
+   Minimal_Complete_Actions => (0 declarative_part 74.1)
 
 State 158:
     102.0:paren_expression <= LEFT_PAREN expression RIGHT_PAREN ^
@@ -3709,7 +3709,7 @@ State 158:
    STAR                                   => reduce 3 tokens to paren_expression 102.0
    default                                => ERROR
 
-   Minimal_Complete_Action => paren_expression 102.0
+   Minimal_Complete_Actions => (3 paren_expression 102.0)
 
 State 159:
      68.0:case_statement_alternative <= WHEN ^ NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
@@ -3717,7 +3717,7 @@ State 159:
    NUMERIC_LITERAL                        => shift and goto state 209 68.0
    default                                => ERROR
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 68.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 68.0)
 
 State 160:
     126.0:case_statement_alternative_list <= case_statement_alternative ^
@@ -3726,7 +3726,7 @@ State 160:
    WHEN                                   => reduce 1 tokens to case_statement_alternative_list 126.0
    default                                => ERROR
 
-   Minimal_Complete_Action => case_statement_alternative_list 126.0
+   Minimal_Complete_Actions => (1 case_statement_alternative_list 126.0)
 
 State 161:
      67.0:case_statement <= CASE expression IS case_statement_alternative_list ^ END CASE SEMICOLON
@@ -3738,7 +3738,7 @@ State 161:
 
    case_statement_alternative             goto state 211
 
-   Minimal_Complete_Action => END 67.0
+   Minimal_Complete_Actions => (END 67.0)
 
 State 162:
     129.0:AND_relation_list <= AND relation ^
@@ -3751,7 +3751,7 @@ State 162:
    SEMICOLON                              => reduce 2 tokens to AND_relation_list 129.0
    default                                => ERROR
 
-   Minimal_Complete_Action => AND_relation_list 129.0
+   Minimal_Complete_Actions => (2 AND_relation_list 129.0)
 
 State 163:
     130.0:OR_relation_list <= OR relation ^
@@ -3764,7 +3764,7 @@ State 163:
    SEMICOLON                              => reduce 2 tokens to OR_relation_list 130.0
    default                                => ERROR
 
-   Minimal_Complete_Action => OR_relation_list 130.0
+   Minimal_Complete_Actions => (2 OR_relation_list 130.0)
 
 State 164:
     131.0:XOR_relation_list <= XOR relation ^
@@ -3777,7 +3777,7 @@ State 164:
    SEMICOLON                              => reduce 2 tokens to XOR_relation_list 131.0
    default                                => ERROR
 
-   Minimal_Complete_Action => XOR_relation_list 131.0
+   Minimal_Complete_Actions => (2 XOR_relation_list 131.0)
 
 State 165:
     129.1:AND_relation_list <= AND_relation_list AND ^ relation
@@ -3802,7 +3802,7 @@ State 165:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 166:
     130.1:OR_relation_list <= OR_relation_list OR ^ relation
@@ -3827,7 +3827,7 @@ State 166:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 167:
     131.1:XOR_relation_list <= XOR_relation_list XOR ^ relation
@@ -3852,7 +3852,7 @@ State 167:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 168:
     109.0:relation <= simple_expression relational_operator simple_expression ^
@@ -3867,7 +3867,7 @@ State 168:
    SEMICOLON                              => reduce 3 tokens to relation 109.0
    default                                => ERROR
 
-   Minimal_Complete_Action => relation 109.0
+   Minimal_Complete_Actions => (3 relation 109.0)
 
 State 169:
     122.1:term <= term multiplying_operator factor ^
@@ -3896,7 +3896,7 @@ State 169:
    STAR                                   => reduce 3 tokens to term 122.1
    default                                => ERROR
 
-   Minimal_Complete_Action => term 122.1
+   Minimal_Complete_Actions => (3 term 122.1)
 
 State 170:
     122.1:term <= term ^ multiplying_operator factor
@@ -3928,7 +3928,7 @@ State 170:
 
    multiplying_operator                   goto state 100
 
-   Minimal_Complete_Action => term_binary_adding_operator_list 136.1
+   Minimal_Complete_Actions => (3 term_binary_adding_operator_list 136.1)
 
 State 171:
      79.2:exit_statement <= EXIT WHEN expression SEMICOLON ^
@@ -3953,7 +3953,7 @@ State 171:
    Wisi_EOI                               => reduce 4 tokens to exit_statement 79.2
    default                                => ERROR
 
-   Minimal_Complete_Action => exit_statement 79.2
+   Minimal_Complete_Actions => (4 exit_statement 79.2)
 
 State 172:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN expression ^ SEMICOLON
@@ -3961,7 +3961,7 @@ State 172:
    SEMICOLON                              => shift and goto state 215 79.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 79.0
+   Minimal_Complete_Actions => (SEMICOLON 79.0)
 
 State 173:
      92.0:iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition ^
@@ -3969,7 +3969,7 @@ State 173:
    LOOP                                   => reduce 4 tokens to iteration_scheme 92.0
    default                                => ERROR
 
-   Minimal_Complete_Action => iteration_scheme 92.0
+   Minimal_Complete_Actions => (4 iteration_scheme 92.0)
 
 State 174:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -4007,7 +4007,7 @@ State 174:
    constraint                             goto state 218
    index_constraint                       goto state 219
 
-   Minimal_Complete_Action => (primary 103.2, RANGE 72.0, subtype_indication 121.1)
+   Minimal_Complete_Actions => ((1 primary 103.2), (RANGE 72.0), (1 subtype_indication 121.1))
 
 State 175:
      75.1:discrete_subtype_definition <= range_g ^
@@ -4015,7 +4015,7 @@ State 175:
    LOOP                                   => reduce 1 tokens to discrete_subtype_definition 75.1
    default                                => ERROR
 
-   Minimal_Complete_Action => discrete_subtype_definition 75.1
+   Minimal_Complete_Actions => (1 discrete_subtype_definition 75.1)
 
 State 176:
     107.0:range_g <= simple_expression ^ DOT_DOT simple_expression
@@ -4023,7 +4023,7 @@ State 176:
    DOT_DOT                                => shift and goto state 205 107.0
    default                                => ERROR
 
-   Minimal_Complete_Action => DOT_DOT 107.0
+   Minimal_Complete_Actions => (DOT_DOT 107.0)
 
 State 177:
      75.0:discrete_subtype_definition <= subtype_indication ^
@@ -4032,7 +4032,7 @@ State 177:
    RIGHT_PAREN                            => reduce 1 tokens to discrete_subtype_definition 75.0
    default                                => ERROR
 
-   Minimal_Complete_Action => discrete_subtype_definition 75.0
+   Minimal_Complete_Actions => (1 discrete_subtype_definition 75.0)
 
 State 178:
      60.0:association <= IDENTIFIER ^ EQUAL_GREATER expression
@@ -4063,7 +4063,7 @@ State 178:
    STAR                                   => reduce 1 tokens to name 95.2
    default                                => ERROR
 
-   Minimal_Complete_Action => (EQUAL_GREATER 60.0, name 95.2, COLON 101.0)
+   Minimal_Complete_Actions => ((EQUAL_GREATER 60.0), (1 name 95.2), (COLON 101.0))
 
 State 179:
     132.0:parameter_specification_SEMICOLON_list <= parameter_specification ^
@@ -4072,7 +4072,7 @@ State 179:
    SEMICOLON                              => reduce 1 tokens to parameter_specification_SEMICOLON_list 132.0
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_specification_SEMICOLON_list 132.0
+   Minimal_Complete_Actions => (1 parameter_specification_SEMICOLON_list 132.0)
 
 State 180:
      84.0:formal_part <= LEFT_PAREN parameter_specification_SEMICOLON_list ^ RIGHT_PAREN
@@ -4082,7 +4082,7 @@ State 180:
    SEMICOLON                              => shift and goto state 222 132.1
    default                                => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 84.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 84.0)
 
 State 181:
      99.1:parameter_and_result_profile <= RETURN IDENTIFIER ^
@@ -4092,7 +4092,7 @@ State 181:
    SEMICOLON                              => reduce 2 tokens to parameter_and_result_profile 99.1
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_and_result_profile 99.1
+   Minimal_Complete_Actions => (2 parameter_and_result_profile 99.1)
 
 State 182:
      99.0:parameter_and_result_profile <= formal_part RETURN ^ IDENTIFIER
@@ -4100,7 +4100,7 @@ State 182:
    IDENTIFIER                             => shift and goto state 223 99.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 99.0
+   Minimal_Complete_Actions => (IDENTIFIER 99.0)
 
 State 183:
      90.0:if_statement <= IF expression THEN sequence_of_statements ^ ELSIF_expression_list ELSE sequence_of_statements END IF SEMICOLON
@@ -4115,7 +4115,7 @@ State 183:
 
    ELSIF_expression_list                  goto state 227
 
-   Minimal_Complete_Action => END 90.3
+   Minimal_Complete_Actions => (END 90.3)
 
 State 184:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON
@@ -4126,7 +4126,7 @@ State 184:
 
    identifier_opt                         goto state 229
 
-   Minimal_Complete_Action => identifier_opt 89.1
+   Minimal_Complete_Actions => (0 identifier_opt 89.1)
 
 State 185:
      98.2:package_body <= PACKAGE BODY name IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4158,7 +4158,7 @@ State 185:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => declarative_part 74.1
+   Minimal_Complete_Actions => (0 declarative_part 74.1)
 
 State 186:
      98.0:package_body <= PACKAGE BODY name aspect_specification ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4167,7 +4167,7 @@ State 186:
    IS                                     => shift and goto state 231 98.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IS 98.0
+   Minimal_Complete_Actions => (IS 98.0)
 
 State 187:
      87.0:generic_instantiation <= PACKAGE name IS NEW ^ name SEMICOLON
@@ -4178,7 +4178,7 @@ State 187:
    name                                   goto state 232
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 188:
      87.1:generic_instantiation <= PROCEDURE name IS NEW ^ name SEMICOLON
@@ -4189,7 +4189,7 @@ State 188:
    name                                   goto state 233
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 189:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -4209,7 +4209,7 @@ State 189:
    constraint                             goto state 218
    index_constraint                       goto state 219
 
-   Minimal_Complete_Action => (RANGE 72.0, subtype_indication 121.1)
+   Minimal_Complete_Actions => ((RANGE 72.0), (1 subtype_indication 121.1))
 
 State 190:
      81.0:extended_return_object_declaration <= IDENTIFIER COLON subtype_indication ^
@@ -4217,7 +4217,7 @@ State 190:
    SEMICOLON                              => reduce 3 tokens to extended_return_object_declaration 81.0
    default                                => ERROR
 
-   Minimal_Complete_Action => extended_return_object_declaration 81.0
+   Minimal_Complete_Actions => (3 extended_return_object_declaration 81.0)
 
 State 191:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON
@@ -4228,7 +4228,7 @@ State 191:
 
    identifier_opt                         goto state 234
 
-   Minimal_Complete_Action => identifier_opt 89.1
+   Minimal_Complete_Actions => (0 identifier_opt 89.1)
 
 State 192:
      88.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^ exception_handler_list
@@ -4241,7 +4241,7 @@ State 192:
    exception_handler                      goto state 236
    exception_handler_list                 goto state 237
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.1
+   Minimal_Complete_Actions => (2 handled_sequence_of_statements 88.1)
 
 State 193:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -4260,7 +4260,7 @@ State 193:
    formal_part                            goto state 120
    parameter_profile                      goto state 121
 
-   Minimal_Complete_Action => parameter_profile 100.1
+   Minimal_Complete_Actions => (0 parameter_profile 100.1)
 
 State 194:
      85.0:full_type_declaration <= TYPE IDENTIFIER ^ IS type_definition SEMICOLON
@@ -4268,7 +4268,7 @@ State 194:
    IS                                     => shift and goto state 238 85.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IS 85.0
+   Minimal_Complete_Actions => (IS 85.0)
 
 State 195:
      97.0:object_declaration <= IDENTIFIER COLON ^ subtype_indication COLON_EQUAL expression SEMICOLON
@@ -4281,7 +4281,7 @@ State 195:
    selected_component                     goto state 29
    subtype_indication                     goto state 239
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 196:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -4319,7 +4319,7 @@ State 196:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 197:
     117.1:subprogram_body <= subprogram_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4351,7 +4351,7 @@ State 197:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => SEPARATE 118.0
+   Minimal_Complete_Actions => (SEPARATE 118.0)
 
 State 198:
     127.1:declaration_list <= declaration_list declaration ^
@@ -4365,7 +4365,7 @@ State 198:
    IDENTIFIER                             => reduce 2 tokens to declaration_list 127.1
    default                                => ERROR
 
-   Minimal_Complete_Action => declaration_list 127.1
+   Minimal_Complete_Actions => (2 declaration_list 127.1)
 
 State 199:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON
@@ -4373,7 +4373,7 @@ State 199:
    LOOP                                   => shift and goto state 242 93.0
    default                                => ERROR
 
-   Minimal_Complete_Action => LOOP 93.0
+   Minimal_Complete_Actions => (LOOP 93.0)
 
 State 200:
      60.0:association <= IDENTIFIER EQUAL_GREATER ^ expression
@@ -4399,7 +4399,7 @@ State 200:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 201:
      57.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^
@@ -4434,7 +4434,7 @@ State 201:
    STAR                                   => reduce 3 tokens to actual_parameter_part 57.0
    default                                => ERROR
 
-   Minimal_Complete_Action => actual_parameter_part 57.0
+   Minimal_Complete_Actions => (3 actual_parameter_part 57.0)
 
 State 202:
      61.1:association_list <= association_list COMMA ^ association
@@ -4461,7 +4461,7 @@ State 202:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 203:
      95.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^
@@ -4496,7 +4496,7 @@ State 203:
    STAR                                   => reduce 4 tokens to name 95.0
    default                                => ERROR
 
-   Minimal_Complete_Action => name 95.0
+   Minimal_Complete_Actions => (4 name 95.0)
 
 State 204:
     108.0:range_list <= range_list COMMA ^ range_g
@@ -4521,7 +4521,7 @@ State 204:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 205:
     107.0:range_g <= simple_expression DOT_DOT ^ simple_expression
@@ -4545,7 +4545,7 @@ State 205:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 206:
      59.0:assignment_statement <= name COLON_EQUAL expression SEMICOLON ^
@@ -4570,7 +4570,7 @@ State 206:
    Wisi_EOI                               => reduce 4 tokens to assignment_statement 59.0
    default                                => ERROR
 
-   Minimal_Complete_Action => assignment_statement 59.0
+   Minimal_Complete_Actions => (4 assignment_statement 59.0)
 
 State 207:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
@@ -4608,7 +4608,7 @@ State 207:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 208:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4616,7 +4616,7 @@ State 208:
    BEGIN                                  => shift and goto state 248 117.0
    default                                => ERROR
 
-   Minimal_Complete_Action => BEGIN 117.0
+   Minimal_Complete_Actions => (BEGIN 117.0)
 
 State 209:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL ^ EQUAL_GREATER sequence_of_statements
@@ -4624,7 +4624,7 @@ State 209:
    EQUAL_GREATER                          => shift and goto state 249 68.0
    default                                => ERROR
 
-   Minimal_Complete_Action => EQUAL_GREATER 68.0
+   Minimal_Complete_Actions => (EQUAL_GREATER 68.0)
 
 State 210:
      67.0:case_statement <= CASE expression IS case_statement_alternative_list END ^ CASE SEMICOLON
@@ -4632,7 +4632,7 @@ State 210:
    CASE                                   => shift and goto state 250 67.0
    default                                => ERROR
 
-   Minimal_Complete_Action => CASE 67.0
+   Minimal_Complete_Actions => (CASE 67.0)
 
 State 211:
     126.1:case_statement_alternative_list <= case_statement_alternative_list case_statement_alternative ^
@@ -4641,7 +4641,7 @@ State 211:
    WHEN                                   => reduce 2 tokens to case_statement_alternative_list 126.1
    default                                => ERROR
 
-   Minimal_Complete_Action => case_statement_alternative_list 126.1
+   Minimal_Complete_Actions => (2 case_statement_alternative_list 126.1)
 
 State 212:
     129.1:AND_relation_list <= AND_relation_list AND relation ^
@@ -4654,7 +4654,7 @@ State 212:
    SEMICOLON                              => reduce 3 tokens to AND_relation_list 129.1
    default                                => ERROR
 
-   Minimal_Complete_Action => AND_relation_list 129.1
+   Minimal_Complete_Actions => (3 AND_relation_list 129.1)
 
 State 213:
     130.1:OR_relation_list <= OR_relation_list OR relation ^
@@ -4667,7 +4667,7 @@ State 213:
    SEMICOLON                              => reduce 3 tokens to OR_relation_list 130.1
    default                                => ERROR
 
-   Minimal_Complete_Action => OR_relation_list 130.1
+   Minimal_Complete_Actions => (3 OR_relation_list 130.1)
 
 State 214:
     131.1:XOR_relation_list <= XOR_relation_list XOR relation ^
@@ -4680,7 +4680,7 @@ State 214:
    SEMICOLON                              => reduce 3 tokens to XOR_relation_list 131.1
    default                                => ERROR
 
-   Minimal_Complete_Action => XOR_relation_list 131.1
+   Minimal_Complete_Actions => (3 XOR_relation_list 131.1)
 
 State 215:
      79.0:exit_statement <= EXIT IDENTIFIER WHEN expression SEMICOLON ^
@@ -4705,7 +4705,7 @@ State 215:
    Wisi_EOI                               => reduce 5 tokens to exit_statement 79.0
    default                                => ERROR
 
-   Minimal_Complete_Action => exit_statement 79.0
+   Minimal_Complete_Actions => (5 exit_statement 79.0)
 
 State 216:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
@@ -4739,7 +4739,7 @@ State 216:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => (NUMERIC_LITERAL 103.0, IDENTIFIER 60.0)
+   Minimal_Complete_Actions => ((NUMERIC_LITERAL 103.0), (IDENTIFIER 60.0))
 
 State 217:
      72.0:constraint <= RANGE ^ range_g
@@ -4764,7 +4764,7 @@ State 217:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 218:
     121.0:subtype_indication <= name constraint ^
@@ -4775,7 +4775,7 @@ State 218:
    SEMICOLON                              => reduce 2 tokens to subtype_indication 121.0
    default                                => ERROR
 
-   Minimal_Complete_Action => subtype_indication 121.0
+   Minimal_Complete_Actions => (2 subtype_indication 121.0)
 
 State 219:
      72.1:constraint <= index_constraint ^
@@ -4786,7 +4786,7 @@ State 219:
    SEMICOLON                              => reduce 1 tokens to constraint 72.1
    default                                => ERROR
 
-   Minimal_Complete_Action => constraint 72.1
+   Minimal_Complete_Actions => (1 constraint 72.1)
 
 State 220:
     101.0:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER COLON_EQUAL expression
@@ -4795,7 +4795,7 @@ State 220:
    IDENTIFIER                             => shift and goto state 254 101.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 101.0
+   Minimal_Complete_Actions => (IDENTIFIER 101.0)
 
 State 221:
      84.0:formal_part <= LEFT_PAREN parameter_specification_SEMICOLON_list RIGHT_PAREN ^
@@ -4806,7 +4806,7 @@ State 221:
    SEMICOLON                              => reduce 3 tokens to formal_part 84.0
    default                                => ERROR
 
-   Minimal_Complete_Action => formal_part 84.0
+   Minimal_Complete_Actions => (3 formal_part 84.0)
 
 State 222:
     132.1:parameter_specification_SEMICOLON_list <= parameter_specification_SEMICOLON_list SEMICOLON ^ parameter_specification
@@ -4816,7 +4816,7 @@ State 222:
 
    parameter_specification                goto state 256
 
-   Minimal_Complete_Action => IDENTIFIER 101.0
+   Minimal_Complete_Actions => (IDENTIFIER 101.0)
 
 State 223:
      99.0:parameter_and_result_profile <= formal_part RETURN IDENTIFIER ^
@@ -4826,7 +4826,7 @@ State 223:
    SEMICOLON                              => reduce 3 tokens to parameter_and_result_profile 99.0
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_and_result_profile 99.0
+   Minimal_Complete_Actions => (3 parameter_and_result_profile 99.0)
 
 State 224:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE ^ sequence_of_statements END IF SEMICOLON
@@ -4862,7 +4862,7 @@ State 224:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 225:
     134.0:ELSIF_expression_list <= ELSIF ^ expression THEN sequence_of_statements
@@ -4888,7 +4888,7 @@ State 225:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 226:
      90.3:if_statement <= IF expression THEN sequence_of_statements END ^ IF SEMICOLON
@@ -4896,7 +4896,7 @@ State 226:
    IF                                     => shift and goto state 259 90.3
    default                                => ERROR
 
-   Minimal_Complete_Action => IF 90.3
+   Minimal_Complete_Actions => (IF 90.3)
 
 State 227:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ^ ELSE sequence_of_statements END IF SEMICOLON
@@ -4908,7 +4908,7 @@ State 227:
    END                                    => shift and goto state 262 90.1
    default                                => ERROR
 
-   Minimal_Complete_Action => END 90.1
+   Minimal_Complete_Actions => (END 90.1)
 
 State 228:
      89.0:identifier_opt <= IDENTIFIER ^
@@ -4916,7 +4916,7 @@ State 228:
    SEMICOLON                              => reduce 1 tokens to identifier_opt 89.0
    default                                => ERROR
 
-   Minimal_Complete_Action => identifier_opt 89.0
+   Minimal_Complete_Actions => (1 identifier_opt 89.0)
 
 State 229:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON
@@ -4924,7 +4924,7 @@ State 229:
    SEMICOLON                              => shift and goto state 263 93.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 93.1
+   Minimal_Complete_Actions => (SEMICOLON 93.1)
 
 State 230:
      98.2:package_body <= PACKAGE BODY name IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4934,7 +4934,7 @@ State 230:
    END                                    => shift and goto state 265 98.3
    default                                => ERROR
 
-   Minimal_Complete_Action => END 98.3
+   Minimal_Complete_Actions => (END 98.3)
 
 State 231:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -4966,7 +4966,7 @@ State 231:
    type_declaration                       goto state 143
    declaration_list                       goto state 144
 
-   Minimal_Complete_Action => declarative_part 74.1
+   Minimal_Complete_Actions => (0 declarative_part 74.1)
 
 State 232:
      87.0:generic_instantiation <= PACKAGE name IS NEW name ^ SEMICOLON
@@ -4981,7 +4981,7 @@ State 232:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => SEMICOLON 87.0
+   Minimal_Complete_Actions => (SEMICOLON 87.0)
 
 State 233:
      87.1:generic_instantiation <= PROCEDURE name IS NEW name ^ SEMICOLON
@@ -4996,7 +4996,7 @@ State 233:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => SEMICOLON 87.1
+   Minimal_Complete_Actions => (SEMICOLON 87.1)
 
 State 234:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON
@@ -5004,7 +5004,7 @@ State 234:
    SEMICOLON                              => shift and goto state 269 64.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 64.1
+   Minimal_Complete_Actions => (SEMICOLON 64.1)
 
 State 235:
      78.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements
@@ -5016,7 +5016,7 @@ State 235:
    name                                   goto state 271
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => IDENTIFIER 95.2
+   Minimal_Complete_Actions => (IDENTIFIER 95.2)
 
 State 236:
     133.0:exception_handler_list <= exception_handler ^
@@ -5025,7 +5025,7 @@ State 236:
    WHEN                                   => reduce 1 tokens to exception_handler_list 133.0
    default                                => ERROR
 
-   Minimal_Complete_Action => exception_handler_list 133.0
+   Minimal_Complete_Actions => (1 exception_handler_list 133.0)
 
 State 237:
      88.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION exception_handler_list ^
@@ -5037,7 +5037,7 @@ State 237:
 
    exception_handler                      goto state 272
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.0
+   Minimal_Complete_Actions => (3 handled_sequence_of_statements 88.0)
 
 State 238:
      85.0:full_type_declaration <= TYPE IDENTIFIER IS ^ type_definition SEMICOLON
@@ -5048,7 +5048,7 @@ State 238:
    enumeration_type_definition            goto state 274
    type_definition                        goto state 275
 
-   Minimal_Complete_Action => LEFT_PAREN 76.0
+   Minimal_Complete_Actions => (LEFT_PAREN 76.0)
 
 State 239:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication ^ COLON_EQUAL expression SEMICOLON
@@ -5058,7 +5058,7 @@ State 239:
    SEMICOLON                              => shift and goto state 277 97.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 97.1
+   Minimal_Complete_Actions => (SEMICOLON 97.1)
 
 State 240:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON
@@ -5066,7 +5066,7 @@ State 240:
    END                                    => shift and goto state 278 64.0
    default                                => ERROR
 
-   Minimal_Complete_Action => END 64.0
+   Minimal_Complete_Actions => (END 64.0)
 
 State 241:
     118.0:subprogram_body_stub <= subprogram_specification IS SEPARATE ^ SEMICOLON
@@ -5074,7 +5074,7 @@ State 241:
    SEMICOLON                              => shift and goto state 279 118.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 118.0
+   Minimal_Complete_Actions => (SEMICOLON 118.0)
 
 State 242:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON
@@ -5085,7 +5085,7 @@ State 242:
 
    identifier_opt                         goto state 280
 
-   Minimal_Complete_Action => identifier_opt 89.1
+   Minimal_Complete_Actions => (0 identifier_opt 89.1)
 
 State 243:
      60.0:association <= IDENTIFIER EQUAL_GREATER expression ^
@@ -5095,7 +5095,7 @@ State 243:
    COMMA                                  => reduce 3 tokens to association 60.0
    default                                => ERROR
 
-   Minimal_Complete_Action => association 60.0
+   Minimal_Complete_Actions => (3 association 60.0)
 
 State 244:
      61.1:association_list <= association_list COMMA association ^
@@ -5105,7 +5105,7 @@ State 244:
    COMMA                                  => reduce 3 tokens to association_list 61.1
    default                                => ERROR
 
-   Minimal_Complete_Action => association_list 61.1
+   Minimal_Complete_Actions => (3 association_list 61.1)
 
 State 245:
     108.0:range_list <= range_list COMMA range_g ^
@@ -5114,7 +5114,7 @@ State 245:
    COMMA                                  => reduce 3 tokens to range_list 108.0
    default                                => ERROR
 
-   Minimal_Complete_Action => range_list 108.0
+   Minimal_Complete_Actions => (3 range_list 108.0)
 
 State 246:
     107.0:range_g <= simple_expression DOT_DOT simple_expression ^
@@ -5126,7 +5126,7 @@ State 246:
    SEMICOLON                              => reduce 3 tokens to range_g 107.0
    default                                => ERROR
 
-   Minimal_Complete_Action => range_g 107.0
+   Minimal_Complete_Actions => (3 range_g 107.0)
 
 State 247:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
@@ -5134,7 +5134,7 @@ State 247:
    END                                    => shift and goto state 281 117.1
    default                                => ERROR
 
-   Minimal_Complete_Action => END 117.1
+   Minimal_Complete_Actions => (END 117.1)
 
 State 248:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
@@ -5172,7 +5172,7 @@ State 248:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 249:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements
@@ -5209,7 +5209,7 @@ State 249:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 250:
      67.0:case_statement <= CASE expression IS case_statement_alternative_list END CASE ^ SEMICOLON
@@ -5217,7 +5217,7 @@ State 250:
    SEMICOLON                              => shift and goto state 284 67.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 67.0
+   Minimal_Complete_Actions => (SEMICOLON 67.0)
 
 State 251:
      91.0:index_constraint <= LEFT_PAREN discrete_subtype_definition ^ RIGHT_PAREN
@@ -5225,7 +5225,7 @@ State 251:
    RIGHT_PAREN                            => shift and goto state 285 91.0
    default                                => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 91.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 91.0)
 
 State 252:
      75.1:discrete_subtype_definition <= range_g ^
@@ -5236,7 +5236,7 @@ State 252:
    COMMA                                  => reduce 1 tokens to range_list 108.1
    default                                => ERROR
 
-   Minimal_Complete_Action => (discrete_subtype_definition 75.1, range_list 108.1)
+   Minimal_Complete_Actions => ((1 discrete_subtype_definition 75.1), (1 range_list 108.1))
 
 State 253:
      72.0:constraint <= RANGE range_g ^
@@ -5247,7 +5247,7 @@ State 253:
    SEMICOLON                              => reduce 2 tokens to constraint 72.0
    default                                => ERROR
 
-   Minimal_Complete_Action => constraint 72.0
+   Minimal_Complete_Actions => (2 constraint 72.0)
 
 State 254:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^ COLON_EQUAL expression
@@ -5258,7 +5258,7 @@ State 254:
    SEMICOLON                              => reduce 3 tokens to parameter_specification 101.1
    default                                => ERROR
 
-   Minimal_Complete_Action => (COLON_EQUAL 101.0, parameter_specification 101.1)
+   Minimal_Complete_Actions => ((COLON_EQUAL 101.0), (3 parameter_specification 101.1))
 
 State 255:
     101.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression
@@ -5267,7 +5267,7 @@ State 255:
    COLON                                  => shift and goto state 220 101.0
    default                                => ERROR
 
-   Minimal_Complete_Action => COLON 101.0
+   Minimal_Complete_Actions => (COLON 101.0)
 
 State 256:
     132.1:parameter_specification_SEMICOLON_list <= parameter_specification_SEMICOLON_list SEMICOLON parameter_specification ^
@@ -5276,7 +5276,7 @@ State 256:
    SEMICOLON                              => reduce 3 tokens to parameter_specification_SEMICOLON_list 132.1
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_specification_SEMICOLON_list 132.1
+   Minimal_Complete_Actions => (3 parameter_specification_SEMICOLON_list 132.1)
 
 State 257:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements ^ END IF SEMICOLON
@@ -5284,7 +5284,7 @@ State 257:
    END                                    => shift and goto state 287 90.2
    default                                => ERROR
 
-   Minimal_Complete_Action => END 90.2
+   Minimal_Complete_Actions => (END 90.2)
 
 State 258:
     134.0:ELSIF_expression_list <= ELSIF expression ^ THEN sequence_of_statements
@@ -5292,7 +5292,7 @@ State 258:
    THEN                                   => shift and goto state 288 134.0
    default                                => ERROR
 
-   Minimal_Complete_Action => THEN 134.0
+   Minimal_Complete_Actions => (THEN 134.0)
 
 State 259:
      90.3:if_statement <= IF expression THEN sequence_of_statements END IF ^ SEMICOLON
@@ -5300,7 +5300,7 @@ State 259:
    SEMICOLON                              => shift and goto state 289 90.3
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 90.3
+   Minimal_Complete_Actions => (SEMICOLON 90.3)
 
 State 260:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ELSE ^ sequence_of_statements END IF SEMICOLON
@@ -5336,7 +5336,7 @@ State 260:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 261:
     134.1:ELSIF_expression_list <= ELSIF_expression_list ELSIF ^ expression THEN sequence_of_statements
@@ -5362,7 +5362,7 @@ State 261:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 262:
      90.1:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list END ^ IF SEMICOLON
@@ -5370,7 +5370,7 @@ State 262:
    IF                                     => shift and goto state 292 90.1
    default                                => ERROR
 
-   Minimal_Complete_Action => IF 90.1
+   Minimal_Complete_Actions => (IF 90.1)
 
 State 263:
      93.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^
@@ -5395,7 +5395,7 @@ State 263:
    Wisi_EOI                               => reduce 6 tokens to loop_statement 93.1
    default                                => ERROR
 
-   Minimal_Complete_Action => loop_statement 93.1
+   Minimal_Complete_Actions => (6 loop_statement 93.1)
 
 State 264:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
@@ -5433,7 +5433,7 @@ State 264:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 265:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END ^ name_opt SEMICOLON
@@ -5446,7 +5446,7 @@ State 265:
    name_opt                               goto state 295
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 266:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON
@@ -5456,7 +5456,7 @@ State 266:
    END                                    => shift and goto state 297 98.1
    default                                => ERROR
 
-   Minimal_Complete_Action => END 98.1
+   Minimal_Complete_Actions => (END 98.1)
 
 State 267:
      87.0:generic_instantiation <= PACKAGE name IS NEW name SEMICOLON ^
@@ -5476,7 +5476,7 @@ State 267:
    Wisi_EOI                               => reduce 6 tokens to generic_instantiation 87.0
    default                                => ERROR
 
-   Minimal_Complete_Action => generic_instantiation 87.0
+   Minimal_Complete_Actions => (6 generic_instantiation 87.0)
 
 State 268:
      87.1:generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON ^
@@ -5496,7 +5496,7 @@ State 268:
    Wisi_EOI                               => reduce 6 tokens to generic_instantiation 87.1
    default                                => ERROR
 
-   Minimal_Complete_Action => generic_instantiation 87.1
+   Minimal_Complete_Actions => (6 generic_instantiation 87.1)
 
 State 269:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^
@@ -5521,7 +5521,7 @@ State 269:
    Wisi_EOI                               => reduce 6 tokens to block_statement 64.1
    default                                => ERROR
 
-   Minimal_Complete_Action => block_statement 64.1
+   Minimal_Complete_Actions => (6 block_statement 64.1)
 
 State 270:
      78.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements
@@ -5529,7 +5529,7 @@ State 270:
    EQUAL_GREATER                          => shift and goto state 298 78.0
    default                                => ERROR
 
-   Minimal_Complete_Action => EQUAL_GREATER 78.0
+   Minimal_Complete_Actions => (EQUAL_GREATER 78.0)
 
 State 271:
      77.0:exception_choice <= name ^
@@ -5544,7 +5544,7 @@ State 271:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => exception_choice 77.0
+   Minimal_Complete_Actions => (1 exception_choice 77.0)
 
 State 272:
     133.1:exception_handler_list <= exception_handler_list exception_handler ^
@@ -5553,7 +5553,7 @@ State 272:
    WHEN                                   => reduce 2 tokens to exception_handler_list 133.1
    default                                => ERROR
 
-   Minimal_Complete_Action => exception_handler_list 133.1
+   Minimal_Complete_Actions => (2 exception_handler_list 133.1)
 
 State 273:
      76.0:enumeration_type_definition <= LEFT_PAREN ^ IDENTIFIER_COMMA_list RIGHT_PAREN
@@ -5563,7 +5563,7 @@ State 273:
 
    IDENTIFIER_COMMA_list                  goto state 300
 
-   Minimal_Complete_Action => IDENTIFIER 128.0
+   Minimal_Complete_Actions => (IDENTIFIER 128.0)
 
 State 274:
     124.0:type_definition <= enumeration_type_definition ^
@@ -5571,7 +5571,7 @@ State 274:
    SEMICOLON                              => reduce 1 tokens to type_definition 124.0
    default                                => ERROR
 
-   Minimal_Complete_Action => type_definition 124.0
+   Minimal_Complete_Actions => (1 type_definition 124.0)
 
 State 275:
      85.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition ^ SEMICOLON
@@ -5579,7 +5579,7 @@ State 275:
    SEMICOLON                              => shift and goto state 301 85.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 85.0
+   Minimal_Complete_Actions => (SEMICOLON 85.0)
 
 State 276:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL ^ expression SEMICOLON
@@ -5605,7 +5605,7 @@ State 276:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 277:
      97.1:object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON ^
@@ -5619,7 +5619,7 @@ State 277:
    IDENTIFIER                             => reduce 4 tokens to object_declaration 97.1
    default                                => ERROR
 
-   Minimal_Complete_Action => object_declaration 97.1
+   Minimal_Complete_Actions => (4 object_declaration 97.1)
 
 State 278:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON
@@ -5630,7 +5630,7 @@ State 278:
 
    identifier_opt                         goto state 303
 
-   Minimal_Complete_Action => identifier_opt 89.1
+   Minimal_Complete_Actions => (0 identifier_opt 89.1)
 
 State 279:
     118.0:subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON ^
@@ -5644,7 +5644,7 @@ State 279:
    IDENTIFIER                             => reduce 4 tokens to subprogram_body_stub 118.0
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_body_stub 118.0
+   Minimal_Complete_Actions => (4 subprogram_body_stub 118.0)
 
 State 280:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON
@@ -5652,7 +5652,7 @@ State 280:
    SEMICOLON                              => shift and goto state 304 93.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 93.0
+   Minimal_Complete_Actions => (SEMICOLON 93.0)
 
 State 281:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
@@ -5665,7 +5665,7 @@ State 281:
    name_opt                               goto state 305
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 282:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
@@ -5673,7 +5673,7 @@ State 282:
    END                                    => shift and goto state 306 117.0
    default                                => ERROR
 
-   Minimal_Complete_Action => END 117.0
+   Minimal_Complete_Actions => (END 117.0)
 
 State 283:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements ^
@@ -5682,7 +5682,7 @@ State 283:
    WHEN                                   => reduce 4 tokens to case_statement_alternative 68.0
    default                                => ERROR
 
-   Minimal_Complete_Action => case_statement_alternative 68.0
+   Minimal_Complete_Actions => (4 case_statement_alternative 68.0)
 
 State 284:
      67.0:case_statement <= CASE expression IS case_statement_alternative_list END CASE SEMICOLON ^
@@ -5707,7 +5707,7 @@ State 284:
    Wisi_EOI                               => reduce 7 tokens to case_statement 67.0
    default                                => ERROR
 
-   Minimal_Complete_Action => case_statement 67.0
+   Minimal_Complete_Actions => (7 case_statement 67.0)
 
 State 285:
      91.0:index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^
@@ -5718,7 +5718,7 @@ State 285:
    SEMICOLON                              => reduce 3 tokens to index_constraint 91.0
    default                                => ERROR
 
-   Minimal_Complete_Action => index_constraint 91.0
+   Minimal_Complete_Actions => (3 index_constraint 91.0)
 
 State 286:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL ^ expression
@@ -5744,7 +5744,7 @@ State 286:
    unary_adding_operator                  goto state 51
    term_binary_adding_operator_list       goto state 52
 
-   Minimal_Complete_Action => NUMERIC_LITERAL 103.0
+   Minimal_Complete_Actions => (NUMERIC_LITERAL 103.0)
 
 State 287:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END ^ IF SEMICOLON
@@ -5752,7 +5752,7 @@ State 287:
    IF                                     => shift and goto state 308 90.2
    default                                => ERROR
 
-   Minimal_Complete_Action => IF 90.2
+   Minimal_Complete_Actions => (IF 90.2)
 
 State 288:
     134.0:ELSIF_expression_list <= ELSIF expression THEN ^ sequence_of_statements
@@ -5790,7 +5790,7 @@ State 288:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 289:
      90.3:if_statement <= IF expression THEN sequence_of_statements END IF SEMICOLON ^
@@ -5815,7 +5815,7 @@ State 289:
    Wisi_EOI                               => reduce 7 tokens to if_statement 90.3
    default                                => ERROR
 
-   Minimal_Complete_Action => if_statement 90.3
+   Minimal_Complete_Actions => (7 if_statement 90.3)
 
 State 290:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements ^ END IF SEMICOLON
@@ -5823,7 +5823,7 @@ State 290:
    END                                    => shift and goto state 310 90.0
    default                                => ERROR
 
-   Minimal_Complete_Action => END 90.0
+   Minimal_Complete_Actions => (END 90.0)
 
 State 291:
     134.1:ELSIF_expression_list <= ELSIF_expression_list ELSIF expression ^ THEN sequence_of_statements
@@ -5831,7 +5831,7 @@ State 291:
    THEN                                   => shift and goto state 311 134.1
    default                                => ERROR
 
-   Minimal_Complete_Action => THEN 134.1
+   Minimal_Complete_Actions => (THEN 134.1)
 
 State 292:
      90.1:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list END IF ^ SEMICOLON
@@ -5839,7 +5839,7 @@ State 292:
    SEMICOLON                              => shift and goto state 312 90.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 90.1
+   Minimal_Complete_Actions => (SEMICOLON 90.1)
 
 State 293:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
@@ -5847,7 +5847,7 @@ State 293:
    END                                    => shift and goto state 313 98.2
    default                                => ERROR
 
-   Minimal_Complete_Action => END 98.2
+   Minimal_Complete_Actions => (END 98.2)
 
 State 294:
      95.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN
@@ -5862,7 +5862,7 @@ State 294:
 
    actual_parameter_part                  goto state 77
 
-   Minimal_Complete_Action => name_opt 96.0
+   Minimal_Complete_Actions => (1 name_opt 96.0)
 
 State 295:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END name_opt ^ SEMICOLON
@@ -5870,7 +5870,7 @@ State 295:
    SEMICOLON                              => shift and goto state 314 98.3
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 98.3
+   Minimal_Complete_Actions => (SEMICOLON 98.3)
 
 State 296:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON
@@ -5908,7 +5908,7 @@ State 296:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => handled_sequence_of_statements 88.2
+   Minimal_Complete_Actions => (0 handled_sequence_of_statements 88.2)
 
 State 297:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END ^ name_opt SEMICOLON
@@ -5921,7 +5921,7 @@ State 297:
    name_opt                               goto state 316
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 298:
      78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements
@@ -5958,7 +5958,7 @@ State 298:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 299:
     128.0:IDENTIFIER_COMMA_list <= IDENTIFIER ^
@@ -5967,7 +5967,7 @@ State 299:
    COMMA                                  => reduce 1 tokens to IDENTIFIER_COMMA_list 128.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER_COMMA_list 128.0
+   Minimal_Complete_Actions => (1 IDENTIFIER_COMMA_list 128.0)
 
 State 300:
      76.0:enumeration_type_definition <= LEFT_PAREN IDENTIFIER_COMMA_list ^ RIGHT_PAREN
@@ -5977,7 +5977,7 @@ State 300:
    COMMA                                  => shift and goto state 319 128.1
    default                                => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 76.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 76.0)
 
 State 301:
      85.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition SEMICOLON ^
@@ -5991,7 +5991,7 @@ State 301:
    IDENTIFIER                             => reduce 5 tokens to full_type_declaration 85.0
    default                                => ERROR
 
-   Minimal_Complete_Action => full_type_declaration 85.0
+   Minimal_Complete_Actions => (5 full_type_declaration 85.0)
 
 State 302:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression ^ SEMICOLON
@@ -5999,7 +5999,7 @@ State 302:
    SEMICOLON                              => shift and goto state 320 97.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 97.0
+   Minimal_Complete_Actions => (SEMICOLON 97.0)
 
 State 303:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON
@@ -6007,7 +6007,7 @@ State 303:
    SEMICOLON                              => shift and goto state 321 64.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 64.0
+   Minimal_Complete_Actions => (SEMICOLON 64.0)
 
 State 304:
      93.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^
@@ -6032,7 +6032,7 @@ State 304:
    Wisi_EOI                               => reduce 7 tokens to loop_statement 93.0
    default                                => ERROR
 
-   Minimal_Complete_Action => loop_statement 93.0
+   Minimal_Complete_Actions => (7 loop_statement 93.0)
 
 State 305:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
@@ -6040,7 +6040,7 @@ State 305:
    SEMICOLON                              => shift and goto state 322 117.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 117.1
+   Minimal_Complete_Actions => (SEMICOLON 117.1)
 
 State 306:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
@@ -6053,7 +6053,7 @@ State 306:
    name_opt                               goto state 323
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 307:
     101.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression ^
@@ -6062,7 +6062,7 @@ State 307:
    SEMICOLON                              => reduce 5 tokens to parameter_specification 101.0
    default                                => ERROR
 
-   Minimal_Complete_Action => parameter_specification 101.0
+   Minimal_Complete_Actions => (5 parameter_specification 101.0)
 
 State 308:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF ^ SEMICOLON
@@ -6070,7 +6070,7 @@ State 308:
    SEMICOLON                              => shift and goto state 324 90.2
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 90.2
+   Minimal_Complete_Actions => (SEMICOLON 90.2)
 
 State 309:
     134.0:ELSIF_expression_list <= ELSIF expression THEN sequence_of_statements ^
@@ -6080,7 +6080,7 @@ State 309:
    END                                    => reduce 4 tokens to ELSIF_expression_list 134.0
    default                                => ERROR
 
-   Minimal_Complete_Action => ELSIF_expression_list 134.0
+   Minimal_Complete_Actions => (4 ELSIF_expression_list 134.0)
 
 State 310:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END ^ IF SEMICOLON
@@ -6088,7 +6088,7 @@ State 310:
    IF                                     => shift and goto state 325 90.0
    default                                => ERROR
 
-   Minimal_Complete_Action => IF 90.0
+   Minimal_Complete_Actions => (IF 90.0)
 
 State 311:
     134.1:ELSIF_expression_list <= ELSIF_expression_list ELSIF expression THEN ^ sequence_of_statements
@@ -6126,7 +6126,7 @@ State 311:
    statement                              goto state 60
    statement_list                         goto state 61
 
-   Minimal_Complete_Action => sequence_of_statements 112.1
+   Minimal_Complete_Actions => (0 sequence_of_statements 112.1)
 
 State 312:
      90.1:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list END IF SEMICOLON ^
@@ -6151,7 +6151,7 @@ State 312:
    Wisi_EOI                               => reduce 8 tokens to if_statement 90.1
    default                                => ERROR
 
-   Minimal_Complete_Action => if_statement 90.1
+   Minimal_Complete_Actions => (8 if_statement 90.1)
 
 State 313:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
@@ -6164,7 +6164,7 @@ State 313:
    name_opt                               goto state 327
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 314:
      98.3:package_body <= PACKAGE BODY name IS declarative_part END name_opt SEMICOLON ^
@@ -6186,7 +6186,7 @@ State 314:
    Wisi_EOI                               => reduce 8 tokens to package_body 98.3
    default                                => ERROR
 
-   Minimal_Complete_Action => package_body 98.3
+   Minimal_Complete_Actions => (8 package_body 98.3)
 
 State 315:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON
@@ -6194,7 +6194,7 @@ State 315:
    END                                    => shift and goto state 328 98.0
    default                                => ERROR
 
-   Minimal_Complete_Action => END 98.0
+   Minimal_Complete_Actions => (END 98.0)
 
 State 316:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt ^ SEMICOLON
@@ -6202,7 +6202,7 @@ State 316:
    SEMICOLON                              => shift and goto state 329 98.1
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 98.1
+   Minimal_Complete_Actions => (SEMICOLON 98.1)
 
 State 317:
      78.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements ^
@@ -6211,7 +6211,7 @@ State 317:
    WHEN                                   => reduce 4 tokens to exception_handler 78.0
    default                                => ERROR
 
-   Minimal_Complete_Action => exception_handler 78.0
+   Minimal_Complete_Actions => (4 exception_handler 78.0)
 
 State 318:
      76.0:enumeration_type_definition <= LEFT_PAREN IDENTIFIER_COMMA_list RIGHT_PAREN ^
@@ -6219,7 +6219,7 @@ State 318:
    SEMICOLON                              => reduce 3 tokens to enumeration_type_definition 76.0
    default                                => ERROR
 
-   Minimal_Complete_Action => enumeration_type_definition 76.0
+   Minimal_Complete_Actions => (3 enumeration_type_definition 76.0)
 
 State 319:
     128.1:IDENTIFIER_COMMA_list <= IDENTIFIER_COMMA_list COMMA ^ IDENTIFIER
@@ -6227,7 +6227,7 @@ State 319:
    IDENTIFIER                             => shift and goto state 330 128.1
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 128.1
+   Minimal_Complete_Actions => (IDENTIFIER 128.1)
 
 State 320:
      97.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON ^
@@ -6241,7 +6241,7 @@ State 320:
    IDENTIFIER                             => reduce 6 tokens to object_declaration 97.0
    default                                => ERROR
 
-   Minimal_Complete_Action => object_declaration 97.0
+   Minimal_Complete_Actions => (6 object_declaration 97.0)
 
 State 321:
      64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^
@@ -6266,7 +6266,7 @@ State 321:
    Wisi_EOI                               => reduce 8 tokens to block_statement 64.0
    default                                => ERROR
 
-   Minimal_Complete_Action => block_statement 64.0
+   Minimal_Complete_Actions => (8 block_statement 64.0)
 
 State 322:
     117.1:subprogram_body <= subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
@@ -6288,7 +6288,7 @@ State 322:
    Wisi_EOI                               => reduce 8 tokens to subprogram_body 117.1
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_body 117.1
+   Minimal_Complete_Actions => (8 subprogram_body 117.1)
 
 State 323:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
@@ -6296,7 +6296,7 @@ State 323:
    SEMICOLON                              => shift and goto state 331 117.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 117.0
+   Minimal_Complete_Actions => (SEMICOLON 117.0)
 
 State 324:
      90.2:if_statement <= IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON ^
@@ -6321,7 +6321,7 @@ State 324:
    Wisi_EOI                               => reduce 9 tokens to if_statement 90.2
    default                                => ERROR
 
-   Minimal_Complete_Action => if_statement 90.2
+   Minimal_Complete_Actions => (9 if_statement 90.2)
 
 State 325:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END IF ^ SEMICOLON
@@ -6329,7 +6329,7 @@ State 325:
    SEMICOLON                              => shift and goto state 332 90.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 90.0
+   Minimal_Complete_Actions => (SEMICOLON 90.0)
 
 State 326:
     134.1:ELSIF_expression_list <= ELSIF_expression_list ELSIF expression THEN sequence_of_statements ^
@@ -6339,7 +6339,7 @@ State 326:
    END                                    => reduce 5 tokens to ELSIF_expression_list 134.1
    default                                => ERROR
 
-   Minimal_Complete_Action => ELSIF_expression_list 134.1
+   Minimal_Complete_Actions => (5 ELSIF_expression_list 134.1)
 
 State 327:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
@@ -6347,7 +6347,7 @@ State 327:
    SEMICOLON                              => shift and goto state 333 98.2
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 98.2
+   Minimal_Complete_Actions => (SEMICOLON 98.2)
 
 State 328:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON
@@ -6360,7 +6360,7 @@ State 328:
    name_opt                               goto state 334
    selected_component                     goto state 29
 
-   Minimal_Complete_Action => name_opt 96.1
+   Minimal_Complete_Actions => (0 name_opt 96.1)
 
 State 329:
      98.1:package_body <= PACKAGE BODY name aspect_specification IS declarative_part END name_opt SEMICOLON ^
@@ -6382,7 +6382,7 @@ State 329:
    Wisi_EOI                               => reduce 9 tokens to package_body 98.1
    default                                => ERROR
 
-   Minimal_Complete_Action => package_body 98.1
+   Minimal_Complete_Actions => (9 package_body 98.1)
 
 State 330:
     128.1:IDENTIFIER_COMMA_list <= IDENTIFIER_COMMA_list COMMA IDENTIFIER ^
@@ -6391,7 +6391,7 @@ State 330:
    COMMA                                  => reduce 3 tokens to IDENTIFIER_COMMA_list 128.1
    default                                => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER_COMMA_list 128.1
+   Minimal_Complete_Actions => (3 IDENTIFIER_COMMA_list 128.1)
 
 State 331:
     117.0:subprogram_body <= subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
@@ -6413,7 +6413,7 @@ State 331:
    Wisi_EOI                               => reduce 9 tokens to subprogram_body 117.0
    default                                => ERROR
 
-   Minimal_Complete_Action => subprogram_body 117.0
+   Minimal_Complete_Actions => (9 subprogram_body 117.0)
 
 State 332:
      90.0:if_statement <= IF expression THEN sequence_of_statements ELSIF_expression_list ELSE sequence_of_statements END IF SEMICOLON ^
@@ -6438,7 +6438,7 @@ State 332:
    Wisi_EOI                               => reduce 10 tokens to if_statement 90.0
    default                                => ERROR
 
-   Minimal_Complete_Action => if_statement 90.0
+   Minimal_Complete_Actions => (10 if_statement 90.0)
 
 State 333:
      98.2:package_body <= PACKAGE BODY name IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
@@ -6460,7 +6460,7 @@ State 333:
    Wisi_EOI                               => reduce 10 tokens to package_body 98.2
    default                                => ERROR
 
-   Minimal_Complete_Action => package_body 98.2
+   Minimal_Complete_Actions => (10 package_body 98.2)
 
 State 334:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON
@@ -6468,7 +6468,7 @@ State 334:
    SEMICOLON                              => shift and goto state 335 98.0
    default                                => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 98.0
+   Minimal_Complete_Actions => (SEMICOLON 98.0)
 
 State 335:
      98.0:package_body <= PACKAGE BODY name aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^
@@ -6490,7 +6490,7 @@ State 335:
    Wisi_EOI                               => reduce 11 tokens to package_body 98.0
    default                                => ERROR
 
-   Minimal_Complete_Action => package_body 98.0
+   Minimal_Complete_Actions => (11 package_body 98.0)
 
 333 states with minimal_complete_actions; 346 total minimal_complete_actions.
 

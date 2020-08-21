@@ -80,7 +80,7 @@ State 0:
 
    compilation_unit            goto state 4
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      21.0:compilation_unit <= PROCEDURE ^ name IS BEGIN sequence_of_statements END name_opt SEMICOLON
@@ -90,7 +90,7 @@ State 1:
 
    name                        goto state 6
 
-   Minimal_Complete_Action => IDENTIFIER 23.1
+   Minimal_Complete_Actions => (IDENTIFIER 23.1)
 
 State 2:
      21.2:compilation_unit <= TYPE ^ IDENTIFIER IS SEMICOLON
@@ -98,7 +98,7 @@ State 2:
    IDENTIFIER                  => shift and goto state 7 21.2
    default                     => ERROR
 
-   Minimal_Complete_Action => IDENTIFIER 21.2
+   Minimal_Complete_Actions => (IDENTIFIER 21.2)
 
 State 3:
      21.1:compilation_unit <= IDENTIFIER ^ COLON subtype_indication SEMICOLON
@@ -106,7 +106,7 @@ State 3:
    COLON                       => shift and goto state 8 21.1
    default                     => ERROR
 
-   Minimal_Complete_Action => COLON 21.1
+   Minimal_Complete_Actions => (COLON 21.1)
 
 State 4:
      17.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI
@@ -114,7 +114,7 @@ State 4:
    Wisi_EOI                    => accept it 17.0
    default                     => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 5:
      23.1:name <= IDENTIFIER ^
@@ -125,7 +125,7 @@ State 5:
    SEMICOLON                   => reduce 1 tokens to name 23.1
    default                     => ERROR
 
-   Minimal_Complete_Action => name 23.1
+   Minimal_Complete_Actions => (1 name 23.1)
 
 State 6:
      21.0:compilation_unit <= PROCEDURE name ^ IS BEGIN sequence_of_statements END name_opt SEMICOLON
@@ -137,7 +137,7 @@ State 6:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => IS 21.0
+   Minimal_Complete_Actions => (IS 21.0)
 
 State 7:
      21.2:compilation_unit <= TYPE IDENTIFIER ^ IS SEMICOLON
@@ -145,7 +145,7 @@ State 7:
    IS                          => shift and goto state 12 21.2
    default                     => ERROR
 
-   Minimal_Complete_Action => IS 21.2
+   Minimal_Complete_Actions => (IS 21.2)
 
 State 8:
      21.1:compilation_unit <= IDENTIFIER COLON ^ subtype_indication SEMICOLON
@@ -156,7 +156,7 @@ State 8:
    name                        goto state 13
    subtype_indication          goto state 14
 
-   Minimal_Complete_Action => IDENTIFIER 23.1
+   Minimal_Complete_Actions => (IDENTIFIER 23.1)
 
 State 9:
      21.0:compilation_unit <= PROCEDURE name IS ^ BEGIN sequence_of_statements END name_opt SEMICOLON
@@ -164,7 +164,7 @@ State 9:
    BEGIN                       => shift and goto state 15 21.0
    default                     => ERROR
 
-   Minimal_Complete_Action => BEGIN 21.0
+   Minimal_Complete_Actions => (BEGIN 21.0)
 
 State 10:
      18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
@@ -184,7 +184,7 @@ State 10:
    unary_adding_operator       goto state 25
    unary_adding_operator_opt   goto state 26
 
-   Minimal_Complete_Action => IDENTIFIER 19.0
+   Minimal_Complete_Actions => (IDENTIFIER 19.0)
 
 State 11:
      23.0:name <= name actual_parameter_part ^
@@ -195,7 +195,7 @@ State 11:
    SEMICOLON                   => reduce 2 tokens to name 23.0
    default                     => ERROR
 
-   Minimal_Complete_Action => name 23.0
+   Minimal_Complete_Actions => (2 name 23.0)
 
 State 12:
      21.2:compilation_unit <= TYPE IDENTIFIER IS ^ SEMICOLON
@@ -203,7 +203,7 @@ State 12:
    SEMICOLON                   => shift and goto state 27 21.2
    default                     => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 21.2
+   Minimal_Complete_Actions => (SEMICOLON 21.2)
 
 State 13:
      23.0:name <= name ^ actual_parameter_part
@@ -216,7 +216,7 @@ State 13:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => (LEFT_PAREN 18.0, subtype_indication 31.1)
+   Minimal_Complete_Actions => ((LEFT_PAREN 18.0), (1 subtype_indication 31.1))
 
 State 14:
      21.1:compilation_unit <= IDENTIFIER COLON subtype_indication ^ SEMICOLON
@@ -224,7 +224,7 @@ State 14:
    SEMICOLON                   => shift and goto state 29 21.1
    default                     => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 21.1
+   Minimal_Complete_Actions => (SEMICOLON 21.1)
 
 State 15:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN ^ sequence_of_statements END name_opt SEMICOLON
@@ -238,7 +238,7 @@ State 15:
    sequence_of_statements_list goto state 32
    sequence_of_statements      goto state 33
 
-   Minimal_Complete_Action => sequence_of_statements 29.0
+   Minimal_Complete_Actions => (0 sequence_of_statements 29.0)
 
 State 16:
      32.1:unary_adding_operator <= MINUS ^
@@ -246,7 +246,7 @@ State 16:
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator 32.1
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator 32.1
+   Minimal_Complete_Actions => (1 unary_adding_operator 32.1)
 
 State 17:
      32.0:unary_adding_operator <= PLUS ^
@@ -254,7 +254,7 @@ State 17:
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator 32.0
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator 32.0
+   Minimal_Complete_Actions => (1 unary_adding_operator 32.0)
 
 State 18:
      19.0:association <= IDENTIFIER ^ EQUAL_GREATER expression
@@ -265,7 +265,7 @@ State 18:
    EQUAL_GREATER               => shift and goto state 34 19.0
    default                     => ERROR
 
-   Minimal_Complete_Action => (EQUAL_GREATER 19.0, name 23.1)
+   Minimal_Complete_Actions => ((EQUAL_GREATER 19.0), (1 name 23.1))
 
 State 19:
      20.0:association_list <= association ^
@@ -273,7 +273,7 @@ State 19:
    RIGHT_PAREN                 => reduce 1 tokens to association_list 20.0
    default                     => ERROR
 
-   Minimal_Complete_Action => association_list 20.0
+   Minimal_Complete_Actions => (1 association_list 20.0)
 
 State 20:
      18.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
@@ -281,7 +281,7 @@ State 20:
    RIGHT_PAREN                 => shift and goto state 35 18.0
    default                     => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 18.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 18.0)
 
 State 21:
      19.1:association <= expression ^
@@ -289,7 +289,7 @@ State 21:
    RIGHT_PAREN                 => reduce 1 tokens to association 19.1
    default                     => ERROR
 
-   Minimal_Complete_Action => association 19.1
+   Minimal_Complete_Actions => (1 association 19.1)
 
 State 22:
      23.0:name <= name ^ actual_parameter_part
@@ -301,7 +301,7 @@ State 22:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => primary 25.0
+   Minimal_Complete_Actions => (1 primary 25.0)
 
 State 23:
      22.0:expression <= relation ^
@@ -309,7 +309,7 @@ State 23:
    RIGHT_PAREN                 => reduce 1 tokens to expression 22.0
    default                     => ERROR
 
-   Minimal_Complete_Action => expression 22.0
+   Minimal_Complete_Actions => (1 expression 22.0)
 
 State 24:
      27.0:relation <= simple_expression ^
@@ -317,7 +317,7 @@ State 24:
    RIGHT_PAREN                 => reduce 1 tokens to relation 27.0
    default                     => ERROR
 
-   Minimal_Complete_Action => relation 27.0
+   Minimal_Complete_Actions => (1 relation 27.0)
 
 State 25:
      33.0:unary_adding_operator_opt <= unary_adding_operator ^
@@ -325,7 +325,7 @@ State 25:
    IDENTIFIER                  => reduce 1 tokens to unary_adding_operator_opt 33.0
    default                     => ERROR
 
-   Minimal_Complete_Action => unary_adding_operator_opt 33.0
+   Minimal_Complete_Actions => (1 unary_adding_operator_opt 33.0)
 
 State 26:
      30.0:simple_expression <= unary_adding_operator_opt ^ primary
@@ -336,7 +336,7 @@ State 26:
    name                        goto state 22
    primary                     goto state 36
 
-   Minimal_Complete_Action => IDENTIFIER 23.1
+   Minimal_Complete_Actions => (IDENTIFIER 23.1)
 
 State 27:
      21.2:compilation_unit <= TYPE IDENTIFIER IS SEMICOLON ^
@@ -344,7 +344,7 @@ State 27:
    Wisi_EOI                    => reduce 4 tokens to compilation_unit 21.2
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit 21.2
+   Minimal_Complete_Actions => (4 compilation_unit 21.2)
 
 State 28:
      18.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN
@@ -366,7 +366,7 @@ State 28:
    unary_adding_operator       goto state 25
    unary_adding_operator_opt   goto state 26
 
-   Minimal_Complete_Action => IDENTIFIER 19.0
+   Minimal_Complete_Actions => (IDENTIFIER 19.0)
 
 State 29:
      21.1:compilation_unit <= IDENTIFIER COLON subtype_indication SEMICOLON ^
@@ -374,7 +374,7 @@ State 29:
    Wisi_EOI                    => reduce 4 tokens to compilation_unit 21.1
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit 21.1
+   Minimal_Complete_Actions => (4 compilation_unit 21.1)
 
 State 30:
      23.0:name <= name ^ actual_parameter_part
@@ -386,7 +386,7 @@ State 30:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => SEMICOLON 26.0
+   Minimal_Complete_Actions => (SEMICOLON 26.0)
 
 State 31:
      28.0:sequence_of_statements_list <= procedure_call_statement ^
@@ -395,7 +395,7 @@ State 31:
    IDENTIFIER                  => reduce 1 tokens to sequence_of_statements_list 28.0
    default                     => ERROR
 
-   Minimal_Complete_Action => sequence_of_statements_list 28.0
+   Minimal_Complete_Actions => (1 sequence_of_statements_list 28.0)
 
 State 32:
      28.1:sequence_of_statements_list <= sequence_of_statements_list ^ procedure_call_statement
@@ -408,7 +408,7 @@ State 32:
    name                        goto state 30
    procedure_call_statement    goto state 40
 
-   Minimal_Complete_Action => sequence_of_statements 29.1
+   Minimal_Complete_Actions => (1 sequence_of_statements 29.1)
 
 State 33:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements ^ END name_opt SEMICOLON
@@ -416,7 +416,7 @@ State 33:
    END                         => shift and goto state 41 21.0
    default                     => ERROR
 
-   Minimal_Complete_Action => END 21.0
+   Minimal_Complete_Actions => (END 21.0)
 
 State 34:
      19.0:association <= IDENTIFIER EQUAL_GREATER ^ expression
@@ -433,7 +433,7 @@ State 34:
    unary_adding_operator       goto state 25
    unary_adding_operator_opt   goto state 26
 
-   Minimal_Complete_Action => unary_adding_operator_opt 33.1
+   Minimal_Complete_Actions => (0 unary_adding_operator_opt 33.1)
 
 State 35:
      18.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^
@@ -444,7 +444,7 @@ State 35:
    SEMICOLON                   => reduce 3 tokens to actual_parameter_part 18.0
    default                     => ERROR
 
-   Minimal_Complete_Action => actual_parameter_part 18.0
+   Minimal_Complete_Actions => (3 actual_parameter_part 18.0)
 
 State 36:
      30.0:simple_expression <= unary_adding_operator_opt primary ^
@@ -452,7 +452,7 @@ State 36:
    RIGHT_PAREN                 => reduce 2 tokens to simple_expression 30.0
    default                     => ERROR
 
-   Minimal_Complete_Action => simple_expression 30.0
+   Minimal_Complete_Actions => (2 simple_expression 30.0)
 
 State 37:
      23.0:name <= name ^ actual_parameter_part
@@ -466,7 +466,7 @@ State 37:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => (primary 25.0, LEFT_PAREN 18.0, subtype_indication 31.1)
+   Minimal_Complete_Actions => ((1 primary 25.0), (LEFT_PAREN 18.0), (1 subtype_indication 31.1))
 
 State 38:
      31.0:subtype_indication <= name LEFT_PAREN subtype_indication ^ RIGHT_PAREN
@@ -474,7 +474,7 @@ State 38:
    RIGHT_PAREN                 => shift and goto state 43 31.0
    default                     => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 31.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 31.0)
 
 State 39:
      26.0:procedure_call_statement <= name SEMICOLON ^
@@ -483,7 +483,7 @@ State 39:
    IDENTIFIER                  => reduce 2 tokens to procedure_call_statement 26.0
    default                     => ERROR
 
-   Minimal_Complete_Action => procedure_call_statement 26.0
+   Minimal_Complete_Actions => (2 procedure_call_statement 26.0)
 
 State 40:
      28.1:sequence_of_statements_list <= sequence_of_statements_list procedure_call_statement ^
@@ -492,7 +492,7 @@ State 40:
    IDENTIFIER                  => reduce 2 tokens to sequence_of_statements_list 28.1
    default                     => ERROR
 
-   Minimal_Complete_Action => sequence_of_statements_list 28.1
+   Minimal_Complete_Actions => (2 sequence_of_statements_list 28.1)
 
 State 41:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END ^ name_opt SEMICOLON
@@ -504,7 +504,7 @@ State 41:
    name                        goto state 44
    name_opt                    goto state 45
 
-   Minimal_Complete_Action => name_opt 24.1
+   Minimal_Complete_Actions => (0 name_opt 24.1)
 
 State 42:
      19.0:association <= IDENTIFIER EQUAL_GREATER expression ^
@@ -512,7 +512,7 @@ State 42:
    RIGHT_PAREN                 => reduce 3 tokens to association 19.0
    default                     => ERROR
 
-   Minimal_Complete_Action => association 19.0
+   Minimal_Complete_Actions => (3 association 19.0)
 
 State 43:
      31.0:subtype_indication <= name LEFT_PAREN subtype_indication RIGHT_PAREN ^
@@ -521,7 +521,7 @@ State 43:
    SEMICOLON                   => reduce 4 tokens to subtype_indication 31.0
    default                     => ERROR
 
-   Minimal_Complete_Action => subtype_indication 31.0
+   Minimal_Complete_Actions => (4 subtype_indication 31.0)
 
 State 44:
      23.0:name <= name ^ actual_parameter_part
@@ -533,7 +533,7 @@ State 44:
 
    actual_parameter_part       goto state 11
 
-   Minimal_Complete_Action => name_opt 24.0
+   Minimal_Complete_Actions => (1 name_opt 24.0)
 
 State 45:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt ^ SEMICOLON
@@ -541,7 +541,7 @@ State 45:
    SEMICOLON                   => shift and goto state 46 21.0
    default                     => ERROR
 
-   Minimal_Complete_Action => SEMICOLON 21.0
+   Minimal_Complete_Actions => (SEMICOLON 21.0)
 
 State 46:
      21.0:compilation_unit <= PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON ^
@@ -549,7 +549,7 @@ State 46:
    Wisi_EOI                    => reduce 8 tokens to compilation_unit 21.0
    default                     => ERROR
 
-   Minimal_Complete_Action => compilation_unit 21.0
+   Minimal_Complete_Actions => (8 compilation_unit 21.0)
 
 45 states with minimal_complete_actions; 49 total minimal_complete_actions.
 
