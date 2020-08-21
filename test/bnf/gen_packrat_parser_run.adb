@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2018 Stephe Leake
+--  Copyright (C) 2018, 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -35,6 +35,7 @@ is
       Put_Line ("usage: *_run [-v <integer>] filename");
       Put_Line ("  parse input file, execute grammar actions");
       Put_Line ("  -v : output trace while parsing");
+      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -51,28 +52,28 @@ is
 begin
    declare
       use Ada.Command_Line;
+      Arg_Next : Integer := 1;
    begin
-      case Argument_Count is
-      when 1 =>
-         File_Name := +Argument (1);
+      loop
+         exit when Argument (Arg_Next)(1) /= '-';
+         if Argument (Arg_Next) = "-v" then
+            Arg_Next  := Arg_Next + 1;
+            WisiToken.Trace_Parse := Integer'Value (Argument (Arg_Next));
+            Arg_Next  := Arg_Next + 1;
 
-      when 3 =>
-         if Argument (1) = "-v" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (2));
+         elsif Argument (Arg_Next) = "-debug" then
+            Arg_Next             := Arg_Next + 1;
+            WisiToken.Debug_Mode := True;
 
          else
             Set_Exit_Status (Failure);
             Put_Usage;
             return;
          end if;
+      end loop;
 
-         File_Name := +Argument (3);
+      File_Name := +Argument (Arg_Next);
 
-      when others =>
-         Set_Exit_Status (Failure);
-         Put_Usage;
-         return;
-      end case;
    exception
    when others =>
       Set_Exit_Status (Failure);

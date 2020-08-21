@@ -18,6 +18,7 @@ parser 0: State 21 Current_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) Resume_Tok
 Action
 
  1 parallel tasks
+new Worker_Task 1
  0: succeed 2, enqueue 19, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
  1:  1, ( 0 0 1 0 0 0 0 0 0), (93 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE

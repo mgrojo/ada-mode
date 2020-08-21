@@ -39,7 +39,7 @@ State 0:
    name                 goto state 3
    qualified_expression goto state 4
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      10.0:name <= IDENTIFIER ^
@@ -49,7 +49,7 @@ State 1:
    Wisi_EOI             => reduce 1 tokens to name 10.0
    default              => ERROR
 
-   Minimal_Complete_Action => name 10.0
+   Minimal_Complete_Actions => (1 name 10.0)
 
 State 2:
      10.1:name <= attribute_reference ^
@@ -59,7 +59,7 @@ State 2:
    Wisi_EOI             => reduce 1 tokens to name 10.1
    default              => ERROR
 
-   Minimal_Complete_Action => name 10.1
+   Minimal_Complete_Actions => (1 name 10.1)
 
 State 3:
       6.0:wisitoken_accept <= name ^ Wisi_EOI
@@ -70,7 +70,7 @@ State 3:
    Wisi_EOI             => accept it 6.0
    default              => ERROR
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 4:
      10.2:name <= qualified_expression ^
@@ -80,7 +80,7 @@ State 4:
    Wisi_EOI             => reduce 1 tokens to name 10.2
    default              => ERROR
 
-   Minimal_Complete_Action => name 10.2
+   Minimal_Complete_Actions => (1 name 10.2)
 
 State 5:
       8.0:attribute_reference <= name TICK ^ attribute_designator
@@ -96,7 +96,7 @@ State 5:
    name                 goto state 9
    qualified_expression goto state 4
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 6:
       7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN
@@ -108,7 +108,7 @@ State 6:
    name                 goto state 10
    qualified_expression goto state 4
 
-   Minimal_Complete_Action => IDENTIFIER 10.0
+   Minimal_Complete_Actions => (IDENTIFIER 10.0)
 
 State 7:
      11.0:qualified_expression <= name TICK aggregate ^
@@ -118,7 +118,7 @@ State 7:
    Wisi_EOI             => reduce 3 tokens to qualified_expression 11.0
    default              => ERROR
 
-   Minimal_Complete_Action => qualified_expression 11.0
+   Minimal_Complete_Actions => (3 qualified_expression 11.0)
 
 State 8:
       8.0:attribute_reference <= name TICK attribute_designator ^
@@ -128,7 +128,7 @@ State 8:
    Wisi_EOI             => reduce 3 tokens to attribute_reference 8.0
    default              => ERROR
 
-   Minimal_Complete_Action => attribute_reference 8.0
+   Minimal_Complete_Actions => (3 attribute_reference 8.0)
 
 State 9:
       8.0:attribute_reference <= name ^ TICK attribute_designator
@@ -141,7 +141,7 @@ State 9:
    Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
 
-   Minimal_Complete_Action => attribute_designator 9.0
+   Minimal_Complete_Actions => (1 attribute_designator 9.0)
 
 State 10:
       7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN
@@ -152,7 +152,7 @@ State 10:
    TICK                 => shift and goto state 5 8.0
    default              => ERROR
 
-   Minimal_Complete_Action => RIGHT_PAREN 7.0
+   Minimal_Complete_Actions => (RIGHT_PAREN 7.0)
 
 State 11:
       7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^
@@ -162,7 +162,7 @@ State 11:
    Wisi_EOI             => reduce 3 tokens to aggregate 7.0
    default              => ERROR
 
-   Minimal_Complete_Action => aggregate 7.0
+   Minimal_Complete_Actions => (3 aggregate 7.0)
 
 9 states with minimal_complete_actions; 9 total minimal_complete_actions.
 

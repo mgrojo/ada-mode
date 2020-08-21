@@ -19,7 +19,7 @@
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 pragma License (GPL);
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -28,7 +28,9 @@ with WisiToken;
 procedure Gen_Tree_Sitter_Parser_Run
 is
    procedure Put_Usage
-   is begin
+   is
+      use Ada.Command_Line;
+   begin
       Put (Command_Name);
       for I in 1 .. Argument_Count loop
          Put (' ' & Argument (I));
@@ -38,6 +40,7 @@ is
       Put_Line (Command_Name & " usage: [-v <integer>] filename");
       Put_Line ("  parse input file");
       Put_Line ("  -v : output trace of states while parsing");
+      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
    end Put_Usage;
 
    function WisiToken_Tree_Sitter_Parse_File
@@ -65,33 +68,36 @@ is
          null;
       else
          Put_Line (Standard_Error, "parse failed");
-         Set_Exit_Status (Failure);
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
    end Parse;
 
 begin
+   declare
+      use Ada.Command_Line;
+      Arg_Next : Integer := 1;
    begin
-      case Argument_Count is
-      when 1 =>
-         File_Name := +Argument (1);
+      loop
+         exit when Argument (Arg_Next)(1) /= '-';
 
-      when 3 =>
-         if Argument (1) = "-v" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (2));
+         if Argument (Arg_Next) = "-v" then
+            Arg_Next  := Arg_Next + 1;
+            WisiToken.Trace_Parse := Integer'Value (Argument (Arg_Next));
+            Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "-debug" then
+            Arg_Next             := Arg_Next + 1;
+            WisiToken.Debug_Mode := True;
 
          else
             Set_Exit_Status (Failure);
             Put_Usage;
             return;
          end if;
+      end loop;
 
-         File_Name := +Argument (3);
+      File_Name := +Argument (Arg_Next);
 
-      when others =>
-         Set_Exit_Status (Failure);
-         Put_Usage;
-         return;
-      end case;
    exception
    when others =>
       Set_Exit_Status (Failure);
@@ -103,7 +109,7 @@ begin
 
 exception
 when E : others =>
-   Set_Exit_Status (Failure);
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));

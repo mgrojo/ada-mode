@@ -480,7 +480,7 @@ package body WisiToken.Parse.LR.Parser is
       end Check_Error;
 
    begin
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("start");
       end if;
 
@@ -748,12 +748,12 @@ package body WisiToken.Parse.LR.Parser is
                --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Shared_Parser.Enable_McKenzie_Recover then
-                  if Debug_Mode then
+                  if Trace_Time then
                      Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
                      Start := Ada.Calendar.Clock;
                   end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
-                  if Debug_Mode then
+                  if Trace_Time then
                      declare
                         use Ada.Calendar;
                         Recover_Duration : constant Duration := Clock - Start;
@@ -1081,7 +1081,7 @@ package body WisiToken.Parse.LR.Parser is
          Trace.Put_Line (Shared_Parser.Parsers.First.Label'Image & ": succeed");
       end if;
 
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("finish parse");
       end if;
 
@@ -1090,7 +1090,7 @@ package body WisiToken.Parse.LR.Parser is
       --  character.
    exception
    when Syntax_Error | WisiToken.Parse_Error | Partial_Parse =>
-      if Debug_Mode then
+      if Trace_Time then
          Trace.Put_Clock ("finish - error");
       end if;
       raise;

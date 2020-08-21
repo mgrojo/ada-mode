@@ -684,6 +684,7 @@ package body WisiToken.Generate.LR is
          end loop;
 
          if Trace_Generate_Minimal_Complete > Detail then
+            Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Minimal_Terminal_Sequences:");
             for LHS in Result'Range loop
                Ada.Text_IO.Put_Line (Image (LHS, Result, Descriptor));
@@ -857,14 +858,21 @@ package body WisiToken.Generate.LR is
 
                --  Kernel components
                Length_After_Dot  : constant Count_Type := Set_Minimal_Complete_Actions.Length_After_Dot (Item);
+
                Reduce_Production : constant Production_ID :=
                  (if Length_After_Dot = 0
                   then (if Dot_ID in Nullable'Range then Nullable (Dot_ID) else Item.Prod)
                   else Invalid_Production_ID);
+
                Reduce_Count : constant Count_Type :=
                  (if Reduce_Production = Invalid_Production_ID
                   then 0
-                  else Grammar (Reduce_Production.LHS).RHSs (Reduce_Production.RHS).Tokens.Length);
+                  else
+                    (if Reduce_Production.LHS = Dot_ID and
+                      (Reduce_Production.LHS in Nullable'Range and then
+                       Nullable (Reduce_Production.LHS) /= Invalid_Production_ID)
+                     then 0
+                     else Grammar (Reduce_Production.LHS).RHSs (Reduce_Production.RHS).Tokens.Length));
             begin
                --  Here we must compute Item_State (I).Label and .Minimal_Action,
                --  considering recursion.
@@ -1344,6 +1352,19 @@ package body WisiToken.Generate.LR is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
+
+      procedure Put (Action : in Minimal_Action)
+      is begin
+         Put ("(");
+         case Action.Verb is
+         when Shift =>
+            Put (Image (Action.ID, Descriptor));
+         when Reduce =>
+            Put (Trimmed_Image (Action.Token_Count) & " " & Image (Action.Production.LHS, Descriptor));
+         end case;
+         Put (" " & Trimmed_Image (Action.Production) & ")");
+      end Put;
+
    begin
       for Action of State.Action_List loop
          Put ("   " & Image (Action.Symbol, Descriptor) &
@@ -1368,37 +1389,18 @@ package body WisiToken.Generate.LR is
       end loop;
 
       New_Line;
-      Put ("   Minimal_Complete_Action => "); --  No trailing 's' for compatibility with previous good parse tables.
+      Put ("   Minimal_Complete_Actions => ");
       case State.Minimal_Complete_Actions.Length is
       when 0 =>
          null;
+
       when 1 =>
-         --  No () here for compatibity with previous known good parse tables.
-         declare
-            Action : Minimal_Action renames State.Minimal_Complete_Actions (State.Minimal_Complete_Actions.First_Index);
-         begin
-            case Action.Verb is
-            when Shift =>
-               Put (Image (Action.ID, Descriptor));
-            when Reduce =>
-               Put (Image (Action.Production.LHS, Descriptor));
-            end case;
-            Put (" " & Trimmed_Image (Action.Production));
-         end;
+         Put (State.Minimal_Complete_Actions (State.Minimal_Complete_Actions.First_Index));
+
       when others =>
          Put ("(");
          for I in State.Minimal_Complete_Actions.First_Index .. State.Minimal_Complete_Actions.Last_Index loop
-            declare
-               Action : Minimal_Action renames State.Minimal_Complete_Actions (I);
-            begin
-               case Action.Verb is
-               when Shift =>
-                  Put (Image (Action.ID, Descriptor));
-               when Reduce =>
-                  Put (Image (Action.Production.LHS, Descriptor));
-               end case;
-               Put (" " & Trimmed_Image (Action.Production));
-            end;
+            Put (State.Minimal_Complete_Actions (I));
             if I < State.Minimal_Complete_Actions.Last_Index then
                Put (", ");
             end if;

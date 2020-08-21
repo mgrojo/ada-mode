@@ -226,7 +226,7 @@ State 0:
    primitiveType      goto state 19
    nonterminal_030    goto state 20
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 1:
      33.0:primitiveType <= BOOLEAN ^
@@ -235,7 +235,7 @@ State 1:
    DOT                => reduce 1 tokens to primitiveType 33.0
    default            => ERROR
 
-   Minimal_Complete_Action => primitiveType 33.0
+   Minimal_Complete_Actions => (1 primitiveType 33.0)
 
 State 2:
      33.1:primitiveType <= INT ^
@@ -244,7 +244,7 @@ State 2:
    DOT                => reduce 1 tokens to primitiveType 33.1
    default            => ERROR
 
-   Minimal_Complete_Action => primitiveType 33.1
+   Minimal_Complete_Actions => (1 primitiveType 33.1)
 
 State 3:
      31.1:primary <= THIS ^
@@ -261,7 +261,7 @@ State 3:
    Wisi_EOI           => reduce 1 tokens to primary 31.1
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.1
+   Minimal_Complete_Actions => (1 primary 31.1)
 
 State 4:
      26.0:BOOL_LITERAL <= TRUE ^
@@ -278,7 +278,7 @@ State 4:
    Wisi_EOI           => reduce 1 tokens to BOOL_LITERAL 26.0
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.0
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.0)
 
 State 5:
      26.1:BOOL_LITERAL <= FALSE ^
@@ -295,7 +295,7 @@ State 5:
    Wisi_EOI           => reduce 1 tokens to BOOL_LITERAL 26.1
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.1
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.1)
 
 State 6:
      27.0:literal <= DECIMAL_LITERAL ^
@@ -312,7 +312,7 @@ State 6:
    Wisi_EOI           => reduce 1 tokens to literal 27.0
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.0
+   Minimal_Complete_Actions => (1 literal 27.0)
 
 State 7:
      30.4:expression <= LPAREN ^ typeType RPAREN expression
@@ -341,7 +341,7 @@ State 7:
    primitiveType      goto state 35
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 8:
      36.2:nonterminal_030 <= INC ^
@@ -360,7 +360,7 @@ State 8:
    IDENTIFIER         => reduce 1 tokens to nonterminal_030 36.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_030 36.2
+   Minimal_Complete_Actions => (1 nonterminal_030 36.2)
 
 State 9:
      36.3:nonterminal_030 <= DEC ^
@@ -379,7 +379,7 @@ State 9:
    IDENTIFIER         => reduce 1 tokens to nonterminal_030 36.3
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_030 36.3
+   Minimal_Complete_Actions => (1 nonterminal_030 36.3)
 
 State 10:
      36.0:nonterminal_030 <= ADD ^
@@ -398,7 +398,7 @@ State 10:
    IDENTIFIER         => reduce 1 tokens to nonterminal_030 36.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_030 36.0
+   Minimal_Complete_Actions => (1 nonterminal_030 36.0)
 
 State 11:
      36.1:nonterminal_030 <= SUB ^
@@ -417,7 +417,7 @@ State 11:
    IDENTIFIER         => reduce 1 tokens to nonterminal_030 36.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_030 36.1
+   Minimal_Complete_Actions => (1 nonterminal_030 36.1)
 
 State 12:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -437,7 +437,7 @@ State 12:
    Wisi_EOI           => reduce 1 tokens to primary 31.3
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, primary 31.3)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 primary 31.3))
 
 State 13:
      27.1:literal <= BOOL_LITERAL ^
@@ -454,7 +454,7 @@ State 13:
    Wisi_EOI           => reduce 1 tokens to literal 27.1
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.1
+   Minimal_Complete_Actions => (1 literal 27.1)
 
 State 14:
      31.2:primary <= literal ^
@@ -471,7 +471,7 @@ State 14:
    Wisi_EOI           => reduce 1 tokens to primary 31.2
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.2
+   Minimal_Complete_Actions => (1 primary 31.2)
 
 State 15:
      30.3:expression <= methodCall ^
@@ -488,7 +488,7 @@ State 15:
    Wisi_EOI           => reduce 1 tokens to expression 30.3
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.3
+   Minimal_Complete_Actions => (1 expression 30.3)
 
 State 16:
      25.0:wisitoken_accept <= expression ^ Wisi_EOI
@@ -514,7 +514,7 @@ State 16:
    nonterminal_031    goto state 48
    nonterminal_032    goto state 49
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 17:
      30.0:expression <= primary ^
@@ -531,7 +531,7 @@ State 17:
    Wisi_EOI           => reduce 1 tokens to expression 30.0
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.0
+   Minimal_Complete_Actions => (1 expression 30.0)
 
 State 18:
      31.4:primary <= typeType ^ DOT CLASS
@@ -539,7 +539,7 @@ State 18:
    DOT                => shift and goto state 50 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => DOT 31.4
+   Minimal_Complete_Actions => (DOT 31.4)
 
 State 19:
      32.0:typeType <= primitiveType ^ LBRACK_RBRACK_list
@@ -551,7 +551,7 @@ State 19:
 
    LBRACK_RBRACK_list goto state 52
 
-   Minimal_Complete_Action => (LBRACK 39.0, typeType 32.1)
+   Minimal_Complete_Actions => ((LBRACK 39.0), (1 typeType 32.1))
 
 State 20:
      30.6:expression <= nonterminal_030 ^ expression
@@ -579,7 +579,7 @@ State 20:
    primitiveType      goto state 19
    nonterminal_030    goto state 20
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 21:
      33.0:primitiveType <= BOOLEAN ^
@@ -589,7 +589,7 @@ State 21:
    DOT                => reduce 1 tokens to primitiveType 33.0
    default            => ERROR
 
-   Minimal_Complete_Action => primitiveType 33.0
+   Minimal_Complete_Actions => (1 primitiveType 33.0)
 
 State 22:
      33.1:primitiveType <= INT ^
@@ -599,7 +599,7 @@ State 22:
    DOT                => reduce 1 tokens to primitiveType 33.1
    default            => ERROR
 
-   Minimal_Complete_Action => primitiveType 33.1
+   Minimal_Complete_Actions => (1 primitiveType 33.1)
 
 State 23:
      31.1:primary <= THIS ^
@@ -616,7 +616,7 @@ State 23:
    MOD                => reduce 1 tokens to primary 31.1
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.1
+   Minimal_Complete_Actions => (1 primary 31.1)
 
 State 24:
      26.0:BOOL_LITERAL <= TRUE ^
@@ -633,7 +633,7 @@ State 24:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.0
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.0
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.0)
 
 State 25:
      26.1:BOOL_LITERAL <= FALSE ^
@@ -650,7 +650,7 @@ State 25:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.1
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.1
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.1)
 
 State 26:
      27.0:literal <= DECIMAL_LITERAL ^
@@ -667,7 +667,7 @@ State 26:
    MOD                => reduce 1 tokens to literal 27.0
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.0
+   Minimal_Complete_Actions => (1 literal 27.0)
 
 State 27:
      30.4:expression <= LPAREN ^ typeType RPAREN expression
@@ -696,7 +696,7 @@ State 27:
    primitiveType      goto state 35
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 28:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -716,7 +716,7 @@ State 28:
    MOD                => reduce 1 tokens to primary 31.3
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, primary 31.3)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 primary 31.3))
 
 State 29:
      27.1:literal <= BOOL_LITERAL ^
@@ -733,7 +733,7 @@ State 29:
    MOD                => reduce 1 tokens to literal 27.1
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.1
+   Minimal_Complete_Actions => (1 literal 27.1)
 
 State 30:
      31.2:primary <= literal ^
@@ -750,7 +750,7 @@ State 30:
    MOD                => reduce 1 tokens to primary 31.2
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.2
+   Minimal_Complete_Actions => (1 primary 31.2)
 
 State 31:
      30.3:expression <= methodCall ^
@@ -767,7 +767,7 @@ State 31:
    MOD                => reduce 1 tokens to expression 30.3
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.3
+   Minimal_Complete_Actions => (1 expression 30.3)
 
 State 32:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -793,7 +793,7 @@ State 32:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => RPAREN 31.0
+   Minimal_Complete_Actions => (RPAREN 31.0)
 
 State 33:
      30.0:expression <= primary ^
@@ -810,7 +810,7 @@ State 33:
    MOD                => reduce 1 tokens to expression 30.0
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.0
+   Minimal_Complete_Actions => (1 expression 30.0)
 
 State 34:
      30.4:expression <= LPAREN typeType ^ RPAREN expression
@@ -820,7 +820,7 @@ State 34:
    DOT                => shift and goto state 66 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 30.4
+   Minimal_Complete_Actions => (RPAREN 30.4)
 
 State 35:
      32.0:typeType <= primitiveType ^ LBRACK_RBRACK_list
@@ -833,7 +833,7 @@ State 35:
 
    LBRACK_RBRACK_list goto state 68
 
-   Minimal_Complete_Action => (LBRACK 39.0, typeType 32.1)
+   Minimal_Complete_Actions => ((LBRACK 39.0), (1 typeType 32.1))
 
 State 36:
      30.6:expression <= nonterminal_030 ^ expression
@@ -861,7 +861,7 @@ State 36:
    primitiveType      goto state 19
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 37:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN
@@ -892,7 +892,7 @@ State 37:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => RPAREN 29.1
+   Minimal_Complete_Actions => (RPAREN 29.1)
 
 State 38:
      30.2:expression <= expression LBRACK ^ expression RBRACK
@@ -920,7 +920,7 @@ State 38:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 39:
      30.1:expression <= expression DOT ^ nonterminal_028
@@ -932,7 +932,7 @@ State 39:
    methodCall         goto state 101
    nonterminal_028    goto state 102
 
-   Minimal_Complete_Action => IDENTIFIER 29.0
+   Minimal_Complete_Actions => (IDENTIFIER 29.0)
 
 State 40:
      35.0:nonterminal_029 <= INC ^
@@ -949,7 +949,7 @@ State 40:
    Wisi_EOI           => reduce 1 tokens to nonterminal_029 35.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.0
+   Minimal_Complete_Actions => (1 nonterminal_029 35.0)
 
 State 41:
      35.1:nonterminal_029 <= DEC ^
@@ -966,7 +966,7 @@ State 41:
    Wisi_EOI           => reduce 1 tokens to nonterminal_029 35.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.1
+   Minimal_Complete_Actions => (1 nonterminal_029 35.1)
 
 State 42:
      38.0:nonterminal_032 <= ADD ^
@@ -985,7 +985,7 @@ State 42:
    IDENTIFIER         => reduce 1 tokens to nonterminal_032 38.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_032 38.0
+   Minimal_Complete_Actions => (1 nonterminal_032 38.0)
 
 State 43:
      38.1:nonterminal_032 <= SUB ^
@@ -1004,7 +1004,7 @@ State 43:
    IDENTIFIER         => reduce 1 tokens to nonterminal_032 38.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_032 38.1
+   Minimal_Complete_Actions => (1 nonterminal_032 38.1)
 
 State 44:
      37.0:nonterminal_031 <= MUL ^
@@ -1023,7 +1023,7 @@ State 44:
    IDENTIFIER         => reduce 1 tokens to nonterminal_031 37.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_031 37.0
+   Minimal_Complete_Actions => (1 nonterminal_031 37.0)
 
 State 45:
      37.1:nonterminal_031 <= DIV ^
@@ -1042,7 +1042,7 @@ State 45:
    IDENTIFIER         => reduce 1 tokens to nonterminal_031 37.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_031 37.1
+   Minimal_Complete_Actions => (1 nonterminal_031 37.1)
 
 State 46:
      37.2:nonterminal_031 <= MOD ^
@@ -1061,7 +1061,7 @@ State 46:
    IDENTIFIER         => reduce 1 tokens to nonterminal_031 37.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_031 37.2
+   Minimal_Complete_Actions => (1 nonterminal_031 37.2)
 
 State 47:
      30.5:expression <= expression nonterminal_029 ^
@@ -1078,7 +1078,7 @@ State 47:
    Wisi_EOI           => reduce 2 tokens to expression 30.5
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.5
+   Minimal_Complete_Actions => (2 expression 30.5)
 
 State 48:
      30.7:expression <= expression nonterminal_031 ^ expression
@@ -1106,7 +1106,7 @@ State 48:
    primitiveType      goto state 19
    nonterminal_030    goto state 20
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 49:
      30.8:expression <= expression nonterminal_032 ^ expression
@@ -1134,7 +1134,7 @@ State 49:
    primitiveType      goto state 19
    nonterminal_030    goto state 20
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 50:
      31.4:primary <= typeType DOT ^ CLASS
@@ -1142,7 +1142,7 @@ State 50:
    CLASS              => shift and goto state 105 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => CLASS 31.4
+   Minimal_Complete_Actions => (CLASS 31.4)
 
 State 51:
      39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
@@ -1150,7 +1150,7 @@ State 51:
    RBRACK             => shift and goto state 106 39.0
    default            => ERROR
 
-   Minimal_Complete_Action => RBRACK 39.0
+   Minimal_Complete_Actions => (RBRACK 39.0)
 
 State 52:
      32.0:typeType <= primitiveType LBRACK_RBRACK_list ^
@@ -1160,7 +1160,7 @@ State 52:
    DOT                => reduce 2 tokens to typeType 32.0
    default            => ERROR
 
-   Minimal_Complete_Action => typeType 32.0
+   Minimal_Complete_Actions => (2 typeType 32.0)
 
 State 53:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -1195,7 +1195,7 @@ State 53:
    nonterminal_031    goto state 48
    nonterminal_032    goto state 49
 
-   Minimal_Complete_Action => expression 30.6
+   Minimal_Complete_Actions => (2 expression 30.6)
 
 State 54:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -1221,7 +1221,7 @@ State 54:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => RPAREN 31.0
+   Minimal_Complete_Actions => (RPAREN 31.0)
 
 State 55:
      30.4:expression <= LPAREN typeType ^ RPAREN expression
@@ -1231,7 +1231,7 @@ State 55:
    DOT                => shift and goto state 66 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 30.4
+   Minimal_Complete_Actions => (RPAREN 30.4)
 
 State 56:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN
@@ -1262,7 +1262,7 @@ State 56:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => RPAREN 29.1
+   Minimal_Complete_Actions => (RPAREN 29.1)
 
 State 57:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -1279,7 +1279,7 @@ State 57:
    Wisi_EOI           => reduce 3 tokens to primary 31.0
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.0
+   Minimal_Complete_Actions => (3 primary 31.0)
 
 State 58:
      30.2:expression <= expression LBRACK ^ expression RBRACK
@@ -1307,7 +1307,7 @@ State 58:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 59:
      30.1:expression <= expression DOT ^ nonterminal_028
@@ -1319,7 +1319,7 @@ State 59:
    methodCall         goto state 115
    nonterminal_028    goto state 116
 
-   Minimal_Complete_Action => IDENTIFIER 29.0
+   Minimal_Complete_Actions => (IDENTIFIER 29.0)
 
 State 60:
      35.0:nonterminal_029 <= INC ^
@@ -1336,7 +1336,7 @@ State 60:
    MOD                => reduce 1 tokens to nonterminal_029 35.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.0
+   Minimal_Complete_Actions => (1 nonterminal_029 35.0)
 
 State 61:
      35.1:nonterminal_029 <= DEC ^
@@ -1353,7 +1353,7 @@ State 61:
    MOD                => reduce 1 tokens to nonterminal_029 35.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.1
+   Minimal_Complete_Actions => (1 nonterminal_029 35.1)
 
 State 62:
      30.5:expression <= expression nonterminal_029 ^
@@ -1370,7 +1370,7 @@ State 62:
    MOD                => reduce 2 tokens to expression 30.5
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.5
+   Minimal_Complete_Actions => (2 expression 30.5)
 
 State 63:
      30.7:expression <= expression nonterminal_031 ^ expression
@@ -1398,7 +1398,7 @@ State 63:
    primitiveType      goto state 19
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 64:
      30.8:expression <= expression nonterminal_032 ^ expression
@@ -1426,7 +1426,7 @@ State 64:
    primitiveType      goto state 19
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 65:
      30.4:expression <= LPAREN typeType RPAREN ^ expression
@@ -1454,7 +1454,7 @@ State 65:
    primitiveType      goto state 19
    nonterminal_030    goto state 20
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 66:
      31.4:primary <= typeType DOT ^ CLASS
@@ -1462,7 +1462,7 @@ State 66:
    CLASS              => shift and goto state 120 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => CLASS 31.4
+   Minimal_Complete_Actions => (CLASS 31.4)
 
 State 67:
      39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
@@ -1470,7 +1470,7 @@ State 67:
    RBRACK             => shift and goto state 121 39.0
    default            => ERROR
 
-   Minimal_Complete_Action => RBRACK 39.0
+   Minimal_Complete_Actions => (RBRACK 39.0)
 
 State 68:
      32.0:typeType <= primitiveType LBRACK_RBRACK_list ^
@@ -1481,7 +1481,7 @@ State 68:
    DOT                => reduce 2 tokens to typeType 32.0
    default            => ERROR
 
-   Minimal_Complete_Action => typeType 32.0
+   Minimal_Complete_Actions => (2 typeType 32.0)
 
 State 69:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -1516,7 +1516,7 @@ State 69:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => expression 30.6
+   Minimal_Complete_Actions => (2 expression 30.6)
 
 State 70:
      31.4:primary <= typeType ^ DOT CLASS
@@ -1524,7 +1524,7 @@ State 70:
    DOT                => shift and goto state 66 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => DOT 31.4
+   Minimal_Complete_Actions => (DOT 31.4)
 
 State 71:
      31.1:primary <= THIS ^
@@ -1542,7 +1542,7 @@ State 71:
    MOD                => reduce 1 tokens to primary 31.1
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.1
+   Minimal_Complete_Actions => (1 primary 31.1)
 
 State 72:
      26.0:BOOL_LITERAL <= TRUE ^
@@ -1560,7 +1560,7 @@ State 72:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.0
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.0
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.0)
 
 State 73:
      26.1:BOOL_LITERAL <= FALSE ^
@@ -1578,7 +1578,7 @@ State 73:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.1
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.1
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.1)
 
 State 74:
      27.0:literal <= DECIMAL_LITERAL ^
@@ -1596,7 +1596,7 @@ State 74:
    MOD                => reduce 1 tokens to literal 27.0
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.0
+   Minimal_Complete_Actions => (1 literal 27.0)
 
 State 75:
      30.4:expression <= LPAREN ^ typeType RPAREN expression
@@ -1625,7 +1625,7 @@ State 75:
    primitiveType      goto state 35
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 76:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^
@@ -1642,7 +1642,7 @@ State 76:
    Wisi_EOI           => reduce 3 tokens to methodCall 29.1
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.1
+   Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 77:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -1663,7 +1663,7 @@ State 77:
    MOD                => reduce 1 tokens to primary 31.3
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, primary 31.3)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 primary 31.3))
 
 State 78:
      27.1:literal <= BOOL_LITERAL ^
@@ -1681,7 +1681,7 @@ State 78:
    MOD                => reduce 1 tokens to literal 27.1
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.1
+   Minimal_Complete_Actions => (1 literal 27.1)
 
 State 79:
      31.2:primary <= literal ^
@@ -1699,7 +1699,7 @@ State 79:
    MOD                => reduce 1 tokens to primary 31.2
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.2
+   Minimal_Complete_Actions => (1 primary 31.2)
 
 State 80:
      28.1:expressionList <= expressionList ^ COMMA expression
@@ -1709,7 +1709,7 @@ State 80:
    COMMA              => shift and goto state 127 28.1
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 29.0
+   Minimal_Complete_Actions => (RPAREN 29.0)
 
 State 81:
      30.3:expression <= methodCall ^
@@ -1727,7 +1727,7 @@ State 81:
    MOD                => reduce 1 tokens to expression 30.3
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.3
+   Minimal_Complete_Actions => (1 expression 30.3)
 
 State 82:
      28.0:expressionList <= expression ^
@@ -1754,7 +1754,7 @@ State 82:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expressionList 28.0
+   Minimal_Complete_Actions => (1 expressionList 28.0)
 
 State 83:
      30.0:expression <= primary ^
@@ -1772,7 +1772,7 @@ State 83:
    MOD                => reduce 1 tokens to expression 30.0
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.0
+   Minimal_Complete_Actions => (1 expression 30.0)
 
 State 84:
      31.4:primary <= typeType ^ DOT CLASS
@@ -1780,7 +1780,7 @@ State 84:
    DOT                => shift and goto state 135 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => DOT 31.4
+   Minimal_Complete_Actions => (DOT 31.4)
 
 State 85:
      30.6:expression <= nonterminal_030 ^ expression
@@ -1808,7 +1808,7 @@ State 85:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 86:
      31.1:primary <= THIS ^
@@ -1825,7 +1825,7 @@ State 86:
    MOD                => reduce 1 tokens to primary 31.1
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.1
+   Minimal_Complete_Actions => (1 primary 31.1)
 
 State 87:
      26.0:BOOL_LITERAL <= TRUE ^
@@ -1842,7 +1842,7 @@ State 87:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.0
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.0
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.0)
 
 State 88:
      26.1:BOOL_LITERAL <= FALSE ^
@@ -1859,7 +1859,7 @@ State 88:
    MOD                => reduce 1 tokens to BOOL_LITERAL 26.1
    default            => ERROR
 
-   Minimal_Complete_Action => BOOL_LITERAL 26.1
+   Minimal_Complete_Actions => (1 BOOL_LITERAL 26.1)
 
 State 89:
      27.0:literal <= DECIMAL_LITERAL ^
@@ -1876,7 +1876,7 @@ State 89:
    MOD                => reduce 1 tokens to literal 27.0
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.0
+   Minimal_Complete_Actions => (1 literal 27.0)
 
 State 90:
      30.4:expression <= LPAREN ^ typeType RPAREN expression
@@ -1905,7 +1905,7 @@ State 90:
    primitiveType      goto state 35
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 91:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -1925,7 +1925,7 @@ State 91:
    MOD                => reduce 1 tokens to primary 31.3
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, primary 31.3)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 primary 31.3))
 
 State 92:
      27.1:literal <= BOOL_LITERAL ^
@@ -1942,7 +1942,7 @@ State 92:
    MOD                => reduce 1 tokens to literal 27.1
    default            => ERROR
 
-   Minimal_Complete_Action => literal 27.1
+   Minimal_Complete_Actions => (1 literal 27.1)
 
 State 93:
      31.2:primary <= literal ^
@@ -1959,7 +1959,7 @@ State 93:
    MOD                => reduce 1 tokens to primary 31.2
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.2
+   Minimal_Complete_Actions => (1 primary 31.2)
 
 State 94:
      30.3:expression <= methodCall ^
@@ -1976,7 +1976,7 @@ State 94:
    MOD                => reduce 1 tokens to expression 30.3
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.3
+   Minimal_Complete_Actions => (1 expression 30.3)
 
 State 95:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2002,7 +2002,7 @@ State 95:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 96:
      30.0:expression <= primary ^
@@ -2019,7 +2019,7 @@ State 96:
    MOD                => reduce 1 tokens to expression 30.0
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.0
+   Minimal_Complete_Actions => (1 expression 30.0)
 
 State 97:
      31.4:primary <= typeType ^ DOT CLASS
@@ -2027,7 +2027,7 @@ State 97:
    DOT                => shift and goto state 148 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => DOT 31.4
+   Minimal_Complete_Actions => (DOT 31.4)
 
 State 98:
      30.6:expression <= nonterminal_030 ^ expression
@@ -2055,7 +2055,7 @@ State 98:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 99:
      34.2:nonterminal_028 <= THIS ^
@@ -2072,7 +2072,7 @@ State 99:
    Wisi_EOI           => reduce 1 tokens to nonterminal_028 34.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.2
+   Minimal_Complete_Actions => (1 nonterminal_028 34.2)
 
 State 100:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -2092,7 +2092,7 @@ State 100:
    Wisi_EOI           => reduce 1 tokens to nonterminal_028 34.0
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, nonterminal_028 34.0)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 nonterminal_028 34.0))
 
 State 101:
      34.1:nonterminal_028 <= methodCall ^
@@ -2109,7 +2109,7 @@ State 101:
    Wisi_EOI           => reduce 1 tokens to nonterminal_028 34.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.1
+   Minimal_Complete_Actions => (1 nonterminal_028 34.1)
 
 State 102:
      30.1:expression <= expression DOT nonterminal_028 ^
@@ -2126,7 +2126,7 @@ State 102:
    Wisi_EOI           => reduce 3 tokens to expression 30.1
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.1
+   Minimal_Complete_Actions => (3 expression 30.1)
 
 State 103:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2161,7 +2161,7 @@ State 103:
    nonterminal_031    goto state 48
    nonterminal_032    goto state 49
 
-   Minimal_Complete_Action => expression 30.7
+   Minimal_Complete_Actions => (3 expression 30.7)
 
 State 104:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2196,7 +2196,7 @@ State 104:
    nonterminal_031    goto state 48
    nonterminal_032    goto state 49
 
-   Minimal_Complete_Action => expression 30.8
+   Minimal_Complete_Actions => (3 expression 30.8)
 
 State 105:
      31.4:primary <= typeType DOT CLASS ^
@@ -2213,7 +2213,7 @@ State 105:
    Wisi_EOI           => reduce 3 tokens to primary 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.4
+   Minimal_Complete_Actions => (3 primary 31.4)
 
 State 106:
      39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
@@ -2222,7 +2222,7 @@ State 106:
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
    default            => ERROR
 
-   Minimal_Complete_Action => LBRACK_RBRACK_list 39.0
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
 
 State 107:
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
@@ -2230,7 +2230,7 @@ State 107:
    RBRACK             => shift and goto state 150 39.1
    default            => ERROR
 
-   Minimal_Complete_Action => RBRACK 39.1
+   Minimal_Complete_Actions => (RBRACK 39.1)
 
 State 108:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -2247,7 +2247,7 @@ State 108:
    MOD                => reduce 3 tokens to primary 31.0
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.0
+   Minimal_Complete_Actions => (3 primary 31.0)
 
 State 109:
      30.4:expression <= LPAREN typeType RPAREN ^ expression
@@ -2275,7 +2275,7 @@ State 109:
    primitiveType      goto state 19
    nonterminal_030    goto state 36
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 110:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^
@@ -2292,7 +2292,7 @@ State 110:
    MOD                => reduce 3 tokens to methodCall 29.1
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.1
+   Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 111:
      28.1:expressionList <= expressionList ^ COMMA expression
@@ -2302,7 +2302,7 @@ State 111:
    COMMA              => shift and goto state 127 28.1
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 29.0
+   Minimal_Complete_Actions => (RPAREN 29.0)
 
 State 112:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2328,7 +2328,7 @@ State 112:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 113:
      34.2:nonterminal_028 <= THIS ^
@@ -2345,7 +2345,7 @@ State 113:
    MOD                => reduce 1 tokens to nonterminal_028 34.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.2
+   Minimal_Complete_Actions => (1 nonterminal_028 34.2)
 
 State 114:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -2365,7 +2365,7 @@ State 114:
    MOD                => reduce 1 tokens to nonterminal_028 34.0
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, nonterminal_028 34.0)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 nonterminal_028 34.0))
 
 State 115:
      34.1:nonterminal_028 <= methodCall ^
@@ -2382,7 +2382,7 @@ State 115:
    MOD                => reduce 1 tokens to nonterminal_028 34.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.1
+   Minimal_Complete_Actions => (1 nonterminal_028 34.1)
 
 State 116:
      30.1:expression <= expression DOT nonterminal_028 ^
@@ -2399,7 +2399,7 @@ State 116:
    MOD                => reduce 3 tokens to expression 30.1
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.1
+   Minimal_Complete_Actions => (3 expression 30.1)
 
 State 117:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2434,7 +2434,7 @@ State 117:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => expression 30.7
+   Minimal_Complete_Actions => (3 expression 30.7)
 
 State 118:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2469,7 +2469,7 @@ State 118:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => expression 30.8
+   Minimal_Complete_Actions => (3 expression 30.8)
 
 State 119:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2504,7 +2504,7 @@ State 119:
    nonterminal_031    goto state 48
    nonterminal_032    goto state 49
 
-   Minimal_Complete_Action => expression 30.4
+   Minimal_Complete_Actions => (4 expression 30.4)
 
 State 120:
      31.4:primary <= typeType DOT CLASS ^
@@ -2521,7 +2521,7 @@ State 120:
    MOD                => reduce 3 tokens to primary 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.4
+   Minimal_Complete_Actions => (3 primary 31.4)
 
 State 121:
      39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
@@ -2531,7 +2531,7 @@ State 121:
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
    default            => ERROR
 
-   Minimal_Complete_Action => LBRACK_RBRACK_list 39.0
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
 
 State 122:
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
@@ -2539,7 +2539,7 @@ State 122:
    RBRACK             => shift and goto state 154 39.1
    default            => ERROR
 
-   Minimal_Complete_Action => RBRACK 39.1
+   Minimal_Complete_Actions => (RBRACK 39.1)
 
 State 123:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2565,7 +2565,7 @@ State 123:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => RPAREN 31.0
+   Minimal_Complete_Actions => (RPAREN 31.0)
 
 State 124:
      30.4:expression <= LPAREN typeType ^ RPAREN expression
@@ -2575,7 +2575,7 @@ State 124:
    DOT                => shift and goto state 66 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 30.4
+   Minimal_Complete_Actions => (RPAREN 30.4)
 
 State 125:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN
@@ -2606,7 +2606,7 @@ State 125:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => RPAREN 29.1
+   Minimal_Complete_Actions => (RPAREN 29.1)
 
 State 126:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^
@@ -2623,7 +2623,7 @@ State 126:
    Wisi_EOI           => reduce 4 tokens to methodCall 29.0
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.0
+   Minimal_Complete_Actions => (4 methodCall 29.0)
 
 State 127:
      28.1:expressionList <= expressionList COMMA ^ expression
@@ -2651,7 +2651,7 @@ State 127:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 128:
      30.2:expression <= expression LBRACK ^ expression RBRACK
@@ -2679,7 +2679,7 @@ State 128:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 129:
      30.1:expression <= expression DOT ^ nonterminal_028
@@ -2691,7 +2691,7 @@ State 129:
    methodCall         goto state 163
    nonterminal_028    goto state 164
 
-   Minimal_Complete_Action => IDENTIFIER 29.0
+   Minimal_Complete_Actions => (IDENTIFIER 29.0)
 
 State 130:
      35.0:nonterminal_029 <= INC ^
@@ -2709,7 +2709,7 @@ State 130:
    MOD                => reduce 1 tokens to nonterminal_029 35.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.0
+   Minimal_Complete_Actions => (1 nonterminal_029 35.0)
 
 State 131:
      35.1:nonterminal_029 <= DEC ^
@@ -2727,7 +2727,7 @@ State 131:
    MOD                => reduce 1 tokens to nonterminal_029 35.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.1
+   Minimal_Complete_Actions => (1 nonterminal_029 35.1)
 
 State 132:
      30.5:expression <= expression nonterminal_029 ^
@@ -2745,7 +2745,7 @@ State 132:
    MOD                => reduce 2 tokens to expression 30.5
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.5
+   Minimal_Complete_Actions => (2 expression 30.5)
 
 State 133:
      30.7:expression <= expression nonterminal_031 ^ expression
@@ -2773,7 +2773,7 @@ State 133:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 134:
      30.8:expression <= expression nonterminal_032 ^ expression
@@ -2801,7 +2801,7 @@ State 134:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 135:
      31.4:primary <= typeType DOT ^ CLASS
@@ -2809,7 +2809,7 @@ State 135:
    CLASS              => shift and goto state 167 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => CLASS 31.4
+   Minimal_Complete_Actions => (CLASS 31.4)
 
 State 136:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2845,7 +2845,7 @@ State 136:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expression 30.6
+   Minimal_Complete_Actions => (2 expression 30.6)
 
 State 137:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2871,7 +2871,7 @@ State 137:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => RPAREN 31.0
+   Minimal_Complete_Actions => (RPAREN 31.0)
 
 State 138:
      30.4:expression <= LPAREN typeType ^ RPAREN expression
@@ -2881,7 +2881,7 @@ State 138:
    DOT                => shift and goto state 66 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 30.4
+   Minimal_Complete_Actions => (RPAREN 30.4)
 
 State 139:
      29.0:methodCall <= IDENTIFIER LPAREN ^ expressionList RPAREN
@@ -2912,7 +2912,7 @@ State 139:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => RPAREN 29.1
+   Minimal_Complete_Actions => (RPAREN 29.1)
 
 State 140:
      30.2:expression <= expression LBRACK ^ expression RBRACK
@@ -2940,7 +2940,7 @@ State 140:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 141:
      30.2:expression <= expression LBRACK expression RBRACK ^
@@ -2957,7 +2957,7 @@ State 141:
    Wisi_EOI           => reduce 4 tokens to expression 30.2
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.2
+   Minimal_Complete_Actions => (4 expression 30.2)
 
 State 142:
      30.1:expression <= expression DOT ^ nonterminal_028
@@ -2969,7 +2969,7 @@ State 142:
    methodCall         goto state 175
    nonterminal_028    goto state 176
 
-   Minimal_Complete_Action => IDENTIFIER 29.0
+   Minimal_Complete_Actions => (IDENTIFIER 29.0)
 
 State 143:
      35.0:nonterminal_029 <= INC ^
@@ -2986,7 +2986,7 @@ State 143:
    MOD                => reduce 1 tokens to nonterminal_029 35.0
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.0
+   Minimal_Complete_Actions => (1 nonterminal_029 35.0)
 
 State 144:
      35.1:nonterminal_029 <= DEC ^
@@ -3003,7 +3003,7 @@ State 144:
    MOD                => reduce 1 tokens to nonterminal_029 35.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_029 35.1
+   Minimal_Complete_Actions => (1 nonterminal_029 35.1)
 
 State 145:
      30.5:expression <= expression nonterminal_029 ^
@@ -3020,7 +3020,7 @@ State 145:
    MOD                => reduce 2 tokens to expression 30.5
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.5
+   Minimal_Complete_Actions => (2 expression 30.5)
 
 State 146:
      30.7:expression <= expression nonterminal_031 ^ expression
@@ -3048,7 +3048,7 @@ State 146:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 147:
      30.8:expression <= expression nonterminal_032 ^ expression
@@ -3076,7 +3076,7 @@ State 147:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 148:
      31.4:primary <= typeType DOT ^ CLASS
@@ -3084,7 +3084,7 @@ State 148:
    CLASS              => shift and goto state 179 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => CLASS 31.4
+   Minimal_Complete_Actions => (CLASS 31.4)
 
 State 149:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3119,7 +3119,7 @@ State 149:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => expression 30.6
+   Minimal_Complete_Actions => (2 expression 30.6)
 
 State 150:
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
@@ -3128,7 +3128,7 @@ State 150:
    DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
-   Minimal_Complete_Action => LBRACK_RBRACK_list 39.1
+   Minimal_Complete_Actions => (3 LBRACK_RBRACK_list 39.1)
 
 State 151:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3163,7 +3163,7 @@ State 151:
    nonterminal_031    goto state 63
    nonterminal_032    goto state 64
 
-   Minimal_Complete_Action => expression 30.4
+   Minimal_Complete_Actions => (4 expression 30.4)
 
 State 152:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^
@@ -3180,7 +3180,7 @@ State 152:
    MOD                => reduce 4 tokens to methodCall 29.0
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.0
+   Minimal_Complete_Actions => (4 methodCall 29.0)
 
 State 153:
      30.2:expression <= expression LBRACK expression RBRACK ^
@@ -3197,7 +3197,7 @@ State 153:
    MOD                => reduce 4 tokens to expression 30.2
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.2
+   Minimal_Complete_Actions => (4 expression 30.2)
 
 State 154:
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
@@ -3207,7 +3207,7 @@ State 154:
    DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
-   Minimal_Complete_Action => LBRACK_RBRACK_list 39.1
+   Minimal_Complete_Actions => (3 LBRACK_RBRACK_list 39.1)
 
 State 155:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -3225,7 +3225,7 @@ State 155:
    MOD                => reduce 3 tokens to primary 31.0
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.0
+   Minimal_Complete_Actions => (3 primary 31.0)
 
 State 156:
      30.4:expression <= LPAREN typeType RPAREN ^ expression
@@ -3253,7 +3253,7 @@ State 156:
    primitiveType      goto state 19
    nonterminal_030    goto state 85
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 157:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^
@@ -3271,7 +3271,7 @@ State 157:
    MOD                => reduce 3 tokens to methodCall 29.1
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.1
+   Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 158:
      28.1:expressionList <= expressionList ^ COMMA expression
@@ -3281,7 +3281,7 @@ State 158:
    COMMA              => shift and goto state 127 28.1
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 29.0
+   Minimal_Complete_Actions => (RPAREN 29.0)
 
 State 159:
      28.1:expressionList <= expressionList COMMA expression ^
@@ -3308,7 +3308,7 @@ State 159:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expressionList 28.1
+   Minimal_Complete_Actions => (3 expressionList 28.1)
 
 State 160:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3334,7 +3334,7 @@ State 160:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 161:
      34.2:nonterminal_028 <= THIS ^
@@ -3352,7 +3352,7 @@ State 161:
    MOD                => reduce 1 tokens to nonterminal_028 34.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.2
+   Minimal_Complete_Actions => (1 nonterminal_028 34.2)
 
 State 162:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -3373,7 +3373,7 @@ State 162:
    MOD                => reduce 1 tokens to nonterminal_028 34.0
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, nonterminal_028 34.0)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 nonterminal_028 34.0))
 
 State 163:
      34.1:nonterminal_028 <= methodCall ^
@@ -3391,7 +3391,7 @@ State 163:
    MOD                => reduce 1 tokens to nonterminal_028 34.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.1
+   Minimal_Complete_Actions => (1 nonterminal_028 34.1)
 
 State 164:
      30.1:expression <= expression DOT nonterminal_028 ^
@@ -3409,7 +3409,7 @@ State 164:
    MOD                => reduce 3 tokens to expression 30.1
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.1
+   Minimal_Complete_Actions => (3 expression 30.1)
 
 State 165:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3445,7 +3445,7 @@ State 165:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expression 30.7
+   Minimal_Complete_Actions => (3 expression 30.7)
 
 State 166:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3481,7 +3481,7 @@ State 166:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expression 30.8
+   Minimal_Complete_Actions => (3 expression 30.8)
 
 State 167:
      31.4:primary <= typeType DOT CLASS ^
@@ -3499,7 +3499,7 @@ State 167:
    MOD                => reduce 3 tokens to primary 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.4
+   Minimal_Complete_Actions => (3 primary 31.4)
 
 State 168:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -3516,7 +3516,7 @@ State 168:
    MOD                => reduce 3 tokens to primary 31.0
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.0
+   Minimal_Complete_Actions => (3 primary 31.0)
 
 State 169:
      30.4:expression <= LPAREN typeType RPAREN ^ expression
@@ -3544,7 +3544,7 @@ State 169:
    primitiveType      goto state 19
    nonterminal_030    goto state 98
 
-   Minimal_Complete_Action => THIS 31.1
+   Minimal_Complete_Actions => (THIS 31.1)
 
 State 170:
      29.1:methodCall <= IDENTIFIER LPAREN RPAREN ^
@@ -3561,7 +3561,7 @@ State 170:
    MOD                => reduce 3 tokens to methodCall 29.1
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.1
+   Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 171:
      28.1:expressionList <= expressionList ^ COMMA expression
@@ -3571,7 +3571,7 @@ State 171:
    COMMA              => shift and goto state 127 28.1
    default            => ERROR
 
-   Minimal_Complete_Action => RPAREN 29.0
+   Minimal_Complete_Actions => (RPAREN 29.0)
 
 State 172:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3597,7 +3597,7 @@ State 172:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => 
+   Minimal_Complete_Actions => 
 
 State 173:
      34.2:nonterminal_028 <= THIS ^
@@ -3614,7 +3614,7 @@ State 173:
    MOD                => reduce 1 tokens to nonterminal_028 34.2
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.2
+   Minimal_Complete_Actions => (1 nonterminal_028 34.2)
 
 State 174:
      29.0:methodCall <= IDENTIFIER ^ LPAREN expressionList RPAREN
@@ -3634,7 +3634,7 @@ State 174:
    MOD                => reduce 1 tokens to nonterminal_028 34.0
    default            => ERROR
 
-   Minimal_Complete_Action => (LPAREN 29.0, nonterminal_028 34.0)
+   Minimal_Complete_Actions => ((LPAREN 29.0), (1 nonterminal_028 34.0))
 
 State 175:
      34.1:nonterminal_028 <= methodCall ^
@@ -3651,7 +3651,7 @@ State 175:
    MOD                => reduce 1 tokens to nonterminal_028 34.1
    default            => ERROR
 
-   Minimal_Complete_Action => nonterminal_028 34.1
+   Minimal_Complete_Actions => (1 nonterminal_028 34.1)
 
 State 176:
      30.1:expression <= expression DOT nonterminal_028 ^
@@ -3668,7 +3668,7 @@ State 176:
    MOD                => reduce 3 tokens to expression 30.1
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.1
+   Minimal_Complete_Actions => (3 expression 30.1)
 
 State 177:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3703,7 +3703,7 @@ State 177:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => expression 30.7
+   Minimal_Complete_Actions => (3 expression 30.7)
 
 State 178:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3738,7 +3738,7 @@ State 178:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => expression 30.8
+   Minimal_Complete_Actions => (3 expression 30.8)
 
 State 179:
      31.4:primary <= typeType DOT CLASS ^
@@ -3755,7 +3755,7 @@ State 179:
    MOD                => reduce 3 tokens to primary 31.4
    default            => ERROR
 
-   Minimal_Complete_Action => primary 31.4
+   Minimal_Complete_Actions => (3 primary 31.4)
 
 State 180:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3791,7 +3791,7 @@ State 180:
    nonterminal_031    goto state 133
    nonterminal_032    goto state 134
 
-   Minimal_Complete_Action => expression 30.4
+   Minimal_Complete_Actions => (4 expression 30.4)
 
 State 181:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^
@@ -3809,7 +3809,7 @@ State 181:
    MOD                => reduce 4 tokens to methodCall 29.0
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.0
+   Minimal_Complete_Actions => (4 methodCall 29.0)
 
 State 182:
      30.2:expression <= expression LBRACK expression RBRACK ^
@@ -3827,7 +3827,7 @@ State 182:
    MOD                => reduce 4 tokens to expression 30.2
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.2
+   Minimal_Complete_Actions => (4 expression 30.2)
 
 State 183:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3862,7 +3862,7 @@ State 183:
    nonterminal_031    goto state 146
    nonterminal_032    goto state 147
 
-   Minimal_Complete_Action => expression 30.4
+   Minimal_Complete_Actions => (4 expression 30.4)
 
 State 184:
      29.0:methodCall <= IDENTIFIER LPAREN expressionList RPAREN ^
@@ -3879,7 +3879,7 @@ State 184:
    MOD                => reduce 4 tokens to methodCall 29.0
    default            => ERROR
 
-   Minimal_Complete_Action => methodCall 29.0
+   Minimal_Complete_Actions => (4 methodCall 29.0)
 
 State 185:
      30.2:expression <= expression LBRACK expression RBRACK ^
@@ -3896,7 +3896,7 @@ State 185:
    MOD                => reduce 4 tokens to expression 30.2
    default            => ERROR
 
-   Minimal_Complete_Action => expression 30.2
+   Minimal_Complete_Actions => (4 expression 30.2)
 
 180 states with minimal_complete_actions; 190 total minimal_complete_actions.
 
