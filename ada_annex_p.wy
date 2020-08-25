@@ -214,6 +214,13 @@ tick : TICK_1 | TICK_2 ;
 ;; keyword to follow.
 %mckenzie_cost_insert END 3
 
+;; Ada 2020 syntax caused a drastic increase in recursion, which
+;; increased the number of parse states with no Minimal_Complete
+;; action. So we reduce the cost of ';' and '=>' to compensate; see
+;; test/ada_mode-recover_partial_26.
+%mckenzie_cost_insert SEMICOLON 3
+%mckenzie_cost_insert EQUAL_GREATER 3
+
 ;; This cost is applied once, independent of token count.
 %mckenzie_cost_matching_begin 3
 
@@ -1118,7 +1125,7 @@ assignment_statement
                            ada-indent-broken
                            (wisi-hanging
                             (wisi-anchored% 2 ada-indent-broken)
-                            (wisi-anchored% 3 ada-indent-broken))
+                            (wisi-anchored% 2 ada-indent-broken))
                            ada-indent-broken]))%
   ;
 

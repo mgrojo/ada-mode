@@ -186,6 +186,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
          Result.McKenzie_Disable     := Get_Integer (Command_Line, Last);
          Result.Task_Count           := Get_Integer (Command_Line, Last);
+         Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
          Result.Check_Limit          := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
          Result.Max_Parallel         := Get_Integer (Command_Line, Last);
@@ -336,6 +337,9 @@ package body Emacs_Wisi_Common_Parse is
 
                   if Params.Task_Count > 0 then
                      Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
+                  end if;
+                  if Params.Zombie_Limit > 0 then
+                     Parser.Table.McKenzie_Param.Zombie_Limit := Base_Token_Index (Params.Zombie_Limit);
                   end if;
                   if Params.Check_Limit > 0 then
                      Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Params.Check_Limit);

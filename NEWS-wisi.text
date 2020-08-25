@@ -9,7 +9,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 * wisi ?
 ?
 
-** parser process protocol version 6
+** parser process protocol version 6 (add zombie_limit, branched_tree_limit)
 
 ** The algorithm for naming conflicts is now more accurate, and the
    format of the %conflict declaration has changed. The old format is

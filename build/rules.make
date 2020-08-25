@@ -156,6 +156,7 @@ exe-clean ::
 	rm -f ../ada_mode_wisi_parse.gpr ../wisi.gpr
 	rm -rf ../run_ada_*_parse$(EXE_EXT)
 	rm -rf ../run_gpr_parse$(EXE_EXT)
+	rm -rf ../dump_*_corrected$(EXE_EXT)
 
 profile-clean ::
 	rm -rf ../exec_pro ../obj_pro

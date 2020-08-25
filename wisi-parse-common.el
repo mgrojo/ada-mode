@@ -261,23 +261,34 @@ value from grammar file."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-task-count)
 
+(defcustom wisi-mckenzie-zombie-limit nil
+  "If integer, overrides %mckenzie_zombie_limit.
+This sets the number of tokens past the error point that other
+parsers accept before the error parser is terminated.  Higher
+value gives better solutions, but may cause too many parsers to
+be active at once.  If nil, uses %mckenzie_zombie_limit value from grammar file."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+(make-variable-buffer-local 'wisi-mckenzie-check-limit)
+
 (defcustom wisi-mckenzie-check-limit nil
-  "If integer, sets McKenzie error recovery algorithm token check limit.
+  "If integer, overrides %mckenzie_check_limit.
 This sets the number of tokens past the error point that must be
 parsed successfully for a solution to be deemed successful.
 Higher value gives better solutions, but may fail if there are
-two errors close together.  If nil, uses value from grammar
-file."
+two errors close together.  If nil, uses %mckenzie_check_limit
+value from grammar file."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-check-limit)
 
 (defcustom wisi-mckenzie-enqueue-limit nil
-  "If integer, sets McKenzie error recovery algorithm enqueue limit.
+  "If integer, overrides %mckenzie_enqueue_limit.
 This sets the maximum number of solutions that will be considered.
 Higher value has more recover power, but will be slower to fail.
-If nil, uses value from grammar file."
+If nil, uses %mckenzie_enqueue_limit value from grammar file."
   :type 'integer
   :group 'wisi
   :safe 'integerp)

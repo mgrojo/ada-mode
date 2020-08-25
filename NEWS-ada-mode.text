@@ -9,9 +9,9 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 * Ada Mode ?
 ?
 
-** Indentation of 'is' and 'with' in abstract subprogram specification
-   is now consistent with non-abstract subprogram specification and
-   expression function.
+** Indentation of 'is' and 'with' in null and abstract subprogram
+   specification is now consistent with non-abstract subprogram
+   specification and expression function.
 
 * Ada Mode 7.1.4
 07 Aug 2020
