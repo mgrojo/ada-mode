@@ -266,7 +266,7 @@ package body Wisi is
       Left_Paren_ID  : Token_ID renames Data.Left_Paren_ID;
       Right_Paren_ID : Token_ID renames Data.Right_Paren_ID;
 
-      I : Syntax_Trees.Node_Access := Anchor_Token;
+      I : Syntax_Trees.Node_Access := Tree.First_Terminal (Anchor_Token);
 
       Paren_Count    : Integer    := 0;
       Paren_Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
@@ -275,20 +275,20 @@ package body Wisi is
       Find_First :
       loop
          declare
-            Tok : constant Augmented_Token := Get_Augmented_Token (Tree, I);
+            Tok : constant Base_Token := Tree.Base_Token (I);
          begin
-            if Tok.Base.ID = Left_Paren_ID then
+            if Tok.ID = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
                if Paren_Count = 1 then
-                  Paren_Char_Pos := Tok.Base.Char_Region.First;
+                  Paren_Char_Pos := Tok.Char_Region.First;
                end if;
 
-            elsif Tok.Base.ID = Right_Paren_ID then
+            elsif Tok.ID = Right_Paren_ID then
                Paren_Count := Paren_Count - 1;
             end if;
 
-            if First (Data, Tok.Base) then
-               Text_Begin_Pos := Tok.Base.Char_Region.First;
+            if First (Data, Tok) then
+               Text_Begin_Pos := Tok.Char_Region.First;
                exit Find_First;
             end if;
          end;
@@ -370,6 +370,10 @@ package body Wisi is
             --  We can easily get negative indents when there are syntax errors.
             Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
          begin
+            if Debug_Mode and Ind > 100 then
+               --  This is better than hanging Emacs by returning a huge bogus indent.
+               raise SAL.Programmer_Error with "indent > 100";
+            end if;
             Ada.Text_IO.Put_Line
               ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
          end;
@@ -413,20 +417,15 @@ package body Wisi is
          Append (Line, "[");
       end Start_Edit_Region;
 
-      function Deleted_Region_Image return String
-      is begin
-         return "(" & Deleted_Region.First'Image & " . " & Buffer_Pos'Image (Deleted_Region.Last + 1) & ")";
-      end Deleted_Region_Image;
-
       procedure Terminate_Edit_Region
       is begin
          case State is
          when None =>
             null;
          when Inserted =>
-            Append (Line, "][]" & Deleted_Region_Image & "]");
+            Append (Line, "][]" & Image (Deleted_Region) & "]");
          when Deleted =>
-            Append (Line, "]" & Deleted_Region_Image & "]");
+            Append (Line, "]" & Image (Deleted_Region) & "]");
          end case;
          Deleted_Region := Null_Buffer_Region;
       end Terminate_Edit_Region;
@@ -854,7 +853,7 @@ package body Wisi is
      (Data            : in out Parse_Data_Type;
       Tree            : in out Syntax_Trees.Tree'Class;
       Inserted_Token  : in     Syntax_Trees.Valid_Node_Access;
-      Inserted_Before : in     Syntax_Trees.Node_Access)
+      Inserted_Before : in     Syntax_Trees.Valid_Node_Access)
    is
       use all type Syntax_Trees.Node_Access;
 
@@ -1216,12 +1215,11 @@ package body Wisi is
                         use Navigate_Cache_Trees;
                         Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
 
-                        First_Terminal : constant Base_Token := Tree.Base_Token (Tree.First_Shared_Terminal (Nonterm));
-                        Last_Terminal  : constant Base_Token := Tree.Base_Token (Tree.Last_Shared_Terminal (Nonterm));
+                        Nonterm_Tok : constant Base_Token := Tree.Base_Token (Nonterm);
 
                         Cursor : Navigate_Cache_Trees.Cursor := Find_In_Range
-                          (Iterator, Ascending, First_Terminal.Char_Region.First + 1, -- don't set containing on start
-                           First_Terminal.Char_Region.Last);
+                          (Iterator, Ascending, Nonterm_Tok.Char_Region.First + 1, -- don't set containing on start
+                           Nonterm_Tok.Char_Region.Last);
                      begin
                         loop
                            exit when not Has_Element (Cursor);
@@ -1230,8 +1228,13 @@ package body Wisi is
                            begin
                               if not Cache.Containing_Pos.Set then
                                  Cache.Containing_Pos := Containing_Pos;
+                                 if WisiToken.Trace_Action > Detail then
+                                    Ada.Text_IO.Put_Line
+                                      ("   " & Cache.Pos'Image & " containing to " & Image
+                                           (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
+                                 end if;
                               end if;
-                              exit when Last_Terminal.Char_Region.Last < Cache.Pos + 1;
+                              exit when Nonterm_Tok.Char_Region.Last < Cache.Pos + 1;
                            end;
                            Cursor := Iterator.Next (Cursor);
                         end loop;
@@ -1884,7 +1887,6 @@ package body Wisi is
          end loop;
 
       when Indent =>
-
          Resolve_Anchors (Data);
 
          if Trace_Action > Outline then

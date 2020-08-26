@@ -23,6 +23,7 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Text_IO;
+with GNAT.Traceback.Symbolic;
 with SAL;
 with System.Multiprocessors;
 with WisiToken.Syntax_Trees;
@@ -355,6 +356,11 @@ package body Run_Wisi_Common_Parse is
       Put_Line
         ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
            Ada.Exceptions.Exception_Message (E) & """)");
+
+      if WisiToken.Debug_Mode then
+         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+         Parser.Trace.New_Line;
+      end if;
    end Parse_File;
 
 end Run_Wisi_Common_Parse;

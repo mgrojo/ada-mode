@@ -300,6 +300,7 @@ package body Emacs_Wisi_Common_Parse is
                         Parse_Data.Put
                           (Parser.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
+                           Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                            Parser.Tree);
                      end if;
                      Ada.Strings.Unbounded.Free (Buffer);
@@ -403,6 +404,7 @@ package body Emacs_Wisi_Common_Parse is
                         Parse_Data.Put
                           (Parser.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
+                           Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                            Parser.Tree);
                      end if;
                      Ada.Strings.Unbounded.Free (Buffer);
