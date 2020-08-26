@@ -670,7 +670,7 @@ begin
                      WisiToken.Generate.LR.Put_Text_Rep
                        (Generate_Data.LR_Parse_Table.all,
                         Text_Rep_File_Name
-                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present),
+                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main),
                         Generate_Data.Action_Names.all, Generate_Data.Check_Names.all);
                   end if;
 
