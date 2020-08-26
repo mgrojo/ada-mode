@@ -1059,10 +1059,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                      case Actions.Length is
                      when 0 =>
-                        if Trace_McKenzie > Extra then
+                        if Trace_McKenzie > Detail then
                            Put_Line
                              (Super.Trace.all, Super.Label (Parser_Index),
-                              "Minimal_Complete_Actions abandoned: no actions");
+                              "Minimal_Complete_Actions state" & Item.Config.Stack.Peek.State'Image &
+                                " abandoned: no actions");
                         end if;
                         exit;
                      when 1 =>

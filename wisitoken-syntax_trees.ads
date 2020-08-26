@@ -139,13 +139,14 @@ package WisiToken.Syntax_Trees is
    function Insert_After
      (User_Data            : in out User_Data_Type;
       Tree                 : in     Syntax_Trees.Tree'Class;
-      Token                : in     Valid_Node_Index;
+      Insert_Token         : in     Valid_Node_Index;
+      Insert_Before_Token  : in     Valid_Node_Index;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
-   --  Return True if ID should be treated as if inserted after the
-   --  previous shared terminal, rather than before the next (which is
-   --  the default). This can affect which line it appears on, which
-   --  affects indentation. Called from Insert_Token.
+   --  Return True if Insert_Token should be treated as if inserted after
+   --  the previous shared terminal, rather than before
+   --  Insert_Before_Token. This can affect which line it appears on,
+   --  which affects indentation. Called from Insert_Token.
    --
    --  The default implementation always returns False.
 

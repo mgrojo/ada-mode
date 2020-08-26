@@ -109,7 +109,7 @@ private
    procedure Delete_Check
      (Terminals : in     Base_Token_Arrays.Vector;
       Config    : in out Configuration;
-      Index     : in out     WisiToken.Token_Index;
+      Index     : in out WisiToken.Token_Index;
       ID        : in     Token_ID);
    --  Check that Terminals (Index) = ID. Append a Delete op to
    --  Config.Ops, and insert it in Config.Insert_Delete in token_index

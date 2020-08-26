@@ -157,6 +157,14 @@ package body WisiToken.Parse.LR is
         Item.Reduce_Count'Image & ")";
    end Strict_Image;
 
+   function Image (Item : in Kernel_Info; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      return "(" & Image (Item.Production, Descriptor) & ", " &
+        Item.Length_After_Dot'Image & ", " &
+        Image (Item.Reduce_Production, Descriptor) & ", " &
+        Item.Reduce_Count'Image & ")";
+   end Image;
+
    function Strict_Image (Item : in Minimal_Action) return String
    is begin
       case Item.Verb is

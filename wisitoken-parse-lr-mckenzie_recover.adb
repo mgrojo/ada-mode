@@ -457,23 +457,33 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  See test_mckenzie_recover.adb Extra_Begin for an example of Undo_Reduce
                               --  after other ops.
                               if Stack_Matches_Ops then
-                                 if not (Tree.Is_Nonterm (Stack.Peek.Token) and
-                                           (I = First_Index (Result.Ops) or else
-                                              Push_Back_Valid
-                                                (Tree.First_Shared_Terminal (Stack.Peek.Token), Result.Ops, I - 1)))
-                                 then
-                                    pragma Assert (False);
-                                    if Trace_McKenzie > Outline then
-                                       Put_Line
-                                         (Trace, Parser_State.Label, "invalid Undo_Reduce in apply config",
-                                          Task_ID => False);
-                                    end if;
-                                    raise Bad_Config;
-                                 end if;
 
-                                 for C of Tree.Children (Stack.Pop.Token) loop
-                                    Stack.Push ((Tree.State (C), C));
-                                 end loop;
+                                 --  We can't use McKenzie_Recover.Undo_Reduce_Valid here; that takes a
+                                 --  Config stack, not a parser stack. So we duplicate it.
+                                 declare
+                                    Undo_Reduce_Valid_1 : constant Boolean :=
+                                      Stack.Depth > 1 and then
+                                      Stack.Peek.Token /= Invalid_Node_Index and then
+                                      Tree.Is_Nonterm (Stack.Peek.Token);
+
+                                    Push_Back_Valid_1 : constant Boolean := I = 1 or else
+                                      Push_Back_Valid
+                                        (Tree.First_Shared_Terminal (Stack.Peek.Token), Result.Ops, I - 1);
+                                 begin
+                                    if not (Undo_Reduce_Valid_1 and Push_Back_Valid_1) then
+                                       pragma Assert (False);
+                                       if Trace_McKenzie > Outline then
+                                          Put_Line
+                                            (Trace, Parser_State.Label, "invalid Undo_Reduce in apply config",
+                                             Task_ID => False);
+                                       end if;
+                                       raise Bad_Config;
+                                    end if;
+
+                                    for C of Tree.Children (Stack.Pop.Token) loop
+                                       Stack.Push ((Tree.State (C), C));
+                                    end loop;
+                                 end;
                               end if;
 
                            when Push_Back =>
@@ -666,7 +676,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    is begin
-      pragma Assert (ID = Expected_ID, Token_ID'Image (ID) & " /=" & Token_ID'Image (Expected_ID));
+      if ID /= Expected_ID then
+         raise Bad_Config with ID'Image & " /=" & Expected_ID'Image;
+      end if;
    end Check;
 
    function Current_Token

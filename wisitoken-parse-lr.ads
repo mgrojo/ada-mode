@@ -149,6 +149,10 @@ package WisiToken.Parse.LR is
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
+   --  Ada positional aggregate, for code generation
+
+   function Image (Item : in Kernel_Info; Descriptor : in WisiToken.Descriptor) return String;
+   --  For debug
 
    type Kernel_Info_Array is array (Ada.Containers.Count_Type range <>) of Kernel_Info;
    package Kernel_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors

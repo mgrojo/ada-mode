@@ -129,11 +129,12 @@ package WisiToken.BNF is
      (File_Name_Root      : in String;
       Tuple               : in Generate_Tuple;
       Generate_Task_Count : in System.Multiprocessors.CPU_Range;
-      If_Lexer_Present    : in Boolean)
+      If_Lexer_Present    : in Boolean;
+      Test_Main           : in Boolean)
      return String
    is (File_Name_Root & "_" &
          Ada.Characters.Handling.To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
-         (if Tuple.Gen_Alg = LR1
+         (if Tuple.Gen_Alg = LR1 and Test_Main
           then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
           else "") &
          (if If_Lexer_Present

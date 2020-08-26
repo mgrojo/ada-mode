@@ -800,6 +800,10 @@ package body WisiToken.Generate.LR is
       end Length_After_Dot;
 
    begin
+      if Trace_Generate_Minimal_Complete > Detail then
+         Ada.Text_IO.Put_Line ("State" & Kernel.Tree_Node.State'Image);
+      end if;
+
       if Kernel.Tree_Node.State = 0 then
          --  State 0 has dot before all tokens, which is never needed in the
          --  Minimal_Complete_Action algorithm.
@@ -873,6 +877,8 @@ package body WisiToken.Generate.LR is
                        Nullable (Reduce_Production.LHS) /= Invalid_Production_ID)
                      then 0
                      else Grammar (Reduce_Production.LHS).RHSs (Reduce_Production.RHS).Tokens.Length));
+
+               Case_Label : Integer; --  for debugging
             begin
                --  Here we must compute Item_State (I).Label and .Minimal_Action,
                --  considering recursion.
@@ -1000,6 +1006,7 @@ package body WisiToken.Generate.LR is
 
                if Item_States'Length = 1 then
                   --  case 0
+                  Case_Label := 0;
                   Item_States (I) :=
                     (Keep_Always,
                      (if Length_After_Dot = 0
@@ -1009,9 +1016,11 @@ package body WisiToken.Generate.LR is
                elsif Length_After_Dot = 0 then
                   if Item.Dot /= No_Index and RHS.Recursion (1) in Direct_Left | Other_Left then
                      --  case 2
+                     Case_Label := 2;
                      Item_States (I) := (Label => Drop);
                   else
                      --  case 1
+                     Case_Label := 1;
                      Item_States (I) :=
                        (Label          => Keep_Always,
                         Minimal_Action => (Reduce, Reduce_Production, Reduce_Count));
@@ -1019,10 +1028,12 @@ package body WisiToken.Generate.LR is
 
                elsif RHS.Recursion (1) in Direct_Left | Other_Left then
                   --  case 2
+                  Case_Label := 2;
                   Item_States (I) := (Label => Drop);
 
                else
                   --  case 3
+                  Case_Label := 3;
                   Item_States (I) := (Keep_If_Minimal, Compute_Action (Dot_ID));
                end if;
 
@@ -1039,11 +1050,11 @@ package body WisiToken.Generate.LR is
                   end if;
                end if;
 
-               if Trace_Generate_Minimal_Complete > Extra then
+               if Trace_Generate_Minimal_Complete > Detail then
                   Ada.Text_IO.Put_Line
-                    ("kernel" & I'Image & " " & Strict_Image (State.Kernel (I)) &
-                       " ; " & Item_States (I).Label'Image &
-                       " " & State.Kernel (I).Length_After_Dot'Image);
+                    ("kernel" & I'Image & " " & Image (State.Kernel (I), Descriptor) &
+                       " " & Item_States (I).Label'Image & ": " & Image (RHS.Recursion (1)) &
+                       " case" & Case_Label'Image);
                end if;
 
                if I < Kernel_Index'Last then
