@@ -44,22 +44,6 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 run all tests
-    test/ada_mode-partial_parse_indent_begin.adb:25 bad indent
-    test/ada_mode-recover_35.adb fail programmer_error
-
-./ada_mode-debbugs_36548.adb.diff recover change; ok, could be fixed. worse in .s-6
-./ada_mode-recover_02.adb.diff bad
-./ada_mode-recover_03.adb.diff ok? chaotic result
-./ada_mode-recover_13.adb.diff bad; insert ; on prev line, not before 'begin'
-./ada_mode-recover_20.adb.diff ok?
-./ada_mode-recover_24.adb.diff ok?
-./ada_mode-recover_29.adb.diff ok?
-./ada_mode-recover_indent_1.adb.diff bad
-./ada_mode-recover_partial_03.adb.diff bad
-./ada_mode-recover_repair_2.adb.diff ok? extra statement in repair
-./format_paramlist.adb.diff really bad
-
-
 ada_annex_p.wy
     try to reduce recursion in name?
 

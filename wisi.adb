@@ -904,6 +904,9 @@ package body Wisi is
 
       Insert_After : Boolean := False;
    begin
+      if WisiToken.Trace_Action > WisiToken.Detail then
+         Ada.Text_IO.Put_Line (";; insert token " & Tree.Image (Token, Data.Descriptor.all));
+      end if;
       Tree.Set_Augmented (Token, Base_Token_Class_Access (New_Aug));
 
       Append (Before_Aug.Inserted_Before, Token);
@@ -941,7 +944,8 @@ package body Wisi is
             --  True (see test/ada_mode-interactive_2.adb Record_1), so Insert_After
             --  needs Insert_On_Blank_Line.
          begin
-            Insert_After := Parse_Data_Type'Class (Data).Insert_After (Tree, Token, Insert_On_Blank_Line);
+            Insert_After := Parse_Data_Type'Class (Data).Insert_After
+              (Tree, Token, Data.Terminals.all (Before_Index).Tree_Index, Insert_On_Blank_Line);
 
             if Insert_After then
                if Insert_On_Blank_Line then

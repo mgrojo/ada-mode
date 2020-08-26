@@ -21,9 +21,13 @@ is
 
    end Foo;
 
-   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-   --EMACSRESULT: 3
+   -- indent-newline-indent after 'begin' indents 'begin' incorrectly;
+   -- don't do that. Insert newline at beginning of next line.
 begin
+
+   --EMACSCMD:(progn (beginning-of-line 1)(delete-char -1)(wisi-indent-newline-indent)(current-column))
+   --EMACSRESULT: 3
+
 
    --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
    --EMACSRESULT: 3

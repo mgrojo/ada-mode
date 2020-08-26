@@ -521,7 +521,8 @@ package body Wisi.Ada is
    overriding function Insert_After
      (User_Data            : in out Parse_Data_Type;
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
-      Token                : in     WisiToken.Valid_Node_Index;
+      Insert_Token         : in     WisiToken.Valid_Node_Index;
+      Insert_Before_Token  : in     WisiToken.Valid_Node_Index;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
@@ -541,7 +542,8 @@ package body Wisi.Ada is
       --
       --  COLON is similar to RIGHT_PAREN.
 
-      ID : constant Token_ID := Tree.ID (Token);
+      Insert_ID        : constant Token_ID := Tree.ID (Insert_Token);
+      Insert_Before_ID : constant Token_ID := Tree.ID (Insert_Before_Token);
 
       Result : constant array (Ada_Process_Actions.Token_Enum_ID) of Boolean :=
         (BEGIN_ID |         -- test/ada_mode-recover_exception_1.adb, test/ada_mode-recover_extra_declare.adb
@@ -553,19 +555,26 @@ package body Wisi.Ada is
                 => True,
          others => False);
    begin
-      case To_Token_Enum (ID) is
-      when CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID =>
-         return -Tree.ID (Tree.Prev_Terminal (Token)) = END_ID;
-
-      when END_ID =>
-         --  test/ada_mode-recover_20.adb, test/ada_mode-interactive_2.adb Record_1.
-         return not Insert_On_Blank_Line;
-
-      when IDENTIFIER_ID =>
-         return -Tree.ID (Tree.Prev_Terminal (Token)) in END_ID | COLON_ID;
+      case To_Token_Enum (Insert_Before_ID) is
+      when BEGIN_ID | DECLARE_ID | PACKAGE_ID | PROCEDURE_ID | FUNCTION_ID |
+        END_ID => -- test/ada_mode-recover_37.adb
+         return True;
 
       when others =>
-         return Result (-ID);
+         case To_Token_Enum (Insert_ID) is
+         when CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID =>
+            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID;
+
+         when END_ID =>
+            --  test/ada_mode-recover_20.adb, test/ada_mode-interactive_2.adb Record_1.
+            return not Insert_On_Blank_Line;
+
+         when IDENTIFIER_ID =>
+            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) in END_ID | COLON_ID;
+
+         when others =>
+            return Result (-Insert_ID);
+         end case;
       end case;
    end Insert_After;
 

@@ -73,7 +73,8 @@ package Wisi.Ada is
    function Insert_After
      (User_Data            : in out Parse_Data_Type;
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
-      Token                : in     WisiToken.Valid_Node_Index;
+      Insert_Token         : in     WisiToken.Valid_Node_Index;
+      Insert_Before_Token  : in     WisiToken.Valid_Node_Index;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
 

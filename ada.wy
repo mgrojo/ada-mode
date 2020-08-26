@@ -249,8 +249,8 @@
 ;; Ada 2020 syntax caused a drastic increase in recursion, which
 ;; increased the number of parse states with no Minimal_Complete
 ;; action. So we reduce the cost of ';' and '=>' to compensate; see
-;; test/ada_mode-recover_partial_26.
-%mckenzie_cost_insert SEMICOLON 3
+;; test/ada_mode-recover_partial_26, test/ada_mode-recover_indent_1.adb.
+%mckenzie_cost_insert SEMICOLON 2
 %mckenzie_cost_insert EQUAL_GREATER 3
 
 ;; This cost is applied once, independent of token count.

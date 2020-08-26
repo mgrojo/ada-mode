@@ -13,6 +13,14 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
    specification is now consistent with non-abstract subprogram
    specification and expression function.
 
+** Indentation of comment in subprogram body after param_list before
+   'is' matches subprogram spec;
+
+   procedure Foo
+     (A : in Integer)
+   --  Computes stuff
+   is ...
+
 * Ada Mode 7.1.4
 07 Aug 2020
 
