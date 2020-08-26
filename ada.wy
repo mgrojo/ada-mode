@@ -246,6 +246,13 @@
 ;; keyword to follow.
 %mckenzie_cost_insert END 3
 
+;; Ada 2020 syntax caused a drastic increase in recursion, which
+;; increased the number of parse states with no Minimal_Complete
+;; action. So we reduce the cost of ';' and '=>' to compensate; see
+;; test/ada_mode-recover_partial_26, test/ada_mode-recover_indent_1.adb.
+%mckenzie_cost_insert SEMICOLON 2
+%mckenzie_cost_insert EQUAL_GREATER 3
+
 ;; This cost is applied once, independent of token count.
 %mckenzie_cost_matching_begin 3
 
@@ -514,7 +521,7 @@ assignment_statement
                            ada-indent-broken
                            (wisi-hanging
                             (wisi-anchored% 2 ada-indent-broken)
-                            (wisi-anchored% 3 ada-indent-broken))
+                            (wisi-anchored% 2 ada-indent-broken))
                            ada-indent-broken]))%
   ;
 
@@ -1748,8 +1755,9 @@ null_exclusion_opt_name_type
 
 null_procedure_declaration
   : overriding_indicator_opt procedure_specification IS NULL aspect_specification_opt SEMICOLON
+    ;; indent IS, WITH consistent with expression_function
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil nil nil ada-indent-broken nil ada-indent-broken]))%
   ;
 
 object_declaration

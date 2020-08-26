@@ -6,19 +6,19 @@ procedure Ada_Mode.Recover_3 is
    is
       Node_Id : Token_Id renames
 
-      begin
+   begin
       return Node.Id = Id;
    end Process;
 
    function Process_1 return Boolean
    is
       Node_Id : Token_Id
-      -- missing '<identifier> ;' after renames. There are two solutions
-      -- here; 'delete renames, insert ;' and 'insert <<identifier> ;'. They
-      -- give different indents; one is chosen at random, which makes the
-      -- indent change with small changes in code.
+        -- missing '<identifier> ;' after renames. There are two solutions
+        -- here; 'delete renames, insert ;' and 'insert <<identifier> ;'. They
+        -- give different indents; one is chosen at random, which makes the
+        -- indent change with small changes in code.
 
-   renames begin
+        renames begin
       return Node.Id = Id;
    end Process_1;
 

@@ -66,6 +66,10 @@ in debug.adb, getting fail_enqueue_limit in mckenzie_recover at wisi_eoi
 
     run benchmarks
 
+run all tests
+ada_annex_p.wy
+    try to reduce recursion in name?
+
 wisi.texi
     $FOO only sees vars defined in the current project
         workaround:
@@ -125,9 +129,6 @@ need better homepage for wisi
     populate Savannah 'docs' page?
     set savannah devel status to 'in production'
 
-dos2unix takes a long time on lr1_parse_table.txt
-    change put_text_rep to use stream_io, do correct line ending.
-
 indent bugs
     State.Kernel (I) :=
       (Production        => Item.Prod,
@@ -148,6 +149,9 @@ indent bugs
         test/ada_mode-recover_30.adb
             comment after aspect_specification in subprogram_body
                 should be indented with 'is'
+
+Don't put name properties - just accum completion list. Set name prop only for which func, add-log - in small region.
+    More detailed parse-action?
 
 Separate set of McKenzie params for face parse
 
@@ -314,10 +318,13 @@ align region too large:
 
 libadalang/lsp backend
     o.e.a.stephe-4 on Debian, for gnatpro 20
-    use ada_language_server via lsp
+    use ada_language_server via lsp?
 
     gnu elpa eglot
         eglot-x has extended xref for ccls server
+
+    lsp can't do grammar actions or org source blocks; no associated file!
+        eglot issue #523
 
     https://github.com/microsoft/language-server-protocol/issues/18 semantic info for highlight = face
 

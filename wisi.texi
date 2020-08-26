@@ -266,7 +266,7 @@ stored in Emacs text properties.
 
 @item wisi-name-action TOKEN
 TOKEN is a token index. Create a @code{wisi-name} text property on the
-token.
+the @code{char_region} of the token.
 
 @end table
 

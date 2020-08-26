@@ -45,7 +45,7 @@ endif
 #export Standard_Common_Build := Debug
 #export Gnatcoll_Build := Debug
 
-elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
+elisp : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
 
 pub : docs pub-ada pub-wisi pub-ada-ref-man clean-elpa build-elpa uninstall-elpa
 
@@ -97,9 +97,9 @@ summarize :
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 ONE_TEST_FILES ?= ada_mode-nominal.adb
-one :: build_executables
-one :: byte-compile autoloads
-one :: compile-ada-test
+#one :: build_executables
+#one :: byte-compile autoloads
+#one :: compile-ada-test
 one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
@@ -117,7 +117,7 @@ one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_20.adb --verbosity 1 1 4
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../ada_re2c.c ../run_ada_lalr_parse.exe
-	../run_ada_lalr_parse.exe parse navigate ../test/debug.adb --verbosity 0 0 2
+	../run_ada_lalr_parse.exe parse navigate ../test/ada_mode-recover_partial_26.adb --verbosity 0 2 0 --task_count 1 > ../debug.log
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables

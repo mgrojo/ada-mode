@@ -9,7 +9,7 @@ is
 begin
    Check ("v - r", Graph.Find_Path (V, (Vertex, R))
    -- syntax error here; missing ');'
-   -- recover inserts '=>' (legal according to its relaxed grammar)
+   -- recover inserts '=>' (interpreting Check as a parameter)
 
    Check ("1a", Graph, (5, 4, 3, 2, 1));
 end Ada_Mode.Recover_Indent_1;
