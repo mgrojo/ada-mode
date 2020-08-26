@@ -152,10 +152,11 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Direct access to visible components of first parser's Parser_State
 
    procedure Prepend_Copy
-     (List   : in out Parser_Lists.List;
-      Cursor : in     Parser_Lists.Cursor'Class;
-      Tree   : in out Syntax_Trees.Tree;
-      Trace  : in out WisiToken.Trace'Class);
+     (List      : in out Parser_Lists.List;
+      Cursor    : in     Parser_Lists.Cursor'Class;
+      Tree      : in out Syntax_Trees.Tree;
+      User_Data : in     Syntax_Trees.User_Data_Access;
+      Trace     : in out WisiToken.Trace'Class);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
    --

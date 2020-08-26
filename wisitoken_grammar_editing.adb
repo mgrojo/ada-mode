@@ -641,6 +641,8 @@ package body WisiToken_Grammar_Editing is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
+      Data_Access : constant Syntax_Trees.User_Data_Access := Data'Unchecked_Access;
+
       Copied_EBNF_Nodes : Node_Sets.Set;
 
       Symbol_Regexp : constant GNAT.Regexp.Regexp := GNAT.Regexp.Compile
@@ -967,7 +969,7 @@ package body WisiToken_Grammar_Editing is
       is
          Child_3 : constant Valid_Node_Access :=
            (if Tree.RHS_Index (After) = 3
-            then Tree.Copy_Subtree (Tree.Child (After, 3), Data)
+            then Tree.Copy_Subtree (Tree.Child (After, 3), Data_Access)
             else Dummy_Node);
 
          RHS : constant Valid_Node_Access := Tree.Add_Nonterm
@@ -975,9 +977,9 @@ package body WisiToken_Grammar_Editing is
             Children =>
               (case Tree.RHS_Index (After) is
                when 1 => (1 => New_RHS_Item_List),
-               when 2 => (New_RHS_Item_List, Tree.Copy_Subtree (Tree.Child (After, 2), Data)),
+               when 2 => (New_RHS_Item_List, Tree.Copy_Subtree (Tree.Child (After, 2), Data_Access)),
                when 3 => (New_RHS_Item_List,
-                          Tree.Copy_Subtree (Tree.Child (After, 2), Data),
+                          Tree.Copy_Subtree (Tree.Child (After, 2), Data_Access),
                           Child_3),
                when others => raise SAL.Programmer_Error));
 
@@ -1276,7 +1278,7 @@ package body WisiToken_Grammar_Editing is
                   --  New rhs is empty; no rhs_item_list
                   null;
                else
-                  New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree, Data);
+                  New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree, Data_Access);
                end if;
 
                if Duplicate (Container_List, New_RHS_AC) then
@@ -1296,7 +1298,7 @@ package body WisiToken_Grammar_Editing is
             else
                --  Insert an edited rhs_item_list into an rhs_alternative_list
 
-               New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree, Data);
+               New_RHS_AC := Copy_Skip_Nested (Skip_List, Tree, Data_Access);
 
                if Duplicate (Container_List, New_RHS_AC) then
                   --  IMPROVEME: check for duplicate before do copy; requires version of
@@ -1483,9 +1485,9 @@ package body WisiToken_Grammar_Editing is
                     (Tree, Tree.Child (Node, 3), Auto_Token_Labels,
                      Edited_Token_List => True,
                      Post_Parse_Action =>
-                       (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action, Data) else Post_Parse_Action),
+                       (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action, Data_Access) else Post_Parse_Action),
                      In_Parse_Action   =>
-                       (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action, Data) else In_Parse_Action));
+                       (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action, Data_Access) else In_Parse_Action));
                begin
                   Tree.Set_Children
                     (Node,
@@ -1515,9 +1517,9 @@ package body WisiToken_Grammar_Editing is
               (Tree, Tree.Child (Node, 1), Auto_Token_Labels,
                Edited_Token_List => True,
                Post_Parse_Action =>
-                 (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action, Data) else Post_Parse_Action),
+                 (if Copy_Actions then Tree.Copy_Subtree (Post_Parse_Action, Data_Access) else Post_Parse_Action),
                In_Parse_Action   =>
-                 (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action, Data) else In_Parse_Action));
+                 (if Copy_Actions then Tree.Copy_Subtree (In_Parse_Action, Data_Access) else In_Parse_Action));
          begin
             Tree.Set_Children (Node, (+rhs_list_ID, 0), (1 => RHS));
          end;
@@ -1589,7 +1591,7 @@ package body WisiToken_Grammar_Editing is
          end if;
 
          for Element of RHS_Item_List_1 loop
-            RHS_Item_List_2.Append (Tree.Copy_Subtree (Element, Data));
+            RHS_Item_List_2.Append (Tree.Copy_Subtree (Element, Data_Access));
          end loop;
 
          RHS_List.Append (Add_RHS (Tree, RHS_Item_List_1.Root, Auto_Token_Labels, Edited_Token_List => True));
@@ -1826,8 +1828,8 @@ package body WisiToken_Grammar_Editing is
             New_Ident := Next_Nonterm_Name;
             New_Nonterminal
               ("group item", New_Ident, Tree.Child (Node, 2),
-               Post_Parse_Action => Tree.Copy_Subtree (Tree.Child (RHS, 2), Data),
-               In_Parse_Action   => Tree.Copy_Subtree (Tree.Child (RHS, 3), Data));
+               Post_Parse_Action => Tree.Copy_Subtree (Tree.Child (RHS, 2), Data_Access),
+               In_Parse_Action   => Tree.Copy_Subtree (Tree.Child (RHS, 3), Data_Access));
          else
             declare
                Name_Node : constant Node_Access := Tree.Child (Tree.Child (Found_Unit, 1), 1);
@@ -2098,7 +2100,8 @@ package body WisiToken_Grammar_Editing is
             begin
                if Tree.ID (List_Elements) = +IDENTIFIER_ID then
                   RHS_Item_List_1.Append
-                    (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements, Data)), Label));
+                    (Add_RHS_Element
+                       (Tree, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements, Data_Access)), Label));
 
                   RHS_Item_List_2.Append (Add_RHS_Element (Tree, Add_RHS_Item (Tree, List_Elements)));
                end if;
@@ -2120,8 +2123,8 @@ package body WisiToken_Grammar_Editing is
                      RHS_Item_List_2.Root,
                      Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
                      Edited_Token_List => True,
-                     Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action, Data),
-                     In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action, Data)));
+                     Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action, Data_Access),
+                     In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action, Data_Access)));
 
                if Can_Be_Empty then
                   Add_Compilation_Unit
@@ -2235,7 +2238,7 @@ package body WisiToken_Grammar_Editing is
                     (if Element_1 = Invalid_Node_Access
                      then (if B_Alt_List_Item_List.Is_Invalid
                            then Tree.Child (B, 1)
-                           else Tree.Copy_Subtree (B_Alt_List_Item_List.Root, Data))
+                           else Tree.Copy_Subtree (B_Alt_List_Item_List.Root, Data_Access))
                      else Element_1);
                begin
                   Do_Simple_Named (List_Elements);
@@ -2549,13 +2552,13 @@ package body WisiToken_Grammar_Editing is
                         Copy (Source_List => ABC_List,
                               Source_Last => ABC_A_Last,
                               Dest_List   => New_ABC,
-                              User_Data   => Data);
+                              User_Data   => Data_Access);
                      end if;
 
-                     Copy (B_Item_List, Dest_List => New_ABC, User_Data => Data);
+                     Copy (B_Item_List, Dest_List => New_ABC, User_Data => Data_Access);
 
                      if Has_Element (ABC_C_First) then
-                        Copy (ABC_List, Source_First => ABC_C_First, Dest_List => New_ABC, User_Data => Data);
+                        Copy (ABC_List, Source_First => ABC_C_First, Dest_List => New_ABC, User_Data => Data_Access);
                      end if;
 
                      if Container_List.Element_ID = +rhs_ID then

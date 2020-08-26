@@ -160,6 +160,10 @@ package WisiToken.Parse.LR is
    end record;
 
    function Strict_Image (Item : in Kernel_Info) return String;
+   --  Ada positional aggregate, for code generation
+
+   function Image (Item : in Kernel_Info; Descriptor : in WisiToken.Descriptor) return String;
+   --  For debug
 
    type Kernel_Info_Array is array (Ada.Containers.Count_Type range <>) of Kernel_Info;
    package Kernel_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
@@ -571,13 +575,7 @@ package WisiToken.Parse.LR is
 
    package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
 
-   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
-     is ("(" & Image (Item.Op) & ", " &
-           (case Item.Op is
-            when Insert => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
-            when Delete => Image (Item.Del_ID, Descriptor) & ", " &
-               Syntax_Trees.Trimmed_Image (Item.Del_Index))
-           & ")");
+   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String;
 
    function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 

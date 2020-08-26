@@ -972,10 +972,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Action.Production.LHS));
             begin
                if Trace_McKenzie > Extra then
-                  Super.Trace.Put
-                    ("task" & Task_Attributes.Value'Image &
-                       Super.Stream (Parser_Index)'Image & ": Minimal_Complete_Actions: " &
-                       Image (Action, Descriptor));
+                  Put_Line
+                    (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index),
+                     ": Minimal_Complete_Actions: " & Image (Action, Descriptor));
                end if;
 
                for Item of Shared.Table.States (Next_State).Kernel loop
@@ -1016,7 +1015,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             elsif Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Minimal_Complete_Actions: drop " &
-                    Image (Actions (I), Descriptor) & " not minimal or recursive");
+                    Image (Actions (I), Descriptor) & " not minimal");
             end if;
          end loop;
       end Enqueue_Min_Actions;
@@ -1068,10 +1067,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                      case Actions.Length is
                      when 0 =>
-                        if Trace_McKenzie > Extra then
+                        if Trace_McKenzie > Detail then
                            Put_Line
                              (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index),
-                              "Minimal_Complete_Actions abandoned: no actions");
+                              "Minimal_Complete_Actions state" & Item.Config.Stack.Peek.State'Image &
+                                " abandoned: no actions");
                         end if;
                         exit;
                      when 1 =>

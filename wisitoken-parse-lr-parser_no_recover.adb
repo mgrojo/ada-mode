@@ -124,7 +124,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               ((Label          => LR.Action,
                 First_Terminal => Trace.Descriptor.First_Terminal,
                 Last_Terminal  => Trace.Descriptor.Last_Terminal,
-                Error_Token    => Shared_Parser.Tree.Get_Node (Parser_State.Current_Token),
+                Error_Token    => Shared_Parser.Tree.Get_Node (Parser_State.Stream, Parser_State.Current_Token),
                 Expecting      => Expecting,
                 Recover        => (others => <>)));
 
@@ -303,7 +303,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   --  More than one parser is active; ambiguous parse.
                   declare
                      Token : constant Base_Token := Shared_Parser.Tree.Base_Token
-                       (Shared_Parser.Tree.Get_Node (State.Current_Token));
+                       (Shared_Parser.Tree.Get_Node (State.Stream, State.Current_Token));
                   begin
                      raise WisiToken.Parse_Error with Error_Message
                        (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
@@ -405,7 +405,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                               end;
                            end if;
 
-                           Shared_Parser.Parsers.Prepend_Copy (Current_Parser, Shared_Parser.Tree, Trace);
+                           Shared_Parser.Parsers.Prepend_Copy
+                             (Current_Parser, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
                            Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
 
                            declare

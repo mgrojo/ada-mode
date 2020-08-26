@@ -1932,6 +1932,27 @@ package body Test_McKenzie_Recover is
          Cost                    => 4);
    end Error_During_Resume_3;
 
+   procedure Conflict_During_Resume_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Error_During_Resume_1, but name is a
+      --  selected_component, so inserts 'procedure identifier is', and
+      --  encounters a conflict during resume.
+
+      Parse_Text ("end Process.Node;");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (1, 3),
+         Ops                     => +(Insert, +PACKAGE_ID, 1) & (Insert, +IDENTIFIER_ID, 1) & (Insert, +IS_ID, 1),
+         Strategy_Counts         => (Matching_Begin => 1, others => 0),
+         Enqueue_Low             => 17,
+         Check_Low               => 3,
+         Cost                    => 0);
+   end Conflict_During_Resume_1;
+
    procedure Minimal_Complete_Finish_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
@@ -2281,6 +2302,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Error_During_Resume_1'Access, "Error_During_Resume_1");
       Register_Routine (T, Error_During_Resume_2'Access, "Error_During_Resume_2");
       Register_Routine (T, Error_During_Resume_3'Access, "Error_During_Resume_3");
+      Register_Routine (T, Conflict_During_Resume_1'Access, "Conflict_During_Resume_1");
       Register_Routine (T, Minimal_Complete_Finish_1'Access, "Minimal_Complete_Finish_1");
       Register_Routine (T, Always_Minimal_Complete'Access, "Always_Minimal_Complete");
       Register_Routine (T, Always_Matching_Begin'Access, "Always_Matching_Begin");

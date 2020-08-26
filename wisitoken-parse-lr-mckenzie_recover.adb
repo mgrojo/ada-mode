@@ -333,7 +333,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   if Data.Results.Count > 1 then
                      for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
-                        Parsers.Prepend_Copy (Cur, Shared_Parser.Tree, Trace); --  does not copy recover
+                        Parsers.Prepend_Copy (Cur, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
+                        --  Does not copy recover.
+
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
                              ("spawn parser " & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &

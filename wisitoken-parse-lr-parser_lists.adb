@@ -57,7 +57,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is begin
       return Result : List
       do
-         Result.Elements.Append ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID), others => <>));
+         Result.Elements.Append ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null), others => <>));
       end return;
    end New_List;
 
@@ -271,10 +271,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
    end First_Constant_State_Ref;
 
    procedure Prepend_Copy
-     (List   : in out Parser_Lists.List;
-      Cursor : in     Parser_Lists.Cursor'Class;
-      Tree   : in out Syntax_Trees.Tree;
-      Trace  : in out WisiToken.Trace'Class)
+     (List      : in out Parser_Lists.List;
+      Cursor    : in     Parser_Lists.Cursor'Class;
+      Tree      : in out Syntax_Trees.Tree;
+      User_Data : in     Syntax_Trees.User_Data_Access;
+      Trace     : in out WisiToken.Trace'Class)
    is
       New_Item : Parser_State;
    begin
@@ -307,11 +308,35 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Conflict_During_Resume        => Item.Conflict_During_Resume,
             Zombie_Token_Count            => 0,
             Errors                        => Item.Errors,
-            Stream                        => Tree.New_Stream (Item.Stream),
+            Stream                        => Tree.New_Stream (Item.Stream, User_Data),
             Verb                          => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
             New_Item.Current_Token := Tree.Stream_Next (New_Item.Stream, Tree.Peek (New_Item.Stream));
+
+            declare
+               use all type WisiToken.Syntax_Trees.Node_Access;
+               use Recover_Op_Array_Refs;
+               Item_Op : Recover_Op_Array_Refs.Constant_Reference_Type renames Recover_Op_Array_Refs.Constant_Ref
+                 (Item.Recover_Insert_Delete,
+                  (if Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                   then Recover_Op_Arrays.Last_Index (Item.Recover_Insert_Delete)
+                   else Item.Recover_Insert_Delete_Current - 1));
+            begin
+               pragma Assert (Item_Op.Op = Insert);
+
+               if Tree.Get_Node (Item.Stream, Item.Current_Token) = Item_Op.Ins_Node then
+                  declare
+                     New_Item_Op : Variable_Reference_Type renames Variable_Ref
+                       (New_Item.Recover_Insert_Delete,
+                        (if New_Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                         then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
+                         else New_Item.Recover_Insert_Delete_Current - 1));
+                  begin
+                     New_Item_Op.Ins_Node := Tree.Get_Node (New_Item.Stream, New_Item.Current_Token);
+                  end;
+               end if;
+            end;
          end if;
       end;
 

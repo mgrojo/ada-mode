@@ -157,6 +157,14 @@ package body WisiToken.Parse.LR is
         Item.Reduce_Count'Image & ")";
    end Strict_Image;
 
+   function Image (Item : in Kernel_Info; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      return "(" & Image (Item.Production, Descriptor) & ", " &
+        Item.Length_After_Dot'Image & ", " &
+        Image (Item.Reduce_Production, Descriptor) & ", " &
+        Item.Reduce_Count'Image & ")";
+   end Image;
+
    function Strict_Image (Item : in Minimal_Action) return String
    is begin
       case Item.Verb is
@@ -712,6 +720,24 @@ package body WisiToken.Parse.LR is
       end loop;
       return False;
    end Any;
+
+   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
+   is
+      use Syntax_Trees;
+   begin
+      return
+        "(" & Image (Item.Op) & ", " &
+        (case Item.Op is
+         when Insert => Image (Item.Ins_ID, Descriptor) & ", " &
+             (if Item.Ins_Before = Invalid_Stream_Index
+              then Trimmed_Image (Item.Ins_Before_Node)
+              else Trimmed_Image (Item.Ins_Before)),
+         when Delete => Image (Item.Del_ID, Descriptor) & ", " &
+             (if Item.Del_Index = Invalid_Stream_Index
+              then Trimmed_Image (Item.Del_Node)
+              else Trimmed_Image (Item.Del_Index)))
+        & ")";
+   end Image;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is

@@ -641,7 +641,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
       Dest_List    : in out List'Class;
-      User_Data    : in     User_Data_Type'Class)
+      User_Data    : in     User_Data_Access)
    is
       Source_Iter : constant Constant_Iterator := Source_List.Iterate_Constant;
 
@@ -830,7 +830,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Tree              : aliased in out Syntax_Trees.Tree;
       Separator_ID      :         in     Token_ID;
       Multi_Element_RHS :         in     Natural;
-      User_Data         :         in     User_Data_Type'Class)
+      User_Data         :         in     User_Data_Access)
       return Node_Access
    is
       Dest_List : List := Creators.Empty_List
@@ -908,7 +908,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
       Tree      : aliased in out Syntax_Trees.Tree;
-      User_Data :         in     User_Data_Type'Class)
+      User_Data :         in     User_Data_Access)
      return Node_Access
    is
       Source_List : constant Constant_List := Creators.Create_List

@@ -28,6 +28,8 @@ update-wisitoken_grammar
 
  current work
 incremental parse
+    Rename terminal_stream to shared_stream
+
     test/test_incremental.adb
 
     apply edit:

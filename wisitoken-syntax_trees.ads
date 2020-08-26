@@ -115,6 +115,9 @@ package WisiToken.Syntax_Trees is
       --  apply the solution to the main parser state. We make thousands of
       --  copies of the parse stack during recover, so minimizing size and
       --  compute time for this is critical.
+      --
+      --  Only ID and Byte_Region are set by parse during recover; the other
+      --  fields are only set when converting from the main parse stack.
       ID : Token_ID := Invalid_Token_ID;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
@@ -244,7 +247,7 @@ package WisiToken.Syntax_Trees is
      (User_Data       : in out User_Data_Type;
       Tree            : in out Syntax_Trees.Tree'Class;
       Inserted_Token  : in     Syntax_Trees.Valid_Node_Access;
-      Inserted_Before : in     Syntax_Trees.Node_Access)
+      Inserted_Before : in     Syntax_Trees.Valid_Node_Access)
    is null
    with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token) and
                      (Inserted_Before = Invalid_Node_Access or else Tree.Is_Shared_Terminal (Inserted_Before));
@@ -300,7 +303,8 @@ package WisiToken.Syntax_Trees is
 
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
-      Old_Stream : in     Stream_ID)
+      Old_Stream : in     Stream_ID;
+      User_Data  : in     User_Data_Access)
       return Stream_ID
    with
      Pre => (Tree.Stream_Count = 1 and Old_Stream = Invalid_Stream_ID) or else
@@ -359,6 +363,9 @@ package WisiToken.Syntax_Trees is
    function Trimmed_Image (Item : in Stream_Index) return String;
    --  Trimmed_Image of item.node_index.
 
+   function Trimmed_Image (Node : in Node_Access) return String;
+   --  Trimmed_Image of item.node_index.
+
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
@@ -391,7 +398,8 @@ package WisiToken.Syntax_Trees is
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Valid_Node_Access
-   with Pre => Tree.Contains (Stream, Element);
+   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
+   --  Parser.Current_Token may be from either stream.
 
    function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
    with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
@@ -487,6 +495,18 @@ package WisiToken.Syntax_Trees is
    --  Add a new Terminal element on Terminal_Stream. Result points to the added
    --  node.
 
+   function Copy_Subtree
+     (Tree      : in out Syntax_Trees.Tree;
+      Root      : in     Node_Access;
+      User_Data : in     User_Data_Access)
+     return Node_Access;
+   --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
+   --  of new subtree; it has no parent.
+   --
+   --  If Root is Invalid_Node_Access, returns Invalid_Node_Access
+   --
+   --  If Tree.Parents_Set, Parents of new child nodes are set.
+
    function Non_Grammar_Var
      (Tree      : in out Syntax_Trees.Tree;
       Terminal  : in     Valid_Node_Access)
@@ -511,8 +531,8 @@ package WisiToken.Syntax_Trees is
      Post => Tree.Contains (Stream, Insert_Terminal'Result);
    --  Insert a new Virtual_Terminal element into Stream, after
    --  Stack_Top. Before should be Terminal_Stream token this token is
-   --  inserted before; new token Line is set to Before.Line. Result
-   --  points to the added node.
+   --  inserted before; new token Line, Char_Region is set to
+   --  Before.Line, Char_Region.First. Result points to the added node.
 
    procedure Update
      (Tree        : in Syntax_Trees.Tree;
@@ -855,12 +875,14 @@ package WisiToken.Syntax_Trees is
    --  references are deep copied; Source many be finalized.
 
    procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
-   with Pre => Tree.Fully_Parsed, Post => Tree.Editable;
+   with Post => Tree.Editable;
    --  If Tree.Root is not set, first set Tree.Root to the root of the
    --  single remaining parse stream. Delete the parse stream and
    --  terminal stream, but not the nodes they contain. This allows Tree
    --  to be edited without corrupting the parse stream. Also call
    --  Set_Parents if not Parents_Set.
+   --
+   --  No precondition for Packrat parser.
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 
@@ -912,19 +934,6 @@ package WisiToken.Syntax_Trees is
    with Pre => not Tree.Traversing and Tree.Fully_Parsed;
    --  Add a new Virtual_Terminal node with no parent.
    --  Result points to the added node.
-
-   function Copy_Subtree
-     (Tree      : in out Syntax_Trees.Tree;
-      Root      : in     Node_Access;
-      User_Data : in     User_Data_Type'Class)
-     return Node_Access
-   with Pre => Tree.Parents_Set and Tree.Fully_Parsed;
-   --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
-   --  of new subtree; it has no parent.
-   --
-   --  If Root is Invalid_Node_Access, returns Invalid_Node_Access
-   --
-   --  Parents of new child nodes are set.
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
@@ -1447,6 +1456,11 @@ private
    is (if Item = Invalid_Stream_Index
        then "-"
        else Trimmed_Image (Stream_Element_Lists.Constant_Ref (Item.Cur).Node.Node_Index));
+
+   function Trimmed_Image (Node : in Node_Access) return String
+   is (if Node = Invalid_Node_Access
+       then "-"
+       else Trimmed_Image (Node.Node_Index));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 
