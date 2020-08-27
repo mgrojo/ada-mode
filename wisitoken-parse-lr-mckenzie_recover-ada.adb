@@ -1112,7 +1112,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                begin
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  Delete_Check (Terminals, New_Config, Config.Error_Token.ID);
+                  Delete_Check (Tree, New_Config, Config.Error_Token.ID);
 
                   New_Config.Error_Token.ID := Invalid_Token_ID;
 
@@ -1250,7 +1250,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-            Push_Back_Check (New_Config, (+COLON_ID, +identifier_list_ID));
+            Push_Back_Check (Tree, New_Config, (+COLON_ID, +identifier_list_ID));
 
             --  We could search ahead for 'return', but that's not simple; let
             --  recover handle it.

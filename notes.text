@@ -45,24 +45,6 @@ for ada_mode_wisi_parse.gpr:
  current work
 incremental parse
     run tests
-        test/ada_mode-partial_parse.adb
-
-wisi-invalidate-cache indent:ada_mode-partial_parse.adb:4111
-wisi: partial parsing indent ada_mode-partial_parse.adb:4093 4112 113 ...
-... parsed (3707 . 4371)
-wisi-indent-region 4115 4116
-error: c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-partial_parse.adb:112:
-Result of ’(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))’ does not match.
-Got    ’15’,
-expect ’9’
-
-in debug.adb, getting fail_enqueue_limit in mckenzie_recover at wisi_eoi
-    solution is (insert '); end case end;'); cost 28 without minimal_complete
-
-    lalr state 75 has no minimal_complete
-    try lr1; no help
-
-
 
     run benchmarks
 

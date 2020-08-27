@@ -1332,7 +1332,17 @@ Point must have been set by `ada-wisi-find-begin'."
     (- indent ada-indent))
 
    ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
-        (- indent (+ ada-indent ada-indent-when)))
+    ;; test/ada_mode-partial_parse.adb
+    ;;    end loop;
+    ;;    ...
+    ;; when Face =>
+    ;;
+    ;; indenting 'when', or the new blank line after 'when'. CASE IS
+    ;; was inserted by error recover, at indent of 'end' (ada-indent
+    ;; from 'when').
+    (if (looking-at "when")
+	(- indent ada-indent)
+      (- indent ada-indent ada-indent-when)))
 
    ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
         (+ indent (+ ada-indent ada-indent-when)))

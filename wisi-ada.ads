@@ -73,7 +73,7 @@ package Wisi.Ada is
      (User_Data            : in out Parse_Data_Type;
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
       Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
 

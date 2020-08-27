@@ -169,7 +169,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -395,25 +395,38 @@ complete."
     (push err (wisi-parser-parse-errors parser))
     ))
 
+(defun wisi-process-parse--find-err (pos errors)
+  (let ((result))
+    (dolist (err errors)
+      ;; POS is the repair position; it may be before or after the error pos
+      (when (= pos (wisi--parse-error-pos err))
+	(setq result err)))
+    result))
+
 (defun wisi-process-parse--Recover (parser sexp)
-  ;; sexp is [Recover [pos [inserted] [deleted] deleted-region]...]
+  ;; sexp is [Recover [error-pos edit-pos [inserted] [deleted] deleted-region]...]
   ;; see ‘wisi-process-parse--execute’
   ;; convert to list of wisi--parse-error-repair, add to corresponding error
-  (let* ((token-table (wisi-process--parser-token-table parser))
-	 (last-error (car (wisi-parser-parse-errors parser))))
-
-    ;; FIXME: search for corresponding error
+  (let ((token-table (wisi-process--parser-token-table parser)))
 
     (unless (= 1 (length sexp))
       (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
-	(push
-	 (make-wisi--parse-error-repair
-	  :pos (copy-marker (aref (aref sexp i) 0))
-	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
-	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
-	  :deleted-region (aref (aref sexp i) 3))
-	 (wisi--parse-error-repair last-error)))
-      )))
+	(let* ((error-pos (aref (aref sexp i) 0))
+	       (edit-pos (aref (aref sexp i) 1))
+	       (err (wisi-process-parse--find-err error-pos (wisi-parser-parse-errors parser))))
+	  (cl-nsubst
+	   (push
+	    (make-wisi--parse-error-repair
+	     :pos (copy-marker edit-pos)
+	     :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
+	     :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
+	     :deleted-region (aref (aref sexp i) 4))
+	    (wisi--parse-error-repair err)) ;; new
+	   err ;; old
+	   (wisi-parser-parse-errors parser) ;; tree
+	   :test (lambda (old el) (= (wisi--parse-error-pos old) (wisi--parse-error-pos err))))
+	   )))
+    ))
 
 (defun wisi-process-parse--End (parser sexp)
   ;; sexp is [End pos]

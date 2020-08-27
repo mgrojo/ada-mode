@@ -393,7 +393,7 @@ package body Wisi is
       use Parse.LR.Recover_Op_Arrays;
 
       --  Output is a sequence of edit regions; each is:
-      --  [edit-pos [inserted token-ids] [deleted token-ids] deleted-region]
+      --  [error-pos edit-pos [inserted token-ids] [deleted token-ids] deleted-region]
 
       type State_Label is
         (None,     -- not started yet
@@ -407,13 +407,14 @@ package body Wisi is
       Line           : Unbounded_String    := To_Unbounded_String ("[");
       Deleted_Region : Buffer_Region       := Null_Buffer_Region;
       Last_Deleted   : Recover_Op (Delete) :=
-        (Delete, Invalid_Token_ID, Syntax_Trees.Invalid_Stream_Index, Syntax_Trees.Invalid_Node_Access,
-         Syntax_Trees.Invalid_Node_Access);
+        (Delete, Invalid_Buffer_Pos, Invalid_Token_ID, Syntax_Trees.Invalid_Stream_Index,
+         Syntax_Trees.Invalid_Node_Access, Syntax_Trees.Invalid_Node_Access);
 
-      procedure Start_Edit_Region (Edit_Pos : in Buffer_Pos)
+      procedure Start_Edit_Region (Error_Pos, Edit_Pos : in Buffer_Pos)
       is begin
          Append (Line, "[");
-         Append (Line, Trimmed_Image (Edit_Pos));
+         Append (Line, Trimmed_Image (Error_Pos));
+         Append (Line, Edit_Pos'Image);
          Append (Line, "[");
       end Start_Edit_Region;
 
@@ -443,7 +444,10 @@ package body Wisi is
                 when Insert => Op.Ins_Before_Node,
                 when Delete => Op.Del_After_Node)).Char_Region.First;
          begin
-            if Last_Edit_Pos /= Invalid_Buffer_Pos and then Edit_Pos /= Last_Edit_Pos then
+            if Last_Edit_Pos = Invalid_Buffer_Pos then
+               Last_Edit_Pos := Edit_Pos;
+
+            elsif Edit_Pos /= Last_Edit_Pos then
                Terminate_Edit_Region;
                State         := None;
                Last_Edit_Pos := Edit_Pos;
@@ -453,14 +457,14 @@ package body Wisi is
             when Insert =>
                case State is
                when None =>
-                  Start_Edit_Region (Edit_Pos);
+                  Start_Edit_Region (Op.Error_Pos, Edit_Pos);
 
                when Inserted =>
                   null;
 
                when Deleted =>
                   Terminate_Edit_Region;
-                  Start_Edit_Region (Edit_Pos);
+                  Start_Edit_Region (Op.Error_Pos, Edit_Pos);
 
                end case;
                Append (Line, Token_ID'Image (Op.Ins_ID));
@@ -473,7 +477,7 @@ package body Wisi is
                begin
                   case State is
                   when None =>
-                     Start_Edit_Region (Edit_Pos);
+                     Start_Edit_Region (Op.Error_Pos, Edit_Pos);
                      Append (Line, "][");
 
                   when Inserted =>
