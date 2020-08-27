@@ -396,6 +396,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Data       : McKenzie_Data renames Parser_State.Recover;
                      Result     : Configuration renames Data.Results.Peek;
 
+                     Error     : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
+                     Error_Pos : constant Buffer_Pos :=
+                       (case Error.Label is
+                        when Action  => Tree.Base_Token (Error.Error_Token).Char_Region.First,
+                        when Check   => Error.Check_Status.Begin_Name.Byte_Region.First,
+                        when Message => raise SAL.Programmer_Error);
+
                      Stack_Matches_Ops     : Boolean := True;
                      Shared_Token_Changed  : Boolean := False;
                      Current_Token_Virtual : Boolean := False;
@@ -526,6 +533,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
                                  (Op              => Insert,
+                                  Error_Pos       => Error_Pos,
                                   Ins_ID          => Op.Ins_ID,
                                   Ins_Before      => Op.Ins_Before,
                                   Ins_Node        => Syntax_Trees.Invalid_Node_Access,
@@ -567,6 +575,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
                                  (Op             => Delete,
+                                  Error_Pos      => Error_Pos,
                                   Del_ID         => Op.Del_ID,
                                   Del_Index      => Op.Del_Token_Index,
                                   Del_Node       => Tree.Get_Node (Op.Del_Token_Index),

@@ -533,6 +533,8 @@ package WisiToken.Parse.LR is
       --  Add Ins_Tree_Node to Config_Op info, set when item is
       --  parsed; used to create user augmented token.
 
+      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos; --  Position of the error that is repaired by this op.
+
       case Op is
       when Insert =>
          Ins_ID : Token_ID := Invalid_Token_ID;

@@ -233,8 +233,8 @@ package WisiToken.Syntax_Trees is
    function Insert_After
      (User_Data            : in out User_Data_Type;
       Tree                 : in     Syntax_Trees.Tree'Class;
-      Insert_Token         : in     Valid_Node_Index;
-      Insert_Before_Token  : in     Valid_Node_Index;
+      Insert_Token         : in     Valid_Node_Access;
+      Insert_Before_Token  : in     Valid_Node_Access;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
    --  Return True if Insert_Token should be treated as if inserted after
