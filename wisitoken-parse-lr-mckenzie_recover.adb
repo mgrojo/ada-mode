@@ -179,16 +179,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  the root config. Later logic will enqueue the 'ignore error'
             --  solution; see McKenzie_Recover.Explore Process_One.
 
-            Config.Check_Status      := Error.Check_Status;
-            Config.Error_Token       := Config.Stack.Peek.Token;
-            Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
+            --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
+            if Undo_Reduce_Valid (Config.Stack, Parser_State.Tree) then
+               Config.Check_Status      := Error.Check_Status;
+               Config.Error_Token       := Config.Stack.Peek.Token;
+               Config.Check_Token_Count := Unchecked_Undo_Reduce (Config.Stack, Parser_State.Tree);
 
-            Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
+               Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
 
-            if Trace_McKenzie > Detail then
-               Put ("undo_reduce " & Image
-                      (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
-                    Shared_Parser.Terminals, Config, Task_ID => False);
+               if Trace_McKenzie > Detail then
+                  Put ("undo_reduce " & Image
+                         (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
+                       Shared_Parser.Terminals, Config, Task_ID => False);
+               end if;
+            else
+               --  Ignore error
+               if Trace_McKenzie > Detail then
+                  Config.Strategy_Counts (Ignore_Error) := 1;
+                  Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
+                       Task_ID => False);
+               end if;
             end if;
          end if;
 
@@ -407,7 +417,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
-                     if Trace_McKenzie > Extra then
+                     if Trace_McKenzie > Extra or Trace_Parse > Extra then
                         Put_Line (Trace, Parser_State.Label, "before Ops applied:", Task_ID => False);
                         Put_Line
                           (Trace, Parser_State.Label, "stack " & Image (Stack, Descriptor, Tree),
@@ -483,6 +493,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                     for C of Tree.Children (Stack.Pop.Token) loop
                                        Stack.Push ((Tree.State (C), C));
                                     end loop;
+
+                                    if Trace_McKenzie > Extra or Trace_Parse > Extra then
+                                       Put_Line
+                                         (Trace, Parser_State.Label, "undo_reduce op: stack " &
+                                            Image (Stack, Descriptor, Tree),
+                                          Task_ID => False);
+                                    end if;
                                  end;
                               end if;
 
@@ -1176,6 +1193,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  If Left = Right.Token_Index, we assume the Right ops go _after_
       --  the Left, so the Left do not need to be repeated.
    begin
+      if not Push_Back_Valid (Config) then
+         raise Bad_Config;
+      end if;
+
       if Token_Index /= Invalid_Token_Index then
          Config.Current_Shared_Token := Token_Index;
          for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
@@ -1203,11 +1224,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Push_Back_Check (Config : in out Configuration; Expected : in Token_ID_Array)
    is begin
       for ID of Expected loop
-         if Push_Back_Valid (Config) then
-            Push_Back_Check (Config, ID);
-         else
-            raise Bad_Config;
-         end if;
+         Push_Back_Check (Config, ID);
       end loop;
    end Push_Back_Check;
 
@@ -1277,31 +1294,34 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            Integer'Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
-   function Undo_Reduce
+   function Unchecked_Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
    is
-      Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
+      Nonterm_Item : constant Recover_Stack_Item     := Recover_Stacks.Pop (Stack);
+      Children     : constant Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
    begin
-      declare
-         Children : constant Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
-      begin
-         for C of Children loop
-            Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
-         end loop;
-         return Children'Length;
-      end;
-   end Undo_Reduce;
+      for C of Children loop
+         Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
+      end loop;
+      return Children'Length;
+   end Unchecked_Undo_Reduce;
 
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;
       Tree     : in     Syntax_Trees.Tree;
       Expected : in     Token_ID)
    is begin
-      pragma Assert (Config.Stack.Depth > 1);
+      if Config_Op_Arrays.Length (Config.Ops) = 0 then
+         if not Undo_Reduce_Valid (Config.Stack, Tree) then
+            raise Bad_Config;
+         end if;
+      elsif not Undo_Reduce_Valid (Config.Stack, Tree, Config.Ops, Config_Op_Arrays.Last_Index (Config.Ops)) then
+         raise Bad_Config;
+      end if;
       Check (Config.Stack.Peek (1).Token.ID, Expected);
-      Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Expected, Undo_Reduce (Config.Stack, Tree)));
+      Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Expected, Unchecked_Undo_Reduce (Config.Stack, Tree)));
    exception
    when SAL.Container_Full =>
       raise Bad_Config;

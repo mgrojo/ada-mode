@@ -55,11 +55,13 @@ private
 
    ----------
    --  Visible for language-specific child packages. Alphabetical.
+   --
+   --  The various Check subprograms raise Bad_Config for check fail, and
+   --  there are no preconditions, so the checks are always performed.
 
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    with Inline => True;
-   --  Check that ID = Expected_ID; raise Assertion_Error if not.
-   --  Implemented using 'pragma Assert'.
+   --  Check that ID = Expected_ID; raise Bad_Config if not.
 
    function Current_Token
      (Terminals                 :         in     Base_Token_Arrays.Vector;
@@ -228,14 +230,13 @@ private
                     Config.Ops,
                     Config_Op_Arrays.Last_Index (Config.Ops)))));
 
-   procedure Push_Back (Config : in out Configuration)
-   with Pre => Push_Back_Valid (Config);
-   --  Pop the top Config.Stack item, set Config.Current_Shared_Token to
-   --  the first terminal in that item. If the item is empty,
+   procedure Push_Back (Config : in out Configuration);
+   --  If not Push_Back_Valid, raise Bad_Config. Otherwise pop the top
+   --  Config.Stack item, set Config.Current_Shared_Token to the first
+   --  terminal in that item. If the item is empty,
    --  Config.Current_Shared_Token is unchanged.
 
-   procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID)
-   with Pre => Push_Back_Valid (Config);
+   procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID);
    --  In effect, call Check and Push_Back.
 
    procedure Push_Back_Check (Config : in out Configuration; Expected : in Token_ID_Array);
@@ -283,12 +284,12 @@ private
       Prev_Op : in Positive_Index_Type)
      return Boolean
    is (Undo_Reduce_Valid (Stack, Tree) and then Push_Back_Valid (Stack.Peek.Token.Min_Terminal_Index, Ops, Prev_Op));
+   --  Check if Undo_Reduce is valid when there is a previous Config_Op.
 
-   function Undo_Reduce
+   function Unchecked_Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
-     return Ada.Containers.Count_Type
-   with Pre => Undo_Reduce_Valid (Stack, Tree);
+     return Ada.Containers.Count_Type;
    --  Undo the reduction that produced the top stack item, return the
    --  token count for that reduction.
 
@@ -297,7 +298,7 @@ private
       Tree     : in     Syntax_Trees.Tree;
       Expected : in     Token_ID)
    with Inline => True;
-   --  Call Check, Undo_Reduce.
+   --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check, Undo_Reduce.
 
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;

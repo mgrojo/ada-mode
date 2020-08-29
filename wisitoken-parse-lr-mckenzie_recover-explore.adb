@@ -651,7 +651,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       New_Config.Error_Token.ID := Invalid_Token_ID;
       New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-      Token_Count := Undo_Reduce (New_Config.Stack, Super.Parser_State (Parser_Index).Tree);
+      Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Parser_State (Parser_Index).Tree);
 
       if Token.Min_Terminal_Index /= Invalid_Token_Index  then
          --  If Token is empty no cost increase.

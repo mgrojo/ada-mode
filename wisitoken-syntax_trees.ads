@@ -148,6 +148,9 @@ package WisiToken.Syntax_Trees is
    --  Insert_Before_Token. This can affect which line it appears on,
    --  which affects indentation. Called from Insert_Token.
    --
+   --  If Insert_On_Blank_Line is True, there is at least one blank line
+   --  before Insert_Before_Token.
+   --
    --  The default implementation always returns False.
 
    procedure Insert_Token
