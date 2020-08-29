@@ -712,7 +712,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label = Ok
    is
-      pragma Unreferenced (Lexer);
       use Config_Op_Arrays;
       use Syntax_Trees;
 
@@ -1060,17 +1059,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  We've encountered a token after 'end' when expecting a
          --  different token. See test/ada_mode-recover_20, _24, _26.adb.
          --
-         --  For IDENTIFIER, we could search for a matching 'begin name' on the
-         --  stack, but the solution is the same if it is not found; see
-         --  ada_mode-recover_37.adb
-         --
          --  There are two possibilities:
          --
          --  - There is a missing 'end <compound_statement_id> ;' before the
          --  'end'. We can get the ID to insert from Parse_Table
          --  Minimal_Complete_Actions.
          --
-         --  - The error token should be something else; delete it.
+         --  - If the error token is IDENTIFIER, and there is not a matching
+         --  name, the error token should be something else; delete it.
          --
          --  Minimal_Complete_Actions can handle this case, but it inserts
          --  '<compound_statement_id> ;' instead. We want to insert 'end
@@ -1109,16 +1105,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                declare
                   Label      : constant String := "wrong end keyword b";
                   New_Config : Configuration   := Config;
+
+                  function Get_End_Name return String
+                  is
+                     use Standard.Ada.Strings.Unbounded;
+                     Result : Unbounded_String := +Lexer.Buffer_Text (Config.Error_Token.Byte_Region);
+                     I : WisiToken.Token_Index := Config.Error_Token.Min_Terminal_Index + 1;
+                  begin
+                     loop
+                        exit when I > Terminals.Last_Index;
+                        exit when -Terminals (I).ID not in IDENTIFIER_ID | DOT_ID;
+                        Result := Result & Lexer.Buffer_Text (Terminals (I).Byte_Region);
+                        I := I + 1;
+                     end loop;
+                     return -Result;
+                  end Get_End_Name;
+
+                  End_Name            : constant String := Get_End_Name;
+                  Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before 'end'
+
                begin
-                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+                  Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
-                  Delete_Check (Tree, New_Config, Config.Error_Token.ID);
+                  if Matching_Name_Index < Config.Stack.Depth then
+                     --  Matching name found, don't delete Error_Token
+                     null;
+                  else
+                     New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  New_Config.Error_Token.ID := Invalid_Token_ID;
+                     Delete_Check (Tree, New_Config, Config.Error_Token.ID);
 
-                  Local_Config_Heap.Add (New_Config);
-                  if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes " & Label, New_Config);
+                     New_Config.Error_Token.ID := Invalid_Token_ID;
+
+                     Local_Config_Heap.Add (New_Config);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes " & Label, New_Config);
+                     end if;
                   end if;
                exception
                when Bad_Config =>

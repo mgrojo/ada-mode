@@ -48,9 +48,9 @@ incremental parse
 
     run benchmarks
 
-run all tests
-ada_annex_p.wy
-    try to reduce recursion in name?
+ada_annex_p.wy, ada2020
+    recursion reduces power of Minimal_Complete in error recover too much
+        handle recursion in minimal_complete at runtime?
 
 wisi.texi
     $FOO only sees vars defined in the current project

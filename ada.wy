@@ -223,7 +223,7 @@
 ;;
 ;; We assume the user is typing new code more often than deleting or
 ;; changing old. Minimal_Complete reduces cost for insert, so the
-;; default cost for insert, delete is the same. Often insert requires
+;; default cost is higher for insert than delete. Often insert requires
 ;; push_back first, to get the parser in the right state, so push_back
 ;; is cheaper.
 ;;
@@ -231,15 +231,15 @@
 ;; Minimal_Complete is too cheap, it will complete the entire
 ;; compilation_Unit before the error point, when doing something else
 ;; at some point is better (see test/ada_mode-recover_29.adb, _15,
-;; _24). On the other hand, doing lots of Minimal_Complete is very
-;; common when writing new code (see test/ada_mode-recover_10.adb,
-;; _error_during_resume_01). So we reduce the cost of inserting 'end
-;; ;'.
+;; _16, _24). On the other hand, doing lots of Minimal_Complete is
+;; very common when writing new code (see
+;; test/ada_mode-recover_10.adb, _error_during_resume_01).
+;; test/ada_mode-recover_16.adb requires default delete cost 3.
 ;;
 ;; test/ada_mode-recover_change_name.adb needs 'ignore check fail' cost 2
 ;;
 ;; Default cost for insert, delete, push back/undo_reduce, ignore check fail.
-%mckenzie_cost_default 4 4 2 2
+%mckenzie_cost_default 4 3 2 2
 %mckenzie_minimal_complete_cost_delta -3
 
 ;; END is cheaper, because it always requires at least one other
@@ -1499,7 +1499,7 @@ if_statement
                              [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
   | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
     %((wisi-statement-action [1 statement-start 3 motion 8 statement-end])
-      (wisi-motion-action [1 3 5 8])
+      (wisi-motion-action [1 3 [5 ELSIF] 8])
       (wisi-indent-action [nil [(wisi-hanging% ada-indent-broken (* 2 ada-indent-broken))
                               ada-indent-broken]
                              nil

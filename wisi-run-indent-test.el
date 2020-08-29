@@ -44,7 +44,7 @@ FACE may be a list."
     (save-match-data
       (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'face)
       (font-lock-ensure (line-beginning-position) (line-end-position)))
-    
+
     ;; We don't use face-at-point, because it doesn't respect
     ;; font-lock-face set by the parser! And we want to check for
     ;; conflicts between font-lock-keywords and the parser.
@@ -350,6 +350,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (interactive "f")
 
   (package-initialize) ;; for uniquify-files
+
+  (setq-default indent-tabs-mode nil) ;; no tab chars in files
 
   ;; Let edebug display strings full-length, and show internals of records
   (setq cl-print-readably t)
