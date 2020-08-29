@@ -179,16 +179,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  the root config. Later logic will enqueue the 'ignore error'
             --  solution; see McKenzie_Recover.Explore Process_One.
 
-            Config.Check_Status      := Error.Check_Status;
-            Config.Error_Token       := Config.Stack.Peek.Token;
-            Config.Check_Token_Count := Unchecked_Undo_Reduce (Config.Stack, Shared_Parser.Tree);
+            --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
+            if Undo_Reduce_Valid (Config.Stack, Parser_State.Tree) then
+               Config.Check_Status      := Error.Check_Status;
+               Config.Error_Token       := Config.Stack.Peek.Token;
+               Config.Check_Token_Count := Unchecked_Undo_Reduce (Config.Stack, Shared_Parser.Tree);
 
-            Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
+               Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
 
-            if Trace_McKenzie > Detail then
-               Put ("undo_reduce " & Image
-                      (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Shared_Parser.Tree, Parser_State.Stream,
-                    Config, Task_ID => False);
+               if Trace_McKenzie > Detail then
+                  Put ("undo_reduce " & Image
+                         (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Shared_Parser.Tree, Parser_State.Stream,
+                          Config, Task_ID => False);
+               end if;
+            else
+               --  Ignore error
+               if Trace_McKenzie > Detail then
+                  Config.Strategy_Counts (Ignore_Error) := 1;
+                  Put ("enqueue", Trace, Shared_Parser.Tree, Parser_State.Stream, Config,
+                       Task_ID => False);
+               end if;
             end if;
          end if;
 
@@ -491,6 +501,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  end if;
 
                                  Tree.Undo_Reduce (Stack);
+
+                                 if Trace_McKenzie > Extra or Trace_Parse > Extra then
+                                    Put_Line
+                                      (Trace, Tree, Parser_State.Stream, "undo_reduce op: stack " &
+                                         Image (Stack, Descriptor, Tree),
+                                       Task_ID => False);
+                                 end if;
                               end if;
 
                            when Push_Back =>

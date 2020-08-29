@@ -237,7 +237,7 @@ package body BNF_WY_Test is
          end case;
 
          if Tuple.Text_Rep then
-            Diff_One (Text_Rep_File_Name (Root_Name, Tuple, 1, If_Lexer_Present));
+            Diff_One (Text_Rep_File_Name (Root_Name, Tuple, 1, If_Lexer_Present, Test_Main => True));
          end if;
       end if;
    end Diff_Gen;
