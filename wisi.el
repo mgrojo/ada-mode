@@ -1556,9 +1556,13 @@ where the car is a list (FILE LINE COL)."
 
 ;;;; debugging
 
-(defun wisi-show-region ()
+(defun wisi-show-region (&optional region)
   (interactive)
   (cond
+   (region
+    (set-mark  (car region))
+    (goto-char (cdr region)))
+
    ((use-region-p)
     (message "(%s . %s)" (region-beginning) (region-end)))
    (t
