@@ -659,7 +659,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       New_Config.Error_Token.ID := Invalid_Token_ID;
       New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-      Token_Count := Undo_Reduce (New_Config.Stack, Super.Tree.all);
+      Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Tree.all);
 
       if Token.First_Terminal_Index /= Syntax_Trees.Invalid_Stream_Index  then
          --  If Token is empty no cost increase.
@@ -1818,6 +1818,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                --  We _don't_ clear Check_Status and Error_Token here; Check needs
                --  them, and sets them as appropriate.
+
+               if Trace_McKenzie > Detail then
+                  Base.Put ("ignore check error and continue", Super, Parser_Index, Config);
+               end if;
             end;
          end if;
       end if;

@@ -181,7 +181,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             Config.Check_Status      := Error.Check_Status;
             Config.Error_Token       := Config.Stack.Peek.Token;
-            Config.Check_Token_Count := Undo_Reduce (Config.Stack, Shared_Parser.Tree);
+            Config.Check_Token_Count := Unchecked_Undo_Reduce (Config.Stack, Shared_Parser.Tree);
 
             Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
 
@@ -400,7 +400,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Error_Pos : constant Buffer_Pos :=
                        (case Error.Label is
                         when Action  => Tree.Base_Token (Error.Error_Token).Char_Region.First,
-                        when Check   => Error.Check_Status.Begin_Name.Byte_Region.First,
+                        when Check   =>
+                          (if Error.Check_Status.Begin_Name.Name.First /= Invalid_Buffer_Pos
+                           then Error.Check_Status.Begin_Name.Name.First
+                           elsif Error.Check_Status.End_Name.Name.First /= Invalid_Buffer_Pos
+                           then Error.Check_Status.End_Name.Name.First
+                           else Buffer_Pos'First),
                         when Message => raise SAL.Programmer_Error);
 
                      Stack_Matches_Ops     : Boolean := True;
@@ -1186,6 +1191,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  If Left = Right.Token_Index, we assume the Right ops go _after_
       --  the Left, so the Left do not need to be repeated.
    begin
+      if not Push_Back_Valid (Tree, Config) then
+         raise Bad_Config;
+      end if;
+
       if Token_Index /= Syntax_Trees.Invalid_Stream_Index then
          Config.Current_Shared_Token := Token_Index;
          for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
@@ -1219,11 +1228,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Expected : in     Token_ID_Array)
    is begin
       for ID of Expected loop
-         if Push_Back_Valid (Tree, Config) then
-            Push_Back_Check (Tree, Config, ID);
-         else
-            raise Bad_Config;
-         end if;
+         Push_Back_Check (Tree, Config, ID);
       end loop;
    end Push_Back_Check;
 
@@ -1294,29 +1299,34 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            Tree.Trimmed_Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
-   function Undo_Reduce
+   function Unchecked_Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
      return Ada.Containers.Count_Type
    is
-      Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
-
-      Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Node);
+      Nonterm_Item : constant Recover_Stack_Item             := Recover_Stacks.Pop (Stack);
+      Children     : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Node);
    begin
       for C of Children loop
          Stack.Push ((Tree.State (C), C, Tree.Get_Recover_Token (C)));
       end loop;
       return Children'Length;
-   end Undo_Reduce;
+   end Unchecked_Undo_Reduce;
 
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;
       Tree     : in     Syntax_Trees.Tree;
       Expected : in     Token_ID)
    is begin
-      pragma Assert (Config.Stack.Depth > 1);
+      if Config_Op_Arrays.Length (Config.Ops) = 0 then
+         if not Undo_Reduce_Valid (Config.Stack, Tree) then
+            raise Bad_Config;
+         end if;
+      elsif not Undo_Reduce_Valid (Config.Stack, Tree, Config.Ops, Config_Op_Arrays.Last_Index (Config.Ops)) then
+         raise Bad_Config;
+      end if;
       Check (Config.Stack.Peek (1).Token.ID, Expected);
-      Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Expected, Undo_Reduce (Config.Stack, Tree)));
+      Config_Op_Arrays.Append (Config.Ops, (Undo_Reduce, Expected, Unchecked_Undo_Reduce (Config.Stack, Tree)));
    exception
    when SAL.Container_Full =>
       raise Bad_Config;
