@@ -339,7 +339,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             return;
          end if;
 
-         if Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Node, +EXCEPTION_ID) then
+         if (Config.Stack.Depth >= 4 and then Tree.Label (Config.Stack.Peek (4).Node) /= Nonterm) or else
+           Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Node, +EXCEPTION_ID)
+         then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
                use Config_Op_Arrays;
@@ -1110,13 +1112,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   is
                      use Standard.Ada.Strings.Unbounded;
                      Result : Unbounded_String := +Lexer.Buffer_Text (Config.Error_Token.Byte_Region);
-                     I : WisiToken.Token_Index := Config.Error_Token.Min_Terminal_Index + 1;
+                     I      : Stream_Index     := Config.Error_Token.First_Terminal_Index;
                   begin
                      loop
-                        exit when I > Terminals.Last_Index;
-                        exit when -Terminals (I).ID not in IDENTIFIER_ID | DOT_ID;
-                        Result := Result & Lexer.Buffer_Text (Terminals (I).Byte_Region);
-                        I := I + 1;
+                        I := Tree.Stream_Next (@);
+                        exit when I = Invalid_Stream_Index;
+                        exit when -Tree.ID (I) not in IDENTIFIER_ID | DOT_ID;
+                        Result := Result & Lexer.Buffer_Text (Tree.Byte_Region (Tree.Get_Node (I)));
                      end loop;
                      return -Result;
                   end Get_End_Name;

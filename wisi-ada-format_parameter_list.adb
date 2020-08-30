@@ -148,9 +148,7 @@ begin
                   end if;
 
                when others =>
-                  Raise_Programmer_Error
-                    ("format_parameter_list param id", Data.Descriptor.all, Data.Lexer, Tree,
-                     Children (I));
+                  Raise_Programmer_Error ("format_parameter_list param id", Data.Lexer, Tree, Children (I));
                end case;
             end loop;
          end;

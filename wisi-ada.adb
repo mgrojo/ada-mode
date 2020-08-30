@@ -727,7 +727,7 @@ package body Wisi.Ada is
 
    begin
       if WisiToken.Trace_Action > Detail then
-         Tree.Print_Tree (Data.Descriptor.all);
+         Tree.Print_Tree;
       end if;
       case Action is
       when Method_Object_To_Object_Method =>

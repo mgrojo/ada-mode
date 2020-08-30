@@ -4,7 +4,7 @@
 --
 --  See gen_emacs_wisi_lr_parse.ads for the Emacs background process.
 --
---  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,7 +26,7 @@ with Wisi;
 generic
    type Parse_Data_Type is new Wisi.Parse_Data_Type with private;
 
-   Descriptor                     : in WisiToken.Descriptor;
+   Descriptor                     : in WisiToken.Descriptor_Access_Constant;
    Language_Fixes                 : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
    Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
    Language_String_ID_Set         : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;

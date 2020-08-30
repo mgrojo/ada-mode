@@ -45,6 +45,11 @@ for ada_mode_wisi_parse.gpr:
  current work
 incremental parse
     run tests
+test/ada_mode-partial_parse.adb:133
+    getting indent 0
+    debug.adb deletes first 'end', indent is ok
+    ada_mode-partial_parse.adb deletes second 'end', edit-pos on delete op is wrong
+
 
     run benchmarks
 

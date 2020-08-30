@@ -432,7 +432,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item, Data.Descriptor.all));
+         Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item, Tree));
       end if;
 
       Append (Line, Recover_Code);
@@ -886,7 +886,8 @@ package body Wisi is
       Insert_After : Boolean := False;
    begin
       if WisiToken.Trace_Action > WisiToken.Detail then
-         Ada.Text_IO.Put_Line (";; insert token " & Tree.Image (Inserted_Token, Data.Descriptor.all));
+         Ada.Text_IO.Put_Line
+           (";; insert token " & Tree.Image (Inserted_Token, Node_Numbers => True));
       end if;
       Tree.Set_Augmented (Inserted_Token, Syntax_Trees.Augmented_Class_Access (New_Aug));
 
@@ -1008,12 +1009,12 @@ package body Wisi is
       if Deleted_Aug.Deleted then
          --  This can happen if error recovery screws up.
          if WisiToken.Trace_Action > WisiToken.Detail then
-            Ada.Text_IO.Put_Line (";; delete token again; ignored " & Image (Deleted_Tok, Data.Descriptor.all));
+            Ada.Text_IO.Put_Line (";; delete token again; ignored " & Tree.Image (Deleted_Token, Node_Numbers => True));
          end if;
          return;
       end if;
       if WisiToken.Trace_Action > WisiToken.Detail then
-         Ada.Text_IO.Put_Line (";; delete token " & Image (Deleted_Tok, Data.Descriptor.all));
+         Ada.Text_IO.Put_Line (";; delete token " & Tree.Image (Deleted_Token, Node_Numbers => True));
       end if;
 
       Deleted_Aug.Deleted := True;
@@ -1023,17 +1024,26 @@ package body Wisi is
 
          if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
             declare
+               use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
                Prev_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Token);
-               Prev_Aug         : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
+               Aug : constant WisiToken.Syntax_Trees.Augmented_Class_Access := Tree.Augmented (Prev_Token);
             begin
-               Prev_Non_Grammar.Append (Deleted_Non_Grammar);
-
-               if Deleted_Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
-                  if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
-                     Prev_Aug.First_Trailing_Comment_Line := Deleted_Aug.First_Trailing_Comment_Line;
-                  end if;
-                  Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Aug.Last_Trailing_Comment_Line;
+               if Aug = null then
+                  raise SAL.Programmer_Error with "null augmented: " & Tree.Image
+                    (Prev_Token, Node_Numbers => True);
                end if;
+               declare
+                  Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
+               begin
+                  Prev_Non_Grammar.Append (Deleted_Non_Grammar);
+
+                  if Deleted_Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
+                     if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
+                        Prev_Aug.First_Trailing_Comment_Line := Deleted_Aug.First_Trailing_Comment_Line;
+                     end if;
+                     Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Aug.Last_Trailing_Comment_Line;
+                  end if;
+               end;
             end;
          end if;
       end if;
@@ -1137,8 +1147,7 @@ package body Wisi is
       Containing_Pos     : Nil_Buffer_Pos := Nil;
    begin
       if WisiToken.Trace_Action > Outline then
-         Ada.Text_IO.Put_Line
-           ("Statement_Action " & Tree.Image (Nonterm, Data.Descriptor.all, Include_Children => True));
+         Ada.Text_IO.Put_Line ("Statement_Action " & Tree.Image (Nonterm, Include_Children => True));
       end if;
 
       for Pair of Params loop
@@ -1309,7 +1318,6 @@ package body Wisi is
                Column               => Name_Token.Column,
                Message              => Tree.Image
                  (Node              => Tokens (Name),
-                  Descriptor        => Data.Descriptor.all,
                   Node_Numbers      => WisiToken.Trace_Action > Extra,
                   Include_RHS_Index => WisiToken.Trace_Action > Extra)
                  & ": wisi-name-action: name set twice.");
@@ -1317,10 +1325,10 @@ package body Wisi is
             if Trace_Action > Detail then
                Ada.Text_IO.Put_Line
                  ("Name_Action " & Tree.Image
-                    (Nonterm, Data.Descriptor.all,
+                    (Nonterm,
                      Node_Numbers      => WisiToken.Trace_Action > Extra,
                      Include_RHS_Index => WisiToken.Trace_Action > Extra) & " " & Tree.Image
-                       (Tokens (Name), Data.Descriptor.all,
+                       (Tokens (Name),
                         Node_Numbers      => WisiToken.Trace_Action > Extra,
                         Include_RHS_Index => WisiToken.Trace_Action > Extra));
             end if;
@@ -1702,7 +1710,7 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, Data.Descriptor.all));
+         Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm));
       end if;
 
       for I in Tokens'Range loop
@@ -1722,7 +1730,7 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Ada.Text_IO.Put_Line
-                    (";; indent_action_0 a: " & Tree.Image (Tree_Token, Data.Descriptor.all) & ": " & Image (Pair));
+                    (";; indent_action_0 a: " & Tree.Image (Tree_Token) & ": " & Image (Pair));
                end if;
 
                if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
