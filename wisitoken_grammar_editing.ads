@@ -150,7 +150,6 @@ package WisiToken_Grammar_Editing is
      (Tree                : in     WisiToken.Syntax_Trees.Tree;
       Node                : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Descriptor          : in     WisiToken.Descriptor;
       File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);

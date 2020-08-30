@@ -140,9 +140,9 @@ is
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
-   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+   Trace          : aliased WisiToken.Text_IO_Trace.Trace;
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser (Wisitoken_Grammar_Actions.Descriptor'Access);
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -329,7 +329,7 @@ begin
 
       Lexer_Done : Lexer_Set := (others => False);
 
-      Saved_EBNF_Tree : Syntax_Trees.Tree;
+      Saved_EBNF_Tree : Syntax_Trees.Tree (Wisitoken_Grammar_Actions.Descriptor'Access);
 
       --  In general, all of the data in Generate_Utils.Generate_Data
       --  depends on the generate tuple parameters. However, if
@@ -418,8 +418,7 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
                Tree.Print_Tree
-                 (Wisitoken_Grammar_Actions.Descriptor,
-                  Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
             WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
@@ -428,8 +427,7 @@ begin
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
-                 (Wisitoken_Grammar_Actions.Descriptor,
-                  Image_Action    => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access,
+                 (Image_Action    => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access,
                   Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
             end if;
 

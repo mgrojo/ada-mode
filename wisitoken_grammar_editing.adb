@@ -279,7 +279,6 @@ package body WisiToken_Grammar_Editing is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       User_Data           : in out Syntax_Trees.User_Data_Type'Class;
-      Descriptor          : in     WisiToken.Descriptor;
       File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean)
@@ -302,7 +301,7 @@ package body WisiToken_Grammar_Editing is
               (Current_Error,
                Tree.Error_Message
                  (Node, File_Name, Tree.Image
-                    (Node, Descriptor,
+                    (Node,
                      Include_RHS_Index => True,
                      Include_Children  => True,
                      Node_Numbers      => True)));
@@ -838,10 +837,7 @@ package body WisiToken_Grammar_Editing is
          end Add_Token_Labels_1;
       begin
          if Trace_Generate_EBNF > Outline then
-            Ada.Text_IO.Put_Line
-              ("add token labels " & Tree.Image
-                 (RHS, Wisitoken_Grammar_Actions.Descriptor,
-                  Node_Numbers => True));
+            Ada.Text_IO.Put_Line ("add token labels " & Tree.Image (RHS, Node_Numbers => True));
          end if;
 
          case Tree.RHS_Index (RHS) is
@@ -1008,10 +1004,7 @@ package body WisiToken_Grammar_Editing is
               STRING_LITERAL_2_ID
             then
                if Trace_Generate_EBNF > Outline then
-                  Ada.Text_IO.Put_Line
-                    ("new EBNF node " & Tree.Image
-                       (Node, Wisitoken_Grammar_Actions.Descriptor,
-                        Node_Numbers => True));
+                  Ada.Text_IO.Put_Line ("new EBNF node " & Tree.Image (Node, Node_Numbers => True));
                end if;
                Copied_EBNF_Nodes.Insert (Node);
             end if;
@@ -1238,7 +1231,7 @@ package body WisiToken_Grammar_Editing is
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Insert_Optional_RHS start: " & Get_Text (Data, Tree, Container));
-            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container);
+            Tree.Print_Tree (Container);
          end if;
 
          declare
@@ -1334,12 +1327,12 @@ package body WisiToken_Grammar_Editing is
                   if Container_ID = +rhs_ID then
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS old rhs, new rhs: " & Get_Text (Data, Tree, Container_List.Root));
-                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container_List.Root);
+                     Tree.Print_Tree (Container_List.Root);
                   else
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS edited rhs_alternative_list: " & Get_Text
                           (Data, Tree, Tree.Parent (Container_List.Root)));
-                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Parent (Container_List.Root));
+                     Tree.Print_Tree (Tree.Parent (Container_List.Root));
                   end if;
                end if;
             end if;
@@ -1399,7 +1392,7 @@ package body WisiToken_Grammar_Editing is
               ("new " & Label & ":" & Trimmed_Image (Get_Node_Index (Comp_Unit)) & ": '" &
                  Get_Text (Data, Tree, Unit) & "'");
             if Trace_Generate_EBNF > Extra then
-               Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Comp_Unit);
+               Tree.Print_Tree (Comp_Unit);
             end if;
          end if;
       end Add_Compilation_Unit;
@@ -1779,7 +1772,7 @@ package body WisiToken_Grammar_Editing is
 
                   when others =>
                      raise SAL.Programmer_Error with "unexpected case in Maybe_New_List_Nonterminal: " &
-                       Tree.Image (Element, Wisitoken_Grammar_Actions.Descriptor);
+                       Tree.Image (Element);
                   end case;
                end if;
 
@@ -2164,7 +2157,7 @@ package body WisiToken_Grammar_Editing is
                if Trace_Generate_EBNF > Extra then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("Simple_Named Canonical_List edited nonterm:");
-                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, List_Nonterm_Decl);
+                  Tree.Print_Tree (List_Nonterm_Decl);
                end if;
             end Do_Simple_Named;
 
@@ -2444,7 +2437,7 @@ package body WisiToken_Grammar_Editing is
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("Translate_RHS_Multiple_Item edited: " & Get_Text (Data, Tree, Item));
                if Trace_Generate_EBNF > Extra then
-                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Item);
+                  Tree.Print_Tree (Item);
                end if;
             end;
          end if;
@@ -2617,7 +2610,7 @@ package body WisiToken_Grammar_Editing is
          if WisiToken.Trace_Generate_EBNF > Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
-            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Container_List_Root);
+            Tree.Print_Tree (Container_List_Root);
          end if;
       end Translate_RHS_Optional_Item;
 
@@ -2816,9 +2809,7 @@ package body WisiToken_Grammar_Editing is
                  (Current_Error,
                   Error_Message
                     (Tree, N, Data.Grammar_Lexer.File_Name,
-                     Tree.Image
-                       (N, Wisitoken_Grammar_Actions.Descriptor,
-                        Node_Numbers      => True)));
+                     Tree.Image (N, Node_Numbers => True)));
                Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2837,9 +2828,7 @@ package body WisiToken_Grammar_Editing is
                  (Current_Error,
                   Error_Message
                     (Tree, N, Data.Grammar_Lexer.File_Name,
-                     Tree.Image
-                       (N, Wisitoken_Grammar_Actions.Descriptor,
-                        Node_Numbers      => True)));
+                     Tree.Image (N, Node_Numbers      => True)));
                Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2885,7 +2874,7 @@ package body WisiToken_Grammar_Editing is
 
       if Debug_Mode then
          Tree.Validate_Tree
-           (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+           (Data, Data.Grammar_Lexer.File_Name,
             Data.Error_Reported, Tree.Root, Validate_Node'Access);
          Check_Original_EBNF;
          Check_Copied_EBNF;
@@ -2914,7 +2903,7 @@ package body WisiToken_Grammar_Editing is
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line
                     ("translate original node " & Tree.Image
-                       (Node, Wisitoken_Grammar_Actions.Descriptor,
+                       (Node,
                         Include_RHS_Index => True,
                         Node_Numbers      => True));
                end if;
@@ -2923,7 +2912,7 @@ package body WisiToken_Grammar_Editing is
 
                if Debug_Mode then
                   Tree.Validate_Tree
-                    (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+                    (Data, Data.Grammar_Lexer.File_Name,
                      Data.Error_Reported, Tree.Root, Validate_Node'Access);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
@@ -2941,7 +2930,7 @@ package body WisiToken_Grammar_Editing is
                Error_Message
                  (Tree, Node, Data.Grammar_Lexer.File_Name,
                   Tree.Image
-                    (Node, Wisitoken_Grammar_Actions.Descriptor,
+                    (Node,
                      Include_RHS_Index => True,
                      Include_Children  => Trace_Generate_EBNF > Detail,
                      Node_Numbers      => True)));
@@ -2969,7 +2958,7 @@ package body WisiToken_Grammar_Editing is
                      Ada.Text_IO.New_Line;
                      Ada.Text_IO.Put_Line
                        ("translate copied node " & Tree.Image
-                          (Node, Wisitoken_Grammar_Actions.Descriptor,
+                          (Node,
                            Include_RHS_Index => True,
                            Node_Numbers      => True));
                   end if;
@@ -2978,8 +2967,8 @@ package body WisiToken_Grammar_Editing is
 
                   if Debug_Mode then
                      Tree.Validate_Tree
-                       (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-                        Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+                       (Data, Data.Grammar_Lexer.File_Name,
+                        Data.Error_Reported, Tree.Root, Validate_Node'Access);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -2996,7 +2985,7 @@ package body WisiToken_Grammar_Editing is
                Error_Message
                  (Tree, Node, Data.Grammar_Lexer.File_Name,
                   Tree.Image
-                    (Node, Wisitoken_Grammar_Actions.Descriptor,
+                    (Node,
                      Include_RHS_Index => True,
                      Include_Children  => Trace_Generate_EBNF > Detail,
                      Node_Numbers      => True)));
@@ -3006,8 +2995,8 @@ package body WisiToken_Grammar_Editing is
 
       Data.EBNF_Allowed := False;
       Tree.Validate_Tree
-        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
-         Data.Error_Reported, Tree.Root, Validate_Node'Unrestricted_Access);
+        (Data, Data.Grammar_Lexer.File_Name,
+         Data.Error_Reported, Tree.Root, Validate_Node'Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 
@@ -3131,10 +3120,11 @@ package body WisiToken_Grammar_Editing is
          when others =>
             New_Line (File);
             Put (File, " ;; not translated: " & Trimmed_Image (Get_Node_Index (Node)) & ":" &
-                   Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor,
-                               Include_Children  => True,
-                               Include_RHS_Index => True,
-                               Node_Numbers      => True));
+                   Tree.Image
+                     (Node,
+                      Include_Children  => True,
+                      Include_RHS_Index => True,
+                      Node_Numbers      => True));
          end case;
       exception
       when SAL.Programmer_Error =>

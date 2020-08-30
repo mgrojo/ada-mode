@@ -136,7 +136,7 @@ package WisiToken is
       --  no longer used.
    end record;
    type Descriptor_Access is access Descriptor;
-   type Descriptor_Access_Constant is access constant Descriptor;
+   type Descriptor_Access_Constant is not null access constant Descriptor;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
@@ -380,9 +380,8 @@ package WisiToken is
    --  If True, Output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.
 
-   type Trace (Descriptor : not null access constant WisiToken.Descriptor) is abstract tagged limited null record;
-   --  Output for tests/debugging. Descriptor included here because many
-   --  uses of Trace will use Image (Item, Descriptor);
+   type Trace is abstract tagged limited null record;
+   --  Output for tests/debugging.
 
    procedure Set_Prefix (Trace : in out WisiToken.Trace; Prefix : in String) is abstract;
    --  Prepend Prefix to all subsequent messages. Usefull for adding

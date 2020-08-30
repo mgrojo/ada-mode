@@ -19,11 +19,10 @@ pragma License (Modified_GPL);
 package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Raise_Programmer_Error
-     (Label      : in String;
-      Descriptor : in WisiToken.Descriptor;
-      Lexer      : in WisiToken.Lexer.Handle;
-      Tree       : in WisiToken.Syntax_Trees.Tree;
-      Node       : in Node_Access)
+     (Label : in String;
+      Lexer : in WisiToken.Lexer.Handle;
+      Tree  : in WisiToken.Syntax_Trees.Tree;
+      Node  : in Node_Access)
    is
       Base_Token : constant WisiToken.Base_Token := Tree.Base_Token (Node);
    begin
@@ -34,7 +33,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          Column  => Base_Token.Column,
          Message =>
            Label & ": " &
-             Tree.Image (Node, Descriptor, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
+             Tree.Image (Node, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
    function Count (Container : Constant_List) return Ada.Containers.Count_Type

@@ -45,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
+           (Shared_Parser.Tree.Image (Nonterm, Include_Children => True));
       end if;
    end Reduce_Stack_1;
 
@@ -64,8 +64,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          Trace.Put
            (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
               Trimmed_Image (Shared_Parser.Tree.State (Current_Parser.Stream)) & ": " &
-              Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
-         Put (Trace, Action);
+              Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : ");
+         Put (Trace, Image (Action, Shared_Parser.Descriptor.all));
          Trace.New_Line;
       end if;
 
@@ -122,8 +122,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          begin
             Parser_State.Errors.Append
               ((Label          => LR.Action,
-                First_Terminal => Trace.Descriptor.First_Terminal,
-                Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                First_Terminal => Shared_Parser.Descriptor.First_Terminal,
+                Last_Terminal  => Shared_Parser.Descriptor.Last_Terminal,
                 Error_Token    => Shared_Parser.Tree.Get_Node (Parser_State.Stream, Parser_State.Current_Token),
                 Expecting      => Expecting,
                 Recover        => (others => <>)));
@@ -132,7 +132,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                Put
                  (Trace,
                   " " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": expecting: " &
-                    Image (Expecting, Trace.Descriptor.all));
+                    Image (Expecting, Shared_Parser.Descriptor.all));
                Trace.New_Line;
             end if;
          end;
@@ -360,8 +360,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   begin
                      if Trace_Parse > Extra then
                         Trace.Put (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack: ");
-                        Trace.Put_Line
-                          (Parser_Lists.Image (Parser_State.Stream, Trace.Descriptor.all, Shared_Parser.Tree));
+                        Trace.Put_Line (Parser_Lists.Image (Parser_State.Stream, Shared_Parser.Tree));
                      end if;
 
                      Action := Action_For
@@ -398,8 +397,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                  Trace.Put_Line
                                    (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ":" &
                                       Shared_Parser.Tree.State (Parser_State.Stream)'Image & ": " &
-                                      Shared_Parser.Tree.Image
-                                        (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
+                                      Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : " &
                                       "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image &
                                       ", (" & Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                               end;
@@ -510,7 +508,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       use Ada.Text_IO;
 
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-      Descriptor   : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Descriptor   : WisiToken.Descriptor renames Parser.Descriptor.all;
    begin
       for Item of Parser.Lexer.Errors loop
          Put_Line

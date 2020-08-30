@@ -94,9 +94,6 @@ package WisiToken.Parse.LR is
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
    --  Ada aggregate syntax, leaving out Action, Check in reduce; for debug output
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
-   --  Put a line for Item in parse trace format, with no prefix.
-
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
    --  Ignore items not used by the canonical shift-reduce algorithm.
 
@@ -577,9 +574,9 @@ package WisiToken.Parse.LR is
 
    package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
 
-   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String;
+   function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String;
 
-   function Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Recover_Op_Arrays.Gen_Image_Aux (Syntax_Trees.Tree, Image);
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;

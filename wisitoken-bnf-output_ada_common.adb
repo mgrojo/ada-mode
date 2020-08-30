@@ -828,7 +828,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       case Common_Data.Interface_Kind is
       when Process =>
          Indent_Line ("   Trace,");
-         Indent_Line ("   Lexer.New_Lexer (Trace.Descriptor),");
+         Indent_Line ("   Lexer.New_Lexer (Parser.Descriptor),");
          Indent_Line ("   Table,");
          if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("   Language_Fixes,");
@@ -870,7 +870,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
          Indent := Indent + 3;
          Indent_Line ("Parser.Trace := Trace;");
-         Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Trace.Descriptor);");
+         Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Parser.Descriptor);");
          Indent_Line ("Parser.User_Data := User_Data;");
          Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
          Indent := Indent - 3;
@@ -915,7 +915,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
          Indent_Line
            ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
-              ", Trace, Lexer.New_Lexer (Trace.Descriptor), User_Data);");
+              ", Trace, Lexer.New_Lexer (Parser.Descriptor), User_Data);");
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

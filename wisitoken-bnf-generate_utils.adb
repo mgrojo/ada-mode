@@ -258,7 +258,7 @@ package body WisiToken.BNF.Generate_Utils is
      (Grammar_Parser    : in out WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Grammar_File_Name : in     String)
    is
-      Trace      : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Trace      : aliased WisiToken.Text_IO_Trace.Trace;
       Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
    begin
       Wisitoken_Grammar_Main.Create_Parser
@@ -288,8 +288,8 @@ package body WisiToken.BNF.Generate_Utils is
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      Trace             : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-      Grammar_Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Trace             : aliased WisiToken.Text_IO_Trace.Trace;
+      Grammar_Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser (Wisitoken_Grammar_Actions.Descriptor'Access);
    begin
       Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,

@@ -55,31 +55,6 @@ package body WisiToken.Parse.LR is
       end case;
    end Image;
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec)
-   is
-      use Ada.Containers;
-   begin
-      case Item.Verb is
-      when Shift =>
-         Trace.Put
-           ("shift and goto state" &
-              (if Trace_Parse_No_State_Numbers
-               then " --"
-               else State_Index'Image (Item.State)),
-            Prefix => False);
-
-      when Reduce =>
-         Trace.Put
-           ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.LHS, Trace.Descriptor.all),
-            Prefix => False);
-      when Accept_It =>
-         Trace.Put ("accept it", Prefix => False);
-      when Error =>
-         Trace.Put ("ERROR", Prefix => False);
-      end case;
-   end Put;
-
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean
    is
       use all type Ada.Containers.Count_Type;
@@ -721,21 +696,27 @@ package body WisiToken.Parse.LR is
       return False;
    end Any;
 
-   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
+   function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String
    is
       use Syntax_Trees;
    begin
       return
         "(" & Image (Item.Op) & ", " &
         (case Item.Op is
-         when Insert => Image (Item.Ins_ID, Descriptor) & ", " &
+         when Insert =>
+             (if Item.Ins_Node = Invalid_Node_Access
+              then Image (Item.Ins_ID, Tree.Descriptor.all)
+              else Tree.Image (Item.Ins_Node, Node_Numbers => True)) & ", " &
              (if Item.Ins_Before = Invalid_Stream_Index
               then Trimmed_Image (Item.Ins_Before_Node)
               else Trimmed_Image (Item.Ins_Before)),
-         when Delete => Image (Item.Del_ID, Descriptor) & ", " &
-             (if Item.Del_Index = Invalid_Stream_Index
-              then Trimmed_Image (Item.Del_Node)
-              else Trimmed_Image (Item.Del_Index)))
+         when Delete =>
+             (if Item.Del_Node = Invalid_Node_Access
+              then Tree.Image (Item.Del_Index, Node_Numbers => True)
+              else Tree.Image (Item.Del_Node, Node_Numbers => True)) & ", " &
+              (if Item.Del_After_Node = Invalid_Node_Access
+              then "-"
+              else Trimmed_Image (Item.Del_After_Node)))
         & ")";
    end Image;
 

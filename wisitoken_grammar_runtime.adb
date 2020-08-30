@@ -992,7 +992,7 @@ package body WisiToken_Grammar_Runtime is
       Node  : in WisiToken.Syntax_Trees.Node_Access)
    is begin
       WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-        (Label, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer, Tree, Node);
+        (Label, Data.Grammar_Lexer, Tree, Node);
    end Raise_Programmer_Error;
 
 end WisiToken_Grammar_Runtime;

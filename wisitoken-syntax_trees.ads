@@ -144,7 +144,7 @@ package WisiToken.Syntax_Trees is
 
    type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
 
-   type Tree is new Ada.Finalization.Limited_Controlled with private;
+   type Tree (Descriptor : Descriptor_Access_Constant) is new Ada.Finalization.Limited_Controlled with private;
    --  Use Copy_Tree to get a copy.
 
    type Tree_Variable_Reference (Element : not null access Tree) is null record with
@@ -841,6 +841,13 @@ package WisiToken.Syntax_Trees is
    --  Return the terminal that is immediately after Node in Tree;
    --  Invalid_Node_Access if Node is the last terminal in Tree.
 
+   function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier,
+     Post => Next_Shared_Terminal'Result = Invalid_Node_Access or else
+             Tree.Label (Next_Shared_Terminal'Result) = Shared_Terminal;
+   --  Return the next Shared_Terminal that is after Node in Tree;
+   --  Invalid_Node_Access if Node is the last terminal in Tree.
+
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
    --  Same as Get_Terminals, but return the IDs.
 
@@ -1033,16 +1040,14 @@ package WisiToken.Syntax_Trees is
    --  Trimmed integer.
 
    function Image
-     (Tree       : in Syntax_Trees.Tree;
-      Stream     : in Stream_ID;
-      Descriptor : in WisiToken.Descriptor)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return String;
    --  Image of each root node.
 
    function Image
      (Tree              : in Syntax_Trees.Tree;
       Element           : in Stream_Index;
-      Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean   := False;
       Include_RHS_Index : in Boolean   := False;
       Node_Numbers      : in Boolean   := False)
@@ -1052,7 +1057,6 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree              : in Syntax_Trees.Tree;
       Node              : in Node_Access;
-      Descriptor        : in WisiToken.Descriptor;
       Include_Children  : in Boolean := False;
       Include_RHS_Index : in Boolean := False;
       Node_Numbers      : in Boolean := False)
@@ -1060,7 +1064,6 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree         : in Syntax_Trees.Tree;
       Nodes        : in Node_Access_Array;
-      Descriptor   : in WisiToken.Descriptor;
       Node_Numbers : in Boolean := False)
      return String;
    --  Includes Node.Node_Index, Node.ID
@@ -1088,7 +1091,6 @@ package WisiToken.Syntax_Trees is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
-      Descriptor          : in     WisiToken.Descriptor;
       File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
@@ -1099,12 +1101,11 @@ package WisiToken.Syntax_Trees is
    --  Set Node_Error_Reported True if any errors are reported.
    --
    --  If Node_Image_Output is False, output Image (Tree, Node,
-   --  Descriptor, Node_Numbers => True) once before any error messages.
+   --  Node_Numbers => True) once before any error messages.
 
    procedure Validate_Tree
      (Tree           : in out Syntax_Trees.Tree;
       User_Data      : in out User_Data_Type'Class;
-      Descriptor     : in     WisiToken.Descriptor;
       File_Name      : in     String;
       Error_Reported : in out Node_Sets.Set;
       Root           : in     Node_Access                := Invalid_Node_Access;
@@ -1120,7 +1121,6 @@ package WisiToken.Syntax_Trees is
 
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
-      Descriptor      : in WisiToken.Descriptor;
       Root            : in Node_Access                   := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
       Image_Action    : in Syntax_Trees.Image_Action    := null);
@@ -1263,7 +1263,7 @@ private
 
    package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
 
-   type Tree is new Ada.Finalization.Limited_Controlled with record
+   type Tree (Descriptor : Descriptor_Access_Constant) is new Ada.Finalization.Limited_Controlled with record
       Leading_Non_Grammar : aliased WisiToken.Base_Token_Arrays.Vector;
       --  Non-grammar tokens before first grammar token; leading blank lines
       --  and comments.

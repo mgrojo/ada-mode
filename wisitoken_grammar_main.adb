@@ -743,7 +743,7 @@ package body Wisitoken_Grammar_Main is
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Parser,
          Trace,
-         Lexer.New_Lexer (Trace.Descriptor),
+         Lexer.New_Lexer (Parser.Descriptor),
          Table,
          User_Data,
          Max_Parallel         => 15,

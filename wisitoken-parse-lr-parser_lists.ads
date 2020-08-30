@@ -26,10 +26,9 @@ with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_Lists is
 
    function Parser_Stack_Image
-     (Stack      : in Syntax_Trees.Stream_ID;
-      Descriptor : in WisiToken.Descriptor;
-      Tree       : in Syntax_Trees.Tree;
-      Depth      : in SAL.Base_Peek_Type := 0)
+     (Stack : in Syntax_Trees.Stream_ID;
+      Tree  : in Syntax_Trees.Tree;
+      Depth : in SAL.Base_Peek_Type := 0)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
    --  Stack.Depth) items.
@@ -37,10 +36,9 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Unique name for calling from debugger
 
    function Image
-     (Stack      : in Syntax_Trees.Stream_ID;
-      Descriptor : in WisiToken.Descriptor;
-      Tree       : in Syntax_Trees.Tree;
-      Depth      : in SAL.Base_Peek_Type := 0)
+     (Stack : in Syntax_Trees.Stream_ID;
+      Tree  : in Syntax_Trees.Tree;
+      Depth : in SAL.Base_Peek_Type := 0)
      return String renames Parser_Stack_Image;
 
    type Base_Parser_State is tagged

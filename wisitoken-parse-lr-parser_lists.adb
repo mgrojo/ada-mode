@@ -21,10 +21,9 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.LR.Parser_Lists is
 
    function Parser_Stack_Image
-     (Stack      : in Syntax_Trees.Stream_ID;
-      Descriptor : in WisiToken.Descriptor;
-      Tree       : in Syntax_Trees.Tree;
-      Depth      : in SAL.Base_Peek_Type := 0)
+     (Stack : in Syntax_Trees.Stream_ID;
+      Tree  : in Syntax_Trees.Tree;
+      Depth : in SAL.Base_Peek_Type := 0)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -47,7 +46,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
               (if State = Unknown_State then " - : " else Trimmed_Image (State) & " : ") &
               (if I = Stack_Depth
                then ""
-               else Tree.Image (Tree.Get_Node (Stack, Item), Descriptor) & ", ");
+               else Tree.Image (Tree.Get_Node (Stack, Item)) & ", ");
          end;
       end loop;
       return To_String (Result & ")");
@@ -158,7 +157,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Trace.Put_Line
               (" " & Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-                 ": " & Message & " " & Tree.Image (State.Current_Token, Trace.Descriptor.all));
+                 ": " & Message & " " & Tree.Image (State.Current_Token));
          end if;
 
          Tree.Delete_Stream (State.Stream);
@@ -342,8 +341,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
       if Trace_Parse > Extra then
          Trace.Put (Tree.Trimmed_Image (New_Item.Stream) & ": stack: ");
-         Trace.Put_Line
-           (Parser_Lists.Image (New_Item.Stream, Trace.Descriptor.all, Tree));
+         Trace.Put_Line (Parser_Lists.Image (New_Item.Stream, Tree));
       end if;
 
       List.Elements.Prepend (New_Item);

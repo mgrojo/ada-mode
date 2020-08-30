@@ -47,10 +47,11 @@ package WisiToken.Parse is
 
    package Wrapped_Lexer_Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Wrapped_Lexer_Error);
 
-   type Base_Parser is abstract new Ada.Finalization.Limited_Controlled with record
+   type Base_Parser (Descriptor : Descriptor_Access_Constant) is abstract new Ada.Finalization.Limited_Controlled
+   with record
       Trace     : access WisiToken.Trace'Class;
       Lexer     : WisiToken.Lexer.Handle;
-      Tree      : aliased Syntax_Trees.Tree;
+      Tree      : aliased Syntax_Trees.Tree (Descriptor);
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;

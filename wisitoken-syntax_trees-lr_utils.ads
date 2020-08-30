@@ -29,11 +29,10 @@ with SAL.Gen_Unconstrained_Array_Image_Aux;
 package WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Raise_Programmer_Error
-     (Label      : in String;
-      Descriptor : in WisiToken.Descriptor;
-      Lexer      : in WisiToken.Lexer.Handle;
-      Tree       : in WisiToken.Syntax_Trees.Tree;
-      Node       : in WisiToken.Syntax_Trees.Node_Access);
+     (Label : in String;
+      Lexer : in WisiToken.Lexer.Handle;
+      Tree  : in WisiToken.Syntax_Trees.Tree;
+      Node  : in WisiToken.Syntax_Trees.Node_Access);
    pragma No_Return (Raise_Programmer_Error);
 
    ----------

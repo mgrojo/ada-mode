@@ -117,7 +117,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use all type Semantic_Checks.Check_Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
-      Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
       Item   : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref (Parse_Items, Parse_Item_Index).Element.all;
@@ -142,7 +142,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          if Trace_McKenzie > Extra then
             if Config.Current_Insert_Delete /= No_Insert_Delete then
                Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
-                           Image (Config.Insert_Delete, Trace.Descriptor.all));
+                           Image (Config.Insert_Delete, Descriptor));
             end if;
          end if;
 

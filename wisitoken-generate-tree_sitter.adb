@@ -322,7 +322,7 @@ package body WisiToken.Generate.Tree_Sitter is
       begin
          if Trace_Generate_EBNF > Detail then
             Ada.Text_IO.Put_Line
-              ("delete " & Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Node_Numbers => True));
+              ("delete " & Tree.Image (Node, Node_Numbers => True));
          end if;
 
          case To_Token_Enum (Tree.ID (Node)) is
@@ -450,8 +450,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                   when others =>
                      raise SAL.Programmer_Error with "make_non_empty_rhs_item " & Tree.Image
-                       (Multiple_Item, Wisitoken_Grammar_Actions.Descriptor,
-                        Include_RHS_Index => True, Node_Numbers => True);
+                       (Multiple_Item, Include_RHS_Index => True, Node_Numbers => True);
                   end case;
                end;
 
@@ -517,7 +516,7 @@ package body WisiToken.Generate.Tree_Sitter is
                      --  deleted by now.
                      raise SAL.Programmer_Error with "Make_Optional.Find_Nodes list: rhs_index" &
                        Tree.RHS_Index (Node)'Image & " node " & Tree.Image
-                         (Node, Wisitoken_Grammar_Actions.Descriptor, Node_Numbers => True);
+                         (Node, Node_Numbers => True);
                   end case;
                end;
 
@@ -601,7 +600,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
             when others =>
                raise SAL.Programmer_Error with "Make_Optional.Find_Nodes name " & Name & " in node " & Tree.Image
-                 (Node, Wisitoken_Grammar_Actions.Descriptor, Node_Numbers => True);
+                 (Node, Node_Numbers => True);
             end case;
          end Find_Nodes;
 
@@ -614,7 +613,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions start");
          if Trace_Generate_EBNF > Detail then
-            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root);
+            Tree.Print_Tree (Tree.Root);
          end if;
       end if;
 
@@ -633,7 +632,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree
-        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Outline then
@@ -654,7 +653,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       for Nonterm of Empty_Nonterms loop
@@ -667,7 +666,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
@@ -708,13 +707,13 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Wisitoken_Grammar_Actions.Descriptor, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions end");
-         Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Tree.Root);
+         Tree.Print_Tree (Tree.Root);
       end if;
    end Eliminate_Empty_Productions;
 
@@ -791,7 +790,7 @@ package body WisiToken.Generate.Tree_Sitter is
       is begin
          New_Line (File);
          Put (File, "// " & Label & ": not translated: " & Node_Access'Image (Node) & ":" &
-                Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Include_Children => True));
+                Tree.Image (Node, Include_Children => True));
 
          Put_Line
            (Current_Error,
@@ -799,7 +798,7 @@ package body WisiToken.Generate.Tree_Sitter is
               (Node, Input_File_Name,
                "not translated: " &
                Tree.Image
-                 (Node, Wisitoken_Grammar_Actions.Descriptor,
+                 (Node,
                   Include_RHS_Index => True,
                   Include_Children  => True,
                   Node_Numbers      => True)));
@@ -1056,7 +1055,7 @@ package body WisiToken.Generate.Tree_Sitter is
          when 2 .. 4 =>
             --  Should have been eliminated by Eliminate_Empty_Productions
             raise SAL.Programmer_Error with "Print_Tree_Sitter rhs_list %if " &
-              Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Node_Numbers => True);
+              Tree.Image (Node, Node_Numbers => True);
 
          when others =>
                raise SAL.Programmer_Error;
@@ -1194,7 +1193,7 @@ package body WisiToken.Generate.Tree_Sitter is
             when 4 .. 8 =>
                --  Should have been eliminated by Eliminate_Empty_Productions
                raise SAL.Programmer_Error with "Print_Tree_Sitter declaration %if " &
-                 Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Node_Numbers => True);
+                 Tree.Image (Node, Node_Numbers => True);
 
             when others =>
                raise SAL.Programmer_Error;

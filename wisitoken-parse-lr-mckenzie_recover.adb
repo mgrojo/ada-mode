@@ -133,17 +133,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Trace.Put_Line
            ("parser " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
               ": State" & Shared_Parser.Tree.State (Parser_State.Stream)'Image &
-              " Current_Token " & Shared_Parser.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
+              " Current_Token " & Shared_Parser.Tree.Image (Parser_State.Current_Token) &
               " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
            ((case Error.Label is
              when Action => "Action",
-             when Check => "Check, " & Semantic_Checks.Image (Error.Check_Status, Trace.Descriptor.all),
+             when Check => "Check, " & Semantic_Checks.Image (Error.Check_Status, Shared_Parser.Descriptor.all),
              when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Extra then
             Put_Line
               (Trace, Shared_Parser.Tree, Parser_State.Stream, "stack: " & Parser_Lists.Image
-                 (Parser_State.Stream, Trace.Descriptor.all, Shared_Parser.Tree));
+                 (Parser_State.Stream, Shared_Parser.Tree));
          end if;
       end if;
 
@@ -180,7 +180,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  solution; see McKenzie_Recover.Explore Process_One.
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
-            if Undo_Reduce_Valid (Config.Stack, Parser_State.Tree) then
+            if Undo_Reduce_Valid (Config.Stack, Shared_Parser.Tree) then
                Config.Check_Status      := Error.Check_Status;
                Config.Error_Token       := Config.Stack.Peek.Token;
                Config.Check_Token_Count := Unchecked_Undo_Reduce (Config.Stack, Shared_Parser.Tree);
@@ -189,8 +189,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                if Trace_McKenzie > Detail then
                   Put ("undo_reduce " & Image
-                         (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Shared_Parser.Tree, Parser_State.Stream,
-                          Config, Task_ID => False);
+                         (Config.Error_Token.ID, Shared_Parser.Descriptor.all), Trace, Shared_Parser.Tree,
+                          Parser_State.Stream, Config, Task_ID => False);
                end if;
             else
                --  Ignore error
@@ -400,11 +400,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
 
-                     Descriptor : WisiToken.Descriptor renames Shared_Parser.Trace.Descriptor.all;
-                     Stack      : Syntax_Trees.Stream_ID renames Parser_State.Stream;
-                     Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
-                     Data       : McKenzie_Data renames Parser_State.Recover;
-                     Result     : Configuration renames Data.Results.Peek;
+                     Stack  : Syntax_Trees.Stream_ID renames Parser_State.Stream;
+                     Tree   : Syntax_Trees.Tree renames Shared_Parser.Tree;
+                     Data   : McKenzie_Data renames Parser_State.Recover;
+                     Result : Configuration renames Data.Results.Peek;
 
                      Error     : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
                      Error_Pos : constant Buffer_Pos :=
@@ -434,15 +433,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:", Task_ID => False);
                         Put_Line
-                          (Trace, Tree, Parser_State.Stream, "stack " & Image (Stack, Descriptor, Tree),
+                          (Trace, Tree, Parser_State.Stream, "stack " & Image (Stack, Tree),
                            Task_ID => False);
                         Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Shared_Token  " & Tree.Image
-                             (Parser_State.Shared_Token, Descriptor),
+                          (Trace, Tree, Parser_State.Stream, "Shared_Token  " & Tree.Image (Parser_State.Shared_Token),
                            Task_ID => False);
                         Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Current_Token " & Tree.Image
-                             (Parser_State.Current_Token, Descriptor),
+                          (Trace, Tree, Parser_State.Stream, "Current_Token " & Tree.Image (Parser_State.Current_Token),
                            Task_ID => False);
                      end if;
 
@@ -505,7 +502,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  if Trace_McKenzie > Extra or Trace_Parse > Extra then
                                     Put_Line
                                       (Trace, Tree, Parser_State.Stream, "undo_reduce op: stack " &
-                                         Image (Stack, Descriptor, Tree),
+                                         Image (Stack, Tree),
                                        Task_ID => False);
                                  end if;
                               end if;
@@ -646,18 +643,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:", Task_ID => False);
                         Put_Line
-                          (Trace, Tree, Parser_State.Stream, "stack " & Parser_Lists.Image (Stack, Descriptor, Tree),
+                          (Trace, Tree, Parser_State.Stream, "stack " & Parser_Lists.Image (Stack, Tree),
                            Task_ID => False);
                         Put_Line
                           (Trace, Tree, Parser_State.Stream, "Shared_Token  " & Tree.Image
-                             (Parser_State.Shared_Token, Descriptor), Task_ID => False);
+                             (Parser_State.Shared_Token), Task_ID => False);
                         Put_Line
                           (Trace, Tree, Parser_State.Stream, "Current_Token " & Tree.Image
-                             (Parser_State.Current_Token, Descriptor), Task_ID => False);
+                             (Parser_State.Current_Token), Task_ID => False);
                         Put_Line
                           (Trace, Tree, Parser_State.Stream, "recover_insert_delete" &
                              Parser_State.Recover_Insert_Delete_Current'Image & ":" &
-                             Image (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
+                             Image (Parser_State.Recover_Insert_Delete, Tree), Task_ID => False);
                         Put_Line
                           (Trace, Tree, Parser_State.Stream, "inc_shared_token " &
                              Boolean'Image (Parser_State.Inc_Shared_Token),
@@ -1266,7 +1263,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
-      Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Tree.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +" ") &
@@ -1291,7 +1288,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Result := Result & Image (Config.Stack, Descriptor, Depth => 1);
 
       if Config.Current_Insert_Delete = No_Insert_Delete then
-         Result := Result & "| " & Tree.Image (Config.Current_Shared_Token, Descriptor) & "|";
+         Result := Result & "| " & Tree.Image (Config.Current_Shared_Token) & "|";
       else
          Result := Result & "/ " & Trimmed_Image (Config.Current_Insert_Delete) & ":" &
            Image (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete), Descriptor) & "/";

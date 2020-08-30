@@ -35,10 +35,10 @@ package body WisiToken.Parse is
          --  also assume Token is a grammar token if Error is True.
 
          if Trace_Parse > Lexer_Debug then
-            Parser.Trace.Put_Line (Image (Token, Parser.Trace.Descriptor.all));
+            Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
          end if;
 
-         if Token.ID >= Parser.Trace.Descriptor.First_Terminal then
+         if Token.ID >= Parser.Descriptor.First_Terminal then
             --  grammar token
             Index := Parser.Tree.Add_Terminal (Token);
 
@@ -60,7 +60,7 @@ package body WisiToken.Parse is
                     (Node  => Parser.Last_Grammar_Node,
                      Index => Index);
 
-               elsif Token.ID = Parser.Trace.Descriptor.EOI_ID then
+               elsif Token.ID = Parser.Descriptor.EOI_ID then
                   Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line + 1);
                   Parser.Line_Begin_Token (Token.Line + 1) :=
                     (Node  => Parser.Last_Grammar_Node,
@@ -98,7 +98,7 @@ package body WisiToken.Parse is
 
    procedure Lex_All (Parser : in out Base_Parser'Class)
    is
-      EOF_ID : constant Token_ID := Parser.Trace.Descriptor.EOI_ID;
+      EOF_ID : constant Token_ID := Parser.Descriptor.EOI_ID;
    begin
       Parser.Lexer.Errors.Clear;
       Parser.Line_Begin_Token.Clear;
