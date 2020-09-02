@@ -557,7 +557,10 @@ package body Wisi.Ada is
    begin
       case To_Token_Enum (Insert_Before_ID) is
       when BEGIN_ID | DECLARE_ID | PACKAGE_ID | PROCEDURE_ID | FUNCTION_ID |
-        END_ID => -- test/ada_mode-recover_37.adb
+        END_ID =>
+         --  test/ada_mode-interactive_2.adb Record_1: BEGIN_ID
+         --  test/ada_mode-recover_03.adb: BEGIN_ID
+         --  test/ada_mode-recover_37.adb: END_ID
          return not Insert_On_Blank_Line;
 
       when others =>

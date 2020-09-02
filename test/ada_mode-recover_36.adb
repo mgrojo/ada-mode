@@ -1,4 +1,5 @@
 --  Used to get "branched tree growing too large".
+--EMACSCMD:(setq skip-recase-test t)
 package WisiToken.Syntax_Trees is
    procedure Buffer (Foo : in Bar);
 

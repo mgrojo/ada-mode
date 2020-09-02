@@ -9,7 +9,7 @@ begin
      (Directory => ".",
       Pattern => "*.diff",
       Filter => (Ordinary_File =>
-		   Process =>
+                   Process =>
 end Sum_Diff_Lengths;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

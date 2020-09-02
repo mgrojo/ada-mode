@@ -478,7 +478,7 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parser.Lexer.Reset_With_String_Access (Buffer, +"");
                   loop
-                     exit when Token.ID = Parser.Trace.Descriptor.EOI_ID;
+                     exit when Token.ID = Parser.Descriptor.EOI_ID;
                      Lexer_Error := Parser.Lexer.Find_Next (Token);
                   end loop;
                exception

@@ -1,7 +1,7 @@
 -- Indent with partial parse after 'end name;'.
 --
--- The parse region starts after 'end if;'. Error recovery used to
--- delete 'end' instead of inserting 'begin', giving incorrect indent.
+-- The parse region starts after 'end if;'.
+
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_Partial_10 is
@@ -12,7 +12,7 @@ package body Ada_Mode.Recover_Partial_10 is
       end if;
 
       --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-      --EMACSRESULT:3
+      --EMACSRESULT:0
    end Is_Reduce;
 
 

@@ -28,7 +28,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-with SAL.Gen_Unbounded_Definite_Vectors;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
@@ -439,6 +439,9 @@ private
 
    package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
+
+   function Image is new Line_Paren_Vectors.Gen_Image (WisiToken.Trimmed_Image);
+
    package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Line_Number_Type, WisiToken.Buffer_Pos, Default_Element => WisiToken.Invalid_Buffer_Pos);
 

@@ -384,7 +384,8 @@ complete."
 	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) ""))
 	;; file-name can be nil during vc-resolve-conflict
 	(err (make-wisi--parse-error
-	      :pos (copy-marker (if (= 1 name-1-pos) name-2-pos name-1-pos))
+	      :pos (copy-marker name-1-pos)
+	      :pos-2 (copy-marker name-2-pos)
 	      :message
 	      (format "%s:%d:%d: %s %s:%d:%d"
 		      file-name (line-number-at-pos name-1-pos) name-1-col
@@ -398,8 +399,8 @@ complete."
 (defun wisi-process-parse--find-err (pos errors)
   (let ((result))
     (dolist (err errors)
-      ;; POS is the repair position; it may be before or after the error pos
-      (when (= pos (wisi--parse-error-pos err))
+      (when (or (= pos (wisi--parse-error-pos err))
+		(and (wisi--parse-error-pos-2 err) (= pos (wisi--parse-error-pos-2 err))))
 	(setq result err)))
     result))
 

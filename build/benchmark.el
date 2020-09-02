@@ -2,8 +2,10 @@
 
 (require 'ada-mode)
 
+(setq ada-mode-dir (file-name-directory (locate-file "ada-mode.el" load-path)))
+
 (set-default 'wisi-size-threshold most-positive-fixnum); before open buffer
-(setq ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe")
+(setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
 (find-file "c:/eurocontrol/gnatcoll-xref.adb")
 (wisi-parse-buffer 'indent) ; time with warm caches.
 (message "navigate")
