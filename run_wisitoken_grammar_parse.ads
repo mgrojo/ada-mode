@@ -2,7 +2,7 @@
 --
 --  Run the wisitoken-grammar parser standalone. Useful for debugging grammar issues.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,6 +24,6 @@ with Gen_Run_Wisi_LR_Parse;
 with Wisi.WisiToken_Grammar;
 procedure Run_WisiToken_Grammar_Parse is new Gen_Run_Wisi_LR_Parse
   (Wisi.WisiToken_Grammar.Parse_Data_Type,
-   Wisitoken_Grammar_1_Process_Actions.Descriptor,
+   Wisitoken_Grammar_1_Process_Actions.Descriptor'Access,
    null, null, null,
    Wisitoken_Grammar_1_Process_Main.Create_Parser);

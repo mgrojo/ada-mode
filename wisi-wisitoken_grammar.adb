@@ -27,7 +27,6 @@ package body Wisi.WisiToken_Grammar is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -38,7 +37,7 @@ package body Wisi.WisiToken_Grammar is
       use all type Wisitoken_Grammar_1_Process_Actions.Token_Enum_ID;
    begin
       Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Base_Terminals, Post_Parse_Action,
+        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Post_Parse_Action,
          Begin_Line, End_Line, Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;
@@ -47,14 +46,14 @@ package body Wisi.WisiToken_Grammar is
    procedure Check_Parens
      (Data        : in out Wisi.Parse_Data_Type'Class;
       Tree        : in     WisiToken.Syntax_Trees.Tree;
-      Tree_Tokens : in     WisiToken.Valid_Node_Index_Array;
+      Tree_Tokens : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Args        : in     Arg_Index_Array)
    is
       use WisiToken;
    begin
       for Index of Args loop
          declare
-            Token : Augmented_Token renames Get_Aug_Token_Const_1 (Tree, Tree.First_Terminal (Tree_Tokens (Index)));
+            Token : constant Base_Token := Tree.Base_Token (Tree.First_Terminal (Tree_Tokens (Index)));
          begin
             Data.Put_Language_Action
               (Check_Parens_Action_Index & Buffer_Pos'Image (Token.Char_Region.First) &

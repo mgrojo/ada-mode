@@ -219,7 +219,7 @@ nonterminal
       (wisi-motion-action [1 [4 rhs] 5])
       (wisi-name-action 1)
       (wisi-face-apply-action [1 nil font-lock-function-name-face])
-      (wisi-indent-action [nil 2 2 2 2]))%
+      (wisi-indent-action [[nil 2] 2 2 2 2]))%
   ;
 
 semicolon_opt :

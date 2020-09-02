@@ -85,6 +85,7 @@
     ["Goto declaration" xref-find-definitions t]
     ["mmm-ify action or code"   wisitoken-grammar-mmm-parse t]
     ["insert mmm action or code"   mmm-insert-region t]
+    ["goto conflict in .parse_table" wisitoken-parse_table-conflict-goto]
     ["clean conflict states" wisitoken-grammar-clean-conflicts]))
 
 (cl-defstruct (wisitoken-grammar-parser (:include wisi-process--parser))

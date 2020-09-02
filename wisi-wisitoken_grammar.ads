@@ -28,7 +28,6 @@ package Wisi.WisiToken_Grammar is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -38,7 +37,7 @@ package Wisi.WisiToken_Grammar is
    procedure Check_Parens
      (Data        : in out Wisi.Parse_Data_Type'Class;
       Tree        : in     WisiToken.Syntax_Trees.Tree;
-      Tree_Tokens : in     WisiToken.Valid_Node_Index_Array;
+      Tree_Tokens : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Args        : in     Arg_Index_Array);
 
 end Wisi.WisiToken_Grammar;

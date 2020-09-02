@@ -1,5 +1,11 @@
 %generate LALR Ada re2c
 
+%code actions spec post
+%{
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+}%
+
 %mckenzie_minimal_complete_cost_delta -3
 
 Literal : ;; not empty
@@ -14,4 +20,24 @@ Literal : ;; not empty
 Literal
   : ;; empty
   | IntegerLiteral
+  ;
+
+extension_aggregate
+  : '(' expression 'with' record_component_association_list ')'
+    %(
+      (wisi-indent-action [nil
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)])
+      )%
+  | PERCENT END IF
+  | PERCENT END IF
+
+  ;; comment 1 (no preceding ';')
+  ;; comment 2
+
+declaration
+  : PERCENT IDENTIFIER
+  | PERCENT END IF
   ;

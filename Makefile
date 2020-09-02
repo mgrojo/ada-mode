@@ -11,7 +11,7 @@ export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
 
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 
-elisp : update-elisp test
+elisp : update test
 
 pub : pub-wisitoken-grammar build-elpa uninstall-elpa
 
