@@ -2,7 +2,7 @@
 --
 --  Run the Ada parser standalone. Useful for debugging grammar issues.
 --
---  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,7 +25,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Ada;
 with Wisi.Ada;
 procedure Run_Ada_LR1_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
   (Wisi.Ada.Parse_Data_Type,
-   Ada_Process_Actions.Descriptor,
+   Ada_Process_Actions.Descriptor'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,

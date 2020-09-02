@@ -52,6 +52,7 @@ and parse the whole buffer."
   ;; Includes information derived from compiler error recovery to edit
   ;; text to fix one error. Used by ’wisi-repair-error’ to edit buffer.
   pos      ;; position (integer or marker) in buffer where error was detected.
+  pos-2    ;; secondary error position
   message  ;; string error message
   repair   ;; list of wisi--parse-error-repair.
   )

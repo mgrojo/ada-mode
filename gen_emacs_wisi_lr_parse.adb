@@ -23,9 +23,9 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Parse
 is
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   Parser     : WisiToken.Parse.LR.Parser.Parser;
-   Parse_Data : aliased Parse_Data_Type (Parser.Terminals'Access, Parser.Line_Begin_Token'Access);
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace;
+   Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    Params : constant Process_Start_Params := Get_Process_Start_Params;
 begin
@@ -34,6 +34,6 @@ begin
       Trace'Unrestricted_Access,
       Parse_Data'Unchecked_Access);
 
-   Process_Stream (Name, Language_Protocol_Version, Partial_Parse_Active, Params, Parser, Parse_Data, Descriptor);
+   Process_Stream (Name, Language_Protocol_Version, Partial_Parse_Active, Params, Parser, Parse_Data, Descriptor.all);
 
 end Gen_Emacs_Wisi_LR_Parse;

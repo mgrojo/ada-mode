@@ -25,14 +25,14 @@ package body Ada_Mode.Recover_02 is
    begin
       --  Started adding a procedure call
       Config_Store.Get
-	(Parser_Label
+        (Parser_Label
 
-	   -- Copied from above, intending to move the function call here.
-	   -- LR1 recover inserts "=>", deletes 'Current_Input : constant Token_ID :='.
-	   Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
+      -- Copied from above, intending to move the function call here.
+      -- LR1 recover inserts "=>", deletes 'Current_Input : constant Token_ID :='.
+      Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
       if Check (Data, Config, Current_Input) then
-	 return;
+         return;
       end if;
    end Check_One;
 

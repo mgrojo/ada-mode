@@ -24,7 +24,7 @@ with Wisi;
 with WisiToken.Parse.LR.Parser;
 package Emacs_Wisi_Common_Parse is
 
-   Protocol_Version : constant String := "6";
+   Protocol_Version : constant String := "7";
    --  Protocol_Version defines the data sent between elisp and the
    --  background process, except for the language-specific parameters,
    --  which are defined by the Language_Protocol_Version parameter to
@@ -37,7 +37,10 @@ package Emacs_Wisi_Common_Parse is
    --  the implementation of the protocol.
    --
    --  Only changes once per wisi release. Increment as soon as required,
-   --  record new version in NEWS-wisi.text.
+   --  record new version in NEWS-wisi.text. If working on a branch and
+   --  main has already incremented, increment again, in case main is
+   --  released before branch is merged; leave two "increment protocol"
+   --  lines in NEWS-wisi.text to indicate the issue.
 
    Prompt : constant String := ";;> ";
 
@@ -116,7 +119,6 @@ package Emacs_Wisi_Common_Parse is
       Check_Limit          : Integer;
       Enqueue_Limit        : Integer;
       Max_Parallel         : Integer;
-      Branched_Tree_Limit  : Integer;
       Byte_Count           : Integer;
       --  Count of bytes of source file sent.
    end record;

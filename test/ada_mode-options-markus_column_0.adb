@@ -1,10 +1,10 @@
 procedure Ada_Mode.Options.Markus_Column_0
 -- No comment before the first code line, to test that case with
 -- ada-indent-comment-col-0 t
---
--- Test case from Markus Schöpflin
 
 is
+   -- a commment _not_ in column 0.
+
 -- 3
    X : Integer;
 -- 4

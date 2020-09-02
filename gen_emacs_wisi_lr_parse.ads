@@ -14,7 +14,7 @@
 --  [2] On the Ada side, it is defined here, and in
 --  wisitoken-wisi_runtime.adb
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -38,7 +38,7 @@ generic
 
    Name                           : in String; --  for Usage, error messages.
    Language_Protocol_Version      : in String; --  Defines language-specific parse parameters.
-   Descriptor                     : in WisiToken.Descriptor;
+   Descriptor                     : in WisiToken.Descriptor_Access_Constant;
    Partial_Parse_Active           : in out Boolean;
    Language_Fixes                 : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
    Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;

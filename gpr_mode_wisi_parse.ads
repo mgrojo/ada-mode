@@ -2,7 +2,7 @@
 --
 --  External process parser for gpr mode
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,7 +26,7 @@ procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_LR_Parse
   (Parse_Data_Type                => Wisi.Gpr.Parse_Data_Type,
    Language_Protocol_Version      => Wisi.Gpr.Language_Protocol_Version,
    Name                           => "gpr_mode_wisi_parse",
-   Descriptor                     => Gpr_Process_Actions.Descriptor,
+   Descriptor                     => Gpr_Process_Actions.Descriptor'Access,
    Partial_Parse_Active           => Gpr_Process_Actions.Partial_Parse_Active,
    Language_Fixes                 => null,
    Language_Matching_Begin_Tokens => null,

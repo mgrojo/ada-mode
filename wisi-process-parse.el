@@ -22,7 +22,7 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
-(defconst wisi-process-parse-protocol-version "6"
+(defconst wisi-process-parse-protocol-version "7"
   "Defines data exchanged between this package and the background process.
 Must match emacs_wisi_common_parse.ads Protocol_Version.")
 
@@ -169,7 +169,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -211,7 +211,6 @@ parse region."
 		      (or wisi-mckenzie-check-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
 		      (or wisi-parse-max-parallel -1)
-		      (or wisi-branched-tree-limit -1)
 		      (- (position-bytes send-end) (position-bytes begin)) ;; byte_count: send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
@@ -386,6 +385,7 @@ complete."
 	;; file-name can be nil during vc-resolve-conflict
 	(err (make-wisi--parse-error
 	      :pos (copy-marker name-1-pos)
+	      :pos-2 (copy-marker name-2-pos)
 	      :message
 	      (format "%s:%d:%d: %s %s:%d:%d"
 		      file-name (line-number-at-pos name-1-pos) name-1-col
@@ -396,22 +396,38 @@ complete."
     (push err (wisi-parser-parse-errors parser))
     ))
 
+(defun wisi-process-parse--find-err (pos errors)
+  (let ((result))
+    (dolist (err errors)
+      (when (or (= pos (wisi--parse-error-pos err))
+		(and (wisi--parse-error-pos-2 err) (= pos (wisi--parse-error-pos-2 err))))
+	(setq result err)))
+    result))
+
 (defun wisi-process-parse--Recover (parser sexp)
-  ;; sexp is [Recover [pos [inserted] [deleted] deleted-region]...]
+  ;; sexp is [Recover [error-pos edit-pos [inserted] [deleted] deleted-region]...]
   ;; see ‘wisi-process-parse--execute’
-  ;; convert to list of wisi--parse-error-repair, add to last error
-  (let* ((token-table (wisi-process--parser-token-table parser))
-	 (last-error (car (wisi-parser-parse-errors parser))))
+  ;; convert to list of wisi--parse-error-repair, add to corresponding error
+  (let ((token-table (wisi-process--parser-token-table parser)))
+
     (unless (= 1 (length sexp))
       (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
-	(push
-	 (make-wisi--parse-error-repair
-	  :pos (copy-marker (aref (aref sexp i) 0))
-	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
-	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
-	  :deleted-region (aref (aref sexp i) 3))
-	 (wisi--parse-error-repair last-error)))
-      )))
+	(let* ((error-pos (aref (aref sexp i) 0))
+	       (edit-pos (aref (aref sexp i) 1))
+	       (err (wisi-process-parse--find-err error-pos (wisi-parser-parse-errors parser))))
+	  (cl-nsubst
+	   (push
+	    (make-wisi--parse-error-repair
+	     :pos (copy-marker edit-pos)
+	     :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
+	     :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
+	     :deleted-region (aref (aref sexp i) 4))
+	    (wisi--parse-error-repair err)) ;; new
+	   err ;; old
+	   (wisi-parser-parse-errors parser) ;; tree
+	   :test (lambda (old el) (= (wisi--parse-error-pos old) (wisi--parse-error-pos err))))
+	   )))
+    ))
 
 (defun wisi-process-parse--End (parser sexp)
   ;; sexp is [End pos]

@@ -5,7 +5,7 @@
 --  [1] gpr-wisi.el
 --  [2] gpr-indent-user-options.el
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -43,7 +43,6 @@ package Wisi.Gpr is
      (Data              : in out Parse_Data_Type;
       Lexer             : in     WisiToken.Lexer.Handle;
       Descriptor        : access constant WisiToken.Descriptor;
-      Base_Terminals    : in     WisiToken.Base_Token_Array_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;

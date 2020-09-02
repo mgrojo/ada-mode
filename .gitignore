@@ -71,3 +71,12 @@ build/wisitoken-ada_annex_p-tokens/
 build/wisitoken-ada_lite-tokens/
 test/ada_lite-correct/
 test/ada_lite/
+ada_lr1_parse_table.txt
+ada_re2c.c
+ada_re2c_c.ads
+gpr_process_actions.adb
+gpr_process_actions.ads
+gpr_process_main.adb
+gpr_process_main.ads
+gpr_re2c.c
+gpr_re2c_c.ads

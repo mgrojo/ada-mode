@@ -1321,7 +1321,7 @@ Point must have been set by `ada-wisi-find-begin'."
    ((or (wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
 	(wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END)))
     ;; case 1:
-    ;;
+    ;;        ...
     ;;     end;
     ;;  else
     ;;  declare
@@ -1329,10 +1329,28 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Indenting 'declare'; parse begin after 'end;', recover inserted
     ;; 'if then' before 'else', so result is ada-indent relative to
     ;; 'end;', but we want 0 relative to end
+    ;;
+    ;; case 2: test/ada_mode-partial_parse.adb
+    ;;
+    ;;       B;
+    ;;    end
+    ;; end Debug;
+    ;;
+    ;; Indenting first 'end'; that 'end' was deleted.
     (- indent ada-indent))
 
    ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
-        (- indent (+ ada-indent ada-indent-when)))
+    ;; test/ada_mode-partial_parse.adb
+    ;;    end loop;
+    ;;    ...
+    ;; when Face =>
+    ;;
+    ;; indenting 'when', or the new blank line after 'when'. CASE IS
+    ;; was inserted by error recover, at indent of 'end' (ada-indent
+    ;; from 'when').
+    (if (looking-at "when")
+	(- indent ada-indent)
+      (- indent ada-indent ada-indent-when)))
 
    ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
         (+ indent (+ ada-indent ada-indent-when)))

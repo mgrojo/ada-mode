@@ -129,7 +129,7 @@ begin
    else
       C;
 
-      --  Parse region starts after 'end case;', ends at 'end if;'.
+      --  Parse region starts after 'end case;', ends after 'end Ada_Mode.Partial_Parse'
       --EMACSCMD:(progn (forward-line 2)(forward-word 1)(delete-char 4)(indent-for-tab-command)(back-to-indentation)(current-column))
       --EMACSRESULT: 3
    end if;

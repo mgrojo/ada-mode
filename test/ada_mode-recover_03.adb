@@ -5,7 +5,6 @@ procedure Ada_Mode.Recover_3 is
    function Process return Boolean
    is
       Node_Id : Token_Id renames
-
    begin
       return Node.Id = Id;
    end Process;

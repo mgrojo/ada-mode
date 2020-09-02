@@ -71,6 +71,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_33.adb",
       "ada_mode-recover_34.adb",
       "ada_mode-recover_35.adb",
+      "ada_mode-recover_36.adb",
       "ada_mode-recover_37.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",

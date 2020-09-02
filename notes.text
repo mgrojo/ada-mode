@@ -25,13 +25,13 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -43,15 +43,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-test/ada_mode-recover_26.adb error during resume
-    state in 56:SEMICOLON is wrong, because it is not copied for parallel parsers!
-    best fix is node_access tree; ignore for now
+incremental parse
+
 
 ada_annex_p.wy, ada2020
     recursion reduces power of Minimal_Complete in error recover too much
         handle recursion in minimal_complete at runtime?
-
-    try to reduce recursion in name?
 
 wisi.texi
     $FOO only sees vars defined in the current project
@@ -597,11 +594,28 @@ mckenzie recover
                 ;; 2020-07-13 22:46:16.47 post-recover 5 active, 1.159587153
                 1.16 seconds, 1.12 seconds
 
+    13 Jul 2020 incremental parse devel branch (main branch similar):
+        --debug_mode does not show time; use --repeat_count 2
+        ;; parser 0: State 14545 Current_Token (LEFT_PAREN, (859 . 859)) Resume_Token_Goal 51
+        ;;  0: succeed 2, enqueue 217, check  21, cost:  2
 
+        ;; parser 1: State 2649 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;; parser 0: State 1439 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;;  1: succeed 2, enqueue 1616, check  148, cost:  1
+        ;;  0: succeed 2, enqueue 2528, check  204, cost:  1
 
+        ;; parser 0: State 14545 Current_Token (LEFT_PAREN, (859 . 859)) Resume_Token_Goal 51
+        ;;  0: succeed 2, enqueue 217, check  21, cost:  2
+
+        ;; parser 1: State 2649 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;; parser 0: State 1439 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;;  1: succeed 1, enqueue 1394, check  123, cost:  1
+        ;;  0: succeed 2, enqueue 2533, check  216, cost:  1
+        total parse time per iteration 0.022099088
 
 navigate, face, indent
     make -r benchmark
+        copy per iteration values here
         uses gnatcoll-xref.adb
 
     27 Nov 2017 - compute actions in Ada
@@ -637,6 +651,11 @@ navigate, face, indent
         navigate 1.292225 seconds 5 gcs 6249 responses 0.254697 wait
         face     1.401879 seconds 7 gcs 2151 responses 0.215092 wait
         indent   1.286356 seconds 2 gcs 7252 responses 0.223322 wait
+
+    13 Jul 2020 incremental parse devel branch (main times out!):
+        navigate 1.066396 seconds 5 gcs 6250 responses 0.178766 wait
+        face     1.189451 seconds 7 gcs 2152 responses 0.156131 wait
+        indent   0.965281 seconds 2 gcs 7253 responses 0.180422 wait
 
  wisi work
 

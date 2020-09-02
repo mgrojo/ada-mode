@@ -22,9 +22,9 @@ with Run_Wisi_Common_Parse;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Parse
 is
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   Parser     : WisiToken.Parse.LR.Parser.Parser;
-   Parse_Data : aliased Parse_Data_Type (Parser.Terminals'Access, Parser.Line_Begin_Token'Access);
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace;
+   Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table,
    --  and Get_CL_Params can override them.
@@ -32,6 +32,6 @@ begin
      (Parser, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
       Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
 
-   Run_Wisi_Common_Parse.Parse_File (Parser, Parse_Data, Descriptor);
+   Run_Wisi_Common_Parse.Parse_File (Parser, Parse_Data, Descriptor.all);
 
 end Gen_Run_Wisi_LR_Parse;

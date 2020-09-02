@@ -1319,7 +1319,23 @@ subprogram_specification ::=
     procedure_specification
   | function_specification
 
-procedure_specification ::= 'procedure' name parameter_profile
+procedure_specification
+  : 'procedure' name parameter_profile
+    %((wisi-statement-action [1 statement-start])
+      (wisi-name-action 2)
+      (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face])
+      ;; Comments after 'name' are assumed to be present only when
+      ;; 'parameter_profile_opt' is empty, so they are before the 'is'
+      ;; in a subprogram_body; indent the same as after a
+      ;; subprogram_declaration (see
+      ;; ada_mode-options-markus_column_0.adb). Similarly for comments
+      ;; after 'parameter_profile_opt'.
+      (wisi-indent-action [nil
+                           [(wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                            nil]
+                           [ada-indent-broken nil]]))%
+    %((wisi-propagate-name 2))%
+  ;
 
 function_specification
   : 'function' name parameter_and_result_profile
@@ -1472,10 +1488,10 @@ expression_function_declaration
     %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
       (wisi-indent-action [nil nil nil
                                ada-indent-broken (ada-indent-anchored-expression 4) (wisi-anchored 4 0)
-                               ada-indent-broken ada-indent-broken]))%
+                               nil ada-indent-broken]))%
   | [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil nil nil ada-indent-broken nil ada-indent-broken]))%
   ;
 
 package_declaration ::= package_specification';'

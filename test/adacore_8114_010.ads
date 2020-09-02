@@ -28,7 +28,7 @@ package Adacore_8114_010 is
      );
 
    procedure Incorrect_Sub
-     --  This comment used to make the Prm parameter to be wrongly indented
+   --  This comment used to make the Prm parameter to be wrongly indented
      (
       Prm : Integer -- indentation changed
      );

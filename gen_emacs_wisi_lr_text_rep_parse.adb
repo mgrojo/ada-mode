@@ -27,9 +27,9 @@ procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse
 is
    use WisiToken; -- "+", "-" Unbounded_string
 
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   Parser     : WisiToken.Parse.LR.Parser.Parser;
-   Parse_Data : aliased Parse_Data_Type (Parser.Terminals'Access, Parser.Line_Begin_Token'Access);
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace;
+   Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    Params : constant Process_Start_Params := Get_Process_Start_Params;
 begin
@@ -39,6 +39,6 @@ begin
       Parse_Data'Unchecked_Access,
       Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name);
 
-   Process_Stream (Name, Language_Protocol_Version, Partial_Parse_Active, Params, Parser, Parse_Data, Descriptor);
+   Process_Stream (Name, Language_Protocol_Version, Partial_Parse_Active, Params, Parser, Parse_Data, Descriptor.all);
 
 end Gen_Emacs_Wisi_LR_Text_Rep_Parse;
