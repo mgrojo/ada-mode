@@ -733,20 +733,29 @@ package body Wisi is
          --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
          declare
             First_Set_Line : Line_Number_Type;
+            Last_Line      : constant Line_Number_Type :=
+              (if Data.Lexer.First
+               then Token.Line - 1
+               else Token.Line);
          begin
-            for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Token.Line - 1 loop
+            for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Last_Line loop
                if Data.Line_Begin_Char_Pos (Line) /= Invalid_Buffer_Pos then
                   First_Set_Line := Line;
                   exit;
                end if;
             end loop;
-            for Line in First_Set_Line + 1 .. Token.Line - 1 loop
+            for Line in First_Set_Line + 1 .. Last_Line loop
                Data.Line_Begin_Char_Pos (Line) := Data.Line_Begin_Char_Pos (First_Set_Line); -- good enough
             end loop;
 
             if Prev_Grammar_Token /= Invalid_Node_Access then
-               if Tree.Non_Grammar_Const (Prev_Grammar_Token).Length = 0 then
-                  --  The multi-line token was the grammar token
+               --  If Token is a non-grammar token following a multi-line grammar
+               --  token, Prev_Grammar.Non_Grammar.length is 1, for Token. If Token
+               --  is a grammar token, Prev_Grammar.Non_Grammar.length is 0.
+               if (Token.ID < Data.Descriptor.First_Terminal and Tree.Non_Grammar_Const (Prev_Grammar_Token).Length = 1)
+                 or
+                 (Token.ID >= Data.Descriptor.First_Terminal and Tree.Non_Grammar_Const (Prev_Grammar_Token).Length = 0)
+               then
                   declare
                      Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Grammar_Token);
                   begin

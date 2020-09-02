@@ -6,11 +6,25 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi ?
+* wisi 4.0.0
 ?
 
-** parser process protocol version 6 (add zombie_limit, branched_tree_limit)
-** parser process protocol version 7 (delete Branched_Tree_Limit for incremental parse; add error-pos in Recover)
+** parser process protocol version 6 (add zombie_limit, add error-pos in Recover)
+
+** Match WisiToken 3.0 changes; this results in some user visible
+   changes in wisi.ads:
+
+    - WisiToken.Valid_Node_Index_Array renamed to
+      WisiToken.Syntax_Trees.Valid_Node_Access_Array
+
+    - Some Descriptor replaced by Descriptor_Access_Constant,
+      requiring 'Access in user code
+
+    - Wisi.Initialize no longer has a Base_Terminals parameter
+
+    - Wisi.Get_Aug_Token_Const, Wisi.Get_Aug_Token_Const_1 are
+      replaced by either Syntax_Trees Tree.Base_Token or
+      Wisi.Get_Augmented_Token
 
 ** The algorithm for naming conflicts is now more accurate, and the
    format of the %conflict declaration has changed. The old format is

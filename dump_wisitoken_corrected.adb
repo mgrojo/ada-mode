@@ -41,8 +41,8 @@ is
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Ada_Process_Actions.Descriptor'Unrestricted_Access);
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace;
+   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Process_Actions.Descriptor'Access);
 
    function Image (Node : in WisiToken.Syntax_Trees.Valid_Node_Access) return String
    is
