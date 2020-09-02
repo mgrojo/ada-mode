@@ -53,7 +53,9 @@ package WisiToken.Parse.Packrat.Procedural is
      (Syntax_Trees.Element_Index, Memo_Entry, Default_Element => (others => <>));
    type Derivs is array (Token_ID range <>) of Memos.Vector;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser with
+   type Parser
+     (Descriptor : Descriptor_Access_Constant;
+      First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser (Descriptor) with
    record
       Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID              : Token_ID;
@@ -63,6 +65,7 @@ package WisiToken.Parse.Packrat.Procedural is
 
    function Create
      (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor            : in     WisiToken.Descriptor_Access_Constant;
       Direct_Left_Recursive : in     Token_ID_Set;
       Start_ID              : in     Token_ID;
       Trace                 : access WisiToken.Trace'Class;

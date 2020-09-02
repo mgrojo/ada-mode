@@ -2,7 +2,7 @@
 --
 --  Main program to run an LR parser with error recovery.
 --
---  Copyright (C) 2015, 2017 - 2019 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -23,7 +23,7 @@ pragma License (GPL);
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
 generic
-   Descriptor : in WisiToken.Descriptor;
+   Descriptor : in WisiToken.Descriptor_Access_Constant;
 
    Language_Fixes : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 

@@ -97,7 +97,7 @@ package body Dragon_4_45_LALR_Test is
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
      (Grammar, Has_Empty_Production, LALR_Descriptor.First_Terminal);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    ----------
    --  Test procedures
@@ -230,7 +230,7 @@ package body Dragon_4_45_LALR_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser (LALR_Descriptor'Access);
 
       procedure Execute_Command (Command : in String)
       is
@@ -247,7 +247,7 @@ package body Dragon_4_45_LALR_Test is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Trace.Descriptor, Syntax),
+         Lexer.New_Lexer (Parser.Descriptor, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,

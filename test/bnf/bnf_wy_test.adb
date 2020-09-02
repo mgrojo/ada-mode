@@ -118,9 +118,9 @@ package body BNF_WY_Test is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
       use all type WisiToken.BNF.Generate_Algorithm;
 
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Trace          : aliased WisiToken.Text_IO_Trace.Trace;
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser (Wisitoken_Grammar_Actions.Descriptor'Access);
 
       Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
    begin

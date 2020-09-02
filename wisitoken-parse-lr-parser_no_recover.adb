@@ -45,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Nonterm, Include_Children => True));
+           (Shared_Parser.Tree.Image (Nonterm, Include_Children => True, Terminal_Node_Numbers => True));
       end if;
    end Reduce_Stack_1;
 
@@ -64,8 +64,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          Trace.Put
            (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
               Trimmed_Image (Shared_Parser.Tree.State (Current_Parser.Stream)) & ": " &
-              Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : ");
-         Put (Trace, Image (Action, Shared_Parser.Descriptor.all));
+              Shared_Parser.Tree.Image (Parser_State.Current_Token, Terminal_Node_Numbers => True) & " : ");
+         Put (Trace, Trace_Image (Action, Shared_Parser.Descriptor.all));
          Trace.New_Line;
       end if;
 
@@ -397,7 +397,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                  Trace.Put_Line
                                    (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ":" &
                                       Shared_Parser.Tree.State (Parser_State.Stream)'Image & ": " &
-                                      Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : " &
+                                      Shared_Parser.Tree.Image
+                                        (Parser_State.Current_Token, Terminal_Node_Numbers => True) & " : " &
                                       "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image &
                                       ", (" & Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                               end;

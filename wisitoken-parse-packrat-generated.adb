@@ -23,7 +23,7 @@ package body WisiToken.Parse.Packrat.Generated is
    is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
 
       Result : Memo_Entry;
    begin
@@ -36,7 +36,7 @@ package body WisiToken.Parse.Packrat.Generated is
 
       Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
 
-      for Nonterm in Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop
+      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
            (Parser.Tree.Get_Element_Index (Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),

@@ -828,21 +828,21 @@ package WisiToken.Syntax_Trees is
    --  Last of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
 
    function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier,
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Terminal_Label,
      Post => Prev_Terminal'Result = Invalid_Node_Access or else
-             Tree.Label (Prev_Terminal'Result) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+             Tree.Label (Prev_Terminal'Result) in Terminal_Label;
    --  Return the terminal that is immediately before Node in Tree;
    --  Invalid_Node_Access if Node is the first terminal in Tree.
 
    function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier,
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
-             Tree.Label (Next_Terminal'Result) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier;
+             Tree.Label (Next_Terminal'Result) in Terminal_Label;
    --  Return the terminal that is immediately after Node in Tree;
    --  Invalid_Node_Access if Node is the last terminal in Tree.
 
    function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   with Pre => Tree.Parents_Set and Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier,
+   with Pre => Tree.Parents_Set and Tree.Label (Node) in Terminal_Label,
      Post => Next_Shared_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Next_Shared_Terminal'Result) = Shared_Terminal;
    --  Return the next Shared_Terminal that is after Node in Tree;
@@ -1046,25 +1046,28 @@ package WisiToken.Syntax_Trees is
    --  Image of each root node.
 
    function Image
-     (Tree              : in Syntax_Trees.Tree;
-      Element           : in Stream_Index;
-      Include_Children  : in Boolean   := False;
-      Include_RHS_Index : in Boolean   := False;
-      Node_Numbers      : in Boolean   := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Element               : in Stream_Index;
+      Include_Children      : in Boolean := False;
+      Include_RHS_Index     : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String;
    --  Element can be from any stream, or Invalid_Stream_Index
 
    function Image
-     (Tree              : in Syntax_Trees.Tree;
-      Node              : in Node_Access;
-      Include_Children  : in Boolean := False;
-      Include_RHS_Index : in Boolean := False;
-      Node_Numbers      : in Boolean := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Node                  : in Node_Access;
+      Include_Children      : in Boolean := False;
+      Include_RHS_Index     : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String;
    function Image
-     (Tree         : in Syntax_Trees.Tree;
-      Nodes        : in Node_Access_Array;
-      Node_Numbers : in Boolean := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Nodes                 : in Node_Access_Array;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String;
    --  Includes Node.Node_Index, Node.ID
 
@@ -1368,7 +1371,7 @@ private
    is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);
 
    function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
-   is (Tree.Label (Node) in Shared_Terminal | Virtual_Terminal | Virtual_Identifier);
+   is (Tree.Label (Node) in Terminal_Label);
 
    function Is_Valid (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Boolean
    is (Parse_Stream_Lists.Has_Element (Stream.Cur));

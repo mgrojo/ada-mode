@@ -2,7 +2,7 @@
 --
 --  Main program to run a parser.
 --
---  Copyright (C) 2018 Stephe Leake
+--  Copyright (C) 2018, 2020 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -23,7 +23,7 @@ pragma License (GPL);
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 generic
-   Descriptor         : in WisiToken.Descriptor;
+   Descriptor         : in WisiToken.Descriptor_Access_Constant;
    Text_Rep_File_Name : in String;
 
    with procedure Create_Parser

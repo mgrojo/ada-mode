@@ -55,6 +55,27 @@ package body WisiToken.Parse.LR is
       end case;
    end Image;
 
+   function Trace_Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String
+   is begin
+      case Item.Verb is
+      when Shift =>
+         return "shift and goto state" &
+           (if Trace_Parse_No_State_Numbers
+            then " --"
+            else State_Index'Image (Item.State));
+
+      when Reduce =>
+         return "reduce" & Item.Token_Count'Image  & " tokens to " &
+           Image (Item.Production.LHS, Descriptor);
+
+      when Accept_It =>
+         return "accept it";
+
+      when Error =>
+         return "ERROR";
+      end case;
+   end Trace_Image;
+
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean
    is
       use all type Ada.Containers.Count_Type;
@@ -706,17 +727,17 @@ package body WisiToken.Parse.LR is
          when Insert =>
              (if Item.Ins_Node = Invalid_Node_Access
               then Image (Item.Ins_ID, Tree.Descriptor.all)
-              else Tree.Image (Item.Ins_Node, Node_Numbers => True)) & ", " &
+              else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & ", " &
              (if Item.Ins_Before = Invalid_Stream_Index
-              then Trimmed_Image (Item.Ins_Before_Node)
-              else Trimmed_Image (Item.Ins_Before)),
+              then Tree.Image (Item.Ins_Before_Node, Terminal_Node_Numbers => True)
+              else Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True)),
          when Delete =>
              (if Item.Del_Node = Invalid_Node_Access
-              then Tree.Image (Item.Del_Index, Node_Numbers => True)
-              else Tree.Image (Item.Del_Node, Node_Numbers => True)) & ", " &
+              then Tree.Image (Item.Del_Index, Terminal_Node_Numbers => True)
+              else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) & ", " &
               (if Item.Del_After_Node = Invalid_Node_Access
               then "-"
-              else Trimmed_Image (Item.Del_After_Node)))
+              else Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
         & ")";
    end Image;
 

@@ -487,7 +487,7 @@ package body Subprograms_Process_LALR_Main is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace,
-         Lexer.New_Lexer (Trace.Descriptor),
+         Lexer.New_Lexer (Parser.Descriptor),
          Table,
          Language_Fixes,
          Language_Matching_Begin_Tokens,

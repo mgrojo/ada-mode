@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,10 +28,11 @@ with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Actions.Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Gen_Main.Create_Parser
-     (Trace     => Trace'Access,
+     (Dragon_4_43_Actions.Descriptor'Access,
+      Trace     => Trace'Access,
       User_Data => null);
 
    ----------

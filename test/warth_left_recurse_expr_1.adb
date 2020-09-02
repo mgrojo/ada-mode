@@ -36,7 +36,7 @@ package body Warth_Left_Recurse_Expr_1 is
 
    User_Data : aliased Warth_Left_Recurse_Expr_1_Runtime.User_Data_Type;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Warth_Left_Recurse_Expr_1_Actions.Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    ----------
    --  Test procedures
@@ -48,7 +48,7 @@ package body Warth_Left_Recurse_Expr_1 is
       use WisiToken.Parse.Packrat.Generated;
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class := Warth_Left_Recurse_Expr_1_Packrat_Gen_Main.Create_Parser
-        (Trace'Access, User_Data'Access);
+        (Warth_Left_Recurse_Expr_1_Actions.Descriptor'Access, Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
@@ -101,7 +101,8 @@ package body Warth_Left_Recurse_Expr_1 is
       use all type WisiToken.Parse.Packrat.Procedural.Result_States;
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class :=
-        Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser (Trace'Access, User_Data'Access);
+        Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser
+          (Warth_Left_Recurse_Expr_1_Actions.Descriptor'Access, Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;

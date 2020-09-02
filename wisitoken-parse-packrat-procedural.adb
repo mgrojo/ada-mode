@@ -44,7 +44,7 @@ package body WisiToken.Parse.Packrat.Procedural is
    is
       use all type WisiToken.Syntax_Trees.Stream_Index;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
 
       subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
@@ -110,7 +110,8 @@ package body WisiToken.Parse.Packrat.Procedural is
                   do
                      if Trace_Parse > Extra then
                         Parser.Trace.Put_Line
-                          ("eval: " & Parser.Tree.Image (Result.Result, Descriptor, Include_Children => True));
+                          ("eval: " & Parser.Tree.Image
+                             (Result.Result, Include_Children => True, Terminal_Node_Numbers => True));
                      end if;
                   end return;
 
@@ -135,7 +136,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       use all type WisiToken.Syntax_Trees.Stream_Index;
       use all type WisiToken.Syntax_Trees.Element_Index;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
 
       Pos       : Syntax_Trees.Stream_Index          := Last_Pos;                    --  last token parsed.
@@ -161,7 +162,8 @@ package body WisiToken.Parse.Packrat.Procedural is
             if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
                case Memo.State is
                when Success =>
-                  Parser.Trace.Put_Line (Parser.Tree.Image (Memo.Result, Descriptor, Include_Children => True));
+                  Parser.Trace.Put_Line
+                    (Parser.Tree.Image (Memo.Result, Include_Children => True, Terminal_Node_Numbers => True));
                when Failure =>
                   Parser.Trace.Put_Line (Image (R, Descriptor) & " failed at pos" & Image_Pos (Tree, Last_Pos));
                when No_Result =>
@@ -191,7 +193,8 @@ package body WisiToken.Parse.Packrat.Procedural is
 
                if WisiToken.Trace_Parse > Detail then
                   Parser.Trace.Put_Line
-                    (Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));
+                    (Parser.Tree.Image
+                       (Result_Recurse.Result, Include_Children => True, Terminal_Node_Numbers => True));
                end if;
                --  continue looping
 
@@ -216,6 +219,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
    function Create
      (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor            : in     WisiToken.Descriptor_Access_Constant;
       Direct_Left_Recursive : in     Token_ID_Set;
       Start_ID              : in     Token_ID;
       Trace                 : access WisiToken.Trace'Class;
@@ -223,7 +227,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser
    is begin
-      return Parser : Procedural.Parser (Grammar.First_Index, Grammar.Last_Index) do
+      return Parser : Procedural.Parser (Descriptor, Grammar.First_Index, Grammar.Last_Index) do
          Parser.Trace                 := Trace;
          Parser.Lexer                 := Lexer;
          Parser.User_Data             := User_Data;
@@ -237,7 +241,7 @@ package body WisiToken.Parse.Packrat.Procedural is
    is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
 
       Result : Memo_Entry;
    begin

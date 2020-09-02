@@ -20,11 +20,7 @@
 ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%code actions spec context %{with WisiToken.Text_IO_Trace;}%
-
 %code actions spec post %{
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-
    End_Name_Optional : Boolean := True;
 
    Partial_Parse_Active    : Boolean := False;

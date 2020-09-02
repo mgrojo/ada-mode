@@ -178,11 +178,11 @@ spawn parser 7 from 6 (4 active)
  1:  3, ( 0 0 1 0 0 0 0 0 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((INSERT, LBRACE, 22)) minimal_complete ACTIVE
 
 recover: succeed, parser count 4
- 7: Current_Token (LPAREN) Shared_Token 19:(IDENTIFIER, (143 . 145)) recover_insert_delete: 2 ((INSERT, LPAREN, 19), (INSERT, LBRACE, 22))
+ 7: Current_Token (LPAREN) Shared_Token 19:(IDENTIFIER, (143 . 145)) recover_insert_delete: 2 ((INSERT, (LPAREN), 19:(IDENTIFIER, (143 . 145))), (INSERT, LBRACE, 22:(IDENTIFIER, (150 . 152))))
  7: resume_active: True, token goal 24, inc_shared_token: FALSE
- 6: Current_Token (SEMI) Shared_Token 22:(IDENTIFIER, (150 . 152)) recover_insert_delete: 3 ((DELETE, ARROW, 21), (INSERT, SEMI, 22), (DELETE, SEMI, 25), (DELETE, RBRACE, 26))
+ 6: Current_Token (SEMI) Shared_Token 22:(IDENTIFIER, (150 . 152)) recover_insert_delete: 3 ((DELETE, 21:(ARROW, (147 . 148)), -), (INSERT, (SEMI), 22:(IDENTIFIER, (150 . 152))), (DELETE, 25:(SEMI, (155 . 155)), -), (DELETE, 26:(RBRACE, (158 . 158)), -))
  6: resume_active: True, token goal 30, inc_shared_token: FALSE
- 5: Current_Token 22:(IDENTIFIER, (150 . 152)) Shared_Token 22:(IDENTIFIER, (150 . 152)) recover_insert_delete: 2 ((DELETE, ARROW, 21), (DELETE, SEMI, 25), (DELETE, RBRACE, 26))
+ 5: Current_Token 22:(IDENTIFIER, (150 . 152)) Shared_Token 22:(IDENTIFIER, (150 . 152)) recover_insert_delete: 2 ((DELETE, 21:(ARROW, (147 . 148)), -), (DELETE, 25:(SEMI, (155 . 155)), -), (DELETE, 26:(RBRACE, (158 . 158)), -))
  5: resume_active: True, token goal 30, inc_shared_token: TRUE
  1: Current_Token (LBRACE) Shared_Token 22:(IDENTIFIER, (150 . 152)) recover_insert_delete:
  1: resume_active: True, token goal 25, inc_shared_token: FALSE

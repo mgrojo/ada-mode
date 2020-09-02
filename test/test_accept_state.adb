@@ -78,9 +78,9 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    ----------
    --  Test procedures
@@ -94,7 +94,7 @@ package body Test_Accept_State is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Trace.Descriptor, Syntax),
+         Lexer.New_Lexer (Parser.Descriptor, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,

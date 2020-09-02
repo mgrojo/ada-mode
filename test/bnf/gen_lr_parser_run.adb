@@ -52,8 +52,7 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   --  Unrestricted_Access because can't make generic formal parameter aliased.
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    Task_Count : System.Multiprocessors.CPU_Range := System.Multiprocessors.CPU_Range'Last;
 
@@ -65,7 +64,7 @@ is
    procedure Parse
    is
       use all type System.Multiprocessors.CPU_Range;
-      Parser : WisiToken.Parse.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser (Descriptor);
    begin
       Create_Parser
         (Parser,

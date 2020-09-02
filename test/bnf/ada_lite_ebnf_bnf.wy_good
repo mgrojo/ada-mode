@@ -28,17 +28,11 @@
 ;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%code actions spec context %{with WisiToken.Text_IO_Trace;}%
-
 %code actions spec post %{
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-
    End_Name_Optional : Boolean := True;
 
    Partial_Parse_Active    : Boolean := False;
    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
-
-   Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
 
 %code actions body pre %{
@@ -299,15 +293,10 @@ compilation_unit_list
 
 compound_statement
   : if_statement
-    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | case_statement
-    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | loop_statement
-    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | block_statement
-    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | extended_return_statement
-    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   ;
 
 constraint
@@ -556,28 +545,22 @@ simple_return_statement
 
 simple_statement
   : assignment_statement
-    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | exit_statement
-    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | procedure_call_statement
-    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | simple_return_statement
-    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   ;
 
 statement
   : simple_statement
-    %(Action_Count (+statement_ID) := Action_Count (+statement_ID) + 1;)%
   | compound_statement
-    %(Action_Count (+statement_ID) := Action_Count (+statement_ID) + 1;)%
   ;
 
 subprogram_body
   : Name_1=subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
-    %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
+    %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, Name_1, Name_2, End_Name_Optional);)%
   | Name_1=subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
-    %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
+    %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, Name_1, Name_2, End_Name_Optional);)%
   ;
 
@@ -587,7 +570,6 @@ subprogram_body_stub
 
 subprogram_declaration
   : subprogram_specification SEMICOLON
-    %(Action_Count (+subprogram_declaration_ID) := Action_Count (+subprogram_declaration_ID) + 1;)%
   ;
 
 subprogram_specification

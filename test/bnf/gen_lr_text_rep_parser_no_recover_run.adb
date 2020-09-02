@@ -44,14 +44,13 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   --  Unrestricted_Access because can't make generic formal parameter aliased.
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    procedure Parse
    is
-      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser (Descriptor);
    begin
       Create_Parser (Parser, Trace'Unchecked_Access, User_Data'Unchecked_Access, Text_Rep_File_Name);
 

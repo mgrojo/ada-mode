@@ -6498,4 +6498,4 @@ State 335:
 
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 2 reduce/reduce conflicts
 
- 80 rules, 18 user actions, 19 checks, 336 states
+ 80 rules, 4 user actions, 19 checks, 336 states

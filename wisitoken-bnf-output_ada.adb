@@ -448,7 +448,7 @@ is
       end if;
 
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
-      Put_Line ("  (" & Actions_Package_Name & ".Descriptor,");
+      Put_Line ("  (" & Actions_Package_Name & ".Descriptor'Access,");
       if Common_Data.Text_Rep then
          Put_Line
            ("   """ &

@@ -1270,11 +1270,12 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Image
-     (Tree              : in Syntax_Trees.Tree;
-      Element           : in Stream_Index;
-      Include_Children  : in Boolean := False;
-      Include_RHS_Index : in Boolean := False;
-      Node_Numbers      : in Boolean := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Element               : in Stream_Index;
+      Include_Children      : in Boolean := False;
+      Include_RHS_Index     : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String
    is
       use all type Stream_Element_Lists.Cursor;
@@ -1284,16 +1285,17 @@ package body WisiToken.Syntax_Trees is
       else
          return Image
            (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node, Include_Children,
-            Include_RHS_Index, Node_Numbers);
+            Include_RHS_Index, Node_Numbers, Terminal_Node_Numbers);
       end if;
    end Image;
 
    function Image
-     (Tree              : in Syntax_Trees.Tree;
-      Node              : in Node_Access;
-      Include_Children  : in Boolean := False;
-      Include_RHS_Index : in Boolean := False;
-      Node_Numbers      : in Boolean := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Node                  : in Node_Access;
+      Include_Children      : in Boolean := False;
+      Include_RHS_Index     : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -1302,9 +1304,12 @@ package body WisiToken.Syntax_Trees is
          return "<deleted>";
       else
          declare
-            Result : Unbounded_String := +(if Node_Numbers then Trimmed_Image (Node.Node_Index) & ":" else "");
+            Result : Unbounded_String :=
+              +(if Node_Numbers or (Terminal_Node_Numbers and Node.Label = Shared_Terminal)
+                then Trimmed_Image (Node.Node_Index) & ":"
+                else "");
          begin
-            if Node_Numbers and Node.Label = Virtual_Identifier then
+            if (Node_Numbers or Terminal_Node_Numbers) and Node.Label = Virtual_Identifier then
                Result := Result & Trimmed_Image (Node.Identifier) & ";";
             end if;
 
@@ -1313,7 +1318,7 @@ package body WisiToken.Syntax_Trees is
               (if Node.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Node.Byte_Region)) & ")";
 
             if Include_Children and Node.Label = Nonterm then
-               Result := Result & " <= " & Image (Tree, Node.Children, Node_Numbers);
+               Result := Result & " <= " & Image (Tree, Node.Children, Node_Numbers, Terminal_Node_Numbers);
             end if;
 
             return -Result;
@@ -1322,9 +1327,10 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Image
-     (Tree         : in Syntax_Trees.Tree;
-      Nodes        : in Node_Access_Array;
-      Node_Numbers : in Boolean := False)
+     (Tree                  : in Syntax_Trees.Tree;
+      Nodes                 : in Node_Access_Array;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -1334,7 +1340,7 @@ package body WisiToken.Syntax_Trees is
       for I in Nodes'Range loop
          Result := Result & (if Need_Comma then ", " else "") &
            (if Nodes (I) = null then " - "
-            else Tree.Image (Nodes (I), Node_Numbers => Node_Numbers));
+            else Tree.Image (Nodes (I), Node_Numbers => Node_Numbers, Terminal_Node_Numbers => Terminal_Node_Numbers));
          Need_Comma := True;
       end loop;
       Result := Result & ")";

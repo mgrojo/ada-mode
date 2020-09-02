@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
 with Ada.Text_IO;
 with Ada_Lite_Actions;   use Ada_Lite_Actions;
 with Ada_Lite_LALR_Main; use Ada_Lite_LALR_Main;
@@ -26,12 +25,15 @@ with GNATCOLL.Mmap;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
 package body Test_Partial_Parse is
 
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+
+   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
 
    procedure Run_Parse
      (Label              : in String;
@@ -42,7 +44,6 @@ package body Test_Partial_Parse is
       Parse_End_Byte_Pos : in WisiToken.Buffer_Pos;
       Action_ID          : in WisiToken.Token_ID)
    is
-      use AUnit.Checks;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees;
 
@@ -80,8 +81,6 @@ package body Test_Partial_Parse is
               (Label & ".parse end byte",
                Parser.Tree.Byte_Region (Parser.Tree.Last_Terminal (Node)).Last,
                Parse_End_Byte_Pos);
-
-            Check (Label & ".action_count", Action_Count (Action_ID), 1);
          end if;
 
          if WisiToken.Trace_Action > WisiToken.Outline then
@@ -90,8 +89,6 @@ package body Test_Partial_Parse is
       end Finish;
 
    begin
-      Action_Count := (others => 0);
-
       Partial_Parse_Active    := True;
       Partial_Parse_Byte_Goal := Goal_Byte_Pos;
 

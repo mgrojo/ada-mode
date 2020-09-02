@@ -102,7 +102,7 @@ package body Dragon_4_43_LR1_Test is
    First_Terminal_Sequence : constant WisiToken.Token_Sequence_Arrays.Vector :=
      WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    ----------
    --  Test procedures
@@ -282,7 +282,7 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
 
       procedure Execute_Command (Command : in String)
       is begin
@@ -297,7 +297,7 @@ package body Dragon_4_43_LR1_Test is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Trace.Descriptor, Syntax),
+         Lexer.New_Lexer (LR1_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor, Grammar_File_Name => ""),
          User_Data                      => null,
          Language_Fixes                 => null,

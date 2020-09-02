@@ -94,6 +94,10 @@ package WisiToken.Parse.LR is
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
    --  Ada aggregate syntax, leaving out Action, Check in reduce; for debug output
 
+   function Trace_Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
+   --  Used in parser trace, for compatibility with existing unit tests.
+   --  Respects Trace_Parse_No_State_Numbers.
+
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
    --  Ignore items not used by the canonical shift-reduce algorithm.
 

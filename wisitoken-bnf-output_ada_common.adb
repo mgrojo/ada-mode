@@ -281,8 +281,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       procedure Packrat_Process
       is begin
          Indent_Line ("function Create_Parser");
-         Indent_Line ("  (Trace     : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
+         Indent_Line ("  (Descriptor : in WisiToken.Descriptor_Access_Constant;");
+         Indent_Line ("   Trace      : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   User_Data  : in     WisiToken.Syntax_Trees.User_Data_Access)");
          Indent_Line ("  return WisiToken.Parse.Base_Parser'Class;");
          New_Line;
       end Packrat_Process;
@@ -859,15 +860,16 @@ package body WisiToken.BNF.Output_Ada_Common is
       Need_Bar : Boolean := True;
    begin
       Indent_Line ("function Create_Parser");
-      Indent_Line ("  (Trace     : not null access WisiToken.Trace'Class;");
-      Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
+      Indent_Line ("  (Descriptor : in WisiToken.Descriptor_Access_Constant;");
+      Indent_Line ("   Trace      : not null access WisiToken.Trace'Class;");
+      Indent_Line ("   User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)");
       Indent_Line ("  return WisiToken.Parse.Base_Parser'Class");
 
       case Packrat_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when Packrat_Gen =>
          Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
+         Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser (Descriptor) do");
          Indent := Indent + 3;
          Indent_Line ("Parser.Trace := Trace;");
          Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Parser.Descriptor);");
@@ -914,8 +916,8 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
          Indent_Line
-           ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
-              ", Trace, Lexer.New_Lexer (Parser.Descriptor), User_Data);");
+           ("  (Grammar, Descriptor, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
+              ", Trace, Lexer.New_Lexer (Descriptor), User_Data);");
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

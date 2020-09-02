@@ -35,6 +35,7 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
+with WisiToken.Text_IO_Trace;
 package body Test_McKenzie_Recover is
    use Ada_Lite_Actions;
    use AUnit.Checks;
@@ -48,7 +49,9 @@ package body Test_McKenzie_Recover is
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+
+   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
 
    Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
      (First_Terminal    => Descriptor.First_Terminal,
@@ -67,8 +70,6 @@ package body Test_McKenzie_Recover is
       Multiple_Tasks   : in Boolean := False;
       Expect_Exception : in Boolean := False)
    is begin
-      Action_Count := (others => 0);
-
       if WisiToken.Trace_Parse > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");

@@ -44,10 +44,9 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   --  Unrestricted_Access because can't make generic formal parameter aliased.
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Trace'Unchecked_Access, User_Data => null);
+   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Descriptor, Trace'Unchecked_Access, User_Data => null);
 
 begin
    declare
@@ -87,7 +86,7 @@ begin
    --  No user data, so no point in Execute_Actions
 
    if WisiToken.Trace_Parse > WisiToken.Extra then
-      Parser.Tree.Print_Tree (Descriptor, Parser.Tree.Root, null);
+      Parser.Tree.Print_Tree (Parser.Tree.Root, null);
       Parser.Trace.New_Line;
    end if;
 

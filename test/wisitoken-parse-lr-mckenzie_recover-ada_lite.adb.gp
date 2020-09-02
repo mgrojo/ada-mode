@@ -611,7 +611,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       elsif Config.Error_Token.ID in +IDENTIFIER_ID and
         Config.Stack.Peek.Token.ID = +END_ID
       then
-         --  We've encountered an identifier or semicolon after 'end' when
+         --  We've encountered an identifier after 'end' when
          --  expecting a keyword. See test_mckenzie_recover.adb
          --  Forbid_Minimal_Complete.
          --

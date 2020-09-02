@@ -24,8 +24,6 @@ package body WisiToken.Parse.Packrat is
      (Parser          : in out Packrat.Parser;
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
    is
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
-
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Access)
@@ -51,10 +49,10 @@ package body WisiToken.Parse.Packrat is
    begin
       if Trace_Action > Outline then
          if Trace_Action > Extra then
-            Parser.Tree.Print_Tree (Descriptor, Parser.Tree.Root, Image_Augmented);
+            Parser.Tree.Print_Tree (Parser.Tree.Root, Image_Augmented);
             Parser.Trace.New_Line;
          end if;
-         Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root, Descriptor));
+         Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
       end if;
 
       Parser.Tree.Set_Parents;

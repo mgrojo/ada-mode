@@ -69,7 +69,7 @@ is
       Indent_Line ("is");
       Indent := Indent + 3;
 
-      Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;");
+      Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;");
       Indent_Line ("Tree       : Syntax_Trees.Tree renames Parser.Tree;");
       Indent_Line
         ("Start_Pos  : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Last_Pos);");
@@ -282,8 +282,8 @@ is
          Indent_Line ("Pos_Recurse_Last := Pos;");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent_Line ("   Parser.Trace.Put_Line");
-         Indent_Line
-           ("     (Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));");
+         Indent_Line ("     (Parser.Tree.Image (Result_Recurse.Result,");
+         Indent_Line ("      Include_Children => True, Terminal_Node_Numbers => True));");
          Indent_Line ("end if;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
@@ -305,8 +305,8 @@ is
          Indent := Indent + 3;
          Indent_Line ("Parser.Trace.Put_Line");
          Indent_Line ("  (Parser.Tree.Image");
-         Indent_Line
-           ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos_Index).Result, Descriptor, Include_Children => True));");
+         Indent_Line ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos_Index).Result,");
+         Indent_Line ("     Include_Children => True, Terminal_Node_Numbers => True));");
          Indent := Indent - 3;
          Indent_Line ("end if;");
       end if;

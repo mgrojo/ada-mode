@@ -20,7 +20,7 @@ spawn parser 1 from 0 (2 active)
 recover: succeed, parser count 2
  1: Current_Token (RPAREN) Shared_Token 3:(Wisi_EOI, (58 . 57)) recover_insert_delete:
  1: resume_active: True, token goal 7, inc_shared_token: FALSE
- 0: Current_Token (LPAREN) Shared_Token 3:(Wisi_EOI, (58 . 57)) recover_insert_delete: 2 ((INSERT, LPAREN, 3), (INSERT, RPAREN, 3), (INSERT, RPAREN, 3))
+ 0: Current_Token (LPAREN) Shared_Token 3:(Wisi_EOI, (58 . 57)) recover_insert_delete: 2 ((INSERT, (LPAREN), 3:(Wisi_EOI, (58 . 57))), (INSERT, RPAREN, 3:(Wisi_EOI, (58 . 57))), (INSERT, RPAREN, 3:(Wisi_EOI, (58 . 57))))
  0: resume_active: True, token goal 7, inc_shared_token: FALSE
 
  1: 28: (RPAREN) : reduce 1 tokens to primary

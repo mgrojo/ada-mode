@@ -104,8 +104,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
       for I in reverse 1 .. Depth loop
          declare
-            Node : constant Syntax_Trees.Node_Access  := Tree.Get_Node (Parser_Stack, Tree.Peek (Parser_Stack, I));
-            Token   : constant Syntax_Trees.Recover_Token :=
+            Node  : constant Syntax_Trees.Node_Access   := Tree.Get_Node (Parser_Stack, Tree.Peek (Parser_Stack, I));
+            Token : constant Syntax_Trees.Recover_Token :=
               (if I = Depth then (others => <>) else Tree.Get_Recover_Token (Node));
          begin
             Stack.Push ((Tree.State (Node), Node, Token));
@@ -133,7 +133,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Trace.Put_Line
            ("parser " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
               ": State" & Shared_Parser.Tree.State (Parser_State.Stream)'Image &
-              " Current_Token " & Shared_Parser.Tree.Image (Parser_State.Current_Token) &
+              " Current_Token " & Shared_Parser.Tree.Image (Parser_State.Current_Token, Terminal_Node_Numbers => True) &
               " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
            ((case Error.Label is
@@ -1191,40 +1191,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : in out Configuration)
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
-
-      Item        : constant Recover_Stack_Item        := Config.Stack.Pop;
-      Token_Index : constant Syntax_Trees.Stream_Index := Item.Token.First_Terminal_Index;
-
-      function Compare (Left : in Syntax_Trees.Stream_Index; Right : in Config_Op) return Boolean
-        is (case Right.Op is
-            when Fast_Forward    => False,
-            when Undo_Reduce     => False,
-            when Push_Back       => False,
-            when Insert => Tree.Get_Element_Index (Left) < Tree.Get_Element_Index (Right.Ins_Before),
-            when Delete => Tree.Get_Element_Index (Left) < Tree.Get_Element_Index (Right.Del_Token_Index));
-      --  If Left = Right.Token_Index, we assume the Right ops go _after_
-      --  the Left, so the Left do not need to be repeated.
    begin
       if not Push_Back_Valid (Tree, Config) then
          raise Bad_Config;
       end if;
 
-      if Token_Index /= Syntax_Trees.Invalid_Stream_Index then
-         Config.Current_Shared_Token := Token_Index;
-         for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
-            if Compare (Token_Index, Constant_Ref (Config.Ops, I)) then
-               if Is_Full (Config.Insert_Delete) then
-                  raise Bad_Config;
-               end if;
-               Append (Config.Insert_Delete, Constant_Ref (Config.Ops, I));
-            end if;
-         end loop;
-      end if;
+      declare
+         Item        : constant Recover_Stack_Item        := Config.Stack.Pop;
+         Token_Index : constant Syntax_Trees.Stream_Index := Item.Token.First_Terminal_Index;
 
-      if Is_Full (Config.Ops) then
-         raise Bad_Config;
-      end if;
-      Append (Config.Ops, (Push_Back, Item.Token.ID, Config.Current_Shared_Token));
+         function Compare (Left : in Syntax_Trees.Stream_Index; Right : in Config_Op) return Boolean
+         is (case Right.Op is
+             when Fast_Forward    => False,
+             when Undo_Reduce     => False,
+             when Push_Back       => False,
+             when Insert => Tree.Get_Element_Index (Left) < Tree.Get_Element_Index (Right.Ins_Before),
+             when Delete => Tree.Get_Element_Index (Left) < Tree.Get_Element_Index (Right.Del_Token_Index));
+         --  If Left = Right.Token_Index, we assume the Right ops go _after_
+         --  the Left, so the Left do not need to be repeated.
+      begin
+         if Token_Index /= Syntax_Trees.Invalid_Stream_Index then
+            Config.Current_Shared_Token := Token_Index;
+            for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
+               if Compare (Token_Index, Constant_Ref (Config.Ops, I)) then
+                  if Is_Full (Config.Insert_Delete) then
+                     raise Bad_Config;
+                  end if;
+                  Append (Config.Insert_Delete, Constant_Ref (Config.Ops, I));
+               end if;
+            end loop;
+         end if;
+
+         if Is_Full (Config.Ops) then
+            raise Bad_Config;
+         end if;
+         Append (Config.Ops, (Push_Back, Item.Token.ID, Config.Current_Shared_Token));
+      end;
    end Push_Back;
 
    procedure Push_Back_Check
@@ -1288,7 +1290,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Result := Result & Image (Config.Stack, Descriptor, Depth => 1);
 
       if Config.Current_Insert_Delete = No_Insert_Delete then
-         Result := Result & "| " & Tree.Image (Config.Current_Shared_Token) & "|";
+         Result := Result & "| " & Tree.Image (Config.Current_Shared_Token, Terminal_Node_Numbers => True) & "|";
       else
          Result := Result & "/ " & Trimmed_Image (Config.Current_Insert_Delete) & ":" &
            Image (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete), Descriptor) & "/";

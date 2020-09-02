@@ -59,13 +59,10 @@ package WisiToken.Parse is
 
       Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
       --  Line_Begin_Token (I) is the node in Tree of the first
-      --  Shared_Terminal token on line I. Line_Begin_Token.First_Index is
-      --  the first line containing a grammar token (after leading
-      --  comments). However, if the only token on line I is a non_grammar
-      --  token (ie a comment, or a newline for a blank line),
-      --  Line_Begin_Token (I) is the last grammar token on the previous
-      --  non-blank line. If Line (I) is a non-first line in a multi-line
-      --  terminal token, Line_Begin_Token (I) is Invalid_Node_Access.
+      --  Shared_Terminal token on line I; Invalid_Node_Access if there are
+      --  no grammar tokens on the line (ie only comment or whitespace).
+      --  Line_Begin_Token.First_Index is the first line containing a
+      --  grammar token (after leading comments).
 
       Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Last grammar token returned from Lexer; for storing non_grammar
