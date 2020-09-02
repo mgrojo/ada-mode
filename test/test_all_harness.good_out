@@ -96,6 +96,7 @@ OK ../../test/test_randomize_lists.adb : Randomize
 OK test_red_black_trees.adb : Nominal
 OK test_red_black_trees.adb : Test_Copy
 OK test_red_black_trees.adb : Test_Find_Or_Insert
+OK test_sparse_ordered_sets.adb : Nominal
 OK ../../test/test_stacks.adb : Nominal
 OK ../../test/test_stacks.adb : Compare
 OK ../../test/test_stacks.adb : Test_Iterate
@@ -114,7 +115,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   114
-Successful Tests:  114
+Total Tests Run:   115
+Successful Tests:  115
 Failed Assertions: 0
 Unexpected Errors: 0
