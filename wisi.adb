@@ -727,17 +727,19 @@ package body Wisi is
          Data.Line_Begin_Char_Pos (Token.Line) := Token.Char_Region.First;
       end if;
 
-      if Token.Line > Data.Line_Begin_Char_Pos.First_Index and then
-        Data.Line_Begin_Char_Pos (Token.Line - 1) = Invalid_Buffer_Pos
-      then
-         --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
-         declare
-            First_Set_Line : Line_Number_Type;
-            Last_Line      : constant Line_Number_Type :=
-              (if Data.Lexer.First
-               then Token.Line - 1
-               else Token.Line);
-         begin
+      declare
+         First_Set_Line : Line_Number_Type;
+         Last_Line      : constant Line_Number_Type :=
+           (if Token.Line <= Data.Line_Begin_Char_Pos.First_Index
+            then Invalid_Line_Number
+            elsif Data.Lexer.First
+            then Token.Line - 1
+            else Token.Line);
+      begin
+         if Token.Line > Data.Line_Begin_Char_Pos.First_Index and then
+           Data.Line_Begin_Char_Pos (Last_Line) = Invalid_Buffer_Pos
+         then
+            --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
             for Line in reverse Data.Line_Begin_Char_Pos.First_Index .. Last_Line loop
                if Data.Line_Begin_Char_Pos (Line) /= Invalid_Buffer_Pos then
                   First_Set_Line := Line;
@@ -763,8 +765,8 @@ package body Wisi is
                   end;
                end if;
             end if;
-         end;
-      end if;
+         end if;
+      end;
 
       if Token.ID < Data.Descriptor.First_Terminal then
          --  Non-grammar token

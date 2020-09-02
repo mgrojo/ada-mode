@@ -80,3 +80,4 @@ gpr_process_main.adb
 gpr_process_main.ads
 gpr_re2c.c
 gpr_re2c_c.ads
+ada-process.el
