@@ -78,7 +78,7 @@ ada_annex_p.wy
     add actions
         make two
         copy from ada.wy, in ada.wy alphabetical order
-            done thru goto_label
+            done thru object_renaming_declaration
 
         in block_statement, is match_names called when it can fail?
 

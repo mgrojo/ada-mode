@@ -345,7 +345,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token REM
 %conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token SLASH
 %conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token STAR
-%conflict SHIFT slice | REDUCE discrete_range_COMMA_list on token RIGHT_PAREN
+%conflict SHIFT slice | REDUCE discrete_range_list on token RIGHT_PAREN
 %conflict SHIFT AND_choice_relation_list | REDUCE relation on token AND
 %conflict SHIFT OR_choice_relation_list | REDUCE relation on token OR
 %conflict SHIFT XOR_choice_relation_list | REDUCE relation on token XOR
@@ -455,11 +455,31 @@ scalar_constraint ::= range_constraint | digits_constraint | delta_constraint
 composite_constraint ::=
     index_constraint | discriminant_constraint
 
-object_declaration ::=
-    defining_identifier_list ':' ['aliased'] ['constant'] subtype_indication [':=' expression] [aspect_specification]';'
-  | defining_identifier_list ':' ['aliased'] ['constant'] access_definition [':=' expression] [aspect_specification]';'
+object_declaration
+  : defining_identifier_list ':' ['aliased'] ['constant'] subtype_indication [':=' expression]
+    [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                               ada-indent-broken
+                               (wisi-anchored%- 6 ada-indent-broken)
+                               ada-indent-broken ada-indent-broken]))%
+  | defining_identifier_list ':' ['aliased'] ['constant'] access_definition [':=' expression]
+    [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                               ada-indent-broken
+                               (wisi-anchored% 6 ada-indent-broken)
+                               ada-indent-broken ada-indent-broken]))%
   | defining_identifier_list ':' ['aliased'] ['constant'] array_type_definition [':=' expression]
       [aspect_specification]';'
+    %((wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                               ada-indent-broken
+                               (wisi-anchored% 6 ada-indent-broken)
+                               ada-indent-broken ada-indent-broken]))%
   | single_task_declaration
   | single_protected_declaration
 
@@ -488,7 +508,7 @@ range_g ::=
   | simple_expression '..' simple_expression
   ;
 
-enumeration_literal_list ;;:new
+enumeration_literal_list ;;:new for action
   : enumeration_literal_specification {',' enumeration_literal_specification} ;
 
 enumeration_type_definition
@@ -532,12 +552,12 @@ unconstrained_array_definition
     %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
   ;
 
-index_subtype_definition ::= name 'range' '<>'
+index_subtype_definition : name 'range' '<>' ;
 
 discrete_subtype_definition_list : discrete_subtype_definition {',' discrete_subtype_definition} ;
 
 constrained_array_definition
-  : 'array' '(' discrete_subtype_definition_list  ')' 'of' component_definition
+  : 'array' '(' discrete_subtype_definition_list ')' 'of' component_definition
     %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0) nil nil]))%
   ;
 
@@ -547,7 +567,13 @@ component_definition ::=
     ['aliased'] subtype_indication
   | ['aliased'] access_definition
 
-index_constraint ::=  '(' discrete_range {',' discrete_range} ')'
+discrete_range_list ;;:new for action
+  : discrete_range {',' discrete_range} ;
+
+index_constraint
+  : '(' discrete_range_list ')'
+    %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
+  ;
 
 discrete_range ::= subtype_indication | range_g
 
@@ -555,7 +581,7 @@ discriminant_part : unknown_discriminant_part | known_discriminant_part ;
 
 unknown_discriminant_part : '(' '<>' ')' ;
 
-discriminant_specification_list ;;:new
+discriminant_specification_list ;;:new for action
   : discriminant_specification {';' discriminant_specification} ;
 
 known_discriminant_part
@@ -563,9 +589,11 @@ known_discriminant_part
     %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
   ;
 
-discriminant_specification ::=
-    defining_identifier_list ':' [null_exclusion] name [':=' default_expression]
+discriminant_specification
+  : defining_identifier_list ':' [null_exclusion] name [':=' default_expression]
+    %((wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face]))%
   | defining_identifier_list ':' access_definition [':=' default_expression]
+  ;
 
 default_expression ::= expression
 
@@ -627,7 +655,12 @@ abstract_subprogram_declaration
 interface_type_definition ::=
     ['limited' | 'task' | 'protected' | 'synchronized'] 'interface' ['and' interface_list]
 
-interface_list ::= name {'and' name}
+interface_list
+  : name ;;:new for action
+    %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))%
+  | interface_list AND name ;;:new for action
+    %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))%
+  ;
 
 access_type_definition ::=
     [null_exclusion] access_to_object_definition
@@ -675,7 +708,7 @@ incomplete_type_declaration
 ;; pragma_g is not a 'declarative_item' in ARM, but it must be in the
 ;; grammar. We don't include it in 'declaration_item', to avoid conflicts
 ;; with 'pragma_g' in statements via compilation_unit.
-declarative_item_list ;;:new
+declarative_item_list ;;:new for pragma_g
   : pragma_g
   | declarative_item
   | declarative_item_list declarative_item
@@ -694,12 +727,19 @@ basic_declarative_item : basic_declaration | aspect_clause | use_clause ;
 proper_body ::=
     subprogram_body | package_body | task_body | protected_body
 
-name ::=
-    direct_name
+name
+  : direct_name
+    %()%
+    %((wisi-propagate-name 1))%
+
   | explicit_dereference
   ;; indexed_component ;; redundant with 'name actual_parameter_part'
   | slice
+
   | selected_component
+    %()%
+    %((wisi-propagate-name 1))%
+
   | attribute_reference
   | type_conversion
   | function_call
@@ -709,9 +749,21 @@ name ::=
   ;; generalized_indexing ;; redundant with function_call
   | target_name
 
-direct_name ::= IDENTIFIER | STRING_LITERAL
+direct_name
+  : IDENTIFIER
+    ;; marking this for possible later face-apply, to prevent applying
+    ;; face to the aggregate of an allocator, and other similar cases.
+    ;; test/ada_mode-nominal.adb
+    ;;    Object_3 : access Record_Type_3 := new Record_Type_3 (...)
+    %((wisi-face-mark-action [1 suffix]))%
+    %((wisi-propagate-name 1))%
 
-  ;; prefix ::= name | implicit_dereference ;; inlined to 'name'
+  | STRING_LITERAL
+    %()%
+    %((wisi-propagate-name 1))%
+  ;
+
+;;:deleted prefix ::= name | implicit_dereference ;; inlined in 'name'
 
 explicit_dereference ::= name '.' 'all'
 
@@ -988,14 +1040,14 @@ multiplying_operator ::=  '*' | '/' | 'mod' | 'rem'
 
 conditional_expression ::= if_expression | case_expression
 
-elsif_expression_item ;;:new
+elsif_expression_item ;;:new for action
   : 'elsif' condition 'then' expression
     %((wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil ada-indent]))%
   ;
 
-elsif_expression_list ;;:new
+elsif_expression_list ;;:new for action
   : elsif_expression_item
   | elsif_expression_list elsif_expression_item
     %((wisi-motion-action [1 2]))%
@@ -1010,7 +1062,7 @@ if_expression
 
 condition ::= expression ;
 
-case_expression_alternative_list ;;:new
+case_expression_alternative_list ;;:new for action
   : case_expression_alternative
   | case_expression_alternative_list ',' case_expression_alternative
     %((wisi-motion-action [1 3]))%
@@ -1094,7 +1146,7 @@ simple_statement ::= null_statement
   | abort_statement
   | raise_statement
   ;; code_statement ;;:redundant with procedure_call_statement
-  | pragma_g ;;:new
+  | pragma_g ;;:new for pragma
   ;
 
 compound_statement
@@ -1131,14 +1183,14 @@ assignment_statement
 
 target_name ::= '@'
 
-elsif_statement_item ;;:new
+elsif_statement_item ;;:new for action
   : 'elsif' condition 'then' sequence_of_statements
     %((wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
       (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil [ada-indent ada-indent]]))%
   ;
 
-elsif_statement_list ;;:new
+elsif_statement_list ;;:new for action
   : elsif_statement_item
   | elsif_statement_list elsif_statement_item
   ;
@@ -1155,7 +1207,7 @@ if_statement
                            [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
   ;
 
-case_statement_alternative_list ;;:new
+case_statement_alternative_list ;;:new for action
   : case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
   ;
@@ -1175,25 +1227,40 @@ case_statement_alternative
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken [ada-indent ada-indent]]))%
   ;
 
-loop_statement ::=
-    [statement_identifier ':']
-      [iteration_scheme] 'loop'
-      sequence_of_statements
-      'end' 'loop' [IDENTIFIER] ';'
+loop_statement
+  : [statement_identifier ':'] [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' [IDENTIFIER] ';'
+    %((wisi-statement-action [1 statement-start 3 statement-override 4 motion 9 statement-end])
+      (wisi-motion-action [3 4 9])
+      (wisi-indent-action [ada-indent-label nil nil nil [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken
+                               ada-indent-broken]))%
+  ;
 
-iteration_scheme ::=
-    'while' condition
+iteration_scheme
+  : 'while' condition
+    %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
   | 'for' loop_parameter_specification
+    %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
   | 'for' iterator_specification
+    %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
   | ['parallel'] 'for' procedural_iterator
+    %((wisi-indent-action [nil nil [ada-indent-broken ada-indent-broken]]))%
   | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
+    %((wisi-indent-action [nil nil (wisi-anchored 1 1) (wisi-anchored 1 0) nil [ada-indent-broken ada-indent-broken]]))%
   | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
+    %((wisi-indent-action [nil nil (wisi-anchored 1 1) (wisi-anchored 1 0) nil [ada-indent-broken ada-indent-broken]]))%
+  ;
 
 chunk_specification ::=
     simple_expression
   | IDENTIFIER 'in' discrete_subtype_definition
 
-loop_parameter_specification ::= IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
+loop_parameter_specification
+  ;;  This is almost a subset of iterator_specification;
+  ;;  discrete_subtype_definition is a superset of 'name'; could merge
+  ;;  to reduce conflicts.
+  : IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
+    %((wisi-face-remove-action [4]))%
+  ;
 
 iterator_filter ::= 'when' condition
 
@@ -1282,7 +1349,7 @@ parameter_and_result_profile ::=
   | [formal_part] 'return' access_definition
   ;
 
-parameter_specification_list ;;:new
+parameter_specification_list ;;:new for action
   : parameter_specification {';' parameter_specification}
   ;
 
@@ -1334,9 +1401,14 @@ procedure_call_statement ::=
     name ';'
   ;; name actual_parameter_part ';' ;; redundant with function_call in name
 
-function_call ::=
+function_call
   ;; name ;; redundant with "name"
-    name actual_parameter_part
+  : name actual_parameter_part
+    %((wisi-indent-action [nil
+                           (if ada-indent-hanging-rel-exp
+                               (wisi-anchored 1 ada-indent-broken)
+                             (wisi-anchored% 1 ada-indent-broken))]))%
+  ;
 
 parameter_association_list ;; new to support actions
   : parameter_association {',' parameter_association} ;
@@ -1388,8 +1460,12 @@ extended_return_statement
 
 return_subtype_indication ::= subtype_indication | access_definition
 
-null_procedure_declaration ::=
-    [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
+null_procedure_declaration
+  : [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
+    ;; indent IS consistent with expression_function
+    %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
+      (wisi-indent-action [nil nil nil ada-indent-broken ada-indent-broken ada-indent-broken]))%
+  ;
 
 expression_function_declaration
   : [overriding_indicator] function_specification 'is' '(' expression ')' [aspect_specification] ';'
@@ -1435,11 +1511,34 @@ renaming_declaration ::=
   | subprogram_renaming_declaration
   | generic_renaming_declaration
 
-object_renaming_declaration ::=
-    IDENTIFIER [':' [null_exclusion] name] 'renames' name [aspect_specification]';'
-  | IDENTIFIER ':' access_definition 'renames' name [aspect_specification]';'
+object_renaming_declaration
+  : IDENTIFIER [':' [null_exclusion] name] 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-name-action 1)
+      (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
+      (wisi-indent-action [nil
+                           ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                           ada-indent-broken ada-indent-broken]))%
+  | IDENTIFIER ':' access_definition 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-name-action 1)
+      (wisi-indent-action [nil
+                           ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                           ada-indent-broken ada-indent-broken]))%
+  ;
 
-exception_renaming_declaration ::= IDENTIFIER ':' 'exception' 'renames' name [aspect_specification]';'
+exception_renaming_declaration
+  : IDENTIFIER ':' 'exception' 'renames' name [aspect_specification] ';'
+    %((wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-name-action 1)
+      (wisi-face-apply-action [5 font-lock-function-name-face nil])
+      (wisi-indent-action [nil
+                           ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging%- ada-indent-broken (* 2 ada-indent-broken))
+                           ada-indent-broken ada-indent-broken]))%
+  ;
 
 package_renaming_declaration ::= 'package' name 'renames' name [aspect_specification]';'
 
@@ -1736,9 +1835,9 @@ exception_declaration
     %((wisi-statement-action [1 statement-start 5 statement-end]))%
   ;
 
-exception_handler_list ;;:new
+exception_handler_list ;;:new for pragma, action
   : exception_handler
-  | pragma_g ;;:new
+  | pragma_g ;;:new for pragma
   | exception_handler_list exception_handler
     %((wisi-motion-action [1 2]))%
   ;
@@ -1750,7 +1849,7 @@ handled_sequence_of_statements
                              [(- ada-indent-when ada-indent) (- ada-indent-when ada-indent)]]))%
   ;
 
-exception_choice_list ;;:new
+exception_choice_list ;;:new for action
   : exception_choice {'|' exception_choice} ;
 
 exception_handler
@@ -1797,7 +1896,7 @@ generic_formal_parameter_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
   | use_clause ;;:new, moved here from generic_formal_part
-  | pragma_g ;;:new
+  | pragma_g ;;:new for pragma
   ;
 
 generic_instantiation
