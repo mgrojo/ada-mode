@@ -1074,7 +1074,7 @@ membership_choice ::=
 
 simple_expression : [unary_adding_operator] term {binary_adding_operator term} ;
 
-term := factor {multiplying_operator factor} ;
+term : factor {multiplying_operator factor} ;
 
 factor ::= primary ['**' primary] | 'abs' primary | 'not' primary
 
@@ -1380,14 +1380,17 @@ iterator_parameter_association ::=
 
 parameter_association_with_box ::= [ selector_name  '=>'  ]  '<>'
 
+identifier_opt ;;:new; split out from block_statement and other named statements for wisi-match-names
+  : [IDENTIFIER] ;
+
 block_statement
   : [statement_identifier ':'] ['declare' declarative_part] 'begin' handled_sequence_of_statements
-    'end' [IDENTIFIER] ';'
+    'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 3 statement-override 5 motion 9 statement-end])
       (wisi-motion-action [1 3 5 [6 WHEN] 9])
       (wisi-indent-action [ada-indent-label nil nil [ada-indent ada-indent] nil [ada-indent ada-indent]
                                             nil ada-indent-broken ada-indent-broken]))%
-    %((wisi-match-names 1 8))% ;; FIXME: not called when trailing identifier not present; need identifier_opt
+    %((wisi-match-names 1 8))%
   ;
 
 parallel_block_statement ::=
@@ -1530,9 +1533,12 @@ global_designator ::= 'all' | 'synchronized' | name ;
 
 ;; global_name ::= name | name ;;:inlined to "name"
 
+name_opt ;;:new; split out from subprogram_body for wisi-match-names
+  : [name] ;
+
 subprogram_body
   : [overriding_indicator] subprogram_specification [aspect_specification] 'is' declarative_part
-    'begin' handled_sequence_of_statements 'end' [name] ';'
+    'begin' handled_sequence_of_statements 'end' name_opt ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 4 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 2 4 6 [7 WHEN] 10])
       (wisi-face-apply-action [9 font-lock-function-name-face font-lock-function-name-face])
@@ -1642,10 +1648,10 @@ package_declaration
 basic_declarative_item_list ;;:new for action in package_specification
   : basic_declarative_item | basic_declarative_item_list basic_declarative_item ;
 
-;; replace "[[name '.' ] IDENTIFIER" with "name" for consistency and for actions
+;; replace "[[name '.' ] IDENTIFIER" with "name_opt" for consistency and for actions
 package_specification
   : 'package' name [aspect_specification] 'is' basic_declarative_item_list
-      ['private' basic_declarative_item_list] 'end' name
+      ['private' basic_declarative_item_list] 'end' name_opt
     %((wisi-statement-action [1 statement-start 4 motion 6 motion])
       (wisi-name-action 2)
       (wisi-motion-action [1 4 6])
@@ -1662,7 +1668,7 @@ package_specification
 ;; replace "[[name '.' ] IDENTIFIER" with "name" for consistency and for actions
 package_body
   : 'package' 'body' name [aspect_specification] 'is' declarative_part
-      ['begin' handled_sequence_of_statements] 'end' name ';'
+      ['begin' handled_sequence_of_statements] 'end' name_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 13 statement-end])
       (wisi-name-action 3)
       (wisi-motion-action [1 5 7 [8 WHEN] 13])
@@ -1861,7 +1867,7 @@ task_item : entry_declaration | aspect_clause ;
 
 task_body
   : 'task' 'body' IDENTIFIER [aspect_specification] 'is' declarative_part
-    'begin' handled_sequence_of_statements 'end' [IDENTIFIER] ';'
+    'begin' handled_sequence_of_statements 'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
       (wisi-name-action 3)
       (wisi-face-apply-action [3 nil font-lock-type-face 10 nil font-lock-type-face])
@@ -1925,7 +1931,7 @@ protected_operation_item_list ;;:new; split out from protected_body for actions
   ;
 
 protected_body
-  : 'protected' 'body' IDENTIFIER [aspect_specification] 'is' protected_operation_item_list 'end' [IDENTIFIER] ';'
+  : 'protected' 'body' IDENTIFIER [aspect_specification] 'is' protected_operation_item_list 'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 9 statement-end])
       (wisi-name-action 3)
       (wisi-motion-action [1 5 9])
@@ -1958,7 +1964,7 @@ entry_declaration
 
 accept_statement ::=
     'accept' direct_name ['(' entry_index ')'] parameter_profile
-    ['do' handled_sequence_of_statements 'end' [IDENTIFIER]] ';'
+    ['do' handled_sequence_of_statements 'end' identifier_opt] ';'
     %((wisi-statement-action [1 statement-start 7 motion 11 statement-end])
     (wisi-motion-action [1 7 [8 WHEN] 11])
     (wisi-face-apply-action [2 nil font-lock-function-name-face 10 nil font-lock-function-name-face])
@@ -1971,7 +1977,7 @@ entry_index ::= expression
 
 entry_body
   : 'entry' IDENTIFIER entry_body_formal_part [aspect_specification] entry_barrier 'is' declarative_part 'begin'
-      handled_sequence_of_statements 'end' [IDENTIFIER] ';'
+      handled_sequence_of_statements 'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 5 motion 6 motion 8 motion 12 statement-end])
       (wisi-name-action 2)
       (wisi-motion-action [1 5 6 8 [9 WHEN] 12])
