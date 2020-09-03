@@ -73,11 +73,11 @@ ada_annex_p.wy
     lr1 text_rep _smaller_ than ada.wy ; transition to this
 
     add actions
-        make two
-        copy from ada.wy, in ada.wy alphabetical order
-            done thru object_renaming_declaration
+        done copying from ada.wy
 
         in block_statement, is match_names called when it can fail?
+            no; need identifier_opt
+            same in other places
 
     compare_ada_annex_p
         arm_texi use bold underscore for bold, to distinguish keywords
