@@ -70,18 +70,14 @@ test/ada_mode-recover_35.adb
     recover fail_programmer_error
 
 ada_annex_p.wy
-    lr1 text_rep _smaller_ than ada.wy ; transition to this
+    run tests
 
-    add actions
-        done copying from ada.wy
 
-        in block_statement, is match_names called when it can fail?
-            no; need identifier_opt
-            same in other places
 
-    compare_ada_annex_p
-        arm_texi use bold underscore for bold, to distinguish keywords
-        write arm-info-mode, to apply faces
+
+compare_ada_annex_p
+    arm_texi use bold underscore for bold, to distinguish keywords
+    write arm-info-mode, to apply faces
 
 ada-which-function fails in wisi-ada_annex_p-format_parameter_list.adb
 

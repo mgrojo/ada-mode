@@ -60,6 +60,8 @@
 
 %lr1_hash_table_size 124_087
 
+%language_runtime "Wisi.Ada"
+
 ;; The addition of declare_expression caused a massive increase in recursion
 %partial_recursion
 %case_insensitive
@@ -834,7 +836,7 @@ selected_component
 
 selector_name : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ;
 
-attribute_reference ::= name tick attribute_designator | reduction_attribute_reference
+attribute_reference : name tick attribute_designator | reduction_attribute_reference ;
 
 attribute_designator ::=
     IDENTIFIER ['(' expression ')']
@@ -1564,10 +1566,12 @@ function_call
   ;
 
 parameter_association_list ;; new to support actions
-  : parameter_association {',' parameter_association} ;
+  : parameter_association
+  | parameter_association_list ',' parameter_association
+  ;
 
 actual_parameter_part
-;; '(' parameter_association {',' parameter_association} ')' ;; deleted to support actions
+;; '(' parameter_association {',' parameter_association} ')' ;;:deleted to support actions
   : '(' parameter_association_list ')' ;; new to support actions
     ;; see note in test/ada_mode-parens.adb Local_10 about right paren indent.
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
@@ -2486,17 +2490,21 @@ formal_package_actual_part
 
 formal_package_association : generic_association | selector_name '=>' '<>' ;
 
-aspect_clause ::=
-    attribute_definition_clause
+aspect_clause
+  : attribute_definition_clause
   | enumeration_representation_clause
   | record_representation_clause
   | at_clause
+  ;
 
-  ;; local_name ::= ;; inlined to "name"; redundant with attribute_designator in name
-  ;;     direct_name tick attribute_designator
-  ;;   | name
+;; local_name ;;:redundant with attribute_designator in name; inlined to "name"
+;;   : direct_name tick attribute_designator
+;;   | name
 
-aspect_mark_list : aspect_mark ['=>' aspect_definition] {',' aspect_mark ['=>' aspect_definition] } ;
+aspect_association ;;:new for wisi-ada.adb code.
+  : aspect_mark ['=>' aspect_definition] ;
+
+aspect_mark_list : aspect_association {',' aspect_association} ;
 
 aspect_specification
   : 'with' aspect_mark_list
