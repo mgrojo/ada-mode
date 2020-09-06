@@ -146,10 +146,11 @@ package body Wisi.Ada is
       Method                : Node_Access;
 
    begin
-      if Call = Invalid_Node_Access then
-         --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no 'function_call' found at byte_pos" & Edit_Begin'Image;
-      end if;
+      --  WORKAROUND: GNAT Community 20200818 reports "condition always false" here, with Debug options
+      --  if Call = Invalid_Node_Access then
+      --     --  Most likely the edit point is wrong.
+      --     raise SAL.Parameter_Error with "no 'function_call' found at byte_pos" & Edit_Begin'Image;
+      --  end if;
 
       if WisiToken.Trace_Action > Detail then
          Put_Line

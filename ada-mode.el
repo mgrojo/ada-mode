@@ -106,7 +106,7 @@
 
 (require 'ada-core)
 (require 'ada-indent-user-options)
-(require 'ada-process)
+(require 'ada_annex_p-process)
 (require 'ada-skel)
 (require 'align)
 (require 'cl-lib)
@@ -1650,9 +1650,9 @@ Prompts with completion, defaults to filename at point."
      :language-protocol-version ada-wisi-language-protocol-version
      :exec-file ada-process-parse-exec
      :exec-opts ada-process-parse-exec-opts
-     :face-table ada-process-face-table
-     :token-table ada-process-token-table
-     :repair-image ada-process-repair-image)))
+     :face-table ada_annex_p-process-face-table
+     :token-table ada_annex_p-process-token-table
+     :repair-image ada_annex_p-process-repair-image)))
 
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
   (setq wisi-xref-full-path ada-xref-full-path)

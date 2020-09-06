@@ -1075,7 +1075,7 @@ package body Wisi is
                   end if;
                end;
             end;
-         --  FIXME: else move to Tree.Leading_Non_Grammar
+            --  FIXME: else move to Tree.Leading_Non_Grammar
          end if;
       end if;
 
@@ -1210,7 +1210,7 @@ package body Wisi is
                   declare
                      Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cursor);
                   begin
-                     if Pair.Class = Statement_Start then
+                     if Pair.Class in Statement_Start | Statement_Override then
                         if Start_Set then
                            Cache.Class := Motion;
                         else
@@ -1236,9 +1236,16 @@ package body Wisi is
                       Statement_ID   => Tree.ID (Nonterm),
                       ID             => Token.ID,
                       Length         => Length (Token.Char_Region),
-                      Class          => (if Override_Start_Set then Statement_Start else Pair.Class),
+                      Class          =>
+                        (if Override_Start_Set then Statement_Start
+                         else
+                           (case Pair.Class is
+                            when Statement_Start | Statement_Override =>
+                              (if Start_Set then Motion else Statement_Start),
+                            when others => Pair.Class)),
                       Containing_Pos => Containing_Pos,
                       others         => Nil));
+
                   if WisiToken.Trace_Action > Detail then
                      declare
                         Cache : Navigate_Cache_Type renames Data.Navigate_Caches.Constant_Ref (Cursor);
@@ -1254,7 +1261,7 @@ package body Wisi is
 
                if First_Item then
                   First_Item := False;
-                  if Override_Start_Set or Pair.Class = Statement_Start then
+                  if Override_Start_Set or Pair.Class in Statement_Start | Statement_Override then
                      Override_Start_Set := False;
                      Containing_Pos     := (True, Token.Char_Region.First);
 
@@ -1279,7 +1286,7 @@ package body Wisi is
                                  if WisiToken.Trace_Action > Detail then
                                     Ada.Text_IO.Put_Line
                                       ("   " & Cache.Pos'Image & " containing to " & Image
-                                           (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
+                                         (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
                                  end if;
                               end if;
                               exit when Nonterm_Tok.Char_Region.Last < Cache.Pos + 1;

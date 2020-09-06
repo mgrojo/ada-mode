@@ -350,7 +350,7 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
 
                   if Params.Max_Parallel > 0 then
-                     Parser.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
+                     Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
                   end if;
 
                   Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
@@ -427,7 +427,7 @@ package body Emacs_Wisi_Common_Parse is
                      Params            => "");
 
                   if Params.Max_Parallel > 0 then
-                     Parser.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
+                     Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
                   end if;
 
                   Buffer := new String (Integer (Params.Parse_Region.First) .. Integer (Params.Parse_Region.Last));

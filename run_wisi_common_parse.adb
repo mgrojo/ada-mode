@@ -59,8 +59,9 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
-      Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
-                  WisiToken.Parse.LR.Parser.Default_Max_Parallel'Image & ")");
+      Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.Max_Parallel'Image));
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
@@ -171,7 +172,7 @@ package body Run_Wisi_Common_Parse is
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--max_parallel" then
-               Parser.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
+               Parser.Table.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--repeat_count" then

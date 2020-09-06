@@ -2,7 +2,6 @@
 --
 --  Ada language specific indent options and functions
 --
---  [1] ada.wy
 --  [2] ada-indent-user-options.el
 --
 --  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
@@ -109,7 +108,8 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-aggregate
+   --  ada-indent-aggregate
+   --  Args: none
 
    function Ada_Indent_Renames_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
@@ -119,7 +119,8 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-renames
+   --  ada-indent-renames
+   --  Args: subprogram_token_index
 
    function Ada_Indent_Return_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
@@ -129,7 +130,8 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-return
+   --  ada-indent-return
+   --  Args: formal_part_token_index, offset
 
    function Ada_Indent_Record_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
@@ -139,7 +141,7 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-record
+   --  ada-indent-record
    --  Args: anchor_token_index, record_token_index, offset
 
    function Ada_Indent_Record_1
@@ -150,7 +152,7 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-record*
+   --  ada-indent-record*
    --  Args: anchor_token_ID, record_token_index, offset
 
    function Ada_Indent_Anchored_Expression

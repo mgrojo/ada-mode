@@ -295,11 +295,12 @@ If nil, uses %mckenzie_enqueue_limit value from grammar file."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
 
-(defcustom wisi-parse-max-parallel 15
+(defcustom wisi-parse-max-parallel nil
   "Maximum number of parallel parsers during regular parsing.
 Parallel parsers are used to resolve conflicts in the grammar.
 If a file needs more than this, it's probably an indication that
-the grammar has excessive conflicts."
+the grammar has excessive conflicts. If nil, uses %max_parallel
+value from grammar file (default 15)"
   :type 'integer
   :group 'wisi
   :safe 'integerp)
