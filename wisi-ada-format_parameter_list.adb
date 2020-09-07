@@ -70,7 +70,7 @@ begin
    end if;
 
    if WisiToken.Trace_Action > Detail then
-      Put_Line (";; format parameter list node" & Tree.Image (Formal_Part, Node_Numbers => True));
+      Put_Line (";; format parameter list node " & Tree.Image (Formal_Part, Node_Numbers => True));
    end if;
 
    Edit_End := Tree.Byte_Region (Formal_Part).Last;
@@ -99,10 +99,11 @@ begin
                Param.Identifiers.Append (Tree.Byte_Region (Ident));
             end loop;
 
-            Param.Aliased_P := not Tree.Buffer_Region_Is_Empty (Children (3));
-
-            for I in 4 .. Children'Last loop
+            for I in 3 .. Children'Last loop
                case To_Token_Enum (Tree.ID (Children (I))) is
+               when ALIASED_ID =>
+                  Param.Aliased_P := True;
+
                when mode_ID =>
                   if Tree.Buffer_Region_Is_Empty (Children (I)) then
                      Param.In_P  := False;

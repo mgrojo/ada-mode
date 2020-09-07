@@ -708,8 +708,8 @@ record_extension_part
 
 abstract_subprogram_declaration
   : [overriding_indicator] subprogram_specification 'is' 'abstract' [aspect_specification] ';'
-    %((wisi-statement-action [statement-start statement-override statement-end])
-(wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
+    %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
+      (wisi-indent-action [nil nil nil ada-indent-broken nil  ada-indent-broken]))%
   ;
 
 interface_type_definition ::=
@@ -730,9 +730,21 @@ access_to_object_definition ::= 'access' [general_access_modifier] subtype_indic
 
 general_access_modifier ::= 'all' | 'constant'
 
-access_to_subprogram_definition ::=
-    'access' ['protected'] 'procedure' parameter_profile
+access_to_subprogram_definition
+  : 'access' ['protected'] 'procedure' parameter_profile
+    ;; test/ada_mode-nominal.ads
+    ;; type Procedure_Access_Type_8 is access
+    ;;   protected procedure
+    ;;     (A_Param : out Integer);
+    %((wisi-indent-action [nil nil nil (wisi-anchored%- 3 ada-indent-broken)]))%
   | 'access' ['protected'] 'function'  parameter_and_result_profile
+    ;; test/ada_mode-nominal.ads
+    ;; type Function_Access_Type_10 is access
+    ;;   protected function
+    ;;     (A_Param : in Float)
+    ;;     return Standard.Float;
+    %((wisi-indent-action [nil nil nil (wisi-anchored%- 3 ada-indent-broken)]))%
+  ;
 
 null_exclusion ::= 'not' 'null'
 
@@ -741,17 +753,9 @@ access_definition
     %((wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face]))%
 
   | [null_exclusion] 'access' ['protected'] 'procedure' parameter_profile
-    ;; test/ada_mode-nominal.ads
-    ;; type Procedure_Access_Type_8 is access
-    ;;   protected procedure
-    ;;     (A_Param : out Integer);
     %((wisi-indent-action [nil nil nil nil (wisi-anchored%- 4 ada-indent-broken)]))%
 
   | [null_exclusion] 'access' ['protected'] 'function' parameter_and_result_profile
-    ;; test/ada_mode-nominal.ads
-    ;; type Procedure_Access_Type_8 is access
-    ;;   protected procedure
-    ;;     (A_Param : out Integer);
     %((wisi-indent-action [nil nil nil nil (wisi-anchored%- 4 ada-indent-broken)]))%
   ;
 
@@ -1855,8 +1859,9 @@ task_type_declaration
       (wisi-name-action 3)
       (wisi-face-apply-action [3 nil font-lock-type-face 12 nil font-lock-type-face])
       (wisi-motion-action [1 6 9 [10 PRIVATE] 11])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken nil nil
-                               ada-indent-broken ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken nil
+                               [nil ada-indent] ada-indent-broken ada-indent-broken
+                               ada-indent-broken nil ada-indent-broken]))%
     %((wisi-match-names 3 10))%
   ;
 
@@ -1866,8 +1871,8 @@ single_task_declaration
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-motion-action [1 4 [8 PRIVATE] 11])
-      (wisi-indent-action [nil ada-indent-broken nil nil ada-indent-broken ada-indent-broken ada-indent-broken nil
-                               ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken nil [nil ada-indent] ada-indent-broken
+                               ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
     %((wisi-match-names 2 8))%
   ;
 
@@ -1905,8 +1910,9 @@ protected_type_declaration
       (wisi-name-action 3)
       (wisi-motion-action [1 6 [10 PRIVATE] 11])
       (wisi-face-apply-action [3 nil font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken nil nil
-                               ada-indent-broken ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken nil [nil ada-indent]
+                               ada-indent-broken ada-indent-broken ada-indent-broken
+                               [nil ada-indent-broken] ada-indent-broken]))%
     %((wisi-match-names 3 10))%
   ;
 
@@ -1916,8 +1922,8 @@ single_protected_declaration
       (wisi-motion-action [1 4 7 [8 PRIVATE] 9])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken nil nil ada-indent-broken ada-indent-broken ada-indent-broken nil
-                                 ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken nil [nil ada-indent] ada-indent-broken
+                               ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
     %((wisi-match-names 2 8))%
   ;
 
@@ -2158,14 +2164,15 @@ compilation
   ;
 
 ;; extended for partial parse, fragment parse
-compilation_unit ::=
-  ;; context_clause library_item ;; redundant; all are in declarative_item
-  ;; context_clause subunit ;; redundant
-    with_clause ;; new
-  | ['private'] declarative_item ;; new
+compilation_unit
+  ;; context_clause library_item ;;:redundant; all are in declarative_item
+  ;; context_clause subunit ;;:redundant
+  : with_clause ;;:new
+  | ['private'] declarative_item ;;:new
     %((wisi-indent-action [0 0]))%
-  | statement ;; new
-  | subunit ;; new
+  | statement ;;:new
+  | subunit ;;:new
+  | entry_declaration ;;:new for format parameter list
   ;
 
 ;; library_item ::=
@@ -2205,7 +2212,7 @@ nonlimited_with_clause
   : ['private'] 'with' name_list ';'
     %((wisi-statement-action [1 statement-start 4 statement-end])
       (wisi-face-apply-list-action [3 font-lock-function-name-face font-lock-function-name-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-with ada-indent-broken]))%
+      (wisi-indent-action [nil nil ada-indent-with ada-indent-broken]))%
   ;
 
 body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;

@@ -724,6 +724,19 @@ package body Wisi.Ada is
    end Indent_Hanging_1;
 
    overriding
+   procedure Refactor_Help (Data : in Parse_Data_Type)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      --  Must match "ada-refactor-*" in ada-wisi.el
+      Put ("1 Method_Object_To_Object_Method");
+      Put ("2 Object_Method_To_Method_Object");
+      Put ("3 Element_Object_To_Object_Index");
+      Put ("4 Object_Index_To_Element_Object");
+      Put ("5 Format_Parameter_List         ");
+   end Refactor_Help;
+
+   overriding
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;

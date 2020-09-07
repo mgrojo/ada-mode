@@ -2,7 +2,7 @@
 --
 --  Common utilities for Gen_Run_Wisi_*_Parse
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,7 +25,9 @@ package Run_Wisi_Common_Parse is
 
    Finish : exception;
 
-   procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
+   procedure Usage
+     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data : in out Wisi.Parse_Data_Type'Class);
    --  Puts parameter description to Current_Output.
 
    type Command_Type is (Parse, Refactor);
@@ -59,7 +61,10 @@ package Run_Wisi_Common_Parse is
       end case;
    end record;
 
-   function Get_CL_Params (Parser : in out WisiToken.Parse.LR.Parser.Parser) return Command_Line_Params;
+   function Get_CL_Params
+     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data : in out Wisi.Parse_Data_Type'Class)
+     return Command_Line_Params;
    --  For any errors, calls Usage, raises SAL.Parameter_Error.
    --
    --  Handles --help by outputing help, raising Finish.

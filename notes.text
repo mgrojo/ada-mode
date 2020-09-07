@@ -46,14 +46,8 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
-    run compare_ada_annex_p
-        compute 'inline', compare result; catch grammar edit errors
-
     run all tests
-        test/ada_mode-nominal.ads
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.ads:566: error: (no parameter list found at byte_pos 26821)
-            in ada-align
-refactor 5 "ada_mode-nominal.ads" 26805 26836 26817 26805 566 566 6 1 0 0 -1 31
+
 
 
     ada-indent-aggregate should apply to all paren-expression

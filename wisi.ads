@@ -345,6 +345,8 @@ package Wisi is
    ----------
    --  Other
 
+   procedure Refactor_Help (Data : in Parse_Data_Type) is null;
+
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
@@ -457,7 +459,7 @@ private
    Nil : constant Nil_Buffer_Pos := (Set => False);
 
    function Image (Item : in Nil_Buffer_Pos) return String
-   is (if Item.Set then Item.Item'Image else "nil");
+   is (if Item.Set then Item.Item'Image else " nil");
 
    type Navigate_Cache_Type is record
       Pos : WisiToken.Buffer_Pos;

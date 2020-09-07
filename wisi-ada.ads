@@ -90,6 +90,9 @@ package Wisi.Ada is
      return Delta_Type;
 
    overriding
+   procedure Refactor_Help (Data : in Parse_Data_Type);
+
+   overriding
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
