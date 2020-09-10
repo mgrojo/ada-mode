@@ -73,10 +73,6 @@ a +
 
             example in wisi.texi updated, with FIXME: WRONG in several places
                 add rule on how indents are combined.
-                or not.
-                inherit previous line indent unless inherit is off?
-                    ';' turns it off
-                    special indent symbol 'end' turns it off; specify that for ';'?
 
     ada-indent-aggregate should apply to all paren-expression
         ( expression )
