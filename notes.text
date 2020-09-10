@@ -25,8 +25,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -46,9 +46,37 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
+    wisi-anchored%
+        paren does not have to be in the same line as anchor?
+
+    delete ada-indent-hanging-rel-exp
+
     run all tests
+        test/ada_mode-parens.adb
+            :=, => are not "anchors"; they are just trying to control how indents add
+            in 'a + foo (b => c)', there are two reasons to indent '(';
+                hanging from +, indent-broken from (
+                but we don't want them to add if they are both on the same line
 
+a + foo
+  (b=> c)  - one indent
 
+a +
+  foo
+    (b=> c) - two indents
+
+            there are also two reasons to indent c;
+                hanging from =>, anchored from (
+                here they add even in from some line.
+
+            every delta is relative to the a reference line; don't add if same line unless anchored.
+
+            example in wisi.texi updated, with FIXME: WRONG in several places
+                add rule on how indents are combined.
+                or not.
+                inherit previous line indent unless inherit is off?
+                    ';' turns it off
+                    special indent symbol 'end' turns it off; specify that for ';'?
 
     ada-indent-aggregate should apply to all paren-expression
         ( expression )

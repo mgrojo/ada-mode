@@ -219,7 +219,7 @@ package Wisi is
       Anchored_1, -- [2] wisi-anchored%
       Anchored_2, -- [2] wisi-anchored%-
       Anchored_3, -- [2] wisi-anchored*
-      Anchored_4, -- [2] wisi-anchored*-
+      Anchored_4, -- [2] wisi-anchored*- (FIXME: currently illegal - delete from wisitoken-bnf-output_ada_emacs)
       Language    -- [2] language-specific function
      );
    subtype Anchored_Label is Simple_Indent_Param_Label range Anchored_0 .. Anchored_4;
@@ -397,7 +397,8 @@ private
       First_Indent_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
       Last_Indent_Line  : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
       --  Lines that need indenting; first token on these lines is contained
-      --  in this token. If First is False, these are Invalid_Line_Number.
+      --  in this token. If token has no lines that need indenting, these
+      --  are Invalid_Line_Number.
       --
       --  First_, Last_Indent_Line include blank and comment lines between
       --  grammar tokens, but exclude trailing blanks and comments after the
@@ -620,9 +621,8 @@ private
          Int_Delta : Integer;
 
       when Anchored =>
-         Anchored_ID         : Natural;
-         Anchored_Delta      : Integer;
-         Anchored_Accumulate : Boolean;
+         Anchored_ID    : Natural;
+         Anchored_Delta : Integer;
 
       end case;
    end record;
@@ -634,6 +634,8 @@ private
 
    type Delta_Type (Label : Delta_Labels := Simple) is
    record
+      Accumulate : Boolean; -- FIXME: delete
+
       case Label is
       when Simple =>
          Simple_Delta : Simple_Delta_Type;
@@ -643,11 +645,10 @@ private
          Hanging_Paren_State : Integer;
          Hanging_Delta_1     : Simple_Delta_Type; -- indentation of first line
          Hanging_Delta_2     : Simple_Delta_Type; -- indentation of continuation lines
-         Hanging_Accumulate  : Boolean;
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Simple, (Label => None));
+   Null_Delta : constant Delta_Type := (Simple, True, (Label => None));
 
    function Image (Item : in Delta_Type) return String;
    --  For debugging

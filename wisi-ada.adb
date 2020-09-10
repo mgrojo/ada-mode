@@ -56,7 +56,7 @@ package body Wisi.Ada is
                Ada_Indent_Record_Rel_Type, Accumulate => True);
          else
             --  not before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
-            return (Simple, (Int, Offset));
+            return (Simple, True, (Int, Offset));
          end if;
 
       else
@@ -618,7 +618,7 @@ package body Wisi.Ada is
             Hanging_Delta_1     => Indent_Compute_Delta
               (Data, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta,
             Hanging_Delta_2     => Delta_2,
-            Hanging_Accumulate => Accumulate);
+            Accumulate          => Accumulate);
       end Result;
 
       function Result (Delta_1 : in Simple_Delta_Type) return Delta_Type
@@ -629,7 +629,7 @@ package body Wisi.Ada is
             Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
             Hanging_Delta_1     => Delta_1,
             Hanging_Delta_2     => Delta_1,
-            Hanging_Accumulate => Accumulate);
+            Accumulate          => Accumulate);
       end Result;
 
       function Comment_Result (D : in Simple_Indent_Param) return Delta_Type
@@ -810,7 +810,7 @@ package body Wisi.Ada is
          --  The controlling boolean expression in 'if_expression' and
          --  'elsif_expression_item' cannot be an aggregate in legal Ada
          --  syntax.
-         return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
+         return (Simple, True, (Int, Ada_Indent_Broken - Ada_Indent));
       else
          return Null_Delta;
       end if;

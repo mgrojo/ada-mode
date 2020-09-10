@@ -210,7 +210,7 @@ package body Ada_Mode.Parens is
          3      => 1 +
            3 * 4,
          others => 5);
-   end;
+   end Function_2;
 
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- lines before ( and after ) not empty. result is tested by .diff
@@ -344,7 +344,7 @@ package body Ada_Mode.Parens is
       F    : in out Integer) is
    begin
       E := 'A';
-   end;
+   end Param_Format_1;
 
    --EMACSCMD:(progn (forward-line 4)(ada-align))
    -- multiline, followed on same line by "return"
@@ -354,7 +354,7 @@ package body Ada_Mode.Parens is
    is begin
       B := 1;
       return A;
-   end;
+   end Param_Format_3;
 
    --EMACSCMD:(progn (forward-line 4)(ada-align))
    -- multiline, no modes
@@ -364,7 +364,7 @@ package body Ada_Mode.Parens is
      return Float
    is begin
       return A;
-   end;
+   end Param_Format_4;
 
    --EMACSCMD:(font-lock-ensure)
 
@@ -384,7 +384,7 @@ package body Ada_Mode.Parens is
    is begin
       D := 'Z';
       return A.all;
-   end;
+   end Param_Format_6;
 
    --EMACSCMD:(progn (forward-line 4)(test-face "constant" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
@@ -399,7 +399,7 @@ package body Ada_Mode.Parens is
    is begin
       E := 'z';
       return A.all;
-   end;
+   end Param_Format_7;
 
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
    -- default at end of list, only 'in'
@@ -411,21 +411,21 @@ package body Ada_Mode.Parens is
       First_State_Index : in Integer := 1)
    is begin
       null;
-   end;
+   end Param_Format_8;
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 5)(insert "    ")(ada-align))
    -- single line no mode
    function Param_Format_S1 (A : Float; B : Integer := 3) return Float
    is begin
       return A;
-   end;
+   end Param_Format_S1;
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 5)(insert "    ")(ada-align))
    -- single line access [constant | protected]
    procedure Param_Format_S2 (A : access constant Float; B : access protected procedure)
    is begin
       null;
-   end;
+   end Param_Format_S2;
 
    -- string nested in parens
    procedure Hello
@@ -514,7 +514,7 @@ package body Ada_Mode.Parens is
       Slice_1 (1
                ,    --  used to get an error here; don't care about the actual indentation
                "string");
-   end;
+   end Weird_List_Break;
 
    procedure Quantified_Exression is
 
@@ -526,10 +526,10 @@ package body Ada_Mode.Parens is
       -- around a quantified expression
       pragma Assert (for all X of A => X in V1);
 
-      procedure F1 (Item : in Boolean) is begin null; end;
+      procedure F1 (Item : in Boolean) is begin null; end F1;
    begin
       F1 (for all X of A => X in V1);
-   end;
+   end Quantified_Exression;
 
    procedure If_Expr_As_Actual_Parameter is
 
@@ -547,6 +547,7 @@ package body Ada_Mode.Parens is
 
 end Ada_Mode.Parens;
 --  Local Variables:
+--  wisi-process-time-out: 10.0
 --  ada-indent-comment-gnat: t
 --  ada-end-name-optional: t
 --  End:
