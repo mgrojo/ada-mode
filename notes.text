@@ -46,33 +46,17 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
+    wisi.texi example updated with "ignore delta indent" rule
+        add example where anchored expression is multi-line with hanging indent
+            anchor always ignore existing indent?
+
     wisi-anchored%
         paren does not have to be in the same line as anchor?
 
     delete ada-indent-hanging-rel-exp
 
     run all tests
-        test/ada_mode-parens.adb
-            :=, => are not "anchors"; they are just trying to control how indents add
-            in 'a + foo (b => c)', there are two reasons to indent '(';
-                hanging from +, indent-broken from (
-                but we don't want them to add if they are both on the same line
 
-a + foo
-  (b=> c)  - one indent
-
-a +
-  foo
-    (b=> c) - two indents
-
-            there are also two reasons to indent c;
-                hanging from =>, anchored from (
-                here they add even in from some line.
-
-            every delta is relative to the a reference line; don't add if same line unless anchored.
-
-            example in wisi.texi updated, with FIXME: WRONG in several places
-                add rule on how indents are combined.
 
     ada-indent-aggregate should apply to all paren-expression
         ( expression )

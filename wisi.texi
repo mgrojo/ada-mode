@@ -302,13 +302,27 @@ token, and does not apply a face if there are no such marks.
 @section Indent actions
 
 Indents are computed for each line in a cumulative way as the grammar
-actions are executed. Initially, each indent is set to @code{nil},
+actions are executed. Initially, the indent for all lines are set to @code{nil},
 which means ``not computed''; this is not the same as the value
 @code{0}. The grammar actions are executed in a bottom-up fashion; low
 level productions are executed before higher level ones. In general,
 the indent action for a production specifies a ``delta indent''; the
 indent for a line is incremented by that amount. When all productions
 have been processed, the indent has been computed for all lines.
+
+Indent actions specify a delta indent for each token in a
+production. If the token is a nonterminal, it can contain multiple
+lines of text; the delta indent applies to the lines whose first
+tokens are contained by the nonterminal.
+
+When a delta indent applied to the indent for a line, it is either
+added or ignored. We call the token whose delta indent is being
+applied the ``controlling'' token. The indent for each line has a
+field storing the line number of the last controlling token that added
+to the indent. If the line number of the controlling token for the
+delta indent begin applied is the same as the stored controlling token
+line number, the indent is ignored. @ref{Indent example} for
+explanations of why this rule is needed.
 
 Indents are often given as a function call; the arguments to the
 function can be other function calls, or integer
@@ -391,15 +405,12 @@ out when the production is converted to BNF internally.
 @subsection Indent functions
 @table @code
 @item wisi-anchored ANCHOR OFFSET
-Sets the indent for the current token to be OFFSET (an integer
+Sets the absolute indent for the current token to be OFFSET (an integer
 expression) from the start of ANCHOR (a token index). Previously
 accumulated delta indents for the current token are ignored, as are
 subsequent delta indents; the current token is ``anchored to'' ANCHOR.
 
 A comment is indented the same as the last line of ANCHOR.
-
-If two or more anchor indents apply to a token, only the innermost one
-(the first one applied) is used.
 
 @c FIXME: delete comments
 @c @item wisi-anchored- ANCHOR OFFSET
@@ -422,11 +433,12 @@ The same as @code{wisi-anchored}, but the anchor point is the start of
 the line containing ANCHOR.
 
 @item wisi-hanging DELTA-1 DELTA-2
-The current token is assumed to be a nonterminal. If the text it
-contains spans multiple lines, use DELTA-1 for the first line, DELTA-2
-for the rest. If the current token is only on one line, use DELTA-1.
+If the first
+token in the nonterminal is first on its line, use DELTA-1 for the
+first line, DELTA-2 for the rest. Otherwise, use DELTA-1 for all
+lines.
 
-DELTA-1 and DELTA-2 can be any IDENT expression, except a variant of
+DELTA-1 and DELTA-2 can be any ident expression, except a variant of
 @code{wisi-hanging}.
 
 @item wisi-hanging- DELTA-1 DELTA-2
@@ -527,7 +539,8 @@ indents on the left:
 The assignment statement is fully spread out on different lines, as
 might be required if the names or subexpressions are long. In this
 case, none of the delta indents are ignored when applied to a line,
-which is why they all need to be present in the indent actions.
+which is why they all need to be present in the indent actions. Thus
+we can leave out the stored controlling token in the line indents.
 
 Indents are computed in bottom up order; the first indent action
 computed in this code is for @code{formal_part} @code{(Arg_1, Arg_2)}
@@ -586,7 +599,7 @@ indents:
 The final step is compute all the anchored lines; for line 6, we add 1
 to the indent for line 5, leaving 9.
 
-A more extensive example:
+Now consider a more extensive example:
 
 @example
  1: if A < B and
@@ -606,10 +619,11 @@ A more extensive example:
 Here the assignment is on fewer lines, illustrating why we need the
 rule about ignoring some delta indents.
 
-The syntax tree produced by parsing this code, node numbers on the
-left for reference. Note that comments are stored in the node
-containing the terminal token node preceding the comment. Node 20
-'formal_part' is empty; ``Do_E'' has no arguments.
+To understand the order in which indents are computed, we need the
+syntax tree produced by parsing this code; that is shown here, with
+node numbers on the left for reference. Note that comments are stored
+in the node containing the terminal token node preceding the
+comment. Node 20 'formal_part' is empty; ``Do_E'' has no arguments.
 @example
  1  if_statement
  2    'if'
@@ -638,50 +652,49 @@ containing the terminal token node preceding the comment. Node 20
 25      statement
 26        assignment
 27          identifier "G"
-28          ':='
-29          expression
-30            term
-31              primary
-32                identifier "F"
-33              '+'
-34              primary
-35                function_call
-36                  identifier "Compute_Something"
-37                  formal_part
-38                    '('
-39                    expression_list
+28          assign_value
+29            ':='
+30            expression
+31              term
+32                primary
+33                  identifier "F"
+34                '+'
+35                primary
+36                  function_call
+37                    identifier "Compute_Something"
+38                    formal_part
+39                      '('
 40                      expression_list
-41                        expression
-42                          term
-43                            primary
-44                              identifier "Arg_1"
-45                      ','
-46                      expression
-47                        term
-48                          primary
-49                            identifier "Arg_2"
-50                    ')'
-51          ';', blank line, "-- comment before 'end if'"
-52    'end'
-53    'if'
-54    ';'
+41                        expression_list
+42                          expression
+43                            term
+44                              primary
+45                                identifier "Arg_1"
+46                        ','
+47                        expression
+48                          term
+49                            primary
+50                              identifier "Arg_2"
+51                      ')'
+52          ';', blank line, "-- comment before 'end if'"
+53    'end'
+54    'if'
+55    ';'
 @end example
 
 Actions are computed by traversing the tree depth first. Thus the
 first node considered is node 6; it is an @code{identifier}, which is
-a terminal token and has no post-parse action. The next nodes
-considered are 5, 7, 9, 8, 4, 10, 13, 12, 14, 16, 15; all have no
-action. Next is node 3, the @code{expression} @code{A < B and C < D}
-on lines 1 and 2.
-
-The indent action for @code{expression} is
+a terminal token and has no indent action. The next nodes considered
+are 5, 7, 9, 8, 4, 10, 13, 12, 14, 16, 15; all have no action. Next is
+node 3 @code{expression} on lines 1 and 2, which has the indent
+action:
 @example
    [(wisi-hanging% nil ada-indent-broken) ada-indent-broken]
 @end example
 This gives separate indents for the code and the trailing comment.
-The code is @code{A < B and C < D}, on lines 1 and 2, with
+The code is @code{A < B and C < D} on lines 1 and 2, with
 a trailing comment of @code{--  comment on expression} on line 3. Since the
-first line of the expression follows @code{if}, it is not first on
+first token in the expression follows @code{if} on line 1, it is not first on
 the line; thus @code{wisi-hanging} gives a delta indent of 2 for line
 2, leaving line 1 at nil.
 
@@ -689,35 +702,37 @@ The comment on line 3 is given an indent of 2. Note that if the
 comment indent had not been given separately in this indent action, it
 would have been given the indent of the next token, which is nil.
 
+The stored controlling token line for lines 2 and 3 is 1.
+
 The next action computed is node 21 @code{function_call} @code{Do_E;}
 on line 5. The indent action is @code{%((wisi-indent-action [nil
 ada-indent-broken]))%}; since the code is all on one line this leaves
 the indent for line 5 at nil. The indent for the trailing comment and
 blank line on lines 6 and 7 are also left at nil.
 
-Next is node 41 @code{expression} @code{Arg_1} line 9; it is all on one line
+Next is node 42 @code{expression} @code{Arg_1} line 9; it is all on one line
 and not the first token, so the indent is left at nil. Similarly for
-node 49 @code{expression} @code{Arg_2} line 10.
+node 47 @code{expression} @code{Arg_2} line 10.
 
-At this point, the indents for all are the lines are (the indent is
-given after the line number):
+At this point, the indents for all are the lines are (the stored
+controlling token line and indent is given after the line number):
 @example
- 1: nil : if A < B and
- 2:   2 :   C < D
- 3:   2 :   --  comment on expression
- 4: nil : then
- 5: nil :    Do_E;
- 6: nil :    -- comment on statement
- 7: nil :
- 8: nil :    G := A + Compute_Something
- 9: nil :      (Arg_1,
-10: nil :       Arg_2);
-11: nil :
-12: nil :    -- comment before 'end if'
-13: nil : end if;
+ 1: nil nil : if A < B and
+ 2: 1   2   :   C < D
+ 3: 1   2   :   --  comment on expression
+ 4: nil nil : then
+ 5: nil nil :    Do_E;
+ 6: nil nil :    -- comment on statement
+ 7: nil nil :
+ 8: nil nil :    G := A + Compute_Something
+ 9: nil nil :      (Arg_1,
+10: nil nil :       Arg_2);
+11: nil nil :
+12: nil nil :    -- comment before 'end if'
+13: nil nil : end if;
 @end example
 
-Next indent action is node 37 @code{formal_part} @code{(Arg_1, Arg_2)}
+Next indent action is node 38 @code{formal_part} @code{(Arg_1, Arg_2)}
 lines 9 and 10. The indent action is
 @example
 %((wisi-indent-action [nil
@@ -726,44 +741,53 @@ lines 9 and 10. The indent action is
 @end example
 This computes a delta indent for the @code{expression_list} of
 @code{Anchored, 9, 1)}; anchored to line 9 with an offset of 1. This
-delta indent is applied to the current indents for the lines covered
-by the @code{expression_list}; that is just line 10. Since the indent
-for line 10 is currently nil, it is set to @code{Anchored, 9, 1)}.
+delta indent is applied to the lines whose first tokens are contained by the
+@code{expression_list}; that is just line 10. Since the indent for
+line 10 is currently nil, it is set to @code{Anchored, 9, 1)},
+controlling token line 9.
 
-Next is node 35 @code{function_call} @code{Compute_Something (Arg_1,
+Next is node 36 @code{function_call} @code{Compute_Something (Arg_1,
 Arg_2)} on lines 9 and 10. The indent action is
-@code{%((wisi-indent-action [nil ada-indent-broken]))%}, which gives
-a delta indent of 2 for the @code{formal_part}. This is applied to
-lines 9 and 10, leaving line 9 at 2, and 10 unchanged at
-@code{Anchored, 9, 1)}.
+@code{%((wisi-indent-action [nil ada-indent-broken]))%}, which gives a
+delta indent of 2 for the @code{formal_part}. This is applied to lines
+9 and 10, leaving line 9 at 2, stored controlling token line 8; and 10
+unchanged.
 
-Next is node 29 @code{expression} @code{F +
-Compute_Something (Arg_1, Arg_2)} on lines 8, 9 and 10; this computes
-a delta indent 2 for lines 9 and 10, leaving 9 at 4 (FIXME: WRONG!) and 10 unchanged.
+Next is node 30 @code{expression} @code{F + Compute_Something (Arg_1,
+Arg_2)} on lines 8, 9 and 10; this computes a delta indent of 2 for lines
+9 and 10. The controlling token line is 8, and the stored controlling
+token for line 9 is also 8, so this delta indent is ignored for line
+9. Line 10 is anchored, so the delta indent is ignored. Thus the
+indent for lines 9 and 10 are unchanged.
+
+Next is node 28 @code{assign_value} on lines 8, 9, 10; this computes a
+delta indent of 2 for the @code{expression}, which is applied to lines
+9 and 10; it is ignored as the delta indent from node 29 was.
 
 Next is node 16 @code{assignment} on lines 8, 9, 10; this computes a
-delta indent of 2 for the @code{expression}, and nil for @code{;},
-which is applied to lines 9 thru 12. The blank line and comment one
+delta indent of 2 for the @code{expression}, which is applied to lines
+9 and 10; it is ignored.
+
+The blank line and comment on
 lines 11 and 12 are stored in node 51, which is in the
 @code{assignment} nonterminal, and there is no following token in the
-production, so the indent of ';' is computed for them. This leaves 9
-at 6 (FIXME: WRONG!), 10 thru 12 unchanged.
+production, so the indent of ';' is used for them; that's nil.
 
 At this point, the indents are:
 @example
- 1: nil          : if A < B and
- 2:   2          :   C < D
- 3:   2          :   --  comment on expression
- 4: nil          : then
- 5: nil          :    Do_E;
- 6: nil          :    -- comment on statement
- 7: nil          :
- 8: nil          :    G := F + Compute_Something
- 9: nil          :      (Arg_1,
-10: Anchored 9 1 :       Arg_2);
-11: nil          :
-12: nil          :    -- comment before 'end if'
-13: nil          : end if;
+ 1: nil nil          : if A < B and
+ 2: 1   2            :   C < D
+ 3: 1   2            :   --  comment on expression
+ 4: nil nil          : then
+ 5: nil nil          :    Do_E;
+ 6: nil nil          :    -- comment on statement
+ 7: nil nil          :
+ 8: nil nil          :    G := F + Compute_Something
+ 9: 8   2            :      (Arg_1,
+10: 9   Anchored 9 1 :       Arg_2);
+11: nil nil          :
+12: nil nil          :    -- comment before 'end if'
+13: nil nil          : end if;
 @end example
 
 The final indent action is for node 1 @code{if_statement} on lines 1
@@ -774,11 +798,11 @@ thru 13. The indent for each token in the production is:
 Leaves line 1 at nil.
 
 @item expression: ada-indent-broken
-Applies a delta indent of 2 to lines 1 and 2, leaving them at 4
-(FIXME: WRONG!).
+Since the controlling token line is the same as the stored controlling
+token line, this is ignored.
 
 @item then: nil
-Applies delta of nil to lines 3 and 4.
+Applies delta of nil to line 4.
 
 Note that specifying the indent for the comment following an
 expression in the @code{expression} indent action enforces a style of
@@ -786,7 +810,8 @@ indenting the comment with the last line of the expression.
 
 @item statements: [ada-indent ada-indent]
 Applies a delta indent of 3 to the code and comment on lines 5 thru
-10, and 3 to the trailing comment on lines 11 and 12.
+10, and 3 to the trailing comment on lines 11 and 12. The controlling
+token line is 5, so this is not ignored except for the Anchored line 10.
 
 Note that the indent for comments after statements is given here, not
 at a lower level; it would be tedious to add it to each statement.
@@ -797,22 +822,22 @@ Leaves line 13 at nil.
 
 The indents so far:
 @example
- 1: nil          : if A < B and
- 2:   2          :   C < D
- 3:   2          :   --  comment on expression
- 4: nil          : then
- 5:   3          :    Do_E;
- 6:   3          :    -- comment on statement
- 7:   3          :
- 8:   3          :    G := F + Compute_Something
- 9:   5          :      (Arg_1,
-10: Anchored 9 1 :       Arg_2);
-11:   3          :
-12:   3          :    -- comment before 'end if'
-13: nil          : end if;
+ 1: nil nil          : if A < B and
+ 2: 1   2            :   C < D
+ 3: 1   2            :   --  comment on expression
+ 4: nil nil          : then
+ 5: 5   3            :    Do_E;
+ 6: 5   3            :    -- comment on statement
+ 7: 5   3            :
+ 8: 5   3            :    G := F + Compute_Something
+ 9: 5   5            :      (Arg_1,
+10: 9   Anchored 9 1 :       Arg_2);
+11: 5   3            :
+12: 5   3            :    -- comment before 'end if'
+13: nil nil          : end if;
 @end example
 
-The final step is compute all the anchored lines; that sets the indent
+The final step is compute the anchored lines; that sets the indent
 for line 10 to 6.
 
 In a full grammar, the top production should specify an indent of 0,
