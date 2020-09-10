@@ -199,12 +199,13 @@ is
          return "T" & Trimmed_Image (Last_Token_Index);
       end Next_Token_Label;
 
-      function Get_Label (Token_Param : in String) return String
+      function Get_Label (Token_Param : in String; Integer : in Boolean := False) return String
       is begin
          if RHS.Auto_Token_Labels then
-            --  This will not match a generated label (starts with 'G'), so the
-            --  corresponding parameter will be skipped.
-            return "T" & Token_Param;
+            return
+              (if Integer
+               then "Integer (T" & Token_Param & ")"
+               else "T" & Token_Param);
          else
             return Token_Param;
          end if;
@@ -698,7 +699,7 @@ is
 
             Function_Name : Unbounded_String;
             Args          : Unbounded_String;
-            Arg_Count     : Count_Type      := 0;
+            Arg_Count     : Count_Type := 0;
          begin
             if Params (First) in Digit or Params (First) = '-' then
                Last := Index (Params, Delim, First);
@@ -737,29 +738,86 @@ is
                   Last := Last + 1; -- get past ')'
                   return -Args;
 
-               elsif Is_Present (Input_Data.Tokens.Indents, -Function_Name) then
-                  --  Language-specific function call
-                  Function_Name := +Value (Input_Data.Tokens.Indents, -Function_Name);
-                  Arg_Count     := 0;
-                  loop
-                     exit when Params (Last) = ')';
+               elsif Input_Data.Tokens.Indents.Contains (Function_Name) then
+                  --  Language-specific indent function call
+                  declare
+                     Pair : String_Pair_Type renames Input_Data.Tokens.Indents.Constant_Reference (Function_Name);
 
-                     First := Last + 1;
-                     if Arg_Count = 0 then
-                        Args := +Expression (First);
+                     Declared_Args       : constant String := -Pair.Value;
+                     Declared_Args_First : Integer         := Declared_Args'First;
+                     Declared_Args_Last  : Integer         := Index (Declared_Args, Blank_Set);
+
+                     Declared_Arg_Count : Count_Type := 0;
+                     Next_Token_Arg     : Count_Type := 0;
+
+                     procedure Get_Next_Token_Arg
+                     is begin
+                        Declared_Args_First := Index_Non_Blank (Declared_Args, Declared_Args_Last + 1);
+                        if Declared_Args_First /= 0 then
+                           Declared_Args_Last := Index (Declared_Args, Blank_Set, Declared_Args_First);
+                           if Declared_Args_Last = 0 then
+                              Declared_Args_Last := Declared_Args'Last;
+                           end if;
+
+                           Next_Token_Arg := Count_Type'Value
+                             (Declared_Args (Declared_Args_First .. Declared_Args_Last));
+                        end if;
+                     end Get_Next_Token_Arg;
+
+                  begin
+                     if Declared_Args'Length = 0 then
+                        --  grammar file not updated to current wisitoken version
+                        Put_Error
+                          (Error_Message
+                             (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                              "%elisp_indent function requires arg count, token index args."));
                      else
-                        Args := Args & " & " & Expression (First);
+                        if Declared_Args_Last = 0 then
+                           Declared_Args_Last := Declared_Args'Last;
+                        end if;
+
+                        Declared_Arg_Count  := Count_Type'Value
+                          (Declared_Args (Declared_Args_First .. Declared_Args_Last));
+
+                        Get_Next_Token_Arg;
                      end if;
-                     Arg_Count := Arg_Count + 1;
-                  end loop;
 
-                  Last := Last + 1; -- get past ')'
+                     Function_Name := Pair.Name; -- Ada name
+                     Arg_Count     := 0;
+                     loop
+                        exit when Params (Last) = ')';
 
-                  return "(Language, " & (-Function_Name) & "'Access, " &
-                    (if Arg_Count = 0 then "Null_Args"
-                     elsif Arg_Count = 1 then '+' & (-Args)
-                     else -Args)
-                    & ')';
+                        First     := Last + 1;
+                        Arg_Count := Arg_Count + 1;
+
+                        Args := @ & (if Arg_Count = 1 then "" else " & ");
+
+                        if Next_Token_Arg = Arg_Count then
+                           Args := @ & Get_Label (Expression (First), Integer => True);
+                           Get_Next_Token_Arg;
+
+                        else
+                           Args := @ & Expression (First);
+                        end if;
+                     end loop;
+
+                     if Declared_Arg_Count /= Arg_Count then
+                        Put_Error
+                          (Error_Message
+                             (Input_Data.Grammar_Lexer.File_Name,
+                              RHS.Source_Line,
+                              "declared " & (-Function_Name) & " parameter count" & Declared_Arg_Count'Image &
+                                " /= actual parameter count" & Arg_Count'Image));
+                     end if;
+
+                     Last := Last + 1; -- get past ')'
+
+                     return "(Language, " & (-Function_Name) & "'Access, " &
+                       (if Arg_Count = 0 then "Null_Args"
+                        elsif Arg_Count = 1 then '+' & (-Args)
+                        else -Args)
+                       & ')';
+                  end;
 
                else
                   --  wisi lisp function call
@@ -776,8 +834,8 @@ is
                      Last := Last + 1; -- get past ')'
                      return "(" & (-(Function_Name & ", " & Args)) & ")";
                   else
-                     --  Arguments are 2 simple integer expressions
-                     Args := +Expression (Last + 1);
+                     --  Arguments are 2 simple integer expressions; token offset
+                     Args := +Get_Label (Expression (Last + 1));
                      Args := Args & ", " & Expression (Last + 1);
                      Last := Last + 1; -- get past ')'
                      return "(" & (-(Function_Name & ", " & Args)) & ")";
@@ -815,7 +873,7 @@ is
                return Item;
 
             elsif Item (Item'First) = '(' then
-               --  Anchored or Language
+               --  Anchored or Language-specific function
                return "(Simple, " & Item & ")";
 
             elsif Item = "nil" then
@@ -848,6 +906,7 @@ is
                   Label_Last : constant Integer := Check_Cons;
                begin
                   if Label_Last > 0 then
+                     --  cons; manual label
                      pragma Assert (not RHS.Auto_Token_Labels);
                      declare
                         Label : constant String := Params (Last + 1 .. Label_Last);
@@ -865,6 +924,7 @@ is
                      end if;
                      Last := Last + 1;
                   else
+                     --  function
                      Pair.Value := +"(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
                      Param_List.Append (Pair);
                   end if;
@@ -1201,7 +1261,7 @@ is
 
          elsif Elisp_Name = "wisi-propagate-name" then
             declare
-               Label : constant String := Line (Last + 1 .. Line'Last - 1);
+               Label : constant String := Get_Label (Line (Last + 1 .. Line'Last - 1));
             begin
                if Label_Used (Label) then
                   Assert_Check_Empty;
@@ -1233,33 +1293,36 @@ is
             Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
               "Recover_Active, Nonterm);";
 
-         elsif Is_Present (Input_Data.Tokens.Actions, Elisp_Name) then
+         elsif Input_Data.Tokens.Actions.Contains (+Elisp_Name) then
             --  Language-specific action (used in wisitoken grammar mode for
-            --  wisi-check-parens, mmmify).
+            --  wisi-check-parens).
+            --
+            --  FIXME: handle labels for token args. wisitoken-grammar declares
+            --  wisi-check-parens, but uses BNF syntax, so no token labels are
+            --  needed.
             declare
-               Item   : Elisp_Action_Type renames Input_Data.Tokens.Actions
-                 (Input_Data.Tokens.Actions.Find (+Elisp_Name));
+               Item   : String_Pair_Type renames Input_Data.Tokens.Actions.Constant_Reference (+Elisp_Name);
                Params : constant String := Language_Action_Params (Line (Last + 1 .. Line'Last), Elisp_Name);
-               Code   : constant String := -Item.Ada_Name &
+               Code   : constant String := -Item.Value &
                  " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Tokens, " & Params & ");";
             begin
                if Params'Length > 0 then
-                  if "navigate" = -Item.Action_Label then
+                  if "navigate" = -Item.Name then
                      Navigate_Lines.Append (Code);
 
-                  elsif "face" = -Item.Action_Label then
+                  elsif "face" = -Item.Name then
                      Assert_Face_Empty;
                      Face_Line := +Code;
 
-                  elsif "indent" = -Item.Action_Label then
+                  elsif "indent" = -Item.Name then
                      Assert_Indent_Empty;
                      Indent_Action_Line := +Code;
 
                   else
                      Put_Error
                        (Error_Message
-                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized action label: '" &
-                             (-Item.Action_Label) & "'"));
+                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized post-parse action: '" &
+                             (-Item.Name) & "'"));
                   end if;
 
                   --  else skip

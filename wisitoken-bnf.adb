@@ -195,13 +195,6 @@ package body WisiToken.BNF is
       raise Not_Found;
    end Value;
 
-   function Is_Present (List : in Elisp_Action_Maps.Map; Name : in String) return Boolean
-   is
-      use Elisp_Action_Maps;
-   begin
-      return No_Element /= List.Find (+Name);
-   end Is_Present;
-
    function Count (Tokens : in Token_Lists.List) return Integer
    is
       Result : Integer := 0;

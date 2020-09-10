@@ -1435,7 +1435,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  This is a guess, so we give it a nominal cost
          New_Config.Cost := New_Config.Cost + 1;
 
-         if not Has_Space (New_Config.Ops, Ada.Containers.Count_Type (Adj_Last_Int - Adj_First_Int)) then
+         if (Adj_Last_Int <= Adj_First_Int) or else
+           not Has_Space (New_Config.Ops, Ada.Containers.Count_Type (Adj_Last_Int - Adj_First_Int))
+         then
             Super.Config_Full ("insert quote 3 " & Label, Parser_Index);
             raise Bad_Config;
          end if;

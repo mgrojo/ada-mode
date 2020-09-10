@@ -5,9 +5,6 @@
 --  The input file syntax is based on BNF syntax [1] with declarations
 --  and grammar actions.
 --
---  The Elisp and Ada_Emacs output languages are for use with the
---  Emacs wisi package.
---
 --  Reference :
 --
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
@@ -226,16 +223,8 @@ package WisiToken.BNF is
 
    package String_Triple_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Triple_Type);
 
-   type Elisp_Action_Type is record
-      --  Elisp name is the key
-      Action_Label : Ada.Strings.Unbounded.Unbounded_String;
-      Ada_Name     : Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
-   package Elisp_Action_Maps is new Ada.Containers.Ordered_Maps
-     (Ada.Strings.Unbounded.Unbounded_String, Elisp_Action_Type, Ada.Strings.Unbounded."<");
-
-   function Is_Present (List : in Elisp_Action_Maps.Map; Name : in String) return Boolean;
+   package String_Pair_Maps is new Ada.Containers.Ordered_Maps
+     (Ada.Strings.Unbounded.Unbounded_String, String_Pair_Type, Ada.Strings.Unbounded."<");
 
    type McKenzie_Recover_Param_Type is record
       Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
@@ -343,14 +332,20 @@ package WisiToken.BNF is
       --  Nonterminals and terminals introduced by translating from EBNF to
       --  BNF.
 
-      --  The following are specified in grammar file declarations and used
-      --  in other declarations or actions. Faces, Indents only used if .wy
-      --  action language is elisp and output language is not elisp.
-
       Lexer_Regexps : String_Pair_Lists.List; -- %lexer_regexp
       Faces         : String_Lists.List;      -- %elisp_face
-      Indents       : String_Pair_Lists.List; -- %elisp_indent
-      Actions       : Elisp_Action_Maps.Map;  -- %elisp_action
+
+      Indents : String_Pair_Maps.Map;
+      --  %elisp_indent; variables or functions used in wisi-indent-action.
+      --  Map key => elisp_name
+      --  Name    => Ada_Name
+      --  Value   => arg_count, token_index_args
+
+      Actions : String_Pair_Maps.Map;
+      --  %elisp_action custom grammar actions.
+      --  Map key => elisp name
+      --  Name    => post-parse action; navigate, face, indent.
+      --  Value   => Ada name
    end record;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String

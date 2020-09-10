@@ -790,7 +790,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       if Common_Data.Text_Rep then
          Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
          Indent_Line ("Table : constant Parse_Table_Ptr := Get_Text_Rep");
-         Indent_Line ("  (Text_Rep_File_Name, McKenzie_Param, Actions);");
+         Indent_Line ("  (Text_Rep_File_Name, Actions);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
@@ -813,12 +813,14 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("Table.McKenzie_Param := McKenzie_Param;");
-         end if;
          Create_LR_Parser_Table (Input_Data, Generate_Data);
          New_Line;
       end if;
+
+      if Input_Data.Language_Params.Error_Recover then
+         Indent_Line ("Table.McKenzie_Param := McKenzie_Param;");
+      end if;
+      Indent_Line ("Table.Max_Parallel :=" & Table.Max_Parallel'Image & ";");
 
       if Input_Data.Language_Params.Error_Recover then
          Indent_Line ("WisiToken.Parse.LR.Parser.New_Parser");
@@ -836,13 +838,11 @@ package body WisiToken.BNF.Output_Ada_Common is
             Indent_Line ("   Language_Matching_Begin_Tokens,");
             Indent_Line ("   Language_String_ID_Set,");
          end if;
-         Indent_Line ("   User_Data,");
-         Indent_Line ("   Max_Parallel         => 15,");
-         Indent_Line ("   Terminate_Same_State => True);");
+         Indent_Line ("   User_Data);");
 
       when Module =>
          Indent_Line ("   Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table, Max_Parallel => 15, Terminate_Same_State => True);");
+         Indent_Line ("   Table);");
 
       end case;
       Indent := Indent - 3;

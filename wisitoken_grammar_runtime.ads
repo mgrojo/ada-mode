@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers;
+with SAL;
 with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees.LR_Utils;
@@ -59,6 +60,7 @@ package WisiToken_Grammar_Runtime is
       Tokens           : aliased WisiToken.BNF.Tokens;
       Conflicts        : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Max_Parallel     : SAL.Base_Peek_Type                    := 15;
 
       Rule_Count   : Integer                   := 0;
       Action_Count : Integer                   := 0;
@@ -139,7 +141,7 @@ package WisiToken_Grammar_Runtime is
 
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
 
    procedure Add_Nonterminal

@@ -335,9 +335,8 @@ package body WisiToken.Parse.LR is
    end Free_Table;
 
    function Get_Text_Rep
-     (File_Name      : in String;
-      McKenzie_Param : in McKenzie_Param_Type;
-      Actions        : in Semantic_Action_Array_Arrays.Vector)
+     (File_Name : in String;
+      Actions   : in Semantic_Action_Array_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -468,8 +467,6 @@ package body WisiToken.Parse.LR is
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
          Check_New_Line;
-
-         Table.McKenzie_Param := McKenzie_Param;
 
          for State of Table.States loop
             declare

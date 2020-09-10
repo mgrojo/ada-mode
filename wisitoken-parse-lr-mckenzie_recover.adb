@@ -314,7 +314,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
          Cur         : Cursor             := Parsers.First;
          Solutions   : SAL.Base_Peek_Type := 0;
-         Spawn_Limit : SAL.Base_Peek_Type := Shared_Parser.Max_Parallel; -- per parser
+         Spawn_Limit : SAL.Base_Peek_Type := Shared_Parser.Table.Max_Parallel; -- per parser
       begin
          for Parser of Parsers loop
             if Parser.Recover.Success then
@@ -322,9 +322,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end if;
          end loop;
 
-         if Solutions > Shared_Parser.Max_Parallel and Trace_McKenzie > Outline then
+         if Solutions > Shared_Parser.Table.Max_Parallel and Trace_McKenzie > Outline then
             Trace.Put_Line ("too many parallel parsers required in recover; dropping some solutions");
-            Spawn_Limit := Shared_Parser.Max_Parallel / Parsers.Count;
+            Spawn_Limit := Shared_Parser.Table.Max_Parallel / Parsers.Count;
          end if;
 
          loop

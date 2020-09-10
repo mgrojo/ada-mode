@@ -302,9 +302,9 @@ package body WisiToken_Grammar_Editing is
                Tree.Error_Message
                  (Node, File_Name, Tree.Image
                     (Node,
-                     Include_RHS_Index => True,
-                     Include_Children  => True,
-                     Node_Numbers      => True)));
+                     RHS_Index    => True,
+                     Children     => True,
+                     Node_Numbers => True)));
          end if;
          Put_Line (Current_Error, Tree.Error_Message (Node, File_Name, "... invalid tree: " & Msg));
          WisiToken.Generate.Error := True;
@@ -2904,8 +2904,8 @@ package body WisiToken_Grammar_Editing is
                   Ada.Text_IO.Put_Line
                     ("translate original node " & Tree.Image
                        (Node,
-                        Include_RHS_Index => True,
-                        Node_Numbers      => True));
+                        RHS_Index    => True,
+                        Node_Numbers => True));
                end if;
 
                Process_Node (Node);
@@ -2931,9 +2931,9 @@ package body WisiToken_Grammar_Editing is
                  (Tree, Node, Data.Grammar_Lexer.File_Name,
                   Tree.Image
                     (Node,
-                     Include_RHS_Index => True,
-                     Include_Children  => Trace_Generate_EBNF > Detail,
-                     Node_Numbers      => True)));
+                     RHS_Index    => True,
+                     Children     => Trace_Generate_EBNF > Detail,
+                     Node_Numbers => True)));
             Put_Line (Current_Error, "... original EBNF node not translated");
          end loop;
       end;
@@ -2959,8 +2959,8 @@ package body WisiToken_Grammar_Editing is
                      Ada.Text_IO.Put_Line
                        ("translate copied node " & Tree.Image
                           (Node,
-                           Include_RHS_Index => True,
-                           Node_Numbers      => True));
+                           RHS_Index    => True,
+                           Node_Numbers => True));
                   end if;
 
                   Process_Node (Node);
@@ -2986,9 +2986,9 @@ package body WisiToken_Grammar_Editing is
                  (Tree, Node, Data.Grammar_Lexer.File_Name,
                   Tree.Image
                     (Node,
-                     Include_RHS_Index => True,
-                     Include_Children  => Trace_Generate_EBNF > Detail,
-                     Node_Numbers      => True)));
+                     RHS_Index    => True,
+                     Children     => Trace_Generate_EBNF > Detail,
+                     Node_Numbers => True)));
             Put_Line (Current_Error, "... copied EBNF node not translated");
          end loop;
       end;
@@ -3122,9 +3122,9 @@ package body WisiToken_Grammar_Editing is
             Put (File, " ;; not translated: " & Trimmed_Image (Get_Node_Index (Node)) & ":" &
                    Tree.Image
                      (Node,
-                      Include_Children  => True,
-                      Include_RHS_Index => True,
-                      Node_Numbers      => True));
+                      Children     => True,
+                      RHS_Index    => True,
+                      Node_Numbers => True));
          end case;
       exception
       when SAL.Programmer_Error =>

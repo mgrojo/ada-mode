@@ -29,9 +29,6 @@ with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser is
 
-   Default_Max_Parallel : constant := 15;
-   Default_Branched_Tree_Limit : constant := 1000;
-
    type Language_Fixes_Access is access procedure
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
@@ -93,8 +90,6 @@ package WisiToken.Parse.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
-      Max_Parallel            : SAL.Base_Peek_Type;
-      Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
       Recover_Log_File        : Ada.Text_IO.File_Type;
       Partial_Parse_Active    : Boolean := False;
@@ -112,9 +107,7 @@ package WisiToken.Parse.LR.Parser is
       Language_Fixes                 : in              Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in              Language_String_ID_Set_Access;
-      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                   : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State           : in              Boolean            := True);
+      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of

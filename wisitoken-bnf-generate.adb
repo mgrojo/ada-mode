@@ -574,6 +574,7 @@ begin
                         Generate_Utils.To_Conflicts
                           (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                        Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra     => Test_Main,
                         Ignore_Conflicts  => Ignore_Conflicts,
@@ -609,6 +610,7 @@ begin
                         Generate_Utils.To_Conflicts
                           (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                        Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
                         Include_Extra     => Test_Main,
                         Ignore_Conflicts  => Ignore_Conflicts,

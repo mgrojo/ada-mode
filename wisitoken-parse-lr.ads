@@ -330,6 +330,7 @@ package WisiToken.Parse.LR is
       States         : Parse_State_Array (State_First .. State_Last);
       Error_Action   : Parse_Action_Node_Ptr;
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Max_Parallel   : SAL.Base_Peek_Type := 15;
    end record;
 
    function Goto_For
@@ -371,9 +372,8 @@ package WisiToken.Parse.LR is
      (Token_ID, Semantic_Action_Arrays.Vector, Semantic_Action_Arrays.Empty_Vector);
 
    function Get_Text_Rep
-     (File_Name      : in String;
-      McKenzie_Param : in McKenzie_Param_Type;
-      Actions        : in Semantic_Action_Array_Arrays.Vector)
+     (File_Name : in String;
+      Actions   : in Semantic_Action_Array_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
    --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result

@@ -450,7 +450,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                   when others =>
                      raise SAL.Programmer_Error with "make_non_empty_rhs_item " & Tree.Image
-                       (Multiple_Item, Include_RHS_Index => True, Node_Numbers => True);
+                       (Multiple_Item, RHS_Index => True, Node_Numbers => True);
                   end case;
                end;
 
@@ -790,18 +790,18 @@ package body WisiToken.Generate.Tree_Sitter is
       is begin
          New_Line (File);
          Put (File, "// " & Label & ": not translated: " & Node_Access'Image (Node) & ":" &
-                Tree.Image (Node, Include_Children => True));
+                Tree.Image (Node, Children => True));
 
          Put_Line
            (Current_Error,
             Tree.Error_Message
               (Node, Input_File_Name,
                "not translated: " &
-               Tree.Image
-                 (Node,
-                  Include_RHS_Index => True,
-                  Include_Children  => True,
-                  Node_Numbers      => True)));
+                 Tree.Image
+                   (Node,
+                    RHS_Index    => True,
+                    Children     => True,
+                    Node_Numbers => True)));
       end Not_Translated;
 
       procedure Put_RHS_Alternative_List (Node : in Valid_Node_Access; First : in Boolean)

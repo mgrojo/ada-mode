@@ -60,7 +60,7 @@ package body WisiToken.Parse.LR.Parser is
       --  tokens in it.
    begin
       if Trace_Parse > Detail then
-         Trace.Put_Line (Shared_Parser.Tree.Image (Nonterm, Include_Children => True, Terminal_Node_Numbers => True));
+         Trace.Put_Line (Shared_Parser.Tree.Image (Nonterm, Children => True, Terminal_Node_Numbers => True));
       end if;
 
       if Action.Check = null then
@@ -381,9 +381,7 @@ package body WisiToken.Parse.LR.Parser is
       Language_Fixes                 : in              Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in              Language_String_ID_Set_Access;
-      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                   : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State           : in              Boolean            := True)
+      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access)
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
@@ -398,8 +396,6 @@ package body WisiToken.Parse.LR.Parser is
       Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
       Parser.Language_String_ID_Set         := Language_String_ID_Set;
 
-      Parser.Max_Parallel            := Max_Parallel;
-      Parser.Terminate_Same_State    := Terminate_Same_State;
       Parser.Enable_McKenzie_Recover := not McKenzie_Defaulted (Table.all);
 
       --  In Parser; String_Quote_Checked, Post_Recover, Parsers are default
@@ -914,7 +910,6 @@ package body WisiToken.Parse.LR.Parser is
                --  inserted/deleted by error recover may cause initially duplicate
                --  states to diverge.
                if not Current_Parser.State_Ref.Resume_Active and
-                 Shared_Parser.Terminate_Same_State and
                  Current_Verb = Shift
                then
                   Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
@@ -976,7 +971,7 @@ package body WisiToken.Parse.LR.Parser is
 
                         Current_Parser.State_Ref.Conflict_During_Resume := Current_Parser.State_Ref.Resume_Active;
 
-                        if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                            --  If errors were recovered, terminate a parser that used the
                            --  highest cost solution.
                            declare
@@ -1013,7 +1008,7 @@ package body WisiToken.Parse.LR.Parser is
                            end;
                         end if;
 
-                        if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                               Token : constant Base_Token := Shared_Parser.Tree.Base_Token
@@ -1024,7 +1019,7 @@ package body WisiToken.Parse.LR.Parser is
                                  "too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
-                                   SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                                   SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
                            end;
 
                         else
@@ -1147,7 +1142,9 @@ package body WisiToken.Parse.LR.Parser is
                      Token : Base_Token renames Tree.Base_Token (Node);
                   begin
                      if WisiToken.Debug_Mode then
-                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+                        Parser.Trace.Put_Line
+                          (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
                         Parser.Trace.New_Line;
                      end if;
 
@@ -1413,7 +1410,8 @@ package body WisiToken.Parse.LR.Parser is
    exception
    when E : others =>
       if Debug_Mode then
-         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+         Parser.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          Parser.Trace.New_Line;
       end if;
       raise;

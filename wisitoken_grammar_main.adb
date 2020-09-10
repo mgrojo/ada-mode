@@ -745,8 +745,6 @@ package body Wisitoken_Grammar_Main is
          Trace,
          Lexer.New_Lexer (Parser.Descriptor),
          Table,
-         User_Data,
-         Max_Parallel         => 15,
-         Terminate_Same_State => True);
+         User_Data);
    end Create_Parser;
 end Wisitoken_Grammar_Main;

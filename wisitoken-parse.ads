@@ -24,10 +24,8 @@ with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
    type Tree_Ref is record
-      --  Used in error recover for stream_prev/_next, so need stream_index.
-      --  Used in post-parse actions, so need Node_Access.
-      Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;
-      Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
+      Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;  -- For post-parse actions
+      Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index; -- For error recover stream_prev/_next
    end record;
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (Line_Number_Type, Tree_Ref, Default_Element => (others => <>));

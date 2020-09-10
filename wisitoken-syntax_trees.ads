@@ -1048,8 +1048,8 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String;
@@ -1058,8 +1058,8 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String;
