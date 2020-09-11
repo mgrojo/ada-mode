@@ -281,8 +281,12 @@ package WisiToken is
 
    Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
    Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
+   --  Default value useful for Syntax_Trees.Update_Cache.
 
-   function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));
+   function Length (Region : in Buffer_Region) return Natural is
+     ((if Region.Last >= Region.First
+       then Natural (Region.Last - Region.First + 1)
+       else 0));
 
    function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
      is (Region.First <= Pos and Pos <= Region.Last);
