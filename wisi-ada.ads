@@ -80,13 +80,13 @@ package Wisi.Ada is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean;
-      Accumulate        : in     Boolean)
+      Option            : in     Boolean)
      return Delta_Type;
 
    overriding
@@ -101,11 +101,12 @@ package Wisi.Ada is
 
    ----------
    --  The following are declared in ada.wy %elisp_indent, and must match
-   --  Language_Indent_Function.
+   --  Wisi.Language_Indent_Function.
 
    function Ada_Indent_Aggregate
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -117,6 +118,7 @@ package Wisi.Ada is
    function Ada_Indent_Renames_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -128,6 +130,7 @@ package Wisi.Ada is
    function Ada_Indent_Return_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -139,6 +142,7 @@ package Wisi.Ada is
    function Ada_Indent_Record_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -150,6 +154,7 @@ package Wisi.Ada is
    function Ada_Indent_Record_1
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -157,22 +162,5 @@ package Wisi.Ada is
      return Wisi.Delta_Type;
    --  ada-indent-record*
    --  Args: anchor_token_ID, record_token_index, offset
-
-   function Ada_Indent_Anchored_Expression
-     (Data              : in out Wisi.Parse_Data_Type'Class;
-      Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Indenting_Comment : in     Boolean;
-      Args              : in     Wisi.Indent_Arg_Arrays.Vector)
-     return Wisi.Delta_Type;
-   --  ada-indent-anchored-expression
-   --  Args: anchor_token_index
-   --
-   --  Equivalent to:
-   --  [(wisi-hanging%- (wisi-anchored% arg ada-indent-broken)
-   --                   (wisi-anchored% arg (* 2 ada-indent-broken)))
-   --   (wisi-hanging%- (wisi-anchored% arg ada-indent-broken)
-   --                   (wisi-anchored% arg (* 2 ada-indent-broken)))]]))%
 
 end Wisi.Ada;

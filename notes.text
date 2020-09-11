@@ -47,10 +47,13 @@ incremental parse
 
 use ada_annex_p.wy
     wisi.texi example updated with "ignore delta indent" rule
-        add example where anchored expression is multi-line with hanging indent
-            anchor always ignore existing indent?
+        simpler approach to assign_value in ada_annex_p.wy; if it works, change wisi.texi
+
+    testing with test/ada_mode-parens.adb
+        still not right.
 
     wisi-anchored%
+        not used
         paren does not have to be in the same line as anchor?
 
     delete ada-indent-hanging-rel-exp

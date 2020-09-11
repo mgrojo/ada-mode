@@ -239,6 +239,7 @@ package Wisi is
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tree_Tokens       : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -271,9 +272,9 @@ package Wisi is
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- [2] wisi-hanging
-      Hanging_1, -- [2] wisi-hanging-
+      Hanging_1, -- [2] wisi-hanging- FIXME: not defined
       Hanging_2, -- [2] wisi-hanging%
-      Hanging_3  -- [2] wisi-hanging%-
+      Hanging_3  -- [2] wisi-hanging%- FIXME: not defined
      );
    subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_3;
 
@@ -315,29 +316,19 @@ package Wisi is
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
-   procedure Indent_Action_1
-     (Data    : in out Parse_Data_Type'Class;
-      Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      N       : in     WisiToken.Positive_Index_Type;
-      Params  : in     Indent_Param_Array);
-   --  Implements [2] wisi-indent-action*.
-
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean;
-      Accumulate        : in     Boolean)
+      Option            : in     Boolean)
      return Delta_Type;
-   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging%-;
+   --  Implements [2] wisi-hanging, wisi-hanging%
    --     Option     = % present
-   --     Accumulate = - not present
    --
    --  Language specific child packages may override this to implement
    --  language-specific cases.
@@ -517,6 +508,8 @@ private
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
+      Controlling_Token_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+
       case Label is
       when Not_Set =>
          null;
@@ -634,7 +627,7 @@ private
 
    type Delta_Type (Label : Delta_Labels := Simple) is
    record
-      Accumulate : Boolean; -- FIXME: delete
+      Controlling_Token_Line : WisiToken.Line_Number_Type;
 
       case Label is
       when Simple =>
@@ -648,7 +641,7 @@ private
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Simple, True, (Label => None));
+   Null_Delta : constant Delta_Type := (Simple, WisiToken.Invalid_Line_Number, (Label => None));
 
    function Image (Item : in Delta_Type) return String;
    --  For debugging
@@ -702,13 +695,13 @@ private
      (Data        : in out Parse_Data_Type;
       Anchor_Line : in     WisiToken.Line_Number_Type;
       Last_Line   : in     WisiToken.Line_Number_Type;
-      Offset      : in     Integer;
-      Accumulate  : in     Boolean)
+      Offset      : in     Integer)
      return Delta_Type;
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Param             : in     Indent_Param;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;

@@ -148,14 +148,11 @@ begin
                         Tree.Byte_Region (Children (I)).Last);
                   end;
 
-               when COLON_EQUAL_ID =>
-                  null;
-
-               when default_expression_ID =>
-                  Param.Default_Exp := Tree.Byte_Region (Children (I));
+               when assign_value_ID =>
+                  Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2));
 
                when others =>
-                  Raise_Programmer_Error ("format_parameter_list param id", Data.Lexer, Tree, Children (I));
+                  Raise_Programmer_Error ("unknown format_parameter_list token id", Data.Lexer, Tree, Children (I));
                end case;
             end loop;
          end;

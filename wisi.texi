@@ -405,10 +405,9 @@ out when the production is converted to BNF internally.
 @subsection Indent functions
 @table @code
 @item wisi-anchored ANCHOR OFFSET
-Sets the absolute indent for the current token to be OFFSET (an integer
-expression) from the start of ANCHOR (a token index). Previously
-accumulated delta indents for the current token are ignored, as are
-subsequent delta indents; the current token is ``anchored to'' ANCHOR.
+Sets the delta indent for the current token to be OFFSET (an integer
+expression) from the start of ANCHOR (a token index). Subsequent delta
+indents are ignored; the current token is ``anchored to'' ANCHOR.
 
 A comment is indented the same as the last line of ANCHOR.
 
@@ -428,32 +427,27 @@ token is not anchored.
 @c Same as @code{wisi-anchored%}, but does not change indent if the
 @c accumulated indent for the current token is not nil.
 
-@item wisi-anchored* ANCHOR OFFSET
-The same as @code{wisi-anchored}, but the anchor point is the start of
-the line containing ANCHOR.
+@c @item wisi-anchored* ANCHOR OFFSET
+@c The same as @code{wisi-anchored}, but the anchor point is the start of
+@c the line containing ANCHOR.
 
 @item wisi-hanging DELTA-1 DELTA-2
-If the first
-token in the nonterminal is first on its line, use DELTA-1 for the
-first line, DELTA-2 for the rest. Otherwise, use DELTA-1 for all
-lines.
+Use DELTA-1 for the first line, DELTA-2 for the rest.
 
 DELTA-1 and DELTA-2 can be any ident expression, except a variant of
 @code{wisi-hanging}.
 
-@item wisi-hanging- DELTA-1 DELTA-2
-Same as @code{wisi-hanging}, but no indent if the accumulated indent
-for the current token is not nil.
+@code{wisi-hanging} is useful when the lower level productions for the
+current token do not have indent actions.
 
 @item wisi-hanging% DELTA-1 DELTA-2
-Similar to @code{wisi-hanging}; if the first terminal token in the
-current nonterminal is the first token on the first line, use DELTA-1
-for the first line and DELTA-2 for the rest. Otherwise, use DELTA-1
-for all lines.
+If the first token in the nonterminal is first on its line, use
+DELTA-1 for the first line, DELTA-2 for the rest. Otherwise, use
+DELTA-1 for all lines.
 
-@item wisi-hanging%- DELTA-1 DELTA-2
-Same as @code{wisi-hanging%}, except applied only if the current token
-accumulated indent is nil.
+@c @item wisi-hanging- DELTA-1 DELTA-2
+@c Same as @code{wisi-hanging}, but no indent if the accumulated indent
+@c for the current token is not nil.
 
 @item Language-specific function
 Language-specific indent functions are specified by an
@@ -534,16 +528,27 @@ indents on the left:
  3: nil :     F +
  4: nil :       Compute_Something
  5: nil :         (Arg_1,
- 6: nil :          Arg_2);
+ 6: nil :          H +
+ 7: nil :            I);
 @end example
 The assignment statement is fully spread out on different lines, as
 might be required if the names or subexpressions are long. In this
-case, none of the delta indents are ignored when applied to a line,
-which is why they all need to be present in the indent actions. Thus
-we can leave out the stored controlling token in the line indents.
+case, none of the delta indents are ignored when applied to a line
+(except anchored lines), which is why they all need to be present in
+the indent actions. Thus we can leave out the stored controlling token
+in the line indents for this example.
 
 Indents are computed in bottom up order; the first indent action
-computed in this code is for @code{formal_part} @code{(Arg_1, Arg_2)}
+computed in this code is for @code{expression} @code{H + I} lines 6
+and 7:
+@example
+   [(wisi-hanging% nil ada-indent-broken) ada-indent-broken]
+@end example
+This gives separate indents for the code and a trailing comment; there
+is no trailing comment in this example (there is one in the next
+example). This gives a delta indent of nil for line 6, and 2 for line 7.
+
+The next indent action is for @code{formal_part} @code{(Arg_1, H + I)}
 lines 5, 6. The indent action is:
 @example
 %((wisi-indent-action [nil (wisi-anchored 1 1) (wisi-anchored 1 0)]))%
@@ -558,46 +563,44 @@ The first @code{1} is the anchor token; the left parenthesis on line
 5. The second @code{1} is the offset from the anchor; thus the delta
 indent is @code{Anchored, 5, 1}; anchored to line 5 with an offset of
 1. This delta indent is applied to the lines whose first tokens are
-contained by the @code{expression_list}; that is just line 6.
+contained by the @code{expression_list}; that is lines 6 and 7. Line 6
+indent is currently nil, so the indent is set to @code{Anchored, 5,
+1}. Line 7 indent is currently 2, so that is added to 1, setting the
+indent to @code{Anchored, 5, 3}.
 
 @item ) : (wisi-anchored 1 1)
 ')' is not first on a line, so this leaves line 6 indent unchanged.
 @end table
 
 Next indent action is @code{function_call} @code{Compute_Something
-(Arg_1, Arg_2)} on lines 4, 5, 6. The indent action is
+(Arg_1, H + I)} on lines 4 .. 7. The indent action is
 @code{%((wisi-indent-action [nil ada-indent-broken]))%}; this applies
-a delta indent of 2 to the @code{formal_part} on lines 5 and 6,
-leaving line 5 at 4, and 6 unchanged.
+a delta indent of 2 to the @code{formal_part} on lines 5 .. 7,
+leaving line 5 at 4, and 6 and 7 unchanged.
 
-Next is @code{expression} @code{F + Compute_Something (Arg_1,
-Arg_2)} on lines 3 .. 6. The indent action for @code{expression} is
-@example
-   [(wisi-hanging% nil ada-indent-broken) ada-indent-broken]
-@end example
-This gives separate indents for the code and a trailing comment; there
-is no trailing comment in this example (there is one in the next example).
-This computes a delta indent of nil for line
-3, and 2 for lines 4 .. 6, leaving 3 at nil, 4 at 2, 5 at 6, and 6
+Next is @code{expression} @code{F + Compute_Something (Arg_1, H + I)}
+on lines 3 .. 7.  This computes a delta indent of nil for line 3, and
+2 for lines 4 .. 7, leaving 3 at nil, 4 at 2, 5 at 6, and 6 and 7
 unchanged.
 
 Last indent action is node 16 @code{assignment} on lines 1 .. 6; the
 indent is @code{(wisi-hanging ada-indent-broken (* 2
 ada-indent-broken))}, applied to all the lines contained by
-@code{assign_value}, which is lines 2 thru 6. This gives a delta
-indent of 2 for line 2, and 4 for lines 3 .. 6. This gives the
+@code{assign_value}, which is lines 2 thru 7. This gives a delta
+indent of 2 for line 2, and 4 for lines 3 .. 7. This gives the
 indents:
 @example
- column            : 123456789
+ column            : 12345678901
  1: nil            : G
  2: 2              :   :=
  3: 4              :     F +
  4: 6              :       Compute_Something
  5: 8              :         (Arg_1,
- 6: Anchored, 5, 1 :          Arg_2);
+ 6: Anchored, 5, 1 :          H +
+ 7: Anchored, 5, 3 :            I);
 @end example
 The final step is compute all the anchored lines; for line 6, we add 1
-to the indent for line 5, leaving 9.
+to the indent for line 5, leaving 9; for line 7, add 3, leaving 11.
 
 Now consider a more extensive example:
 
