@@ -629,12 +629,6 @@ package body Wisi.Ada is
             Hanging_Delta_1     => Delta_1,
             Hanging_Delta_2     => Delta_1);
       end Result;
-
-      function Comment_Result (D : in Simple_Indent_Param) return Delta_Type
-      is begin
-         return Indent_Compute_Delta
-           (Data, Tree, Nonterm, Tokens, (Simple, D), Tree_Indenting, Indenting_Comment => False);
-      end Comment_Result;
    begin
       --  FIXME: only do special cases here; call parent body for others.
 
@@ -668,39 +662,10 @@ package body Wisi.Ada is
             end if;
          end;
 
-      elsif Indenting_Comment then
-         --  FIXME: not consistent
-         --  Use delta for last line of Indenting_Token.
-         --  Test cases in test/ada_mode-parens.adb Hello
-         declare
-            First : constant Boolean := Wisi.First (Data, Indenting_Token.Base);
-         begin
-            if First then
-               if Indenting_Token.Aug.First_Indent_Line = Indenting_Token.Aug.Last_Indent_Line then
-                  return Comment_Result (Delta_1);
-               else
-                  return Comment_Result (Delta_2);
-               end if;
-            else
-               if Indenting_Token.Aug.First_Indent_Line = Invalid_Line_Number then
-                  --  Comment is after first line in token
-                  return Comment_Result (Delta_1);
-               else
-                  return Comment_Result (Delta_2);
-               end if;
-            end if;
-         end;
-
-      elsif not Option or Indenting_Token.Base.Line = Indenting_Token.Aug.First_Indent_Line then
-         return Result
-           (Delta_1,
-            Indent_Compute_Delta
-              (Data, Tree, Nonterm, Tokens, (Simple, Delta_2), Tree_Indenting, Indenting_Comment).Simple_Delta);
-
       else
-         return Result
-           (Indent_Compute_Delta
-              (Data, Tree, Nonterm, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta);
+         return Indent_Hanging_1
+           (Wisi.Parse_Data_Type (Data), Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Delta_1, Delta_2,
+            Option);
       end if;
    end Indent_Hanging_1;
 

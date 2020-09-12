@@ -72,11 +72,11 @@ package body Ada_Mode.Parens is
          "123" &
            "456" &
            "789"
-           -- There are conflicting requirements on indenting a hanging
-           -- right paren; when entering new code, we want it aligned
-           -- where the new code would be. When left hanging, we want it
-           -- aligned with the matching left paren. We choose the
-           -- latter, partly for backward compatibility.
+         -- There are conflicting requirements on indenting a hanging
+         -- right paren; when entering new code, we want it aligned
+         -- where the new code would be. When left hanging, we want it
+         -- aligned with the matching left paren. We choose the
+         -- latter, partly for backward compatibility.
         );
 
       --  function call (actually type conversion, but it's the same indentation) in aggregate
@@ -483,14 +483,15 @@ package body Ada_Mode.Parens is
                            );
       Ada.Text_Io.Put_Line
         (Item =>
-         --  Comment after =>, token.First = False
+           --  Comment after =>
            Hello & There);
 
       Ada.Text_Io.Put_Line
         (Item
            =>
-             --  Comment after =>, token.First = True
-             Hello & There);
+             --  Comment after =>
+             Hello &
+               There);
    end Hello;
 
    --  Slice in procedure call
