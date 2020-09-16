@@ -119,44 +119,39 @@ package body Wisi.Ada is
    with No_Return
    is begin
       raise SAL.Parameter_Error with "expecting '" & Expecting & "'; found " &
-        Tree.Image (Found, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Found) & "'";
+        Tree.Image (Found, Node_Numbers => True) & " '" & Elisp_Escape_Quotes (Data.Get_Text (Tree, Found)) & "'";
    end Unrecognized;
 
    procedure Method_Object_To_Object_Method
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
       Edit_Begin : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin is at
+   --  start of a subprogram call. Convert the subprogram call from
+   --  Prefix.Method (Object, ...) to Object.Method (...).
    is
-      --  Data.Tree contains one statement or declaration; Edit_Begin is at
-      --  start of a subprogram call. Convert the subprogram call from
-      --  Prefix.Method (Object, ...) to Object.Method (...).
-
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call     : constant Node_Access          := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
-      Edit_End : constant WisiToken.Buffer_Pos := Tree.Byte_Region (Call).Last;
+      Call : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
 
+      Edit_End              : WisiToken.Buffer_Pos;
       Actual_Parameter_Part : Node_Access;
       Association_List      : Node_Access;
       Method                : Node_Access;
 
    begin
-      --  WORKAROUND: GNAT Community 20200818 reports "condition always false" here, with Debug options
-      --  if Call = Invalid_Node_Access then
-      --     --  Most likely the edit point is wrong.
-      --     raise SAL.Parameter_Error with "no 'function_call' found at byte_pos" & Edit_Begin'Image;
-      --  end if;
+      if Call = Invalid_Node_Access then
+         --  Most likely the edit point is wrong.
+         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
+      end if;
 
       if WisiToken.Trace_Action > Detail then
          Put_Line
-           (";; refactoring node" & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
-
-      Method := Tree.Child (Tree.Child (Call, 1), 1);
-      pragma Assert (Tree.ID (Method) = +name_ID);
 
       Actual_Parameter_Part := Tree.Child (Call, 2);
       pragma Assert (Tree.ID (Actual_Parameter_Part) = +actual_parameter_part_ID);
@@ -164,42 +159,41 @@ package body Wisi.Ada is
       Association_List := Tree.Child (Actual_Parameter_Part, 2);
       pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      Find_Method :
-      loop
+      Edit_End := Tree.Byte_Region (Call).Last;
+
+      Method := Tree.Child (Tree.Child (Call, 1), 1);
+
+      case To_Token_Enum (Tree.ID (Method)) is
+      when selected_component_ID =>
+         Method := Tree.Child (Method, 3);
+         pragma Assert (Tree.ID (Method) = +selector_name_ID);
+
+         Method := Tree.Child (Method, 1);
+
+      when attribute_reference_ID =>
          case To_Token_Enum (Tree.ID (Tree.Child (Method, 1))) is
-         when selected_component_ID =>
-            Method := Tree.Child (Tree.Child (Method, 1), 3);
-            pragma Assert (Tree.ID (Method) = +selector_name_ID);
+         when name_ID =>
+            Method := Tree.Child (Method, 3);
+            pragma Assert (Tree.ID (Method) = +attribute_designator_ID);
 
             Method := Tree.Child (Method, 1);
-            exit Find_Method;
 
-         when attribute_reference_ID =>
-            case To_Token_Enum (Tree.ID (Tree.Child (Method, 1))) is
-            when name_ID =>
-               Method := Tree.Child (Tree.Child (Method, 1), 3);
-               pragma Assert (Tree.ID (Method) = +attribute_designator_ID);
-
-               Method := Tree.Child (Method, 1);
-               exit Find_Method;
-
-            when reduction_attribute_reference_ID =>
-               Unrecognized ("subprogram call", Tree, Data, Method);
-
-            when others =>
-               raise SAL.Programmer_Error;
-            end case;
-
-         when qualified_expression_ID =>
-            raise SAL.Not_Implemented; -- need use case
-
-         when IDENTIFIER_ID | STRING_LITERAL_ID =>
-            exit Find_Method;
+         when reduction_attribute_reference_ID =>
+            Unrecognized ("subprogram call", Tree, Data, Method);
 
          when others =>
-            Unrecognized ("supported token", Tree, Data, Method);
+            raise SAL.Programmer_Error;
          end case;
-      end loop Find_Method;
+
+      when qualified_expression_ID =>
+         raise SAL.Not_Implemented; -- need use case
+
+      when direct_name_ID =>
+         Method := Tree.Child (Method, 1);
+
+      when others =>
+         Unrecognized ("supported token", Tree, Data, Method);
+      end case;
 
       pragma Assert (To_Token_Enum (Tree.ID (Method)) in IDENTIFIER_ID | STRING_LITERAL_ID);
 
@@ -248,6 +242,7 @@ package body Wisi.Ada is
       Call          : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
       Edit_End      : WisiToken.Buffer_Pos;
       Object_Method : Node_Access;
+      Args          : Node_Access := Invalid_Node_Access;
       Method        : Unbounded_String;
       Object        : Unbounded_String;
       Result        : Unbounded_String;
@@ -255,16 +250,14 @@ package body Wisi.Ada is
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
          raise SAL.Parameter_Error with "no 'name' at byte_pos" & Edit_Begin'Image;
-      elsif not (Tree.RHS_Index (Call) in 1 | 2 | 3) then
-         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image &
-           " (found node" & Call'Image & ")";
       end if;
 
       if WisiToken.Trace_Action > Detail then
-         Put_Line (";; refactoring node" & Call'Image & " '" & Data.Get_Text (Tree, Call) & "'");
+         Put_Line
+           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
-      if Tree.RHS_Index (Call) = 3 then
+      if Tree.ID (Tree.Child (Call, 1)) = +attribute_reference_ID then
          --  Code looks like: Container.Length'Old. We only want to edit
          --  'Container.Length', keeping the trailing 'Old.
          Call := Tree.Child (Tree.Child (Call, 1), 1);
@@ -272,44 +265,52 @@ package body Wisi.Ada is
 
       Edit_End      := Tree.Byte_Region (Call).Last;
       Object_Method := Tree.Child (Call, 1);
-         loop
-            case To_Token_Enum (Tree.ID (Object_Method)) is
-            when name_ID =>
-               Object_Method := Tree.Child (Object_Method, 1);
+      loop
+         case To_Token_Enum (Tree.ID (Object_Method)) is
+         when function_call_ID =>
+            --  Object_Method looks like:
+            --  Object.Method (Args)
+            --  test/ada_mode-refactor_object_method_to_method_object.adb
+            Args := Tree.Child (Tree.Child (Object_Method, 2), 2);
+            pragma Assert (Tree.ID (Args) = +parameter_association_list_ID);
 
-            when selected_component_ID =>
-               Object := +Get_Text (Data, Tree, Tree.Child (Object_Method, 1));
-               Method := +Get_Text (Data, Tree, Tree.Child (Object_Method, 3));
-               exit;
+            Object_Method := Tree.Child (Object_Method, 1);
 
-            when others =>
-               Unrecognized ("supported token", Tree, Data, Object_Method);
-            end case;
-         end loop;
+         when name_ID =>
+            Object_Method := Tree.Child (Object_Method, 1);
 
-         Result := Method & " (" & Object;
-         if Tree.RHS_Index (Call) = 1 then
-            Result := Result & ", " & Get_Text (Data, Tree, Tree.Child (Tree.Child (Call, 2), 2));
-         end if;
-         Result := Result & ")";
-         Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
-                     Elisp_Escape_Quotes (To_String (Result)) & """]");
+         when selected_component_ID =>
+            Object := +Get_Text (Data, Tree, Tree.Child (Object_Method, 1));
+            Method := +Get_Text (Data, Tree, Tree.Child (Object_Method, 3));
+            exit;
+
+         when others =>
+            Unrecognized ("supported token", Tree, Data, Object_Method);
+         end case;
+      end loop;
+
+      Result := Method & " (" & Object;
+      if Args /= Invalid_Node_Access then
+         Result := Result & ", " & Get_Text (Data, Tree, Args);
+      end if;
+      Result := Result & ")";
+      Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+                  Elisp_Escape_Quotes (To_String (Result)) & """]");
    end Object_Method_To_Method_Object;
 
    procedure Element_Object_To_Object_Index
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
       Edit_Begin : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin is at
+   --  start of a subprogram call. Convert the subprogram call from
+   --  Prefix.Element (Object, Index) to Object (Index).
    is
-      --  Data.Tree contains one statement or declaration; Edit_Begin is at
-      --  start of a subprogram call. Convert the subprogram call from
-      --  Prefix.Element (Object, Index) to Object (Index).
-
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
+      Call             : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Access;
       Association_List : Node_Access;
@@ -318,31 +319,20 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no 'name' found at byte_pos" & Edit_Begin'Image;
-      elsif not (Tree.RHS_Index (Call) in 1 | 2 | 3) then
-         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image &
-           " (found node" & Call'Image & ")";
+         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
       end if;
 
       if WisiToken.Trace_Action > Detail then
-         Put_Line (";; refactoring node" & Call'Image & " '" & Data.Get_Text (Tree, Call) & "'");
-      end if;
-
-      if Tree.RHS_Index (Call) = 2 then
-         --  Code looks like: Element (Container, I).Op. We only want to edit
-         --  the subprogram call, keeping the trailing .Op.
-         Call := Tree.Child (Tree.Child (Call, 1), 1);
-
-      elsif Tree.RHS_Index (Call) = 3 then
-         --  Code looks like: Element (Container, I)'Old. We only want to edit
-         --  the subprogram call, keeping the trailing 'Old.
-         Call := Tree.Child (Tree.Child (Call, 1), 1);
+         Put_Line
+           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
-      Edit_End         := Tree.Byte_Region (Call).Last;
+      pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      if Tree.RHS_Index (Association_List) /= 0 then
+      Edit_End := Tree.Byte_Region (Call).Last;
+
+      if Tree.RHS_Index (Association_List) /= 1 then
          Unrecognized ("two args", Tree, Data, Association_List);
       end if;
 
@@ -370,16 +360,15 @@ package body Wisi.Ada is
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
       Edit_Begin : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin is at
+   --  start of a subprogram call. Convert the subprogram call from
+   --  Object (Index) to Element (Object, Index).
    is
-      --  Data.Tree contains one statement or declaration; Edit_Begin is at
-      --  start of a subprogram call. Convert the subprogram call from
-      --  Object (Index) to Element (Object, Index).
-
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
+      Call             : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Access;
       Association_List : Node_Access;
@@ -388,33 +377,24 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no 'name' found at byte_pos" & Edit_Begin'Image;
-      elsif not (Tree.RHS_Index (Call) in 1 | 2 | 3) then
-         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image &
-           " (found node" & Call'Image & ")";
+         raise SAL.Parameter_Error with "no subprogram_call found at byte_pos" & Edit_Begin'Image;
       end if;
 
       if WisiToken.Trace_Action > Detail then
-         Put_Line (";; refactoring node" & Call'Image & " '" & Data.Get_Text (Tree, Call) & "'");
+         Put_Line
+           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
-      if Tree.RHS_Index (Call) = 2 then
-         --  Code looks like: Object (I).Component. We only want to edit
-         --  the subprogram call, keeping the trailing .Component.
-         Call := Tree.Child (Tree.Child (Call, 1), 1);
+      Object := Tree.Child (Call, 1);
+      pragma Assert (Tree.ID (Object) = +name_ID);
 
-      elsif Tree.RHS_Index (Call) = 3 then
-         --  Code looks like: Container (I)'Old. We only want to edit
-         --  the subprogram call, keeping the trailing 'Old.
-         Call := Tree.Child (Tree.Child (Call, 1), 1);
-      end if;
-
-      Object           := Tree.Child (Tree.Child (Call, 1), 1);
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
-      Edit_End         := Tree.Byte_Region (Call).Last;
+      pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      if Tree.RHS_Index (Association_List) /= 1 then
-         Unrecognized ("one args", Tree, Data, Association_List);
+      Edit_End := Tree.Byte_Region (Call).Last;
+
+      if Tree.RHS_Index (Association_List) /= 0 then
+         Unrecognized ("one arg", Tree, Data, Association_List);
       end if;
 
       Temp := Tree.Find_Descendant (Tree.Child (Association_List, 1), +expression_ID);
@@ -630,18 +610,18 @@ package body Wisi.Ada is
             Hanging_Delta_2     => Delta_1);
       end Result;
    begin
-      --  FIXME: only do special cases here; call parent body for others.
-
       if Tree.ID (Tree.Parent (Tree_Indenting)) = +aspect_association_ID and then
         Syntax_Trees.Invalid_Node_Access /= Tree.Find_Ancestor (Tree_Indenting, +aspect_specification_ID)
       then
          --  In aspect_specification
          if not Indenting_Comment then
             return Result
-              (Delta_1,
-               Indent_Anchored_2
-                 (Data, Indenting_Token.Base.Line, Indenting_Token.Aug.Last_Indent_Line,
-                  Current_Indent_Offset (Data, Indenting_Token.Base, 0)).Simple_Delta);
+              (Delta_1 => Delta_1,
+               Delta_2 => Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Indenting_Token.Base.Line,
+                  Last_Line => Indenting_Token.Aug.Last_Indent_Line,
+                  Offset => Current_Indent_Offset (Data, Indenting_Token.Base, 0)).Simple_Delta);
          else
             --  Test case in test/aspects.ads
             return Result

@@ -622,7 +622,7 @@ Also sets ff-function-name for ff-pre-load-hook."
   (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
 	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
     (save-excursion
-      (condition-case nil
+      (condition-case-unless-debug nil
 	  (progn
 	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
 	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
@@ -1339,18 +1339,20 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Indenting first 'end'; that 'end' was deleted.
     (- indent ada-indent))
 
-   ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
+   ((equal '(CASE IDENTIFIER IS) (wisi--parse-error-repair-inserted repair))
     ;; test/ada_mode-partial_parse.adb
     ;;    end loop;
     ;;    ...
     ;; when Face =>
     ;;
-    ;; indenting 'when', or the new blank line after 'when'. CASE IS
-    ;; was inserted by error recover, at indent of 'end' (ada-indent
-    ;; from 'when').
+    ;; indenting 'when', or the new blank line after 'when'. CASE
+    ;; IDENTIFIER IS was inserted by error recover, immediately before
+    ;; 'when'. Since 'case' and 'when' are on the same line, only one
+    ;; indent applies, but we want both.
     (if (looking-at "when")
-	(- indent ada-indent)
-      (- indent ada-indent ada-indent-when)))
+	indent
+      ;; Here we delete the extra indent from 'case' to 'when'
+      (- indent ada-indent-when)))
 
    ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
         (+ indent (+ ada-indent ada-indent-when)))

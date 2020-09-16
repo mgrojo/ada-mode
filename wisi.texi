@@ -411,26 +411,6 @@ indents are ignored; the current token is ``anchored to'' ANCHOR.
 
 A comment is indented the same as the last line of ANCHOR.
 
-@c FIXME: delete comments
-@c @item wisi-anchored- ANCHOR OFFSET
-@c Same as @code{wisi-anchored}, but does not change the indent if the
-@c accumulated indent for the current token is not nil.
-
-@item wisi-anchored% ANCHOR OFFSET
-If there is an opening parenthesis containing ANCHOR in the line
-containing ANCHOR, sets the indent for the current token to OFFSET from
-that parenthesis; the current token is anchored to the
-parenthesis. Otherwise, sets the delta indent to OFFSET; the current
-token is not anchored.
-
-@c @item wisi-anchored%- ANCHOR OFFSET
-@c Same as @code{wisi-anchored%}, but does not change indent if the
-@c accumulated indent for the current token is not nil.
-
-@c @item wisi-anchored* ANCHOR OFFSET
-@c The same as @code{wisi-anchored}, but the anchor point is the start of
-@c the line containing ANCHOR.
-
 @item wisi-hanging DELTA-1 DELTA-2
 Use DELTA-1 for the first line, DELTA-2 for the rest.
 
@@ -444,10 +424,6 @@ current token do not have indent actions.
 If the first token in the nonterminal is first on its line, use
 DELTA-1 for the first line, DELTA-2 for the rest. Otherwise, use
 DELTA-1 for all lines.
-
-@c @item wisi-hanging- DELTA-1 DELTA-2
-@c Same as @code{wisi-hanging}, but no indent if the accumulated indent
-@c for the current token is not nil.
 
 @item Language-specific function
 Language-specific indent functions are specified by an

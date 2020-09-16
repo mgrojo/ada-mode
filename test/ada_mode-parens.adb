@@ -484,7 +484,8 @@ package body Ada_Mode.Parens is
       Ada.Text_Io.Put_Line
         (Item =>
            --  Comment after =>
-           Hello & There);
+           Hello &
+             There);
 
       Ada.Text_Io.Put_Line
         (Item

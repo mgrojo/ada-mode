@@ -46,28 +46,27 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
-    wisi.texi example updated with "ignore delta indent" rule
-        simpler approach to assign_value in ada_annex_p.wy; if it works, change wisi.texi
+    running all tests
+    format_paramlist.adb
+        access deleted, syntax error
 
 
 
-    wisi-anchored%
-        not used; delete
-        paren does not have to be in the same line as anchor?
-
-    delete ada-indent-hanging-rel-exp
+    diff all tests against 3.1 release
+        document changes
 
     run all tests
 
 
     ada-indent-aggregate should apply to all paren-expression
+        if we need it at all?
         ( expression )
         ( declare_expression )
 
         either declare paren-expression, or define ada-indent-aggregate*
 
 
-    explain labels in wisitoken/wisi user guide?
+    explain auto labels in wisitoken/wisi user guide?
 
 ada2020
     recursion reduces power of Minimal_Complete in error recover too much

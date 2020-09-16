@@ -109,7 +109,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  matched <bad_begin_name_token> with <end_name_token>.
          --
          --  The fix is to insert one or more 'end ;' before <end_name_token>.
-         --  See test_mckenzie_recover.adb Block_Match_Names_1, Extra_Name_2.
+         --  See test/ada_mode-recover_match_names.adb Package_Body_1 procedure A.
          --
          --  2. The mismatch indicates a missing block start. The input looks like:
          --
@@ -137,7 +137,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  This case doesn't use Tree, and it can handle some virtual tokens.
 
          declare
-            End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
+            End_Name : constant String := Lexer.Buffer_Text
+              ((if End_Name_Token.Name = Null_Buffer_Region
+                then End_Name_Token.Byte_Region
+                else End_Name_Token.Name));
 
             Matching_Name_Index : SAL.Peek_Type := 3; -- start search before <end_name_token>
          begin
@@ -165,7 +168,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
-                  case Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+                  case Ada_Annex_P_Process_Actions.To_Token_Enum (Config.Error_Token.ID) is
                   when block_statement_ID =>
                      Push_Back_Check (Tree, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
                      Insert (New_Config, +BEGIN_ID);
@@ -974,6 +977,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check (Tree, New_Config_1, (+IDENTIFIER_ID, +END_ID));
+
+               if New_Config_1.Stack.Depth <= 3 then
+                  raise Bad_Config;
+               end if;
 
                case To_Token_Enum (New_Config_1.Stack.Peek (3).Token.ID) is
                when COLON_ID =>

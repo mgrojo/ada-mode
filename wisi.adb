@@ -394,11 +394,20 @@ package body Wisi is
       Append (Line, Recover_Code);
       for I in First_Index (Item) .. Last_Index (Item) loop
          declare
+            use WisiToken.Syntax_Trees;
+
             Op : constant Recover_Op := Element (Item, I);
-            Edit_Pos : constant Buffer_Pos := Tree.Base_Token
-              ((case Op.Op is
-                when Insert => Op.Ins_Before_Node,
-                when Delete => Op.Del_Node)).Char_Region.First;
+
+            Edit_Node : constant Node_Access :=
+              --  Can be null when recover fails.
+              (case Op.Op is
+               when Insert => Op.Ins_Before_Node,
+
+               when Delete => Op.Del_Node);
+            Edit_Pos : constant Buffer_Pos :=
+              (if Edit_Node = Invalid_Node_Access
+               then Invalid_Buffer_Pos
+               else Tree.Base_Token (Edit_Node).Char_Region.First);
          begin
             if Last_Edit_Pos = Invalid_Buffer_Pos then
                Last_Edit_Pos := Edit_Pos;
@@ -447,8 +456,8 @@ package body Wisi is
                              Op.Del_ID = Data.Descriptor.String_2_ID))
                      then
                         declare
-                           Tok_1 : constant Base_Token := Tree.Base_Token (Last_Deleted.Del_Node);
-                           Tok_2 : constant Base_Token := Tree.Base_Token (Op.Del_Node);
+                           Tok_1 : constant WisiToken.Base_Token := Tree.Base_Token (Last_Deleted.Del_Node);
+                           Tok_2 : constant WisiToken.Base_Token := Tree.Base_Token (Op.Del_Node);
                         begin
                            if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
                               --  Buffer text was '"""', lexer repair changed it to '""""'. The
@@ -1682,7 +1691,7 @@ package body Wisi is
         (case Item.Label is
          when None => "",
          when Int => Integer'Image (Item.Int_Delta),
-         when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
+         when Anchored => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
               Integer'Image (Item.Anchored_Delta),
          when Language => "<language_function>") & ")";
    end Image;
@@ -2189,7 +2198,8 @@ package body Wisi is
          when Int =>
             return (Simple, Tree.Base_Token (Nonterm).Line, (Int, Param.Param.Int_Delta));
 
-         when Anchored_Label =>
+         when Anchored =>
+            --  [2] wisi-anchored
             declare
                Anchor_Node  : constant Syntax_Trees.Valid_Node_Access := Tokens (Param.Param.Anchored_Index);
                Anchor_Token : constant Augmented_Token := Get_Augmented_Token (Tree, Anchor_Node);
@@ -2201,40 +2211,20 @@ package body Wisi is
                   else Anchor_Token.Base.Line);
             begin
                if Indenting_Comment then
-                  case Anchored_Label'(Param.Param.Label) is
-                  when Anchored_0 =>
-                     --  [2] wisi-anchored
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Line,
-                        Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-                        Offset      => Param.Param.Anchored_Delta);
+                  return Indent_Anchored_2
+                    (Data,
+                     Anchor_Line => Anchor_Line,
+                     Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+                     Offset      => Param.Param.Anchored_Delta);
 
-                  when Anchored_1 | Anchored_2 | Anchored_3 | Anchored_4 =>
-                     --  [2] wisi-anchored%
-                     --  [2] wisi-anchored%-
-                     --  [2] wisi-anchored*[-]
-                     --  FIXME: delete from wisi.ads, wisitoken-bnf-generate
-                     raise SAL.Not_Implemented;
-                  end case;
                else
                   --  indenting code
-                  case Anchored_Label'(Param.Param.Label) is
-                  when Anchored_0 =>
-                     --  [2] wisi-anchored
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Base.Line,
-                        Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token.Base, Param.Param.Anchored_Delta));
+                  return Indent_Anchored_2
+                    (Data,
+                     Anchor_Line => Anchor_Token.Base.Line,
+                     Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+                     Offset      => Current_Indent_Offset (Data, Anchor_Token.Base, Param.Param.Anchored_Delta));
 
-                  when Anchored_1 | Anchored_2 | Anchored_3 | Anchored_4 =>
-                     --  [2] wisi-anchored%
-                     --  [2] wisi-anchored%-
-                     --  [2] wisi-anchored*[-]
-                     --  FIXME: delete from wisi.ads, wisitoken-bnf-generate
-                     raise SAL.Not_Implemented;
-                  end case;
                end if;
             end;
 
@@ -2243,10 +2233,10 @@ package body Wisi is
               (Data, Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Param.Param.Args);
          end case;
 
-      when Hanging_0 | Hanging_1 | Hanging_2 | Hanging_3 =>
-            return Indent_Hanging_1
-              (Data, Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
-               Param.Hanging_Delta_2, Option => Param.Label in Hanging_2 | Hanging_3);
+      when Hanging_0 | Hanging_1 =>
+         return Indent_Hanging_1
+           (Data, Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+            Param.Hanging_Delta_2, Option => Param.Label = Hanging_1);
       end case;
    end Indent_Compute_Delta;
 

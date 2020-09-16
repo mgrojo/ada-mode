@@ -212,17 +212,13 @@ package Wisi is
    --
    --  Indent functions are represented by the Indent_Param type.
 
-   type Simple_Indent_Param_Label is -- not hanging
+   type Simple_Indent_Param_Label is
+     --  Not hanging
      (None,
       Int,
-      Anchored_0, -- [2] wisi-anchored
-      Anchored_1, -- [2] wisi-anchored%
-      Anchored_2, -- [2] wisi-anchored%-
-      Anchored_3, -- [2] wisi-anchored*
-      Anchored_4, -- [2] wisi-anchored*- (FIXME: currently illegal - delete from wisitoken-bnf-output_ada_emacs)
-      Language    -- [2] language-specific function
+      Anchored, -- [2] wisi-anchored
+      Language  -- [2] language-specific function
      );
-   subtype Anchored_Label is Simple_Indent_Param_Label range Anchored_0 .. Anchored_4;
 
    --  Arguments to language-specific functions are integers; one of
    --  delta, Token_Number, or Token_ID - the syntax does not distinguish
@@ -257,7 +253,7 @@ package Wisi is
       when Int =>
          Int_Delta : Integer;
 
-      when Anchored_Label =>
+      when Anchored =>
          Anchored_Index : WisiToken.Positive_Index_Type;
          Anchored_Delta : Integer;
 
@@ -272,11 +268,9 @@ package Wisi is
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- [2] wisi-hanging
-      Hanging_1, -- [2] wisi-hanging- FIXME: not defined
-      Hanging_2, -- [2] wisi-hanging%
-      Hanging_3  -- [2] wisi-hanging%- FIXME: not defined
+      Hanging_1  -- [2] wisi-hanging%
      );
-   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_3;
+   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_1;
 
    type Indent_Param (Label : Indent_Param_Label := Simple) is
    record

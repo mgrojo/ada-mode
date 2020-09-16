@@ -415,17 +415,18 @@ complete."
 	(let* ((error-pos (aref (aref sexp i) 0))
 	       (edit-pos (aref (aref sexp i) 1))
 	       (err (wisi-process-parse--find-err error-pos (wisi-parser-parse-errors parser))))
-	  (cl-nsubst
-	   (push
-	    (make-wisi--parse-error-repair
-	     :pos (copy-marker edit-pos)
-	     :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
-	     :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
-	     :deleted-region (aref (aref sexp i) 4))
-	    (wisi--parse-error-repair err)) ;; new
-	   err ;; old
-	   (wisi-parser-parse-errors parser) ;; tree
-	   :test (lambda (old el) (= (wisi--parse-error-pos old) (wisi--parse-error-pos err))))
+          (when err
+	    (cl-nsubst
+	     (push
+	      (make-wisi--parse-error-repair
+	       :pos (copy-marker edit-pos)
+	       :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2))
+	       :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 3))
+	       :deleted-region (aref (aref sexp i) 4))
+	      (wisi--parse-error-repair err)) ;; new
+	     err ;; old
+	     (wisi-parser-parse-errors parser) ;; tree
+	     :test (lambda (old el) (= (wisi--parse-error-pos old) (wisi--parse-error-pos err)))))
 	   )))
     ))
 

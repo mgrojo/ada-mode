@@ -136,7 +136,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun test-refactor-1 (action inverse-action search-string refactor-string)
   (beginning-of-line)
   (forward-comment (point-max)) ;; forward-comment does not work from inside comment
-  (search-forward search-string (line-end-position 7))
+  (when search-string
+    (search-forward search-string (line-end-position 7)))
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (search-forward refactor-string (line-end-position 7))
   (let* ((edit-begin (match-beginning 0))
@@ -156,14 +157,12 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun test-refactor-inverse ()
   "Reverse refactors done by recent set of `test-refactor-1'."
   (save-excursion
-    (condition-case-unless-debug nil
-	(dolist (item test-refactor-markers)
-	  (wisi-refactor wisi--parser
-			 (nth 0 item)
-			 (marker-position (nth 1 item))
-			 (marker-position (nth 2 item))
-			 (marker-position (nth 3 item))))
-      (error nil))
+    (dolist (item test-refactor-markers)
+      (wisi-refactor wisi--parser
+		     (nth 0 item)
+		     (marker-position (nth 1 item))
+		     (marker-position (nth 2 item))
+		     (marker-position (nth 3 item))))
     (setq test-refactor-markers nil)))
 
 (defun run-test-here ()

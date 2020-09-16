@@ -75,6 +75,9 @@ trailing `...' if there are more keys."
   ;; see test/ada_skel.adb
   )
 
+(defun wisi-skel-enable-parse ()
+  (setq wisi-inhibit-parse nil));
+
 (defun wisi-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton.
 Tokens are defined by `wisi-skel-token-alist'; they must have
@@ -88,7 +91,12 @@ before that as the token."
   ;; Standard comment end included for languages where that is newline.
   (skip-syntax-backward " !>")
 
-  (let* ((wisi-inhibit-parse t) ;; don't parse until skeleton is fully inserted
+  (let* ((wisi-inhibit-parse t)
+	 ;; Don't parse until skeleton is fully inserted. However,
+	 ;; this is still set when skeleton-end-hook is called; user
+	 ;; will probably put wisi-indent-statement on that hook. So
+	 ;; we add wisi-skel-enable-parse.
+
 	 (end (point))
 	 ;; Include punctuation here, to handle a dotted name (ie Ada.Text_IO)
 	 (token (progn (skip-syntax-backward "w_.")
@@ -182,6 +190,9 @@ before that as the token."
   "Move point to after previous placeholder."
   (interactive)
   (skip-syntax-backward "^!"))
+
+;;;###autoload
+(add-hook 'skeleton-end-hook #'wisi-skel-enable-parse -90)
 
 (provide 'wisi-skel)
 ;;; wisi-skel.el ends here
