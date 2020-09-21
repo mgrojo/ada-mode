@@ -11,14 +11,14 @@ package Ada_Mode.Expression_Functions is
                  return Boolean -- a Really_Really_Long_Return_Type
    is
      (True) -- a Really_Really_Long_expression
-     with Convention => Ada;
+   with Convention => Ada;
 
    --  Simple fix for the above
    function Fun2
      (Really_Really_Long_Argument_List : Boolean)
      return Integer -- a Really_Really_Long_Return_Type
    is (1) -- a Really_Really_Long_expression
-     with Convention => Ada;
+   with Convention => Ada;
 
    --  comment after expression_function - was broken
    type Foo_Type is (A, B, C, D);

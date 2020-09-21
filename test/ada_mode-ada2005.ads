@@ -1,5 +1,7 @@
 -- Test casing and font-lock on keywords added in later language versions.
 --
+-- Also tests parser with really bad syntax; tokens inserted before EOF etc.
+--
 -- We only test the face of one keyword from each of the
 -- ada-*-casing-versions; enough to tell that the choice via file
 -- local variable works. The face is set by font-lock-keywords, not

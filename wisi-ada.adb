@@ -496,10 +496,6 @@ package body Wisi.Ada is
 
          First := Last + 1;
          Last := First + 1;
-         Ada_Indent_Hanging_Rel_Exp := Params (First) = '1';
-
-         First := Last + 1;
-         Last := First + 1;
          End_Names_Optional := Params (First) = '1';
       end if;
 
@@ -579,7 +575,7 @@ package body Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean)
+      Label             : in     Hanging_Label)
      return Delta_Type
    is
       use Ada_Annex_P_Process_Actions;
@@ -629,23 +625,10 @@ package body Wisi.Ada is
                  (Data, Tree, Nonterm, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta);
          end if;
 
-      elsif Ada_Indent_Hanging_Rel_Exp then
-         declare
-            New_Delta_2 : constant Simple_Delta_Type := Indent_Anchored_2
-              (Data, Indenting_Token.Base.Line, Indenting_Token.Aug.Last_Indent_Line,
-               Current_Indent_Offset (Data, Indenting_Token.Base, Ada_Indent_Broken)).Simple_Delta;
-         begin
-            if not Option or Indenting_Token.Base.Line = Indenting_Token.Aug.First_Indent_Line then
-               return Result (Delta_1, New_Delta_2);
-            else
-               return Result (New_Delta_2);
-            end if;
-         end;
-
       else
          return Indent_Hanging_1
            (Wisi.Parse_Data_Type (Data), Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Delta_1, Delta_2,
-            Option);
+            Label);
       end if;
    end Indent_Hanging_1;
 
@@ -721,7 +704,7 @@ package body Wisi.Ada is
       --  We always want an 'aggregate' to be indented by ada-indent-broken.
       --  However, in some places in the grammar, 'aggregate' is indented by
       --  ada-indent. The following checks for those places, and returns a
-      --  correction value. The aggregate may be nested inside a conidtional
+      --  correction value. The aggregate may be nested inside a conditional
       --  expression, so we search for 'name' as well; see
       --  test/ada_mode-conditional_expressions-more_1.adb.
 
@@ -734,9 +717,8 @@ package body Wisi.Ada is
       elsif Tree.ID (Tree.Parent (Expression)) in +if_expression_ID | +elsif_expression_item_ID |
         +case_expression_alternative_ID
       then
-         --  The controlling boolean expression in 'if_expression' and
-         --  'elsif_expression_item' cannot be an aggregate in legal Ada
-         --  syntax.
+         --  test/ada_mode-conditional_expressions.adb K; value expression in
+         --  if_expression is indented by ada-indent.
          return (Simple, Tree.Base_Token (Nonterm).Line, (Int, Ada_Indent_Broken - Ada_Indent));
       else
          return Null_Delta;

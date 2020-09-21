@@ -9,6 +9,11 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 * Ada Mode ?
 ?
 
+** parser Ada language protocol version 4; delete ada-indent-hanging-rel-exp
+
+** Declare indent option ada-indent-hanging-rel-exp obsolete; it was
+   never well defined, and now has no effect.
+
 ** Indentation of 'is' and 'with' in null and abstract subprogram
    specification is now consistent with non-abstract subprogram
    specification and expression function.

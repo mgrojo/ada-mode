@@ -173,7 +173,7 @@ An example is:
 Otherwise, indent by `ada-indent-broken' relative to the start of the expression."
   :type 'boolean
   :safe #'booleanp)
-(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+(make-obsolete-variable 'ada-indent-hanging-rel-exp "" "ada-mode 4.0.0")
 
 (defcustom ada-indent-after-trailing-comment t
  "If t, align comment lines imediately following a comment on the

@@ -21,7 +21,7 @@ pragma License (Modified_GPL);
 
 package Wisi.Ada is
 
-   Language_Protocol_Version : constant String := "3";
+   Language_Protocol_Version : constant String := "4";
    --  Defines the data passed to Initialize in Params.
    --
    --  This value must match ada-mode.el
@@ -42,7 +42,6 @@ package Wisi.Ada is
    Ada_Indent_Use             : Integer := 2;
    Ada_Indent_When            : Integer := 3;
    Ada_Indent_With            : Integer := 2;
-   Ada_Indent_Hanging_Rel_Exp : Boolean := False;
 
    --  Other parameters
    End_Names_Optional : Boolean := False;
@@ -86,7 +85,7 @@ package Wisi.Ada is
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean)
+      Label             : in     Hanging_Label)
      return Delta_Type;
 
    overriding

@@ -372,12 +372,8 @@ A vector giving separate indents for code and comments.
 
 Normally, the indent for trailing comments (on lines with no code,
 after all code in the token) is given by the indent of the following
-token in the production. When the current token is the last, or the
-following tokens may be empty, or the indent of the following token
-would be wrong for some reason (for example, it is a block end), the
-comment indent may be specified separately. If it is not specified,
-and the indent from the next token is not available, the indent for
-the current token is used for code and comments.
+token in the production. When the current token is the last, and a
+separate comment indent is not specified, the comment indent is nil.
 
 Comment lines that are not trailing are indented by CODE-INDENT.
 
@@ -424,6 +420,11 @@ current token do not have indent actions.
 If the first token in the nonterminal is first on its line, use
 DELTA-1 for the first line, DELTA-2 for the rest. Otherwise, use
 DELTA-1 for all lines.
+
+@item wisi-hanging* DELTA-1 DELTA-2
+If the first token in the nonterminal is first on its line, use
+DELTA-1 for the first line, DELTA-1 + DELTA-2 for the rest. Otherwise,
+use DELTA-2 for all lines.
 
 @item Language-specific function
 Language-specific indent functions are specified by an

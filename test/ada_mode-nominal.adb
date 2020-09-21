@@ -554,9 +554,24 @@ is -- target 0
    --EMACSRESULT:t
 
    function Function_1a return Float
-   is begin
+   is
+      A : Float;
+   begin
       Procedure_2a;
       Procedure_2a;
+
+      -- Assignment with all reasonable newlines, to test that the indents in
+      -- all productions involved are needed.
+      A
+        :=
+          1.0 +
+          Function_2a
+            (Parent_Type_1'
+               (1,
+                2.0,
+                False)) +
+          2.0;
+
       return 1.0 +
         Function_2a (Parent_Type_1'(1, 2.0, False)) +
         12.0;

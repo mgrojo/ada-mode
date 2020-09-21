@@ -8,9 +8,10 @@ procedure Ada_Mode.Placeholders
 is begin
    --  placeholder with valid text following
    if {expression} then
+      null;
 
-      --  missing '}'; 'then' not seen
+      --  missing '}'; 'then' not seen; null is 'expression'
    elsif {expression then
-
+     null;
    end if;
 end Ada_Mode.Placeholders;

@@ -29,7 +29,7 @@ package Ada_Mode.Parens is
      (Param_1,
         Param_2,
         Param_3 : in Ada.Text_Io.
-        Count; -- pretending this is wrapped because of line length limit
+          Count; -- pretending this is wrapped because of line length limit
       Param_4,
         Param_5 : in
         out Integer; -- who would do this!?

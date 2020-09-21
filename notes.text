@@ -46,10 +46,14 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
-    running all tests
-    format_paramlist.adb
-        access deleted, syntax error
+    wisi-bnf-generate take prev computed lalr, lr1 parse_table as input, use lr1 if lalr not changed
+        for only action change
+        => always output .txt
 
+    running all tests
+        sorting out basic expression, function_call, assign indents
+        build/ada_mode-conditional_expressions.adb.diff
+        build/ada_mode-parens.adb.diff
 
 
     diff all tests against 3.1 release

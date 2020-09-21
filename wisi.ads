@@ -83,10 +83,9 @@ package Wisi is
 
    overriding
    procedure Insert_Token
-     (Data            : in out Parse_Data_Type;
-      Tree            : in out WisiToken.Syntax_Trees.Tree'Class;
-      Inserted_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Inserted_Before : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+     (Data           : in out Parse_Data_Type;
+      Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
+      Inserted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    overriding
    procedure Delete_Token
@@ -265,12 +264,15 @@ package Wisi is
 
    function Image (Item : in Simple_Indent_Param) return String;
 
+   function Add_Simple_Indent_Param (Left, Right : in Simple_Indent_Param) return Simple_Indent_Param;
+
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- [2] wisi-hanging
-      Hanging_1  -- [2] wisi-hanging%
+      Hanging_1, -- [2] wisi-hanging%
+      Hanging_2  -- [2] wisi-hanging*
      );
-   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_1;
+   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_2;
 
    type Indent_Param (Label : Indent_Param_Label := Simple) is
    record
@@ -319,10 +321,9 @@ package Wisi is
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean)
+      Label             : in     Hanging_Label)
      return Delta_Type;
-   --  Implements [2] wisi-hanging, wisi-hanging%
-   --     Option     = % present
+   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging*
    --
    --  Language specific child packages may override this to implement
    --  language-specific cases.

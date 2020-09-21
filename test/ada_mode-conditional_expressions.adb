@@ -10,23 +10,37 @@ procedure Ada_Mode.Conditional_Expressions is
 
    K1 : Integer := (if J > 42 then -1
                     --  comment
-                    else +1);
+                    else +1 -
+                      2);
    K2 : Integer := (if J > 42
                     --  comment
-                    then -1
-                    else +1);
+                    then
+                       1 +
+                         2
+                    else
+                       1 +
+                         2);
    K2a : Integer :=
      (if J > 42
       --  comment
       then -1
       else +1);
+   K2b : Integer :=
+     (if J >
+        42
+        --  comment; matches last line of preceding expression
+      then -1
+      else +1);
+
    K3 : Integer := (if
                       J > 42
                       --  comment
-                    then
-                       -1
+                    then Foo
+                      (-1)
                     else
-                       +1);
+                       Foo
+                         (+1));
+
    K : Integer := K0a;
    L0 : Integer :=
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
@@ -48,16 +62,19 @@ procedure Ada_Mode.Conditional_Expressions is
    L3 : Integer := (case J is
                        when 42 =>
                           --  Comment aligned with "-1"
-                          -1,
+                          -1 +
+                            2,
                        when Integer'First .. 41 =>
-                          0,
+                          0 -
+                            1,
                        when others =>
                           +1);
    L4 : Integer := (case J is
                        when
                          42
                          =>
-                          -1,
+                          -1 +
+                            2,
                        when
                          Integer'First .. 41
                          =>
@@ -86,7 +103,8 @@ procedure Ada_Mode.Conditional_Expressions is
 
    L : Integer := L0;
 begin
-   K := (if K < 0 then 42 elsif K = 0 then 43 else (if J > 42 then 44 else 45));
+   K := (if K < 0 then 42 elsif K = 0 then 43 else
+           (if J > 42 then 44 else 45));
    K := (case Bounded (L) is when -1 => 42, when 0 => 41, when 1 => 43);
    --  embedded case
    --EMACSCMD: (progn (forward-line 4)(forward-word 2)(delete-char 2)(ada-align))
@@ -113,6 +131,20 @@ begin
 
             else 45)); -- comment _not_ matching GNAT style check
                         -- comment matching GNAT
+
+   A :=
+     (if B
+      then Add_Nonterm
+        ((+Token_Keyword_Non_Grammar_Id, 0),
+         (1 => Add_Identifier (Keyword_Id)))
+      -- comment
+      elsif C
+      then
+         A +
+           1
+      else
+         A
+           + 1);
 
 end Ada_Mode.Conditional_Expressions;
 --  Local Variables:
