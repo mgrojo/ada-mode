@@ -2,7 +2,7 @@
 --
 --  Image with auxiliary data for instantiations of parent.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 generic
-   type Aux_Data (<>) is private;
+   type Aux_Data (<>) is limited private;
    with function Index_Trimmed_Image (Item : in Index_Type) return String;
    with function Element_Image (Item : in Element_Type; Aux : in Aux_Data) return String;
 function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux
