@@ -725,9 +725,7 @@ package body WisiToken.Parse.LR is
              (if Item.Ins_Node = Invalid_Node_Access
               then Image (Item.Ins_ID, Tree.Descriptor.all)
               else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & ", " &
-             (if Item.Ins_Before = Invalid_Stream_Index
-              then Tree.Image (Item.Ins_Before_Node, Terminal_Node_Numbers => True)
-              else Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True)),
+             Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True),
          when Delete =>
              (if Item.Del_Node = Invalid_Node_Access
               then Tree.Image (Item.Del_Index, Terminal_Node_Numbers => True)

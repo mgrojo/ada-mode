@@ -46,7 +46,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Visible components for direct access
 
       Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Last token read from input text
+      --  Last token read from input text, in Terminal_Stream.
 
       Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.

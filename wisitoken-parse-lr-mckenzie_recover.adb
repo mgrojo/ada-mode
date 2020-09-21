@@ -548,15 +548,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  end if;
                               end if;
 
-                           when Insert            =>
+                           when Insert       =>
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
-                                 (Op              => Insert,
-                                  Error_Pos       => Error_Pos,
-                                  Ins_ID          => Op.Ins_ID,
-                                  Ins_Before      => Op.Ins_Before,
-                                  Ins_Node        => Syntax_Trees.Invalid_Node_Access,
-                                  Ins_Before_Node => Syntax_Trees.Invalid_Node_Access));
+                                 (Op         => Insert,
+                                  Error_Pos  => Error_Pos,
+                                  Ins_ID     => Op.Ins_ID,
+                                  Ins_Before => Op.Ins_Before,
+                                  Ins_Node   => Syntax_Trees.Invalid_Node_Access));
 
                               if Parser_State.Recover_Insert_Delete_Current = No_Index then
                                  Parser_State.Recover_Insert_Delete_Current :=
@@ -578,9 +577,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  --  do that.
                                  Stack_Matches_Ops := False;
 
-                                 Recover_Op_Array_Refs.Variable_Ref
-                                   (Parser_State.Recover_Insert_Delete,
-                                    Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete)).Ins_Node :=
+                                 Parser_State.Recover_Insert_Delete.Variable_Ref
+                                   (Parser_State.Recover_Insert_Delete.Last_Index).Ins_Node :=
                                       Tree.Get_Node (Parser_State.Stream, Parser_State.Current_Token);
 
                                  Current_Token_Virtual                      := True;
@@ -590,7 +588,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  null;
                               end if;
 
-                           when Delete           =>
+                           when Delete =>
                               Recover_Op_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
                                  (Op             => Delete,
@@ -663,11 +661,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end;
                exception
                when Bad_Config =>
-                  if Parsers.Count = 1 then
+                  Parsers.Terminate_Parser (Current_Parser, Shared_Parser.Tree, "bad config in recover", Trace);
+                  if Parsers.Count = 0 then
                      --  Oops. just give up
                      return Fail_Programmer_Error;
                   end if;
-                  Parsers.Terminate_Parser (Current_Parser, Shared_Parser.Tree, "bad config in recover", Trace);
                   --  Terminate advances Current_Parser
                   Skip_Next := True;
                end;

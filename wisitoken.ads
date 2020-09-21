@@ -297,9 +297,11 @@ package WisiToken is
    --  Return region enclosing both Left and Right.
 
    type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
+
+   function Trimmed_Image (Item : in Line_Number_Type) return String;
+   --  '-' if Invalid_Line_Number
 
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to

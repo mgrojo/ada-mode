@@ -548,10 +548,6 @@ package WisiToken.Parse.LR is
          --  The parse stream node holding the inserted token; valid after
          --  parse is complete.
 
-         Ins_Before_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The parse stream Shared_Terminal node the token is inserted before; used
-         --  by post-parse actions.
-
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
@@ -571,16 +567,15 @@ package WisiToken.Parse.LR is
       end case;
    end record;
 
-   package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Recover_Op,
-      Default_Element => (others => <>),
-      Capacity => 80);
-
-   package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
+   package Recover_Op_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op, Default_Element => (others => <>));
 
    function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String;
 
-   function Image is new Recover_Op_Arrays.Gen_Image_Aux (Syntax_Trees.Tree, Image);
+   function Image is new Recover_Op_Arrays.Gen_Image_Aux
+     (Syntax_Trees.Tree,
+      Index_Trimmed_Image => Trimmed_Image,
+      Element_Image       => Image);
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;

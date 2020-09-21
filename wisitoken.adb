@@ -330,6 +330,17 @@ package body WisiToken is
       return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
 
+   function Trimmed_Image (Item : in Line_Number_Type) return String
+   is
+      function Base_Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
+   begin
+      if Item = Invalid_Line_Number then
+         return "-";
+      else
+         return Base_Trimmed_Image (Item);
+      end if;
+   end Trimmed_Image;
+
    function Image
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor)

@@ -315,10 +315,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
             declare
                use all type WisiToken.Syntax_Trees.Node_Access;
-               use Recover_Op_Array_Refs;
-               Item_Op : Recover_Op_Array_Refs.Constant_Reference_Type renames Recover_Op_Array_Refs.Constant_Ref
-                 (Item.Recover_Insert_Delete,
-                  (if Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+               use Recover_Op_Arrays;
+               Item_Op : Recover_Op_Arrays.Constant_Reference_Type renames Item.Recover_Insert_Delete.Constant_Ref
+                 ((if Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
                    then Recover_Op_Arrays.Last_Index (Item.Recover_Insert_Delete)
                    else Item.Recover_Insert_Delete_Current - 1));
             begin
@@ -326,11 +325,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
                if Tree.Get_Node (Item.Stream, Item.Current_Token) = Item_Op.Ins_Node then
                   declare
-                     New_Item_Op : Variable_Reference_Type renames Variable_Ref
-                       (New_Item.Recover_Insert_Delete,
-                        (if New_Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                         then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
-                         else New_Item.Recover_Insert_Delete_Current - 1));
+                     New_Item_Op : Recover_Op_Arrays.Variable_Reference_Type renames
+                       New_Item.Recover_Insert_Delete.Variable_Ref
+                         ((if New_Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                           then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
+                           else New_Item.Recover_Insert_Delete_Current - 1));
                   begin
                      New_Item_Op.Ins_Node := Tree.Get_Node (New_Item.Stream, New_Item.Current_Token);
                   end;

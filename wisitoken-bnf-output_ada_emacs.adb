@@ -614,15 +614,10 @@ is
 
          function Indent_Function (Elisp_Name : in String) return String
          is begin
-            if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
-            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
-            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_2";
-            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_3";
-            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_4";
-            elsif Elisp_Name = "wisi-hanging"    then return "Hanging_0";
-            elsif Elisp_Name = "wisi-hanging-"   then return "Hanging_1";
-            elsif Elisp_Name = "wisi-hanging%"   then return "Hanging_2";
-            elsif Elisp_Name = "wisi-hanging%-"  then return "Hanging_3";
+            if    Elisp_Name = "wisi-anchored" then return "Anchored";
+            elsif Elisp_Name = "wisi-hanging"  then return "Hanging_0";
+            elsif Elisp_Name = "wisi-hanging%" then return "Hanging_1";
+            elsif Elisp_Name = "wisi-hanging*" then return "Hanging_2";
             else
                Put_Error
                  (Error_Message
