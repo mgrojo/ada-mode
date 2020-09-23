@@ -215,9 +215,12 @@ package Wisi is
      --  Not hanging
      (None,
       Int,
-      Anchored, -- [2] wisi-anchored
-      Language  -- [2] language-specific function
+      Anchored_0, -- [2] wisi-anchored
+      Anchored_1, -- [2] wisi-anchored%
+      Block,      -- [2] wisi-block
+      Language    -- [2] language-specific function
      );
+   subtype Simple_Param_Anchored is Simple_Indent_Param_Label range Anchored_0 .. Anchored_1;
 
    --  Arguments to language-specific functions are integers; one of
    --  delta, Token_Number, or Token_ID - the syntax does not distinguish
@@ -249,10 +252,10 @@ package Wisi is
       when None =>
          null;
 
-      when Int =>
+      when Block | Int =>
          Int_Delta : Integer;
 
-      when Anchored =>
+      when Simple_Param_Anchored =>
          Anchored_Index : WisiToken.Positive_Index_Type;
          Anchored_Delta : Integer;
 
@@ -498,6 +501,7 @@ private
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, WisiToken.Buffer_Pos);
 
    type Indent_Label is (Not_Set, Int, Anchor_Nil, Anchor_Int, Anchored, Anchor_Anchored);
+   subtype Anchored_Indent_Label is Indent_Label range Anchored .. Anchor_Anchored;
 
    package Anchor_ID_Vectors is new Ada.Containers.Vectors (Natural, Positive);
 
@@ -584,23 +588,11 @@ private
 
    type Simple_Delta_Labels is (None, Int, Anchored);
 
-   --  subtype Non_Anchored_Delta_Labels is Simple_Delta_Labels range None .. Int;
-
-   --  type Non_Anchored_Delta (Label : Non_Anchored_Delta_Labels := None) is
-   --  record
-   --     case Label is
-   --     when None =>
-   --        null;
-   --     when Int =>
-   --        Int_Delta : Integer;
-   --     end case;
-   --  end record;
-
-   --  function Image (Item : in Non_Anchored_Delta) return String;
-   --  For debugging
-
    type Simple_Delta_Type (Label : Simple_Delta_Labels := None) is
    record
+      Controlling_Token_Line : WisiToken.Line_Number_Type;
+      --  If Invalid_Line_Number, delta should not be ignored.
+
       case Label is
       when None =>
          null;
@@ -622,8 +614,6 @@ private
 
    type Delta_Type (Label : Delta_Labels := Simple) is
    record
-      Controlling_Token_Line : WisiToken.Line_Number_Type;
-
       case Label is
       when Simple =>
          Simple_Delta : Simple_Delta_Type;
@@ -631,12 +621,16 @@ private
       when Hanging =>
          Hanging_First_Line  : WisiToken.Line_Number_Type;
          Hanging_Paren_State : Integer;
-         Hanging_Delta_1     : Simple_Delta_Type; -- indentation of first line
-         Hanging_Delta_2     : Simple_Delta_Type; -- indentation of continuation lines
+
+         Hanging_Delta_1 : Simple_Delta_Type;
+         --  Indentation of first line in token; Null_Delta if first line does
+         --  not need indenting
+
+         Hanging_Delta_2 : Simple_Delta_Type; -- indentation of continuation lines
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Simple, WisiToken.Invalid_Line_Number, (Label => None));
+   Null_Delta : constant Delta_Type := (Simple, (None, WisiToken.Invalid_Line_Number));
 
    function Image (Item : in Delta_Type) return String;
    --  For debugging

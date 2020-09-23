@@ -1236,7 +1236,7 @@ if_expression
                            ;; test/ada_mode-conditional_expressions.adb A := (if B ...
                            (wisi-hanging* ada-indent ada-indent-broken)
                            nil nil
-                           (wisi-hanging* ada-indent ada-indent-broken)]))%
+                           (wisi-hanging* (wisi-block ada-indent) ada-indent-broken)]))%
   ;
 
 condition : expression ;
@@ -1274,8 +1274,8 @@ case_expression_alternative
     ;; of any intervening lines (consistent with case_statement_alternative).
     %((wisi-statement-action [1 motion])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken
-                               [(wisi-hanging* ada-indent ada-indent-broken)
-                                ada-indent]]))%
+                               ;; test/ada_mode-conditional_expressions.adb L3 for comment after '=>'
+                               (wisi-hanging* ada-indent ada-indent-broken)]))%
   ;
 
 quantified_expression
@@ -1382,7 +1382,7 @@ statement_identifier ::= direct_name
 assignment_statement
   : name assign_value ';'
     %((wisi-statement-action [1 statement-start 3 statement-end])
-      (wisi-indent-action [nil ada-indent-broken (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+      (wisi-indent-action [nil (wisi-hanging* ada-indent-broken ada-indent-broken) ada-indent-broken]))%
   ;
 
 target_name ::= '@'
@@ -1391,7 +1391,7 @@ elsif_statement_item ;;:new for action
   : 'elsif' condition 'then' sequence_of_statements
     %((wisi-statement-action [1 motion 3 motion])
       (wisi-motion-action [1 3])
-      (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil [ada-indent ada-indent]]))%
+      (wisi-indent-action [nil [ada-indent-broken ada-indent-broken] nil [(wisi-block ada-indent) ada-indent]]))%
   ;
 
 elsif_statement_list ;;:new for action
@@ -1404,10 +1404,10 @@ if_statement
     %((wisi-statement-action [1 statement-start 3 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 3 [5 ELSIF] 6 10])
       (wisi-indent-action [nil
-                           [ada-indent-broken ada-indent-broken]
+                           [(wisi-hanging* ada-indent-broken ada-indent-broken) ada-indent-broken]
                            nil
-                           [ada-indent ada-indent] nil nil
-                           [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
+                           [(wisi-block ada-indent) ada-indent] nil nil
+                           [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken]))%
   ;
 
 case_statement_alternative_list ;;:new for action
@@ -1429,17 +1429,17 @@ case_statement_alternative
   : 'when' discrete_choice_list '=>' sequence_of_statements
     %((wisi-statement-action [1 motion])
       ;; ada-indent-when added in case_statement. The statements are
-    ;; indented ada-indent from 'when' independent of any intervening
-    ;; lines (consistent with case_expression_alternative).
+      ;; indented ada-indent from 'when' independent of any intervening
+      ;; lines (consistent with case_expression_alternative).
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken
-                               [ada-indent ada-indent]]))%
+                               [(wisi-block ada-indent) ada-indent]]))%
   ;
 
 loop_statement
   : [statement_identifier ':'] [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 3 statement-override 4 motion 9 statement-end])
       (wisi-motion-action [3 4 9])
-      (wisi-indent-action [ada-indent-label nil nil nil [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken
+      (wisi-indent-action [ada-indent-label nil nil nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken
                                             ada-indent-broken]))%
     %((wisi-match-names 1 8))%
   ;
@@ -1509,14 +1509,23 @@ block_statement
     'end' identifier_opt ';'
     %((wisi-statement-action [1 statement-start 3 statement-override 5 statement-override 9 statement-end])
       (wisi-motion-action [1 3 5 [6 WHEN] 9])
-      (wisi-indent-action [ada-indent-label nil nil [ada-indent ada-indent] nil [ada-indent ada-indent]
+      (wisi-indent-action [ada-indent-label nil nil [(wisi-block ada-indent) ada-indent] nil
+                                            [(wisi-block ada-indent) ada-indent]
                                             nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 1 8))%
   ;
 
-parallel_block_statement ::=
-    'parallel' 'do' handled_sequence_of_statements 'and' handled_sequence_of_statements
-      {'and' handled_sequence_of_statements} 'end' 'do' ';'
+statement_AND_list
+  : handled_sequence_of_statements
+  | statement_AND_list 'and' handled_sequence_of_statements
+    %((wisi-indent-action [nil (- ada-indent) nil]))%
+  ;
+
+parallel_block_statement
+  : 'parallel' 'do' handled_sequence_of_statements 'and' statement_AND_list 'end' 'do' ';'
+    %((wisi-indent-action [nil nil [(wisi-block ada-indent) ada-indent] nil [(wisi-block ada-indent) ada-indent]
+                               nil nil nil]))%
+  ;
 
 exit_statement
   : 'exit' [name] ['when' condition] ';'
@@ -1679,9 +1688,8 @@ procedure_call_statement
 function_call
   ;; name ;;:redundant with "name"
   : name actual_parameter_part
-    ;; This indent is in addition to any from wisi-hanging on an enclosing
-    ;; expression.
-    %((wisi-indent-action [nil ada-indent-broken]))%
+    ;; Using anchored is the only way to ensure enclosing indents are ignored.
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
 parameter_association_list ;; new to support actions
@@ -1704,7 +1712,10 @@ actual_parameter_part
 
 assoc_expression ;;:new; split out from *_association for indent
   : '=>' expression
-    %((wisi-indent-action [nil (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+    ;; Using anchor is the only way to ignore subsequent indents
+    %((wisi-indent-action [nil (wisi-hanging
+                                (wisi-anchored% 1 ada-indent-broken)
+                                (wisi-anchored% 2 ada-indent-broken))]))%
   ;
 
 parameter_association
@@ -1744,8 +1755,8 @@ extended_return_statement
     ;; (wisi-indent-action [nil nil nil]))
     %((wisi-statement-action [1 statement-start 3 motion 7 statement-end])
       (wisi-motion-action [1 3 [4 WHEN] 7])
-      (wisi-indent-action [[nil ada-indent] ada-indent-broken nil [ada-indent ada-indent] nil ada-indent-broken
-                           ada-indent-broken]))%
+      (wisi-indent-action [[nil ada-indent] ada-indent-broken nil [(wisi-block ada-indent) ada-indent] nil
+                           ada-indent-broken ada-indent-broken]))%
   ;
 
 return_subtype_indication : subtype_indication | access_definition ;
@@ -2113,7 +2124,7 @@ accept_statement ::=
                                ada-indent-broken nil nil ;; we assume the entry index tokens are always on one line
                                ada-indent-broken
                                [nil ada-indent]
-                               [ada-indent ada-indent]
+                               [(wisi-block ada-indent) ada-indent]
                                nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 2 10))%
   ;
@@ -2186,7 +2197,7 @@ select_statement
 
 guard_select ;;:new; split out from selective_accept for actions
   : guard select_alternative
-    %((wisi-indent-action [nil ada-indent]))%
+    %((wisi-indent-action [nil (wisi-block ada-indent)]))%
   | select_alternative
   ;
 
@@ -2202,7 +2213,8 @@ selective_accept
   : 'select' select_alternative_list [ 'else' sequence_of_statements ] 'end' 'select' ';'
     %((wisi-statement-action [1 statement-start 3 motion 7 statement-end])
       (wisi-motion-action [1 [2 OR] 3 7])
-      (wisi-indent-action [[nil ada-indent] [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
+      (wisi-indent-action [[nil ada-indent] [(wisi-block ada-indent) ada-indent] nil
+                           [(wisi-block ada-indent) ada-indent] nil ada-indent-broken
                            ada-indent-broken]))%
   ;
 
@@ -2235,8 +2247,8 @@ timed_entry_call
   : 'select' entry_call_alternative 'or' delay_alternative 'end' 'select' ';'
     %((wisi-statement-action [1 statement-start 3 motion 6 statement-end])
       (wisi-motion-action [1 3 7])
-      (wisi-indent-action [nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
-                               ada-indent-broken]))%
+      (wisi-indent-action [nil [(wisi-block ada-indent) ada-indent] nil [(wisi-block ada-indent) ada-indent] nil
+                               ada-indent-broken ada-indent-broken]))%
   ;
 
 entry_call_alternative : procedure_call_statement sequence_of_statements_opt ;
@@ -2247,16 +2259,16 @@ conditional_entry_call
   : 'select' entry_call_alternative 'else' sequence_of_statements 'end' 'select' ';'
     %((wisi-statement-action [1 statement-start 3 motion 7 statement-end])
         (wisi-motion-action [1 3 7])
-        (wisi-indent-action [nil [ada-indent ada-indent] nil [ada-indent ada-indent] nil ada-indent-broken
-                                 ada-indent-broken]))%
+        (wisi-indent-action [nil [(wisi-block ada-indent) ada-indent] nil [(wisi-block ada-indent) ada-indent] nil
+                                 ada-indent-broken ada-indent-broken]))%
   ;
 
 asynchronous_select
   : 'select' triggering_alternative 'then' 'abort' abortable_part 'end' 'select' ';'
     %((wisi-statement-action [1 statement-start 3 motion 8 statement-end])
       (wisi-motion-action [1 3 8])
-      (wisi-indent-action [nil [ada-indent ada-indent] [nil ada-indent-broken] ada-indent-broken
-                               [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil [(wisi-block ada-indent) ada-indent] [nil ada-indent-broken] ada-indent-broken
+                               [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken]))%
   ;
 
 triggering_alternative

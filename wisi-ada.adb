@@ -39,7 +39,8 @@ package body Wisi.Ada is
       if not Indenting_Comment and Indenting_Token.Base.ID = +RECORD_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
-           (Data, Anchor_Token.Line, Last_Line (Record_Token, Indenting_Comment), Ada_Indent_Record_Rel_Type);
+           (Data, Anchor_Token.Line, Last_Line (Record_Token, Indenting_Comment),
+            Ada_Indent_Record_Rel_Type);
 
       elsif Indenting_Comment and Indenting_Token.Base.ID = +WITH_ID then
          --  comment before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
@@ -56,7 +57,7 @@ package body Wisi.Ada is
                Ada_Indent_Record_Rel_Type);
          else
             --  not before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
-            return (Simple, Controlling_Token_Line, (Int, Offset));
+            return (Simple, (Int, Controlling_Token_Line, Offset));
          end if;
 
       else
@@ -73,8 +74,7 @@ package body Wisi.Ada is
                   Tree,
                   Indenting_Token         => Record_Token,
                   Delta_Indent            => Indent_Anchored_2
-                    (Data,
-                     Anchor_Token.Line,
+                    (Data, Anchor_Token.Line,
                      Last_Line
                        (Record_Token,
                         Indenting_Comment => False),
@@ -587,7 +587,6 @@ package body Wisi.Ada is
       is begin
          return
            (Hanging,
-            Tree.Base_Token (Nonterm).Line,
             Hanging_First_Line  => Indenting_Token.Base.Line,
             Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
             Hanging_Delta_1     => Indent_Compute_Delta
@@ -599,7 +598,6 @@ package body Wisi.Ada is
       is begin
          return
            (Hanging,
-            Tree.Base_Token (Nonterm).Line,
             Hanging_First_Line  => Indenting_Token.Base.Line,
             Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
             Hanging_Delta_1     => Delta_1,
@@ -612,12 +610,12 @@ package body Wisi.Ada is
          --  In aspect_specification
          if not Indenting_Comment then
             return Result
-              (Delta_1 => Delta_1,
-               Delta_2 => Indent_Anchored_2
+              (Delta_1        => Delta_1,
+               Delta_2        => Indent_Anchored_2
                  (Data,
                   Anchor_Line => Indenting_Token.Base.Line,
-                  Last_Line => Indenting_Token.Aug.Last_Indent_Line,
-                  Offset => Current_Indent_Offset (Data, Indenting_Token.Base, 0)).Simple_Delta);
+                  Last_Line   => Indenting_Token.Aug.Last_Indent_Line,
+                  Offset      => Current_Indent_Offset (Data, Indenting_Token.Base, 0)).Simple_Delta);
          else
             --  Test case in test/aspects.ads
             return Result
@@ -690,6 +688,7 @@ package body Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
+      pragma Unreferenced (Nonterm);
       pragma Unreferenced (Data);
       pragma Unreferenced (Indenting_Comment);
       pragma Unreferenced (Args);
@@ -718,8 +717,9 @@ package body Wisi.Ada is
         +case_expression_alternative_ID
       then
          --  test/ada_mode-conditional_expressions.adb K; value expression in
-         --  if_expression is indented by ada-indent.
-         return (Simple, Tree.Base_Token (Nonterm).Line, (Int, Ada_Indent_Broken - Ada_Indent));
+         --  if_expression is indented by ada-indent. Invalid
+         --  Controlling_Token_Line, so this correction is always added.
+         return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
       else
          return Null_Delta;
       end if;

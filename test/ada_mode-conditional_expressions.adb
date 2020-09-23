@@ -22,7 +22,7 @@ procedure Ada_Mode.Conditional_Expressions is
                          2);
    K2a : Integer :=
      (if J > 42
-      --  comment
+      --  comment; compare to K3
       then -1
       else +1);
    K2b : Integer :=
@@ -34,7 +34,7 @@ procedure Ada_Mode.Conditional_Expressions is
 
    K3 : Integer := (if
                       J > 42
-                      --  comment
+                      --  comment; compare to K2a
                     then Foo
                       (-1)
                     else

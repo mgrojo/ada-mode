@@ -46,14 +46,7 @@ for ada_mode_wisi_parse.gpr:
 incremental parse
 
 use ada_annex_p.wy
-    wisi-bnf-generate take prev computed lalr, lr1 parse_table as input, use lr1 if lalr not changed
-        for only action change
-        => always output .txt
-
     running all tests
-        sorting out basic expression, function_call, assign indents
-        build/ada_mode-conditional_expressions.adb.diff
-        build/ada_mode-parens.adb.diff
 
 
     diff all tests against 3.1 release
@@ -888,6 +881,8 @@ do wisitoken release ../org.wisitoken/build/release_process.text
 update benchmarks above
 
 generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
+
+lr1 text rep file got significantly larger; ask about moving to external ELPA branch
 
 (dvc-status ".")
 

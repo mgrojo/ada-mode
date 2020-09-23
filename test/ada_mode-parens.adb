@@ -1,5 +1,3 @@
---EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
-
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
@@ -221,8 +219,6 @@ package body Ada_Mode.Parens is
         1.0 +
         2.0;
    end Function_3;
-
-   --EMACSCMD:(font-lock-ensure)
 
    --EMACSCMD:(test-face "Boolean" font-lock-type-face)
    --EMACSCMD:(progn (forward-line 4)(test-face "Boolean" font-lock-type-face))
