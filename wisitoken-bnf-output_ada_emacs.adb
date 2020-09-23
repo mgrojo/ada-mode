@@ -614,10 +614,12 @@ is
 
          function Indent_Function (Elisp_Name : in String) return String
          is begin
-            if    Elisp_Name = "wisi-anchored" then return "Anchored";
-            elsif Elisp_Name = "wisi-hanging"  then return "Hanging_0";
-            elsif Elisp_Name = "wisi-hanging%" then return "Hanging_1";
-            elsif Elisp_Name = "wisi-hanging*" then return "Hanging_2";
+            if    Elisp_Name = "wisi-anchored"  then return "Anchored_0";
+            elsif Elisp_Name = "wisi-anchored%" then return "Anchored_1";
+            elsif Elisp_Name = "wisi-block"     then return "Block";
+            elsif Elisp_Name = "wisi-hanging"   then return "Hanging_0";
+            elsif Elisp_Name = "wisi-hanging%"  then return "Hanging_1";
+            elsif Elisp_Name = "wisi-hanging*"  then return "Hanging_2";
             else
                Put_Error
                  (Error_Message
@@ -828,12 +830,26 @@ is
                      Args := Args & ", " & Ensure_Simple_Indent (Expression (Last + 1));
                      Last := Last + 1; -- get past ')'
                      return "(" & (-(Function_Name & ", " & Args)) & ")";
-                  else
-                     --  Arguments are 2 simple integer expressions; token offset
+
+                  elsif Function_Name = "Block" then
+                     --  Argument is 1 simple integer expression; delta
+                     Args := +Expression (Last + 1);
+                     Last := Last + 1; -- get past ')'
+                     return "(" & (-(Function_Name & ", " & Args)) & ")";
+
+                  elsif Slice (Function_Name, 1, 4) = "Anch" then
+                     --  Arguments are 2 simple integer expressions; token delta
                      Args := +Get_Label (Expression (Last + 1));
                      Args := Args & ", " & Expression (Last + 1);
                      Last := Last + 1; -- get past ')'
                      return "(" & (-(Function_Name & ", " & Args)) & ")";
+
+                  else
+                     Put_Error
+                       (Error_Message
+                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                           "unimplimented wisi indent function: '" & (-Function_Name) & "'"));
+                     return -Function_Name;
                   end if;
                end if;
 
