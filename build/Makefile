@@ -148,7 +148,7 @@ trace :
 ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).1
 
 INFO_ARCHIVE := arm_info-$(ZIP_VERSION).tar.gz
-SOURCE_ARCHIVE  := arm_info-$(ZIP_VERSION)-src.tar.gz
+SOURCE_ARCHIVE := arm_info-$(ZIP_VERSION)-src.tar.gz
 publish: $(INFO_ARCHIVE) $(SOURCE_ARCHIVE)
 
 # --no-name eliminates time stamps, which helps make the tarball reproducible
@@ -162,11 +162,9 @@ $(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
 clean::
 	rm -f $(INFO_ARCHIVE)
 
-ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc aarm* arm* \
-  *.stamp *.zip arm_form.exe _MTN .gitignore .dvc-exclude \
-  objects __pycache__
-$(SOURCE_ARCHIVE):
-	tar cf - -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form | gzip $(GZIP) -c > $@
+$(SOURCE_ARCHIVE): force
+	(cd .. && git archive --prefix=arm_info-$(ZIP_VERSION)-src/ org.adaic.arm_form *) | gzip $(GZIP) -c > $@
+
 clean::
 	rm -f $(SOURCE_ARCHIVE)
 
