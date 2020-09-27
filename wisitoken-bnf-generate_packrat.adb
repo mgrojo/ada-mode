@@ -283,7 +283,7 @@ is
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent_Line ("   Parser.Trace.Put_Line");
          Indent_Line ("     (Parser.Tree.Image (Result_Recurse.Result,");
-         Indent_Line ("      Include_Children => True, Terminal_Node_Numbers => True));");
+         Indent_Line ("      Children => True, Terminal_Node_Numbers => True));");
          Indent_Line ("end if;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
@@ -306,7 +306,7 @@ is
          Indent_Line ("Parser.Trace.Put_Line");
          Indent_Line ("  (Parser.Tree.Image");
          Indent_Line ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos_Index).Result,");
-         Indent_Line ("     Include_Children => True, Terminal_Node_Numbers => True));");
+         Indent_Line ("     Children => True, Terminal_Node_Numbers => True));");
          Indent := Indent - 3;
          Indent_Line ("end if;");
       end if;

@@ -216,11 +216,8 @@ catchClause_list
   ;
 nonterminal_054
   : T3=catchClause_list T4=finallyBlock
-    %((wisi-statement-action [1 statement-start]))%
   | T3=catchClause_list
-    %((wisi-statement-action [1 statement-start]))%
   | T5=finallyBlock
-    %((wisi-statement-action [1 statement-start]))%
   ;
 switchBlockStatementGroup_list
   : switchBlockStatementGroup

@@ -60,7 +60,12 @@ package body WisiToken.Parse.LR.Parser is
       --  tokens in it.
    begin
       if Trace_Parse > Detail then
-         Trace.Put_Line (Shared_Parser.Tree.Image (Nonterm, Children => True, Terminal_Node_Numbers => True));
+         Trace.Put_Line
+           (Shared_Parser.Tree.Image
+              (Nonterm,
+               Children              => True,
+               Terminal_Node_Numbers => True,
+               RHS_Index             => True));
       end if;
 
       if Action.Check = null then

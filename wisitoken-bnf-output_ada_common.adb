@@ -408,7 +408,8 @@ package body WisiToken.BNF.Output_Ada_Common is
    end Create_External_Main_Spec;
 
    procedure Create_LR_Parser_Core_1
-     (Common_Data   : in Output_Ada_Common.Common_Data;
+     (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
+      Common_Data   : in Output_Ada_Common.Common_Data;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       use Ada.Strings.Unbounded;
@@ -445,29 +446,31 @@ package body WisiToken.BNF.Output_Ada_Common is
       end Put;
 
    begin
-      Indent_Line ("McKenzie_Param : constant McKenzie_Param_Type :=");
-      Indent_Line ("  (First_Terminal    =>" & Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
-      Indent := Indent + 3;
-      Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
-      Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
-      Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
-      Put ("Insert", Table.McKenzie_Param.Insert);
-      Put ("Delete", Table.McKenzie_Param.Delete);
-      Put ("Push_Back", Table.McKenzie_Param.Push_Back);
-      Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
-      Indent_Line
-        ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
-      Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
-      Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
-      Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
-      Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
-                     (Table.McKenzie_Param.Task_Count) & ",");
-      Indent_Line ("Check_Limit =>" & Table.McKenzie_Param.Check_Limit'Image & ",");
-      Indent_Line ("Zombie_Limit =>" & Table.McKenzie_Param.Zombie_Limit'Image & ",");
-      Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
-      Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
-      Indent := Indent - 3;
-      New_Line;
+      if Input_Data.Language_Params.Error_Recover then
+         Indent_Line ("McKenzie_Param : constant McKenzie_Param_Type :=");
+         Indent_Line ("  (First_Terminal    =>" & Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
+         Indent := Indent + 3;
+         Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
+         Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
+         Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
+         Put ("Insert", Table.McKenzie_Param.Insert);
+         Put ("Delete", Table.McKenzie_Param.Delete);
+         Put ("Push_Back", Table.McKenzie_Param.Push_Back);
+         Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
+         Indent_Line
+           ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
+         Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
+         Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
+         Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
+         Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
+                        (Table.McKenzie_Param.Task_Count) & ",");
+         Indent_Line ("Check_Limit =>" & Table.McKenzie_Param.Check_Limit'Image & ",");
+         Indent_Line ("Zombie_Limit =>" & Table.McKenzie_Param.Zombie_Limit'Image & ",");
+         Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
+         Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
+         Indent := Indent - 3;
+         New_Line;
+      end if;
 
       if Common_Data.Text_Rep then
          Indent_Line ("function Actions return WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector");
@@ -787,8 +790,9 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Indent_Line ("use WisiToken.Parse.LR;");
 
+      Create_LR_Parser_Core_1 (Input_Data, Common_Data, Generate_Data);
+
       if Common_Data.Text_Rep then
-         Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
          Indent_Line ("Table : constant Parse_Table_Ptr := Get_Text_Rep");
          Indent_Line ("  (Text_Rep_File_Name, Actions);");
          Indent := Indent - 3;
@@ -796,10 +800,6 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent := Indent + 3;
 
       else
-         if Input_Data.Language_Params.Error_Recover then
-            Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
-         end if;
-
          Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
          Indent_Line ("  (State_First       => 0,");
          Indent := Indent + 3;

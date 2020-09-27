@@ -29,13 +29,10 @@ with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_No_Recover is
 
-   Default_Max_Parallel : constant := 15;
-
    type Parser is new WisiToken.Parse.Base_Parser with record
       Table   : Parse_Table_Ptr;
       Parsers : aliased Parser_Lists.List;
 
-      Max_Parallel         : SAL.Base_Peek_Type;
       First_Parser_Label   : Integer;
       Terminate_Same_State : Boolean; -- IMPROVEME: delete, never set False
    end record;

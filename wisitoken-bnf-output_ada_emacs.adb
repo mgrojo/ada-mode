@@ -1031,11 +1031,12 @@ is
                   end;
                end loop;
 
-               if Token_I /= RHS.Tokens.Last_Index + 1 or
-                 (not RHS.Edited_Token_List and Has_Element (Param_Cur))
+               if (not RHS.Edited_Token_List or Prod_ID.RHS = 0) and then
+                     (Token_I /= RHS.Tokens.Last_Index + 1 or Has_Element (Param_Cur))
                then
                   --  We don't check 'Has_Element (Param_Cur)' when edited_token_list
-                  --  because we expect to have more params than tokens.
+                  --  and RHS_Index /= 0, because we expect to have more params than
+                  --  tokens. RHS_Index = 0 always has all optional tokens.
                   Put_Error
                     (Error_Message
                        (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &

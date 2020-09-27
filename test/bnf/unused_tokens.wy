@@ -1,4 +1,4 @@
-;; Wisent grammar with unused tokens, to test unused token reporting
+;; Grammar with unused tokens, to test unused token reporting
 
 %code actions spec context %{with WisiToken.Token_Region;}%
 

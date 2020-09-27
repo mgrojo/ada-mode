@@ -34,3 +34,4 @@ build/*.bbl
 build/*.blg
 build/*.xcp
 build/*.ps
+build/*.errors

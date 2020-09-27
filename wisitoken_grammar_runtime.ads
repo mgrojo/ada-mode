@@ -90,8 +90,7 @@ package WisiToken_Grammar_Runtime is
       --  Translate_EBNF_To_BNF
 
       Edited_Token_List : Boolean := False;
-      --  Valid in an RHS node; True when RHS is copied from another, with
-      --  an edited token list. Token labels are from original list.
+      --  Valid in an RHS node; matches Wisitoken.BNF RHS.Edited_Token_List
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;

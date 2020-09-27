@@ -1521,17 +1521,14 @@ package body WisiToken_Grammar_Editing is
       end Convert_RHS_Alternative;
 
       procedure New_Nonterminal
-        (Label             : in String;
-         New_Identifier    : in Identifier_Index;
-         Content           : in Valid_Node_Access;
-         Post_Parse_Action : in Node_Access := Invalid_Node_Access;
-         In_Parse_Action   : in Node_Access := Invalid_Node_Access)
+        (Label          : in String;
+         New_Identifier : in Identifier_Index;
+         Content        : in Valid_Node_Access)
       with Pre => To_Token_Enum (Tree.ID (Content)) in rhs_alternative_list_ID | rhs_element_ID
       --  Convert subtree rooted at Content to an rhs_list contained by a new nonterminal
       --  named New_Identifier.
       --
-      --  Post_Parse_Action, _2 are not copied for the first RHS; they are copied
-      --  for any more in an rhs_alternative_list_ID.
+      --  We don't copy actions to a new nonterminal; they will not make sense.
       is
          Child_1 : constant Valid_Node_Access := Tree.Add_Identifier
            (+IDENTIFIER_ID, New_Identifier, Tree.Byte_Region (Content));
@@ -1540,10 +1537,9 @@ package body WisiToken_Grammar_Editing is
 
          Child_3 : constant Valid_Node_Access :=
            (case To_Token_Enum (Tree.ID (Content)) is
-            when rhs_element_ID          => To_RHS_List
-              (Content, Get_RHS_Auto_Token_Labels (Content), Post_Parse_Action, In_Parse_Action),
+            when rhs_element_ID          => To_RHS_List (Content, Get_RHS_Auto_Token_Labels (Content)),
             when rhs_alternative_list_ID => Convert_RHS_Alternative
-              (Content, Get_RHS_Auto_Token_Labels (Content), Post_Parse_Action, In_Parse_Action),
+              (Content, Get_RHS_Auto_Token_Labels (Content)),
             when others => raise SAL.Programmer_Error);
 
          Child_4 : constant Valid_Node_Access := Tree.Add_Nonterm
@@ -1819,10 +1815,7 @@ package body WisiToken_Grammar_Editing is
       begin
          if Found_Unit = Invalid_Node_Access then
             New_Ident := Next_Nonterm_Name;
-            New_Nonterminal
-              ("group item", New_Ident, Tree.Child (Node, 2),
-               Post_Parse_Action => Tree.Copy_Subtree (Tree.Child (RHS, 2), Data_Access),
-               In_Parse_Action   => Tree.Copy_Subtree (Tree.Child (RHS, 3), Data_Access));
+            New_Nonterminal ("group item", New_Ident, Tree.Child (Node, 2));
          else
             declare
                Name_Node : constant Node_Access := Tree.Child (Tree.Child (Found_Unit, 1), 1);

@@ -370,7 +370,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                         exit when Conflict = null;
                         --  Spawn a new parser (before modifying Current_Parser stack).
 
-                        if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                               Token        : constant Base_Token := Shared_Parser.Tree.Base_Token
@@ -381,7 +381,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
-                                   SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                                   SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
                            end;
                         else
                            if Trace_Parse > Outline then

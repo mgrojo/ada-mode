@@ -19,11 +19,12 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases; use AUnit.Test_Cases;
-with Ada.Strings.Unbounded;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
+with Ada.Strings.Unbounded;
+with BNF_WY_Errors_Test;
+with BNF_WY_Test;
 with Test_Generate_Errors;
 with Test_LR1_Parallel;
-with BNF_WY_Test;
 with WisiToken.BNF;
 function Test_BNF_Suite
   (EBNF_Only     : in Boolean;
@@ -48,6 +49,8 @@ begin
      (Suite, Test_Case_Access'
         (new Test_Generate_Errors.Test_Case
            (+"../test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
+
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"indent_param_count.wy")));
 
    if not EBNF_Only then
       Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null, Limit_Gen_Alg)));
