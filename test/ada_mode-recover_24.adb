@@ -25,9 +25,9 @@ package body Ada_Mode.Recover_24 is
       Local_Config_Heap.Add (Parsed_Config);
    end if;
 
-end;
+   end;
 end loop;
-return Abandon;
+   return Abandon;
 end Fast_Forward;
 
 end Ada_Mode.Recover_24;

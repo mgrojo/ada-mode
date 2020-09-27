@@ -76,19 +76,6 @@ package Wisi.Ada is
      return Boolean;
 
    overriding
-   function Indent_Hanging_1
-     (Data              : in out Parse_Data_Type;
-      Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Indenting_Comment : in     Boolean;
-      Delta_1           : in     Simple_Indent_Param;
-      Delta_2           : in     Simple_Indent_Param;
-      Label             : in     Hanging_Label)
-     return Delta_Type;
-
-   overriding
    procedure Refactor_Help (Data : in Parse_Data_Type);
 
    overriding
@@ -112,6 +99,18 @@ package Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
    --  ada-indent-aggregate
+   --  Args: none
+
+   function Ada_Indent_Aspect
+     (Data              : in out Wisi.Parse_Data_Type'Class;
+      Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi.Indent_Arg_Arrays.Vector)
+     return Delta_Type;
+   --  ada-indent-aspect
    --  Args: none
 
    function Ada_Indent_Renames_0

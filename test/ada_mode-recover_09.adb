@@ -29,9 +29,9 @@ procedure Ada_Mode.Recover_9 is
 
       --  missing end quote
       Indent_Line ("Parser.Trace.Put_Line
-                     ("accept: Memo " & Parser.Tree.Image
-                        (Parser.Derivs (Accept_Id)(Start_Pos).Result, Parser.Trace.Descriptor.all,
-                         Include_Children => True)); -- missing right paren
+        ("accept: Memo " & Parser.Tree.Image
+           (Parser.Derivs (Accept_Id)(Start_Pos).Result, Parser.Trace.Descriptor.all,
+            Include_Children => True)); -- missing right paren
 
       --  These lines should be in Indent_Line("...");
    end if;

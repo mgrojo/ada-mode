@@ -982,8 +982,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   raise Bad_Config;
                end if;
 
-               case To_Token_Enum (New_Config_1.Stack.Peek (3).Token.ID) is
-               when COLON_ID =>
+               if New_Config_1.Stack.Peek (3).Token.ID = +declarative_part_ID then
+                  --  'declare' is present; case 2
+                  Insert (New_Config_1, +END_ID);
+                  Local_Config_Heap.Add (New_Config_1);
+               else
                   --  no 'declare'; either case 1 or 2, so enqueue both
 
                   declare
@@ -1023,20 +1026,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   --  for case 2; let Minimal_Complete_Actions finish insert.
 
                   Local_Config_Heap.Add (New_Config_1);
-
-               when declarative_part_ID =>
-                  --  'declare' is present; case 2
-                  Insert (New_Config_1, +END_ID);
-                  Local_Config_Heap.Add (New_Config_1);
-
-               when others =>
-                  if Trace_McKenzie > Outline then
-                     Put ("Language_Fixes " & Label & " missing case 2 " & Image
-                            (New_Config_1.Stack.Peek (3).Token.ID, Descriptor), Config);
-                     Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
-                  end if;
-                  raise Bad_Config;
-               end case;
+               end if;
 
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label, New_Config_1);

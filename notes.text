@@ -47,7 +47,9 @@ incremental parse
 
 use ada_annex_p.wy
     running all tests
+        ada gpr_query done
 
+    gpr-skel.gpr nil indent for line 5
 
     diff all tests against 3.1 release
         document changes

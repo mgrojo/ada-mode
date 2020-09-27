@@ -1430,12 +1430,14 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	    (delete-char 1)))
 	(dolist (id (wisi--parse-error-repair-inserted repair))
 	  (when (and (not (bobp))
-		     (not (= ?\( (char-before (point))))
 		     (member (syntax-class (syntax-after (1- (point)))) '(2 3))) ;; word or symbol
 	    (insert " "))
-	  (insert (cdr (assoc id (wisi-parser-repair-image wisi--parser)))))
-	))
-     )))
+	  (insert (cdr (assoc id (wisi-parser-repair-image wisi--parser))))
+	  (when (and (not (eobp))
+		     (member (syntax-class (syntax-after (point))) '(2 3))) ;; word or symbol
+	    (insert " "))
+	  ))
+      ))))
 
 (defun wisi-repair-error ()
   "Repair the current error."

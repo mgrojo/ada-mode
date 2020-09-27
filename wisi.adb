@@ -163,7 +163,10 @@ package body Wisi is
             Anchor_Int_Indent      => Offset);
 
       when Anchor_Int =>
-         if Controlling_Token_Line /= Indent.Controlling_Token_Line then
+         if Controlling_Token_Line = Invalid_Line_Number or
+           Indent.Controlling_Token_Line = Invalid_Line_Number or
+           Controlling_Token_Line /= Indent.Controlling_Token_Line
+         then
             Indent.Controlling_Token_Line := Controlling_Token_Line;
             Indent.Anchor_Int_Indent := Indent.Anchor_Int_Indent + Offset;
          end if;
@@ -1912,7 +1915,8 @@ package body Wisi is
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
                         Ada.Text_IO.Put_Line
-                          (";; indent_action_0 comment: " & Tree.Image (Tree_Token) & ": " & Image (Comment_Param));
+                          (";; indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
+                             Image (Comment_Param));
                      end if;
 
                      Comment_Delta := Indent_Compute_Delta

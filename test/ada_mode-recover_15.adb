@@ -41,9 +41,9 @@ package body Wisitoken.Lr.Parser is
             end if;
 
          end if; --  error here; missing 'if then'
-      end loop;
-end loop Main_Loop;
+         end loop;
+      end loop Main_Loop;
 
-end Parse;
+   end Parse;
 
 end Wisitoken.Lr.Parser;

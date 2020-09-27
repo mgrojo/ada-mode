@@ -33,9 +33,10 @@ package Ada_Mode.Parens is
       Param_4,
         Param_5 : in
         out Integer; -- who would do this!?
-      Param_6
+      Param_6,
+        Param_7
         : in Float
-        := 1.0)
+          := 1.0)
      return Float;
 
    type Array_Type_1 is array (1 .. 3) of Integer;

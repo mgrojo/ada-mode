@@ -5,6 +5,16 @@ procedure Ada_Mode.Conditional_Expressions is
    subtype Bounded is Integer range -1 .. +1;
    J : Integer := 42;
 
+   function Foo (I : in Integer) return Integer
+   is begin
+      return I;
+   end Foo;
+
+   function Foo_2 (I, J : in Integer) return Integer
+   is begin
+      return I;
+   end Foo_2;
+
    K0a : Integer := Integer'(if J > 42 then -1 else +1);
    K0b : Integer := Integer'((if J > 42 then -1 else +1));
 
@@ -132,19 +142,19 @@ begin
             else 45)); -- comment _not_ matching GNAT style check
                         -- comment matching GNAT
 
-   A :=
-     (if B
-      then Add_Nonterm
-        ((+Token_Keyword_Non_Grammar_Id, 0),
-         (1 => Add_Identifier (Keyword_Id)))
+   K :=
+     (if M
+      then Foo_2
+        (1,
+         2)
       -- comment
-      elsif C
+      elsif M
       then
-         A +
+         1 +
            1
       else
-         A
-           + 1);
+         1
+           + 2);
 
 end Ada_Mode.Conditional_Expressions;
 --  Local Variables:

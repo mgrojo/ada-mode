@@ -10,4 +10,4 @@ is
    pragma Unreferenced (Junk);
    begin
       null;
-   end Push;
+end Push;

@@ -566,71 +566,6 @@ package body Wisi.Ada is
    end Insert_After;
 
    overriding
-   function Indent_Hanging_1
-     (Data              : in out Parse_Data_Type;
-      Tree              : in     Syntax_Trees.Tree;
-      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Access;
-      Indenting_Comment : in     Boolean;
-      Delta_1           : in     Simple_Indent_Param;
-      Delta_2           : in     Simple_Indent_Param;
-      Label             : in     Hanging_Label)
-     return Delta_Type
-   is
-      use Ada_Annex_P_Process_Actions;
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
-      Indenting_Token : constant Augmented_Token := Get_Augmented_Token (Tree, Tree_Indenting);
-
-      function Result (Delta_1 : in Simple_Indent_Param; Delta_2 : in Simple_Delta_Type) return Delta_Type
-      is begin
-         return
-           (Hanging,
-            Hanging_First_Line  => Indenting_Token.Base.Line,
-            Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
-            Hanging_Delta_1     => Indent_Compute_Delta
-              (Data, Tree, Nonterm, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta,
-            Hanging_Delta_2     => Delta_2);
-      end Result;
-
-      function Result (Delta_1 : in Simple_Delta_Type) return Delta_Type
-      is begin
-         return
-           (Hanging,
-            Hanging_First_Line  => Indenting_Token.Base.Line,
-            Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
-            Hanging_Delta_1     => Delta_1,
-            Hanging_Delta_2     => Delta_1);
-      end Result;
-   begin
-      if Tree.ID (Tree.Parent (Tree_Indenting)) = +aspect_association_ID and then
-        Syntax_Trees.Invalid_Node_Access /= Tree.Find_Ancestor (Tree_Indenting, +aspect_specification_ID)
-      then
-         --  In aspect_specification
-         if not Indenting_Comment then
-            return Result
-              (Delta_1        => Delta_1,
-               Delta_2        => Indent_Anchored_2
-                 (Data,
-                  Anchor_Line => Indenting_Token.Base.Line,
-                  Last_Line   => Indenting_Token.Aug.Last_Indent_Line,
-                  Offset      => Current_Indent_Offset (Data, Indenting_Token.Base, 0)).Simple_Delta);
-         else
-            --  Test case in test/aspects.ads
-            return Result
-              (Indent_Compute_Delta
-                 (Data, Tree, Nonterm, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta);
-         end if;
-
-      else
-         return Indent_Hanging_1
-           (Wisi.Parse_Data_Type (Data), Tree, Nonterm, Tokens, Tree_Indenting, Indenting_Comment, Delta_1, Delta_2,
-            Label);
-      end if;
-   end Indent_Hanging_1;
-
-   overriding
    procedure Refactor_Help (Data : in Parse_Data_Type)
    is
       use Standard.Ada.Text_IO;
@@ -724,6 +659,49 @@ package body Wisi.Ada is
          return Null_Delta;
       end if;
    end Ada_Indent_Aggregate;
+
+   function Ada_Indent_Aspect
+     (Data              : in out Wisi.Parse_Data_Type'Class;
+      Tree              : in     Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens            : in     Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Access;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi.Indent_Arg_Arrays.Vector)
+     return Delta_Type
+   is
+      pragma Unreferenced (Nonterm, Tokens, Args);
+
+      use all type SAL.Base_Peek_Type;
+      use Ada_Annex_P_Process_Actions;
+      use all type WisiToken.Syntax_Trees.Node_Access;
+
+      pragma Assert (Tree.ID (Tree_Indenting) = +aspect_definition_ID);
+
+      Anchor_Token    : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Child (Tree.Parent (Tree_Indenting), 2));
+      Indenting_Token : constant Augmented_Token      := Get_Augmented_Token (Tree, Tree_Indenting);
+   begin
+      if Indenting_Token.Base.Line = Indenting_Token.Aug.First_Indent_Line then
+         --  aspect_definition starts a line; anchor the aspect_definition to
+         --  the line containing '=>' with offset ada_indent_broken.
+         return
+           (Simple,
+            Indent_Anchored_2
+              (Data,
+               Anchor_Line => Anchor_Token.Line,
+               Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+               Offset      => Ada_Indent_Broken).Simple_Delta);
+      else
+         --  aspect_definition starts on same line as '=>'; anchor the aspect_definition to '=>' with offset 3
+         return
+           (Simple,
+            Indent_Anchored_2
+              (Data,
+               Anchor_Line => Anchor_Token.Line,
+               Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+               Offset      => Current_Indent_Offset (Data, Anchor_Token, 3)).Simple_Delta);
+      end if;
+   end Ada_Indent_Aspect;
 
    function Ada_Indent_Renames_0
      (Data              : in out Wisi.Parse_Data_Type'Class;

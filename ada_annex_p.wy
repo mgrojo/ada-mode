@@ -186,6 +186,7 @@ tick : TICK_1 | TICK_2 ;
 
 ;;            function name        Ada function   arg_count token_index args
 %elisp_indent ada-indent-aggregate Ada_Indent_Aggregate   0
+%elisp_indent ada-indent-aspect    Ada_Indent_Aspect      0
 %elisp_indent ada-indent-renames   Ada_Indent_Renames_0   1 1
 %elisp_indent ada-indent-return    Ada_Indent_Return_0    2 1
 %elisp_indent ada-indent-record    Ada_Indent_Record_0    3 1 2
@@ -305,6 +306,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT assoc_expression | REDUCE selector_name_list on token EQUAL_GREATER
 %conflict SHIFT at_clause | REDUCE name on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
+%conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
 %conflict SHIFT attribute_designator | REDUCE attribute_designator on token LEFT_PAREN
 %conflict SHIFT binary_adding_operator | REDUCE simple_expression on token AMPERSAND
 %conflict SHIFT binary_adding_operator | REDUCE simple_expression on token MINUS
@@ -329,6 +331,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list | REDUCE direct_name on token COLON
 %conflict SHIFT package_body_stub | REDUCE direct_name on token IS
+%conflict SHIFT parallel_block_statement | REDUCE label_opt on token PARALLEL
 %conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
 %conflict SHIFT range_constraint | REDUCE delta_constraint on token RANGE
 %conflict SHIFT range_constraint | REDUCE digits_constraint on token RANGE
@@ -458,7 +461,6 @@ type_definition
   : enumeration_type_definition
   | integer_type_definition
   | real_type_definition
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | array_type_definition
   | record_type_definition
   | access_type_definition
@@ -471,8 +473,10 @@ subtype_declaration
     %((wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 nil font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging ada-indent-broken (* 2 ada-indent-broken))
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                               ;; test/adacore_9717_001.ads Another_Long_Name
+                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               nil
                                ada-indent-broken]))%
   ;
 
@@ -486,7 +490,6 @@ subtype_indication
 
 constraint
   : scalar_constraint
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | composite_constraint
   ;
 
@@ -505,21 +508,24 @@ object_declaration
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
   | defining_identifier_list ':' ['aliased'] ['constant'] access_definition [assign_value]
     [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
   | defining_identifier_list ':' ['aliased'] ['constant'] array_type_definition [assign_value]
       [aspect_specification]';'
     %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
   | single_task_declaration
   | single_protected_declaration
@@ -536,7 +542,8 @@ number_declaration
   : defining_identifier_list ':' 'constant' assign_value ';'
     %((wisi-statement-action [1 statement-start 5 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 4 ada-indent-broken)
+                                              (wisi-anchored% 4 (* 2 ada-indent-broken)))
                                ada-indent-broken]))%
   ;
 
@@ -604,9 +611,7 @@ constrained_array_definition
 
 discrete_subtype_definition
   : subtype_indication
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | range_g
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   ;
 
 component_definition ::=
@@ -643,11 +648,13 @@ known_discriminant_part
 discriminant_specification
   : defining_identifier_list ':' [null_exclusion] name [assign_value]
     %((wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-hanging% (wisi-anchored% 4 ada-indent-broken)
+                                              (wisi-anchored% 4 (* 2 ada-indent-broken)))]))%
   | defining_identifier_list ':' access_definition [assign_value]
-      %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                                 (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+      %((wisi-indent-action [nil ada-indent-broken ada-indent-broken
+                                 (wisi-hanging% (wisi-anchored% 3 ada-indent-broken)
+                                                (wisi-anchored% 3 (* 2 ada-indent-broken)))]))%
   ;
 
 ;; default_expression ::= expression ;;:inlined
@@ -699,7 +706,8 @@ component_declaration
   : defining_identifier_list ':' component_definition [assign_value] [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 3 ada-indent-broken)
+                                              (wisi-anchored% 3 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
   ;
 
@@ -776,14 +784,14 @@ access_to_subprogram_definition
     ;; type Procedure_Access_Type_8 is access
     ;;   protected procedure
     ;;     (A_Param : out Integer);
-    %((wisi-indent-action [nil ada-indent-broken]))%
-  | 'function'  parameter_and_result_profile ;;:edited
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
+  | 'function' parameter_and_result_profile ;;:edited
     ;; test/ada_mode-nominal.ads
     ;; type Function_Access_Type_10 is access
     ;;   protected function
     ;;     (A_Param : in Float)
     ;;     return Standard.Float;
-    %((wisi-indent-action [nil ada-indent-broken]))%
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
 null_exclusion ::= 'not' 'null'
@@ -793,10 +801,10 @@ access_definition
     %((wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face]))%
 
   | [null_exclusion] 'access' ['protected'] 'procedure' parameter_profile
-    %((wisi-indent-action [nil nil nil nil ada-indent-broken]))%
+    %((wisi-indent-action [nil nil nil nil (wisi-anchored% 4 ada-indent-broken)]))%
 
   | [null_exclusion] 'access' ['protected'] 'function' parameter_and_result_profile
-    %((wisi-indent-action [nil nil nil nil ada-indent-broken]))%
+    %((wisi-indent-action [nil nil nil nil (wisi-anchored% 4 ada-indent-broken)]))%
   ;
 
 incomplete_type_declaration
@@ -876,12 +884,15 @@ explicit_dereference : name '.' 'all' ;
 ;; indexed_component ;;:redundant with function_call
 ;; ::= name '(' expression {',' expression} ')'
 
-slice : name '(' discrete_range ')' ;
+slice
+  : name '(' discrete_range ')'
+    %((wisi-indent-action [nil nil (wisi-anchored 2 1) (wisi-anchored 2 0)]))%
+  ;
 
 selected_component
   : name '.' selector_name
     %((wisi-face-mark-action [1 prefix 3 suffix])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken]))%
+      ;; higher level productions should apply hanging indent to names)%
     %((wisi-merge-names 1 3))%
   ;
 
@@ -1134,6 +1145,7 @@ XOR_relation_list
   ;
 
 expression
+  ;; containing productions should apply hanging indent
   : relation ;;:new to reduce conflicts
   | relation AND_relation_list
   | relation AND_THEN_relation_list
@@ -1236,7 +1248,7 @@ if_expression
                            ;; test/ada_mode-conditional_expressions.adb A := (if B ...
                            (wisi-hanging* ada-indent ada-indent-broken)
                            nil nil
-                           (wisi-hanging* (wisi-block ada-indent) ada-indent-broken)]))%
+                           (wisi-hanging* ada-indent ada-indent-broken)]))%
   ;
 
 condition : expression ;
@@ -1319,8 +1331,9 @@ reduction_specification
 
 qualified_expression
   : name tick aggregate
-    %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))%
-  ;; hanging indent is applied in a containing production
+    %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face])
+      ;; test/indent.ads C_S_Controls, test/ada_mode-long_paren.adb Packet := new Packet_Type'
+      (wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken) (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
 allocator
@@ -1382,7 +1395,10 @@ statement_identifier ::= direct_name
 assignment_statement
   : name assign_value ';'
     %((wisi-statement-action [1 statement-start 3 statement-end])
-      (wisi-indent-action [nil (wisi-hanging* ada-indent-broken ada-indent-broken) ada-indent-broken]))%
+      (wisi-indent-action [(wisi-hanging nil ada-indent-broken)
+                           (wisi-hanging% (wisi-anchored% 1 ada-indent-broken)
+                                          (wisi-anchored% 1 (* 2 ada-indent-broken)))
+                           ada-indent-broken]))%
   ;
 
 target_name ::= '@'
@@ -1436,12 +1452,12 @@ case_statement_alternative
   ;
 
 loop_statement
-  : [statement_identifier ':'] [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
-    %((wisi-statement-action [1 statement-start 3 statement-override 4 motion 9 statement-end])
-      (wisi-motion-action [3 4 9])
-      (wisi-indent-action [ada-indent-label nil nil nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken
-                                            ada-indent-broken]))%
-    %((wisi-match-names 1 8))%
+  : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
+    %((wisi-statement-action [1 statement-start 2 statement-override 3 motion 8 statement-end])
+      (wisi-motion-action [2 3 8])
+      (wisi-indent-action [ada-indent-label nil nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken
+                                            ada-indent-broken ada-indent-broken]))%
+    %((wisi-match-names 1 7))%
   ;
 
 iteration_scheme
@@ -1504,15 +1520,21 @@ parameter_association_with_box ::= [ selector_name '=>' ] '<>'
 identifier_opt ;;:new; split out from block_statement and other named statements for wisi-match-names
   : [IDENTIFIER] ;
 
+label_opt ;;:new; split out from block_statement for match_names
+  : [statement_identifier ':']
+    %()%
+    %((wisi-propagate-name 1))%
+  ;
+
 block_statement
-  : [statement_identifier ':'] ['declare' declarative_part] 'begin' handled_sequence_of_statements
+  : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
     'end' identifier_opt ';'
-    %((wisi-statement-action [1 statement-start 3 statement-override 5 statement-override 9 statement-end])
-      (wisi-motion-action [1 3 5 [6 WHEN] 9])
-      (wisi-indent-action [ada-indent-label nil nil [(wisi-block ada-indent) ada-indent] nil
+    %((wisi-statement-action [1 statement-start 2 statement-override 4 statement-override 8 statement-end])
+      (wisi-motion-action [1 2 4 [5 WHEN] 8])
+      (wisi-indent-action [ada-indent-label nil [(wisi-block ada-indent) ada-indent] nil
                                             [(wisi-block ada-indent) ada-indent]
                                             nil ada-indent-broken ada-indent-broken]))%
-    %((wisi-match-names 1 8))%
+    %((wisi-match-names 1 7))%
   ;
 
 statement_AND_list
@@ -1598,14 +1620,18 @@ parameter_profile ::= [formal_part]
 result_profile
   : 'return' [null_exclusion] name
     %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil
+                           (wisi-anchored% 1 ada-indent-broken)
+                           (wisi-hanging
+                            (wisi-anchored% 1 ada-indent-broken)
+                            (wisi-anchored% 1 ada-indent-broken))]))%
   | 'return' access_definition
  ;; test/ada_mode-nominal.adb
  ;; function Function_Access_1
  ;;   (A_Param : in Float)
  ;;   return access
  ;;     Standard.Float
-    %((wisi-indent-action [nil ada-indent-broken]))%
+    %((wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
 parameter_and_result_profile
@@ -1629,11 +1655,15 @@ parameter_specification
     %((wisi-face-apply-action [6 font-lock-function-name-face font-lock-type-face])
       (wisi-indent-action [nil
                            ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                           (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           ada-indent-broken (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+                           ;; test/ada_mode-parens.ads Function_1
+                           (wisi-hanging (wisi-anchored% 4 ada-indent-broken)
+                                         (wisi-anchored% 4 ada-indent-broken))
+                           (wisi-hanging% (wisi-anchored% 6 ada-indent-broken)
+                                          (wisi-anchored% 6 (* 2 ada-indent-broken)))]))%
   | defining_identifier_list ':' access_definition [assign_value]
     %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+                               (wisi-hanging% (wisi-anchored% 3 ada-indent-broken)
+                                              (wisi-anchored% 3 (* 2 ada-indent-broken)))]))%
   ;
 
 mode : ['in'] | 'in' 'out' | 'out' ;
@@ -1673,8 +1703,8 @@ subprogram_body
     %((wisi-statement-action [1 statement-start 2 statement-override 4 motion 6 motion 10 statement-end])
       (wisi-motion-action [1 2 4 6 [7 WHEN] 10])
       (wisi-face-apply-action [9 font-lock-function-name-face font-lock-function-name-face])
-      (wisi-indent-action [nil nil nil nil [ada-indent ada-indent]
-                             nil [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil nil nil nil [(wisi-block ada-indent) ada-indent]
+                             nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 2 9))%
   ;
 
@@ -1742,8 +1772,9 @@ simple_return_statement
 
 extended_return_object_declaration
   : IDENTIFIER ':' ['aliased'] ['constant'] return_subtype_indication [assign_value]
-    %((wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+    %((wisi-indent-action [nil nil ada-indent-broken ada-indent-broken ada-indent-broken
+                               (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                              (wisi-anchored% 5 (* 2 ada-indent-broken)))]))%
   ;
 
 extended_return_statement
@@ -1807,8 +1838,8 @@ package_specification
                                  9 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [nil
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           nil nil [ada-indent ada-indent] nil
-                           [ada-indent ada-indent] nil
+                           nil nil [(wisi-block ada-indent) ada-indent] nil
+                           [(wisi-block ada-indent) ada-indent] nil
                            (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
     %((wisi-match-names 2 9))%
   ;
@@ -1825,8 +1856,8 @@ package_body
       (wisi-indent-action [nil
                            ada-indent-broken
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           nil nil [ada-indent ada-indent]
-                           nil [ada-indent ada-indent] nil
+                           nil nil [(wisi-block ada-indent) ada-indent]
+                           nil [(wisi-block ada-indent) ada-indent] nil
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            ada-indent-broken]))%
     %((wisi-match-names 3 10))%
@@ -2023,8 +2054,8 @@ task_body
       (wisi-name-action 3)
       (wisi-face-apply-action [3 nil font-lock-type-face 10 nil font-lock-type-face])
       (wisi-motion-action [1 5 7 [8 WHEN] 11])
-      (wisi-indent-action [nil nil ada-indent-broken nil nil [ada-indent ada-indent]
-                               nil [ada-indent ada-indent] nil ada-indent-broken ada-indent-broken]))%
+      (wisi-indent-action [nil nil ada-indent-broken nil nil [(wisi-block ada-indent) ada-indent]
+                               nil [(wisi-block ada-indent) ada-indent] nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 3 10))%
   ;
 
@@ -2088,8 +2119,8 @@ protected_body
       (wisi-name-action 3)
       (wisi-motion-action [1 5 9])
       (wisi-face-apply-action [3 nil font-lock-type-face 8 nil font-lock-type-face])
-      (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil nil ada-indent nil ada-indent-broken
-                               ada-indent-broken]))%
+      (wisi-indent-action [nil ada-indent-broken ada-indent-broken nil nil [(wisi-block ada-indent) ada-indent]
+                               nil ada-indent-broken ada-indent-broken]))%
     %((wisi-match-names 3 8))%
   ;
 
@@ -2162,7 +2193,7 @@ entry_body_formal_part
 entry_barrier
   : 'when' condition
     %((wisi-statement-action [1 motion])
-      (wisi-indent-action [nil ada-indent-broken]))%
+      (wisi-indent-action [nil (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
   ;
 
 entry_index_specification ::= 'for' IDENTIFIER 'in' discrete_subtype_definition
@@ -2413,7 +2444,8 @@ exception_handler
   : 'when' [choice_parameter_specification ':'] exception_choice_list '=>' sequence_of_statements
     %((wisi-statement-action [1 motion])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                             [ada-indent ada-indent]]))%
+                               ;; test/ada_mode-recover_30.adb Initialize exception handler
+                               [(wisi-block ada-indent) ada-indent]]))%
     ;
 
 choice_parameter_specification ::= IDENTIFIER
@@ -2433,10 +2465,12 @@ raise_statement
       ;; raise Constraint_Error
       ;;   with Integer'Image (1) &
       ;;   "help!";
+      ;;
+      ;; test/ada_mode-recover_30.adb Initialize exception handler
       (wisi-indent-action [nil
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            ada-indent-broken
-                           ada-indent-broken
+                           ada-indent-broken ;; _not_ hanging; an exception to the rule
                            ada-indent-broken]))%
   ;
 
@@ -2463,7 +2497,7 @@ generic_package_declaration
 generic_formal_part
   : 'generic' {generic_formal_parameter_declaration}
     %((wisi-statement-action [1 statement-start])
-      (wisi-indent-action [nil ada-indent]))%
+      (wisi-indent-action [nil (wisi-block ada-indent)]))%
   ;
 
 generic_formal_parameter_declaration
@@ -2542,12 +2576,14 @@ formal_object_declaration
       (wisi-indent-action [nil
                            ada-indent-broken ada-indent-broken ada-indent-broken
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           (wisi-hanging* ada-indent-broken ada-indent-broken)
+                           (wisi-hanging% (wisi-anchored% 5 ada-indent-broken)
+                                          (wisi-anchored% 5 (* 2 ada-indent-broken)))
                            ada-indent-broken ada-indent-broken]))%
   | defining_identifier_list ':' mode access_definition [assign_value] [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
-                               (wisi-hanging* ada-indent-broken ada-indent-broken)
+                               (wisi-hanging% (wisi-anchored% 4 ada-indent-broken)
+                                              (wisi-anchored% 4 (* 2 ada-indent-broken)))
                                ada-indent-broken ada-indent-broken]))%
   ;
 
@@ -2569,8 +2605,7 @@ formal_incomplete_type_declaration
       (wisi-face-apply-action [2 nil font-lock-type-face
                                  8 nil font-lock-type-face])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                               ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                               ada-indent-broken]))%
+                               ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))%
   ;
 
 formal_type_definition ::=
@@ -2673,29 +2708,30 @@ aspect_clause
 
 aspect_association ;;:new for wisi-ada.adb code.
   : aspect_mark ['=>' aspect_definition]
-    %((wisi-indent-action [nil ada-indent-broken
-                               [(wisi-hanging* ada-indent-broken ada-indent-broken)
-                                ;; test/ada_mode-recover_30.adb "--  comment after aspect_specification"
-                                ada-indent-broken]]))%
+  ;; test/aspects.ads, test/ada_mode-nominal.adb task Executive;
+    %((wisi-indent-action [nil nil (ada-indent-aspect)]))%
   ;
 
-aspect_mark_list : aspect_association {',' aspect_association} ;
+aspect_mark_list
+  : aspect_association
+  | aspect_mark_list ',' aspect_association
+  ;
 
 aspect_specification
   : 'with' aspect_mark_list
-    %((wisi-indent-action [nil ada-indent-broken]))%
+    ;; test/ada_mode-recover_30.adb "--  comment after aspect_specification"
+    %((wisi-indent-action [nil [ada-indent-broken ada-indent-broken]]))%
   ;
 
-aspect_mark ::= IDENTIFIER [tick IDENTIFIER]
-  ;; FIXME: "class" changed to IDENTIFIER so foo'class is legal
-  ;; elsewhere; need %local_keyword "class" => in-parse action?
+aspect_mark : IDENTIFIER [tick IDENTIFIER] ; ;;:edited "class" changed
+;; to IDENTIFIER so foo'class is legal elsewhere
 
 aspect_definition
   ;; name ;; redundant with expression
   : expression
   ;; indent done in aspect_association
-  ;; IDENTIFIER ;; redundant with expression
-  ;; aggregate ;; redundant with expression
+  ;; IDENTIFIER ;;:redundant with expression
+  ;; aggregate ;;:redundant with expression
   | global_aspect_definition
   ;
 

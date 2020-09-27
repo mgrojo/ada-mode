@@ -12,13 +12,13 @@ procedure Ada_Mode.Recover_Repair_1
 is
    A : Integer;
 begin
-   -- We insert 'and' to cause a syntax error; 'wisi-repair-errors'
-   -- deletes it. (forward-sexp) triggers a navigate parse.
+   -- We delete '1234567890' before 'and' to cause a syntax error; 'wisi-repair-errors'
+   -- inserts '1234567890' before it. (forward-sexp) triggers a navigate parse.
 
-   --EMACSCMD:(progn(forward-line 3)(forward-word 1)(insert " and"))
+   --EMACSCMD:(progn(forward-line 3)(forward-word 1)(kill-word 1))
    --EMACSCMD:(progn(forward-line 2)(forward-word 1)(forward-sexp)(looking-at "then"))
    --EMACSRESULT:t
-   if
+   if 1234567890 and
      Expect
    then
       Expecting;

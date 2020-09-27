@@ -117,7 +117,7 @@ package WisiToken.Syntax_Trees is
      (Tree    : in Syntax_Trees.Tree;
       Element : in Stream_Index)
      return Recover_Token
-   is (Tree.Get_Recover_Token (Tree.Terminal_Stream, Element))
+     is (Tree.Get_Recover_Token (Tree.Terminal_Stream, Element))
    with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Get_Recover_Token

@@ -133,7 +133,7 @@ package body Ada_Mode.Recover_Match_Names is
    protected body Protected_Body_0 is
       entry E2 when True is begin end E2;
       entry E1 when True is begin
-   -- missing 'end E1'
+      -- missing 'end E1'
    end Protected_Body_0;
 
    --  protected protected_definition

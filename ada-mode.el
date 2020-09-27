@@ -1348,12 +1348,10 @@ Point must have been set by `ada-wisi-find-begin'."
     ;;
     ;; indenting 'when', or the new blank line after 'when'. CASE
     ;; IDENTIFIER IS was inserted by error recover, immediately before
-    ;; 'when'. Since 'case' and 'when' are on the same line, only one
-    ;; indent applies, but we want both.
+    ;; 'when'.
     (if (looking-at "when")
-	indent
-      ;; Here we delete the extra indent from 'case' to 'when'
-      (- indent ada-indent-when)))
+	(- indent ada-indent-when)
+      (- indent (+ ada-indent ada-indent-when))))
 
    ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
         (+ indent (+ ada-indent ada-indent-when)))

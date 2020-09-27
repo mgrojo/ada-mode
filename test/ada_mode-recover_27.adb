@@ -19,9 +19,9 @@ package body Wisi.Libadalang is
 
                procedure Find_Production
                is begin
-               --  extra 'begin'.
-               Prod : WisiToken.Productions.Instance renames Grammar
-                 (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+                 --  extra 'begin'.
+                 Prod : WisiToken.Productions.Instance renames Grammar
+                   (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
             begin
                for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                   declare
@@ -36,16 +36,16 @@ package body Wisi.Libadalang is
                end loop; --  extra 'end loop'
                exit when not K > Descendants.Last_Index;
                K := K + 1;
-         end loop;
-         raise SAL.Programmer_Error with "production not found";
-      end Find_Production;
-   begin
-      Find_Production;
-      end;
+            end loop;
+            raise SAL.Programmer_Error with "production not found";
+         end Find_Production;
+         begin
+            Find_Production;
+         end;
       end if;
    end Create_Tree_Node;
 begin
-end To_WisiToken_Tree;
+   end To_WisiToken_Tree;
 
 end Wisi.Libadalang;
 -- Error recovery has a race condition; force it to return repeatable results

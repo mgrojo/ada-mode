@@ -1160,7 +1160,7 @@ package body Wisi is
                         Cache_Cur := Find (Iter, Ascending, Region.First, Region.Last, Predicate'access);
                         loop
                            exit when not Has_Element (Cache_Cur);
-                           exit when Data.Navigate_Caches (Cache_Cur).Pos > Region.Last
+                           exit when Data.Navigate_Caches (Cache_Cur).Pos > Region.Last -- ERROR: missing semicolon
 
                            if Data.Navigate_Caches (Cache_Cur).ID = Param.ID then
                               Cache_Cur := No_Element;
@@ -1420,7 +1420,7 @@ package body Wisi is
             when None => "",
             when Int => Integer'Image (Item.Int_Delta),
             when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
-                 Integer'Image (Item.Anchored_Delta),
+              Integer'Image (Item.Anchored_Delta),
             when Language => "<language_function>") & ")";
    end Image;
 
@@ -1794,7 +1794,7 @@ package body Wisi is
             when None => "",
             when Int => Integer'Image (Item.Int_Delta),
             when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
-                 Boolean'Image (Item.Anchored_Accumulate))
+              Boolean'Image (Item.Anchored_Accumulate))
         & ")";
    end Image;
 
@@ -1803,9 +1803,10 @@ package body Wisi is
       return "(" & Delta_Labels'Image (Item.Label) &
         (case Item.Label is
             when Simple => " " & Image (Item.Simple_Delta),
-            when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image (Item.Hanging_Paren_State) &
-                 " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2) & " " &
-                 Boolean'Image (Item.Hanging_Accumulate)) & ")";
+            when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image
+              (Item.Hanging_Paren_State) &
+              " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2) & " " &
+              Boolean'Image (Item.Hanging_Accumulate)) & ")";
    end Image;
 
    function Current_Indent_Offset
