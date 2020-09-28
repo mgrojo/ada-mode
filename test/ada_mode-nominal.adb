@@ -170,7 +170,7 @@ is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                         "help!";
+                       "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(backward-sexp)(looking-at "when -- 2"))
                   when -- 3
@@ -422,9 +422,9 @@ is -- target 0
    end Protected_Buffer;
 
    task Executive
-     with
-       Storage_Size => 512 + 256,
-       Priority => 5;
+   with
+     Storage_Size => 512 + 256,
+     Priority => 5;
    --EMACSCMD:(progn (ada-which-function))
    --EMACSRESULT:"Ada_Mode.Nominal"
 
@@ -443,6 +443,8 @@ is -- target 0
       -- a more typical task
       Local_1 : Integer;
       Started : Boolean := False;
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp)(looking-back "end Task_Type_1"))
+      --EMACSRESULT:t
    begin
       select
          --  a comment after 'select'
@@ -509,9 +511,13 @@ is -- target 0
    type S is synchronized interface;
 
    task type T is new S with
+      entry One;
    end T;
 
-   task body T is begin null; end;
+   task body T
+   is begin
+      accept One;
+   end;
 
    ----------
    -- subprograms
@@ -548,9 +554,24 @@ is -- target 0
    --EMACSRESULT:t
 
    function Function_1a return Float
-   is begin
+   is
+      A : Float;
+   begin
       Procedure_2a;
       Procedure_2a;
+
+      -- Assignment with all reasonable newlines, to test that the indents in
+      -- all productions involved are needed.
+      A
+        :=
+          1.0 +
+          Function_2a
+            (Parent_Type_1'
+               (1,
+                2.0,
+                False)) +
+          2.0;
+
       return 1.0 +
         Function_2a (Parent_Type_1'(1, 2.0, False)) +
         12.0;

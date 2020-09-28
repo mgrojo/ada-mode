@@ -25,13 +25,13 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -68,19 +68,9 @@ ada-process.el missing TICK_2 on debian o.e.a.s-5
 test/ada_mode-recover_35.adb
     recover fail_programmer_error
 
-ada_annex_p.wy
-    lr1 text_rep _smaller_ than ada.wy ; transition to this
-
-    add actions
-        make two
-        copy from ada.wy, in ada.wy alphabetical order
-            done thru object_renaming_declaration
-
-        in block_statement, is match_names called when it can fail?
-
-    compare_ada_annex_p
-        arm_texi use bold underscore for bold, to distinguish keywords
-        write arm-info-mode, to apply faces
+compare_ada_annex_p
+    arm_texi use bold underscore for bold, to distinguish keywords
+    write arm-info-mode, to apply faces
 
 ada-which-function fails in wisi-ada_annex_p-format_parameter_list.adb
 
@@ -871,6 +861,8 @@ do wisitoken release ../org.wisitoken/build/release_process.text
 update benchmarks above
 
 generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
+
+lr1 text rep file got significantly larger; ask about moving to external ELPA branch
 
 (dvc-status ".")
 

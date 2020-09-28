@@ -116,8 +116,7 @@ one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
 #two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_20.adb --verbosity 1 1 4
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-two : ../ada_re2c.c ../run_ada_lalr_parse.exe
-	../run_ada_lalr_parse.exe parse navigate ../test/ada_mode-recover_partial_26.adb --verbosity 0 2 0 --task_count 1 > ../debug.log
+two : ../ada_annex_p_re2c.c
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -189,16 +188,6 @@ test-ada-lalr-process-gpr_query.stamp : force
 	echo "test-ada-lalr-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-packrat-process-gpr_query : RUNTEST := run-indent-test-packrat-process-gpr_query.el
-test-ada-packrat-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
-
-test-ada-packrat-process-gpr_query.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-ada-packrat-process-gpr_query
-	touch $@
-	echo "test-ada-packrat-process-gpr_query" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
-
 test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-process-gpr_query.el
 test-gpr-lalr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
@@ -243,11 +232,9 @@ wisitoken-ada-recover-compare.stamp : ada-correct-tokens.stamp wisitoken-tokens.
 	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens wisitoken-tokens/$$file.tokens > wisitoken-tokens/$$file.diff ; done
 	touch $@
 
-wisitoken-ada_annex_p-recover-compare.stamp : ada-correct-tokens.stamp  wisitoken-ada_annex_p-tokens.stamp force
-	-for file in $(RECOVER_TEST_FILES) ; do diff -u ada-correct-tokens/$$file.tokens wisitoken-ada_annex_p-tokens/$$file.tokens > wisitoken-ada_annex_p-tokens/$$file.diff ; done
-
 wisitoken-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  wisitoken-ada_lite-tokens.stamp force
 	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens wisitoken-ada_lite-tokens/$$file.tokens > wisitoken-ada_lite-tokens/$$file.diff ; fi ; done
+	touch $@
 
 tree_sitter-ada_lite-recover-compare.stamp : ada_lite-correct-tokens.stamp  tree_sitter-ada_lite-tokens.stamp force
 	-for file in $(RECOVER_TEST_FILES) ; do if test -f ../test/ada_lite/$$file ; then diff -u ada_lite-correct-tokens/$$file.tokens tree_sitter-ada_lite-tokens/$$file.tokens > tree_sitter-ada_lite-tokens/$$file.diff ; fi ; done
@@ -276,13 +263,6 @@ wisitoken-tokens.stamp : ../dump_wisitoken_corrected$(EXE_EXT)
 	mkdir -p wisitoken-tokens
 	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_corrected $(DUMP_ALG)  ../test/$$file > wisitoken-tokens/$$file.tokens ; done
 	touch $@
-
-wisitoken-ada_annex_p-tokens : dump_wisitoken_ada_annex_p_corrected$(EXE_EXT)
-	mkdir -p wisitoken-ada_annex_p-tokens
-	for file in $(RECOVER_TEST_FILES) ; do ../dump_wisitoken_ada_annex_p_corrected $(DUMP_ALG)  ../test/$$file > wisitoken-ada_annex_p-tokens/$$file.tokens ; done
-
-wisitoken-ada_annex_p-tokens/%.tokens : ../test/% ../dump_wisitoken_ada_annex_p_corrected$(EXE_EXT) force
-	../dump_wisitoken_ada_annex_p_corrected$(EXE_EXT) LR1 $< $(VERBOSITY) > $@
 
 wisitoken-ada_lite-tokens.stamp : $(WISITOKEN)/build/dump_wisitoken_ada_lite_corrected.exe
 	mkdir -p wisitoken-ada_lite-tokens
@@ -506,9 +486,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
 
-
-#../ada_annex_p_re2c.c
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_re2c.c force
+build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

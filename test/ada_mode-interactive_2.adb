@@ -27,9 +27,8 @@ is
    -- New parameter in a subpgrogram. See comment in
    -- ada_mode-parens.adb Local_10 on hanging paren indent.
 
-   --EMACSCMD:(progn (end-of-line 3)(delete-indentation)(delete-char -1)(insert ";")(wisi-indent-newline-indent) (current-column))
-   procedure Local_Proc_1 (Param_1 : in Float;
-                          );
+   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
+   procedure Local_Proc_1 (Param_1 : in Float);
    --EMACSRESULT:26
 
    -- Adding a body interactively leaves it properly indented, and caches
@@ -116,6 +115,7 @@ begin
      -- Comment 2
      or C
    then
+      null;
    end if;
    --EMACSRESULT:6
    --EMACSCMD:(progn (forward-line -7)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))

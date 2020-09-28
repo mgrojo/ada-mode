@@ -81,7 +81,10 @@
 ;; handle DOS or Unix newline
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
-%non_grammar <comment> COMMENT %[ "--"[^\x04\n]* ]%
+;; Treat gpr comments, gnatprep preprocessor lines, and skeleton
+;; placeholders as comments. Also terminate placeholder on newline,
+;; EOF, to handle missing }. x04 is EOF.
+%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*"}"?) ]%
 
 %token <number> NUMERIC_LITERAL
     %[ [0-9]+ ]%
@@ -166,7 +169,7 @@ case_statement
   : CASE name IS case_items END CASE SEMICOLON
     %((progn
         (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent-when gpr-indent-when] 0 0 0])))%
+        (wisi-indent-action [0 gpr-indent-broken 0 [(wisi-block gpr-indent-when) gpr-indent-when] 0 0 0])))%
   ;
 
 ;; declarations allowed in a case statement are a subset of
@@ -175,7 +178,7 @@ case_item
   : WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt
     %((progn
         (wisi-statement-action [1 motion])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent])))%
+        (wisi-indent-action [0 gpr-indent-broken gpr-indent (wisi-block gpr-indent)])))%
   ;
 
 case_items
@@ -264,7 +267,7 @@ package_spec
         (wisi-statement-action [1 statement-start 7 statement-end])
         (wisi-name-action 2)
         (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0])))%
+        (wisi-indent-action [0 gpr-indent-broken 0 [(wisi-block gpr-indent) gpr-indent] 0 0 0])))%
     %((wisi-match-names 2 6))%
   ;
 
@@ -274,7 +277,7 @@ package_extension
         (wisi-statement-action [1 statement-start 9 statement-end])
         (wisi-name-action 2)
         (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0])))%
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [(wisi-block gpr-indent) gpr-indent] 0 0 0])))%
     %((wisi-match-names 2 8))%
   ;
 
@@ -297,7 +300,7 @@ project_extension
         (wisi-statement-action [1 statement-start 9 statement-end])
         (wisi-name-action 2)
         (wisi-face-apply-action [1 nil font-lock-keyword-face 2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0])))%
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [(wisi-block gpr-indent) gpr-indent] 0 0 0])))%
     %((wisi-match-names 2 8))%
   ;
 
@@ -336,7 +339,7 @@ simple_project_declaration
         (wisi-face-apply-action [1 nil font-lock-keyword-face
                                    2 nil font-lock-function-name-face
                                    6 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0])))%
+        (wisi-indent-action [0 gpr-indent-broken 0 [(wisi-block gpr-indent) gpr-indent] 0 0 0])))%
     %((wisi-match-names 2 6))%
   ;
 

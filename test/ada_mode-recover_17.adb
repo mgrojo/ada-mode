@@ -26,14 +26,14 @@ is begin
                   --  (insert 'case is'), then later (insert ')); end if; end;')
                   return
                     (Header, To_String_List (
-         when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
+                       when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
             raise SAL.Not_Implemented with "UTF-16 string";
 
          when others =>
             raise SAL.Invalid_Format;
       end case;
-      --  Another error here; missing 'end if;'
-   end Slow_Recover_4;
+   --  Another error here; missing 'end if;'
+end Slow_Recover_4;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- End:

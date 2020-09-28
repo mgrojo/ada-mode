@@ -13,5 +13,5 @@ package Ada_Mode.Recover_Type_1 is
    procedure Parse (Input : in String)
    is begin
 
-   end Parse;
+end Parse;
 end Ada_Mode.Recover_Type_1;

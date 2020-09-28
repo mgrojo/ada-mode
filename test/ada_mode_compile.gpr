@@ -17,9 +17,6 @@ project Ada_Mode_Compile is
       "ada_mode-ada2012.ads", -- font-lock only
 
       "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
-      "ada_mode-conditional_expressions-more_1.adb",
-      "ada_mode-debbugs_35124.ads", -- spec
-      "ada_mode-debbugs_36548.adb", -- partial syntax
       "ada_mode-fatal_error_1.adb",
 
       -- parents are not pure
@@ -80,6 +77,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_change_name.adb",
       "ada_mode-recover_constant_as_expression_1.adb",
       "ada_mode-recover_constant_as_statement_1.adb",
+      "ada_mode-recover_debbugs_36548.adb",
       "ada_mode-recover_deleted_procedure_1.adb",
       "ada_mode-recover_end_1.adb",
       "ada_mode-recover_end_2.adb",

@@ -2,7 +2,6 @@
 --
 --  Ada language specific indent options and functions
 --
---  [1] ada.wy
 --  [2] ada-indent-user-options.el
 --
 --  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
@@ -22,7 +21,7 @@ pragma License (Modified_GPL);
 
 package Wisi.Ada is
 
-   Language_Protocol_Version : constant String := "3";
+   Language_Protocol_Version : constant String := "4";
    --  Defines the data passed to Initialize in Params.
    --
    --  This value must match ada-mode.el
@@ -43,7 +42,6 @@ package Wisi.Ada is
    Ada_Indent_Use             : Integer := 2;
    Ada_Indent_When            : Integer := 3;
    Ada_Indent_With            : Integer := 2;
-   Ada_Indent_Hanging_Rel_Exp : Boolean := False;
 
    --  Other parameters
    End_Names_Optional : Boolean := False;
@@ -78,17 +76,7 @@ package Wisi.Ada is
      return Boolean;
 
    overriding
-   function Indent_Hanging_1
-     (Data              : in out Parse_Data_Type;
-      Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Indenting_Comment : in     Boolean;
-      Delta_1           : in     Simple_Indent_Param;
-      Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean;
-      Accumulate        : in     Boolean)
-     return Delta_Type;
+   procedure Refactor_Help (Data : in Parse_Data_Type);
 
    overriding
    procedure Refactor
@@ -99,58 +87,78 @@ package Wisi.Ada is
 
    ----------
    --  The following are declared in ada.wy %elisp_indent, and must match
-   --  Language_Indent_Function.
+   --  Wisi.Language_Indent_Function.
 
    function Ada_Indent_Aggregate
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-aggregate
+   --  ada-indent-aggregate
+   --  Args: none
+
+   function Ada_Indent_Aspect
+     (Data              : in out Wisi.Parse_Data_Type'Class;
+      Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi.Indent_Arg_Arrays.Vector)
+     return Delta_Type;
+   --  ada-indent-aspect
+   --  Args: none
 
    function Ada_Indent_Renames_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-renames
+   --  ada-indent-renames
+   --  Args: subprogram_token_index
 
    function Ada_Indent_Return_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-return
+   --  ada-indent-return
+   --  Args: formal_part_token_index, offset
 
    function Ada_Indent_Record_0
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-record
+   --  ada-indent-record
    --  Args: anchor_token_index, record_token_index, offset
 
    function Ada_Indent_Record_1
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
-   --  [1] ada-indent-record*
+   --  ada-indent-record*
    --  Args: anchor_token_ID, record_token_index, offset
 
 end Wisi.Ada;

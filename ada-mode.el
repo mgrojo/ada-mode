@@ -106,7 +106,7 @@
 
 (require 'ada-core)
 (require 'ada-indent-user-options)
-(require 'ada-process)
+(require 'ada_annex_p-process)
 (require 'ada-skel)
 (require 'align)
 (require 'cl-lib)
@@ -1134,7 +1134,7 @@ Otherwise, allow UPPERCASE for identifiers."
 
 ;;;; wisi integration
 
-(defconst ada-wisi-language-protocol-version "3"
+(defconst ada-wisi-language-protocol-version "4"
   "Defines language-specific parser parameters.
 Must match wisi-ada.ads Language_Protocol_Version.")
 
@@ -1144,7 +1144,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 
 (cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
   ;; Must match code in wisi-ada.adb Initialize
-  (format "%d %d %d %d %d %d %d %d %d %d %d %d %d"
+  (format "%d %d %d %d %d %d %d %d %d %d %d %d"
 	  ada-indent
 	  ada-indent-broken
 	  (if ada-indent-comment-col-0 1 0)
@@ -1156,7 +1156,6 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 	  ada-indent-use
 	  ada-indent-when
 	  ada-indent-with
-	  (if ada-indent-hanging-rel-exp 1 0)
 	  (if ada-end-name-optional 1 0)
 	  ))
 
@@ -1341,18 +1340,18 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Indenting first 'end'; that 'end' was deleted.
     (- indent ada-indent))
 
-   ((equal '(CASE IS) (wisi--parse-error-repair-inserted repair))
+   ((equal '(CASE IDENTIFIER IS) (wisi--parse-error-repair-inserted repair))
     ;; test/ada_mode-partial_parse.adb
     ;;    end loop;
     ;;    ...
     ;; when Face =>
     ;;
-    ;; indenting 'when', or the new blank line after 'when'. CASE IS
-    ;; was inserted by error recover, at indent of 'end' (ada-indent
-    ;; from 'when').
+    ;; indenting 'when', or the new blank line after 'when'. CASE
+    ;; IDENTIFIER IS was inserted by error recover, immediately before
+    ;; 'when'.
     (if (looking-at "when")
-	(- indent ada-indent)
-      (- indent ada-indent ada-indent-when)))
+	(- indent ada-indent-when)
+      (- indent (+ ada-indent ada-indent-when))))
 
    ((equal '(END CASE SEMICOLON) (wisi--parse-error-repair-inserted repair))
         (+ indent (+ ada-indent ada-indent-when)))
@@ -1652,9 +1651,9 @@ Prompts with completion, defaults to filename at point."
      :language-protocol-version ada-wisi-language-protocol-version
      :exec-file ada-process-parse-exec
      :exec-opts ada-process-parse-exec-opts
-     :face-table ada-process-face-table
-     :token-table ada-process-token-table
-     :repair-image ada-process-repair-image)))
+     :face-table ada_annex_p-process-face-table
+     :token-table ada_annex_p-process-token-table
+     :repair-image ada_annex_p-process-repair-image)))
 
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
   (setq wisi-xref-full-path ada-xref-full-path)

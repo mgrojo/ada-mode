@@ -42,7 +42,7 @@ package Ada_Mode.Nominal.Child is
      (Item   : in out Child_Type_1;
       Item_1 : in     Character;
       Item_2 : out    Character)
-   is null;
+     is null;
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(and (looking-at "overriding function Function_2a") (string= (file-name-nondirectory (buffer-file-name)) "ada_mode-nominal-child.adb")))
    --EMACSRESULT:t

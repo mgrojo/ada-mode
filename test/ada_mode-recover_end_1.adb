@@ -8,9 +8,9 @@
 package body Ada_Mode.Recover_End_1 is
    procedure Case_Example
    is begin
-      case  is
+      case A is
          when =>
-            --  end case;
+         --  end case;
       end;
 
    procedure If_Example

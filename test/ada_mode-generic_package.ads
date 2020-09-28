@@ -131,7 +131,7 @@ generic
      is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
 
    with package
-   --EMACSCMD:(test-face "A_Package_9" 'font-lock-function-name-face)
+     --EMACSCMD:(test-face "A_Package_9" 'font-lock-function-name-face)
      A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);

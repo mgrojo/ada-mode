@@ -4,15 +4,17 @@
 --
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
+--EMACSCMD:(setq skip-reindent-test t)
 package body Ada_Mode.Recover_Format_Paramlist is
 
-   -- Error recover leaves an empty parameter declaration.
-   --
-   --EMACSCMD:(progn (end-of-line 4)(delete-char -1)(ada-align))
+   -- IMPROVEME: currently ada-align does not invoke wisi-repair-error;
+   -- perhaps it should? Collect real use cases.
+
+   --EMACSCMD:(progn (forward-line 4)(ada-align))
    procedure Check_One
-     (Label    : in String;
-      Param    : in Integer;
-      Expected : in Integer)
+     (Label : in String;
+      Param : in Integer;
+            : in Integer)
    is begin
       null;
    end Check_One;

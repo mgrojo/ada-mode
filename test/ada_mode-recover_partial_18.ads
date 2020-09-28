@@ -26,6 +26,6 @@ package Wisitoken.Syntax_Trees is
    --  Copy any allocated storage.
 
    type Tree is tagged private;
--- Local Variables:
--- wisi-partial-parse-threshold: 0
--- End:
+   -- Local Variables:
+   -- wisi-partial-parse-threshold: 0
+   -- End:

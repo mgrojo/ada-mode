@@ -116,7 +116,6 @@ begin
          --EMACSRESULT: 12
          Resolve_Anchors
            (Data       => User_Data,
-
             Descriptor => User_Descriptor);
    end case;
 

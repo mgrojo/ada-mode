@@ -77,8 +77,8 @@ with Ada_Mode.Function_2;
 --EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:t
 package Ada_Mode.Nominal
-  with
-    Spark_Mode => On
+with
+  Spark_Mode => On
 is -- target 0
    --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
@@ -703,7 +703,7 @@ is -- target 0
      (Item   : in out Parent_Type_1;
       Item_1 : in     Character;
       Item_2 : out    Character)
-   is null;
+     is null;
    --EMACSCMD:(progn (forward-line -5)(ada-which-function))
    --EMACSRESULT:"Ada_Mode.Nominal"
    --EMACSCMD:(progn (forward-line -6)(ada-which-function))
@@ -718,7 +718,7 @@ is -- target 0
    procedure Procedure_1e (Item   : in out Parent_Type_1;
                            Item_1 : in Character;
                            Item_2 : out Character)
-   is null;
+     is null;
 
    not overriding
    procedure Procedure_1f (Item : in out Parent_Type_1);
@@ -771,7 +771,7 @@ is -- target 0
    function Function_2g
      (Param : in Private_Type_1)
      return Float
-   is abstract;
+     is abstract;
    --  comment after 'is abstract', aligned with 'function'
 
    function Function_2h (Param : in Parent_Type_1) return Float is (1.0); -- expression function
@@ -795,7 +795,7 @@ is -- target 0
    procedure Procedure_3b is
      null;
    procedure Procedure_3c
-   is null;
+     is null;
    procedure
      Procedure_3d is null;
 
@@ -803,7 +803,7 @@ is -- target 0
    procedure Abstract_Procedure_2 (Item : access Private_Type_1) is
      abstract;
    procedure Abstract_Procedure_3 (Item : access Private_Type_1)
-   is abstract;
+     is abstract;
    procedure Abstract_Procedure_4
      (Item : access Private_Type_1) is abstract;
    procedure

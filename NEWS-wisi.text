@@ -11,6 +11,12 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 ** parser process protocol version 6 (add zombie_limit, add error-pos in Recover)
 
+** Redesign how indents add, and what some indent functions mean; see
+   wisi.info for details. In general, it is easier to arrange indent
+   actions to get the desired result. This may require grammar file
+   indent action changes; most likely add 'wisi-block' in block
+   statements.
+
 ** Match WisiToken 3.0 changes; this results in some user visible
    changes in wisi.ads:
 

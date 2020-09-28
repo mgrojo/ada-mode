@@ -26,7 +26,7 @@ procedure Format_Parameter_List
    Edit_Begin : in     WisiToken.Buffer_Pos)
 is
    use Standard.Ada.Containers;
-   use Ada_Process_Actions;
+   use Ada_Annex_P_Process_Actions;
    use Standard.Ada.Text_IO;
    use WisiToken.Syntax_Trees;
 
@@ -70,7 +70,7 @@ begin
    end if;
 
    if WisiToken.Trace_Action > Detail then
-      Put_Line (";; format parameter list node" & Formal_Part'Image);
+      Put_Line (";; format parameter list node " & Tree.Image (Formal_Part, Node_Numbers => True));
    end if;
 
    Edit_End := Tree.Byte_Region (Formal_Part).Last;
@@ -86,7 +86,7 @@ begin
       Params           : array (1 .. Param_Count) of Parameter;
       Param_Cur        : Cursor                     := Param_List.First;
       Param_Iter       : constant Constant_Iterator := Param_List.Iterate_Constant;
-      First_Param_Node : constant Node_Access        := Element (Param_Cur);
+      First_Param_Node : constant Node_Access       := Element (Param_Cur);
       Last_Param_Node  : Node_Access;
    begin
       for Param of Params loop
@@ -95,15 +95,16 @@ begin
          declare
             Children : constant Node_Access_Array := Tree.Children (Element (Param_Cur));
          begin
-            for Ident of Creators.Create_List (Tree, Children (1), +identifier_list_ID, +IDENTIFIER_ID) loop
+            for Ident of Creators.Create_List (Tree, Children (1), +defining_identifier_list_ID, +IDENTIFIER_ID) loop
                Param.Identifiers.Append (Tree.Byte_Region (Ident));
             end loop;
 
-            Param.Aliased_P := not Tree.Buffer_Region_Is_Empty (Children (3));
-
-            for I in 4 .. Children'Last loop
+            for I in 3 .. Children'Last loop
                case To_Token_Enum (Tree.ID (Children (I))) is
-               when mode_opt_ID =>
+               when ALIASED_ID =>
+                  Param.Aliased_P := True;
+
+               when mode_ID =>
                   if Tree.Buffer_Region_Is_Empty (Children (I)) then
                      Param.In_P  := False;
                      Param.Out_P := False;
@@ -113,42 +114,45 @@ begin
                        Tree.Children (Children (I))'Length > 1; -- 'in out'
                   end if;
 
-               when null_exclusion_opt_ID =>
-                  Param.Not_Null_P := not Tree.Buffer_Region_Is_Empty (Children (I));
+               when null_exclusion_ID =>
+                  Param.Not_Null_P := True;
 
                when name_ID =>
                   Param.Type_Region := Tree.Byte_Region (Children (I));
 
                when access_definition_ID =>
-                  --  First two children are always:
-                  --  null_exclusion_opt ACCESS
                   declare
+                     use all type SAL.Base_Peek_Type;
                      Access_Children : constant Node_Access_Array := Tree.Children (Children (I));
+                     Last_Child      : SAL.Base_Peek_Type         := 1;
                   begin
-                     Param.Not_Null_P := not Tree.Buffer_Region_Is_Empty (Access_Children (1));
-                     Param.Access_P := True;
-
-                     if Tree.ID (Access_Children (3)) = +general_access_modifier_opt_ID then
-                        Param.Constant_P := not Tree.Buffer_Region_Is_Empty (Access_Children (3));
-                        Param.Type_Region := Tree.Byte_Region (Access_Children (4));
-                     else
-                        Param.Protected_P := not Tree.Buffer_Region_Is_Empty (Access_Children (3));
-                        Param.Type_Region :=
-                          (Tree.Byte_Region (Access_Children (4)).First,
-                           Tree.Byte_Region (Children (I)).Last);
+                     if Tree.ID (Access_Children (Last_Child)) = +null_exclusion_ID then
+                        Last_Child := @ + 1;
+                        Param.Not_Null_P := True;
                      end if;
+
+                     pragma Assert (Tree.ID (Access_Children (Last_Child)) = +ACCESS_ID);
+                     Param.Access_P := True;
+                     Last_Child := @ + 1;
+
+                     if Tree.ID (Access_Children (Last_Child)) = +CONSTANT_ID then
+                        Param.Constant_P := True;
+                        Last_Child := @ + 1;
+                     elsif Tree.ID (Access_Children (Last_Child)) = +PROTECTED_ID then
+                        Param.Protected_P := True;
+                        Last_Child := @ + 1;
+                     end if;
+
+                     Param.Type_Region :=
+                       (Tree.Byte_Region (Access_Children (Last_Child)).First,
+                        Tree.Byte_Region (Children (I)).Last);
                   end;
 
-               when COLON_EQUAL_ID =>
-                  null;
-
-               when expression_opt_ID =>
-                  if not Tree.Buffer_Region_Is_Empty (Children (I)) then
-                     Param.Default_Exp := Tree.Byte_Region (Children (I));
-                  end if;
+               when assign_value_ID =>
+                  Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2));
 
                when others =>
-                  Raise_Programmer_Error ("format_parameter_list param id", Data.Lexer, Tree, Children (I));
+                  Raise_Programmer_Error ("unknown format_parameter_list token id", Data.Lexer, Tree, Children (I));
                end case;
             end loop;
          end;

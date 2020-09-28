@@ -14,7 +14,7 @@ if Foo then
    Bar;
 end if;
 
-exception
+   exception
    when others =>
       null;
 end Parse_File;

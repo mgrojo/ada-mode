@@ -1,32 +1,55 @@
---  This sets ada-indent-comment-gnat t in Local Variables below; see
--- ada_mode-conditional_expressions-more_1.adb for setting that nil.
+--  This sets ada-indent-comment-gnat t in Local Variables below.
 
 procedure Ada_Mode.Conditional_Expressions is
    subtype Bounded is Integer range -1 .. +1;
    J : Integer := 42;
+
+   function Foo (I : in Integer) return Integer
+   is begin
+      return I;
+   end Foo;
+
+   function Foo_2 (I, J : in Integer) return Integer
+   is begin
+      return I;
+   end Foo_2;
 
    K0a : Integer := Integer'(if J > 42 then -1 else +1);
    K0b : Integer := Integer'((if J > 42 then -1 else +1));
 
    K1 : Integer := (if J > 42 then -1
                     --  comment
-                    else +1);
+                    else +1 -
+                      2);
    K2 : Integer := (if J > 42
                     --  comment
-                    then -1
-                    else +1);
+                    then
+                       1 +
+                         2
+                    else
+                       1 +
+                         2);
    K2a : Integer :=
      (if J > 42
-      --  comment
+      --  comment; compare to K3
       then -1
       else +1);
+   K2b : Integer :=
+     (if J >
+        42
+        --  comment; matches last line of preceding expression
+      then -1
+      else +1);
+
    K3 : Integer := (if
                       J > 42
-                      --  comment
-                    then
-                       -1
+                      --  comment; compare to K2a
+                    then Foo
+                      (-1)
                     else
-                       +1);
+                       Foo
+                         (+1));
+
    K : Integer := K0a;
    L0 : Integer :=
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
@@ -48,16 +71,19 @@ procedure Ada_Mode.Conditional_Expressions is
    L3 : Integer := (case J is
                        when 42 =>
                           --  Comment aligned with "-1"
-                          -1,
+                          -1 +
+                            2,
                        when Integer'First .. 41 =>
-                          0,
+                          0 -
+                            1,
                        when others =>
                           +1);
    L4 : Integer := (case J is
                        when
                          42
                          =>
-                          -1,
+                          -1 +
+                            2,
                        when
                          Integer'First .. 41
                          =>
@@ -86,7 +112,8 @@ procedure Ada_Mode.Conditional_Expressions is
 
    L : Integer := L0;
 begin
-   K := (if K < 0 then 42 elsif K = 0 then 43 else (if J > 42 then 44 else 45));
+   K := (if K < 0 then 42 elsif K = 0 then 43 else
+           (if J > 42 then 44 else 45));
    K := (case Bounded (L) is when -1 => 42, when 0 => 41, when 1 => 43);
    --  embedded case
    --EMACSCMD: (progn (forward-line 4)(forward-word 2)(delete-char 2)(ada-align))
@@ -113,6 +140,20 @@ begin
 
             else 45)); -- comment _not_ matching GNAT style check
                         -- comment matching GNAT
+
+   K :=
+     (if M
+      then Foo_2
+        (1,
+         2)
+      -- comment
+      elsif M
+      then
+         1 +
+           1
+      else
+         1
+           + 2);
 
 end Ada_Mode.Conditional_Expressions;
 --  Local Variables:

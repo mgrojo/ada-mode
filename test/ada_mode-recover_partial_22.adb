@@ -7,7 +7,7 @@ type Minimal_Action (Verb : Minimal_Verbs := Minimal_Verbs'First) is record
       when  => Pause
 
 
-      when Shift =>
+         when Shift =>
          Id    : Token_Id;
          State : State_Index;
 

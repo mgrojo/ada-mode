@@ -29,13 +29,14 @@ package Ada_Mode.Parens is
      (Param_1,
         Param_2,
         Param_3 : in Ada.Text_Io.
-        Count; -- pretending this is wrapped because of line length limit
+          Count; -- pretending this is wrapped because of line length limit
       Param_4,
         Param_5 : in
         out Integer; -- who would do this!?
-      Param_6
+      Param_6,
+        Param_7
         : in Float
-        := 1.0)
+          := 1.0)
      return Float;
 
    type Array_Type_1 is array (1 .. 3) of Integer;
@@ -52,7 +53,7 @@ package Ada_Mode.Parens is
    --  GNAT GPL 2014 accepts this without parens around the enitre
    --  expression, but that's a compiler bug.
    function Expression_Function_1 (V : Integer) return Boolean
-   is ((V = V and then True)
-         or else True);
+     is ((V = V and then True)
+           or else True);
 
 end Ada_Mode.Parens;

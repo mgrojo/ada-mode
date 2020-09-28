@@ -83,10 +83,9 @@ package Wisi is
 
    overriding
    procedure Insert_Token
-     (Data            : in out Parse_Data_Type;
-      Tree            : in out WisiToken.Syntax_Trees.Tree'Class;
-      Inserted_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Inserted_Before : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+     (Data           : in out Parse_Data_Type;
+      Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
+      Inserted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    overriding
    procedure Delete_Token
@@ -212,17 +211,16 @@ package Wisi is
    --
    --  Indent functions are represented by the Indent_Param type.
 
-   type Simple_Indent_Param_Label is -- not hanging
+   type Simple_Indent_Param_Label is
+     --  Not hanging
      (None,
       Int,
       Anchored_0, -- [2] wisi-anchored
       Anchored_1, -- [2] wisi-anchored%
-      Anchored_2, -- [2] wisi-anchored%-
-      Anchored_3, -- [2] wisi-anchored*
-      Anchored_4, -- [2] wisi-anchored*-
+      Block,      -- [2] wisi-block
       Language    -- [2] language-specific function
      );
-   subtype Anchored_Label is Simple_Indent_Param_Label range Anchored_0 .. Anchored_4;
+   subtype Simple_Param_Anchored is Simple_Indent_Param_Label range Anchored_0 .. Anchored_1;
 
    --  Arguments to language-specific functions are integers; one of
    --  delta, Token_Number, or Token_ID - the syntax does not distinguish
@@ -239,6 +237,7 @@ package Wisi is
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tree_Tokens       : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
@@ -253,10 +252,10 @@ package Wisi is
       when None =>
          null;
 
-      when Int =>
+      when Block | Int =>
          Int_Delta : Integer;
 
-      when Anchored_Label =>
+      when Simple_Param_Anchored =>
          Anchored_Index : WisiToken.Positive_Index_Type;
          Anchored_Delta : Integer;
 
@@ -268,14 +267,15 @@ package Wisi is
 
    function Image (Item : in Simple_Indent_Param) return String;
 
+   function Add_Simple_Indent_Param (Left, Right : in Simple_Indent_Param) return Simple_Indent_Param;
+
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- [2] wisi-hanging
-      Hanging_1, -- [2] wisi-hanging-
-      Hanging_2, -- [2] wisi-hanging%
-      Hanging_3  -- [2] wisi-hanging%-
+      Hanging_1, -- [2] wisi-hanging%
+      Hanging_2  -- [2] wisi-hanging*
      );
-   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_3;
+   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_2;
 
    type Indent_Param (Label : Indent_Param_Label := Simple) is
    record
@@ -315,35 +315,26 @@ package Wisi is
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
-   procedure Indent_Action_1
-     (Data    : in out Parse_Data_Type'Class;
-      Tree    : in     WisiToken.Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      N       : in     WisiToken.Positive_Index_Type;
-      Params  : in     Indent_Param_Array);
-   --  Implements [2] wisi-indent-action*.
-
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
-      Option            : in     Boolean;
-      Accumulate        : in     Boolean)
+      Label             : in     Hanging_Label)
      return Delta_Type;
-   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging%-;
-   --     Option     = % present
-   --     Accumulate = - not present
+   --  Implements [2] wisi-hanging, wisi-hanging%, wisi-hanging*
    --
    --  Language specific child packages may override this to implement
    --  language-specific cases.
 
    ----------
    --  Other
+
+   procedure Refactor_Help (Data : in Parse_Data_Type) is null;
 
    procedure Refactor
      (Data       : in out Parse_Data_Type;
@@ -395,7 +386,8 @@ private
       First_Indent_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
       Last_Indent_Line  : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
       --  Lines that need indenting; first token on these lines is contained
-      --  in this token. If First is False, these are Invalid_Line_Number.
+      --  in this token. If token has no lines that need indenting, these
+      --  are Invalid_Line_Number.
       --
       --  First_, Last_Indent_Line include blank and comment lines between
       --  grammar tokens, but exclude trailing blanks and comments after the
@@ -457,7 +449,7 @@ private
    Nil : constant Nil_Buffer_Pos := (Set => False);
 
    function Image (Item : in Nil_Buffer_Pos) return String
-   is (if Item.Set then Item.Item'Image else "nil");
+   is (if Item.Set then Item.Item'Image else " nil");
 
    type Navigate_Cache_Type is record
       Pos : WisiToken.Buffer_Pos;
@@ -509,11 +501,14 @@ private
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, WisiToken.Buffer_Pos);
 
    type Indent_Label is (Not_Set, Int, Anchor_Nil, Anchor_Int, Anchored, Anchor_Anchored);
+   subtype Anchored_Indent_Label is Indent_Label range Anchored .. Anchor_Anchored;
 
    package Anchor_ID_Vectors is new Ada.Containers.Vectors (Natural, Positive);
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
+      Controlling_Token_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+
       case Label is
       when Not_Set =>
          null;
@@ -593,23 +588,11 @@ private
 
    type Simple_Delta_Labels is (None, Int, Anchored);
 
-   --  subtype Non_Anchored_Delta_Labels is Simple_Delta_Labels range None .. Int;
-
-   --  type Non_Anchored_Delta (Label : Non_Anchored_Delta_Labels := None) is
-   --  record
-   --     case Label is
-   --     when None =>
-   --        null;
-   --     when Int =>
-   --        Int_Delta : Integer;
-   --     end case;
-   --  end record;
-
-   --  function Image (Item : in Non_Anchored_Delta) return String;
-   --  For debugging
-
    type Simple_Delta_Type (Label : Simple_Delta_Labels := None) is
    record
+      Controlling_Token_Line : WisiToken.Line_Number_Type;
+      --  If Invalid_Line_Number, delta should not be ignored.
+
       case Label is
       when None =>
          null;
@@ -618,9 +601,8 @@ private
          Int_Delta : Integer;
 
       when Anchored =>
-         Anchored_ID         : Natural;
-         Anchored_Delta      : Integer;
-         Anchored_Accumulate : Boolean;
+         Anchored_ID    : Natural;
+         Anchored_Delta : Integer;
 
       end case;
    end record;
@@ -639,13 +621,16 @@ private
       when Hanging =>
          Hanging_First_Line  : WisiToken.Line_Number_Type;
          Hanging_Paren_State : Integer;
-         Hanging_Delta_1     : Simple_Delta_Type; -- indentation of first line
-         Hanging_Delta_2     : Simple_Delta_Type; -- indentation of continuation lines
-         Hanging_Accumulate  : Boolean;
+
+         Hanging_Delta_1 : Simple_Delta_Type;
+         --  Indentation of first line in token; Null_Delta if first line does
+         --  not need indenting
+
+         Hanging_Delta_2 : Simple_Delta_Type; -- indentation of continuation lines
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Simple, (Label => None));
+   Null_Delta : constant Delta_Type := (Simple, (None, WisiToken.Invalid_Line_Number));
 
    function Image (Item : in Delta_Type) return String;
    --  For debugging
@@ -699,13 +684,13 @@ private
      (Data        : in out Parse_Data_Type;
       Anchor_Line : in     WisiToken.Line_Number_Type;
       Last_Line   : in     WisiToken.Line_Number_Type;
-      Offset      : in     Integer;
-      Accumulate  : in     Boolean)
+      Offset      : in     Integer)
      return Delta_Type;
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Param             : in     Indent_Param;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;

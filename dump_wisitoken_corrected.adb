@@ -20,9 +20,9 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada_Process_Actions;
-with Ada_Process_LALR_Main;
-with Ada_Process_LR1_Main;
+with Ada_Annex_P_Process_Actions;
+with Ada_Annex_P_Process_LALR_Main;
+with Ada_Annex_P_Process_LR1_Main;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada;
 with WisiToken.Parse.LR.Parser;
@@ -31,7 +31,7 @@ with WisiToken.Text_IO_Trace;
 procedure Dump_WisiToken_Corrected
 is
    use WisiToken;
-   use all type Ada_Process_Actions.Token_Enum_ID;
+   use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
 
    procedure Put_Usage
    is begin
@@ -42,11 +42,11 @@ is
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace;
-   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Process_Actions.Descriptor'Access);
+   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Annex_P_Process_Actions.Descriptor'Access);
 
    function Image (Node : in WisiToken.Syntax_Trees.Valid_Node_Access) return String
    is
-      use Ada_Process_Actions;
+      use Ada_Annex_P_Process_Actions;
       use WisiToken.Syntax_Trees;
 
       Punctuation_Image : constant Token_ID_Array_String (+LEFT_PAREN_ID .. +TICK_2_ID) :=
@@ -109,7 +109,7 @@ is
          elsif -ID = CHARACTER_LITERAL_ID then
             return "CHARACTER_LITERAL";
          else
-            return Ada.Characters.Handling.To_Lower (Ada_Process_Actions.Descriptor.Image (ID).all);
+            return Ada.Characters.Handling.To_Lower (Ada_Annex_P_Process_Actions.Descriptor.Image (ID).all);
          end if;
       end if;
    end Image;
@@ -127,7 +127,7 @@ begin
       end if;
 
       if Argument (1) = "LR1" then
-         Ada_Process_LR1_Main.Create_Parser
+         Ada_Annex_P_Process_LR1_Main.Create_Parser
            (Parser,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
@@ -136,7 +136,7 @@ begin
             User_Data => null,
             Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lr1_parse_table.txt");
       else
-         Ada_Process_LALR_Main.Create_Parser
+         Ada_Annex_P_Process_LALR_Main.Create_Parser
            (Parser,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,

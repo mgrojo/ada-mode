@@ -4,9 +4,10 @@ procedure Modify_Schema
 is
    Server_Config : Sal.Config_Files.Configuration_Type;
 
-      -- Deleted "procedure Get_Root is" restore either inserts that before
-      -- 'Server_Config', or ignores the error, giving different indent
-      -- results.
+      -- Deleted "procedure Get_Root is"
+      --
+      -- recover either inserts that before 'Server_Config', or ignores the
+      -- error, giving different indent results.
 
       use Sal.Config_Files;
    begin

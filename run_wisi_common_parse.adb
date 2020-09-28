@@ -29,7 +29,9 @@ with System.Multiprocessors;
 with WisiToken.Syntax_Trees;
 package body Run_Wisi_Common_Parse is
 
-   procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser)
+   procedure Usage
+     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data : in out Wisi.Parse_Data_Type'Class)
    is
       use all type WisiToken.Parse.LR.Parse_Table_Ptr;
       use Ada.Text_IO;
@@ -39,6 +41,8 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos begin_line" &
                   " end_line begin_indent");
+      Put_Line ("refactor_action:");
+      Parse_Data.Refactor_Help;
       Put_Line ("options:");
       Put_Line ("--verbosity n m l: (no 'm' for refactor)");
       Put_Line ("   n: parser; m: mckenzie; l: action");
@@ -59,8 +63,9 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
-      Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
-                  WisiToken.Parse.LR.Parser.Default_Max_Parallel'Image & ")");
+      Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.Max_Parallel'Image));
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
@@ -69,7 +74,10 @@ package body Run_Wisi_Common_Parse is
       New_Line;
    end Usage;
 
-   function Get_CL_Params (Parser : in out WisiToken.Parse.LR.Parser.Parser) return Command_Line_Params
+   function Get_CL_Params
+     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data : in out Wisi.Parse_Data_Type'Class)
+     return Command_Line_Params
    is
       use Ada.Command_Line;
       use WisiToken;
@@ -77,16 +85,16 @@ package body Run_Wisi_Common_Parse is
       Command : Command_Type;
    begin
       if Argument_Count < 1 then
-         Usage (Parser);
+         Usage (Parser, Parse_Data);
          Set_Exit_Status (Failure);
          raise Finish;
 
       elsif Argument (Arg) = "--help" then
-         Usage (Parser);
+         Usage (Parser, Parse_Data);
          raise Finish;
 
       elsif Argument_Count < 2 then
-         Usage (Parser);
+         Usage (Parser, Parse_Data);
          Set_Exit_Status (Failure);
          raise Finish;
       end if;
@@ -171,7 +179,7 @@ package body Run_Wisi_Common_Parse is
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--max_parallel" then
-               Parser.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
+               Parser.Table.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--repeat_count" then
@@ -184,7 +192,7 @@ package body Run_Wisi_Common_Parse is
 
             else
                Ada.Text_IO.Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
-               Usage (Parser);
+               Usage (Parser, Parse_Data);
                Set_Exit_Status (Failure);
                raise SAL.Parameter_Error;
             end if;
@@ -196,7 +204,7 @@ package body Run_Wisi_Common_Parse is
 
    when E : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-      Usage (Parser);
+      Usage (Parser, Parse_Data);
       Set_Exit_Status (Failure);
       raise SAL.Parameter_Error;
    end Get_CL_Params;
@@ -215,7 +223,7 @@ package body Run_Wisi_Common_Parse is
       Parser.Trace.Set_Prefix (";; "); -- so we get the same debug messages as Emacs_Wisi_Common_Parse
 
       declare
-         Cl_Params : constant Command_Line_Params := Get_CL_Params (Parser);
+         Cl_Params : constant Command_Line_Params := Get_CL_Params (Parser, Parse_Data);
       begin
          begin
             case Cl_Params.Command is
