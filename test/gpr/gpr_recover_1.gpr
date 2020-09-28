@@ -4,12 +4,13 @@ project Gpr_Recover_1 is
       case Profile is
          when "On" =>
             case Mem_Check is
-               when
+               when -- missing expression '=>'
                   for Linker_Options use ("-pg", "-lgmem");
 
                when "Off" =>
                   null;
             end case;
+         --  missing 'end case'
       end Linker;
 
    end Gpr_Recover_1;

@@ -94,6 +94,6 @@ package body Ada_Mode.Nominal.Child is -- target 0
    end Function_2h;
 
    overriding function Function_2i (Param : in Child_Type_2) return Child_Type_2
-   is (1, 1.0, False, 2);
+     is (1, 1.0, False, 2);
 
 end Ada_Mode.Nominal.Child;

@@ -26,7 +26,7 @@ package body Ada_Mode.Parens is
                           Param_4                   : in out Integer;
                           Param_5                   : in out Integer;
                           Param_6                   : in     Float := 1.0)
-   is null;
+     is null;
 
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff

@@ -1,5 +1,4 @@
---  This sets ada-indent-comment-gnat t in Local Variables below; see
--- ada_mode-conditional_expressions-more_1.adb for setting that nil.
+--  This sets ada-indent-comment-gnat t in Local Variables below.
 
 procedure Ada_Mode.Conditional_Expressions is
    subtype Bounded is Integer range -1 .. +1;

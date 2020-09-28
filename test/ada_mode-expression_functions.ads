@@ -2,14 +2,14 @@
 package Ada_Mode.Expression_Functions is
 
    function Square (A : in Float) return Float
-   is (A * A);
+     is (A * A);
 
    --  Yes, this looks a little weird, but that's due to putting the
    --  argument list on the same line as the function name; see Fun2
    --  below, and/or setting ada-indent-return to 0.
    function Fun1 (Really_Really_Long_Argument_List : Boolean)
                  return Boolean -- a Really_Really_Long_Return_Type
-   is
+     is
      (True) -- a Really_Really_Long_expression
    with Convention => Ada;
 
@@ -17,7 +17,7 @@ package Ada_Mode.Expression_Functions is
    function Fun2
      (Really_Really_Long_Argument_List : Boolean)
      return Integer -- a Really_Really_Long_Return_Type
-   is (1) -- a Really_Really_Long_expression
+     is (1) -- a Really_Really_Long_expression
    with Convention => Ada;
 
    --  comment after expression_function - was broken

@@ -30,8 +30,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -44,28 +44,6 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 incremental parse
-
-use ada_annex_p.wy
-    running all tests
-        ada gpr_query done
-
-    gpr-skel.gpr nil indent for line 5
-
-    diff all tests against 3.1 release
-        document changes
-
-    run all tests
-
-
-    ada-indent-aggregate should apply to all paren-expression
-        if we need it at all?
-        ( expression )
-        ( declare_expression )
-
-        either declare paren-expression, or define ada-indent-aggregate*
-
-
-    explain auto labels in wisitoken/wisi user guide?
 
 ada2020
     recursion reduces power of Minimal_Complete in error recover too much

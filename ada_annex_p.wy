@@ -314,7 +314,6 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT digits_constraint | REDUCE subtype_indication on token DIGITS
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
 %conflict SHIFT dispatching_operation_specifier | REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
-%conflict SHIFT expression_function_declaration | REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
 %conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT factor | REDUCE factor on token STAR_STAR
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
@@ -756,7 +755,8 @@ record_extension_part
 abstract_subprogram_declaration
   : [overriding_indicator] subprogram_specification 'is' 'abstract' [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil nil ada-indent-broken nil  ada-indent-broken]))%
+      ;; 'is' consistent with expression_function; same as ada-mode 7.0.1
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken nil  ada-indent-broken]))%
   ;
 
 interface_type_definition ::=
@@ -1796,21 +1796,17 @@ null_procedure_declaration
   : [overriding_indicator] procedure_specification 'is' 'null' [aspect_specification] ';'
     ;; indent IS, WITH consistent with expression_function
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil nil ada-indent-broken nil ada-indent-broken]))%
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
   ;
 
 expression_function_declaration
-  : [overriding_indicator] function_specification 'is' '(' expression ')' [aspect_specification] ';'
-    %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
-      ;; maintain ada-mode 7.0.1 indent for 'is'
-      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken
-                               (wisi-hanging (wisi-anchored 4 1)
-                                             (wisi-anchored 4 (+ 1 ada-indent-broken)))
-                               (wisi-anchored 4 0)
-                               nil ada-indent-broken]))%
-  | [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
+  ;;:redundant with 'aggregate' [overriding_indicator]
+  ;; function_specification 'is' '(' expression ')'
+  ;; [aspect_specification] ';'
+
+  : [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-      (wisi-indent-action [nil nil nil ada-indent-broken nil ada-indent-broken]))%
+      (wisi-indent-action [nil nil ada-indent-broken ada-indent-broken nil ada-indent-broken]))%
   ;
 
 package_declaration
@@ -2470,7 +2466,7 @@ raise_statement
       (wisi-indent-action [nil
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            ada-indent-broken
-                           ada-indent-broken ;; _not_ hanging; an exception to the rule
+                           (wisi-anchored% 3 ada-indent-broken) ;; same as 7.0.1
                            ada-indent-broken]))%
   ;
 
