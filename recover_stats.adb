@@ -119,8 +119,16 @@ begin
          end Next_Boolean;
 
          function Read_Strat_Counts return Strategy_Counts
-         is begin
-            Last := Index (Line, "(", Last + 1);
+         is
+            Temp : constant Integer := Index (Line, "(", Last + 1);
+         begin
+            if Temp = 0 then
+               --  recover failed; no strategy counts output
+               return (others => 0);
+            else
+               Last := Temp;
+            end if;
+
             return Result : Strategy_Counts := (others => 0) do
                for I in Strategies loop
                   Result (I) := Next_Integer;

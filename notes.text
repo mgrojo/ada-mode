@@ -63,8 +63,17 @@ auto_token_labels
         wisitoken_grammar_1_bnf.wy nonterminal_009
 
 doc ebnf vs actions in wisitoken.texi
+    autolabel tokens
 
 Docs/error_correction_algorithm.tex
+    use mmm-mode for Ada code in lstlisting?
+    (mmm-add-classes '((lstlisting-c++
+                    :submode js-mode
+                    :front "^\\\\begin{lstlisting}"
+                    :back  "^\\\\end{lstlisting}"
+                    :front-offset (end-of-line 1)
+                    :back-offset (beginning-of-line -1))))
+    (mmm-add-mode-ext-class 'latex-mode nil 'lstlisting-c++)
 
     give more detail on base McKenzie; don't use McKenzie notation.
 
@@ -109,6 +118,9 @@ hit that limit is fairly consistent, and the user can set that limit.
      Stefan Monnier paper on SMIE in  https://programming-journal.org/
 
 Plot generate time as a function of task_count
+
+generate Tree Sitter C code
+    use tree-sitter runtime, and therefore web languages
 
 LR1 algorithm.tex:
     super needs C_Tree to compute unique state numbers.
