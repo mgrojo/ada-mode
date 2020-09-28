@@ -1213,10 +1213,11 @@ the comment on the previous line."
 	(let ((start (progn
 		       (setq cache (wisi-goto-containing (wisi-goto-start cache)))
 		       (point)))
-	      (end (if (wisi-cache-end cache)
-			 ;; nil when cache is statement-end
-			 (wisi-cache-end cache)
-		       (point))))
+	      end)
+	  (if cache
+	      (setq end (or (wisi-cache-end cache) ;; nil when cache is statement-end
+			    (point)))
+	    (error "containing not set; try M-x wisi-parse-buffer navigate"))
 	  (indent-region start end)
 	  ))
       )))

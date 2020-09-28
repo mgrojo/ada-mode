@@ -45,8 +45,7 @@ for ada_mode_wisi_parse.gpr:
  current work
 incremental parse
 
-
-ada_annex_p.wy, ada2020
+ada2020
     recursion reduces power of Minimal_Complete in error recover too much
         handle recursion in minimal_complete at runtime?
 

@@ -622,7 +622,7 @@ Also sets ff-function-name for ff-pre-load-hook."
   (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
 	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
     (save-excursion
-      (condition-case nil
+      (condition-case-unless-debug nil
 	  (progn
 	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
 	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
@@ -668,7 +668,7 @@ Also sets ff-function-name for ff-pre-load-hook."
 				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
 				   nil))) ;; no 'body' keyword in subprogram bodies
 
-		    (subprogram_body
+		    ((subprogram_body subunit)
 		     (setq result (ada-which-function-1
 				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
 				   nil)))
@@ -917,10 +917,11 @@ compiler-specific compilation filters."
 
 		    ((abstract_subprogram_declaration
 		      expression_function_declaration
+		      null_procedure_declaration
 		      subprogram_body
 		      subprogram_declaration
 		      subprogram_renaming_declaration
-		      null_procedure_declaration)
+		      subunit)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
 		    ((single_task_declaration task_body task_type_declaration)
@@ -1142,6 +1143,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
   )
 
 (cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
+  ;; Must match code in wisi-ada.adb Initialize
   (format "%d %d %d %d %d %d %d %d %d %d %d %d %d"
 	  ada-indent
 	  ada-indent-broken
