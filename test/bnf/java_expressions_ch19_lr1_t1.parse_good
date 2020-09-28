@@ -2,7 +2,7 @@
  0: 0: 1:(LEFT_CURLY_BRACKET, (105 . 105)) : shift and goto state 1
  0: 1: 2:(Identifier, (107 . 107)) : shift and goto state 4
  0: 4: 3:(EQUAL, (109 . 109)) : reduce 1 tokens to LeftHandSide
-(LeftHandSide, (107 . 107)) <= (2:(Identifier, (107 . 107)))
+(LeftHandSide_0, (107 . 107)) <= (2:(Identifier, (107 . 107)))
  ... goto state 6
  0: 6: 3:(EQUAL, (109 . 109)) : shift and goto state 16
  0: 16: 4:(Identifier, (111 . 120)) : shift and goto state 35
@@ -31,97 +31,97 @@ recover: succeed, parser count 2
  0: resume_active: True, token goal 11, inc_shared_token: FALSE
 
  1: 21: (RIGHT_PAREN) : reduce 1 tokens to ClassType
-(ClassType, (123 . 123)) <= (6:(Identifier, (123 . 123)))
+(ClassType_0, (123 . 123)) <= (6:(Identifier, (123 . 123)))
  ... goto state 32
  0: 21: (MINUS_GREATER) : shift and goto state 50
  1: 32: (RIGHT_PAREN) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (123 . 123)) <= ((ClassType, (123 . 123)))
+(PostfixExpression_0, (123 . 123)) <= ((ClassType, (123 . 123)))
  ... goto state 29
  1: 29: (RIGHT_PAREN) : reduce 1 tokens to MultiplicativeExpression
-(MultiplicativeExpression, (123 . 123)) <= ((PostfixExpression, (123 . 123)))
+(MultiplicativeExpression_0, (123 . 123)) <= ((PostfixExpression, (123 . 123)))
  ... goto state 28
  1: 28: (RIGHT_PAREN) : reduce 1 tokens to AdditiveExpression
-(AdditiveExpression, (123 . 123)) <= ((MultiplicativeExpression, (123 . 123)))
+(AdditiveExpression_0, (123 . 123)) <= ((MultiplicativeExpression, (123 . 123)))
  ... goto state 27
  1: 27: (RIGHT_PAREN) : reduce 1 tokens to AssignmentExpression
-(AssignmentExpression, (123 . 123)) <= ((AdditiveExpression, (123 . 123)))
+(AssignmentExpression_0, (123 . 123)) <= ((AdditiveExpression, (123 . 123)))
  ... goto state 24
  1: 24: (RIGHT_PAREN) : reduce 1 tokens to Expression
-(Expression, (123 . 123)) <= ((AssignmentExpression, (123 . 123)))
+(Expression_1, (123 . 123)) <= ((AssignmentExpression, (123 . 123)))
  ... goto state 22
  1: 22: (RIGHT_PAREN) : reduce 1 tokens to ArgumentList
-(ArgumentList, (123 . 123)) <= ((Expression, (123 . 123)))
+(ArgumentList_0, (123 . 123)) <= ((Expression, (123 . 123)))
  ... goto state 83
  1: 83: (RIGHT_PAREN) : shift and goto state 93
  1: 93: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
+(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
  ... goto state 46
  0: 50: (Identifier) : shift and goto state 73
  1: 46: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
+(PostfixExpression_1, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
  ... goto state 42
  1: 42: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to MultiplicativeExpression
-(MultiplicativeExpression, (111 . 123)) <= ((PostfixExpression, (111 . 123)))
+(MultiplicativeExpression_0, (111 . 123)) <= ((PostfixExpression, (111 . 123)))
  ... goto state 41
  1: 41: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to AdditiveExpression
-(AdditiveExpression, (111 . 123)) <= ((MultiplicativeExpression, (111 . 123)))
+(AdditiveExpression_0, (111 . 123)) <= ((MultiplicativeExpression, (111 . 123)))
  ... goto state 40
  1: 40: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to AssignmentExpression
-(AssignmentExpression, (111 . 123)) <= ((AdditiveExpression, (111 . 123)))
+(AssignmentExpression_0, (111 . 123)) <= ((AdditiveExpression, (111 . 123)))
  ... goto state 38
  1: 38: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to Expression
-(Expression, (111 . 123)) <= ((AssignmentExpression, (111 . 123)))
+(Expression_1, (111 . 123)) <= ((AssignmentExpression, (111 . 123)))
  ... goto state 36
  1: 36: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 3 tokens to Assignment
-(Assignment, (107 . 123)) <= ((LeftHandSide, (107 . 107)), 3:(EQUAL, (109 . 109)), (Expression, (111 . 123)))
+(Assignment_0, (107 . 123)) <= ((LeftHandSide, (107 . 107)), 3:(EQUAL, (109 . 109)), (Expression, (111 . 123)))
  ... goto state 5
  1: 5: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : shift and goto state 15
  1: 15: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 3 tokens to Statement
-(Statement, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
+(Statement_0, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
  ... goto state 3
  0: 73: (RIGHT_PAREN) : reduce 3 tokens to LambdaExpression
-(LambdaExpression, (123 . 123)) <= (6:(Identifier, (123 . 123)), (MINUS_GREATER), (Identifier))
+(LambdaExpression_0, (123 . 123)) <= (6:(Identifier, (123 . 123)), (MINUS_GREATER), (Identifier))
  ... goto state 23
  1: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to CompilationUnit
-(CompilationUnit, (105 . 125)) <= ((Statement, (105 . 125)))
+(CompilationUnit_0, (105 . 125)) <= ((Statement, (105 . 125)))
  ... goto state 2
  0: 23: (RIGHT_PAREN) : reduce 1 tokens to Expression
-(Expression, (123 . 123)) <= ((LambdaExpression, (123 . 123)))
+(Expression_0, (123 . 123)) <= ((LambdaExpression, (123 . 123)))
  ... goto state 22
  1: 2: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : shift and goto state 1
  0: 22: (RIGHT_PAREN) : reduce 1 tokens to ArgumentList
-(ArgumentList, (123 . 123)) <= ((Expression, (123 . 123)))
+(ArgumentList_0, (123 . 123)) <= ((Expression, (123 . 123)))
  ... goto state 83
  0: 83: (RIGHT_PAREN) : shift and goto state 93
  1: 1: 9:(Identifier, (266 . 275)) : shift and goto state 4
  0: 93: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
+(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
  ... goto state 46
  0: 46: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
+(PostfixExpression_1, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
  ... goto state 42
  0: 42: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to MultiplicativeExpression
-(MultiplicativeExpression, (111 . 123)) <= ((PostfixExpression, (111 . 123)))
+(MultiplicativeExpression_0, (111 . 123)) <= ((PostfixExpression, (111 . 123)))
  ... goto state 41
  0: 41: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to AdditiveExpression
-(AdditiveExpression, (111 . 123)) <= ((MultiplicativeExpression, (111 . 123)))
+(AdditiveExpression_0, (111 . 123)) <= ((MultiplicativeExpression, (111 . 123)))
  ... goto state 40
  0: 40: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to AssignmentExpression
-(AssignmentExpression, (111 . 123)) <= ((AdditiveExpression, (111 . 123)))
+(AssignmentExpression_0, (111 . 123)) <= ((AdditiveExpression, (111 . 123)))
  ... goto state 38
  0: 38: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to Expression
-(Expression, (111 . 123)) <= ((AssignmentExpression, (111 . 123)))
+(Expression_1, (111 . 123)) <= ((AssignmentExpression, (111 . 123)))
  ... goto state 36
  0: 36: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 3 tokens to Assignment
-(Assignment, (107 . 123)) <= ((LeftHandSide, (107 . 107)), 3:(EQUAL, (109 . 109)), (Expression, (111 . 123)))
+(Assignment_0, (107 . 123)) <= ((LeftHandSide, (107 . 107)), 3:(EQUAL, (109 . 109)), (Expression, (111 . 123)))
  ... goto state 5
  0: 5: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : shift and goto state 15
  1: 4: 10:(LEFT_PAREN, (277 . 277)) : shift and goto state 14
  0: 15: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 3 tokens to Statement
-(Statement, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
+(Statement_0, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
  ... goto state 3
  0: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to CompilationUnit
-(CompilationUnit, (105 . 125)) <= ((Statement, (105 . 125)))
+(CompilationUnit_0, (105 . 125)) <= ((Statement, (105 . 125)))
  ... goto state 2
  0: 2: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : shift and goto state 1
  1: 14: 11:(Identifier, (278 . 278)) : shift and goto state 21
@@ -132,25 +132,25 @@ recover: succeed, parser count 2
  0: resume_active: False
  0: terminate (1 active): duplicate state: ops length 12:(RIGHT_PAREN, (279 . 279))
  1: 21: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to ClassType
-(ClassType, (278 . 278)) <= (11:(Identifier, (278 . 278)))
+(ClassType_0, (278 . 278)) <= (11:(Identifier, (278 . 278)))
  ... goto state 32
  1: 32: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (278 . 278)) <= ((ClassType, (278 . 278)))
+(PostfixExpression_0, (278 . 278)) <= ((ClassType, (278 . 278)))
  ... goto state 29
  1: 29: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to MultiplicativeExpression
-(MultiplicativeExpression, (278 . 278)) <= ((PostfixExpression, (278 . 278)))
+(MultiplicativeExpression_0, (278 . 278)) <= ((PostfixExpression, (278 . 278)))
  ... goto state 28
  1: 28: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to AdditiveExpression
-(AdditiveExpression, (278 . 278)) <= ((MultiplicativeExpression, (278 . 278)))
+(AdditiveExpression_0, (278 . 278)) <= ((MultiplicativeExpression, (278 . 278)))
  ... goto state 27
  1: 27: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to AssignmentExpression
-(AssignmentExpression, (278 . 278)) <= ((AdditiveExpression, (278 . 278)))
+(AssignmentExpression_0, (278 . 278)) <= ((AdditiveExpression, (278 . 278)))
  ... goto state 24
  1: 24: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to Expression
-(Expression, (278 . 278)) <= ((AssignmentExpression, (278 . 278)))
+(Expression_1, (278 . 278)) <= ((AssignmentExpression, (278 . 278)))
  ... goto state 22
  1: 22: 12:(RIGHT_PAREN, (279 . 279)) : reduce 1 tokens to ArgumentList
-(ArgumentList, (278 . 278)) <= ((Expression, (278 . 278)))
+(ArgumentList_0, (278 . 278)) <= ((Expression, (278 . 278)))
  ... goto state 34
  1: 34: 12:(RIGHT_PAREN, (279 . 279)) : shift and goto state 61
  1: 61: 13:(RIGHT_CURLY_BRACKET, (281 . 281)) : ERROR
@@ -175,76 +175,76 @@ recover: succeed, parser count 2
  1: resume_active: True, token goal 17, inc_shared_token: FALSE
 
  2: 61: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
-(MethodInvocation, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
+(MethodInvocation_0, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
  ... goto state 11
  1: 61: (PLUS_PLUS) : reduce 4 tokens to MethodInvocation
-(MethodInvocation, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
+(MethodInvocation_0, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
  ... goto state 11
  2: 11: (MINUS_MINUS) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
+(PostfixExpression_1, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
  ... goto state 7
  1: 11: (PLUS_PLUS) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
+(PostfixExpression_1, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
  ... goto state 7
  2: 7: (MINUS_MINUS) : shift and goto state 17
  1: 7: (PLUS_PLUS) : shift and goto state 18
  2: 17: (SEMICOLON) : reduce 2 tokens to PostDecrementExpression
-(PostDecrementExpression, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (MINUS_MINUS))
+(PostDecrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (MINUS_MINUS))
  ... goto state 9
  1: 18: (SEMICOLON) : reduce 2 tokens to PostIncrementExpression
-(PostIncrementExpression, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (PLUS_PLUS))
+(PostIncrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (PLUS_PLUS))
  ... goto state 8
  2: 9: (SEMICOLON) : reduce 1 tokens to StatementExpression
-(StatementExpression, (266 . 279)) <= ((PostDecrementExpression, (266 . 279)))
+(StatementExpression_1, (266 . 279)) <= ((PostDecrementExpression, (266 . 279)))
  ... goto state 12
  1: 8: (SEMICOLON) : reduce 1 tokens to StatementExpression
-(StatementExpression, (266 . 279)) <= ((PostIncrementExpression, (266 . 279)))
+(StatementExpression_0, (266 . 279)) <= ((PostIncrementExpression, (266 . 279)))
  ... goto state 12
  2: 12: (SEMICOLON) : shift and goto state 20
  1: 12: (SEMICOLON) : shift and goto state 20
  2: 20: 13:(RIGHT_CURLY_BRACKET, (281 . 281)) : shift and goto state 48
  1: 20: 13:(RIGHT_CURLY_BRACKET, (281 . 281)) : shift and goto state 48
  2: 48: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 4 tokens to Statement
-(Statement, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
+(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
  ... goto state 13
  1: 48: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 4 tokens to Statement
-(Statement, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
+(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
  ... goto state 13
  2: 13: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to CompilationUnit
-(CompilationUnit, (105 . 281)) <= ((CompilationUnit, (105 . 125)), (Statement, (264 . 281)))
+(CompilationUnit_1, (105 . 281)) <= ((CompilationUnit, (105 . 125)), (Statement, (264 . 281)))
  ... goto state 2
  1: 13: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to CompilationUnit
-(CompilationUnit, (105 . 281)) <= ((CompilationUnit, (105 . 125)), (Statement, (264 . 281)))
+(CompilationUnit_1, (105 . 281)) <= ((CompilationUnit, (105 . 125)), (Statement, (264 . 281)))
  ... goto state 2
  2: 2: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : shift and goto state 1
  1: 2: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : shift and goto state 1
  2: 1: 15:(Identifier, (345 . 345)) : shift and goto state 4
  1: 1: 15:(Identifier, (345 . 345)) : shift and goto state 4
  2: 4: 16:(PLUS_PLUS, (346 . 347)) : reduce 1 tokens to ClassType
-(ClassType, (345 . 345)) <= (15:(Identifier, (345 . 345)))
+(ClassType_0, (345 . 345)) <= (15:(Identifier, (345 . 345)))
  ... goto state 10
  1: 4: 16:(PLUS_PLUS, (346 . 347)) : reduce 1 tokens to ClassType
-(ClassType, (345 . 345)) <= (15:(Identifier, (345 . 345)))
+(ClassType_0, (345 . 345)) <= (15:(Identifier, (345 . 345)))
  ... goto state 10
  2: 10: 16:(PLUS_PLUS, (346 . 347)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (345 . 345)) <= ((ClassType, (345 . 345)))
+(PostfixExpression_0, (345 . 345)) <= ((ClassType, (345 . 345)))
  ... goto state 7
  1: 10: 16:(PLUS_PLUS, (346 . 347)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression, (345 . 345)) <= ((ClassType, (345 . 345)))
+(PostfixExpression_0, (345 . 345)) <= ((ClassType, (345 . 345)))
  ... goto state 7
  2: 7: 16:(PLUS_PLUS, (346 . 347)) : shift and goto state 18
  1: 7: 16:(PLUS_PLUS, (346 . 347)) : shift and goto state 18
  2: 18: 17:(SEMICOLON, (348 . 348)) : reduce 2 tokens to PostIncrementExpression
-(PostIncrementExpression, (345 . 347)) <= ((PostfixExpression, (345 . 345)), 16:(PLUS_PLUS, (346 . 347)))
+(PostIncrementExpression_0, (345 . 347)) <= ((PostfixExpression, (345 . 345)), 16:(PLUS_PLUS, (346 . 347)))
  ... goto state 8
  1: 18: 17:(SEMICOLON, (348 . 348)) : reduce 2 tokens to PostIncrementExpression
-(PostIncrementExpression, (345 . 347)) <= ((PostfixExpression, (345 . 345)), 16:(PLUS_PLUS, (346 . 347)))
+(PostIncrementExpression_0, (345 . 347)) <= ((PostfixExpression, (345 . 345)), 16:(PLUS_PLUS, (346 . 347)))
  ... goto state 8
  2: 8: 17:(SEMICOLON, (348 . 348)) : reduce 1 tokens to StatementExpression
-(StatementExpression, (345 . 347)) <= ((PostIncrementExpression, (345 . 347)))
+(StatementExpression_0, (345 . 347)) <= ((PostIncrementExpression, (345 . 347)))
  ... goto state 12
  1: 8: 17:(SEMICOLON, (348 . 348)) : reduce 1 tokens to StatementExpression
-(StatementExpression, (345 . 347)) <= ((PostIncrementExpression, (345 . 347)))
+(StatementExpression_0, (345 . 347)) <= ((PostIncrementExpression, (345 . 347)))
  ... goto state 12
  2: 12: 17:(SEMICOLON, (348 . 348)) : shift and goto state 20
  1: 12: 17:(SEMICOLON, (348 . 348)) : shift and goto state 20
@@ -253,15 +253,15 @@ recover: succeed, parser count 2
  1: terminate (1 active): duplicate state: random 18:(RIGHT_CURLY_BRACKET, (349 . 349))
  2: 20: 18:(RIGHT_CURLY_BRACKET, (349 . 349)) : shift and goto state 48
  2: 48: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : reduce 4 tokens to Statement
-(Statement, (343 . 349)) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
+(Statement_1, (343 . 349)) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
  ... goto state 13
  2: 13: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : reduce 2 tokens to CompilationUnit
-(CompilationUnit, (105 . 349)) <= ((CompilationUnit, (105 . 281)), (Statement, (343 . 349)))
+(CompilationUnit_1, (105 . 349)) <= ((CompilationUnit, (105 . 281)), (Statement, (343 . 349)))
  ... goto state 2
  2: 2: 19:(LEFT_CURLY_BRACKET, (411 . 411)) : shift and goto state 1
  2: 1: 20:(Identifier, (413 . 413)) : shift and goto state 4
  2: 4: 21:(EQUAL, (415 . 415)) : reduce 1 tokens to LeftHandSide
-(LeftHandSide, (413 . 413)) <= (20:(Identifier, (413 . 413)))
+(LeftHandSide_0, (413 . 413)) <= (20:(Identifier, (413 . 413)))
  ... goto state 6
  2: 6: 21:(EQUAL, (415 . 415)) : shift and goto state 16
  2: 16: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : ERROR
@@ -283,35 +283,35 @@ recover: succeed, parser count 1
 
  2: 16: (Identifier) : shift and goto state 35
  2: 35: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to ClassType
-(ClassType) <= ((Identifier))
+(ClassType_0) <= ((Identifier))
  ... goto state 45
  2: 45: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to PostfixExpression
-(PostfixExpression) <= ((ClassType))
+(PostfixExpression_0) <= ((ClassType))
  ... goto state 42
  2: 42: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to MultiplicativeExpression
-(MultiplicativeExpression) <= ((PostfixExpression))
+(MultiplicativeExpression_0) <= ((PostfixExpression))
  ... goto state 41
  2: 41: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to AdditiveExpression
-(AdditiveExpression) <= ((MultiplicativeExpression))
+(AdditiveExpression_0) <= ((MultiplicativeExpression))
  ... goto state 40
  2: 40: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to AssignmentExpression
-(AssignmentExpression) <= ((AdditiveExpression))
+(AssignmentExpression_0) <= ((AdditiveExpression))
  ... goto state 38
  2: 38: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to Expression
-(Expression) <= ((AssignmentExpression))
+(Expression_1) <= ((AssignmentExpression))
  ... goto state 36
  2: 36: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 3 tokens to Assignment
-(Assignment, (413 . 415)) <= ((LeftHandSide, (413 . 413)), 21:(EQUAL, (415 . 415)), (Expression))
+(Assignment_0, (413 . 415)) <= ((LeftHandSide, (413 . 413)), 21:(EQUAL, (415 . 415)), (Expression))
  ... goto state 5
  2: 5: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : shift and goto state 15
  2: 15: 23:(Wisi_EOI, (434 . 433)) : reduce 3 tokens to Statement
-(Statement, (411 . 417)) <= (19:(LEFT_CURLY_BRACKET, (411 . 411)), (Assignment, (413 . 415)), 22:(RIGHT_CURLY_BRACKET, (417 . 417)))
+(Statement_0, (411 . 417)) <= (19:(LEFT_CURLY_BRACKET, (411 . 411)), (Assignment, (413 . 415)), 22:(RIGHT_CURLY_BRACKET, (417 . 417)))
  ... goto state 13
  2: 13: 23:(Wisi_EOI, (434 . 433)) : reduce 2 tokens to CompilationUnit
-(CompilationUnit, (105 . 417)) <= ((CompilationUnit, (105 . 349)), (Statement, (411 . 417)))
+(CompilationUnit_1, (105 . 417)) <= ((CompilationUnit, (105 . 349)), (Statement, (411 . 417)))
  ... goto state 2
  2: 2: 23:(Wisi_EOI, (434 . 433)) : accept it
-(wisitoken_accept, (105 . 417)) <= ((CompilationUnit, (105 . 417)))
+(wisitoken_accept_0, (105 . 417)) <= ((CompilationUnit, (105 . 417)))
  2: succeed
 java_expressions_ch19.input:2:21: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
