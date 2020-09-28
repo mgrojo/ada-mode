@@ -31,9 +31,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
          --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
          Line    => Base_Token.Line + 1,
          Column  => Base_Token.Column,
-         Message =>
-           Label & ": " &
-             Tree.Image (Node, Include_Children => True, Include_RHS_Index => True, Node_Numbers => True));
+         Message => Label & ": " &
+           Tree.Image (Node, Children => True, RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;
 
    function Count (Container : Constant_List) return Ada.Containers.Count_Type

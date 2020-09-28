@@ -335,9 +335,8 @@ package body WisiToken.Parse.LR is
    end Free_Table;
 
    function Get_Text_Rep
-     (File_Name      : in String;
-      McKenzie_Param : in McKenzie_Param_Type;
-      Actions        : in Semantic_Action_Array_Arrays.Vector)
+     (File_Name : in String;
+      Actions   : in Semantic_Action_Array_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -468,8 +467,6 @@ package body WisiToken.Parse.LR is
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
          Check_New_Line;
-
-         Table.McKenzie_Param := McKenzie_Param;
 
          for State of Table.States loop
             declare
@@ -728,9 +725,7 @@ package body WisiToken.Parse.LR is
              (if Item.Ins_Node = Invalid_Node_Access
               then Image (Item.Ins_ID, Tree.Descriptor.all)
               else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & ", " &
-             (if Item.Ins_Before = Invalid_Stream_Index
-              then Tree.Image (Item.Ins_Before_Node, Terminal_Node_Numbers => True)
-              else Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True)),
+             Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True),
          when Delete =>
              (if Item.Del_Node = Invalid_Node_Access
               then Tree.Image (Item.Del_Index, Terminal_Node_Numbers => True)

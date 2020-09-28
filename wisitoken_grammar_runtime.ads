@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers;
+with SAL;
 with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees.LR_Utils;
@@ -59,6 +60,7 @@ package WisiToken_Grammar_Runtime is
       Tokens           : aliased WisiToken.BNF.Tokens;
       Conflicts        : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Max_Parallel     : SAL.Base_Peek_Type                    := 15;
 
       Rule_Count   : Integer                   := 0;
       Action_Count : Integer                   := 0;
@@ -88,8 +90,7 @@ package WisiToken_Grammar_Runtime is
       --  Translate_EBNF_To_BNF
 
       Edited_Token_List : Boolean := False;
-      --  Valid in an RHS node; True when RHS is copied from another, with
-      --  an edited token list. Token labels are from original list.
+      --  Valid in an RHS node; matches Wisitoken.BNF RHS.Edited_Token_List
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;
@@ -139,7 +140,7 @@ package WisiToken_Grammar_Runtime is
 
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
 
    procedure Add_Nonterminal

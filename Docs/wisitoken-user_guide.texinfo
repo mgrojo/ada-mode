@@ -470,12 +470,33 @@ When generating Ada code for Emacs, the elisp faces applied by
 @code{wisi-face-apply} actions must be declared, so the elisp and Ada
 code aggree on what they mean.
 
-@item %elisp_indent <elisp name> <Ada name>
-Declare elisp and Ada names for an indent variable.
+@item %elisp_indent <elisp name> <Ada name> [<arg_count> [token_arg_index]...]
+Declare elisp and Ada names for an indent variable or function.
 
-When generating Ada code for Emacs, the elisp indent variables used in
-@code{wisi-indent} actions must be declared, so the elisp and Ada code
-aggree on what they mean.
+When generating Ada code for Emacs, names used in @code{wisi-indent}
+actions that are not recognized are assumed to be elisp and Ada
+variables, with the Ada name derived from elisp name by replacing
+@code{-} with @code{_}, and converting to @code{Mixed_Case}.
+
+Indent variables that don't meet that naming convention must be
+declared, so the elisp and Ada code agree on what they mean.
+
+Custom indent functions are implemented in Ada; the @code{elisp name}
+is the name used in grammar file actions. The declaration includes the
+argument count and which arguments are token indicies. Token index
+arguments are converted to token labels if automatic labeling is in
+effect.
+
+For example, Ada declares:
+@verbatim
+%elisp_indent "ada-indent-record*" Ada_Indent_Record_1  3 1 2
+@end verbatim
+The name used in grammar file actions is @code{ada-indent-record*}.
+The Ada function name is @code{Ada_Indent_Record_1}; it must be
+visible in the generated code body, either by being declared in the
+language runtime package spec, or in a package made use-visible by a
+use-clause in a @code{%code} block. It takes three arguments; the
+first two are token indices.
 
 @item %elisp_action <elisp name> <Ada name>
 Declare elisp and Ada names for a custom action subprogram written in
@@ -483,6 +504,11 @@ Ada.
 
 The term ``elisp'' here is historical; the name is not actually used
 by elisp in the current implementation.
+
+Note that custom Ada functions can also be declared by
+@code{%elisp_indent}; those must appear as an argument to a
+@code{wisi-indent-action} grammar action; @code{elisp_action} are
+grammar actions.
 
 @item %end_names_optional_option <name>
 When generating Ada code for Emacs, the name of the Ada variable
@@ -568,7 +594,9 @@ supported).
 
 @item %language_runtime <string>
 Specify an alternate name for the language runtime package; the
-default is @code{Wisi.<language_name>}.
+default is @code{Wisi.<language_name>}, where @code{<language_name>}
+is the simple name of the language grammar file, without the file
+extension. The value must be enclosed in quotes.
 
 @item %lr1_hash_table_size <integer>
 Specify the size of the hash table used when generating an LR1 parse

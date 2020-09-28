@@ -65,6 +65,8 @@ Productions:
 30.6: subprogram <= FUNCTION block SEMICOLON
 30.7: subprogram <= FUNCTION SEMICOLON
 30.8: subprogram <= PROCEDURE name parameter_list END name SEMICOLON
+30.9: subprogram <= FUNCTION name parameter_list block SEMICOLON
+30.10: subprogram <= FUNCTION name parameter_list SEMICOLON
 31.0: subtype <= name
 32.0: use_clause <= USE nonterminal_014 SEMICOLON
 33.0: declaration_list <= declaration
@@ -197,6 +199,8 @@ State 1:
      30.5:subprogram <= FUNCTION ^ parameter_list SEMICOLON
      30.6:subprogram <= FUNCTION ^ block SEMICOLON
      30.7:subprogram <= FUNCTION ^ SEMICOLON
+     30.9:subprogram <= FUNCTION ^ name parameter_list block SEMICOLON
+    30.10:subprogram <= FUNCTION ^ name parameter_list SEMICOLON
 
    BEGIN            => shift and goto state 9 23.4
    LEFT_PAREN       => shift and goto state 10 29.0
@@ -354,6 +358,8 @@ State 14:
      30.1:subprogram <= FUNCTION name ^ parameter_list SEMICOLON
      30.2:subprogram <= FUNCTION name ^ block SEMICOLON
      30.3:subprogram <= FUNCTION name ^ SEMICOLON
+     30.9:subprogram <= FUNCTION name ^ parameter_list block SEMICOLON
+    30.10:subprogram <= FUNCTION name ^ parameter_list SEMICOLON
 
    BEGIN            => shift and goto state 9 23.4
    LEFT_PAREN       => shift and goto state 10 29.0
@@ -547,6 +553,8 @@ State 31:
 State 32:
      30.0:subprogram <= FUNCTION name parameter_list ^ block SEMICOLON
      30.1:subprogram <= FUNCTION name parameter_list ^ SEMICOLON
+     30.9:subprogram <= FUNCTION name parameter_list ^ block SEMICOLON
+    30.10:subprogram <= FUNCTION name parameter_list ^ SEMICOLON
 
    BEGIN            => shift and goto state 9 23.4
    SEMICOLON        => shift and goto state 45 30.1
@@ -684,6 +692,7 @@ State 44:
 
 State 45:
      30.1:subprogram <= FUNCTION name parameter_list SEMICOLON ^
+    30.10:subprogram <= FUNCTION name parameter_list SEMICOLON ^
 
    FUNCTION         => reduce 4 tokens to subprogram 30.1
    PROCEDURE        => reduce 4 tokens to subprogram 30.1
@@ -691,10 +700,11 @@ State 45:
    Wisi_EOI         => reduce 4 tokens to subprogram 30.1
    default          => ERROR
 
-   Minimal_Complete_Actions => (4 subprogram 30.1)
+   Minimal_Complete_Actions => ((4 subprogram 30.1), (4 subprogram 30.10))
 
 State 46:
      30.0:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON
+     30.9:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON
 
    SEMICOLON        => shift and goto state 54 30.0
    default          => ERROR
@@ -777,6 +787,7 @@ State 53:
 
 State 54:
      30.0:subprogram <= FUNCTION name parameter_list block SEMICOLON ^
+     30.9:subprogram <= FUNCTION name parameter_list block SEMICOLON ^
 
    FUNCTION         => reduce 5 tokens to subprogram 30.0
    PROCEDURE        => reduce 5 tokens to subprogram 30.0
@@ -784,7 +795,7 @@ State 54:
    Wisi_EOI         => reduce 5 tokens to subprogram 30.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (5 subprogram 30.0)
+   Minimal_Complete_Actions => ((5 subprogram 30.0), (5 subprogram 30.9))
 
 State 55:
      27.0:name <= name ^ DOT SYMBOL
@@ -938,8 +949,8 @@ State 70:
 
    Minimal_Complete_Actions => (9 block 23.0)
 
-69 states with minimal_complete_actions; 74 total minimal_complete_actions.
+69 states with minimal_complete_actions; 76 total minimal_complete_actions.
 
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
 
- 12 rules, 27 user actions, 11 checks, 71 states
+ 12 rules, 28 user actions, 11 checks, 71 states

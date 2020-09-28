@@ -330,6 +330,7 @@ package WisiToken.Parse.LR is
       States         : Parse_State_Array (State_First .. State_Last);
       Error_Action   : Parse_Action_Node_Ptr;
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Max_Parallel   : SAL.Base_Peek_Type := 15;
    end record;
 
    function Goto_For
@@ -371,9 +372,8 @@ package WisiToken.Parse.LR is
      (Token_ID, Semantic_Action_Arrays.Vector, Semantic_Action_Arrays.Empty_Vector);
 
    function Get_Text_Rep
-     (File_Name      : in String;
-      McKenzie_Param : in McKenzie_Param_Type;
-      Actions        : in Semantic_Action_Array_Arrays.Vector)
+     (File_Name : in String;
+      Actions   : in Semantic_Action_Array_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
    --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result
@@ -548,10 +548,6 @@ package WisiToken.Parse.LR is
          --  The parse stream node holding the inserted token; valid after
          --  parse is complete.
 
-         Ins_Before_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The parse stream Shared_Terminal node the token is inserted before; used
-         --  by post-parse actions.
-
       when Delete =>
          Del_ID : Token_ID;
          --  The token ID deleted.
@@ -571,16 +567,15 @@ package WisiToken.Parse.LR is
       end case;
    end record;
 
-   package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Recover_Op,
-      Default_Element => (others => <>),
-      Capacity => 80);
-
-   package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
+   package Recover_Op_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op, Default_Element => (others => <>));
 
    function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String;
 
-   function Image is new Recover_Op_Arrays.Gen_Image_Aux (Syntax_Trees.Tree, Image);
+   function Image is new Recover_Op_Arrays.Gen_Image_Aux
+     (Syntax_Trees.Tree,
+      Index_Trimmed_Image => Trimmed_Image,
+      Element_Image       => Image);
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;

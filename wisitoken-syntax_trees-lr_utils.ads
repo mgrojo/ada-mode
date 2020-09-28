@@ -120,7 +120,8 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function List_Constant_Ref
      (Container : aliased in Constant_List'Class;
       Position  :         in Cursor)
-     return Valid_Node_Access;
+     return Valid_Node_Access
+   with Pre => Has_Element (Position);
 
    type Constant_Iterator (Container : not null access constant Constant_List) is new
      Iterator_Interfaces.Reversible_Iterator

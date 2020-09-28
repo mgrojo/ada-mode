@@ -22,6 +22,8 @@
 %generate LALR Ada_Emacs re2c Process
 %start compilation_unit
 
+%max_parallel 10
+
 ;; FIXME: implement *, ? directly in packrat
 ;; %generate Packrat_Gen  Ada_Emacs re2c Process
 ;; %generate Packrat_Proc Ada_Emacs re2c Process
@@ -65,7 +67,9 @@
 %elisp_face nil
 
 ;; language-specific elisp names in indent actions
-%elisp_indent subp-indent-function Function_1
+%elisp_indent subp-indent-function_1 Function_1 2 1
+%elisp_indent subp-indent-function_2 Function_2 0
+%elisp_indent subp-indent-function_3 Function_2 2 2
 
 ;; language-specific elisp action
 %elisp_action face wisi-mmmify-token MMMify_Token
@@ -128,7 +132,7 @@ subprogram
       (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [(fun . 0)
                            (nam . [subp-indent-broken subp-indent-broken])
-                           (par . (subp-indent-function (* 2 subp-indent-broken)))
+                           (par . (subp-indent-function_1 nam (* 2 subp-indent-broken)))
                            (blo . 0)
                            (sem . 0)]))%
   | PROCEDURE name parameter_list END name SEMICOLON
@@ -136,6 +140,13 @@ subprogram
     %((wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0]))%
+  | FUNCTION name parameter_list [block] SEMICOLON
+  ;; Test elisp indent function with automatic token labels
+    %((wisi-indent-action [nil
+                           [(subp-indent-function_3 'FUNCTION 2) subp-indent-broken]
+                           (subp-indent-function_1 2 (* 2 subp-indent-broken))
+                           (subp-indent-function_2)
+                           nil]))%
   ;
 
 subtype

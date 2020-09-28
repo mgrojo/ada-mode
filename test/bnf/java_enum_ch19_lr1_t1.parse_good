@@ -2,18 +2,18 @@
  0: 0: 1:(LEFT_CURLY_BRACKET, (16 . 16)) : shift and goto state 1
  0: 1: 2:(IDENTIFIER, (18 . 18)) : shift and goto state 4
  0: 4: 3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstant
-(EnumConstant, (18 . 18)) <= (2:(IDENTIFIER, (18 . 18)))
+(EnumConstant_0, (18 . 18)) <= (2:(IDENTIFIER, (18 . 18)))
  ... goto state 6
  0: 6: 3:(COMMA, (19 . 19)) : reduce 1 tokens to EnumConstantList
-(EnumConstantList, (18 . 18)) <= ((EnumConstant, (18 . 18)))
+(EnumConstantList_0, (18 . 18)) <= ((EnumConstant, (18 . 18)))
  ... goto state 5
  0: 5: 3:(COMMA, (19 . 19)) : shift and goto state 8
  0: 8: 4:(IDENTIFIER, (21 . 21)) : shift and goto state 4
  0: 4: 5:(COMMA, (22 . 22)) : reduce 1 tokens to EnumConstant
-(EnumConstant, (21 . 21)) <= (4:(IDENTIFIER, (21 . 21)))
+(EnumConstant_0, (21 . 21)) <= (4:(IDENTIFIER, (21 . 21)))
  ... goto state 10
  0: 10: 5:(COMMA, (22 . 22)) : reduce 3 tokens to EnumConstantList
-(EnumConstantList, (18 . 21)) <= ((EnumConstantList, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21)))
+(EnumConstantList_1, (18 . 21)) <= ((EnumConstantList, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21)))
  ... goto state 5
  0: 5: 5:(COMMA, (22 . 22)) : shift and goto state 8
  0: 8: 6:(Wisi_EOI, (23 . 22)) : ERROR
@@ -36,10 +36,10 @@ recover: succeed, parser count 1
 
  0: 8: (RIGHT_CURLY_BRACKET) : shift and goto state 9
  0: 9: 6:(Wisi_EOI, (23 . 22)) : reduce 4 tokens to EnumBody
-(EnumBody, (16 . 22)) <= (1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 5:(COMMA, (22 . 22)), (RIGHT_CURLY_BRACKET))
+(EnumBody_0, (16 . 22)) <= (1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 5:(COMMA, (22 . 22)), (RIGHT_CURLY_BRACKET))
  ... goto state 2
  0: 2: 6:(Wisi_EOI, (23 . 22)) : accept it
-(wisitoken_accept, (16 . 22)) <= ((EnumBody, (16 . 22)))
+(wisitoken_accept_0, (16 . 22)) <= ((EnumBody, (16 . 22)))
  0: succeed
 java_enum_ch19.input:3:1: syntax error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
    recovered: ((INSERT, RIGHT_CURLY_BRACKET, 6))

@@ -248,15 +248,12 @@ package WisiToken.Syntax_Trees is
    --  The default implementation always returns False.
 
    procedure Insert_Token
-     (User_Data       : in out User_Data_Type;
-      Tree            : in out Syntax_Trees.Tree'Class;
-      Inserted_Token  : in     Syntax_Trees.Valid_Node_Access;
-      Inserted_Before : in     Syntax_Trees.Valid_Node_Access)
+     (User_Data      : in out User_Data_Type;
+      Tree           : in out Syntax_Trees.Tree'Class;
+      Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is null
-   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token) and
-                     (Inserted_Before = Invalid_Node_Access or else Tree.Is_Shared_Terminal (Inserted_Before));
-   --  Inserted_Token was inserted in error recovery. Inserted_Before is
-   --  the Shared_Terminal token the token was inserted before. Update
+   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token);
+   --  Inserted_Token was inserted in error recovery. Update
    --  other tokens as needed. Called from Execute_Actions for each
    --  inserted token, before Initialize_Actions.
 
@@ -1048,8 +1045,8 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String;
@@ -1058,8 +1055,8 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String;

@@ -1409,6 +1409,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (Label       : in     String;
          New_Config  : in out Configuration;
          First, Last : in     Syntax_Trees.Stream_Index)
+      --  Delete tokens First .. Last; either First - 1 or Last + 1 should
+      --  be a String_Literal. Leave Current_Shared_Token at Last + 1.
       is
          use Syntax_Trees;
          Adj_First : constant Stream_Index := (if First = Invalid_Stream_Index then Last else First);
@@ -1418,9 +1420,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Adj_Last_Int  : Element_Index;
          Index         : Stream_Index;
       begin
-         --  Delete tokens First .. Last; either First - 1 or Last + 1 should
-         --  be a String_Literal. Leave Current_Shared_Token at Last + 1.
-
          if Adj_Last = Invalid_Stream_Index or Adj_First = Invalid_Stream_Index then
             pragma Assert (False);
             raise Bad_Config;
@@ -1435,6 +1434,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  This is a guess, so we give it a nominal cost
          New_Config.Cost := New_Config.Cost + 1;
 
+         if Adj_Last_Int < Adj_First_Int then
+            raise Bad_Config;
+         end if;
          if not Has_Space (New_Config.Ops, Ada.Containers.Count_Type (Adj_Last_Int - Adj_First_Int)) then
             Super.Config_Full ("insert quote 3 " & Label, Parser_Index);
             raise Bad_Config;

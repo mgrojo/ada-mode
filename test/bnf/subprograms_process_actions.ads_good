@@ -238,17 +238,22 @@ package Subprograms_Process_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+   procedure subprogram_9
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+   procedure subprogram_10
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
    procedure subtype_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
    procedure use_clause_0
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
-   procedure nonterminal_014_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;

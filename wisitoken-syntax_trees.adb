@@ -1272,8 +1272,8 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String
@@ -1284,16 +1284,16 @@ package body WisiToken.Syntax_Trees is
          return "<deleted>";
       else
          return Image
-           (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node, Include_Children,
-            Include_RHS_Index, Node_Numbers, Terminal_Node_Numbers);
+           (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node, Children,
+            RHS_Index, Node_Numbers, Terminal_Node_Numbers);
       end if;
    end Image;
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Include_Children      : in Boolean := False;
-      Include_RHS_Index     : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
       Terminal_Node_Numbers : in Boolean := False)
      return String
@@ -1314,10 +1314,10 @@ package body WisiToken.Syntax_Trees is
             end if;
 
             Result := Result & "(" & Image (Node.ID, Tree.Descriptor.all) &
-              (if Include_RHS_Index and Node.Label = Nonterm then "_" & Trimmed_Image (Node.RHS_Index) else "") &
+              (if RHS_Index and Node.Label = Nonterm then "_" & Trimmed_Image (Node.RHS_Index) else "") &
               (if Node.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Node.Byte_Region)) & ")";
 
-            if Include_Children and Node.Label = Nonterm then
+            if Children and Node.Label = Nonterm then
                Result := Result & " <= " & Image (Tree, Node.Children, Node_Numbers, Terminal_Node_Numbers);
             end if;
 
@@ -1859,7 +1859,7 @@ package body WisiToken.Syntax_Trees is
          for I in 1 .. Level loop
             Put ("| ");
          end loop;
-         Put (Image (Tree, Node, Include_Children => False, Include_RHS_Index => True));
+         Put (Image (Tree, Node, Children => False, RHS_Index => True));
          if Image_Augmented /= null and Node.Augmented /= null then
             Put (" - " & Image_Augmented (Augmented_Class_Access_Constant (Node.Augmented)));
          end if;
@@ -2436,8 +2436,8 @@ package body WisiToken.Syntax_Trees is
                   Tree.Error_Message
                     (Node, File_Name,
                      Image (Tree, Node,
-                            Include_Children => False,
-                            Node_Numbers     => True)));
+                            Children     => False,
+                            Node_Numbers => True)));
                Node_Image_Output := True;
             end if;
 

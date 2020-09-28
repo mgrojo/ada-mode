@@ -36,6 +36,7 @@ package WisiToken.Generate.LR.LR1_Generate is
       Grammar_File_Name     : in     String;
       Known_Conflicts       : in     Conflict_Lists.Tree              := Conflict_Lists.Empty_Tree;
       McKenzie_Param        : in     McKenzie_Param_Type              := Default_McKenzie_Param;
+      Max_Parallel          : in     SAL.Base_Peek_Type               := 15;
       Parse_Table_File_Name : in     String                           := "";
       Include_Extra         : in     Boolean                          := False;
       Ignore_Conflicts      : in     Boolean                          := False;

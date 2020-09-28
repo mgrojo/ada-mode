@@ -45,7 +45,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
-           (Shared_Parser.Tree.Image (Nonterm, Include_Children => True, Terminal_Node_Numbers => True));
+           (Shared_Parser.Tree.Image (Nonterm, Children => True, Terminal_Node_Numbers => True));
       end if;
    end Reduce_Stack_1;
 
@@ -205,19 +205,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
       User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label   : in              Integer            := 1;
-      Terminate_Same_State : in              Boolean            := True)
+      First_Parser_Label   : in              Integer            := 1)
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
-      Parser.Lexer                := Lexer;
-      Parser.Trace                := Trace;
-      Parser.Table                := Table;
-      Parser.User_Data            := User_Data;
-      Parser.Max_Parallel         := Max_Parallel;
-      Parser.First_Parser_Label   := First_Parser_Label;
-      Parser.Terminate_Same_State := Terminate_Same_State;
+      Parser.Lexer              := Lexer;
+      Parser.Trace              := Trace;
+      Parser.Table              := Table;
+      Parser.User_Data          := User_Data;
+      Parser.First_Parser_Label := First_Parser_Label;
 
       if User_Data /= null then
          User_Data.Set_Lexer (Lexer);
@@ -334,9 +330,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             loop
                exit when Current_Parser.Is_Done;
 
-               if Shared_Parser.Terminate_Same_State and
-                 Current_Verb = Shift
-               then
+               if Current_Verb = Shift then
                   Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
                   --  If Duplicate_State terminated Current_Parser, Current_Parser now
                   --  points to the next parser. Otherwise it is unchanged.
@@ -376,7 +370,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                         exit when Conflict = null;
                         --  Spawn a new parser (before modifying Current_Parser stack).
 
-                        if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                               Token        : constant Base_Token := Shared_Parser.Tree.Base_Token
@@ -387,7 +381,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
-                                   SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                                   SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
                            end;
                         else
                            if Trace_Parse > Outline then

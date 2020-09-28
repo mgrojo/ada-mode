@@ -19,7 +19,6 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
-with SAL;
 with WisiToken.Generate;   use WisiToken.Generate;
 package body WisiToken_Grammar_Runtime is
 
@@ -430,7 +429,7 @@ package body WisiToken_Grammar_Runtime is
 
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       use all type WisiToken.Syntax_Trees.Node_Label;
@@ -751,16 +750,48 @@ package body WisiToken_Grammar_Runtime is
                   Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
 
                elsif Kind = "elisp_indent" then
-                  Data.Tokens.Indents.Append
-                    ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
-                      Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                  declare
+                     use WisiToken.Syntax_Trees.LR_Utils;
+
+                     Items : constant Constant_List := Creators.Create_List
+                       (Tree, Tokens (3), +declaration_item_list_ID, +declaration_item_ID);
+                     Iter : constant Constant_Iterator := Iterate_Constant (Items);
+                     Item : Cursor := Items.First;
+                     Elisp_Name : constant String := Get_Text (Data, Tree, Items (Item), Strip_Quotes => True);
+                  begin
+                     Item := Iter.Next (Item);
+                     declare
+                        Ada_Name             : constant String := Get_Text (Data, Tree, Items (Item));
+                        Function_Args_Region : Buffer_Region   := Null_Buffer_Region;
+                     begin
+                        Item := Iter.Next (Item);
+                        if Has_Element (Item) then
+                           Function_Args_Region := Tree.Byte_Region (Items (Item));
+                           loop
+                              Item := Iter.Next (Item);
+                              exit when not Has_Element (Item);
+
+                              Function_Args_Region.Last := Tree.Byte_Region (Items (Item)).Last;
+                           end loop;
+                        end if;
+
+                        Data.Tokens.Indents.Insert
+                          (Key      => +Elisp_Name,
+                           New_Item =>
+                             (Name  => +Ada_Name,
+                              Value =>
+                                +(if Function_Args_Region = Null_Buffer_Region
+                                  then ""
+                                  else Data.Grammar_Lexer.Buffer_Text (Function_Args_Region))));
+                     end;
+                  end;
 
                elsif Kind = "elisp_action" then
                   Data.Tokens.Actions.Insert
-                    (Key             => +Get_Child_Text (Data, Tree, Tokens (3), 2),
-                     New_Item        =>
-                       (Action_Label => +Get_Child_Text (Data, Tree, Tokens (3), 1),
-                        Ada_Name     => +Get_Child_Text (Data, Tree, Tokens (3), 3)));
+                    (Key      => +Get_Child_Text (Data, Tree, Tokens (3), 2),
+                     New_Item =>
+                       (Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),   -- post-parse action
+                        Value => +Get_Child_Text (Data, Tree, Tokens (3), 3))); -- Ada name
 
                elsif Kind = "end_names_optional_option" then
                   Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
@@ -776,6 +807,9 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "lr1_hash_table_size" then
                   Data.Language_Params.LR1_Hash_Table_Size :=
                     Positive'Value (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+
+               elsif Kind = "max_parallel" then
+                  Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;

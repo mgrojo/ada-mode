@@ -1,0 +1,21 @@
+%meta_syntax EBNF
+
+%generate LALR Ada_Emacs re2c Process
+
+%token <punctuation> COLON ":"
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%start  parameter_specification
+
+%elisp_face font-lock-function-name-face
+%elisp_face font-lock-type-face
+
+parameter_specification
+  : IDENTIFIER ':' ['aliased'] IDENTIFIER ['null'] IDENTIFIER [IDENTIFIER]
+    %((wisi-face-apply-action [6 font-lock-function-name-face font-lock-type-face])
+      (wisi-indent-action [nil
+                           ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+                           (wisi-hanging* ada-indent-broken ada-indent-broken)
+                           (wisi-hanging* ada-indent-broken ada-indent-broken)
+                           (wisi-hanging* ada-indent-broken ada-indent-broken)]))%
+  ;

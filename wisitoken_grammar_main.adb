@@ -740,13 +740,12 @@ package body Wisitoken_Grammar_Main is
          Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
       end;
 
+      Table.Max_Parallel := 15;
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Parser,
          Trace,
          Lexer.New_Lexer (Parser.Descriptor),
          Table,
-         User_Data,
-         Max_Parallel         => 15,
-         Terminate_Same_State => True);
+         User_Data);
    end Create_Parser;
 end Wisitoken_Grammar_Main;
