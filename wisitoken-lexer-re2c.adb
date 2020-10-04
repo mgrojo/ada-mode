@@ -194,12 +194,6 @@ package body WisiToken.Lexer.re2c is
 
             Line => Lexer.Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First,
 
-            Column =>
-              (if Lexer.ID = Lexer.Descriptor.New_Line_ID or
-                 Lexer.ID = Lexer.Descriptor.EOI_ID
-               then 0
-               else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
-
             Char_Region =>
               (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
                then
@@ -239,7 +233,7 @@ package body WisiToken.Lexer.re2c is
                declare
                   Buffer : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
                begin
-                  if Trace_Parse > Lexer_Debug then
+                  if Trace_Lexer > Outline then
                      --  We don't have a visible Trace object here.
                      Ada.Text_IO.Put_Line ("lexer error char " & Buffer (Lexer.Byte_Position));
                   end if;
@@ -283,8 +277,26 @@ package body WisiToken.Lexer.re2c is
    overriding function First (Lexer : in Instance) return Boolean
    is begin
       return Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID and then
-           Lexer.Prev_ID = Lexer.Descriptor.New_Line_ID;
+        Lexer.Prev_ID = Lexer.Descriptor.New_Line_ID;
    end First;
+
+   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos
+   is begin
+      return Base_Buffer_Pos (Lexer.Char_Line_Start);
+   end Line_Start_Char_Pos;
+
+   overriding procedure Set_Position
+     (Lexer         : in Instance;
+      Byte_Position : in Buffer_Pos;
+      Char_Position : in Buffer_Pos;
+      Line          : in Line_Number_Type)
+   is begin
+      Set_Position
+        (Lexer.Lexer,
+         Byte_Position => Interfaces.C.size_t (Byte_Position),
+         Char_Position => Interfaces.C.size_t (Char_Position),
+         Line          => Interfaces.C.int (Line));
+   end Set_Position;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
    is

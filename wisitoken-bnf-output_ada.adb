@@ -362,6 +362,7 @@ is
          Indent_Line ("  (" & re2c_Package_Name & ".New_Lexer,");
          Indent_Line ("   " & re2c_Package_Name & ".Free_Lexer,");
          Indent_Line ("   " & re2c_Package_Name & ".Reset_Lexer,");
+         Indent_Line ("   " & re2c_Package_Name & ".Set_Position,");
          Indent_Line ("   " & re2c_Package_Name & ".Next_Token);");
          New_Line;
       end case;

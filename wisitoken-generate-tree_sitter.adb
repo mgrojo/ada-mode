@@ -632,7 +632,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree
-        (Data, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Outline then
@@ -653,7 +653,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       for Nonterm of Empty_Nonterms loop
@@ -666,7 +666,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
@@ -707,7 +707,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Detail then
@@ -795,7 +795,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Put_Line
            (Current_Error,
             Tree.Error_Message
-              (Node, Input_File_Name,
+              (Node, Data.Line_Begin_Char_Pos.all, Input_File_Name,
                "not translated: " &
                  Tree.Image
                    (Node,

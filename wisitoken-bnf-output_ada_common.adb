@@ -1044,6 +1044,18 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("}");
       New_Line;
 
+      Indent_Line ("void");
+      Indent_Line (Output_File_Name_Root & "_set_position");
+      Indent_Line ("   (wisi_lexer* lexer, size_t byte_position, size_t char_position, int line)");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("lexer->cursor   = lexer->buffer + byte_position;");
+      Indent_Line ("lexer->char_pos = char_position;");
+      Indent_Line ("lexer->line     = line;");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      New_Line;
+
       ----------
       --  next_token utils
 
@@ -1299,6 +1311,16 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");
          Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_reset_lexer"";");
+         New_Line;
+
+         Indent_Line ("procedure Set_Position");
+         Indent_Line ("  (Lexer         : in System.Address;");
+         Indent_Line ("   Byte_Position : in Interfaces.C.size_t;");
+         Indent_Line ("   Char_Position : in Interfaces.C.size_t;");
+         Indent_Line ("   Line          : in Interfaces.C.int)");
+         Indent_Line ("with Import        => True,");
+         Indent_Line ("     Convention    => C,");
+         Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_set_position"";");
          New_Line;
 
          Indent_Line ("function Next_Token");

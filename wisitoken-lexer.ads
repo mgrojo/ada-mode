@@ -98,9 +98,14 @@ package WisiToken.Lexer is
    function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
    --  Return text from internal buffer, given region in byte position.
 
-   function First (Lexer : in Instance) return Boolean is abstract;
-   --  True if most recent token is first on a line; it is the token
-   --  after a New_Line.
+   procedure Set_Position
+     (Lexer         : in Instance;
+      Byte_Position : in Buffer_Pos;
+      Char_Position : in Buffer_Pos;
+      Line          : in Line_Number_Type)
+   is abstract;
+   --  Set the current position in the source buffer; Find_Next will
+   --  start there.
 
    function Find_Next
      (Lexer : in out Instance;
@@ -129,10 +134,17 @@ package WisiToken.Lexer is
    --  Token.Line is the line number in which recent token starts.
    --  If the underlying text feeder does not support the notion of
    --  'line', returns Invalid_Line_Number.
-   --
-   --  Token.Column is the column number of the start of the token, 1
-   --  indexed. If the underlying text feeder does not support the notion
-   --  of 'line', returns byte position in internal buffer.
+
+   function First (Lexer : in Instance) return Boolean is abstract;
+   --  True if most recent token is first on a line; it is the token
+   --  after a New_Line.
+
+   function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos is abstract;
+   --  Character position of the first character (whitespace included) on
+   --  the line the most recent token ended in (the current line). If the
+   --  last token was new_line, this is the character position of the
+   --  first character on the line the new_line starts (which has not
+   --  been read yet, and may not exist).
 
    function File_Name (Lexer : in Instance) return String is abstract;
    --  Return input file name; empty string if there is no file.

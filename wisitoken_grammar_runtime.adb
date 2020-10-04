@@ -315,10 +315,12 @@ package body WisiToken_Grammar_Runtime is
 
    overriding
    procedure Set_Lexer
-     (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle)
+     (User_Data           : in out User_Data_Type;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Line_Begin_Char_Pos : in     Line_Pos_Vector_Access)
    is begin
-      User_Data.Grammar_Lexer := Lexer;
+      User_Data.Grammar_Lexer       := Lexer;
+      User_Data.Line_Begin_Char_Pos := Line_Begin_Char_Pos;
    end Set_Lexer;
 
    overriding procedure Reset (Data : in out User_Data_Type)
@@ -493,7 +495,8 @@ package body WisiToken_Grammar_Runtime is
                                     Token : Base_Token renames Tree.Base_Token (Children (I));
                                  begin
                                     raise Grammar_Error with Error_Message
-                                      (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
+                                      (Data.Grammar_Lexer.File_Name, Token.Line,
+                                       Column (Token, Data.Line_Begin_Char_Pos.all),
                                        "invalid generate param '" & Text & "'");
                                  end;
                               end if;
@@ -665,7 +668,7 @@ package body WisiToken_Grammar_Runtime is
             when Grammar_Error =>
                Put_Error
                  (Error_Message
-                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column,
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Column (Token (2), Data.Line_Begin_Char_Pos.all),
                      "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
@@ -913,14 +916,16 @@ package body WisiToken_Grammar_Runtime is
 
                else
                   raise Grammar_Error with Error_Message
-                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Column
+                       (Token (2), Data.Line_Begin_Char_Pos.all), "unexpected syntax");
 
                end if;
             end;
 
          when others =>
             raise Grammar_Error with Error_Message
-              (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
+              (Data.Grammar_Lexer.File_Name, Token (2).Line, Column (Token (2), Data.Line_Begin_Char_Pos.all),
+               "unexpected syntax");
          end case;
 
       when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
@@ -959,7 +964,8 @@ package body WisiToken_Grammar_Runtime is
                LHS_Token : WisiToken.Base_Token renames Tree.Base_Token (LHS_Node);
             begin
                raise Grammar_Error with Error_Message
-                 (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm");
+                 (Data.Grammar_Lexer.File_Name, LHS_Token.Line, Column (LHS_Token, Data.Line_Begin_Char_Pos.all),
+                  "duplicate nonterm");
             end;
 
          when Virtual_Identifier =>
@@ -1010,7 +1016,7 @@ package body WisiToken_Grammar_Runtime is
                Tok  : Base_Token renames Tree.Base_Token (Tokens (Token));
             begin
                raise Grammar_Error with Error_Message
-                 (Data.Grammar_Lexer.File_Name, Tok.Line, Tok.Column,
+                 (Data.Grammar_Lexer.File_Name, Tok.Line, Column (Tok, Data.Line_Begin_Char_Pos.all),
                   "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
             end;
          end if;
@@ -1026,7 +1032,7 @@ package body WisiToken_Grammar_Runtime is
       Node  : in WisiToken.Syntax_Trees.Node_Access)
    is begin
       WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-        (Label, Data.Grammar_Lexer, Tree, Node);
+        (Label, Data.Grammar_Lexer, Tree, Data.Line_Begin_Char_Pos.all, Node);
    end Raise_Programmer_Error;
 
 end WisiToken_Grammar_Runtime;

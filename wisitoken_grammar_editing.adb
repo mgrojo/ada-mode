@@ -300,13 +300,14 @@ package body WisiToken_Grammar_Editing is
             Put_Line
               (Current_Error,
                Tree.Error_Message
-                 (Node, File_Name, Tree.Image
+                 (Node, Data.Line_Begin_Char_Pos.all, File_Name, Tree.Image
                     (Node,
                      RHS_Index    => True,
                      Children     => True,
                      Node_Numbers => True)));
          end if;
-         Put_Line (Current_Error, Tree.Error_Message (Node, File_Name, "... invalid tree: " & Msg));
+         Put_Line (Current_Error, Tree.Error_Message
+                     (Node, Data.Line_Begin_Char_Pos.all, File_Name, "... invalid tree: " & Msg));
          WisiToken.Generate.Error := True;
       end Put_Error;
 
@@ -2801,7 +2802,7 @@ package body WisiToken_Grammar_Editing is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Tree, N, Data.Grammar_Lexer.File_Name,
+                    (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                      Tree.Image (N, Node_Numbers => True)));
                Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
                WisiToken.Generate.Error := True;
@@ -2820,7 +2821,7 @@ package body WisiToken_Grammar_Editing is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Tree, N, Data.Grammar_Lexer.File_Name,
+                    (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                      Tree.Image (N, Node_Numbers      => True)));
                Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
                WisiToken.Generate.Error := True;
@@ -2867,7 +2868,7 @@ package body WisiToken_Grammar_Editing is
 
       if Debug_Mode then
          Tree.Validate_Tree
-           (Data, Data.Grammar_Lexer.File_Name,
+           (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
             Data.Error_Reported, Tree.Root, Validate_Node'Access);
          Check_Original_EBNF;
          Check_Copied_EBNF;
@@ -2905,7 +2906,7 @@ package body WisiToken_Grammar_Editing is
 
                if Debug_Mode then
                   Tree.Validate_Tree
-                    (Data, Data.Grammar_Lexer.File_Name,
+                    (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                      Data.Error_Reported, Tree.Root, Validate_Node'Access);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
@@ -2921,7 +2922,7 @@ package body WisiToken_Grammar_Editing is
             Put_Line
               (Current_Error,
                Error_Message
-                 (Tree, Node, Data.Grammar_Lexer.File_Name,
+                 (Tree, Node, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -2960,7 +2961,7 @@ package body WisiToken_Grammar_Editing is
 
                   if Debug_Mode then
                      Tree.Validate_Tree
-                       (Data, Data.Grammar_Lexer.File_Name,
+                       (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                         Data.Error_Reported, Tree.Root, Validate_Node'Access);
                      Check_Copied_EBNF;
                   end if;
@@ -2976,7 +2977,7 @@ package body WisiToken_Grammar_Editing is
             Put_Line
               (Current_Error,
                Error_Message
-                 (Tree, Node, Data.Grammar_Lexer.File_Name,
+                 (Tree, Node, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -2988,7 +2989,7 @@ package body WisiToken_Grammar_Editing is
 
       Data.EBNF_Allowed := False;
       Tree.Validate_Tree
-        (Data, Data.Grammar_Lexer.File_Name,
+        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
          Data.Error_Reported, Tree.Root, Validate_Node'Access);
 
       Data.Meta_Syntax := BNF_Syntax;

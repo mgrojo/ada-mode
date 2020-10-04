@@ -19,10 +19,11 @@ pragma License (Modified_GPL);
 package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Raise_Programmer_Error
-     (Label : in String;
-      Lexer : in WisiToken.Lexer.Handle;
-      Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in Node_Access)
+     (Label               : in String;
+      Lexer               : in WisiToken.Lexer.Handle;
+      Tree                : in WisiToken.Syntax_Trees.Tree;
+      Line_Begin_Char_Pos : in WisiToken.Line_Pos_Vectors.Vector;
+      Node                : in Node_Access)
    is
       Base_Token : constant WisiToken.Base_Token := Tree.Base_Token (Node);
    begin
@@ -30,7 +31,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
         (Lexer.File_Name,
          --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
          Line    => Base_Token.Line + 1,
-         Column  => Base_Token.Column,
+         Column  => Column (Base_Token, Line_Begin_Char_Pos),
          Message => Label & ": " &
            Tree.Image (Node, Children => True, RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;

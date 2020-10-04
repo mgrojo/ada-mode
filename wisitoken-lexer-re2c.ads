@@ -6,7 +6,7 @@
 --
 --  [1] http://re2c.org/
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -49,6 +49,12 @@ generic
    with procedure Reset_Lexer (Lexer : in System.Address);
    --  Restart lexing, with previous input buffer.
 
+   with procedure Set_Position
+     (Lexer         : in System.Address;
+      Byte_Position : in Interfaces.C.size_t;
+      Char_Position : in Interfaces.C.size_t;
+      Line          : in Interfaces.C.int);
+
    with function Next_Token
      (Lexer         : in     System.Address;
       ID            :    out Token_ID;
@@ -62,7 +68,8 @@ generic
    --  characters of the token from the start of the buffer, 0 indexed.
    --
    --  Line_Start gives the line number in the source file that the first
-   --  character of the token is in, 1 indexed.
+   --  character of the token is in, 1 indexed. If ID is new_line, Line_Start
+   --  is the line started by this token.
    --
    --  Result values:
    --
@@ -113,6 +120,15 @@ package WisiToken.Lexer.re2c is
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
 
    overriding function First (Lexer : in Instance) return Boolean;
+
+   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos;
+
+   overriding
+   procedure Set_Position
+     (Lexer         : in Instance;
+      Byte_Position : in Buffer_Pos;
+      Char_Position : in Buffer_Pos;
+      Line          : in Line_Number_Type);
 
    overriding
    function Find_Next

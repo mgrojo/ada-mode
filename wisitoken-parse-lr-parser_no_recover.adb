@@ -216,7 +216,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Parser.First_Parser_Label := First_Parser_Label;
 
       if User_Data /= null then
-         User_Data.Set_Lexer (Lexer);
+         User_Data.Set_Lexer (Lexer, Parser.Line_Begin_Char_Pos'Unchecked_Access);
+         --  parser will last as long as lexer.
       end if;
    end New_Parser;
 
@@ -302,7 +303,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                        (Shared_Parser.Tree.Get_Node (State.Stream, State.Current_Token));
                   begin
                      raise WisiToken.Parse_Error with Error_Message
-                       (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
+                       (Shared_Parser.Lexer.File_Name, Token.Line, Column (Token, Shared_Parser.Line_Begin_Char_Pos),
                         "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                   end;
                end if;
@@ -377,7 +378,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                                 (Shared_Parser.Tree.Get_Node (Parser_State.Shared_Token));
                            begin
                               raise WisiToken.Parse_Error with Error_Message
-                                (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
+                                (Shared_Parser.Lexer.File_Name, Token.Line,
+                                 Column (Token, Shared_Parser.Line_Begin_Char_Pos),
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
@@ -467,7 +469,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      end if;
 
                      raise WisiToken.Parse_Error with Error_Message
-                       (Parser.Lexer.File_Name, Token.Line, Token.Column,
+                       (Parser.Lexer.File_Name, Token.Line, Column (Token, Parser.Line_Begin_Char_Pos),
                         "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
                           Ada.Exceptions.Exception_Message (E));
                   end;
@@ -520,7 +522,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (Parser.Lexer.File_Name, Token.Line, Token.Column,
+                    (Parser.Lexer.File_Name, Token.Line, Column (Token, Parser.Line_Begin_Char_Pos),
                      "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                        ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
             end;

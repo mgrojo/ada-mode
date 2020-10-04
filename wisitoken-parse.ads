@@ -2,6 +2,10 @@
 --
 --  Subprograms common to more than one parser, higher-level than in wisitoken.ads
 --
+--  References :
+--
+--  [Lahav 2004] - Efficient Semantic Analysis for Text Editors
+--
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -19,6 +23,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -27,18 +32,19 @@ package WisiToken.Parse is
       Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;  -- For post-parse actions
       Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index; -- For error recover stream_prev/_next
    end record;
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+   package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (Line_Number_Type, Tree_Ref, Default_Element => (others => <>));
 
    type Wrapped_Lexer_Error is record
-      Recover_Token_Node  : Syntax_Trees.Valid_Node_Access;
       Recover_Token_Index : Syntax_Trees.Stream_Index;
       --  Token that lexer returned at the error.
       --
-      --  Stream_Index is needed by error recovery, for Stream_Prev/_Next.
+      --  If the error token is a grammar token, Recover_Token_Index is in
+      --  the terminal stream; it is needed by error recovery, for
+      --  Stream_Prev/_Next.
       --
-      --  Node_Access is needed for post parse actions, when
-      --  Tree.Terminal_Stream does not exist.
+      --  If the error token is a non-grammar token, Recover_Token_Index is
+      --  Invalid_Stream_Index.
 
       Error : WisiToken.Lexer.Error;
    end record;
@@ -55,7 +61,11 @@ package WisiToken.Parse is
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
       --  For access by error recover.
 
-      Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
+      Line_Begin_Char_Pos : aliased Line_Pos_Vectors.Vector;
+      --  Character position of the character at the start of each line. May
+      --  be Invalid_Buffer_Pos for lines contained in a multi-line token.
+
+      Line_Begin_Token : aliased Line_Token_Vectors.Vector;
       --  Line_Begin_Token (I) is the node in Tree of the first
       --  Shared_Terminal token on line I; Invalid_Node_Access if there are
       --  no grammar tokens on the line (ie only comment or whitespace).
@@ -93,6 +103,37 @@ package WisiToken.Parse is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
+
+   type KMN is record
+      --  Similar to [Lahav 2004] page 6; describes changed and unchanged
+      --  regions in a text buffer. We assume the range boundaries do not
+      --  break a multi-byte character.
+
+      Stable_Bytes : Buffer_Pos; -- Count of unmodified bytes before change
+      Stable_Chars : Buffer_Pos; -- "" characters
+
+      Deleted_Bytes : Buffer_Pos; -- Count of deleted bytes, after Stable
+      Deleted_Chars : Buffer_Pos;
+
+      Inserted_Bytes : Buffer_Pos; -- Count of inserted bytes, after Stable.
+      Inserted_Chars : Buffer_Pos;
+   end record;
+
+   package KMN_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (KMN);
+
+   procedure Edit_Tree
+     (Parser : in out Base_Parser'Class;
+      Edits  : in     KMN_Lists.List)
+   with Pre => Parser.Tree.Fully_Parsed;
+   --  Assumes Parser.Lexer.Source has changed in a way reflected in
+   --  Edits. Uses Edits to direct editing Parser.Tree terminal and parse
+   --  streams to reflect lexing the changed source, in preparation for
+   --  Incremental_Parse.
+   --
+   --  precondition: 1 stream for Terminals, one remaining parse tree.
+   --
+   --  FIXME: delete virtual nodes inserted by previous error recover?
+   --  FIXME: delete unreachable nodes (from terminated parse streams)? - use mark and sweep
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

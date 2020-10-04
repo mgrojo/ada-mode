@@ -291,17 +291,31 @@ package WisiToken is
    function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
      is (Region.First <= Pos and Pos <= Region.Last);
 
+   function Contains (Outer, Inner : in Buffer_Region) return Boolean
+     --  True if Outer entirely contains Inner.
+     is (Outer.First <= Inner.First and Outer.Last >= Inner.Last);
+
    function Image (Item : in Buffer_Region) return String;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
    --  Return region enclosing both Left and Right.
 
-   type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
+   function "+" (Left : in Buffer_Region; Right : in Base_Buffer_Pos) return Buffer_Region
+     is (Left.First + Right, Left.Last + Right);
+
+   type Base_Line_Number_Type is range 0 .. Natural'Last; -- for delta line numbers.
+   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
+   --  Match Emacs buffer line numbers.
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
+
+   package Line_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Buffer_Pos, Default_Element => Invalid_Buffer_Pos);
+
+   type Line_Pos_Vector_Access is access all Line_Pos_Vectors.Vector;
 
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to
@@ -313,14 +327,16 @@ package WisiToken is
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
-      Line   : Line_Number_Type  := Invalid_Line_Number;
-      Column : Ada.Text_IO.Count := 0;
-      --  At start of token.
+      Line : Line_Number_Type := Invalid_Line_Number;
+      --  At start of token. Column can be computed from Char_Region.First
+      --  and Parser.Line_Begin_Char_Pos.
 
       Char_Region : Buffer_Region := Null_Buffer_Region;
       --  Character position, useful for finding the token location in Emacs
       --  buffers.
    end record;
+
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count;
 
    function Image
      (Item       : in Base_Token;
@@ -359,7 +375,7 @@ package WisiToken is
    Outline     : constant := 0; -- spawn/terminate parallel parsers, error recovery enter/exit
    Detail      : constant := 1; -- add each parser cycle
    Extra       : constant := 2; -- add pending semantic state operations
-   Lexer_Debug : constant := 3; -- add lexer debug
+   Extreme     : constant := 3; -- add ?
 
    Trace_McKenzie : Integer  := 0;
    --  If Trace_McKenzie > 0, Parse prints messages helpful for debugging error recovery.
@@ -368,8 +384,13 @@ package WisiToken is
    --  Detail  - add each error recovery configuration
    --  Extra   - add error recovery parse actions
 
+   Trace_Lexer : Integer := 0;
+
    Trace_Action : Integer := 0;
-   --  Output during Execute_Action, and unit tests.
+   --  Output during Execute_Action
+
+   Trace_Tests : Integer := 0;
+   --  Output during unit tests
 
    Trace_Generate_EBNF             : Integer := 0;
    Trace_Generate_Table            : Integer := 0;
@@ -383,8 +404,16 @@ package WisiToken is
    --  For test_lr1_parallel.adb
 
    Debug_Mode : Boolean := False;
-   --  If True, Output stack traces, propagate exceptions to top level.
+   --  If True, output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.
+
+   procedure Enable_Trace (Config : in String);
+   --  Config has the format:
+   --
+   --  name=value ...
+   --
+   --  where "name" is the suffix of on of the Trace_* variables above,
+   --  and "value" is an integer.
 
    type Trace is abstract tagged limited null record;
    --  Output for tests/debugging.

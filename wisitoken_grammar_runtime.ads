@@ -35,6 +35,8 @@ package WisiToken_Grammar_Runtime is
    record
       Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
 
+      Line_Begin_Char_Pos : WisiToken.Line_Pos_Vector_Access; -- from the .wy file parser.
+
       User_Lexer : WisiToken.BNF.Lexer_Type := WisiToken.BNF.None;
       --  Used to read the user language file, after user parser is generated;
       --  used now in '%if lexer' statements.
@@ -107,8 +109,9 @@ package WisiToken_Grammar_Runtime is
 
    overriding
    procedure Set_Lexer
-     (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle);
+     (User_Data           : in out User_Data_Type;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access);
 
    overriding procedure Reset (Data : in out User_Data_Type);
 

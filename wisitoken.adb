@@ -341,6 +341,11 @@ package body WisiToken is
       end if;
    end Trimmed_Image;
 
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count
+   is begin
+      return Ada.Text_IO.Count (Line_Begin_Char_Pos (Token.Line) - Token.Char_Region.First);
+   end Column;
+
    function Image
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor)
@@ -355,5 +360,66 @@ package body WisiToken is
          return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
       end if;
    end Image;
+
+   procedure Enable_Trace (Config : in String)
+   is
+      use Ada.Strings.Fixed;
+      Name_First : Integer := Config'First;
+      Name_Last  : Integer;
+
+      Value_First : Integer;
+      Value_Last  : Integer;
+   begin
+      loop
+         Name_Last := Index (Config, "=", Name_First);
+         exit when Name_Last = 0;
+
+         Value_First := Name_Last + 1;
+         Name_Last := Name_Last - 1;
+         Value_Last := Index (Config, " ", Value_First);
+         if Value_Last = 0 then
+            raise Constraint_Error with "Enable_Trace: expecting integer, found '" &
+              Config (Value_First .. Config'Last);
+         end if;
+         declare
+            Name : constant String := Config (Name_First .. Name_Last);
+
+            function Get_Value return Integer
+            is begin
+               return Integer'Value (Config (Value_First .. Value_Last));
+            exception
+            when Constraint_Error =>
+               raise User_Error with "expecting integer trace value, found '" & Config (Value_First .. Value_Last);
+            end Get_Value;
+
+            Value : constant Integer := Get_Value;
+         begin
+            if Name = "Parse" then
+               Trace_Parse := Value;
+            elsif Name = "McKenzie" then
+               Trace_McKenzie := Value;
+            elsif Name = "Lexer" then
+               Trace_Lexer := Value;
+            elsif Name = "Action" then
+               Trace_Action := Value;
+            elsif Name = "Tests" then
+               Trace_Tests := Value;
+            elsif Name = "EBNF" or Name = "Generate_EBNF" then
+               Trace_Generate_EBNF := Value;
+            elsif Name = "Table" or Name = "Generate_Table" then
+               Trace_Generate_Table := Value;
+            elsif Name = "Minimal_Complete" or Name = "Generate_Minimal_Complete" then
+               Trace_Generate_Minimal_Complete := Value;
+            elsif Name = "Time" then
+               Trace_Time := Value > 0;
+            else
+               raise User_Error with "expecting trace name, found '" & Config (Name_First .. Name_Last);
+            end if;
+         end;
+
+         Name_First := Value_Last + 2;
+         exit when Name_First > Config'Last;
+      end loop;
+   end Enable_Trace;
 
 end WisiToken;

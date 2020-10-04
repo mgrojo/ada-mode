@@ -157,7 +157,8 @@ package WisiToken_Grammar_Editing is
    --  type WisiToken_Grammar_Runtime.User_Data_Type. Uses
    --  Data.EBNF_Allowed, Data.Error_Reported.
    --
-   --  For use with Syntax_Trees.Validate_Tree.
+   --  For use with Syntax_Trees.Validate_Tree; User_Data must be of type
+   --  Wisitoken_Grammar_Runtime.User_Data_Type.
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;

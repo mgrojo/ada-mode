@@ -28,24 +28,12 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    Rename terminal_stream to shared_stream
-
     test/test_incremental.adb
 
-    apply edit:
-        wi.parse.lr.incremental?
-        kmn list; must also store inserted text
-            paper assumes versioned file contents directly available; we don't
-
-        LSP didchangeTextDocumentParams sends changed range, inserted text.
-            presumably a delete is represented by a non-null range and an empty insert.
-
-        Parser.line_begin_token must be updated; used in error recover
+    parse.edit_tree (parser, kmn_list)
+        compiles, test fails
 
     review fixmes
-
-    consider switch back to array tree
-        measure parse speed, memory use
 
     branched parse stack eliminates need for duplicate_state check?
         but have to move branch point in error recover for push_back, undo_reduce.

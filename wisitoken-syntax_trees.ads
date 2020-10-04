@@ -195,8 +195,9 @@ package WisiToken.Syntax_Trees is
    type User_Data_Access is access all User_Data_Type'Class;
 
    procedure Set_Lexer
-     (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle)
+     (User_Data           : in out User_Data_Type;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access)
      is null;
 
    procedure Reset (User_Data : in out User_Data_Type) is null;
@@ -295,8 +296,8 @@ package WisiToken.Syntax_Trees is
 
    ----------
    --
-   --  Parsing operations (including error recovery), Tree and Node
-   --  attributes.
+   --  Parsing operations (including error recovery and incremental
+   --  parse), Tree and Node attributes.
 
    function Leading_Non_Grammar (Tree : aliased in out Syntax_Trees.Tree) return Base_Token_Array_Var_Ref;
 
@@ -340,13 +341,6 @@ package WisiToken.Syntax_Trees is
      return Boolean
    with Pre => Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index;
    --  Token is an element of Stream.
-
-   function Get_Element_Index
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Token  : in Stream_Index)
-     return Element_Index
-   with Pre => Tree.Contains (Stream, Token);
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;
@@ -522,6 +516,25 @@ package WisiToken.Syntax_Trees is
 
    function Insert_Terminal
      (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Base_Token;
+      Index    : in     Element_Index;
+      Before   : in     Stream_Index)
+     return Stream_Index
+   with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Before);
+   --  Insert a new Terminal element on Terminal_Stream, before Before.
+   --  Index must give the source token order.
+   --  Result points to the added node.
+
+   procedure Set_Element_Index
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Stream_Index;
+      Index    : in     Element_Index)
+   with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Terminal);
+   --  Set Element_Index of Terminal to Index; must reflect token order
+   --  in source buffer.
+
+   function Insert_Terminal
+     (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
       Before   : in     Stream_Index)
@@ -543,6 +556,19 @@ package WisiToken.Syntax_Trees is
       Line        : in Line_Number_Type;
       Column      : in Ada.Text_IO.Count)
    with Pre => Tree.Label (Node) in Virtual_Terminal | Virtual_Identifier;
+
+   procedure Shift
+     (Tree        : in Syntax_Trees.Tree;
+      Index       : in Stream_Index;
+      Shift_Bytes : in Base_Buffer_Pos;
+      Shift_Chars : in Base_Buffer_Pos;
+      Shift_Line  : in Base_Line_Number_Type)
+   with Pre => Tree.Contains (Tree.Terminal_Stream, Index);
+
+   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Index : in out Stream_Index)
+   with
+     Pre  => Tree.Contains (Tree.Terminal_Stream, Index),
+     Post => Index = Invalid_Stream_Index;
 
    function ID
      (Tree    : in Syntax_Trees.Tree;
@@ -632,10 +658,10 @@ package WisiToken.Syntax_Trees is
      return WisiToken.Production_ID
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Byte_Region
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access)
-     return WisiToken.Buffer_Region;
+   function Byte_Region (Tree : in Syntax_Trees.Tree; Index : in Stream_Index) return WisiToken.Buffer_Region
+   with Pre => Index /= Invalid_Stream_Index;
+
+   function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
@@ -763,7 +789,7 @@ package WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Access);
       Root         : in     Node_Access := Invalid_Node_Access)
-   with Pre => Root /= Invalid_Node_Access or Tree.Fully_Parsed;
+   with Pre => Root /= Invalid_Node_Access or else Tree.Editable or else Tree.Fully_Parsed;
    --  Traverse subtree of Tree rooted at Root (default single remaining
    --  stream element) in depth-first order, calling Process_Node on each
    --  node.
@@ -878,9 +904,10 @@ package WisiToken.Syntax_Trees is
       Destination :    out Tree;
       User_Data   : in     User_Data_Access)
    with Pre => Fully_Parsed (Source) or Editable (Source);
-   --  The subtree rooted in the single remaining parse stream (if any)
-   --  is copied, and the parse stream and terminal stream. All
-   --  references are deep copied; Source many be finalized.
+   --  If Editable, the subtree at Tree.Root is copied; if Fully_Parsed,
+   --  the subtree rooted in the single remaining parse stream, the parse
+   --  stream and terminal stream are copied. All references are deep
+   --  copied; Source may be finalized after this operation.
 
    procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
    with Post => Tree.Editable;
@@ -931,7 +958,7 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     WisiToken.Base_Token)
      return Valid_Node_Access
-   with Pre => not Tree.Traversing and Tree.Fully_Parsed;
+   with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Terminal node with no parent, on no stream. Result
    --  points to the added node.
 
@@ -939,8 +966,8 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_ID)
      return Valid_Node_Access
-   with Pre => not Tree.Traversing and Tree.Fully_Parsed;
-   --  Add a new Virtual_Terminal node with no parent.
+   with Pre => not Tree.Traversing and Tree.Editable;
+   --  Add a new Virtual_Terminal node with no parent, on no stream.
    --  Result points to the added node.
 
    procedure Delete_Subtree
@@ -956,10 +983,11 @@ package WisiToken.Syntax_Trees is
       Identifier  : in     Identifier_Index;
       Byte_Region : in     WisiToken.Buffer_Region)
      return Valid_Node_Access
-   with Pre => not Tree.Traversing and Tree.Fully_Parsed;
-   --  Add a new Virtual_Identifier node with no parent. Byte_Region
-   --  should point to an area in the source buffer related to the new
-   --  identifier, to aid debugging. Result points to the added node.
+   with Pre => not Tree.Traversing and Tree.Editable;
+   --  Add a new Virtual_Identifier node with no parent, on no stream.
+   --  Byte_Region should point to an area in the source buffer related
+   --  to the new identifier, to aid debugging. Result points to the
+   --  added node.
 
    function Child_Index
      (Tree   : in out Syntax_Trees.Tree;
@@ -976,7 +1004,7 @@ package WisiToken.Syntax_Trees is
       New_Child            : in     Node_Access;
       Old_Child_New_Parent : in     Node_Access := Invalid_Node_Access)
    with
-     Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
+     Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Editable and
             (Tree.Is_Nonterm (Parent) and then
              (Tree.Child (Parent, Child_Index) = Old_Child and
               (Old_Child = Invalid_Node_Access or else
@@ -992,7 +1020,7 @@ package WisiToken.Syntax_Trees is
       New_ID   : in     WisiToken.Production_ID;
       Children : in     Node_Access_Array)
    with
-     Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Fully_Parsed and
+     Pre => Tree.Parents_Set and (not Tree.Traversing) and Tree.Editable and
             Tree.Is_Nonterm (Node) and (for all C of Children => C /= Invalid_Node_Access);
    --  If parents of current Node.Children are not Invalid_Node_Access,
    --  set corresponding entry in those parents to Invalid_Node_Access,
@@ -1081,10 +1109,11 @@ package WisiToken.Syntax_Trees is
    package Node_Sets is new SAL.Gen_Unbounded_Sparse_Ordered_Sets (Node_Access, Node_Access_Compare);
 
    function Error_Message
-     (Tree      : in Syntax_Trees.Tree;
-      Node      : in Valid_Node_Access;
-      File_Name : in String;
-      Message   : in String)
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector;
+      File_Name           : in String;
+      Message             : in String)
      return String;
 
    type Validate_Node is access procedure
@@ -1104,12 +1133,13 @@ package WisiToken.Syntax_Trees is
    --  Node_Numbers => True) once before any error messages.
 
    procedure Validate_Tree
-     (Tree           : in out Syntax_Trees.Tree;
-      User_Data      : in out User_Data_Type'Class;
-      File_Name      : in     String;
-      Error_Reported : in out Node_Sets.Set;
-      Root           : in     Node_Access                := Invalid_Node_Access;
-      Validate_Node  : in     Syntax_Trees.Validate_Node := null)
+     (Tree                : in out Syntax_Trees.Tree;
+      User_Data           : in out User_Data_Type'Class;
+      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vectors.Vector;
+      File_Name           : in     String;
+      Error_Reported      : in out Node_Sets.Set;
+      Root                : in     Node_Access                := Invalid_Node_Access;
+      Validate_Node       : in     Syntax_Trees.Validate_Node := null)
    with Pre'Class => Tree.Parents_Set;
    --  Verify child/parent links, and that no children are Invalid_Node_Access.
    --  Call Validate_Node for each visited node. Violations output a
@@ -1121,7 +1151,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
-      Root            : in Node_Access                   := Invalid_Node_Access;
+      Root            : in Node_Access                  := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
       Image_Action    : in Syntax_Trees.Image_Action    := null);
    --  Print tree rooted at Root (default Tree.Root) to
@@ -1149,14 +1179,13 @@ private
       --  Terminal_Stream Element_Index, for unit tests. If not
       --  Shared_Terminal, unique and arbitrary, for debugging.
 
-      Byte_Region : Buffer_Region := Null_Buffer_Region;
-      Char_Region : Buffer_Region := Null_Buffer_Region;
+      Byte_Region : aliased Buffer_Region := Null_Buffer_Region;
+      Char_Region : aliased Buffer_Region := Null_Buffer_Region;
       --  Computed by Update_Cache, used in Semantic_Check actions and debug
       --  messages.
 
-      Line   : Line_Number_Type  := Invalid_Line_Number;
-      Column : Ada.Text_IO.Count := 0;
-      --  Computed by Update_Cache, used in debug messages.
+      Line : Line_Number_Type := Invalid_Line_Number;
+      --  For nonterms, computed by Update_Cache, used in debug messages.
 
       Parent : Node_Access := Invalid_Node_Access;
 
@@ -1304,7 +1333,13 @@ private
    is (Base_Token (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
 
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
-   is (Node.ID, Node.Byte_Region, Node.Line, Node.Column, Node.Char_Region);
+   is (Node.ID, Node.Byte_Region, Node.Line, Node.Char_Region);
+
+   function Byte_Region (Tree : in Syntax_Trees.Tree; Index : in Stream_Index) return WisiToken.Buffer_Region
+   is (Stream_Element_Lists.Constant_Ref (Index.Cur).Node.Byte_Region);
+
+   function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region
+   is (Node.Byte_Region);
 
    function Contains
      (Tree   : in Syntax_Trees.Tree;
@@ -1318,17 +1353,8 @@ private
    is (Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Terminal_Stream.Cur = Parse_Stream_Lists.No_Element);
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
-   is ((Tree.Streams.Length = 0 and Tree.Root /= Invalid_Node_Access) -- from Clear_Parse_Streams
-         or else
-         (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2));
+   is (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
    --  1 stream for Terminals, one for the remaining parser.
-
-   function Get_Element_Index
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Token  : in Stream_Index)
-     return Element_Index
-   is (Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;

@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with SAL.AUnit;
-with AUnit.Checks.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
@@ -29,7 +28,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed : in Node;
       Expected : in Node)
    is
-      use Standard.AUnit.Checks.Text_IO;
       use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
@@ -39,7 +37,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       --  meaningless unless Terminal Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
       Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
       Check (Label & ".line", Computed.Line, Expected.Line);
-      Check (Label & ".column", Computed.Column, Expected.Column);
       --  can't compare parents Check (Label & ".parent", Computed.Parent.Node_Index, Expected.Parent.Node_Index);
       Check (Label & ".state", Computed.State, Expected.State);
 
