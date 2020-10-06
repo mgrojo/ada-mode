@@ -37,11 +37,13 @@ package WisiToken.Syntax_Trees.AUnit_Public is
       Computed_Tree   : in Syntax_Trees.Tree;
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID);
+      Expected_Stream : in Stream_ID;
+      Node_Numbers    : in Boolean);
 
    procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree);
+     (Label        : in String;
+      Computed     : in Tree;
+      Expected     : in Tree;
+      Node_Numbers : in Boolean);
 
 end WisiToken.Syntax_Trees.AUnit_Public;

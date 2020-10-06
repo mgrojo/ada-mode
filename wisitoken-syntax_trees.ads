@@ -160,11 +160,16 @@ package WisiToken.Syntax_Trees is
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
 
-   procedure Clear (Tree : in out Syntax_Trees.Tree; Free_Memory : in Boolean := False);
+   procedure Clear
+     (Tree             : in out Syntax_Trees.Tree;
+      Free_Memory      : in     Boolean := False;
+      Initialize_Parse : in     Boolean := True);
    --  Delete all nodes in all streams, reset for new lex and parse
    --  (includes create Terminal_Stream). Free_Memory applies to internal
    --  bookkeeping; leaving it False may slightly speed parsing a similar
    --  sized file as the previous one.
+   --
+   --  If Initialize_Parse, create empty terminal stream.
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
 
@@ -1068,7 +1073,7 @@ package WisiToken.Syntax_Trees is
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
      return String;
-   --  Image of each root node.
+   --  Image of each node, not including children.
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
@@ -1139,12 +1144,12 @@ package WisiToken.Syntax_Trees is
       File_Name           : in     String;
       Error_Reported      : in out Node_Sets.Set;
       Root                : in     Node_Access                := Invalid_Node_Access;
-      Validate_Node       : in     Syntax_Trees.Validate_Node := null)
-   with Pre'Class => Tree.Parents_Set;
-   --  Verify child/parent links, and that no children are Invalid_Node_Access.
-   --  Call Validate_Node for each visited node. Violations output a
-   --  message to Text_IO.Current_Error. Error_Reported is used to avoid
-   --  outputing an error for a node more than once.
+      Validate_Node       : in     Syntax_Trees.Validate_Node := null);
+   --  Verify that no children are Invalid_Node_Access. If
+   --  Tree.Set_Parents, verify child/parent links. Call Validate_Node
+   --  for each visited node. Violations output a message to
+   --  Text_IO.Current_Error. Error_Reported is used to avoid outputing
+   --  an error for a node more than once.
 
    type Image_Augmented is access function (Aug : in Augmented_Class_Access_Constant) return String;
    type Image_Action is access function (Action : in Semantic_Action) return String;
@@ -1158,6 +1163,8 @@ package WisiToken.Syntax_Trees is
    --  Text_IO.Current_Output, for debugging. For each node,
    --  Image_Augmented is called if it is not null and node.augmented is
    --  not null.
+
+   procedure Print_Streams (Tree : in Syntax_Trees.Tree);
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts.

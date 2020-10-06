@@ -27,8 +27,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+change terminal_index to 16 bit type?
+    smaller tables => faster parser?
+
 incremental parse
     test/test_incremental.adb
+        passing, need better tests
 
     parse.edit_tree (parser, kmn_list)
         compiles, test fails

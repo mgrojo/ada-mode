@@ -26,6 +26,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 package body WisiToken is
 
@@ -363,6 +364,7 @@ package body WisiToken is
 
    procedure Enable_Trace (Config : in String)
    is
+      use Ada.Characters.Handling;
       use Ada.Strings.Fixed;
       Name_First : Integer := Config'First;
       Name_Last  : Integer;
@@ -375,14 +377,13 @@ package body WisiToken is
          exit when Name_Last = 0;
 
          Value_First := Name_Last + 1;
-         Name_Last := Name_Last - 1;
-         Value_Last := Index (Config, " ", Value_First);
+         Name_Last   := Name_Last - 1;
+         Value_Last  := Index (Config, " ", Value_First);
          if Value_Last = 0 then
-            raise Constraint_Error with "Enable_Trace: expecting integer, found '" &
-              Config (Value_First .. Config'Last);
+            Value_Last := Config'Last;
          end if;
          declare
-            Name : constant String := Config (Name_First .. Name_Last);
+            Name : constant String := To_Lower (Config (Name_First .. Name_Last));
 
             function Get_Value return Integer
             is begin
@@ -394,26 +395,26 @@ package body WisiToken is
 
             Value : constant Integer := Get_Value;
          begin
-            if Name = "Parse" then
+            if Name = "parse" then
                Trace_Parse := Value;
-            elsif Name = "McKenzie" then
+            elsif Name = "mckenzie" then
                Trace_McKenzie := Value;
-            elsif Name = "Lexer" then
+            elsif Name = "lexer" then
                Trace_Lexer := Value;
-            elsif Name = "Action" then
+            elsif Name = "action" then
                Trace_Action := Value;
-            elsif Name = "Tests" then
+            elsif Name = "tests" then
                Trace_Tests := Value;
-            elsif Name = "EBNF" or Name = "Generate_EBNF" then
+            elsif Name = "ebnf" or Name = "generate_ebnf" then
                Trace_Generate_EBNF := Value;
-            elsif Name = "Table" or Name = "Generate_Table" then
+            elsif Name = "table" or Name = "generate_table" then
                Trace_Generate_Table := Value;
-            elsif Name = "Minimal_Complete" or Name = "Generate_Minimal_Complete" then
+            elsif Name = "minimal_complete" or Name = "generate_minimal_complete" then
                Trace_Generate_Minimal_Complete := Value;
-            elsif Name = "Time" then
+            elsif Name = "time" then
                Trace_Time := Value > 0;
             else
-               raise User_Error with "expecting trace name, found '" & Config (Name_First .. Name_Last);
+               raise User_Error with "expecting trace name, found '" & Config (Name_First .. Name_Last) & "'";
             end if;
          end;
 

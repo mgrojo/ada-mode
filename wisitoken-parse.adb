@@ -146,6 +146,7 @@ package body WisiToken.Parse is
       use KMN_Lists;
       use all type WisiToken.Syntax_Trees.Element_Index;
       use all type WisiToken.Syntax_Trees.Stream_Index;
+      use all type Ada.Containers.Count_Type;
 
       Tree : Syntax_Trees.Tree renames Parser.Tree;
 
@@ -161,6 +162,10 @@ package body WisiToken.Parse is
 
       Next_Element_Index : Syntax_Trees.Element_Index := 1;
    begin
+      if Edits.Length = 0 then
+         return;
+      end if;
+
       KMN_Loop :
       loop
          declare
@@ -247,7 +252,9 @@ package body WisiToken.Parse is
 
             Delete_Loop :
             loop
-               exit Delete_Loop when Terminal_Index = Syntax_Trees.Invalid_Stream_Index;
+               exit Delete_Loop when Terminal_Index = Syntax_Trees.Invalid_Stream_Index or else
+                 Tree.ID (Terminal_Index) = Parser.Descriptor.EOI_ID;
+
                exit Delete_Loop when not Contains
                  (Inner => Tree.Byte_Region (Terminal_Index), Outer => Deleted_Region);
 

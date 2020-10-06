@@ -18,15 +18,17 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check
-     (Label    : in String;
-      Computed : in Node;
-      Expected : in Node)
+     (Label        : in String;
+      Computed     : in Node;
+      Expected     : in Node;
+      Node_Numbers : in Boolean)
    is
       use SAL.AUnit;
       use WisiToken.AUnit;
@@ -34,28 +36,43 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".id", Computed.ID, Expected.ID);
-      --  meaningless unless Terminal Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
+      if Node_Numbers then
+         Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
+      end if;
       Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
       Check (Label & ".line", Computed.Line, Expected.Line);
-      --  can't compare parents Check (Label & ".parent", Computed.Parent.Node_Index, Expected.Parent.Node_Index);
+      if Node_Numbers then
+         if Computed.Parent = null and Expected.Parent = null then
+            null;
+         elsif Computed.Parent = null then
+            Standard.AUnit.Assertions.Assert (False, Label & ".parent null expected set");
+         elsif Expected.Parent = null then
+            Standard.AUnit.Assertions.Assert (False, Label & ".parent set expected null");
+         else
+            Check (Label & ".parent", Computed.Parent.Node_Index, Expected.Parent.Node_Index);
+         end if;
+      end if;
       Check (Label & ".state", Computed.State, Expected.State);
 
-      --  Not checking Augmented
+      --  Not comparing Augmented; not used in unit tests.
 
       case Computed.Label is
       when Shared_Terminal =>
          Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
-         Check (Label & ".Terminal_Index",
+         Check (Label & ".terminal_index",
                 Stream_Element_Lists.Constant_Ref (Computed.Terminal_Index.Cur).Index,
                 Stream_Element_Lists.Constant_Ref (Expected.Terminal_Index.Cur).Index);
 
       when Virtual_Terminal | Virtual_Identifier =>
-         Check (Label & ".Identifier", Computed.Identifier, Expected.Identifier);
+         Check (Label & ".identifier", Computed.Identifier, Expected.Identifier);
 
       when Nonterm =>
          Check (Label & ".children'length", Computed.Child_Count, Expected.Child_Count);
          for I in Computed.Children'Range loop
-            Check (Label & ".child." & I'Image, Computed.Children (I), Expected.Children (I));
+            Check (Label & ".child." & Computed.Children (I).Node_Index'Image,
+                   Computed.Children (I).all,
+                   Expected.Children (I).all,
+                   Node_Numbers);
          end loop;
          Check (Label & ".action", Computed.Action, Expected.Action);
       end case;
@@ -66,7 +83,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed_Tree   : in Syntax_Trees.Tree;
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID)
+      Expected_Stream : in Stream_ID;
+      Node_Numbers    : in Boolean)
    is
       use SAL.AUnit;
       use Stream_Element_Lists;
@@ -81,7 +99,11 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
              Expected_Tree.Stack_Depth (Expected_Stream));
       loop
          exit when not (Has_Element (Computed_Element) and Has_Element (Expected_Element));
-         Check (Label & ".node", Constant_Ref (Computed_Element).Node, Constant_Ref (Expected_Element).Node);
+         Check
+           (Label & ".node",
+            Constant_Ref (Computed_Element).Node.all,
+            Constant_Ref (Expected_Element).Node.all,
+            Node_Numbers);
 
          Computed_Element := Next (@);
          Expected_Element := Next (@);
@@ -89,9 +111,10 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree)
+     (Label        : in String;
+      Computed     : in Tree;
+      Expected     : in Tree;
+      Node_Numbers : in Boolean)
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit.Base_Token_Arrays_AUnit;
@@ -102,22 +125,24 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
    begin
       Check (Label & ".leading_non_grammar", Computed.Leading_Non_Grammar, Expected.Leading_Non_Grammar);
+      Check (Label & ".root set", Computed.Root /= null, Expected.Root /= null);
       Check (Label & ".stream_count", Computed.Stream_Count, Expected.Stream_Count);
       loop
          exit when not (Has_Element (Computed_Stream) and Has_Element (Expected_Stream));
          Check
            (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
             Computed, (Cur => Computed_Stream),
-            Expected, (Cur => Expected_Stream));
+            Expected, (Cur => Expected_Stream),
+            Node_Numbers => Node_Numbers or Computed.Terminal_Stream.Cur = Computed_Stream);
 
          Next (Expected_Stream);
          Next (Computed_Stream);
       end loop;
 
-      --  We can't check Tree.Nodes; that's in arbitrary order, and will
-      --  differ between batch parse of edited source and edited tree.
-      --  FIXME: need to walk both trees in sync, compare nodes.
-      raise SAL.Not_Implemented;
+      if Computed.Stream_Count = 0 and Computed.Root /= null then
+         --  If stream_count > 0, root is in one of the streams.
+         Check (Label, Computed.Root.all, Expected.Root.all, Node_Numbers);
+      end if;
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

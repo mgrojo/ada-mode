@@ -22,22 +22,27 @@ with AUnit.Checks;
 private package WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check is new AUnit.Checks.Gen_Check_Access (Node, Node_Access);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
 
    procedure Check
-     (Label    : in String;
-      Computed : in Node;
-      Expected : in Node);
+     (Label        : in String;
+      Computed     : in Node;
+      Expected     : in Node;
+      Node_Numbers : in Boolean);
+   --  Does not compare Augmented
 
    procedure Check
      (Label           : in String;
       Computed_Tree   : in Syntax_Trees.Tree;
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID);
+      Expected_Stream : in Stream_ID;
+      Node_Numbers    : in Boolean);
 
    procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree);
+     (Label        : in String;
+      Computed     : in Tree;
+      Expected     : in Tree;
+      Node_Numbers : in Boolean);
 
 end WisiToken.Syntax_Trees.AUnit_Private;
