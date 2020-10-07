@@ -157,11 +157,19 @@ package body WisiToken.Parse is
       Shift_Chars  : Base_Buffer_Pos       := 0;
       Shift_Line   : Base_Line_Number_Type := 0;
 
-      Terminal_Index : Syntax_Trees.Stream_Index := Tree.Stream_First (Tree.Terminal_Stream);
-      --  FIXME: Parse_Node : Syntax_Trees.Stream_Index := Tree.First (Parser.Stream);
+      Terminal_Index  : Syntax_Trees.Stream_Index := Tree.Stream_First (Tree.Terminal_Stream);
+      Parse_Node      : Syntax_Trees.Node_Access  := Tree.First_Shared_Terminal (Tree.Root);
+      Last_Parse_Node : Syntax_Trees.Node_Access;
+      --  FIXME: Parse_Index : Syntax_Trees.Stream_Index := Tree.First (Parser.Stream);
 
       Next_Element_Index : Syntax_Trees.Element_Index := 1;
    begin
+      if not Tree.Parents_Set then
+         Tree.Set_Parents;
+         --  Required for Next_Shared_Terminal. Do this even if no edits, for
+         --  consistency.
+      end if;
+
       if Edits.Length = 0 then
          return;
       end if;
@@ -189,15 +197,20 @@ package body WisiToken.Parse is
                Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
 
                Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+
+               Parser.Last_Grammar_Node := Tree.Get_Node (Terminal_Index);
+               --  for non_grammar, Shift_Line below
+
+               pragma Assert (Tree.Get_Element_Index (Parse_Node) = Tree.Get_Element_Index (Parser.Last_Grammar_Node));
+               Tree.Shift (Parse_Node, Shift_Bytes, Shift_Chars, Shift_Line);
+               Last_Parse_Node := Parse_Node;
+
+               --  FIXME: shift containing nonterms
+
                Next_Element_Index := @ + 1;
-
-               Parser.Last_Grammar_Node := Tree.Get_Node (Terminal_Index); -- for Shift_Line below
-
-               Terminal_Index := Tree.Stream_Next (Terminal_Index);
+               Terminal_Index     := Tree.Stream_Next (Terminal_Index);
+               Parse_Node         := Tree.Next_Shared_Terminal (Parse_Node);
             end loop Unchanged_Loop;
-
-            --  FIXME: update byte_, char_regions in portion of parse tree
-            --  containing stable_region
 
             declare
                Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
@@ -208,31 +221,61 @@ package body WisiToken.Parse is
                   Line          => Token.Line + Shift_Line);
             end;
 
+            Delete_Non_Grammar :
+            declare
+               use all type SAL.Base_Peek_Type;
+               Containing : Base_Token_Array_Var_Ref renames Parser.Tree.Non_Grammar_Var (Parser.Last_Grammar_Node);
+               Delete     : SAL.Base_Peek_Type := 0;
+            begin
+               for I in Containing.First_Index .. Containing.Last_Index loop
+                  if Overlaps (Containing (I).Byte_Region, Inserted_Region) or
+                    Overlaps (Containing (I).Byte_Region, Deleted_Region)
+                  then
+                     Delete := I;
+                     exit;
+                  end if;
+               end loop;
+               if Delete > 0 then
+                  if Delete = Containing.First_Index then
+                     Containing.Clear;
+                     Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
+                  else
+                     Containing.Set_First_Last (Containing.First_Index, Delete - 1);
+                     Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Set_First_Last (Containing.First_Index, Delete - 1);
+                  end if;
+               end if;
+            end Delete_Non_Grammar;
+
             Scan_Changed_Loop :
             loop
                declare
+                  use all type WisiToken.Syntax_Trees.Node_Access;
                   Token : Base_Token;
                   Error : constant Boolean := Parser.Lexer.Find_Next (Token);
                   Index : Syntax_Trees.Stream_Index;
                begin
-
                   if Trace_Lexer > Outline then
                      Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
                   end if;
 
-                  exit Scan_Changed_Loop when Token.Byte_Region not in Inserted_Region;
+                  exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
+                  exit Scan_Changed_Loop when not Overlaps (Token.Byte_Region, Inserted_Region);
 
                   if Token.ID >= Parser.Descriptor.First_Terminal then
                      --  grammar token
                      Index := Tree.Insert_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
 
                      Next_Element_Index := @ + 1;
+                     Last_Parse_Node    := Syntax_Trees.Invalid_Node_Access;
 
                      Process_Grammar_Token (Parser, Token, Index);
 
                      --  FIXME: breakdown parse tree
                   else
                      Process_Non_Grammar_Token (Parser, Token);
+                     if Last_Parse_Node /= Syntax_Trees.Invalid_Node_Access then
+                        Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Append (Token);
+                     end if;
                   end if;
 
                   if Error then
@@ -277,6 +320,14 @@ package body WisiToken.Parse is
             exit KMN_Loop when not Has_Element (KMN_Node);
          end;
       end loop KMN_Loop;
+
+      declare
+         Token : constant WisiToken.Base_Token := Tree.Base_Token (Terminal_Index);
+      begin
+         pragma Assert (Token.ID = Parser.Descriptor.EOI_ID);
+         Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
+         Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+      end;
    end Edit_Tree;
 
 end WisiToken.Parse;

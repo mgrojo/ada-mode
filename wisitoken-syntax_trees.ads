@@ -511,13 +511,13 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Terminal  : in     Valid_Node_Access)
      return Base_Token_Array_Var_Ref
-   with Pre => Tree.Label (Terminal) /= Nonterm;
+   with Pre => Tree.Label (Terminal) in Shared_Terminal | Virtual_Identifier;
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
      return Base_Token_Array_Const_Ref
-   with Pre => Tree.Label (Terminal) /= Nonterm;
+   with Pre => Tree.Label (Terminal) in Shared_Terminal | Virtual_Identifier;
 
    function Insert_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -562,6 +562,12 @@ package WisiToken.Syntax_Trees is
       Column      : in Ada.Text_IO.Count)
    with Pre => Tree.Label (Node) in Virtual_Terminal | Virtual_Identifier;
 
+   procedure Shift
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Shift_Bytes : in Base_Buffer_Pos;
+      Shift_Chars : in Base_Buffer_Pos;
+      Shift_Line  : in Base_Line_Number_Type);
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;
       Index       : in Stream_Index;
@@ -1091,13 +1097,15 @@ package WisiToken.Syntax_Trees is
       Children              : in Boolean := False;
       RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False)
+      Terminal_Node_Numbers : in Boolean := False;
+      Non_Grammar           : in Boolean := False)
      return String;
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
       Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False)
+      Terminal_Node_Numbers : in Boolean := False;
+      Non_Grammar           : in Boolean := False)
      return String;
    --  Includes Node.Node_Index, Node.ID
 
@@ -1158,13 +1166,14 @@ package WisiToken.Syntax_Trees is
      (Tree            : in Syntax_Trees.Tree;
       Root            : in Node_Access                  := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
-      Image_Action    : in Syntax_Trees.Image_Action    := null);
+      Image_Action    : in Syntax_Trees.Image_Action    := null;
+      Non_Grammar     : in Boolean                      := False);
    --  Print tree rooted at Root (default Tree.Root) to
    --  Text_IO.Current_Output, for debugging. For each node,
    --  Image_Augmented is called if it is not null and node.augmented is
    --  not null.
 
-   procedure Print_Streams (Tree : in Syntax_Trees.Tree);
+   procedure Print_Streams (Tree : in Syntax_Trees.Tree; Non_Grammar : in Boolean := False);
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts.
@@ -1207,20 +1216,23 @@ private
       --  duplicates information. Not changing yet for compatibility with
       --  main devel branch.
 
-      Non_Grammar : aliased Base_Token_Arrays.Vector;
-      --  Immediately following Node. In initial parse, this can only be in
-      --  a Shared_Terminal node. But editing the tree can put it in another
-      --  node. FIXME: if not placed after nonterm, move into variant_part.
-
       case Label is
       when Shared_Terminal =>
          Terminal_Index : Stream_Index := Invalid_Stream_Index;
+
+         Non_Grammar : aliased Base_Token_Arrays.Vector;
+         --  Immediately following Node. In initial parse, this can only be in
+         --  a Shared_Terminal node. But editing the tree can copy it to a Virtual_Identifier
+         --  node.
 
       when Virtual_Terminal =>
          null;
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
+
+         VI_Non_Grammar : aliased Base_Token_Arrays.Vector;
+         --  Immediately following Node.
 
       when Nonterm =>
          Virtual : Boolean := False;

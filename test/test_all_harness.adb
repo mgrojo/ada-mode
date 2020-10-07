@@ -25,6 +25,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Association_Grammar_Test;
 with Dragon_4_43_LR1_Test;
@@ -133,5 +134,6 @@ begin
 exception
 when E : others =>
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_All_Harness;

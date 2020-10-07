@@ -77,11 +77,11 @@ package body Test_Incremental is
          Parser.Put_Errors;
 
          Put_Line (" ... streams:");
-         Tree.Print_Streams;
+         Tree.Print_Streams (Non_Grammar => True);
 
          if WisiToken.Trace_Tests >= WisiToken.Detail then
             Put_Line (" ... tree:");
-            Tree.Print_Tree;
+            Tree.Print_Tree (Non_Grammar => True);
          end if;
       end Put_Tree;
 
@@ -123,9 +123,11 @@ package body Test_Incremental is
       end if;
 
       --  Batch parse of Edited
-      Parser.Lexer.Reset_With_String (Initial);
+      Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
       Parser.Parse;
+
+      Parser.Tree.Set_Parents; --  Edit_Tree does this
 
       Check_Tree ("edited source batch parse 0", Parser.Tree);
 
@@ -160,6 +162,9 @@ package body Test_Incremental is
              Deleted_Chars  => Delete'Length,
              Inserted_Bytes => Insert'Length,
              Inserted_Chars => Insert'Length));
+
+         --  EOI is also a "stable region", but that is handled specially in
+         --  Edit_Tree.
       end if;
 
       --  Test Edit_Tree with empty Edits; no exceptions.
@@ -193,6 +198,7 @@ package body Test_Incremental is
    begin
       Parse_Text
         (Initial              => "A := B + C;",
+         --                       1        |10
          Edit_At              => 0,
          Delete               => "",
          Insert               => "",
@@ -209,6 +215,7 @@ package body Test_Incremental is
          Edit_At              => 19,
          Delete               => "comment",
          Insert               => "cool explanation",
+         --                       |19        |30
          Compare_Node_Numbers => True);
    end Edit_Comment;
 

@@ -35,11 +35,13 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       use WisiToken.Syntax_Trees.AUnit_Public;
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
+      Check (Label & ".child_count", Computed.Child_Count, Expected.Child_Count);
       Check (Label & ".id", Computed.ID, Expected.ID);
       if Node_Numbers then
          Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
       end if;
       Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
+      Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
       Check (Label & ".line", Computed.Line, Expected.Line);
       if Node_Numbers then
          if Computed.Parent = null and Expected.Parent = null then
@@ -58,16 +60,19 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
       case Computed.Label is
       when Shared_Terminal =>
-         Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
          Check (Label & ".terminal_index",
                 Stream_Element_Lists.Constant_Ref (Computed.Terminal_Index.Cur).Index,
                 Stream_Element_Lists.Constant_Ref (Expected.Terminal_Index.Cur).Index);
+         Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
-      when Virtual_Terminal | Virtual_Identifier =>
+      when Virtual_Terminal =>
+         null;
+
+      when Virtual_Identifier =>
          Check (Label & ".identifier", Computed.Identifier, Expected.Identifier);
+         Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.VI_Non_Grammar, Expected.VI_Non_Grammar);
 
       when Nonterm =>
-         Check (Label & ".children'length", Computed.Child_Count, Expected.Child_Count);
          for I in Computed.Children'Range loop
             Check (Label & ".child." & Computed.Children (I).Node_Index'Image,
                    Computed.Children (I).all,
@@ -88,8 +93,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use SAL.AUnit;
       use Stream_Element_Lists;
-      Computed_Element : Cursor := Computed_Tree.Streams (Computed_Stream.Cur).Elements.First;
-      Expected_Element : Cursor := Expected_Tree.Streams (Expected_Stream.Cur).Elements.First;
+      Computed_Element : Cursor  := Computed_Tree.Streams (Computed_Stream.Cur).Elements.First;
+      Expected_Element : Cursor  := Expected_Tree.Streams (Expected_Stream.Cur).Elements.First;
+      I                : Integer := 1;
    begin
       Check (Label & ".length",
              Computed_Tree.Stream_Length (Computed_Stream),
@@ -99,14 +105,18 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
              Expected_Tree.Stack_Depth (Expected_Stream));
       loop
          exit when not (Has_Element (Computed_Element) and Has_Element (Expected_Element));
-         Check
-           (Label & ".node",
-            Constant_Ref (Computed_Element).Node.all,
-            Constant_Ref (Expected_Element).Node.all,
-            Node_Numbers);
+         declare
+            Computed : Stream_Element renames Constant_Ref (Computed_Element);
+            Expected : Stream_Element renames Constant_Ref (Expected_Element);
+         begin
+            Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
+            Check (Label & I'Image & ".index", Computed.Index, Expected.Index);
+            Check (Label & ".node" & Computed.Index'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
+         end;
 
          Computed_Element := Next (@);
          Expected_Element := Next (@);
+         I := I + 1;
       end loop;
    end Check;
 

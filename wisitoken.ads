@@ -295,6 +295,10 @@ package WisiToken is
      --  True if Outer entirely contains Inner.
      is (Outer.First <= Inner.First and Outer.Last >= Inner.Last);
 
+   function Overlaps (A, B : in Buffer_Region) return Boolean
+     --  True if A and B have some positions in common.
+     is (Inside (A.First, B) or Inside (A.Last, B) or Inside (B.First, A) or Inside (B.Last, A));
+
    function Image (Item : in Buffer_Region) return String;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
@@ -348,6 +352,8 @@ package WisiToken is
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
+
+   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
 
    type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;

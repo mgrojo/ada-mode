@@ -74,7 +74,7 @@ package body WisiToken.Lexer.re2c is
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
          Length    => Interfaces.C.size_t (Input'Length),
-         Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
+         Verbosity => Interfaces.C.int (Trace_Lexer));
 
       Reset (Lexer);
    end Reset_With_String;

@@ -1098,7 +1098,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   else");
       Indent_Line ("     ++lexer->char_pos;");
       Indent_Line ("   if (*lexer->cursor == 0x0A) ++lexer->line;");
-      Indent_Line ("}");
+      Indent_Line ("} else ");
+      Indent_Line ("   ++lexer->char_pos;");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Start ("#define YYSKIP() skip(lexer)");
@@ -1165,7 +1166,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOI_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
-      Indent_Line ("*char_position = lexer->char_token_start;");
+      Indent_Line ("*char_position = lexer->char_pos + 1;");
       Indent_Line ("*char_length   = 0;");
       Indent_Line ("*line_start    = lexer->line;");
       Indent_Line ("return status;");

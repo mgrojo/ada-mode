@@ -34,8 +34,7 @@ incremental parse
     test/test_incremental.adb
         passing, need better tests
 
-    parse.edit_tree (parser, kmn_list)
-        compiles, test fails
+        lexer.set_position needs prev_id
 
     review fixmes
 

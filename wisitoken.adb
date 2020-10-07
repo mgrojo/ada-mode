@@ -418,7 +418,7 @@ package body WisiToken is
             end if;
          end;
 
-         Name_First := Value_Last + 2;
+         Name_First := Value_Last + 1;
          exit when Name_First > Config'Last;
       end loop;
    end Enable_Trace;

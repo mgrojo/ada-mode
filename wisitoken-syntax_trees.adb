@@ -446,8 +446,7 @@ package body WisiToken.Syntax_Trees is
                Augmented   =>
                  (if Node.Augmented = null or User_Data = null
                   then null
-                  else Copy_Augmented (User_Data.all, Node.Augmented)),
-               Non_Grammar => Node.Non_Grammar);
+                  else Copy_Augmented (User_Data.all, Node.Augmented)));
 
             Tree.Terminal_Nodes.Append (New_Node);
 
@@ -467,8 +466,8 @@ package body WisiToken.Syntax_Trees is
                  (if Node.Augmented = null or User_Data = null
                   then null
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
-               Non_Grammar => Node.Non_Grammar,
-               Identifier  => Node.Identifier);
+               VI_Non_Grammar => Node.VI_Non_Grammar,
+               Identifier     => Node.Identifier);
 
             Tree.Terminal_Nodes.Append (New_Node);
 
@@ -494,7 +493,6 @@ package body WisiToken.Syntax_Trees is
                     (if Node.Augmented = null or User_Data = null
                      then null
                      else Copy_Augmented (User_Data.all, Node.Augmented)),
-                  Non_Grammar          => Node.Non_Grammar,
                   Virtual              => Node.Virtual,
                   RHS_Index            => Node.RHS_Index,
                   Action               => Node.Action,
@@ -587,8 +585,7 @@ package body WisiToken.Syntax_Trees is
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
                   then null
-                  else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
-               Non_Grammar => Source_Node.Non_Grammar);
+                  else Copy_Augmented (User_Data.all, Source_Node.Augmented)));
 
             Destination.Terminal_Nodes.Append (New_Dest_Node);
 
@@ -608,8 +605,8 @@ package body WisiToken.Syntax_Trees is
                  (if Source_Node.Augmented = null or User_Data = null
                   then null
                   else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
-               Non_Grammar => Source_Node.Non_Grammar,
-               Identifier  => Source_Node.Identifier);
+               VI_Non_Grammar => Source_Node.VI_Non_Grammar,
+               Identifier     => Source_Node.Identifier);
 
             Destination.Terminal_Nodes.Append (New_Dest_Node);
 
@@ -635,7 +632,6 @@ package body WisiToken.Syntax_Trees is
                     (if Source_Node.Augmented = null or User_Data = null
                      then null
                      else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
-                  Non_Grammar          => Source_Node.Non_Grammar,
                   Virtual              => Source_Node.Virtual,
                   RHS_Index            => Source_Node.RHS_Index,
                   Action               => Source_Node.Action,
@@ -669,10 +665,10 @@ package body WisiToken.Syntax_Trees is
 
          for Element of Source.Streams (Source.Terminal_Stream.Cur).Elements loop
             declare
-               Junk : Stream_Index := Add_Terminal (Destination, Source.Base_Token (Element.Node));
-               pragma Unreferenced (Junk);
+               Index : constant Stream_Index := Add_Terminal (Destination, Source.Base_Token (Element.Node));
             begin
-               null;
+               Destination.Streams (Destination.Terminal_Stream.Cur).Elements (Index.Cur).Node.Non_Grammar :=
+                 Element.Node.Non_Grammar;
             end;
          end loop;
 
@@ -683,14 +679,20 @@ package body WisiToken.Syntax_Trees is
             Dest_Stream_ID : constant Stream_ID := New_Stream (Destination);
 
             Dest_Parse_Stream : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
-            Junk : Stream_Index;
-            pragma Unreferenced (Junk);
+            New_Element       : Stream_Element_Lists.Cursor;
          begin
             Start_Parse (Destination, Dest_Stream_ID, State => Source_Root_Element.Node.State);
 
             Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
 
-            Junk := Push (Destination, Dest_Parse_Stream, Destination.Root);
+            New_Element := Dest_Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Destination.Root,
+                  Label => Dest_Parse_Stream.Label,
+                  Index => Source_Root_Element.Index),
+               Before   => Stream_Element_Lists.No_Element);
+
+            Dest_Parse_Stream.Stack_Top := New_Element;
 
             if Source.Root = null then
                Destination.Root := null;
@@ -1268,8 +1270,9 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Image
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Parse_Stream)
+     (Tree        : in Syntax_Trees.Tree;
+      Stream      : in Parse_Stream;
+      Non_Grammar : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -1285,8 +1288,9 @@ package body WisiToken.Syntax_Trees is
          else
             Need_Comma := True;
          end if;
-         Result := @ & "(" & Trimmed_Image (Constant_Ref (Element).Node.State) & ", " &
-           Tree.Image (Constant_Ref (Element).Node, Node_Numbers => True) & ")";
+         Result := @ & Trimmed_Image (Constant_Ref (Element).Index) & ":(" &
+           Trimmed_Image (Constant_Ref (Element).Node.State) & ", " &
+           Tree.Image (Constant_Ref (Element).Node, Node_Numbers => True, Non_Grammar => Non_Grammar) & ")";
 
          Element := Next (Element);
       end loop;
@@ -1328,7 +1332,8 @@ package body WisiToken.Syntax_Trees is
       Children              : in Boolean := False;
       RHS_Index             : in Boolean := False;
       Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False)
+      Terminal_Node_Numbers : in Boolean := False;
+      Non_Grammar           : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -1357,6 +1362,17 @@ package body WisiToken.Syntax_Trees is
                Result := Result & " <= " & Image (Tree, Node.Children, Node_Numbers, Terminal_Node_Numbers);
             end if;
 
+            if Non_Grammar then
+               case Node.Label is
+               when Shared_Terminal =>
+                  Result := @ & Image (Node.Non_Grammar, Tree.Descriptor.all);
+               when Virtual_Identifier =>
+                  Result := @ & Image (Node.VI_Non_Grammar, Tree.Descriptor.all);
+               when others =>
+                  null;
+               end case;
+            end if;
+
             return -Result;
          end;
       end if;
@@ -1366,7 +1382,8 @@ package body WisiToken.Syntax_Trees is
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
       Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False)
+      Terminal_Node_Numbers : in Boolean := False;
+      Non_Grammar           : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -1376,7 +1393,8 @@ package body WisiToken.Syntax_Trees is
       for I in Nodes'Range loop
          Result := Result & (if Need_Comma then ", " else "") &
            (if Nodes (I) = null then " - "
-            else Tree.Image (Nodes (I), Node_Numbers => Node_Numbers, Terminal_Node_Numbers => Terminal_Node_Numbers));
+            else Tree.Image (Nodes (I), Node_Numbers => Node_Numbers, Terminal_Node_Numbers => Terminal_Node_Numbers,
+                             Non_Grammar => Non_Grammar));
          Need_Comma := True;
       end loop;
       Result := Result & ")";
@@ -1416,7 +1434,10 @@ package body WisiToken.Syntax_Trees is
                elsif Stream = Tree.Terminal_Stream
                then Tree.Next_Terminal_Element_Index
                else Tree.Next_Stream_Element_Index)),
-         Before => Next (Parse_Stream.Stack_Top));
+         Before =>
+           (if Parse_Stream.Stack_Top = No_Element
+            then No_Element
+            else Next (Parse_Stream.Stack_Top)));
    begin
       if Index /= Invalid_Element_Index then
          if Stream = Tree.Terminal_Stream then
@@ -1786,7 +1807,13 @@ package body WisiToken.Syntax_Trees is
    is
       pragma Unreferenced (Tree);
    begin
-      return (Element => Terminal.Non_Grammar'Access, Dummy => 0);
+      return
+        (Element =>
+           (case Terminal.Label is
+            when Shared_Terminal    => Terminal.Non_Grammar'Access,
+            when Virtual_Identifier => Terminal.VI_Non_Grammar'Access,
+            when others             => raise SAL.Programmer_Error),
+         Dummy => 0);
    end Non_Grammar_Var;
 
    function Non_Grammar_Const
@@ -1794,7 +1821,13 @@ package body WisiToken.Syntax_Trees is
       Terminal : in Valid_Node_Access)
      return Base_Token_Array_Const_Ref
    is begin
-      return (Element => Terminal.Non_Grammar'Access, Dummy => 0);
+      return
+        (Element =>
+           (case Terminal.Label is
+            when Shared_Terminal    => Terminal.Non_Grammar'Access,
+            when Virtual_Identifier => Terminal.VI_Non_Grammar'Access,
+            when others             => raise SAL.Programmer_Error),
+         Dummy => 0);
    end Non_Grammar_Const;
 
    function Parent
@@ -1907,10 +1940,10 @@ package body WisiToken.Syntax_Trees is
       return Prev_Child (Node, Node.Parent);
    end Prev_Terminal;
 
-   procedure Print_Streams (Tree : in Syntax_Trees.Tree)
+   procedure Print_Streams (Tree : in Syntax_Trees.Tree; Non_Grammar : in Boolean := False)
    is begin
       for Stream of Tree.Streams loop
-         Ada.Text_IO.Put_Line (Stream.Label'Image & ": " & Tree.Image (Stream));
+         Ada.Text_IO.Put_Line (Stream.Label'Image & ": " & Tree.Image (Stream, Non_Grammar => Non_Grammar));
       end loop;
    end Print_Streams;
 
@@ -1918,7 +1951,8 @@ package body WisiToken.Syntax_Trees is
      (Tree            : in Syntax_Trees.Tree;
       Root            : in Node_Access                  := Invalid_Node_Access;
       Image_Augmented : in Syntax_Trees.Image_Augmented := null;
-      Image_Action    : in Syntax_Trees.Image_Action    := null)
+      Image_Action    : in Syntax_Trees.Image_Action    := null;
+      Non_Grammar     : in Boolean                      := False)
    is
       use Ada.Text_IO;
 
@@ -1939,7 +1973,9 @@ package body WisiToken.Syntax_Trees is
          for I in 1 .. Level loop
             Put ("| ");
          end loop;
-         Put (Image (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True));
+         Put (Image (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True,
+                     Non_Grammar => Non_Grammar));
+
          if Image_Augmented /= null and Node.Augmented /= null then
             Put (" - " & Image_Augmented (Augmented_Class_Access_Constant (Node.Augmented)));
          end if;
@@ -2210,7 +2246,6 @@ package body WisiToken.Syntax_Trees is
                Parent               => Parent.Parent,
                State                => Parent.State,
                Augmented            => Parent.Augmented,
-               Non_Grammar          => Parent.Non_Grammar,
                Virtual              => False,
                RHS_Index            => Parent.RHS_Index,
                Action               => Parent.Action,
@@ -2330,6 +2365,18 @@ package body WisiToken.Syntax_Trees is
             Stream_Element_Lists.Variable_Ref (Parse_Stream.Stack_Top).Node.State := State;
          end;
       end if;
+   end Shift;
+
+   procedure Shift
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Shift_Bytes : in Base_Buffer_Pos;
+      Shift_Chars : in Base_Buffer_Pos;
+      Shift_Line  : in Base_Line_Number_Type)
+   is begin
+      Node.Byte_Region := @ + Shift_Bytes;
+      Node.Char_Region := @ + Shift_Chars;
+      Node.Line        := @ + Shift_Line;
    end Shift;
 
    procedure Shift
