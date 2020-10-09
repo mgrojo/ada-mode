@@ -322,6 +322,9 @@ package WisiToken.Syntax_Trees is
    function Stream_Count (Tree : in Syntax_Trees.Tree) return Natural;
    --  Number of active streams.
 
+   function First_Parse_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
+   with Pre => Tree.Stream_Count >= 2;
+
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    with Pre => Tree.Is_Valid (Stream);
    --  Stack + input
@@ -365,33 +368,6 @@ package WisiToken.Syntax_Trees is
 
    function Trimmed_Image (Node : in Node_Access) return String;
    --  Trimmed_Image of item.node_index.
-
-   function Stream_Next
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Contains (Stream, Element);
-
-   function Stream_Next
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Element);
-   --  If Element is Invalid_Stream_Index, result is Stream_First
-
-   function Stream_Prev
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Contains (Stream, Element);
-
-   function Stream_Prev
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Get_Node
      (Tree    : in Syntax_Trees.Tree;
@@ -451,6 +427,19 @@ package WisiToken.Syntax_Trees is
    --  from Terminal_Stream to Stream.Stack_Top; otherwise move from
    --  Stream input to Stream.Stack_Top. Then set State in Token.
 
+   function Left_Breakdown
+     (Tree              : in out Syntax_Trees.Tree;
+      Stream            : in     Stream_ID;
+      Expected_Terminal : in     Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Is_Valid (Stream) and Tree.Contains (Tree.Terminal_Stream, Expected_Terminal);
+   --  [Lahav 2004] Left_Breakdown of Stream.Stack_Top; bring the first
+   --  terminal in Stream.Stack_Top to the parse stream. Returns the
+   --  stream element holding the first terminal. The stream element
+   --  following the result is the new stack top.
+   --
+   --  FIXME: always followed by Stream_Delete (result)?
+
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
    with Pre => Tree.Is_Valid (Stream);
 
@@ -474,6 +463,39 @@ package WisiToken.Syntax_Trees is
       Stream : in     Stream_ID)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
+
+   function Stack_Top
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
+     return Stream_Index
+   with Pre => Tree.Is_Valid (Stream);
+
+   function Stream_Next
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Contains (Stream, Element);
+
+   function Stream_Next
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Stream_Index)
+     return Stream_Index
+   with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Element);
+   --  If Element is Invalid_Stream_Index, result is Stream_First
+
+   function Stream_Prev
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Contains (Stream, Element);
+
+   function Stream_Prev
+     (Tree    : in Syntax_Trees.Tree;
+      Element : in Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Peek
      (Tree   : in Syntax_Trees.Tree;
@@ -576,10 +598,19 @@ package WisiToken.Syntax_Trees is
       Shift_Line  : in Base_Line_Number_Type)
    with Pre => Tree.Contains (Tree.Terminal_Stream, Index);
 
-   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Index : in out Stream_Index)
+   procedure Stream_Delete
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index)
    with
-     Pre  => Tree.Contains (Tree.Terminal_Stream, Index),
-     Post => Index = Invalid_Stream_Index;
+     Pre  => Tree.Contains (Stream, Element),
+     Post => Element = Invalid_Stream_Index;
+   --  If Element = Stream.Stack_Top, Stack_Top is set to Invalid_Stream_Index.
+
+   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Element : in out Stream_Index)
+   with
+     Pre  => Tree.Contains (Tree.Terminal_Stream, Element),
+     Post => Element = Invalid_Stream_Index;
 
    function ID
      (Tree    : in Syntax_Trees.Tree;
@@ -816,6 +847,10 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
      return Node_Access;
+   --  Returns first shared terminal node (in parse tree) in subtree
+   --  under Element (ignoring virtual terminals). If result is
+   --  Invalid_Node_Access, all terminals are virtual, or the root
+   --  nonterm is empty.
 
    function First_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
@@ -827,9 +862,10 @@ package WisiToken.Syntax_Trees is
              (Stream /= Invalid_Stream_ID and then Tree.Contains (Stream, Element)),
      Post => First_Shared_Terminal'Result = Invalid_Stream_Index or else
              Tree.Contains (Tree.Terminal_Stream, First_Shared_Terminal'Result);
-   --  Returns first shared terminal in subtree under Element
-   --  (ignoring virtual terminals). If result is Invalid_Node_Access,
-   --  all terminals are virtual, or the root nonterm is empty.
+   --  Returns first shared terminal (in terminal stream) in subtree
+   --  under Element (ignoring virtual terminals). If result is
+   --  Invalid_Stream_Index, all terminals are virtual, or the root
+   --  nonterm is empty.
 
    function Last_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1076,10 +1112,13 @@ package WisiToken.Syntax_Trees is
    --  Trimmed integer.
 
    function Image
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID)
+     (Tree        : in Syntax_Trees.Tree;
+      Stream      : in Stream_ID;
+      Children    : in Boolean := False;
+      Non_Grammar : in Boolean := False)
      return String;
-   --  Image of each node, not including children.
+   --  Image of each node. If Children, each entire subtree is included,
+   --  with newlines, as in Print_Tree.
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
@@ -1371,6 +1410,9 @@ private
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Terminal_Stream.Cur = Parse_Stream_Lists.No_Element);
 
+   function First_Parse_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
+   is (Cur => Parse_Stream_Lists.Next (Tree.Terminal_Stream.Cur));
+
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
    --  1 stream for Terminals, one for the remaining parser.
@@ -1444,6 +1486,12 @@ private
    is ((if Tree.Root = Invalid_Node_Access
         then Stream_Element_Lists.Constant_Ref (Tree.Streams (Tree.Streams.Last).Elements.Last).Node
         else Tree.Root));
+
+   function Stack_Top
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
+     return Stream_Index
+   is ((Cur => Tree.Streams (Stream.Cur).Stack_Top));
 
    function State
      (Tree    : in Syntax_Trees.Tree;

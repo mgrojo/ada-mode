@@ -49,6 +49,7 @@ package body Test_Incremental is
       use AUnit.Checks;
       use WisiToken.Syntax_Trees.AUnit_Public;
       use WisiToken.Parse;
+      use all type WisiToken.Base_Buffer_Pos;
 
       Initial_First  : Integer := Initial'First;
       Initial_Last   : Integer := Initial'First - 1;
@@ -79,7 +80,7 @@ package body Test_Incremental is
          Put_Line (" ... streams:");
          Tree.Print_Streams (Non_Grammar => True);
 
-         if WisiToken.Trace_Tests >= WisiToken.Detail then
+         if WisiToken.Trace_Tests > WisiToken.Detail then
             Put_Line (" ... tree:");
             Tree.Print_Tree (Non_Grammar => True);
          end if;
@@ -155,15 +156,33 @@ package body Test_Incremental is
       Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
       if Edit_At in Initial'Range then
-         Edits.Append
-           ((Stable_Bytes   => WisiToken.Base_Buffer_Pos (Edit_At - Initial'First),
-             Stable_Chars   => WisiToken.Base_Buffer_Pos (Edit_At - Initial'First), --  FIXME: test utf-8
-             Deleted_Bytes  => Delete'Length,
-             Deleted_Chars  => Delete'Length,
-             Inserted_Bytes => Insert'Length,
-             Inserted_Chars => Insert'Length));
+         declare
+            use WisiToken;
 
-         --  EOI is also a "stable region", but that is handled specially in
+            Edit_1 : constant KMN :=
+              (Stable_Bytes   => Base_Buffer_Pos (Edit_At - Initial'First),
+               Stable_Chars   => Base_Buffer_Pos (Edit_At - Initial'First), --  FIXME: test utf-8
+               Deleted_Bytes  => Delete'Length,
+               Deleted_Chars  => Delete'Length,
+               Inserted_Bytes => Insert'Length,
+               Inserted_Chars => Insert'Length);
+         begin
+            Edits.Append (Edit_1);
+
+            if Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes < Base_Buffer_Pos (Initial'Last) then
+               Edits.Append
+                 ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last) -
+                     Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes,
+                   Stable_Chars   => Base_Buffer_Pos (Initial'Last) -
+                     Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes,
+                   Deleted_Bytes  => 0,
+                   Deleted_Chars  => 0,
+                   Inserted_Bytes => 0,
+                   Inserted_Chars => 0));
+            end if;
+         end;
+
+         --  EOI is also in a "stable region", but that is handled specially in
          --  Edit_Tree.
       end if;
 
@@ -219,6 +238,20 @@ package body Test_Incremental is
          Compare_Node_Numbers => True);
    end Edit_Comment;
 
+   procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Parse_Text
+        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --                       1        |10     |18              |20       |30
+         Edit_At              => 1,
+         Delete               => "",
+         Insert               => "A_",
+         --                       |1
+         Compare_Node_Numbers => True);
+   end Edit_Code_1;
+
    ----------
    --  Public subprograms
 
@@ -228,7 +261,7 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
-
+      Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

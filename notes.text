@@ -32,7 +32,11 @@ change terminal_index to 16 bit type?
 
 incremental parse
     test/test_incremental.adb
-        passing, need better tests
+        parse stream doesn't have EOI
+            implicit in wisitoken_accept
+            because generator does it that way
+                in lr1_, Lalr_goto_transitions
+                experiment with relaxing that in o.w.s-1; all tests initialy passing
 
         lexer.set_position needs prev_id
 

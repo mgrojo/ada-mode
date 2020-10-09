@@ -144,9 +144,9 @@ package body WisiToken.Parse is
       --  parse tree, is faster than merging new tokens in one by one; we
       --  just do the latter. We also don't modify the edit list.
       use KMN_Lists;
-      use all type WisiToken.Syntax_Trees.Element_Index;
-      use all type WisiToken.Syntax_Trees.Stream_Index;
+      use WisiToken.Syntax_Trees;
       use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
 
       Tree : Syntax_Trees.Tree renames Parser.Tree;
 
@@ -157,13 +157,17 @@ package body WisiToken.Parse is
       Shift_Chars  : Base_Buffer_Pos       := 0;
       Shift_Line   : Base_Line_Number_Type := 0;
 
-      Terminal_Index  : Syntax_Trees.Stream_Index := Tree.Stream_First (Tree.Terminal_Stream);
-      Parse_Node      : Syntax_Trees.Node_Access  := Tree.First_Shared_Terminal (Tree.Root);
-      Last_Parse_Node : Syntax_Trees.Node_Access;
-      --  FIXME: Parse_Index : Syntax_Trees.Stream_Index := Tree.First (Parser.Stream);
+      Terminal_Index  : Stream_Index       := Tree.Stream_First (Tree.Terminal_Stream);
+      Parse_Stream    : constant Stream_ID := Tree.First_Parse_Stream;
+      Parse_Node      : Node_Access        := Tree.First_Shared_Terminal
+        (Tree.Get_Node (Parse_Stream, Tree.Stack_Top (Parse_Stream)));
+      Last_Parse_Node : Node_Access;
+      --  FIXME: Parse_Index : Stream_Index := Tree.First (Parser.Stream);
 
-      Next_Element_Index : Syntax_Trees.Element_Index := 1;
+      Next_Element_Index : Element_Index := 1;
    begin
+      Parser.Last_Grammar_Node := Invalid_Node_Access;
+
       if not Tree.Parents_Set then
          Tree.Set_Parents;
          --  Required for Next_Shared_Terminal. Do this even if no edits, for
@@ -183,14 +187,14 @@ package body WisiToken.Parse is
               (Old_Byte_Pos + 1, Old_Byte_Pos + KMN.Stable_Bytes);
 
             Deleted_Region : constant Buffer_Region :=
-              (Stable_Region.Last + 1, Stable_Region.Last + KMN.Stable_Bytes);
+              (Stable_Region.Last + 1, Stable_Region.Last + KMN.Deleted_Bytes);
 
             Inserted_Region : constant Buffer_Region :=
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
          begin
             Unchanged_Loop :
             loop
-               exit Unchanged_Loop when Terminal_Index = Syntax_Trees.Invalid_Stream_Index;
+               exit Unchanged_Loop when Terminal_Index = Invalid_Stream_Index;
                exit Unchanged_Loop when not Contains
                  (Inner => Tree.Byte_Region (Terminal_Index), Outer => Stable_Region);
 
@@ -212,68 +216,75 @@ package body WisiToken.Parse is
                Parse_Node         := Tree.Next_Shared_Terminal (Parse_Node);
             end loop Unchanged_Loop;
 
-            declare
-               Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
-            begin
-               Parser.Lexer.Set_Position
-                 (Byte_Position => Token.Byte_Region.Last + Shift_Bytes + 1,
-                  Char_Position => Token.Char_Region.Last + Shift_Chars + 1,
-                  Line          => Token.Line + Shift_Line);
-            end;
+            if Tree.Stream_Prev (Terminal_Index) = Invalid_Stream_Index then
+               Parser.Lexer.Reset;
+            else
+               declare
+                  Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
+               begin
+                  Parser.Lexer.Set_Position
+                    (Byte_Position => Token.Byte_Region.Last + Shift_Bytes + 1,
+                     Char_Position => Token.Char_Region.Last + Shift_Chars + 1,
+                     Line          => Token.Line + Shift_Line);
+               end;
+            end if;
 
-            Delete_Non_Grammar :
-            declare
-               use all type SAL.Base_Peek_Type;
-               Containing : Base_Token_Array_Var_Ref renames Parser.Tree.Non_Grammar_Var (Parser.Last_Grammar_Node);
-               Delete     : SAL.Base_Peek_Type := 0;
-            begin
-               for I in Containing.First_Index .. Containing.Last_Index loop
-                  if Overlaps (Containing (I).Byte_Region, Inserted_Region) or
-                    Overlaps (Containing (I).Byte_Region, Deleted_Region)
-                  then
-                     Delete := I;
-                     exit;
+            if Parser.Last_Grammar_Node /= Invalid_Node_Access then
+               Delete_Non_Grammar :
+               declare
+                  Containing : Base_Token_Array_Var_Ref renames Parser.Tree.Non_Grammar_Var (Parser.Last_Grammar_Node);
+                  Delete     : SAL.Base_Peek_Type := 0;
+               begin
+                  for I in Containing.First_Index .. Containing.Last_Index loop
+                     if Overlaps (Containing (I).Byte_Region, Inserted_Region) or
+                       Overlaps (Containing (I).Byte_Region, Deleted_Region)
+                     then
+                        Delete := I;
+                        exit;
+                     end if;
+                  end loop;
+                  if Delete > 0 then
+                     if Delete = Containing.First_Index then
+                        Containing.Clear;
+                        Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
+                     else
+                        Containing.Set_First_Last (Containing.First_Index, Delete - 1);
+                        Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Set_First_Last
+                          (Containing.First_Index, Delete - 1);
+                     end if;
                   end if;
-               end loop;
-               if Delete > 0 then
-                  if Delete = Containing.First_Index then
-                     Containing.Clear;
-                     Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
-                  else
-                     Containing.Set_First_Last (Containing.First_Index, Delete - 1);
-                     Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Set_First_Last (Containing.First_Index, Delete - 1);
-                  end if;
-               end if;
-            end Delete_Non_Grammar;
+               end Delete_Non_Grammar;
+            end if;
 
             Scan_Changed_Loop :
             loop
                declare
-                  use all type WisiToken.Syntax_Trees.Node_Access;
                   Token : Base_Token;
                   Error : constant Boolean := Parser.Lexer.Find_Next (Token);
-                  Index : Syntax_Trees.Stream_Index;
+                  Index : Stream_Index;
                begin
                   if Trace_Lexer > Outline then
                      Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
                   end if;
 
                   exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
-                  exit Scan_Changed_Loop when not Overlaps (Token.Byte_Region, Inserted_Region);
+                  exit Scan_Changed_Loop when not
+                    (Overlaps (Token.Byte_Region, Inserted_Region) or
+                       Overlaps (Token.Byte_Region, Deleted_Region));
 
                   if Token.ID >= Parser.Descriptor.First_Terminal then
                      --  grammar token
                      Index := Tree.Insert_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
 
                      Next_Element_Index := @ + 1;
-                     Last_Parse_Node    := Syntax_Trees.Invalid_Node_Access;
+                     Last_Parse_Node    := Invalid_Node_Access;
 
                      Process_Grammar_Token (Parser, Token, Index);
 
                      --  FIXME: breakdown parse tree
                   else
                      Process_Non_Grammar_Token (Parser, Token);
-                     if Last_Parse_Node /= Syntax_Trees.Invalid_Node_Access then
+                     if Last_Parse_Node /= Invalid_Node_Access then
                         Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Append (Token);
                      end if;
                   end if;
@@ -286,35 +297,58 @@ package body WisiToken.Parse is
                end;
             end loop Scan_Changed_Loop;
 
-            declare
-               Last_Inserted : constant WisiToken.Base_Token := Tree.Base_Token (Parser.Last_Grammar_Node);
-               Last_Deleted  : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
-            begin
-               Shift_Line := Last_Inserted.Line - Last_Deleted.Line;
-            end;
+            if Parser.Last_Grammar_Node /= Invalid_Node_Access and
+              Tree.Stream_Prev (Terminal_Index) /= Invalid_Stream_Index
+            then
+               declare
+                  Last_Inserted : constant WisiToken.Base_Token := Tree.Base_Token (Parser.Last_Grammar_Node);
+                  Last_Deleted  : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
+               begin
+                  Shift_Line := Last_Inserted.Line - Last_Deleted.Line;
+               end;
+            end if;
 
             Delete_Loop :
+            --  Delete tokens that were deleted or modified.
             loop
-               exit Delete_Loop when Terminal_Index = Syntax_Trees.Invalid_Stream_Index or else
+               exit Delete_Loop when Terminal_Index = Invalid_Stream_Index or else
                  Tree.ID (Terminal_Index) = Parser.Descriptor.EOI_ID;
 
-               exit Delete_Loop when not Contains
-                 (Inner => Tree.Byte_Region (Terminal_Index), Outer => Deleted_Region);
+               exit Delete_Loop when not
+                 (Tree.Byte_Region (Terminal_Index).First <= Deleted_Region.Last or -- deleted
+                    (KMN.Inserted_Bytes > 0 and
+                       Tree.Byte_Region (Terminal_Index).First = Stable_Region.Last + 1)); --  modified
 
                declare
-                  Temp : Syntax_Trees.Stream_Index := Terminal_Index;
+                  Temp : Stream_Index := Tree.Left_Breakdown (Parse_Stream, Terminal_Index);
+                  pragma Assert (Tree.First_Shared_Terminal (Parse_Stream, Temp) = Terminal_Index);
+               begin
+                  --  Stack_Top is stream element following Temp.
+                  Tree.Stream_Delete (Parse_Stream, Temp);
+
+                  if WisiToken.Trace_Incremental_Parse > Detail then
+                     Parser.Trace.Put_Line ("Left_Breakdown:");
+                     Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
+
+                  elsif Trace_Incremental_Parse > Outline then
+                     Parser.Trace.Put_Line ("Left_Breakdown: " & Tree.Image (Parse_Stream, Non_Grammar => True));
+                  end if;
+               end;
+               declare
+                  Temp : Stream_Index := Terminal_Index;
                begin
                   Terminal_Index := Tree.Stream_Next (Terminal_Index);
                   Tree.Stream_Delete (Temp);
                end;
             end loop Delete_Loop;
 
+            Parse_Node := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Tree.Stack_Top (Parse_Stream)));
+
             Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
             Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
 
             Old_Byte_Pos := Stable_Region.Last + KMN.Deleted_Bytes;
             New_Byte_Pos := Inserted_Region.Last;
-
 
             KMN_Node := Next (KMN_Node);
             exit KMN_Loop when not Has_Element (KMN_Node);
@@ -324,9 +358,12 @@ package body WisiToken.Parse is
       declare
          Token : constant WisiToken.Base_Token := Tree.Base_Token (Terminal_Index);
       begin
-         pragma Assert (Token.ID = Parser.Descriptor.EOI_ID);
-         Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
-         Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+         if Token.ID = Parser.Descriptor.EOI_ID then
+            Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
+            Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+         else
+            raise User_Error with "edit list does not cover entire buffer";
+         end if;
       end;
    end Edit_Tree;
 

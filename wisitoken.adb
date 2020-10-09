@@ -395,22 +395,25 @@ package body WisiToken is
 
             Value : constant Integer := Get_Value;
          begin
-            if Name = "parse" then
-               Trace_Parse := Value;
-            elsif Name = "mckenzie" then
-               Trace_McKenzie := Value;
-            elsif Name = "lexer" then
-               Trace_Lexer := Value;
-            elsif Name = "action" then
+            --  Trace var alphabetical order
+            if Name = "action" then
                Trace_Action := Value;
-            elsif Name = "tests" then
-               Trace_Tests := Value;
             elsif Name = "ebnf" or Name = "generate_ebnf" then
                Trace_Generate_EBNF := Value;
-            elsif Name = "table" or Name = "generate_table" then
-               Trace_Generate_Table := Value;
             elsif Name = "minimal_complete" or Name = "generate_minimal_complete" then
                Trace_Generate_Minimal_Complete := Value;
+            elsif Name = "table" or Name = "generate_table" then
+               Trace_Generate_Table := Value;
+            elsif Name = "incremental" or Name = "incremental_parse" then
+               Trace_Incremental_Parse := Value;
+            elsif Name = "lexer" then
+               Trace_Lexer := Value;
+            elsif Name = "mckenzie" then
+               Trace_McKenzie := Value;
+            elsif Name = "parse" then
+               Trace_Parse := Value;
+            elsif Name = "tests" then
+               Trace_Tests := Value;
             elsif Name = "time" then
                Trace_Time := Value > 0;
             else

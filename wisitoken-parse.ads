@@ -2,10 +2,6 @@
 --
 --  Subprograms common to more than one parser, higher-level than in wisitoken.ads
 --
---  References :
---
---  [Lahav 2004] - Efficient Semantic Analysis for Text Editors
---
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -109,14 +105,14 @@ package WisiToken.Parse is
       --  regions in a text buffer. We assume the range boundaries do not
       --  break a multi-byte character.
 
-      Stable_Bytes : Buffer_Pos; -- Count of unmodified bytes before change
-      Stable_Chars : Buffer_Pos; -- "" characters
+      Stable_Bytes : Base_Buffer_Pos; -- Count of unmodified bytes before change
+      Stable_Chars : Base_Buffer_Pos; -- "" characters
 
-      Deleted_Bytes : Buffer_Pos; -- Count of deleted bytes, after Stable
-      Deleted_Chars : Buffer_Pos;
+      Deleted_Bytes : Base_Buffer_Pos; -- Count of deleted bytes, after Stable
+      Deleted_Chars : Base_Buffer_Pos;
 
-      Inserted_Bytes : Buffer_Pos; -- Count of inserted bytes, after Stable.
-      Inserted_Chars : Buffer_Pos;
+      Inserted_Bytes : Base_Buffer_Pos; -- Count of inserted bytes, after Stable.
+      Inserted_Chars : Base_Buffer_Pos;
    end record;
 
    package KMN_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (KMN);

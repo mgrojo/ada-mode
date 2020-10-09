@@ -18,6 +18,8 @@
 --
 --  [gnu_coding] https://www.gnu.org/prep/standards/standards.html#Errors
 --
+--  [Lahav 2004] - Efficient Semantic Analysis for Text Editors
+--
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
@@ -288,7 +290,7 @@ package WisiToken is
        then Natural (Region.Last - Region.First + 1)
        else 0));
 
-   function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
+   function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
      is (Region.First <= Pos and Pos <= Region.Last);
 
    function Contains (Outer, Inner : in Buffer_Region) return Boolean
@@ -391,6 +393,8 @@ package WisiToken is
    --  Extra   - add error recovery parse actions
 
    Trace_Lexer : Integer := 0;
+
+   Trace_Incremental_Parse : Integer := 0;
 
    Trace_Action : Integer := 0;
    --  Output during Execute_Action

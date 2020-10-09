@@ -45,6 +45,8 @@ package body WisiToken.Syntax_Trees is
 
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID;
 
+   function Pop (Parse_Stream : in out Syntax_Trees.Parse_Stream) return Valid_Node_Access;
+
    function Process_Tree
      (Tree         : in Syntax_Trees.Tree;
       Node         : in Valid_Node_Access;
@@ -71,6 +73,13 @@ package body WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in out Valid_Node_Access;
       Children : in     Node_Access_Array);
+
+   function Subtree_Image
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Non_Grammar : in Boolean := False;
+      Level       : in Integer := 0)
+     return String;
 
    procedure Update_Cache (Node : in Valid_Node_Access)
    with Pre => Node.Label = Nonterm;
@@ -1272,6 +1281,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree        : in Syntax_Trees.Tree;
       Stream      : in Parse_Stream;
+      Children    : in Boolean := False;
       Non_Grammar : in Boolean := False)
      return String
    is
@@ -1284,13 +1294,17 @@ package body WisiToken.Syntax_Trees is
       loop
          exit when not Has_Element (Element);
          if Need_Comma then
-            Result := @ & ", ";
+            Result := @ & (if Children then "," & ASCII.LF else ", ");
          else
             Need_Comma := True;
          end if;
-         Result := @ & Trimmed_Image (Constant_Ref (Element).Index) & ":(" &
+         Result := @ & Trimmed_Image (Constant_Ref (Element).Index) &
+           (if Stream.Stack_Top = Element then ":^(" else ":(") &
            Trimmed_Image (Constant_Ref (Element).Node.State) & ", " &
-           Tree.Image (Constant_Ref (Element).Node, Node_Numbers => True, Non_Grammar => Non_Grammar) & ")";
+           (if Children and Constant_Ref (Element).Node.Label = Nonterm
+            then Tree.Subtree_Image (Constant_Ref (Element).Node, Non_Grammar => Non_Grammar)
+            else Tree.Image (Constant_Ref (Element).Node, Node_Numbers => True, Non_Grammar => Non_Grammar))
+           & ")";
 
          Element := Next (Element);
       end loop;
@@ -1299,11 +1313,13 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Image
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID)
+     (Tree        : in Syntax_Trees.Tree;
+      Stream      : in Stream_ID;
+      Children    : in Boolean := False;
+      Non_Grammar : in Boolean := False)
      return String
    is begin
-      return Image (Tree, Tree.Streams (Stream.Cur));
+      return Image (Tree, Tree.Streams (Stream.Cur), Children, Non_Grammar);
    end Image;
 
    function Image
@@ -1652,6 +1668,43 @@ package body WisiToken.Syntax_Trees is
    is begin
       return (Element => Tree.Leading_Non_Grammar'Access, Dummy => 0);
    end Leading_Non_Grammar_Const;
+
+   function Left_Breakdown
+     (Tree              : in out Syntax_Trees.Tree;
+      Stream            : in     Stream_ID;
+      Expected_Terminal : in     Stream_Index)
+     return Stream_Index
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+      Element      : Stream_Element_Lists.Cursor := Stream_Element_Lists.Next (Parse_Stream.Stack_Top);
+      Node         : Valid_Node_Access           := Pop (Parse_Stream);
+   begin
+      loop
+         for I in reverse 2 .. Node.Child_Count loop
+            Element := Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Node.Children (I),
+                  Label => Parse_Stream.Label,
+                  Index => Tree.Next_Stream_Element_Index),
+               Before   => Element);
+            Tree.Next_Stream_Element_Index := @ + 1;
+         end loop;
+         Node := Node.Children (1);
+         exit when Node.Label in Terminal_Label;
+      end loop;
+      pragma Assert (Node.Label = Shared_Terminal and then Node.Terminal_Index = Expected_Terminal);
+      Parse_Stream.Stack_Top := Element;
+
+      Element := Parse_Stream.Elements.Insert
+        (Element  =>
+           (Node  => Node,
+            Label => Parse_Stream.Label,
+            Index => Tree.Next_Stream_Element_Index),
+         Before   => Element);
+      Tree.Next_Stream_Element_Index := @ + 1;
+
+      return (Cur => Element);
+   end Left_Breakdown;
 
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID
    is begin
@@ -2430,11 +2483,26 @@ package body WisiToken.Syntax_Trees is
       Tree.Terminal_Nodes.Append (New_Node);
    end Start_Parse;
 
-   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Index : in out Stream_Index)
+   procedure Stream_Delete
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index)
+   is
+      use all type Stream_Element_Lists.Cursor;
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      if Parse_Stream.Stack_Top = Element.Cur then
+         Parse_Stream.Stack_Top := Stream_Element_Lists.No_Element;
+      end if;
+
+      Parse_Stream.Elements.Delete (Element.Cur);
+   end Stream_Delete;
+
+   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Element : in out Stream_Index)
    is
       Stream : Parse_Stream renames Tree.Streams (Tree.Terminal_Stream.Cur);
    begin
-      Stream.Elements.Delete (Index.Cur);
+      Stream.Elements.Delete (Element.Cur);
    end Stream_Delete;
 
    function Stream_Input_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
@@ -2456,6 +2524,33 @@ package body WisiToken.Syntax_Trees is
 
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    is (SAL.Base_Peek_Type (Tree.Streams (Stream.Cur).Elements.Length));
+
+   function Subtree_Image
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Non_Grammar : in Boolean := False;
+      Level       : in Integer := 0)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := +"" & ASCII.LF;
+   begin
+      Result := @ & Decimal_Image (Node.Node_Index, Width => 4) & ": ";
+      for I in 1 .. Level loop
+         Result := @ & "| ";
+      end loop;
+      Result := @ & Image
+        (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True,
+         Non_Grammar => Non_Grammar);
+
+      if Node.Label = Nonterm then
+         for Child of Node.Children loop
+            Result := @ & Subtree_Image (Tree, Child, Non_Grammar, Level + 1);
+         end loop;
+      end if;
+
+      return -Result;
+   end Subtree_Image;
 
    function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access
    is
