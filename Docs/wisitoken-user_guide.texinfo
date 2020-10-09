@@ -604,6 +604,10 @@ table. The default size is 113; larger size can decrease generate time
 on larger languages, but only by 10%. A prime larger than the
 requested size is used.
 
+@item %max_parallel <integer>
+Maximum number of parallel parsers during main parsing. Default is 15;
+a language with many conflicts may need more.
+
 @item %meta_syntax [BNF | EBNF]
 Declares the syntax used by the grammar file. BNF is a minor extension
 of standard Backus Naur Form; EBNF is a large extension. The default
