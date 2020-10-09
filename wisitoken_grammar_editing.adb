@@ -3025,11 +3025,13 @@ package body WisiToken_Grammar_Editing is
          end if;
          declare
             use all type Ada.Containers.Count_Type;
-            Last_Term   : constant Node_Access               := Tree.Last_Terminal (Node);
+            Last_Term   : constant Node_Access              := Tree.Last_Terminal (Node);
             Non_Grammar : constant Base_Token_Arrays.Vector :=
               (if Last_Term = Invalid_Node_Access
                then Base_Token_Arrays.Empty_Vector
-               else Tree.Non_Grammar_Const (Last_Term));
+               else (case Tree.Label (Last_Term) is
+                     when Shared_Terminal | Virtual_Identifier => Tree.Non_Grammar_Const (Last_Term),
+                     when Virtual_Terminal | Nonterm => Base_Token_Arrays.Empty_Vector));
 
             Comments_Include_Newline : Boolean := False;
          begin

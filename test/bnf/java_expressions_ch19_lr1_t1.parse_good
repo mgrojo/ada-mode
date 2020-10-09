@@ -25,38 +25,38 @@ spawn parser 1 from 0 (2 active)
  0:  1, ( 0 0 3 0 0 0 0 0 0), (93 : (RIGHT_PAREN))| 7:(RIGHT_CURLY_BRACKET, (125 . 125))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
 
 recover: succeed, parser count 2
- 1: Current_Token (RIGHT_PAREN) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete:
+ 1: Current_Token 31:(RIGHT_PAREN) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete:
  1: resume_active: True, token goal 11, inc_shared_token: FALSE
- 0: Current_Token (MINUS_GREATER) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete: 2 ((INSERT, (MINUS_GREATER), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, Identifier, 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, RIGHT_PAREN, 7:(RIGHT_CURLY_BRACKET, (125 . 125))))
+ 0: Current_Token 32:(MINUS_GREATER) Shared_Token 7:(RIGHT_CURLY_BRACKET, (125 . 125)) recover_insert_delete: 2 ((INSERT, 32:(MINUS_GREATER), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, Identifier, 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, RIGHT_PAREN, 7:(RIGHT_CURLY_BRACKET, (125 . 125))))
  0: resume_active: True, token goal 11, inc_shared_token: FALSE
 
- 1: 21: (RIGHT_PAREN) : reduce 1 tokens to ClassType
+ 1: 21: 31:(RIGHT_PAREN) : reduce 1 tokens to ClassType
 (ClassType_0, (123 . 123)) <= (6:(Identifier, (123 . 123)))
  ... goto state 32
- 0: 21: (MINUS_GREATER) : shift and goto state 50
- 1: 32: (RIGHT_PAREN) : reduce 1 tokens to PostfixExpression
+ 0: 21: 32:(MINUS_GREATER) : shift and goto state 50
+ 1: 32: 31:(RIGHT_PAREN) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_0, (123 . 123)) <= ((ClassType, (123 . 123)))
  ... goto state 29
- 1: 29: (RIGHT_PAREN) : reduce 1 tokens to MultiplicativeExpression
+ 1: 29: 31:(RIGHT_PAREN) : reduce 1 tokens to MultiplicativeExpression
 (MultiplicativeExpression_0, (123 . 123)) <= ((PostfixExpression, (123 . 123)))
  ... goto state 28
- 1: 28: (RIGHT_PAREN) : reduce 1 tokens to AdditiveExpression
+ 1: 28: 31:(RIGHT_PAREN) : reduce 1 tokens to AdditiveExpression
 (AdditiveExpression_0, (123 . 123)) <= ((MultiplicativeExpression, (123 . 123)))
  ... goto state 27
- 1: 27: (RIGHT_PAREN) : reduce 1 tokens to AssignmentExpression
+ 1: 27: 31:(RIGHT_PAREN) : reduce 1 tokens to AssignmentExpression
 (AssignmentExpression_0, (123 . 123)) <= ((AdditiveExpression, (123 . 123)))
  ... goto state 24
- 1: 24: (RIGHT_PAREN) : reduce 1 tokens to Expression
+ 1: 24: 31:(RIGHT_PAREN) : reduce 1 tokens to Expression
 (Expression_1, (123 . 123)) <= ((AssignmentExpression, (123 . 123)))
  ... goto state 22
- 1: 22: (RIGHT_PAREN) : reduce 1 tokens to ArgumentList
+ 1: 22: 31:(RIGHT_PAREN) : reduce 1 tokens to ArgumentList
 (ArgumentList_0, (123 . 123)) <= ((Expression, (123 . 123)))
  ... goto state 83
- 1: 83: (RIGHT_PAREN) : shift and goto state 93
+ 1: 83: 31:(RIGHT_PAREN) : shift and goto state 93
  1: 93: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
+(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), 31:(RIGHT_PAREN))
  ... goto state 46
- 0: 50: (Identifier) : shift and goto state 73
+ 0: 50: 33:(Identifier) : shift and goto state 73
  1: 46: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
  ... goto state 42
@@ -79,23 +79,23 @@ recover: succeed, parser count 2
  1: 15: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 3 tokens to Statement
 (Statement_0, (105 . 125)) <= (1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 7:(RIGHT_CURLY_BRACKET, (125 . 125)))
  ... goto state 3
- 0: 73: (RIGHT_PAREN) : reduce 3 tokens to LambdaExpression
-(LambdaExpression_0, (123 . 123)) <= (6:(Identifier, (123 . 123)), (MINUS_GREATER), (Identifier))
+ 0: 73: 35:(RIGHT_PAREN) : reduce 3 tokens to LambdaExpression
+(LambdaExpression_0, (123 . 123)) <= (6:(Identifier, (123 . 123)), 32:(MINUS_GREATER), 33:(Identifier))
  ... goto state 23
  1: 3: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : reduce 1 tokens to CompilationUnit
 (CompilationUnit_0, (105 . 125)) <= ((Statement, (105 . 125)))
  ... goto state 2
- 0: 23: (RIGHT_PAREN) : reduce 1 tokens to Expression
+ 0: 23: 35:(RIGHT_PAREN) : reduce 1 tokens to Expression
 (Expression_0, (123 . 123)) <= ((LambdaExpression, (123 . 123)))
  ... goto state 22
  1: 2: 8:(LEFT_CURLY_BRACKET, (264 . 264)) : shift and goto state 1
- 0: 22: (RIGHT_PAREN) : reduce 1 tokens to ArgumentList
+ 0: 22: 35:(RIGHT_PAREN) : reduce 1 tokens to ArgumentList
 (ArgumentList_0, (123 . 123)) <= ((Expression, (123 . 123)))
  ... goto state 83
- 0: 83: (RIGHT_PAREN) : shift and goto state 93
+ 0: 83: 35:(RIGHT_PAREN) : shift and goto state 93
  1: 1: 9:(Identifier, (266 . 275)) : shift and goto state 4
  0: 93: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), (RIGHT_PAREN))
+(MethodInvocation_0, (111 . 123)) <= (4:(Identifier, (111 . 120)), 5:(LEFT_PAREN, (122 . 122)), (ArgumentList, (123 . 123)), 35:(RIGHT_PAREN))
  ... goto state 46
  0: 46: 7:(RIGHT_CURLY_BRACKET, (125 . 125)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (111 . 123)) <= ((MethodInvocation, (111 . 123)))
@@ -169,46 +169,46 @@ spawn parser 2 from 1 (2 active)
  1:  6, ( 0 0 0 0 0 0 2 0 0), (20 : (SEMICOLON))| 13:(RIGHT_CURLY_BRACKET, (281 . 281))|((INSERT, PLUS_PLUS, 13), (INSERT, SEMICOLON, 13))
 
 recover: succeed, parser count 2
- 2: Current_Token (MINUS_MINUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, (RIGHT_PAREN), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, (MINUS_MINUS), 13:(RIGHT_CURLY_BRACKET, (281 . 281))), (INSERT, SEMICOLON, 13:(RIGHT_CURLY_BRACKET, (281 . 281))))
+ 2: Current_Token 46:(MINUS_MINUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, 31:(RIGHT_PAREN), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, 46:(MINUS_MINUS), 13:(RIGHT_CURLY_BRACKET, (281 . 281))), (INSERT, SEMICOLON, 13:(RIGHT_CURLY_BRACKET, (281 . 281))))
  2: resume_active: True, token goal 17, inc_shared_token: FALSE
- 1: Current_Token (PLUS_PLUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, (RIGHT_PAREN), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, (PLUS_PLUS), 13:(RIGHT_CURLY_BRACKET, (281 . 281))), (INSERT, SEMICOLON, 13:(RIGHT_CURLY_BRACKET, (281 . 281))))
+ 1: Current_Token 47:(PLUS_PLUS) Shared_Token 13:(RIGHT_CURLY_BRACKET, (281 . 281)) recover_insert_delete: 3 ((INSERT, 31:(RIGHT_PAREN), 7:(RIGHT_CURLY_BRACKET, (125 . 125))), (INSERT, 47:(PLUS_PLUS), 13:(RIGHT_CURLY_BRACKET, (281 . 281))), (INSERT, SEMICOLON, 13:(RIGHT_CURLY_BRACKET, (281 . 281))))
  1: resume_active: True, token goal 17, inc_shared_token: FALSE
 
- 2: 61: (MINUS_MINUS) : reduce 4 tokens to MethodInvocation
+ 2: 61: 46:(MINUS_MINUS) : reduce 4 tokens to MethodInvocation
 (MethodInvocation_0, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
  ... goto state 11
- 1: 61: (PLUS_PLUS) : reduce 4 tokens to MethodInvocation
+ 1: 61: 47:(PLUS_PLUS) : reduce 4 tokens to MethodInvocation
 (MethodInvocation_0, (266 . 279)) <= (9:(Identifier, (266 . 275)), 10:(LEFT_PAREN, (277 . 277)), (ArgumentList, (278 . 278)), 12:(RIGHT_PAREN, (279 . 279)))
  ... goto state 11
- 2: 11: (MINUS_MINUS) : reduce 1 tokens to PostfixExpression
+ 2: 11: 46:(MINUS_MINUS) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
  ... goto state 7
- 1: 11: (PLUS_PLUS) : reduce 1 tokens to PostfixExpression
+ 1: 11: 47:(PLUS_PLUS) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (266 . 279)) <= ((MethodInvocation, (266 . 279)))
  ... goto state 7
- 2: 7: (MINUS_MINUS) : shift and goto state 17
- 1: 7: (PLUS_PLUS) : shift and goto state 18
- 2: 17: (SEMICOLON) : reduce 2 tokens to PostDecrementExpression
-(PostDecrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (MINUS_MINUS))
+ 2: 7: 46:(MINUS_MINUS) : shift and goto state 17
+ 1: 7: 47:(PLUS_PLUS) : shift and goto state 18
+ 2: 17: 48:(SEMICOLON) : reduce 2 tokens to PostDecrementExpression
+(PostDecrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), 46:(MINUS_MINUS))
  ... goto state 9
- 1: 18: (SEMICOLON) : reduce 2 tokens to PostIncrementExpression
-(PostIncrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), (PLUS_PLUS))
+ 1: 18: 49:(SEMICOLON) : reduce 2 tokens to PostIncrementExpression
+(PostIncrementExpression_0, (266 . 279)) <= ((PostfixExpression, (266 . 279)), 47:(PLUS_PLUS))
  ... goto state 8
- 2: 9: (SEMICOLON) : reduce 1 tokens to StatementExpression
+ 2: 9: 48:(SEMICOLON) : reduce 1 tokens to StatementExpression
 (StatementExpression_1, (266 . 279)) <= ((PostDecrementExpression, (266 . 279)))
  ... goto state 12
- 1: 8: (SEMICOLON) : reduce 1 tokens to StatementExpression
+ 1: 8: 49:(SEMICOLON) : reduce 1 tokens to StatementExpression
 (StatementExpression_0, (266 . 279)) <= ((PostIncrementExpression, (266 . 279)))
  ... goto state 12
- 2: 12: (SEMICOLON) : shift and goto state 20
- 1: 12: (SEMICOLON) : shift and goto state 20
+ 2: 12: 48:(SEMICOLON) : shift and goto state 20
+ 1: 12: 49:(SEMICOLON) : shift and goto state 20
  2: 20: 13:(RIGHT_CURLY_BRACKET, (281 . 281)) : shift and goto state 48
  1: 20: 13:(RIGHT_CURLY_BRACKET, (281 . 281)) : shift and goto state 48
  2: 48: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 4 tokens to Statement
-(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
+(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), 48:(SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
  ... goto state 13
  1: 48: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 4 tokens to Statement
-(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), (SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
+(Statement_1, (264 . 281)) <= (8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression, (266 . 279)), 49:(SEMICOLON), 13:(RIGHT_CURLY_BRACKET, (281 . 281)))
  ... goto state 13
  2: 13: 14:(LEFT_CURLY_BRACKET, (343 . 343)) : reduce 2 tokens to CompilationUnit
 (CompilationUnit_1, (105 . 281)) <= ((CompilationUnit, (105 . 125)), (Statement, (264 . 281)))
@@ -278,12 +278,12 @@ Action
  2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))| 22:(RIGHT_CURLY_BRACKET, (417 . 417))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
 
 recover: succeed, parser count 1
- 2: Current_Token (Identifier) Shared_Token 22:(RIGHT_CURLY_BRACKET, (417 . 417)) recover_insert_delete:
+ 2: Current_Token 64:(Identifier) Shared_Token 22:(RIGHT_CURLY_BRACKET, (417 . 417)) recover_insert_delete:
  2: resume_active: True, token goal 26, inc_shared_token: FALSE
 
- 2: 16: (Identifier) : shift and goto state 35
+ 2: 16: 64:(Identifier) : shift and goto state 35
  2: 35: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to ClassType
-(ClassType_0) <= ((Identifier))
+(ClassType_0) <= (64:(Identifier))
  ... goto state 45
  2: 45: 22:(RIGHT_CURLY_BRACKET, (417 . 417)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_0) <= ((ClassType))
@@ -313,9 +313,9 @@ recover: succeed, parser count 1
  2: 2: 23:(Wisi_EOI, (434 . 433)) : accept it
 (wisitoken_accept_0, (105 . 417)) <= ((CompilationUnit, (105 . 417)))
  2: succeed
-java_expressions_ch19.input:2:21: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
+java_expressions_ch19.input:2:3: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'
    recovered: ((INSERT, RIGHT_PAREN, 7))
-java_expressions_ch19.input:6:18: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
+java_expressions_ch19.input:6:3: syntax error: expecting MINUS_MINUS, PLUS_PLUS, found '}'
    recovered: ((INSERT, MINUS_MINUS, 13), (INSERT, SEMICOLON, 13))
-java_expressions_ch19.input:12:7: syntax error: expecting Identifier, found '}'
+java_expressions_ch19.input:12:3: syntax error: expecting Identifier, found '}'
    recovered: ((INSERT, Identifier, 22))

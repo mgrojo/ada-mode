@@ -1414,7 +1414,7 @@ private
    is (Cur => Parse_Stream_Lists.Next (Tree.Terminal_Stream.Cur));
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Streams.Length = 2 and Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
+   is (Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
    --  1 stream for Terminals, one for the remaining parser.
 
    function Get_Element_Index

@@ -85,7 +85,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer);
+      User_Data.Set_Lexer (Parser.Lexer, null);
 
       Execute_Parse ("1 - 3", Success, -2);
       Execute_Parse ("1", Success, 1);
@@ -140,7 +140,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer);
+      User_Data.Set_Lexer (Parser.Lexer, null);
 
       declare
          Expected : WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID) := (others => False);

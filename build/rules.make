@@ -141,7 +141,7 @@ wisitoken-followed_by.exe : force
 	gprbuild -p -j8 -P wisitoken.gpr wisitoken-followed_by
 
 test-executables : force
-	gprbuild -p -j8 --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
+	gprbuild -p -j8 -P wisitoken_test.gpr
 
 wisitoken-parse-lr-mckenzie_recover-ada_lite.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
 	gnatprep -b -r -T -DADA_LITE=Ada_Lite $^ $@

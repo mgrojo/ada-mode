@@ -1362,10 +1362,10 @@ package body WisiToken.Syntax_Trees is
               +(if Terminal_Node_Numbers
                 then
                   (case Node.Label is
-                   when Shared_Terminal    => Trimmed_Image (Node.Terminal_Index),
-                   when Virtual_Terminal   => Trimmed_Image (Node.Node_Index),
-                   when Virtual_Identifier => Trimmed_Image (Node.Identifier),
-                   when Nonterm            => Trimmed_Image (Node.Node_Index))  & ":"
+                   when Shared_Terminal    => Trimmed_Image (Node.Terminal_Index) & ":",
+                   when Virtual_Terminal   => Trimmed_Image (Node.Node_Index) & ":",
+                   when Virtual_Identifier => Trimmed_Image (Node.Identifier) & ":",
+                   when Nonterm            => "")
                 elsif Node_Numbers
                 then Trimmed_Image (Node.Node_Index) & ":"
                 else "");

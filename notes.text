@@ -19,7 +19,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -36,7 +36,7 @@ incremental parse
             implicit in wisitoken_accept
             because generator does it that way
                 in lr1_, Lalr_goto_transitions
-                experiment with relaxing that in o.w.s-1; all tests initialy passing
+                experiment with relaxing that
 
         lexer.set_position needs prev_id
 

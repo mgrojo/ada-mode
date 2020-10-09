@@ -244,7 +244,6 @@ package body WisiToken.Lexer.Regexp is
         (ID          => Lexer.ID,
          Byte_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)),
          Line        => Invalid_Line_Number,
-         Column      => Ada.Text_IO.Count (Lexer.Lexeme_Head),
          Char_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)));
 
       return False;
