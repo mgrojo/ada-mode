@@ -557,11 +557,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Ins_Before => Op.Ins_Before,
                                   Ins_Node   => Syntax_Trees.Invalid_Node_Access));
 
-                              if Parser_State.Recover_Insert_Delete_Current = No_Index then
-                                 Parser_State.Recover_Insert_Delete_Current :=
-                                   Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
-                              end if;
-
                               if First_Insert and Op.Ins_Before = Parser_State.Shared_Token then
                                  --  We need First_Insert here, not just Stack_Matches_Ops, when the
                                  --  first insert is preceeded only by Push_Back and Undo_Reduce, with
@@ -585,7 +580,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  Parser_State.Recover_Insert_Delete_Current := No_Index;
                               else
                                  --  Let main parser handle it
-                                 null;
+                                 if Parser_State.Recover_Insert_Delete_Current = No_Index then
+                                    Parser_State.Recover_Insert_Delete_Current :=
+                                      Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
+                                 end if;
                               end if;
 
                            when Delete =>
@@ -598,15 +596,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Del_Node       => Tree.Get_Node (Op.Del_Token_Index),
                                   Del_After_Node => Syntax_Trees.Invalid_Node_Access));
 
-                              --  We don't check Stack_Matches_Ops here; if the current token needs
-                              --  to be deleted, this is the only chance to do that. See
-                              --  ada_mode-recover_02.adb with LR1 parser for example.
-                              if Op.Del_Token_Index = Parser_State.Shared_Token then
-                                 --  Delete has no effect on Stack, so we can apply multiple deletes.
+                              --  We don't check Stack_Matches_Ops here; Delete has no effect on
+                              --  Stack, so we can apply multiple deletes. See
+                              --  ada_mode-recover_02.adb with LR1 parser for example. On the other
+                              --  hand, if we've already done Insert, that depends on
+                              --  Parser_State.Shared_Token, so we can't change that;
+                              --  ada_mode-recover_38.adb
+                              if Parser_State.Recover_Insert_Delete_Current = No_Index and
+                                Op.Del_Token_Index = Parser_State.Shared_Token
+                              then
                                  Parser_State.Shared_Token := Tree.Stream_Next (Op.Del_Token_Index);
                                  Shared_Token_Changed      := True;
 
-                                 Parser_State.Recover_Insert_Delete_Current := No_Index;
                               else
                                  if Parser_State.Recover_Insert_Delete_Current = No_Index then
                                     Parser_State.Recover_Insert_Delete_Current :=
