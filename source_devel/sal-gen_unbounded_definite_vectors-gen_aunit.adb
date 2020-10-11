@@ -14,7 +14,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks;
+with AUnit.Checks.Containers;
 with SAL.AUnit;
 package body SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
 
@@ -24,10 +24,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
       Expected : in Vector)
    is
       use all type Ada.Containers.Count_Type;
+      use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
    begin
       if Computed.Length = 0 then
-         Check (Label & ".empty", Expected.Length = 0, True);
+         Check (Label & ".length", Computed.Length, Expected.Length);
       else
          Check_Index (Label & ".First_Index", Computed.First_Index, Expected.First_Index);
          Check_Index (Label & ".Last_Index", Computed.Last_Index, Expected.Last_Index);
