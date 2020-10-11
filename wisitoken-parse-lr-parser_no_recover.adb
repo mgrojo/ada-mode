@@ -110,6 +110,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
             0, Trace);
 
+         --  Insert EOI so parse stream matches terminal stream; Stack_Top is wisitoken_accept.
+         pragma Assert (Shared_Parser.Tree.ID (Parser_State.Current_Token) = Shared_Parser.Descriptor.EOI_ID);
+
+         Shared_Parser.Tree.Finish_Parse
+           (Parser_State.Stream, Parser_State.Current_Token, Shared_Parser.User_Data);
+
       when Error =>
          Current_Parser.Set_Verb (Action.Verb);
 
@@ -484,8 +490,9 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             raise Syntax_Error with "ambiguous parse; can't execute actions";
          end if;
 
-         --  FIXME: move this to end of Parse, or justify why not.
-         Parser.Tree.Set_Parents;
+         --  FIXME: incremental reparse requires parse_streams. They are
+         --  cleared here because we are editing the tree; does that actually
+         --  invalidate the parse streams?
          Parser.Tree.Clear_Parse_Streams;
          Parser.User_Data.Initialize_Actions (Parser.Tree);
          Parser.Tree.Process_Tree (Process_Node'Access);

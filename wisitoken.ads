@@ -297,9 +297,8 @@ package WisiToken is
      --  True if Outer entirely contains Inner.
      is (Outer.First <= Inner.First and Outer.Last >= Inner.Last);
 
-   function Overlaps (A, B : in Buffer_Region) return Boolean
-     --  True if A and B have some positions in common.
-     is (Inside (A.First, B) or Inside (A.Last, B) or Inside (B.First, A) or Inside (B.Last, A));
+   function Overlaps (A, B : in Buffer_Region) return Boolean;
+   --  True if A and B have some positions in common.
 
    function Image (Item : in Buffer_Region) return String;
 

@@ -286,11 +286,15 @@ package body WisiToken.Lexer.re2c is
    end Line_Start_Char_Pos;
 
    overriding procedure Set_Position
-     (Lexer         : in Instance;
-      Byte_Position : in Buffer_Pos;
-      Char_Position : in Buffer_Pos;
-      Line          : in Line_Number_Type)
+     (Lexer         : in out Instance;
+      Byte_Position : in     Buffer_Pos;
+      Char_Position : in     Buffer_Pos;
+      Line          : in     Line_Number_Type)
    is begin
+      --  FIXME: if insert new_line immediately after new_line, Set_Position
+      --  should set lexer.prev_id to new_line, not invalid_token_id.
+      Lexer.Prev_ID := Invalid_Token_ID;
+
       Set_Position
         (Lexer.Lexer,
          Byte_Position => Interfaces.C.size_t (Byte_Position),
@@ -298,7 +302,13 @@ package body WisiToken.Lexer.re2c is
          Line          => Interfaces.C.int (Line));
    end Set_Position;
 
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
+   overriding
+   function Buffer_Region_Byte (Lexer : in Instance) return WisiToken.Buffer_Region
+   is begin
+      return Buffer_Region_Byte (Lexer.Source);
+   end Buffer_Region_Byte;
+
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String
    is
       First : constant Integer := Integer
         (Byte_Bounds.First - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);

@@ -115,7 +115,28 @@ package WisiToken.Parse is
       Inserted_Chars : Base_Buffer_Pos;
    end record;
 
+   procedure Validate_KMN
+     (KMN                      : in WisiToken.Parse.KMN;
+      Initial_Stable_Byte_First : in Buffer_Pos;
+      Initial_Stable_Char_First : in Buffer_Pos;
+      Edited_Stable_Byte_First  : in Buffer_Pos;
+      Edited_Stable_Char_First  : in Buffer_Pos;
+      Initial_Text_Byte_Region  : in Buffer_Region;
+      Initial_Text_Char_Region  : in Buffer_Region;
+      Edited_Text_Byte_Region   : in Buffer_Region;
+      Edited_Text_Char_Region   : in Buffer_Region);
+   --  Raise User_Error if KMN violates text regions.
+
    package KMN_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (KMN);
+
+   procedure Validate_KMN
+     (List                     : in KMN_Lists.List;
+      Stable_Byte_First        : in Buffer_Pos;
+      Stable_Char_First        : in Buffer_Pos;
+      Initial_Text_Byte_Region : in Buffer_Region;
+      Initial_Text_Char_Region : in Buffer_Region;
+      Edited_Text_Byte_Region  : in Buffer_Region;
+      Edited_Text_Char_Region  : in Buffer_Region);
 
    procedure Edit_Tree
      (Parser : in out Base_Parser'Class;

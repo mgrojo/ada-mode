@@ -117,7 +117,9 @@ package WisiToken.Lexer.re2c is
 
    overriding procedure Reset (Lexer : in out Instance);
 
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
+   overriding function Buffer_Region_Byte (Lexer : in Instance) return WisiToken.Buffer_Region;
+
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String;
 
    overriding function First (Lexer : in Instance) return Boolean;
 
@@ -125,10 +127,10 @@ package WisiToken.Lexer.re2c is
 
    overriding
    procedure Set_Position
-     (Lexer         : in Instance;
-      Byte_Position : in Buffer_Pos;
-      Char_Position : in Buffer_Pos;
-      Line          : in Line_Number_Type);
+     (Lexer         : in out Instance;
+      Byte_Position : in     Buffer_Pos;
+      Char_Position : in     Buffer_Pos;
+      Line          : in     Line_Number_Type);
 
    overriding
    function Find_Next

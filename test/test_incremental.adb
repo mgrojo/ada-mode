@@ -128,8 +128,6 @@ package body Test_Incremental is
 
       Parser.Parse;
 
-      Parser.Tree.Set_Parents; --  Edit_Tree does this
-
       Check_Tree ("edited source batch parse 0", Parser.Tree);
 
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
@@ -186,7 +184,20 @@ package body Test_Incremental is
          --  Edit_Tree.
       end if;
 
-      --  Test Edit_Tree with empty Edits; no exceptions.
+      Validate_KMN
+        (List => Edits,
+         Stable_Byte_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+         Stable_Char_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+         Initial_Text_Byte_Region =>
+           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+         Initial_Text_Char_Region =>
+           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+         --  FIXME: test utf-8
+         Edited_Text_Byte_Region  =>
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)),
+         Edited_Text_Char_Region  =>
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)));
+
       WisiToken.Parse.Edit_Tree (Parser, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -244,7 +255,7 @@ package body Test_Incremental is
    begin
       Parse_Text
         (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
-         --                       1        |10     |18              |20       |30
+         --                       1        |10     |18              |20       |30     |38
          Edit_At              => 1,
          Delete               => "",
          Insert               => "A_",

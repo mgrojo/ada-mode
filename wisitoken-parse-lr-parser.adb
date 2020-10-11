@@ -198,6 +198,12 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Zombie_Token_Count := 1;
          end case;
 
+         --  Insert EOI so parse stream matches terminal stream; Stack_Top is wisitoken_accept.
+         pragma Assert (Shared_Parser.Tree.ID (Parser_State.Current_Token) = Shared_Parser.Descriptor.EOI_ID);
+
+         Shared_Parser.Tree.Finish_Parse
+           (Parser_State.Stream, Parser_State.Current_Token, Shared_Parser.User_Data);
+
       when Error =>
          Parser_State.Set_Verb (Action.Verb);
 
@@ -1220,10 +1226,6 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser.Tree.Root));
             end if;
 
-            --  We do this here, not at end of Parse, because we might re-parse
-            --  before doing any post-parse actions.
-            Parser.Tree.Set_Parents;
-
             declare
                --  Recompute Parser.Line_Begin_Token using final parse tree terminal
                --  sequence; compute recover_op.inserted_before/deleted_after. This
@@ -1235,8 +1237,6 @@ package body WisiToken.Parse.LR.Parser is
 
                use Syntax_Trees;
                Tree : Syntax_Trees.Tree renames Parser.Tree;
-
-               EOI_Node : constant Valid_Node_Access := Tree.Get_Node (Tree.Stream_Last (Tree.Terminal_Stream));
 
                I                    : Node_Access        := Tree.First_Terminal (Tree.Root);
                Last_Line            : Line_Number_Type   := Invalid_Line_Number;
@@ -1328,15 +1328,9 @@ package body WisiToken.Parse.LR.Parser is
                      raise SAL.Programmer_Error with "Nonterm as Next_Terminal";
                   end case;
 
-                  exit when I = EOI_Node;
+                  exit when Tree.ID (I) = Parser.Descriptor.EOI_ID;
 
                   I := Tree.Next_Terminal (I);
-
-                  if I = Invalid_Node_Access then
-                     --  At end of parse; next terminal token is Wisi_EOI, which is in the
-                     --  terminal stream but not the parse stream.
-                     I := EOI_Node;
-                  end if;
                end loop;
             end;
 
@@ -1347,6 +1341,9 @@ package body WisiToken.Parse.LR.Parser is
 
             pragma Assert (Validate_Recover_Ops);
 
+            --  FIXME: incremental reparse requires parse_streams. They are
+            --  cleared here because we are editing the tree; does that actually
+            --  invalidate the parse streams?
             Parser.Tree.Clear_Parse_Streams;
 
             --  In ada-mode, Delete_Token modifies Next_Terminal

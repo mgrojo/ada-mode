@@ -135,6 +135,89 @@ package body WisiToken.Parse is
 
    end Lex_All;
 
+   procedure Validate_KMN
+     (KMN                       : in WisiToken.Parse.KMN;
+      Initial_Stable_Byte_First : in Buffer_Pos;
+      Initial_Stable_Char_First : in Buffer_Pos;
+      Edited_Stable_Byte_First  : in Buffer_Pos;
+      Edited_Stable_Char_First  : in Buffer_Pos;
+      Initial_Text_Byte_Region  : in Buffer_Region;
+      Initial_Text_Char_Region  : in Buffer_Region;
+      Edited_Text_Byte_Region   : in Buffer_Region;
+      Edited_Text_Char_Region   : in Buffer_Region)
+   is
+      Stable_Byte_Region : constant Buffer_Region :=
+        (Initial_Stable_Byte_First, Initial_Stable_Byte_First + KMN.Stable_Bytes - 1);
+      Stable_Char_Region : constant Buffer_Region :=
+        (Initial_Stable_Char_First, Initial_Stable_Char_First + KMN.Stable_Chars - 1);
+
+      Deleted_Byte_Region : constant Buffer_Region :=
+        (Stable_Byte_Region.Last + 1, Stable_Byte_Region.Last + KMN.Deleted_Bytes);
+      Deleted_Char_Region : constant Buffer_Region :=
+        (Stable_Char_Region.Last + 1, Stable_Char_Region.Last + KMN.Deleted_Chars);
+
+      Inserted_Byte_Region : constant Buffer_Region :=
+        (Edited_Stable_Byte_First + KMN.Stable_Bytes,
+         Edited_Stable_Byte_First + KMN.Stable_Bytes + KMN.Inserted_Bytes - 1);
+      Inserted_Char_Region : constant Buffer_Region :=
+        (Edited_Stable_Char_First + KMN.Stable_Chars,
+         Edited_Stable_Char_First + KMN.Stable_Chars + KMN.Inserted_Chars - 1);
+   begin
+      if not Contains (Outer => Initial_Text_Byte_Region, Inner => Stable_Byte_Region) then
+         raise User_Error with "KMN stable byte region outside initial source text";
+      end if;
+      if not Contains (Outer => Initial_Text_Char_Region, Inner => Stable_Char_Region) then
+         raise User_Error with "KMN stable char region outside initial source text";
+      end if;
+
+      if not Contains (Outer => Initial_Text_Byte_Region, Inner => Deleted_Byte_Region) then
+         raise User_Error with "KMN deleted byte region outside initial source text";
+      end if;
+      if not Contains (Outer => Initial_Text_Char_Region, Inner => Deleted_Char_Region) then
+         raise User_Error with "KMN deleted char region outside initial source text";
+      end if;
+
+      if not Contains (Outer => Edited_Text_Byte_Region, Inner => Inserted_Byte_Region) then
+         raise User_Error with "KMN inserted byte region outside initial source text";
+      end if;
+      if not Contains (Outer => Edited_Text_Char_Region, Inner => Inserted_Char_Region) then
+         raise User_Error with "KMN inserted char region outside edited source text";
+      end if;
+   end Validate_KMN;
+
+   procedure Validate_KMN
+     (List                     : in KMN_Lists.List;
+      Stable_Byte_First        : in Buffer_Pos;
+      Stable_Char_First        : in Buffer_Pos;
+      Initial_Text_Byte_Region : in Buffer_Region;
+      Initial_Text_Char_Region : in Buffer_Region;
+      Edited_Text_Byte_Region  : in Buffer_Region;
+      Edited_Text_Char_Region  : in Buffer_Region)
+   is
+      Initial_Byte_Pos : Buffer_Pos := Stable_Byte_First;
+      Initial_Char_Pos : Buffer_Pos := Stable_Char_First;
+      Edited_Byte_Pos  : Buffer_Pos := Stable_Byte_First;
+      Edited_Char_Pos  : Buffer_Pos := Stable_Char_First;
+   begin
+      for KMN of List loop
+         Validate_KMN
+           (KMN,
+            Initial_Stable_Byte_First => Initial_Byte_Pos,
+            Initial_Stable_Char_First => Initial_Char_Pos,
+            Edited_Stable_Byte_First  => Edited_Byte_Pos,
+            Edited_Stable_Char_First  => Edited_Char_Pos,
+            Initial_Text_Byte_Region  => Initial_Text_Byte_Region,
+            Initial_Text_Char_Region  => Initial_Text_Char_Region,
+            Edited_Text_Byte_Region   => Edited_Text_Byte_Region,
+            Edited_Text_Char_Region   => Edited_Text_Char_Region);
+
+         Initial_Byte_Pos := @ + KMN.Stable_Bytes + KMN.Deleted_Bytes;
+         Initial_Char_Pos := @ + KMN.Stable_Chars + KMN.Deleted_Chars;
+         Edited_Byte_Pos  := @ + KMN.Stable_Bytes + KMN.Inserted_Bytes;
+         Edited_Char_Pos  := @ + KMN.Stable_Chars + KMN.Inserted_Chars;
+      end loop;
+   end Validate_KMN;
+
    procedure Edit_Tree
      (Parser : in out Base_Parser'Class;
       Edits  : in     KMN_Lists.List)
@@ -143,6 +226,8 @@ package body WisiToken.Parse is
       --  separate temp list of new tokens, and then merging that into the
       --  parse tree, is faster than merging new tokens in one by one; we
       --  just do the latter. We also don't modify the edit list.
+      --
+      --  Parser.Lexer contains the edited text.
       use KMN_Lists;
       use WisiToken.Syntax_Trees;
       use all type Ada.Containers.Count_Type;
@@ -159,20 +244,13 @@ package body WisiToken.Parse is
 
       Terminal_Index  : Stream_Index       := Tree.Stream_First (Tree.Terminal_Stream);
       Parse_Stream    : constant Stream_ID := Tree.First_Parse_Stream;
-      Parse_Node      : Node_Access        := Tree.First_Shared_Terminal
-        (Tree.Get_Node (Parse_Stream, Tree.Stack_Top (Parse_Stream)));
+      Parse_Element   : Stream_Index       := Tree.Stack_Top (Parse_Stream);
+      Parse_Node      : Node_Access        := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
       Last_Parse_Node : Node_Access;
-      --  FIXME: Parse_Index : Stream_Index := Tree.First (Parser.Stream);
 
       Next_Element_Index : Element_Index := 1;
    begin
       Parser.Last_Grammar_Node := Invalid_Node_Access;
-
-      if not Tree.Parents_Set then
-         Tree.Set_Parents;
-         --  Required for Next_Shared_Terminal. Do this even if no edits, for
-         --  consistency.
-      end if;
 
       if Edits.Length = 0 then
          return;
@@ -192,11 +270,34 @@ package body WisiToken.Parse is
             Inserted_Region : constant Buffer_Region :=
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
          begin
+            --  Parser.Lexer contains the edited text, so we can't check that
+            --  stable, deleted are inside the initial text. Caller should use
+            --  Validate_KMN.
+
+            if not Contains (Outer => Parser.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
+               raise User_Error with "KMN insert region outside edited source text";
+            end if;
+
+            if Trace_Incremental_Parse > Detail then
+               Parser.Trace.New_Line;
+               Parser.Trace.Put_Line
+                 ("KMN: " & Image (Stable_Region) & Image (Deleted_Region) & Image (Inserted_Region));
+               Parser.Trace.Put_Line ("shift: " & Shift_Bytes'Image & Shift_Chars'Image & Shift_Line'Image);
+
+               if WisiToken.Trace_Incremental_Parse > Extra then
+                  Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
+
+               else
+                  Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Non_Grammar => True));
+               end if;
+            end if;
+
             Unchanged_Loop :
             loop
                exit Unchanged_Loop when Terminal_Index = Invalid_Stream_Index;
                exit Unchanged_Loop when not Contains
                  (Inner => Tree.Byte_Region (Terminal_Index), Outer => Stable_Region);
+               exit Unchanged_Loop when Tree.ID (Terminal_Index) = Tree.Descriptor.EOI_ID;
 
                Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
 
@@ -206,28 +307,21 @@ package body WisiToken.Parse is
                --  for non_grammar, Shift_Line below
 
                pragma Assert (Tree.Get_Element_Index (Parse_Node) = Tree.Get_Element_Index (Parser.Last_Grammar_Node));
+               --  FIXME: this assert fails when terminals are inserted/deleted!
                Tree.Shift (Parse_Node, Shift_Bytes, Shift_Chars, Shift_Line);
+
                Last_Parse_Node := Parse_Node;
 
-               --  FIXME: shift containing nonterms
+               --  FIXME: update/shift containing nonterms
+
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line ("stable shift " & Tree.Image (Terminal_Index, Terminal_Node_Numbers => True));
+               end if;
 
                Next_Element_Index := @ + 1;
                Terminal_Index     := Tree.Stream_Next (Terminal_Index);
-               Parse_Node         := Tree.Next_Shared_Terminal (Parse_Node);
+               Tree.Next_Shared_Terminal (Parse_Stream, Parse_Element, Parse_Node);
             end loop Unchanged_Loop;
-
-            if Tree.Stream_Prev (Terminal_Index) = Invalid_Stream_Index then
-               Parser.Lexer.Reset;
-            else
-               declare
-                  Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
-               begin
-                  Parser.Lexer.Set_Position
-                    (Byte_Position => Token.Byte_Region.Last + Shift_Bytes + 1,
-                     Char_Position => Token.Char_Region.Last + Shift_Chars + 1,
-                     Line          => Token.Line + Shift_Line);
-               end;
-            end if;
 
             if Parser.Last_Grammar_Node /= Invalid_Node_Access then
                Delete_Non_Grammar :
@@ -256,46 +350,73 @@ package body WisiToken.Parse is
                end Delete_Non_Grammar;
             end if;
 
-            Scan_Changed_Loop :
-            loop
-               declare
-                  Token : Base_Token;
-                  Error : constant Boolean := Parser.Lexer.Find_Next (Token);
-                  Index : Stream_Index;
-               begin
-                  if Trace_Lexer > Outline then
-                     Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
-                  end if;
+            if KMN.Inserted_Bytes > 0 then
+               if Tree.Stream_Prev (Terminal_Index) = Invalid_Stream_Index then
+                  Parser.Lexer.Reset;
+               else
+                  declare
+                     Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
+                  begin
+                     --  FIXME: if insert new_line immediately after new_line, Set_Position
+                     --  should set lexer.prev_id to new_line, not invalid_token_id.
+                     Parser.Lexer.Set_Position
+                       (Byte_Position => Token.Byte_Region.Last + Shift_Bytes + 1,
+                        Char_Position => Token.Char_Region.Last + Shift_Chars + 1,
+                        Line          => Token.Line + Shift_Line);
+                  end;
+               end if;
 
-                  exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
-                  exit Scan_Changed_Loop when not
-                    (Overlaps (Token.Byte_Region, Inserted_Region) or
-                       Overlaps (Token.Byte_Region, Deleted_Region));
-
-                  if Token.ID >= Parser.Descriptor.First_Terminal then
-                     --  grammar token
-                     Index := Tree.Insert_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
-
-                     Next_Element_Index := @ + 1;
-                     Last_Parse_Node    := Invalid_Node_Access;
-
-                     Process_Grammar_Token (Parser, Token, Index);
-
-                     --  FIXME: breakdown parse tree
-                  else
-                     Process_Non_Grammar_Token (Parser, Token);
-                     if Last_Parse_Node /= Invalid_Node_Access then
-                        Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Append (Token);
+               Scan_Changed_Loop :
+               loop
+                  declare
+                     Token : Base_Token;
+                     Error : constant Boolean := Parser.Lexer.Find_Next (Token);
+                     Index : Stream_Index;
+                  begin
+                     if Trace_Lexer > Outline then
+                        Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
                      end if;
-                  end if;
 
-                  if Error then
-                     Parser.Wrapped_Lexer_Errors.Append
-                       ((Recover_Token_Index => Index,
-                         Error               => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
-                  end if;
-               end;
-            end loop Scan_Changed_Loop;
+                     exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
+                     exit Scan_Changed_Loop when not
+                       (Overlaps (Token.Byte_Region, Inserted_Region) or
+                          Overlaps (Token.Byte_Region, Deleted_Region));
+
+                     if Token.ID >= Parser.Descriptor.First_Terminal then
+                        --  grammar token
+                        Index := Tree.Insert_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
+
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("scan new " & Tree.Image (Index, Terminal_Node_Numbers => True));
+                        end if;
+
+                        Next_Element_Index := @ + 1;
+                        Last_Parse_Node    := Invalid_Node_Access;
+
+                        Process_Grammar_Token (Parser, Token, Index);
+
+                        --  FIXME: breakdown parse tree
+                     else
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("scan new " & Image (Token, Parser.Descriptor.all));
+                        end if;
+
+                        Process_Non_Grammar_Token (Parser, Token);
+                        if Last_Parse_Node /= Invalid_Node_Access then
+                           Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Append (Token);
+                        end if;
+                     end if;
+
+                     if Error then
+                        Parser.Wrapped_Lexer_Errors.Append
+                          ((Recover_Token_Index => Index,
+                            Error               => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
+                     end if;
+                  end;
+               end loop Scan_Changed_Loop;
+            end if;
 
             if Parser.Last_Grammar_Node /= Invalid_Node_Access and
               Tree.Stream_Prev (Terminal_Index) /= Invalid_Stream_Index
@@ -323,14 +444,19 @@ package body WisiToken.Parse is
                   Temp : Stream_Index := Tree.Left_Breakdown (Parse_Stream, Terminal_Index);
                   pragma Assert (Tree.First_Shared_Terminal (Parse_Stream, Temp) = Terminal_Index);
                begin
+                  if Trace_Incremental_Parse > Detail then
+                     Parser.Trace.Put_Line
+                       ("delete " & Tree.Image (Temp, Terminal_Node_Numbers => True));
+                  end if;
+
                   --  Stack_Top is stream element following Temp.
                   Tree.Stream_Delete (Parse_Stream, Temp);
 
-                  if WisiToken.Trace_Incremental_Parse > Detail then
+                  if WisiToken.Trace_Incremental_Parse > Extra then
                      Parser.Trace.Put_Line ("Left_Breakdown:");
                      Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
 
-                  elsif Trace_Incremental_Parse > Outline then
+                  elsif Trace_Incremental_Parse > Detail then
                      Parser.Trace.Put_Line ("Left_Breakdown: " & Tree.Image (Parse_Stream, Non_Grammar => True));
                   end if;
                end;
@@ -342,8 +468,6 @@ package body WisiToken.Parse is
                end;
             end loop Delete_Loop;
 
-            Parse_Node := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Tree.Stack_Top (Parse_Stream)));
-
             Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
             Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
 
@@ -352,6 +476,9 @@ package body WisiToken.Parse is
 
             KMN_Node := Next (KMN_Node);
             exit KMN_Loop when not Has_Element (KMN_Node);
+
+            Parse_Element := Tree.Stack_Top (Parse_Stream);
+            Parse_Node    := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
          end;
       end loop KMN_Loop;
 
@@ -361,6 +488,13 @@ package body WisiToken.Parse is
          if Token.ID = Parser.Descriptor.EOI_ID then
             Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
             Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+
+            pragma Assert (Tree.ID (Parse_Node) = Parser.Descriptor.EOI_ID);
+            Tree.Shift (Parse_Node, Shift_Bytes, Shift_Chars, Shift_Line);
+
+            if Trace_Incremental_Parse > Detail then
+               Parser.Trace.Put_Line ("shift " & Tree.Image (Terminal_Index, Terminal_Node_Numbers => True));
+            end if;
          else
             raise User_Error with "edit list does not cover entire buffer";
          end if;

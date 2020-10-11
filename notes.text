@@ -31,14 +31,10 @@ change terminal_index to 16 bit type?
     smaller tables => faster parser?
 
 incremental parse
-    test/test_incremental.adb
-        parse stream doesn't have EOI
-            implicit in wisitoken_accept
-            because generator does it that way
-                in lr1_, Lalr_goto_transitions
-                experiment with relaxing that
+    eoi on parse stream broke wisitoken_grammar_runtime
 
-        lexer.set_position needs prev_id
+    test/test_incremental.adb
+        need parse_incremental
 
     review fixmes
 

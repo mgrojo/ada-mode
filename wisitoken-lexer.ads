@@ -95,14 +95,16 @@ package WisiToken.Lexer is
    --  If reading input from a stream, abort reading (or force it to
    --  complete); Find_Next will not be called before another Reset.
 
+   function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region is abstract;
+
    function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
    --  Return text from internal buffer, given region in byte position.
 
    procedure Set_Position
-     (Lexer         : in Instance;
-      Byte_Position : in Buffer_Pos;
-      Char_Position : in Buffer_Pos;
-      Line          : in Line_Number_Type)
+     (Lexer         : in out Instance;
+      Byte_Position : in     Buffer_Pos;
+      Char_Position : in     Buffer_Pos;
+      Line          : in     Line_Number_Type)
    is abstract;
    --  Set the current position in the source buffer; Find_Next will
    --  start there.
@@ -183,6 +185,8 @@ private
    end record;
 
    procedure Finalize (Object : in out Source);
+
+   function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
    --  The bounds on the result are not present; 'First, 'Last are not

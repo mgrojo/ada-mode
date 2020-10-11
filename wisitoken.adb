@@ -331,6 +331,15 @@ package body WisiToken is
       return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
 
+   function Overlaps (A, B : in Buffer_Region) return Boolean
+   is begin
+      if Length (A) > 0 and Length (B) > 0 then
+         return Inside (A.First, B) or Inside (A.Last, B) or Inside (B.First, A) or Inside (B.Last, A);
+      else
+         return False;
+      end if;
+   end Overlaps;
+
    function Trimmed_Image (Item : in Line_Number_Type) return String
    is
       function Base_Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);

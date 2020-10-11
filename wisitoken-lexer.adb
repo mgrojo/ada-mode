@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -33,6 +33,18 @@ package body WisiToken.Lexer is
          GNATCOLL.Mmap.Close (Object.File);
       end case;
    end Finalize;
+
+   function Buffer_Region_Byte (Object : in Source) return Buffer_Region
+   is begin
+      case Object.Label is
+      when String_Label =>
+         return (Base_Buffer_Pos (Object.Buffer'First), Base_Buffer_Pos (Object.Buffer'Last));
+
+      when File_Label =>
+         return (Object.Buffer_Nominal_First_Byte,
+                 Object.Buffer_Nominal_First_Byte + Base_Buffer_Pos (Object.Buffer_Last));
+      end case;
+   end Buffer_Region_Byte;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access
    is
