@@ -565,7 +565,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                  First_Insert := False;
 
-                                 Parser_State.Current_Token := Tree.Insert_Terminal
+                                 Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
                                    (Parser_State.Stream, Op.Ins_ID, Op.Ins_Before);
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser

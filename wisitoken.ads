@@ -18,7 +18,13 @@
 --
 --  [gnu_coding] https://www.gnu.org/prep/standards/standards.html#Errors
 --
---  [Lahav 2004] - Efficient Semantic Analysis for Text Editors
+--  [Lahav 2004] - Elad Lahav. Efficient Semantic Analysis for Text
+--  Editors. final project for CS842 School of Computer Science,
+--  University of Waterloo.
+--
+--  [Wagner Graham 1998] - Tim A. Wagner and Susan L. Graham.
+--  Efficient and flexible incremental parsing. ACM Transactions on
+--  Programming Languages and Systems,20(5):980-1013, 1998
 --
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
@@ -87,7 +93,10 @@ package WisiToken is
    ----------
    --  Token IDs
 
-   type Token_ID is range 0 .. Integer'Last; -- 0 origin to match elisp array
+   type Token_ID is range 0 .. 2**15 - 1;
+   --  0 origin to match elisp array, 16 bits to reduce storage, signed
+   --  to match generics. Biggest language will have < 500 token ids; Ada
+   --  2020 has 481, Java 19 has 321.
 
    Invalid_Token_ID : constant Token_ID := Token_ID'Last;
 
@@ -423,6 +432,10 @@ package WisiToken is
    --
    --  where "name" is the suffix of on of the Trace_* variables above,
    --  and "value" is an integer.
+   --
+   --  For Boolean variables, value > 0 is True, 0 is False.
+   --
+   --  In addition, the name "debug" sets Debug_Mode.
 
    type Trace is abstract tagged limited null record;
    --  Output for tests/debugging.

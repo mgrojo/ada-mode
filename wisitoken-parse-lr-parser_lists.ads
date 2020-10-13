@@ -93,6 +93,7 @@ package WisiToken.Parse.LR.Parser_Lists is
      Iterator_Element  => Parser_State;
 
    function New_List (Tree : in out Syntax_Trees.Tree) return List;
+   --  If Tree.Fully_Parsed, reuse parse stream. Otherwise, create a new one.
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 

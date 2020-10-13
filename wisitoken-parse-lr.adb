@@ -284,6 +284,15 @@ package body WisiToken.Parse.LR is
       end if;
    end Goto_For;
 
+   function In_Goto
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token_ID)
+     return Boolean
+   is begin
+      return Table.States (State).Goto_List.Contains (ID);
+   end In_Goto;
+
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;

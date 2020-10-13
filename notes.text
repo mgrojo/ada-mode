@@ -27,22 +27,44 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-change terminal_index to 16 bit type?
-    smaller tables => faster parser?
-
 incremental parse
-    eoi on parse stream broke wisitoken_grammar_runtime
-
+    d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-        need parse_incremental
+        need to update/shift containing nonterms
+
+    don't need terminal_stream for incremental_parse!?
+        used in error correction, but that needs to be modified to reuse subtrees
+        need shared stream for parallel parsers; could be shared parse stream in place of terminal.
+        rename to shared_stream
 
     review fixmes
 
-    branched parse stack eliminates need for duplicate_state check?
+    could merge edit_tree, parse_incremental
+        wagner graham 1998
+        is edit_tree useful for packrat incremental?
+
+    [Wagner Graham 1998] doesn't modify the tree structure for
+        Left_Breakdown; it just moves the Current_Token pointer around.
+        requires significantly different tree structure.
+            child pointers are bastardized as stream pointers.
+        rest of parser must understand that.
+        requires merge edit_tree into incremental parse
+        faster? less allocate/deallocate
+
+    branched parse stack would simplify duplicate_state check?
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
-    since we are copying stream node to set state, might as well also set parent?
+    can eliminate state in tree node by computing from parse_table, current_state and id shifted.
+        wagner graham 1998
+        store current_state in config
+        also bring back set_parents
+            => don't need to copy terminal nodes; major simplification
+        calls parse_table operations much more often; will slow down undo_reduce, breakdown
+        do this in new branch after incremental parse working, compare space, speed.
+
+    batch parse is a special case of incremental parse
+        edits = all inserted.
 
 recover supervisor should provide Put_Trace_line
     to control access to Trace

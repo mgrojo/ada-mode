@@ -121,6 +121,16 @@ package WisiToken.Parse.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
+   procedure Parse_Incremental
+     (Shared_Parser : in out LR.Parser.Parser;
+      Edits         : in     KMN_Lists.List)
+   with Pre => Shared_Parser.Tree.Fully_Parsed;
+   --  Apply Edits to Shared_Parser.Tree, use [Wagner Graham 1998] to
+   --  parse. Errors handled as in Parse.
+   --
+   --  Not 'overriding' because it's not clear yet if incremental parse
+   --  is possible for other parsing algorithms.
+
    overriding procedure Execute_Actions
      (Parser          : in out LR.Parser.Parser;
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null);

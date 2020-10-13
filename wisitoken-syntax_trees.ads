@@ -383,10 +383,10 @@ package WisiToken.Syntax_Trees is
       Token         : in     Stream_Index;
       User_Data     : in     User_Data_Access;
       Element_Index : in     Syntax_Trees.Element_Index := Invalid_Element_Index)
-   with Pre => not Tree.Traversing and (Tree.Is_Valid (Stream) and then Tree.Stream_Length (Stream) = 2) and
-               Tree.ID (Token) = Tree.Descriptor.EOI_ID and Tree.Contains (Tree.Terminal_Stream, Token);
-   --  Copy EOI from Terminal_Stream to Parse_Stream, after Stack_Top, to
-   --  mark end of parse stream.
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.ID (Stream, Token) = Tree.Descriptor.EOI_ID;
+   --  If Token is from Terminal_Stream, copy it from Terminal_Stream to
+   --  Parse_Stream, after Stack_Top, to mark end of parse stream.
+   --  Otherwise Token is from the parse stream; do nothing.
 
    function Reduce
      (Tree            : in out Syntax_Trees.Tree;
@@ -423,22 +423,43 @@ package WisiToken.Syntax_Trees is
    --  from Terminal_Stream to Stream.Stack_Top; otherwise move from
    --  Stream input to Stream.Stack_Top. Then set State in Token.
 
-   function Left_Breakdown
+   function Left_Breakdown_Edit
      (Tree              : in out Syntax_Trees.Tree;
       Stream            : in     Stream_ID;
       Expected_Terminal : in     Stream_Index)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream) and Tree.Contains (Tree.Terminal_Stream, Expected_Terminal) and
                Tree.Label (Tree.Stack_Top (Stream)) = Nonterm;
-   --  [Lahav 2004] Left_Breakdown of Stream.Stack_Top; bring the first
-   --  terminal in Stream.Stack_Top to the parse stream. Returns the
-   --  stream element holding the first terminal. The stream element
-   --  following the result is the new stack top.
+   --  [Lahav 2004] Left_Breakdown of Stream.Stack_Top, for Edit_Tree;
+   --  bring the first terminal in Stream.Stack_Top to the parse stream.
+   --  Returns the stream element holding the first terminal. The stream
+   --  element following the result is the new stack top.
    --
    --  FIXME: always followed by Stream_Delete (result)?
 
+   function Left_Breakdown_Parse
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in     Stream_Index)
+     return Stream_Index
+   with Pre => Tree.Is_Valid (Stream) and Tree.Label (Element) = Nonterm;
+   --  [Wagner Graham 1998] Left_Breakdown of Element for
+   --  Parse_Incremental; bring the first terminal in Element to the
+   --  parse stream. Returns the stream element holding the first
+   --  terminal.
+   --
+   --  The stack top is unchanged.
+
+   procedure Right_Breakdown
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
+   with Pre => Tree.Is_Valid (Stream) and Tree.Label (Tree.Stack_Top (Stream)) = Nonterm;
+   --  [Wagner Graham 1998] Right_Breakdown of Stream.Stack_Top; bring
+   --  the last terminal in Stream.Stack_Top to Stream.Stack_Top.
+
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
    with Pre => Tree.Is_Valid (Stream);
+   --  Return State from node at Stream.Stack_Top.
 
    function State
      (Tree    : in Syntax_Trees.Tree;
@@ -466,6 +487,12 @@ package WisiToken.Syntax_Trees is
       Stream : in     Stream_ID)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
+
+   procedure Set_Stack_Top
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in     Stream_Index)
+   with Pre => Tree.Contains (Stream, Element);
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
@@ -536,16 +563,29 @@ package WisiToken.Syntax_Trees is
      return Base_Token_Array_Const_Ref
    with Pre => Tree.Label (Terminal) in Shared_Terminal | Virtual_Identifier;
 
-   function Insert_Terminal
+   function Insert_Shared_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Base_Token;
       Index    : in     Element_Index;
       Before   : in     Stream_Index)
      return Stream_Index
    with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Before);
-   --  Insert a new Terminal element on Terminal_Stream, before Before.
-   --  Index must give the source token order.
-   --  Result points to the added node.
+   --  Insert a new Shared_Terminal element on Terminal_Stream, before Before.
+   --  Index should give the source token order.
+   --  Result points to the added element.
+
+   function Insert_Shared_Terminal
+     (Tree      : in out Syntax_Trees.Tree;
+      User_Data : in     User_Data_Access;
+      Stream    : in     Stream_ID;
+      Terminal  : in     Stream_Index;
+      Before    : in     Stream_Index)
+     return Stream_Index
+   with Pre => not Tree.Traversing and
+               Tree.Contains (Tree.Terminal_Stream, Terminal) and
+               Tree.Contains (Stream, Before);
+   --  Insert a copy of Terminal from Terminal_Stream on Stream, before Before.
+   --  Result points to the added element.
 
    procedure Set_Element_Index
      (Tree     : in out Syntax_Trees.Tree;
@@ -555,7 +595,7 @@ package WisiToken.Syntax_Trees is
    --  Set Element_Index of Terminal to Index; must reflect token order
    --  in source buffer.
 
-   function Insert_Terminal
+   function Insert_Virtual_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
@@ -564,7 +604,7 @@ package WisiToken.Syntax_Trees is
    with
      Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Terminal_Stream and
              Tree.Contains (Tree.Terminal_Stream, Before),
-     Post => Tree.Contains (Stream, Insert_Terminal'Result);
+     Post => Tree.Contains (Stream, Insert_Virtual_Terminal'Result);
    --  Insert a new Virtual_Terminal element into Stream, after
    --  Stack_Top. Before should be Terminal_Stream token this token is
    --  inserted before; new token Line, Char_Region is set to
@@ -1115,6 +1155,14 @@ package WisiToken.Syntax_Trees is
 
    function Image
      (Tree        : in Syntax_Trees.Tree;
+      Children    : in Boolean := False;
+      Non_Grammar : in Boolean := False)
+     return String;
+   --  Image of all streams, or root node if no streams.
+   --  If Children, subtree of each stream element is included.
+
+   function Image
+     (Tree        : in Syntax_Trees.Tree;
       Stream      : in Stream_ID;
       Children    : in Boolean := False;
       Non_Grammar : in Boolean := False)
@@ -1247,10 +1295,8 @@ private
       Parent : Node_Access := Invalid_Node_Access;
 
       State : Unknown_State_Index := Unknown_State;
-      --  Parse state that is on the parse stack with this token. Storing
-      --  this here means we need to copy terminal nodes to set State, but
-      --  it's required for error recover Undo_Reduce, and incremental parse
-      --  breakdown.
+      --  Parse state that is on the parse stack with this token. Required
+      --  for error recover Undo_Reduce, Left_, Right_Breakdown.
 
       Augmented : Augmented_Class_Access := null;
       --  IMPROVEME: Augmented should not derive from Base_Token; that

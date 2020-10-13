@@ -340,7 +340,13 @@ package WisiToken.Parse.LR is
      return Unknown_State_Index;
    --  Return next state after reducing stack by nonterminal ID;
    --  Unknown_State if none (only possible during error recovery).
-   --  Second form allows retrieving Production.
+
+   function In_Goto
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token_ID)
+     return Boolean;
+   --  For incremental parse.
 
    function Action_For
      (Table : in Parse_Table;

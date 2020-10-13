@@ -110,7 +110,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Expected : Stream_Element renames Constant_Ref (Expected_Element);
          begin
             Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
-            Check (Label & I'Image & ".index", Computed.Index, Expected.Index);
+            if Node_Numbers then
+               Check (Label & I'Image & ".index", Computed.Index, Expected.Index);
+            end if;
             Check (Label & ".node" & Computed.Index'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
          end;
 

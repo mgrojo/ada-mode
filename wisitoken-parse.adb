@@ -371,7 +371,9 @@ package body WisiToken.Parse is
                   declare
                      Token : Base_Token;
                      Error : constant Boolean := Parser.Lexer.Find_Next (Token);
-                     Index : Stream_Index;
+                     T_Index : Stream_Index;
+                     P_Index : Stream_Index;
+                     pragma Unreferenced (P_Index); --  FIXME: if no other use for result, delete it.
                   begin
                      if Trace_Lexer > Outline then
                         Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
@@ -384,19 +386,21 @@ package body WisiToken.Parse is
 
                      if Token.ID >= Parser.Descriptor.First_Terminal then
                         --  grammar token
-                        Index := Tree.Insert_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
+                        T_Index := Tree.Insert_Shared_Terminal (Token, Next_Element_Index, Before => Terminal_Index);
+                        P_Index := Tree.Insert_Shared_Terminal
+                          (Parser.User_Data, Parse_Stream, T_Index, Before => Parse_Element);
 
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
-                             ("scan new " & Tree.Image (Index, Terminal_Node_Numbers => True));
+                             ("scan new " & Tree.Image (T_Index, Terminal_Node_Numbers => True));
                         end if;
 
                         Next_Element_Index := @ + 1;
                         Last_Parse_Node    := Invalid_Node_Access;
 
-                        Process_Grammar_Token (Parser, Token, Index);
+                        Process_Grammar_Token (Parser, Token, T_Index);
 
-                        --  FIXME: breakdown parse tree
+                        --  breakdown parse tree is done in Parse_Incremental or below in Delete
                      else
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
@@ -411,7 +415,7 @@ package body WisiToken.Parse is
 
                      if Error then
                         Parser.Wrapped_Lexer_Errors.Append
-                          ((Recover_Token_Index => Index,
+                          ((Recover_Token_Index => T_Index,
                             Error               => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
                      end if;
                   end;
@@ -441,7 +445,7 @@ package body WisiToken.Parse is
                        Tree.Byte_Region (Terminal_Index).First = Stable_Region.Last + 1)); --  modified
 
                declare
-                  Temp : Stream_Index := Tree.Left_Breakdown (Parse_Stream, Terminal_Index);
+                  Temp : Stream_Index := Tree.Left_Breakdown_Edit (Parse_Stream, Terminal_Index);
                   pragma Assert (Tree.First_Shared_Terminal (Parse_Stream, Temp) = Terminal_Index);
                begin
                   if Trace_Incremental_Parse > Detail then

@@ -409,7 +409,9 @@ package body WisiToken is
             Value : constant Integer := Get_Value;
          begin
             --  Trace var alphabetical order
-            if Name = "action" then
+            if Name = "debug" then
+               Debug_Mode := Value > 0;
+            elsif Name = "action" then
                Trace_Action := Value;
             elsif Name = "ebnf" or Name = "generate_ebnf" then
                Trace_Generate_EBNF := Value;

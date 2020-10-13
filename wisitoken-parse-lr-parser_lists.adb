@@ -56,7 +56,12 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is begin
       return Result : List
       do
-         Result.Elements.Append ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null), others => <>));
+         Result.Elements.Append
+           ((Stream =>
+               (if Tree.Fully_Parsed
+                then Tree.First_Parse_Stream
+                else Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null)),
+             others => <>));
       end return;
    end New_List;
 

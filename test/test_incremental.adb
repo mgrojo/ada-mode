@@ -62,7 +62,9 @@ package body Test_Incremental is
 
       Edits : KMN_Lists.List;
 
-      procedure Check_Tree (Label : in String; Tree : in out WisiToken.Syntax_Trees.Tree)
+      procedure Check_Tree
+        (Label : in     String;
+         Tree  : in out WisiToken.Syntax_Trees.Tree)
       is
          use all type Ada.Containers.Count_Type;
          Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
@@ -198,21 +200,24 @@ package body Test_Incremental is
          Edited_Text_Char_Region  =>
            (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)));
 
-      WisiToken.Parse.Edit_Tree (Parser, Edits);
+      if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
+         New_Line;
+         Put_Line ("incremental parse:");
+      end if;
+
+      WisiToken.Parse.LR.Parser.Parse_Incremental (Parser, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
-         Put_Tree ("edited tree", Parser.Tree);
+         Put_Tree ("incremental parse", Parser.Tree);
       end if;
 
-      Check_Tree ("edited tree 1", Parser.Tree);
-
-      --  FIXME: Parser.Parse (Incremental => True);
+      Check_Tree ("incrementally parsed tree 1", Parser.Tree);
 
       Check ("1", Parser.Tree, Edited_Tree_Batch, Compare_Node_Numbers);
    exception
    when WisiToken.Syntax_Error =>
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Parser.Put_Errors;
       end if;
 
@@ -260,7 +265,7 @@ package body Test_Incremental is
          Delete               => "",
          Insert               => "A_",
          --                       |1
-         Compare_Node_Numbers => True);
+         Compare_Node_Numbers => False);
    end Edit_Code_1;
 
    ----------
