@@ -331,6 +331,30 @@ package body WisiToken is
       return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
 
+   function Contains
+     (Outer, Inner   : in Buffer_Region;
+      First_Boundary : in Boundary := Inclusive;
+      Last_Boundary  : in Boundary := Inclusive)
+     return Boolean
+   is
+      Result : Boolean;
+   begin
+      case First_Boundary is
+      when Inclusive =>
+         Result := Outer.First <= Inner.First;
+      when Exclusive =>
+         Result := Outer.First < Inner.First;
+      end case;
+
+      case Last_Boundary is
+      when Inclusive =>
+         Result := @ and  Outer.Last >= Inner.Last;
+      when Exclusive =>
+         Result := @ and  Outer.Last > Inner.Last;
+      end case;
+      return Result;
+   end Contains;
+
    function Overlaps (A, B : in Buffer_Region) return Boolean
    is begin
       if Length (A) > 0 and Length (B) > 0 then

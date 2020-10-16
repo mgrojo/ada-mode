@@ -60,6 +60,12 @@ begin
          Parser_State.Current_Token := Tree.Stream_First (Parser_State.Stream); -- state 0, invalid node
          Shared_Parser.Tree.Set_Stack_Top (Parser_State.Stream, Parser_State.Current_Token);
          Parser_State.Current_Token := Tree.Stream_Next (Parser_State.Stream, @);
+
+         if Tree.ID (Parser_State.Stream, Parser_State.Current_Token) = Shared_Parser.Descriptor.Accept_ID then
+            --  Parsed tree was not changed in Edit_Tree.
+            Tree.Set_Stack_Top (Parser_State.Stream, Parser_State.Current_Token);
+            return;
+         end if;
       end;
 
       Main_Loop :
@@ -104,11 +110,11 @@ begin
             declare
                Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
             begin
-               --  [Wagner Graham 1998] has "if shiftable (la)" here; but 'shiftable'
-               --  is not defined. Apparently it means In_Goto.
                if In_Goto
-                 (Shared_Parser.Table.all, Tree.State (Parser_State.Stream),
-                  Tree.ID (Parser_State.Stream, Parser_State.Current_Token))
+                   --  [Wagner Graham 1998] has "if shiftable (la)" here; but 'shiftable'
+                   --  is not defined. Apparently it means In_Goto.
+                   (Shared_Parser.Table.all, Tree.State (Parser_State.Stream),
+                    Tree.ID (Parser_State.Stream, Parser_State.Current_Token))
                then
                   if Trace_Parse > Detail then
                      Trace.Put

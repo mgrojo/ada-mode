@@ -302,9 +302,14 @@ package WisiToken is
    function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
      is (Region.First <= Pos and Pos <= Region.Last);
 
-   function Contains (Outer, Inner : in Buffer_Region) return Boolean
-     --  True if Outer entirely contains Inner.
-     is (Outer.First <= Inner.First and Outer.Last >= Inner.Last);
+   type Boundary is (Inclusive, Exclusive);
+
+   function Contains
+     (Outer, Inner   : in Buffer_Region;
+      First_Boundary : in Boundary := Inclusive;
+      Last_Boundary  : in Boundary := Inclusive)
+     return Boolean;
+   --  True if Outer entirely contains Inner, according to Boundaries.
 
    function Overlaps (A, B : in Buffer_Region) return Boolean;
    --  True if A and B have some positions in common.

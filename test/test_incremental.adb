@@ -217,9 +217,7 @@ package body Test_Incremental is
       Check ("1", Parser.Tree, Edited_Tree_Batch, Compare_Node_Numbers);
    exception
    when WisiToken.Syntax_Error =>
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         Parser.Put_Errors;
-      end if;
+      Parser.Put_Errors;
 
       Check ("exception", True, False);
    end Parse_Text;
@@ -284,6 +282,21 @@ package body Test_Incremental is
          Compare_Node_Numbers => False);
    end Edit_Code_2;
 
+   procedure Edit_Code_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at last grammar token
+      Parse_Text
+        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C;",
+         --                       1        |10     |18              |20
+         Edit_At              => 25,
+         Delete               => ";",
+         Insert               => "_1;",
+         --                       |25
+         Compare_Node_Numbers => False);
+   end Edit_Code_3;
+
    ----------
    --  Public subprograms
 
@@ -295,6 +308,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
+      Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
