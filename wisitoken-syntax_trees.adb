@@ -83,7 +83,9 @@ package body WisiToken.Syntax_Trees is
       Level       : in Integer := 0)
      return String;
 
-   procedure Update_Cache (Node : in Valid_Node_Access)
+   procedure Update_Cache
+     (Node      : in Valid_Node_Access;
+      Recursive : in Boolean := False)
    with Pre => Node.Label = Nonterm;
 
    ----------
@@ -1781,43 +1783,51 @@ package body WisiToken.Syntax_Trees is
       return (Element => Tree.Leading_Non_Grammar'Access, Dummy => 0);
    end Leading_Non_Grammar_Const;
 
-   function Left_Breakdown_Edit
-     (Tree              : in out Syntax_Trees.Tree;
-      Stream            : in     Stream_ID;
-      Expected_Terminal : in     Stream_Index)
-     return Stream_Index
+   procedure Left_Breakdown_Edit
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index)
    is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-      Element      : Stream_Element_Lists.Cursor := Stream_Element_Lists.Next (Parse_Stream.Stack_Top);
-      Node         : Valid_Node_Access           := Pop (Parse_Stream);
+      Cur          : Stream_Element_Lists.Cursor := Stream_Element_Lists.Next (Element.Cur);
+      Temp         : Stream_Element_Lists.Cursor := Element.Cur;
+      Node         : Valid_Node_Access           := Parse_Stream.Elements (Temp).Node;
    begin
+      Parse_Stream.Elements.Delete (Temp);
+
       loop
          for I in reverse 2 .. Node.Child_Count loop
-            Element := Parse_Stream.Elements.Insert
+            Cur := Parse_Stream.Elements.Insert
               (Element  =>
                  (Node  => Node.Children (I),
                   Label => Parse_Stream.Label,
-                  Index => Tree.Next_Stream_Element_Index),
-               Before   => Element);
-            Tree.Next_Stream_Element_Index := @ + 1;
+                  Index =>
+                    (if Node.Children (I).Label = Shared_Terminal
+                     then Element_Index (Node.Children (I).Node_Index)
+                     else Tree.Next_Stream_Element_Index)),
+               Before   => Cur);
+            if Node.Children (I).Label /= Shared_Terminal then
+               Tree.Next_Stream_Element_Index := @ + 1;
+            end if;
             Node.Children (I).Parent := Invalid_Node_Access;
          end loop;
-         --  FIXME: node may have no children! not in Edit_Tree?
          Node := Node.Children (1);
          exit when Node.Label in Terminal_Label;
       end loop;
-      pragma Assert (Node.Label = Shared_Terminal and then Node.Terminal_Index = Expected_Terminal);
-      Parse_Stream.Stack_Top := Element;
 
-      Element := Parse_Stream.Elements.Insert
+      Cur := Parse_Stream.Elements.Insert
         (Element  =>
            (Node  => Node,
             Label => Parse_Stream.Label,
-            Index => Tree.Next_Stream_Element_Index),
-         Before   => Element);
-      Tree.Next_Stream_Element_Index := @ + 1;
+            Index => (if Node.Label = Shared_Terminal
+                     then Element_Index (Node.Node_Index)
+                     else Tree.Next_Stream_Element_Index)),
+         Before   => Cur);
+      if Node.Label /= Shared_Terminal then
+         Tree.Next_Stream_Element_Index := @ + 1;
+      end if;
 
-      return (Cur => Element);
+      Element.Cur := Cur;
    end Left_Breakdown_Edit;
 
    function Left_Breakdown_Parse
@@ -2591,7 +2601,21 @@ package body WisiToken.Syntax_Trees is
       Parse_Stream.Stack_Top := Element.Cur;
    end Set_Stack_Top;
 
-   procedure Shift
+   procedure Shift_Nonterm
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Token  : in     Stream_Index)
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      Parse_Stream.Stack_Top := Token.Cur;
+
+      if Parse_Stream.Elements (Parse_Stream.Stack_Top).Node.Label = Nonterm then
+         Update_Cache (Parse_Stream.Elements (Parse_Stream.Stack_Top).Node, Recursive => True);
+      end if;
+   end Shift_Nonterm;
+
+   procedure Shift_Terminal
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       State     : in     State_Index;
@@ -2629,11 +2653,11 @@ package body WisiToken.Syntax_Trees is
          declare
             Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
          begin
-            Parse_Stream.Stack_Top := Stream_Element_Lists.Next (Parse_Stream.Stack_Top);
+            Parse_Stream.Stack_Top := Token.Cur;
             Stream_Element_Lists.Variable_Ref (Parse_Stream.Stack_Top).Node.State := State;
          end;
       end if;
-   end Shift;
+   end Shift_Terminal;
 
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;
@@ -2808,51 +2832,55 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Undo_Reduce;
 
-   procedure Update_Cache (Node : in Valid_Node_Access)
+   procedure Update_Cache
+     (Node      : in Valid_Node_Access;
+      Recursive : in Boolean := False)
    is begin
       Node.First_Terminal_Index := Invalid_Stream_Index;
-      Node.Line := Invalid_Line_Number;
+      Node.Byte_Region.First    := Buffer_Pos'Last;
+      Node.Byte_Region.Last     := Buffer_Pos'First;
+      Node.Line                 := Line_Number_Type'Last;
 
-      for I in Node.Children'Range loop
-         declare
-            Child : constant Node_Access := Node.Children (I);
-         begin
-            Node.Virtual := Node.Virtual or
-              (case Child.Label is
-               when Shared_Terminal                       => False,
-               when Virtual_Terminal | Virtual_Identifier => True,
-               when Nonterm                               => Child.Virtual);
+      for Child of Node.Children loop
+         if Recursive and Child.Label = Nonterm then
+            Update_Cache (Child, Recursive);
+         end if;
 
-            if Node.Byte_Region.First > Child.Byte_Region.First then
-               Node.Byte_Region.First := Child.Byte_Region.First;
-               Node.Char_Region.First := Child.Char_Region.First;
-            end if;
+         Node.Virtual := Node.Virtual or
+           (case Child.Label is
+            when Shared_Terminal                       => False,
+            when Virtual_Terminal | Virtual_Identifier => True,
+            when Nonterm                               => Child.Virtual);
 
-            if Node.Byte_Region.Last < Child.Byte_Region.Last then
-               Node.Byte_Region.Last := Child.Byte_Region.Last;
-               Node.Char_Region.Last := Child.Char_Region.Last;
-            end if;
+         if Node.Byte_Region.First > Child.Byte_Region.First then
+            Node.Byte_Region.First := Child.Byte_Region.First;
+            Node.Char_Region.First := Child.Char_Region.First;
+         end if;
 
-            if Child.Line < Node.Line then
-               Node.Line := Child.Line;
-            end if;
+         if Node.Byte_Region.Last < Child.Byte_Region.Last then
+            Node.Byte_Region.Last := Child.Byte_Region.Last;
+            Node.Char_Region.Last := Child.Char_Region.Last;
+         end if;
 
-            if Node.First_Terminal_Index = Invalid_Stream_Index then
-               case Child.Label is
-               when Shared_Terminal =>
-                  Node.First_Terminal_Index := Child.Terminal_Index;
+         if Node.Line > Child.Line then
+            Node.Line := Child.Line;
+         end if;
 
-               when Virtual_Terminal | Virtual_Identifier =>
-                  null;
+         if Node.First_Terminal_Index = Invalid_Stream_Index then
+            case Child.Label is
+            when Shared_Terminal =>
+               Node.First_Terminal_Index := Child.Terminal_Index;
 
-               when Nonterm =>
-                  if Child.First_Terminal_Index /= Invalid_Stream_Index then
-                     --  not an empty nonterm
-                     Node.First_Terminal_Index := Child.First_Terminal_Index;
-                  end if;
-               end case;
-            end if;
-         end;
+            when Virtual_Terminal | Virtual_Identifier =>
+               null;
+
+            when Nonterm =>
+               if Child.First_Terminal_Index /= Invalid_Stream_Index then
+                  --  not an empty nonterm
+                  Node.First_Terminal_Index := Child.First_Terminal_Index;
+               end if;
+            end case;
+         end if;
       end loop;
    end Update_Cache;
 

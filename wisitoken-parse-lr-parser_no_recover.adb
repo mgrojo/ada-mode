@@ -72,7 +72,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       case Action.Verb is
       when Shift =>
          Current_Parser.Set_Verb (Shift);
-         Shared_Parser.Tree.Shift
+         Shared_Parser.Tree.Shift_Terminal
            (Parser_State.Stream, Action.State, Parser_State.Current_Token, Shared_Parser.User_Data);
 
       when Reduce =>

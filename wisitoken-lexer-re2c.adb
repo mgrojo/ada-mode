@@ -289,11 +289,10 @@ package body WisiToken.Lexer.re2c is
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type)
+      Line          : in     Line_Number_Type;
+      Prev_Token_ID : in Token_ID)
    is begin
-      --  FIXME: if insert new_line immediately after new_line, Set_Position
-      --  should set lexer.prev_id to new_line, not invalid_token_id.
-      Lexer.Prev_ID := Invalid_Token_ID;
+      Lexer.Prev_ID := Prev_Token_ID;
 
       Set_Position
         (Lexer.Lexer,

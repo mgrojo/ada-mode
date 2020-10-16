@@ -104,10 +104,12 @@ package WisiToken.Lexer is
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type)
-   is abstract;
+      Line          : in     Line_Number_Type;
+      Prev_Token_ID : in Token_ID)
+     is abstract;
    --  Set the current position in the source buffer; Find_Next will
-   --  start there.
+   --  start there. Prev_Token_ID should be Descriptor.New_Line_ID or
+   --  Invalid_Token_ID; it is used for First.
 
    function Find_Next
      (Lexer : in out Instance;

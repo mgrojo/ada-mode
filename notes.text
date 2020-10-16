@@ -30,12 +30,18 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-        need to update/shift containing nonterms
+        more tests
+
+    optimize use of First_Terminal in parse
+        enhance the parse table to store reduce actions on nonterms as well as terminals
+        or change node.first_shared_terminal to node.first_terminal
+            does that break something?
 
     don't need terminal_stream for incremental_parse!?
         used in error correction, but that needs to be modified to reuse subtrees
         need shared stream for parallel parsers; could be shared parse stream in place of terminal.
         rename to shared_stream
+            terminal_stream is special case of shared_stream
 
     review fixmes
 

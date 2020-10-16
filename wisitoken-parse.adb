@@ -237,18 +237,47 @@ package body WisiToken.Parse is
 
       KMN_Node     : Cursor                := Edits.First;
       Old_Byte_Pos : Base_Buffer_Pos       := 0;
+      Old_Char_Pos : Base_Buffer_Pos       := 0;
+      Old_Line     : Base_Line_Number_Type := 0;
       New_Byte_Pos : Base_Buffer_Pos       := 0;
       Shift_Bytes  : Base_Buffer_Pos       := 0;
       Shift_Chars  : Base_Buffer_Pos       := 0;
       Shift_Line   : Base_Line_Number_Type := 0;
 
-      Terminal_Index  : Stream_Index       := Tree.Stream_First (Tree.Terminal_Stream);
-      Parse_Stream    : constant Stream_ID := Tree.First_Parse_Stream;
-      Parse_Element   : Stream_Index       := Tree.Stack_Top (Parse_Stream);
-      Parse_Node      : Node_Access        := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
+      Terminal_Index : Stream_Index       := Tree.Stream_First (Tree.Terminal_Stream);
+      Parse_Stream   : constant Stream_ID := Tree.First_Parse_Stream;
+
+      Parse_Element : Stream_Index := Tree.Stack_Top (Parse_Stream);
+      --  Parse stream element containing current terminal.
+
       Last_Parse_Node : Node_Access;
 
       Next_Element_Index : Element_Index := 1;
+
+      procedure Breakdown
+      --  Bring parse stream node matching Terminal_Index to Parse_Element.
+      is begin
+         loop
+            exit when
+              Tree.Get_Element_Index (Parse_Stream, Parse_Element) = Tree.Get_Element_Index (Terminal_Index);
+
+            if Tree.Label (Parse_Element) = Nonterm then
+
+               Tree.Left_Breakdown_Edit (Parse_Stream, Parse_Element);
+
+               if WisiToken.Trace_Incremental_Parse > Extra then
+                  Parser.Trace.Put_Line ("Left_Breakdown:");
+                  Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
+
+               elsif Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line ("Left_Breakdown: " & Tree.Image (Parse_Stream, Non_Grammar => True));
+               end if;
+            else
+               Parse_Element := Tree.Stream_Next (Parse_Stream, Parse_Element);
+            end if;
+         end loop;
+      end Breakdown;
+
    begin
       Parser.Last_Grammar_Node := Invalid_Node_Access;
 
@@ -269,6 +298,8 @@ package body WisiToken.Parse is
 
             Inserted_Region : constant Buffer_Region :=
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
+
+            Parse_Node : Node_Access := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
             --  stable, deleted are inside the initial text. Caller should use
@@ -282,10 +313,13 @@ package body WisiToken.Parse is
                Parser.Trace.New_Line;
                Parser.Trace.Put_Line
                  ("KMN: " & Image (Stable_Region) & Image (Deleted_Region) & Image (Inserted_Region));
-               Parser.Trace.Put_Line ("shift: " & Shift_Bytes'Image & Shift_Chars'Image & Shift_Line'Image);
+               Parser.Trace.Put_Line ("shift:" & Shift_Bytes'Image & Shift_Chars'Image & Shift_Line'Image);
+               Parser.Trace.Put_Line ("parse_element:" & Tree.Get_Element_Index (Parse_Stream, Parse_Element)'Image);
+               Parser.Trace.Put_Line ("terminal_index:" & Tree.Get_Element_Index (Terminal_Index)'Image);
 
                if WisiToken.Trace_Incremental_Parse > Extra then
                   Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
+                  Parser.Trace.New_Line;
 
                else
                   Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Non_Grammar => True));
@@ -307,12 +341,11 @@ package body WisiToken.Parse is
                --  for non_grammar, Shift_Line below
 
                pragma Assert (Tree.Get_Element_Index (Parse_Node) = Tree.Get_Element_Index (Parser.Last_Grammar_Node));
-               --  FIXME: this assert fails when terminals are inserted/deleted!
                Tree.Shift (Parse_Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
                Last_Parse_Node := Parse_Node;
 
-               --  FIXME: update/shift containing nonterms
+               --  Containing nonterm positions are updated when shifted in Parse_Incremental.
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line ("stable shift " & Tree.Image (Terminal_Index, Terminal_Node_Numbers => True));
@@ -338,6 +371,9 @@ package body WisiToken.Parse is
                      end if;
                   end loop;
                   if Delete > 0 then
+                     Old_Byte_Pos := Containing (Delete).Byte_Region.First;
+                     Old_Char_Pos := Containing (Delete).Char_Region.First;
+                     Old_Line := Containing (Delete).Line;
                      if Delete = Containing.First_Index then
                         Containing.Clear;
                         Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
@@ -346,25 +382,28 @@ package body WisiToken.Parse is
                         Parser.Tree.Non_Grammar_Var (Last_Parse_Node).Set_First_Last
                           (Containing.First_Index, Delete - 1);
                      end if;
+                  else
+                     Old_Byte_Pos := Containing (Containing.Last_Index).Byte_Region.Last + 1;
+                     Old_Char_Pos := Containing (Containing.Last_Index).Char_Region.Last + 1;
+                     Old_Line     := Containing (Containing.Last_Index).Line;
                   end if;
                end Delete_Non_Grammar;
             end if;
 
             if KMN.Inserted_Bytes > 0 then
-               if Tree.Stream_Prev (Terminal_Index) = Invalid_Stream_Index then
-                  Parser.Lexer.Reset;
-               else
-                  declare
-                     Token : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Stream_Prev (Terminal_Index));
-                  begin
-                     --  FIXME: if insert new_line immediately after new_line, Set_Position
-                     --  should set lexer.prev_id to new_line, not invalid_token_id.
-                     Parser.Lexer.Set_Position
-                       (Byte_Position => Token.Byte_Region.Last + Shift_Bytes + 1,
-                        Char_Position => Token.Char_Region.Last + Shift_Chars + 1,
-                        Line          => Token.Line + Shift_Line);
-                  end;
-               end if;
+               --  Scan new text for new/changed tokens.
+
+               Parser.Lexer.Set_Position
+                 (Byte_Position => Old_Byte_Pos + Shift_Bytes,
+                  Char_Position => Old_Char_Pos + Shift_Chars,
+                  Line          => Old_Line + Shift_Line +
+                    (if Parser.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos then 1 else 0),
+                  Prev_Token_ID =>
+                    (if Parser.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
+                     then Parser.Descriptor.New_Line_ID
+                     else Invalid_Token_ID));
+
+               Breakdown;
 
                Scan_Changed_Loop :
                loop
@@ -400,7 +439,8 @@ package body WisiToken.Parse is
 
                         Process_Grammar_Token (Parser, Token, T_Index);
 
-                        --  breakdown parse tree is done in Parse_Incremental or below in Delete
+                        --  Further breakdown of parse tree is done in Parse_Incremental or
+                        --  below in Delete
                      else
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
@@ -436,33 +476,24 @@ package body WisiToken.Parse is
             Delete_Loop :
             --  Delete tokens that were deleted or modified.
             loop
-               exit Delete_Loop when Terminal_Index = Invalid_Stream_Index or else
-                 Tree.ID (Terminal_Index) = Parser.Descriptor.EOI_ID;
+               exit Delete_Loop when Tree.ID (Terminal_Index) = Parser.Descriptor.EOI_ID;
 
                exit Delete_Loop when not
                  (Tree.Byte_Region (Terminal_Index).First <= Deleted_Region.Last or -- deleted
                     (KMN.Inserted_Bytes > 0 and
                        Tree.Byte_Region (Terminal_Index).First = Stable_Region.Last + 1)); --  modified
 
+               Breakdown;
                declare
-                  Temp : Stream_Index := Tree.Left_Breakdown_Edit (Parse_Stream, Terminal_Index);
-                  pragma Assert (Tree.First_Shared_Terminal (Parse_Stream, Temp) = Terminal_Index);
+                  Temp : Stream_Index := Parse_Element;
                begin
+                  Parse_Element := Tree.Stream_Next (Parse_Stream, Parse_Element);
                   if Trace_Incremental_Parse > Detail then
                      Parser.Trace.Put_Line
                        ("delete " & Tree.Image (Temp, Terminal_Node_Numbers => True));
                   end if;
 
-                  --  Stack_Top is stream element following Temp.
                   Tree.Stream_Delete (Parse_Stream, Temp);
-
-                  if WisiToken.Trace_Incremental_Parse > Extra then
-                     Parser.Trace.Put_Line ("Left_Breakdown:");
-                     Parser.Trace.Put_Line (Tree.Image (Parse_Stream, Children => True, Non_Grammar => True));
-
-                  elsif Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line ("Left_Breakdown: " & Tree.Image (Parse_Stream, Non_Grammar => True));
-                  end if;
                end;
                declare
                   Temp : Stream_Index := Terminal_Index;
@@ -480,14 +511,15 @@ package body WisiToken.Parse is
 
             KMN_Node := Next (KMN_Node);
             exit KMN_Loop when not Has_Element (KMN_Node);
-
-            Parse_Element := Tree.Stack_Top (Parse_Stream);
-            Parse_Node    := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
          end;
       end loop KMN_Loop;
 
+      Tree.Set_Stack_Top (Parse_Stream, Parse_Element);
+
       declare
          Token : constant WisiToken.Base_Token := Tree.Base_Token (Terminal_Index);
+
+         Parse_Node : constant Node_Access := Tree.First_Shared_Terminal (Tree.Get_Node (Parse_Stream, Parse_Element));
       begin
          if Token.ID = Parser.Descriptor.EOI_ID then
             Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);

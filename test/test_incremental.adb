@@ -172,9 +172,9 @@ package body Test_Incremental is
             if Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes < Base_Buffer_Pos (Initial'Last) then
                Edits.Append
                  ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last) -
-                     Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes,
+                     (Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes),
                    Stable_Chars   => Base_Buffer_Pos (Initial'Last) -
-                     Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes,
+                     (Edit_1.Stable_Chars + Edit_1.Deleted_Chars),
                    Deleted_Bytes  => 0,
                    Deleted_Chars  => 0,
                    Inserted_Bytes => 0,
@@ -209,7 +209,7 @@ package body Test_Incremental is
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
-         Put_Tree ("incremental parse", Parser.Tree);
+         Put_Tree ("incremental parse result", Parser.Tree);
       end if;
 
       Check_Tree ("incrementally parsed tree 1", Parser.Tree);
@@ -258,6 +258,7 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
+      --  Insert at start of initial text
       Parse_Text
         (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
          --                       1        |10     |18              |20       |30     |38
@@ -267,6 +268,21 @@ package body Test_Incremental is
          --                       |1
          Compare_Node_Numbers => False);
    end Edit_Code_1;
+
+   procedure Edit_Code_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete in middle
+      Parse_Text
+        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --                       1        |10     |18              |20       |30     |38
+         Edit_At              => 20,
+         Delete               => "B",
+         Insert               => "A_1",
+         --                       |20
+         Compare_Node_Numbers => False);
+   end Edit_Code_2;
 
    ----------
    --  Public subprograms
@@ -278,6 +294,7 @@ package body Test_Incremental is
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
+      Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

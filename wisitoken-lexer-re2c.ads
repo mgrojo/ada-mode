@@ -130,7 +130,8 @@ package WisiToken.Lexer.re2c is
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type);
+      Line          : in     Line_Number_Type;
+      Prev_Token_ID : in Token_ID);
 
    overriding
    function Find_Next

@@ -341,6 +341,13 @@ package WisiToken.Syntax_Trees is
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Token  : in Stream_Index)
+     return Element_Index
+   with Pre => Tree.Contains (Stream, Token);
+
+   function Get_Element_Index
+     (Tree   : in Syntax_Trees.Tree;
       Token  : in Stream_Index)
      return Element_Index
    with Pre => Token = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Token);
@@ -411,38 +418,44 @@ package WisiToken.Syntax_Trees is
    with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Label (Stream) = Nonterm;
    --  Undo reduction of nonterm at end of Stream.
 
-   procedure Shift
+   procedure Shift_Terminal
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       State     : in     State_Index;
       Token     : in     Stream_Index;
       User_Data : in     User_Data_Access)
-   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and
-               (Tree.Contains (Tree.Terminal_Stream, Token) or Tree.Contains (Stream, Token));
+   with Pre => (Tree.Contains (Tree.Terminal_Stream, Token) or else
+                  (Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream))))
+               and then (Tree.Label (Token) in Terminal_Label and (not Tree.Traversing));
    --  If Token is in Terminal_Stream, copy Token (and Token.Augmented)
    --  from Terminal_Stream to Stream.Stack_Top; otherwise move from
    --  Stream input to Stream.Stack_Top. Then set State in Token.
 
-   function Left_Breakdown_Edit
-     (Tree              : in out Syntax_Trees.Tree;
-      Stream            : in     Stream_ID;
-      Expected_Terminal : in     Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Is_Valid (Stream) and Tree.Contains (Tree.Terminal_Stream, Expected_Terminal) and
-               Tree.Label (Tree.Stack_Top (Stream)) = Nonterm;
-   --  [Lahav 2004] Left_Breakdown of Stream.Stack_Top, for Edit_Tree;
-   --  bring the first terminal in Stream.Stack_Top to the parse stream.
-   --  Returns the stream element holding the first terminal. The stream
-   --  element following the result is the new stack top.
-   --
-   --  FIXME: always followed by Stream_Delete (result)?
+   procedure Shift_Nonterm
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Token  : in     Stream_Index)
+   with Pre => not Tree.Traversing and
+               Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)) and Tree.Label (Token) = Nonterm;
+   --  Change Stream.Stack_Top to Token. Then set State in Token. If
+   --  Token is a nonterm, update cached positions from terminals.
+
+   procedure Left_Breakdown_Edit
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index)
+   with Pre => Tree.Contains (Stream, Element) and Tree.Label (Element) = Nonterm and
+               Tree.Child_Count (Tree.Get_Node (Stream, Element)) > 0;
+   --  [Lahav 2004] Left_Breakdown of Element, for Edit_Tree; bring the
+   --  first terminal in Element to the parse stream. Element is updated to the
+   --  first terminal.
 
    function Left_Breakdown_Parse
      (Tree    : in out Syntax_Trees.Tree;
       Stream  : in     Stream_ID;
       Element : in     Stream_Index)
      return Stream_Index
-   with Pre => Tree.Is_Valid (Stream) and Tree.Label (Element) = Nonterm;
+   with Pre => Tree.Contains (Stream, Element) and Tree.Label (Element) = Nonterm;
    --  [Wagner Graham 1998] Left_Breakdown of Element for
    --  Parse_Incremental; bring the first terminal in Element to the
    --  parse stream. Returns the stream element holding the first
@@ -584,7 +597,9 @@ package WisiToken.Syntax_Trees is
    with Pre => not Tree.Traversing and
                Tree.Contains (Tree.Terminal_Stream, Terminal) and
                Tree.Contains (Stream, Before);
-   --  Insert a copy of Terminal from Terminal_Stream on Stream, before Before.
+   --  Insert a copy of Terminal from Terminal_Stream on Stream, before
+   --  Before. If Before is Invalid_Stream_Index, then insert after
+   --  Stream.Stack_Top; if that is No_Element, insert at end of stream.
    --  Result points to the added element.
 
    procedure Set_Element_Index
@@ -1463,6 +1478,13 @@ private
    is (Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 3);
    --  1 stream for Terminals, one for the remaining parser. Parser
    --  stream has start state, parse tree, EOI..
+
+   function Get_Element_Index
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Token  : in Stream_Index)
+     return Element_Index
+   is (Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;
