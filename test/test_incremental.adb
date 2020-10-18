@@ -43,7 +43,11 @@ package body Test_Incremental is
       Edit_At              : in Integer;
       Delete               : in String;
       Insert               : in String;
+      Edit_2_At            : in Integer := 0;
+      Delete_2             : in String  := "";
+      Insert_2             : in String  := "";
       Compare_Node_Numbers : in Boolean)
+   with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
       use AUnit.Checks;
@@ -51,16 +55,75 @@ package body Test_Incremental is
       use WisiToken.Parse;
       use all type WisiToken.Base_Buffer_Pos;
 
-      Initial_First  : Integer := Initial'First;
-      Initial_Last   : Integer := Initial'First - 1;
+      Edited : String (Initial'First .. Initial'Last + Insert'Length + Insert_2'Length) := (others => ' ');
 
-      Edited : String (Initial'First .. Initial'Last + Insert'Length);
-      Edited_First  : Integer := Edited'First;
-      Edited_Last   : Integer := Edited'First - 1;
+      Edited_Last : Integer := Initial'Last;
 
       Edited_Tree_Batch : WisiToken.Syntax_Trees.Tree (Ada_Lite_Actions.Descriptor'Access);
 
       Edits : KMN_Lists.List;
+
+      KMN_Next_Bytes : Integer := Initial'First;
+      KMN_Next_Chars : Integer := Initial'First;
+
+      procedure Edit_Text
+        (Edit_At : in Integer;
+         Delete  : in String;
+         Insert  : in String)
+      is begin
+         if Delete'Length > 0 then
+            if Initial (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
+               AUnit.Assertions.Assert (False, "invalid delete");
+            end if;
+            Edited (Edit_At .. Edited'Last - Delete'Length) := Edited (Edit_At + Delete'Length .. Edited'Last);
+            Edited (Edited'Last - Delete'Length + 1 .. Edited'Last) := (others => ' ');
+         end if;
+
+         if Insert'Length > 0 then
+            Edited (Edit_At + Insert'Length .. Edited'Last) := Edited (Edit_At .. Edited'Last - Insert'Length);
+            Edited (Edit_At .. Edit_At + Insert'Length - 1) := Insert;
+         end if;
+
+         Edited_Last := Edited_Last - Delete'Length + Insert'Length;
+      end Edit_Text;
+
+      procedure To_KMN
+        (Edit_At : in Integer;
+         Delete  : in String;
+         Insert  : in String)
+      is
+         use WisiToken;
+
+         Edit_1 : constant KMN :=
+           (Stable_Bytes   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes),
+            Stable_Chars   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes), --  FIXME: test utf-8
+            Deleted_Bytes  => Delete'Length,
+            Deleted_Chars  => Delete'Length,
+            Inserted_Bytes => Insert'Length,
+            Inserted_Chars => Insert'Length);
+      begin
+         Edits.Append (Edit_1);
+
+         KMN_Next_Bytes := @ + Integer (Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes);
+         KMN_Next_Chars := @ + Integer (Edit_1.Stable_Chars + Edit_1.Deleted_Chars);
+      end To_KMN;
+
+      procedure Last_KMN
+      is
+         use WisiToken;
+      begin
+         if KMN_Next_Bytes < Initial'Last then
+            Edits.Append
+              ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last - KMN_Next_Bytes + 1),
+                Stable_Chars   => Base_Buffer_Pos (Initial'Last - KMN_Next_Chars + 1),
+                Deleted_Bytes  => 0,
+                Deleted_Chars  => 0,
+                Inserted_Bytes => 0,
+                Inserted_Chars => 0));
+         end if;
+         --  EOI is also in a "stable region", but that is handled specially in
+         --  Edit_Tree.
+      end Last_KMN;
 
       procedure Check_Tree
         (Label : in     String;
@@ -90,33 +153,13 @@ package body Test_Incremental is
 
    begin
       --  Create Edited string
+      Edited (Initial'First .. Initial'Last) := Initial;
+
       if Edit_At in Initial'Range then
-         Edited_Last  := Edit_At - 1;
-         Initial_Last := Edited_Last;
-
-         Edited (Edited_First .. Edited_Last) := Initial (Initial_First .. Initial_Last);
-
-         Initial_Last := Edit_At + Delete'Length - 1;
-
-         if Initial (Edit_At .. Initial_Last) /= Delete then
-            AUnit.Assertions.Assert (False, "invalid delete");
+         if Edit_2_At in Initial'Range then
+            Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
-      end if;
-
-      if Edit_At in Initial'Range then
-         Edited_First := Edited_Last + 1;
-         Edited_Last := Edited_Last + Insert'Length;
-
-         Edited (Edited_First .. Edited_Last) := Insert;
-      end if;
-
-      Initial_First := Initial_Last + 1;
-      Initial_Last := Initial'Last;
-      if Initial_First <= Initial_Last then
-         Edited_First := Edited_Last + 1;
-         Edited_Last  := Edited_Last + Initial_Last - Initial_First + 1;
-
-         Edited (Edited_First .. Edited_Last) := Initial (Initial_First .. Initial_Last);
+         Edit_Text (Edit_At, Delete, Insert);
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -156,34 +199,11 @@ package body Test_Incremental is
       Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
       if Edit_At in Initial'Range then
-         declare
-            use WisiToken;
-
-            Edit_1 : constant KMN :=
-              (Stable_Bytes   => Base_Buffer_Pos (Edit_At - Initial'First),
-               Stable_Chars   => Base_Buffer_Pos (Edit_At - Initial'First), --  FIXME: test utf-8
-               Deleted_Bytes  => Delete'Length,
-               Deleted_Chars  => Delete'Length,
-               Inserted_Bytes => Insert'Length,
-               Inserted_Chars => Insert'Length);
-         begin
-            Edits.Append (Edit_1);
-
-            if Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes < Base_Buffer_Pos (Initial'Last) then
-               Edits.Append
-                 ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last) -
-                     (Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes),
-                   Stable_Chars   => Base_Buffer_Pos (Initial'Last) -
-                     (Edit_1.Stable_Chars + Edit_1.Deleted_Chars),
-                   Deleted_Bytes  => 0,
-                   Deleted_Chars  => 0,
-                   Inserted_Bytes => 0,
-                   Inserted_Chars => 0));
-            end if;
-         end;
-
-         --  EOI is also in a "stable region", but that is handled specially in
-         --  Edit_Tree.
+         To_KMN (Edit_At, Delete, Insert);
+         if Edit_2_At in Initial'Range then
+            To_KMN (Edit_2_At, Delete_2, Insert_2);
+         end if;
+         Last_KMN;
       end if;
 
       Validate_KMN
@@ -297,6 +317,26 @@ package body Test_Incremental is
          Compare_Node_Numbers => False);
    end Edit_Code_3;
 
+   procedure Edit_Code_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at different places, insert first. Insert potentially extends token
+      Parse_Text
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
+         --          1        |10     |18              |20
+         Edit_At => 5,
+         Delete  => "",
+         Insert  => "1 + ",
+         --          |5
+
+         Edit_2_At => 20,
+         Delete_2  => "B + ",
+         Insert_2  => "",
+
+         Compare_Node_Numbers => False);
+   end Edit_Code_4;
+
    ----------
    --  Public subprograms
 
@@ -309,6 +349,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
       Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
+      Register_Routine (T, Edit_Code_4'Access, "Edit_Code_4");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
