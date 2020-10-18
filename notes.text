@@ -30,7 +30,7 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-        more tests
+        more tests; see fixmes in test_incremental, parse_incremental
 
     optimize use of First_Terminal in parse
         enhance the parse table to store reduce actions on nonterms as well as terminals

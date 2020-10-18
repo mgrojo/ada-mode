@@ -337,6 +337,28 @@ package body Test_Incremental is
          Compare_Node_Numbers => False);
    end Edit_Code_4;
 
+   procedure Edit_Code_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at different places, delete first. Delete part of token.
+      Parse_Text
+        (Initial => "A_23 := --  comment 1" & ASCII.LF & "B + C;",
+         --          1        |10       |20               |23  |27
+         Edit_At => 4,
+         Delete  => "3",
+         Insert  => "",
+
+         Edit_2_At => 24,
+         Delete_2  => "",
+         Insert_2  => "_2",
+
+         Compare_Node_Numbers => False);
+   end Edit_Code_5;
+
+   --  FIXME: edit_code_6 2 inserts, second modifies token
+   --  FIXME: edit_code_7 2 inserts, neither ""
+
    ----------
    --  Public subprograms
 
@@ -350,6 +372,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
       Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
       Register_Routine (T, Edit_Code_4'Access, "Edit_Code_4");
+      Register_Routine (T, Edit_Code_5'Access, "Edit_Code_5");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

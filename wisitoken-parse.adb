@@ -370,14 +370,22 @@ package body WisiToken.Parse is
                Tree.Next_Shared_Terminal (Parse_Stream, Parse_Element, Parse_Node);
             end loop Unchanged_Loop;
 
+            --  Terminal_Index is the terminal overlapping or after the end of the
+            --  stable region. Scanning is needed if Inserted_Region is not empty,
+            --  or if the deleted region overlaps or is adjacent to a following
+            --  token. If insert/delete is inside or after a comment, the scanning
+            --  may already have been done. Set Do_Scan, Old_* to the scan start
+            --  position.
             if Tree.Byte_Region (Terminal_Index).Last > Scanned_Byte_Pos then
-               if (Length (Inserted_Region) > 0 and then
-                     Tree.Byte_Region (Terminal_Index).Last >= Inserted_Region.First - 1)
+               if Tree.ID (Terminal_Index) /= Parser.Descriptor.EOI_ID and
+                 ((Length (Inserted_Region) > 0 and then
+                     Tree.Byte_Region (Terminal_Index).Last + Shift_Bytes >= Inserted_Region.First - 1)
                  or
                  (Length (Deleted_Region) > 0 and then
-                    Tree.Byte_Region (Terminal_Index).Last >= Deleted_Region.First - 1)
+                    Tree.Byte_Region (Terminal_Index).Last >= Deleted_Region.First - 1))
                then
-                  --  Delete possibly modified token and contained non_grammar
+                  --  Terminal_Index is a possibly modified token; it will be deleted
+                  --  below.
                   Do_Scan := True;
                   declare
                      Token : constant Base_Token := Tree.Base_Token (Terminal_Index);
@@ -386,8 +394,6 @@ package body WisiToken.Parse is
                      Old_Char_Pos := Token.Char_Region.First;
                      Old_Line     := Token.Line;
                   end;
-                  Tree.Non_Grammar_Var (Parser.Last_Grammar_Node).Clear;
-                  Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
 
                else
                   if Parser.Last_Grammar_Node /= Invalid_Node_Access then
@@ -396,7 +402,7 @@ package body WisiToken.Parse is
                         Delete     : SAL.Base_Peek_Type := 0;
                      begin
                         for I in Containing.First_Index .. Containing.Last_Index loop
-                           if Overlaps (Containing (I).Byte_Region, Inserted_Region) or
+                           if Overlaps (Containing (I).Byte_Region + Shift_Bytes, Inserted_Region) or
                              Overlaps (Containing (I).Byte_Region, Deleted_Region)
                            then
                               Delete  := I;
@@ -411,10 +417,20 @@ package body WisiToken.Parse is
                            if Delete = Containing.First_Index then
                               Containing.Clear;
                               Tree.Non_Grammar_Var (Last_Parse_Node).Clear;
+                              if Trace_Incremental_Parse > Detail then
+                                 Parser.Trace.Put_Line
+                                   ("delete non_grammar" & Tree.Get_Element_Index (Parser.Last_Grammar_Node)'Image);
+                              end if;
                            else
                               Containing.Set_First_Last (Containing.First_Index, Delete - 1);
                               Tree.Non_Grammar_Var (Last_Parse_Node).Set_First_Last
                                 (Containing.First_Index, Delete - 1);
+
+                              if Trace_Incremental_Parse > Detail then
+                                 Parser.Trace.Put_Line
+                                   ("delete non_grammar" & Tree.Get_Element_Index (Parser.Last_Grammar_Node)'Image &
+                                      Delete'Image & " .." & Containing.Last_Index'Image);
+                              end if;
                            end if;
                         elsif Containing.Length = 0 then
                            declare
@@ -568,6 +584,7 @@ package body WisiToken.Parse is
 
             Old_Byte_Pos := Stable_Region.Last + KMN.Deleted_Bytes;
             New_Byte_Pos := Inserted_Region.Last;
+            pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
             KMN_Node := Next (KMN_Node);
             exit KMN_Loop when not Has_Element (KMN_Node);

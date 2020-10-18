@@ -280,7 +280,10 @@ package WisiToken is
    ----------
    --  Tokens
 
-   type Base_Buffer_Pos is range 0 .. Integer'Last;
+   type Base_Buffer_Pos is new Integer;
+   --  Token shift amounts in edited source can be arbitrarily large
+   --  positive or negative.
+
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
