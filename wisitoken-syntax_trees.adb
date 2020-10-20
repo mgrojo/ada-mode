@@ -1874,8 +1874,12 @@ package body WisiToken.Syntax_Trees is
 
          else
             --  Cur is an empty nonterm
-            Cur  := Stream_Element_Lists.Next (Cur);
-            Node := Parse_Stream.Elements (Cur).Node;
+            Cur := Stream_Element_Lists.Next (Cur);
+            if Stream_Element_Lists.Has_Element (Cur) then
+               Node := Parse_Stream.Elements (Cur).Node;
+            else
+               return Invalid_Stream_Index;
+            end if;
          end if;
       end loop;
    end Left_Breakdown_Parse;
@@ -2569,6 +2573,19 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Element_Index
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
+      Terminal : in     Stream_Index;
+      Index    : in     Element_Index)
+   is
+      pragma Unreferenced (Stream);
+      Element : Syntax_Trees.Stream_Element renames Stream_Element_Lists.Variable_Ref (Terminal.Cur);
+   begin
+      Element.Index           := Index;
+      Element.Node.Node_Index := Syntax_Trees.Node_Index (Index);
+   end Set_Element_Index;
+
+   procedure Set_Element_Index
+     (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Stream_Index;
       Index    : in     Element_Index)
    is
@@ -2576,6 +2593,14 @@ package body WisiToken.Syntax_Trees is
    begin
       Element.Index           := Index;
       Element.Node.Node_Index := Syntax_Trees.Node_Index (Index);
+   end Set_Element_Index;
+
+   procedure Set_Element_Index
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Valid_Node_Access;
+      Index    : in     Element_Index)
+   is begin
+      Terminal.Node_Index := Syntax_Trees.Node_Index (Index);
    end Set_Element_Index;
 
    procedure Set_Name_Region

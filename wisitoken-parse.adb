@@ -321,7 +321,7 @@ package body WisiToken.Parse is
                Parser.Trace.New_Line;
                Parser.Trace.Put_Line
                  ("KMN: " & Image (Stable_Region) & Image (Deleted_Region) & Image (Inserted_Region));
-               Parser.Trace.Put_Line ("shift:" & Shift_Bytes'Image & Shift_Chars'Image & Shift_Line'Image);
+               Parser.Trace.Put_Line ("shift: " & Shift_Bytes'Image & " " & Shift_Chars'Image & " " & Shift_Line'Image);
                Parser.Trace.Put_Line ("parse_element:" & Tree.Get_Element_Index (Parse_Stream, Parse_Element)'Image);
                Parser.Trace.Put_Line ("terminal_index:" & Tree.Get_Element_Index (Terminal_Index)'Image);
 
@@ -342,20 +342,25 @@ package body WisiToken.Parse is
                   Outer          => Stable_Region,
                   First_Boundary => Inclusive,
                   Last_Boundary  => (if Length (Inserted_Region) = 0 and Length (Deleted_Region) = 0
-                            then Inclusive
-                            else Exclusive));
+                                     then Inclusive
+                                     else Exclusive));
 
                exit Unchanged_Loop when Tree.ID (Terminal_Index) = Tree.Descriptor.EOI_ID;
 
                Tree.Shift (Terminal_Index, Shift_Bytes, Shift_Chars, Shift_Line);
-
-               Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
 
                Parser.Last_Grammar_Node := Tree.Get_Node (Terminal_Index);
                --  for non_grammar, Shift_Line below
 
                pragma Assert (Tree.Get_Element_Index (Parse_Node) = Tree.Get_Element_Index (Parser.Last_Grammar_Node));
                Tree.Shift (Parse_Node, Shift_Bytes, Shift_Chars, Shift_Line);
+
+               Tree.Set_Element_Index (Terminal_Index, Next_Element_Index);
+               if Tree.Label (Parse_Element) = Shared_Terminal then
+                  Tree.Set_Element_Index (Parse_Stream, Parse_Element, Next_Element_Index);
+               else
+                  Tree.Set_Element_Index (Parse_Node, Next_Element_Index);
+               end if;
 
                Last_Parse_Node := Parse_Node;
 
@@ -372,11 +377,12 @@ package body WisiToken.Parse is
 
             --  Terminal_Index is the terminal overlapping or after the end of the
             --  stable region. Scanning is needed if Inserted_Region is not empty,
-            --  or if the deleted region overlaps or is adjacent to a following
-            --  token. If insert/delete is inside or after a comment, the scanning
-            --  may already have been done. Set Do_Scan, Old_* to the scan start
-            --  position.
-            if Tree.Byte_Region (Terminal_Index).Last > Scanned_Byte_Pos then
+            --  or if the deleted region overlaps or is adjacent to a preceding or
+            --  following token. If insert/delete is inside or after a comment,
+            --  the scanning may already have been done. Set Do_Scan, Old_* to the
+            --  scan start position; the start of token index or in the preceding
+            --  non_grammar. FIXME: handle Tree.Leading_Non_Grammar.
+            if Tree.Byte_Region (Terminal_Index).Last + Shift_Bytes > Scanned_Byte_Pos then
                if Tree.ID (Terminal_Index) /= Parser.Descriptor.EOI_ID and
                  ((Length (Inserted_Region) > 0 and then
                      Tree.Byte_Region (Terminal_Index).Last + Shift_Bytes >= Inserted_Region.First - 1)
@@ -486,15 +492,16 @@ package body WisiToken.Parse is
                      P_Index : Stream_Index;
                   begin
                      if Trace_Lexer > Outline then
-                        Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
+                        Parser.Trace.Put_Line ("lex: " & Image (Token, Parser.Descriptor.all));
                      end if;
 
                      exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
                      exit Scan_Changed_Loop when
                        Token.ID >= Parser.Descriptor.First_Terminal and then
-                       not (Overlaps (Token.Byte_Region, Stable_Region) or
-                              Overlaps (Token.Byte_Region, Inserted_Region) or
-                              Overlaps (Token.Byte_Region, Deleted_Region));
+                       not (Token.Byte_Region.First - Shift_Bytes <= Stable_Region.Last or
+                              (KMN.Inserted_Bytes > 0 and then Token.Byte_Region.First <= Inserted_Region.Last) or
+                              (KMN.Deleted_Bytes > 0 and then
+                                 Token.Byte_Region.First - Shift_Bytes = Stable_Region.Last + 1));
 
                      Scanned_Byte_Pos := Token.Byte_Region.Last;
 
@@ -555,9 +562,11 @@ package body WisiToken.Parse is
                exit Delete_Loop when Tree.ID (Terminal_Index) = Parser.Descriptor.EOI_ID;
 
                exit Delete_Loop when not
-                 (Tree.Byte_Region (Terminal_Index).First <= Deleted_Region.Last or -- deleted
+                 ((KMN.Deleted_Bytes > 0 and
+                     Tree.Byte_Region (Terminal_Index).First <= Deleted_Region.Last + 1)  -- deleted or modified
+                    or
                     (KMN.Inserted_Bytes > 0 and
-                       Tree.Byte_Region (Terminal_Index).First = Stable_Region.Last + 1)); --  modified
+                       Tree.Byte_Region (Terminal_Index).First <= Stable_Region.Last + 1)); --  modified
 
                Breakdown;
                declare

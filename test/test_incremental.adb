@@ -324,7 +324,7 @@ package body Test_Incremental is
       --  Insert, delete at different places, insert first. Insert potentially extends token
       Parse_Text
         (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
-         --          1        |10     |18              |20
+         --          |1       |10     |18              |20
          Edit_At => 5,
          Delete  => "",
          Insert  => "1 + ",
@@ -335,6 +335,9 @@ package body Test_Incremental is
          Insert_2  => "",
 
          Compare_Node_Numbers => False);
+
+      --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "C;",
+      --           |1       |10       |20                |24
    end Edit_Code_4;
 
    procedure Edit_Code_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -356,8 +359,51 @@ package body Test_Incremental is
          Compare_Node_Numbers => False);
    end Edit_Code_5;
 
-   --  FIXME: edit_code_6 2 inserts, second modifies token
-   --  FIXME: edit_code_7 2 inserts, neither ""
+   procedure Edit_Code_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete after insert, modifying token
+      Parse_Text
+        (Initial => "A := B + C;",
+         --          |1   |6  |10
+         Edit_At => 2,
+         Delete  => "",
+         Insert  => "_1",
+         --          |2
+
+         Edit_2_At => 7,
+         Delete_2  => " + ",
+         Insert_2  => "",
+
+         Compare_Node_Numbers => False);
+
+      --  Edited: "A_1 := BC;",
+      --           |1     |8
+   end Edit_Code_6;
+
+   procedure Edit_Code_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete whitespace after insert, _not_ modifying token
+      Parse_Text
+        (Initial => "A := B +  C;",
+         --          |1       |10
+         Edit_At => 2,
+         Delete  => "",
+         Insert  => "_1",
+         --          |2
+
+         Edit_2_At => 9,
+         Delete_2  => " ",
+         Insert_2  => "",
+
+         Compare_Node_Numbers => False);
+   end Edit_Code_7;
+
+   --  FIXME: edit_code_n 2 inserts, second modifies token
+   --  FIXME: edit_code_n 2 inserts, neither ""
 
    ----------
    --  Public subprograms
@@ -373,6 +419,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
       Register_Routine (T, Edit_Code_4'Access, "Edit_Code_4");
       Register_Routine (T, Edit_Code_5'Access, "Edit_Code_5");
+      Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
+      Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

@@ -457,9 +457,10 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Tree.Contains (Stream, Element) and Tree.Label (Element) = Nonterm;
    --  [Wagner Graham 1998] Left_Breakdown of Element for
-   --  Parse_Incremental; bring the first terminal in Element to the
-   --  parse stream. Returns the stream element holding the first
-   --  terminal.
+   --  Parse_Incremental; bring the first terminal in Element or a
+   --  following stream element to the parse stream. Returns the stream
+   --  element holding the first terminal, or Invalid_Stream_Index if
+   --  Element is empty and the last element in Stream.
    --
    --  The stack top is unchanged.
 
@@ -604,9 +605,20 @@ package WisiToken.Syntax_Trees is
 
    procedure Set_Element_Index
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
+      Terminal : in     Stream_Index;
+      Index    : in     Element_Index)
+   with Pre => not Tree.Traversing and Tree.Contains (Stream, Terminal);
+   procedure Set_Element_Index
+     (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Stream_Index;
       Index    : in     Element_Index)
    with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Terminal);
+   procedure Set_Element_Index
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Valid_Node_Access;
+      Index    : in     Element_Index)
+   with Pre => not Tree.Traversing;
    --  Set Element_Index of Terminal to Index; must reflect token order
    --  in source buffer.
 

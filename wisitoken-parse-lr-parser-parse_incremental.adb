@@ -27,13 +27,13 @@ begin
 
    Edit_Tree (Shared_Parser, Edits);
 
-   if Trace_Incremental_Parse > Detail then
+   if Trace_Parse > Detail then
       Trace.New_Line;
-      Trace.Put_Line ("edited tree:");
+      Trace.Put_Line ("edited stream:");
       Trace.Put_Line
         (Shared_Parser.Tree.Image
-           (Non_Grammar => Trace_Incremental_Parse > Extra,
-            Children    => Trace_Incremental_Parse > Extra));
+           (Non_Grammar => Trace_Parse > Extra,
+            Children    => Trace_Parse > Extra));
       Trace.New_Line;
    end if;
 
@@ -166,6 +166,11 @@ begin
                   else
                      Parser_State.Current_Token := Tree.Left_Breakdown_Parse
                        (Parser_State.Stream, Parser_State.Current_Token);
+
+                     if Parser_State.Current_Token = Invalid_Stream_Index then
+                        --  FIXME: need error recovery
+                        raise Syntax_Error with "left_breakdown returned Invalid_Stream_Index";
+                     end if;
                   end if;
                end if;
             end;

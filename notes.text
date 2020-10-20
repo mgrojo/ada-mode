@@ -30,7 +30,17 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-        more tests; see fixmes in test_incremental, parse_incremental
+
+    delete expression_opt from ada_lite
+        easier to tell when incremental parse screws up
+
+    rename terminal_stream to shared_stream
+        batch parse - contains shared terminals
+        incremental - contains edited parse tree, new shared terminals
+            no virtuals adjacent to edits; keep other virtuals
+            edit_tree deletes existing shared_stream, relabels existing parse stream
+
+    more tests; see fixmes in test_incremental, parse_incremental
 
     optimize use of First_Terminal in parse
         enhance the parse table to store reduce actions on nonterms as well as terminals
