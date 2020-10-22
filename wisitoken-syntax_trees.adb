@@ -206,11 +206,12 @@ package body WisiToken.Syntax_Trees is
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Base_Token)
      return Stream_Index
    is begin
       return Result : constant Stream_Index :=
-        Append_Stream_Element (Tree, Tree.Terminal_Stream, Tree.Add_Terminal_1 (Terminal))
+        Append_Stream_Element (Tree, Stream, Tree.Add_Terminal_1 (Terminal))
       do
          Stream_Element_Lists.Constant_Ref (Result.Cur).Node.Terminal_Index := Result;
       end return;
@@ -672,7 +673,8 @@ package body WisiToken.Syntax_Trees is
 
          for Element of Source.Streams (Source.Terminal_Stream.Cur).Elements loop
             declare
-               Index : constant Stream_Index := Add_Terminal (Destination, Source.Base_Token (Element.Node));
+               Index : constant Stream_Index := Add_Terminal
+                 (Destination, Destination.Terminal_Stream, Source.Base_Token (Element.Node));
             begin
                Destination.Streams (Destination.Terminal_Stream.Cur).Elements (Index.Cur).Node.Non_Grammar :=
                  Element.Node.Non_Grammar;
@@ -1297,13 +1299,6 @@ package body WisiToken.Syntax_Trees is
       return Child.Parent /= Invalid_Node_Access;
    end Has_Parent;
 
-   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
-   is
-      pragma Unreferenced (Tree);
-   begin
-      return Stream_Element_Lists.Constant_Ref (Element.Cur).Node.ID;
-   end ID;
-
    function ID
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -1521,6 +1516,7 @@ package body WisiToken.Syntax_Trees is
 
    function Insert_Shared_Terminal
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Base_Token;
       Index    : in     Element_Index;
       Before   : in     Stream_Index)
@@ -1529,20 +1525,22 @@ package body WisiToken.Syntax_Trees is
       New_Node : constant Valid_Node_Access := Add_Terminal_1 (Tree, Terminal);
    begin
       return Result : constant Stream_Index :=
-        Insert_Stream_Element (Tree, Tree.Terminal_Stream, New_Node, Element_Index => Index, Before => Before.Cur)
+        Insert_Stream_Element (Tree, Stream, New_Node, Element_Index => Index, Before => Before.Cur)
       do
          New_Node.Terminal_Index := Result;
       end return;
    end Insert_Shared_Terminal;
 
    function Insert_Shared_Terminal
-     (Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     User_Data_Access;
-      Stream    : in     Stream_ID;
-      Terminal  : in     Stream_Index;
-      Before    : in     Stream_Index)
+     (Tree          : in out Syntax_Trees.Tree;
+      User_Data     : in     User_Data_Access;
+      Source_Stream : in     Stream_ID;
+      Dest_Stream   : in     Stream_ID;
+      Terminal      : in     Stream_Index;
+      Before        : in     Stream_Index)
      return Stream_Index
    is
+      pragma Unreferenced (Source_Stream);
       Element : Stream_Element renames Stream_Element_Lists.Constant_Ref (Terminal.Cur);
 
       New_Node : constant Node_Access := new Node'
@@ -1564,7 +1562,7 @@ package body WisiToken.Syntax_Trees is
    begin
       Tree.Terminal_Nodes.Append (New_Node);
 
-      return Insert_Stream_Element (Tree, Stream, New_Node, Before => Before.Cur);
+      return Insert_Stream_Element (Tree, Dest_Stream, New_Node, Before => Before.Cur);
    end Insert_Shared_Terminal;
 
    function Insert_Stream_Element
@@ -1668,9 +1666,17 @@ package body WisiToken.Syntax_Trees is
    end Is_Virtual_Terminal;
 
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
-   is
-   begin
+   is begin
       return Node.Label in Virtual_Terminal | Virtual_Identifier or (Node.Label = Nonterm and then Node.Virtual);
+   end Is_Virtual;
+
+   function Is_Virtual
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Boolean
+   is begin
+      return Is_Virtual (Tree, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node);
    end Is_Virtual;
 
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
@@ -2596,17 +2602,6 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Element_Index
      (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Stream_Index;
-      Index    : in     Element_Index)
-   is
-      Element : Syntax_Trees.Stream_Element renames Stream_Element_Lists.Variable_Ref (Terminal.Cur);
-   begin
-      Element.Index           := Index;
-      Element.Node.Node_Index := Syntax_Trees.Node_Index (Index);
-   end Set_Element_Index;
-
-   procedure Set_Element_Index
-     (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Valid_Node_Access;
       Index    : in     Element_Index)
    is begin
@@ -2713,14 +2708,13 @@ package body WisiToken.Syntax_Trees is
 
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;
+      Stream      : in Stream_ID;
       Index       : in Stream_Index;
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
       Shift_Line  : in Base_Line_Number_Type)
-   is
-      Stream : Parse_Stream renames Tree.Streams (Tree.Terminal_Stream.Cur);
-   begin
-      Shift (Tree, Stream.Elements (Index.Cur).Node, Shift_Bytes, Shift_Chars, Shift_Line);
+   is begin
+      Shift (Tree, Tree.Streams (Stream.Cur).Elements (Index.Cur).Node, Shift_Bytes, Shift_Chars, Shift_Line);
    end Shift;
 
    function Stack_Depth (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
@@ -2772,13 +2766,6 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       Parse_Stream.Elements.Delete (Element.Cur);
-   end Stream_Delete;
-
-   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Element : in out Stream_Index)
-   is
-      Stream : Parse_Stream renames Tree.Streams (Tree.Terminal_Stream.Cur);
-   begin
-      Stream.Elements.Delete (Element.Cur);
    end Stream_Delete;
 
    function Stream_Input_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type

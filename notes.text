@@ -31,8 +31,7 @@ incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
 
-    delete expression_opt from ada_lite
-        easier to tell when incremental parse screws up
+    delete Node.Terminal_index?
 
     rename terminal_stream to shared_stream
         batch parse - contains shared terminals

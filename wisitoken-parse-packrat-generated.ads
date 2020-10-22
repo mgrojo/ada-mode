@@ -68,10 +68,4 @@ package WisiToken.Parse.Packrat.Generated is
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;
    overriding procedure Put_Errors (Parser : in Generated.Parser);
 
-   function Image_Pos
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Syntax_Trees.Stream_Index)
-     return String;
-   --  "0" for Invalid_Stream_Index, Node_Index'image otherwise.
-
 end WisiToken.Parse.Packrat.Generated;

@@ -187,7 +187,8 @@ package body WisiToken.Parse.LR.Parser is
          when Partial_Parse =>
             --  Insert EOI on parse stream and terminal stream.
             declare
-               Last_Token : constant Base_Token := Shared_Parser.Tree.Base_Token (Parser_State.Current_Token);
+               Last_Token : constant Base_Token := Shared_Parser.Tree.Base_Token
+                 (Parser_State.Stream, Parser_State.Current_Token);
                EOI_Token  : constant Base_Token :=
                  (ID          => Shared_Parser.Descriptor.EOI_ID,
                   Byte_Region =>
@@ -198,11 +199,16 @@ package body WisiToken.Parse.LR.Parser is
                     (First    => Last_Token.Char_Region.Last + 1,
                      Last     => Last_Token.Char_Region.Last));
             begin
-               if Shared_Parser.Tree.ID (Parser_State.Current_Token) /= Shared_Parser.Descriptor.EOI_ID then
+               if Shared_Parser.Tree.ID (Parser_State.Stream, Parser_State.Current_Token) /=
+                 Shared_Parser.Descriptor.EOI_ID
+               then
                   Parser_State.Current_Token := Shared_Parser.Tree.Insert_Shared_Terminal
-                    (Terminal => EOI_Token,
-                     Index    => Shared_Parser.Tree.Get_Element_Index (Parser_State.Current_Token) + 1,
-                     Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token));
+                    (Shared_Parser.Tree.Terminal_Stream,
+                     Terminal => EOI_Token,
+                     Index    => Shared_Parser.Tree.Get_Element_Index
+                       (Parser_State.Stream, Parser_State.Current_Token) + 1,
+                     Before   => Shared_Parser.Tree.Stream_Next
+                       (Shared_Parser.Tree.Terminal_Stream, Parser_State.Current_Token));
                   --  FIXME: delete rest of terminal stream?
                end if;
 
@@ -279,10 +285,11 @@ package body WisiToken.Parse.LR.Parser is
             if Op.Op = Delete and then
               Op.Del_Index =
               (if Parser_State.Inc_Shared_Token
-               then Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token)
+               then Shared_Parser.Tree.Stream_Next (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)
                else Parser_State.Shared_Token)
             then
-               Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
+               Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next
+                 (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token);
                --  We don't reset Inc_Shared_Token here; only after the next token is
                --  actually used.
                Ins_Del_Cur := Ins_Del_Cur + 1;
@@ -298,7 +305,8 @@ package body WisiToken.Parse.LR.Parser is
       if Trace_Parse > Extra and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Index then
          Shared_Parser.Trace.Put_Line
            (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": (do_deletes) shared_token:" &
-              Shared_Parser.Tree.Get_Element_Index (Parser_State.Shared_Token)'Image &
+              Shared_Parser.Tree.Get_Element_Index
+                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)'Image &
               " inc_shared_token: " & Parser_State.Inc_Shared_Token'Image &
               " recover_insert_delete:" &
               (if Parser_State.Recover_Insert_Delete_Current = No_Index
@@ -349,7 +357,8 @@ package body WisiToken.Parse.LR.Parser is
                --  There may still be ops left in Recover_Insert_Delete after we get
                --  to Resume_Token_Goal, probably from a Language_Fix or string quote
                --  fix that deletes a lot of tokens. FIXME: that's a bug!
-               if Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Element_Index (Parser_State.Shared_Token) and
+               if Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Element_Index
+                 (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token) and
                  Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
                then
                   Parser_State.Resume_Active := False;
@@ -650,7 +659,7 @@ package body WisiToken.Parse.LR.Parser is
                         Op.Ins_Before := Invalid_Stream_Index;
 
                      when Delete =>
-                        Next_Delete_Index := Tree.Get_Element_Index (Op.Del_Index);
+                        Next_Delete_Index := Tree.Get_Element_Index (Parser.Tree.Terminal_Stream, Op.Del_Index);
 
                         Op.Del_Index := Invalid_Stream_Index;
                         exit;

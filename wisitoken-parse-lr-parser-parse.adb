@@ -97,7 +97,8 @@ begin
                            if Op.Op = Insert and then
                              Op.Ins_Before =
                              (if Parser_State.Inc_Shared_Token
-                              then Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token)
+                              then Shared_Parser.Tree.Stream_Next
+                                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)
                               else Parser_State.Shared_Token)
                            then
                               Result := True;
@@ -123,7 +124,7 @@ begin
 
                   elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Index or else
                     (if Parser_State.Inc_Shared_Token
-                     then Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token)
+                     then Shared_Parser.Tree.Stream_Next (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)
                      else Parser_State.Shared_Token) /= Syntax_Trees.Invalid_Stream_Index
                   then
                      if Parser_State.Inc_Shared_Token then
@@ -134,7 +135,8 @@ begin
                            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First
                              (Shared_Parser.Tree.Terminal_Stream);
                         else
-                           Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
+                           Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next
+                             (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token);
                         end if;
                      else
                         Parser_State.Inc_Shared_Token := True;
@@ -563,7 +565,8 @@ begin
                         declare
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                            Token : constant Base_Token := Shared_Parser.Tree.Base_Token
-                             (Shared_Parser.Tree.Get_Node (Parser_State.Shared_Token));
+                             (Shared_Parser.Tree.Get_Node
+                                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token));
                         begin
                            raise WisiToken.Parse_Error with Error_Message
                              (Shared_Parser.Lexer.File_Name, Token.Line,

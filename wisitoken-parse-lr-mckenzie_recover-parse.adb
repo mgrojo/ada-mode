@@ -271,7 +271,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
            Action.Item.Verb = Accept_It or
            (if Shared_Token_Goal = Syntax_Trees.Invalid_Element_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Element_Index (Config.Current_Shared_Token) > Shared_Token_Goal);
+            else Super.Tree.Get_Element_Index
+              (Super.Tree.Terminal_Stream, Config.Current_Shared_Token) > Shared_Token_Goal);
 
          Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
       end loop;

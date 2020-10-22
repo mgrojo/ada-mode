@@ -320,10 +320,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Check (New_Config.Stack.Peek (1).Token.ID, +nonterminal_029_list_ID);
 #end if;
 
-               Check (+END_ID, Tree.ID (End_Item.Token.First_Terminal_Index));
+               Check (+END_ID, Tree.ID (Tree.Terminal_Stream, End_Item.Token.First_Terminal_Index));
                Append (Ops, (Delete, +END_ID, End_Item.Token.First_Terminal_Index));
 
-               Check (+SEMICOLON_ID, Tree.ID (Semicolon_Item.Token.First_Terminal_Index));
+               Check (+SEMICOLON_ID, Tree.ID (Tree.Terminal_Stream, Semicolon_Item.Token.First_Terminal_Index));
                Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.First_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.

@@ -63,6 +63,7 @@ package body WisiToken.Parse.Packrat is
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Syntax_Trees.Stream_ID;
       Element : in Syntax_Trees.Stream_Index)
      return String
    is
@@ -71,7 +72,7 @@ package body WisiToken.Parse.Packrat is
       if Element = Invalid_Stream_Index then
          return "0";
       else
-         return Tree.Get_Element_Index (Element)'Image;
+         return Tree.Get_Element_Index (Stream, Element)'Image;
       end if;
    end Image_Pos;
 

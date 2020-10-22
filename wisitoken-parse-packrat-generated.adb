@@ -42,8 +42,10 @@ package body WisiToken.Parse.Packrat.Generated is
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Element_Index (Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
-            Parser.Tree.Get_Element_Index (Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
+           (Parser.Tree.Get_Element_Index
+              (Parser.Tree.Terminal_Stream, Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
+            Parser.Tree.Get_Element_Index
+              (Parser.Tree.Terminal_Stream, Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
       end loop;
 
       Result := Parser.Parse_WisiToken_Accept (Parser, Syntax_Trees.Invalid_Stream_Index);
@@ -79,19 +81,5 @@ package body WisiToken.Parse.Packrat.Generated is
 
       --  FIXME: Packrat parser does not report errors yet.
    end Put_Errors;
-
-   function Image_Pos
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Syntax_Trees.Stream_Index)
-     return String
-   is
-      use Syntax_Trees;
-   begin
-      if Element = Invalid_Stream_Index then
-         return "0";
-      else
-         return Tree.Get_Element_Index (Element)'Image;
-      end if;
-   end Image_Pos;
 
 end WisiToken.Parse.Packrat.Generated;

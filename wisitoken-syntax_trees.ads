@@ -343,13 +343,8 @@ package WisiToken.Syntax_Trees is
       Stream : in Stream_ID;
       Token  : in Stream_Index)
      return Element_Index
-   with Pre => Tree.Contains (Stream, Token);
-
-   function Get_Element_Index
-     (Tree   : in Syntax_Trees.Tree;
-      Token  : in Stream_Index)
-     return Element_Index
-   with Pre => Token = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Token);
+   with Pre => Token = Invalid_Stream_Index or else
+               (Tree.Contains (Stream, Token) or Tree.Contains (Tree.Terminal_Stream, Token));
    --  Result may be Invalid_Element_Index
 
    function Get_Element_Index
@@ -371,9 +366,6 @@ package WisiToken.Syntax_Trees is
      return Valid_Node_Access
    with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
    --  Parser.Current_Token may be from either stream.
-
-   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    procedure Start_Parse
      (Tree   : in out Syntax_Trees.Tree;
@@ -512,13 +504,8 @@ package WisiToken.Syntax_Trees is
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Stream_Index
-   with Pre => Tree.Contains (Stream, Element);
-
-   function Stream_Next
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Tree.Terminal_Stream, Element);
+   with Pre => Element = Invalid_Stream_Index or else
+               (Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element));
    --  If Element is Invalid_Stream_Index, result is Stream_First
 
    function Stream_Prev
@@ -527,12 +514,6 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Stream_Index
    with Pre => Tree.Contains (Stream, Element);
-
-   function Stream_Prev
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Stream_Index)
-     return Stream_Index
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Peek
      (Tree   : in Syntax_Trees.Tree;
@@ -548,9 +529,10 @@ package WisiToken.Syntax_Trees is
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
       Terminal : in     Base_Token)
      return Stream_Index
-   with Pre => not Tree.Traversing;
+   with Pre => not Tree.Traversing and Stream = Tree.Terminal_Stream;
    --  Add a new Terminal element on Terminal_Stream. Result points to the added
    --  node.
 
@@ -578,26 +560,28 @@ package WisiToken.Syntax_Trees is
 
    function Insert_Shared_Terminal
      (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
       Terminal : in     Base_Token;
       Index    : in     Element_Index;
       Before   : in     Stream_Index)
      return Stream_Index
-   with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Before);
-   --  Insert a new Shared_Terminal element on Terminal_Stream, before Before.
-   --  Index should give the source token order.
-   --  Result points to the added element.
+   with Pre => not Tree.Traversing and Tree.Contains (Stream, Before);
+   --  Insert a new Shared_Terminal element on Stream, before Before.
+   --  Index should give the source token order. Result points to the
+   --  added element.
 
    function Insert_Shared_Terminal
-     (Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     User_Data_Access;
-      Stream    : in     Stream_ID;
-      Terminal  : in     Stream_Index;
-      Before    : in     Stream_Index)
+     (Tree          : in out Syntax_Trees.Tree;
+      User_Data     : in     User_Data_Access;
+      Source_Stream : in     Stream_ID;
+      Dest_Stream   : in     Stream_ID;
+      Terminal      : in     Stream_Index;
+      Before        : in     Stream_Index)
      return Stream_Index
    with Pre => not Tree.Traversing and
-               Tree.Contains (Tree.Terminal_Stream, Terminal) and
-               Tree.Contains (Stream, Before);
-   --  Insert a copy of Terminal from Terminal_Stream on Stream, before
+               Tree.Contains (Source_Stream, Terminal) and
+               Tree.Contains (Dest_Stream, Before);
+   --  Insert a copy of Terminal from Source_Stream on Dest_Stream, before
    --  Before. If Before is Invalid_Stream_Index, then insert after
    --  Stream.Stack_Top; if that is No_Element, insert at end of stream.
    --  Result points to the added element.
@@ -608,11 +592,6 @@ package WisiToken.Syntax_Trees is
       Terminal : in     Stream_Index;
       Index    : in     Element_Index)
    with Pre => not Tree.Traversing and Tree.Contains (Stream, Terminal);
-   procedure Set_Element_Index
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Stream_Index;
-      Index    : in     Element_Index)
-   with Pre => not Tree.Traversing and Tree.Contains (Tree.Terminal_Stream, Terminal);
    procedure Set_Element_Index
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Valid_Node_Access;
@@ -650,14 +629,17 @@ package WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
-      Shift_Line  : in Base_Line_Number_Type);
+      Shift_Line  : in Base_Line_Number_Type)
+   with Pre => Tree.Label (Node) = Shared_Terminal;
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;
+      Stream      : in Stream_ID;
       Index       : in Stream_Index;
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
       Shift_Line  : in Base_Line_Number_Type)
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Index);
+   with Pre => Tree.Contains (Stream, Index) and Tree.Label (Index) = Shared_Terminal;
+   --  Add Shift_* to token positions.
 
    procedure Stream_Delete
      (Tree    : in out Syntax_Trees.Tree;
@@ -668,11 +650,6 @@ package WisiToken.Syntax_Trees is
      Post => Element = Invalid_Stream_Index;
    --  If Element = Stream.Stack_Top, Stack_Top is set to Invalid_Stream_Index.
 
-   procedure Stream_Delete (Tree : in out Syntax_Trees.Tree; Element : in out Stream_Index)
-   with
-     Pre  => Tree.Contains (Tree.Terminal_Stream, Element),
-     Post => Element = Invalid_Stream_Index;
-
    function ID
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
@@ -681,11 +658,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
    --  For example, Parser.Current_Token is either a Shared_Terminal from
    --  Terminal_Stream or a Virtual_Terminal on Stream from error
-   --  recovery; in incremental parse, it could be a Shared_Terminal
+   --  recovery; in incremental parse, it could be a Shared_Terminal on
    --  Stream from breakdown.
-
-   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
@@ -778,13 +752,6 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Recover_Token
    with Pre => Tree.Contains (Stream, Element);
-
-   function Get_Recover_Token
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Stream_Index)
-     return Recover_Token
-   is (Tree.Get_Recover_Token (Tree.Terminal_Stream, Element))
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
 
    function Get_Recover_Token
      (Tree : in Syntax_Trees.Tree;
@@ -897,8 +864,13 @@ package WisiToken.Syntax_Trees is
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);
 
-   function Base_Token (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return WisiToken.Base_Token
-   with Pre => Tree.Contains (Tree.Terminal_Stream, Element);
+   function Base_Token
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return WisiToken.Base_Token
+   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Terminal_Stream, Element);
+
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token;
 
    function First_Shared_Terminal
@@ -906,9 +878,8 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Node_Access;
    --  Returns first shared terminal node (in parse tree) in subtree
-   --  under Element (ignoring virtual terminals). If result is
-   --  Invalid_Node_Access, all terminals are virtual, or the root
-   --  nonterm is empty.
+   --  under Node (ignoring virtual terminals). If result is
+   --  Invalid_Node_Access, all terminals are virtual, or Node is empty.
 
    function First_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
@@ -922,14 +893,13 @@ package WisiToken.Syntax_Trees is
              Tree.Contains (Tree.Terminal_Stream, First_Shared_Terminal'Result);
    --  Returns first shared terminal (in terminal stream) in subtree
    --  under Element (ignoring virtual terminals). If result is
-   --  Invalid_Stream_Index, all terminals are virtual, or the root
-   --  nonterm is empty.
+   --  Invalid_Stream_Index, all terminals are virtual, or Element is
+   --  empty.
 
    function Last_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
      return Node_Access;
-
    function Last_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
@@ -1464,8 +1434,12 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   function Base_Token (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return WisiToken.Base_Token
-   is (Base_Token (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
+   function Base_Token
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return WisiToken.Base_Token
+   is (Base_Token (Tree, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node));
 
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
    is (Node.ID, Node.Byte_Region, Node.Line, Node.Char_Region);
@@ -1500,12 +1474,6 @@ private
       Stream : in Stream_ID;
       Token  : in Stream_Index)
      return Element_Index
-   is (Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
-
-   function Get_Element_Index
-     (Tree   : in Syntax_Trees.Tree;
-      Token  : in Stream_Index)
-     return Element_Index
    is (if Token = Invalid_Stream_Index
        then Invalid_Element_Index
        else Stream_Element_Lists.Constant_Ref (Token.Cur).Index);
@@ -1521,9 +1489,6 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Valid_Node_Access
-   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);
-
-   function Get_Node (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Valid_Node_Access
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);
 
    function Get_Node_Index (Node : in Node_Access) return Node_Index
@@ -1544,13 +1509,6 @@ private
 
    function Is_Valid (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Boolean
    is (Parse_Stream_Lists.Has_Element (Stream.Cur));
-
-   function Is_Virtual
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Boolean
-   is (Is_Virtual (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
    is (Node.Label);
@@ -1603,11 +1561,8 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Stream_Index
-   is ((Cur => Stream_Element_Lists.Next (Element.Cur)));
-
-   function Stream_Next (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Stream_Index
    is (if Element = Invalid_Stream_Index
-       then (Cur => Tree.Streams (Tree.Terminal_Stream.Cur).Elements.First)
+       then (Cur => Tree.Streams (Stream.Cur).Elements.First)
        else (Cur => Stream_Element_Lists.Next (Element.Cur)));
 
    function Stream_Prev
@@ -1615,9 +1570,6 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Stream_Index
-   is ((Cur => Stream_Element_Lists.Previous (Element.Cur)));
-
-   function Stream_Prev (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Stream_Index
    is ((Cur => Stream_Element_Lists.Previous (Element.Cur)));
 
    function Terminal_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
