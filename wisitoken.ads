@@ -325,9 +325,6 @@ package WisiToken is
    function "+" (Left : in Buffer_Region; Right : in Base_Buffer_Pos) return Buffer_Region
      is (Left.First + Right, Left.Last + Right);
 
-   function "-" (Left : in Buffer_Region; Right : in Base_Buffer_Pos) return Buffer_Region
-     is (Left.First - Right, Left.Last - Right);
-
    type Base_Line_Number_Type is range 0 .. Natural'Last; -- for delta line numbers.
    subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
    --  Match Emacs buffer line numbers.

@@ -28,23 +28,24 @@ with WisiToken.BNF;
 with WisiToken;
 procedure Test_McKenzie_Harness
 is
-   --  command line arguments (all optional, order matters):
-   --  <verbose> LALR|LR1 routine_name trace_parse trace_mckenzie trace_action
-   --  1         2        3            4           5              6
-   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
+   Usage : constant String :=
+     --  command line arguments (all optional, order matters):
+     "[LALR | LR1] routine_name trace_config";
+   --  1           2            3
+   --  trace_config is passed to Wisitoken.Enable_Trace
    --
    --  routine_name can be '' to set trace for all routines.
 
-   File_Name : constant String := "test_mckenzie_recover.adb ";
-
    use all type WisiToken.BNF.Generate_Algorithm;
-   Alg : constant WisiToken.BNF.Generate_Algorithm :=
-     (if Argument_Count >= 2 then WisiToken.BNF.Generate_Algorithm'Value (Argument (2)) else None);
 
-   Force_High_Cost_Solutions : constant Boolean :=
-     (if Argument_Count >= 7 then 0 /= Integer'Value (Argument (7)) else False);
-   Force_Full_Explore : constant Boolean :=
-     (if Argument_Count >= 8 then 0 /= Integer'Value (Argument (8)) else False);
+   Alg : constant WisiToken.BNF.Generate_Algorithm :=
+     (if Argument_Count >= 1 then WisiToken.BNF.Generate_Algorithm'Value (Argument (1)) else None);
+
+   Force_High_Cost_Solutions : constant Boolean := False;
+   --    (if Argument_Count >= 7 then 0 /= Integer'Value (Argument (7)) else False);
+
+   Force_Full_Explore : constant Boolean := False;
+   --    (if Argument_Count >= 8 then 0 /= Integer'Value (Argument (8)) else False);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -60,32 +61,19 @@ is
    Status   : AUnit.Status;
 
 begin
-   Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
+   if Argument_Count >= 2 then
+      Filter.Set_Name ("test_mckenzie_recover.adb " & Alg'Image & " : " & Argument (2));
+   end if;
 
-   case Argument_Count is
-   when 0 | 1 =>
-      null;
+   if Argument_Count = 3 then
+      WisiToken.Enable_Trace (Argument (3));
+   end if;
 
-   when 2 =>
-      Filter.Set_Name (File_Name & Argument (2)); -- test name only
+   if Argument_Count > 3 then
+      raise Constraint_Error with Usage;
+   end if;
 
-   when others =>
-      declare
-         Test_Name    : constant String := File_Name & Argument (2);
-         Routine_Name : String renames Argument (3);
-      begin
-         if Routine_Name = "" then
-            Filter.Set_Name (Test_Name);
-         else
-            Filter.Set_Name (Test_Name & " : " & Routine_Name);
-         end if;
-      end;
-   end case;
-
-   WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-   WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Debug_Mode     := True;
-   WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
+   Filter.Verbose := WisiToken.Trace_Tests > 0;
 
    if Alg in None | LALR then
       Add_Test

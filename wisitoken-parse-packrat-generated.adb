@@ -28,6 +28,9 @@ package body WisiToken.Parse.Packrat.Generated is
       Result : Memo_Entry;
    begin
       Parser.Tree.Clear;
+      --  Creates the terminal stream, but no parse stream; packrat does not
+      --  use a parse stream.
+
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
@@ -53,7 +56,6 @@ package body WisiToken.Parse.Packrat.Generated is
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);
-         Parser.Tree.Set_Parents;
       end if;
 
    end Parse;

@@ -153,10 +153,9 @@ package WisiToken.Syntax_Trees is
      (Tree             : in out Syntax_Trees.Tree;
       Free_Memory      : in     Boolean := False;
       Initialize_Parse : in     Boolean := True);
-   --  Delete all nodes in all streams, reset for new lex and parse
-   --  (includes create Terminal_Stream). Free_Memory applies to internal
-   --  bookkeeping; leaving it False may slightly speed parsing a similar
-   --  sized file as the previous one.
+   --  Delete all nodes in all streams, reset for new lex and parse.
+   --  Free_Memory applies to internal bookkeeping; leaving it False may
+   --  slightly speed parsing a similar sized file as the previous one.
    --
    --  If Initialize_Parse, create empty terminal stream.
 
@@ -890,7 +889,7 @@ package WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Access);
       Root         : in     Node_Access := Invalid_Node_Access)
-   with Pre => Root /= Invalid_Node_Access or else Tree.Editable or else Tree.Fully_Parsed;
+   with Pre => Root /= Invalid_Node_Access or else Tree.Root /= Invalid_Node_Access;
    --  Traverse subtree of Tree rooted at Root (default single remaining
    --  stream element) in depth-first order, calling Process_Node on each
    --  node.
@@ -960,15 +959,17 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Prev_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Prev_Terminal'Result) in Terminal_Label;
-   --  Return the terminal that is immediately before Node in Tree;
-   --  Invalid_Node_Access if Node is the first terminal in Tree.
+   --  Return the terminal that is immediately before Node in subtree
+   --  containing Node; Invalid_Node_Access if Node is the first terminal
+   --  in that subtree.
 
    function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Next_Terminal'Result) in Terminal_Label;
-   --  Return the terminal that is immediately after Node in Tree;
-   --  Invalid_Node_Access if Node is the last terminal in Tree.
+   --  Return the terminal that is immediately after Node in subtree
+   --  containing Node; Invalid_Node_Access if Node is the last terminal
+   --  in that subtree.
 
    function Next_Shared_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -977,9 +978,9 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Shared_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Next_Shared_Terminal'Result) = Shared_Terminal;
-   --  Return the next Shared_Terminal that is after Node in subtree Node
-   --  is in; Invalid_Node_Access if Node is last shared terminal in
-   --  subtree.
+   --  Return the next Shared_Terminal that is after Node in subtree
+   --  containing Node; Invalid_Node_Access if Node is last shared
+   --  terminal in subtree.
 
    procedure Next_Shared_Terminal
      (Tree    : in     Syntax_Trees.Tree;
@@ -1058,6 +1059,7 @@ package WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
+      Clear_Parents   : in     Boolean;
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
@@ -1066,9 +1068,10 @@ package WisiToken.Syntax_Trees is
    --  Children, with no parent. Result points to the added node. If
    --  Children'Length = 0, set Nonterm.Virtual := Default_Virtual.
    --
-   --  Children.Parent are set to the new node, and in previous parents
-   --  of those children (if any), the corresponding entry in Children is
-   --  set to null.
+   --  Children.Parent are set to the new node. If a child has a previous
+   --  parent, then if Clear_Parents, the corresponding entry in the
+   --  parent's Children is set to null; if not Clear_Parents and
+   --  assertions are enabled, Assertion_Error is raised.
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -1182,8 +1185,9 @@ package WisiToken.Syntax_Trees is
 
    function Image
      (Tree        : in Syntax_Trees.Tree;
-      Children    : in Boolean := False;
-      Non_Grammar : in Boolean := False)
+      Children    : in Boolean     := False;
+      Non_Grammar : in Boolean     := False;
+      Root        : in Node_Access := Invalid_Node_Access)
      return String;
    --  Image of all streams, or root node if no streams.
    --  If Children, subtree of each stream element is included.
@@ -1489,7 +1493,7 @@ private
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 3);
    --  1 stream for Terminals, one for the remaining parser. Parser
-   --  stream has start state, parse tree, EOI..
+   --  stream has start state, parse tree, EOI.
 
    function Get_Element_Index
      (Tree   : in Syntax_Trees.Tree;

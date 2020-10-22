@@ -94,6 +94,7 @@ is
 
       if Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;");
+         Indent_Line ("Recursing        : Boolean                   := False;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
 
@@ -195,7 +196,11 @@ is
                   end loop;
                end if;
 
-               Indent_Line (" Default_Virtual => False),");
+               Indent_Line (" Default_Virtual => False,");
+               Indent_Line (" Clear_Parents   => True),");
+               --  We must be able to steal nodes from failed nonterms;
+               --  body_instantiation_conflict.wy.
+
                Indent := Indent - 3;
                Indent_Start (" Last_Pos        => Pos)");
 
@@ -259,6 +264,11 @@ is
             end if;
 
             Indent_Line ("<<RHS_" & Trimmed_Image (RHS_Index) & "_Fail>>");
+            if Data.Direct_Left_Recursive (Prod.LHS) and RHS_Index = Prod.RHSs.First_Index then
+               Indent_Line ("if Recursing then");
+               Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
+               Indent_Line ("end if;");
+            end if;
             New_Line;
          end;
       end loop;
@@ -285,6 +295,7 @@ is
          Indent_Line ("     (Parser.Tree.Image (Result_Recurse.Result,");
          Indent_Line ("      Children => True, Terminal_Node_Numbers => True));");
          Indent_Line ("end if;");
+         Indent_Line ("Recursing := True;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
          Indent_Line

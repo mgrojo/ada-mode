@@ -121,6 +121,14 @@ package body Warth_Left_Recurse_Expr_1 is
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("parse tree:");
+            Parser.Tree.Print_Tree (Parser.Tree.Root, null);
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
+         end if;
+
          Parser.Execute_Actions;
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 

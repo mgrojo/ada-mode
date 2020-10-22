@@ -468,7 +468,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Separator_ID      => Container.Separator_ID,
             Root              => Tree.Add_Nonterm
               (Production     => (Container.List_ID, Container.One_Element_RHS),
-               Children       => (1 => New_Element)));
+               Children       => (1 => New_Element),
+               Clear_Parents  => True));
 
       else
          --  Adding element Last in spec example
@@ -486,7 +487,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                  Children       =>
                    (if Container.Separator_ID = Invalid_Token_ID
                     then (Old_Root, New_Element)
-                    else (Old_Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)));
+                    else (Old_Root, Tree.Add_Terminal (Container.Separator_ID), New_Element)),
+                 Clear_Parents => True); -- Have to clear Old_Root
 
             if List_Parent = Invalid_Node_Access then
                null;
@@ -517,7 +519,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             Separator_ID      => Container.Separator_ID,
             Root              => Tree.Add_Nonterm
               (Production     => (Container.List_ID, Container.One_Element_RHS),
-               Children       => (1 => New_Element)));
+               Children       => (1 => New_Element),
+               Clear_Parents  => False));
 
       else
          --  Inserting element First (with list parent node and separator) in spec example
@@ -527,7 +530,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
             List_Node : constant Valid_Node_Access := Tree.Add_Nonterm
               ((Container.List_ID, Container.One_Element_RHS),
-               (1 => New_Element));
+               (1 => New_Element),
+               Clear_Parents => False);
          begin
             Tree.Set_Children
               (Node     => Old_First.Parent,
@@ -579,7 +583,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       --  | | element: Before
       --  | separator
       --  | element: Last
-      Iter   : constant Iterator   := Container.Iterate;
+      Iter   : constant Iterator    := Container.Iterate;
       Before : constant Node_Access := Iter.Next (After).Node;
    begin
       if After.Node = Invalid_Node_Access then
@@ -597,7 +601,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                Children   =>
                  (if Container.Separator_ID = Invalid_Token_ID
                   then (Old_Child, New_Element)
-                  else (Old_Child, Container.Tree.Add_Terminal (Container.Separator_ID), New_Element)));
+                  else (Old_Child, Container.Tree.Add_Terminal (Container.Separator_ID), New_Element)),
+               Clear_Parents => True); -- have to clear Old_Child
 
          begin
             --  After = Container.First is not a special case:
@@ -879,7 +884,9 @@ package body WisiToken.Syntax_Trees.LR_Utils is
                end loop;
 
                return Tree.Add_Nonterm
-                 (Tree.Production_ID (Node), To_Valid_Node_Access (Dest_Children), Tree.Action (Node));
+                 (Tree.Production_ID (Node), To_Valid_Node_Access (Dest_Children),
+                  Action        => Tree.Action (Node),
+                  Clear_Parents => False);
             end;
          end if;
       end Get_Dest_Child;

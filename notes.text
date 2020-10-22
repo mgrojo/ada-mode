@@ -40,6 +40,8 @@ incremental parse
             no virtuals adjacent to edits; keep other virtuals
             edit_tree deletes existing shared_stream, relabels existing parse stream
 
+    run all tests
+
     more tests; see fixmes in test_incremental, parse_incremental
 
     optimize use of First_Terminal in parse

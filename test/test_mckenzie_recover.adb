@@ -70,7 +70,7 @@ package body Test_McKenzie_Recover is
       Multiple_Tasks   : in Boolean := False;
       Expect_Exception : in Boolean := False)
    is begin
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
@@ -93,7 +93,7 @@ package body Test_McKenzie_Recover is
       Check ("exception", False, Expect_Exception);
    exception
    when WisiToken.Syntax_Error =>
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Parser.Put_Errors;
       end if;
 

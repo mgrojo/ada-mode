@@ -182,8 +182,7 @@ package body WisiToken.Lexer.re2c is
            (ID => Lexer.ID,
 
             Byte_Region =>
-              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
-               then
+              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = 0 then
                   --  EOF in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)

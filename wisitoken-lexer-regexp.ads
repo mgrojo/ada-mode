@@ -87,14 +87,17 @@ package WisiToken.Lexer.Regexp is
       Token :    out Base_Token)
      return Boolean;
 
+   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;
+
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
 
    overriding
    procedure Set_Position
-     (Lexer         : in Instance;
-      Byte_Position : in Buffer_Pos;
-      Char_Position : in Buffer_Pos;
-      Line          : in Line_Number_Type)
+     (Lexer         : in out Instance;
+      Byte_Position : in     Buffer_Pos;
+      Char_Position : in     Buffer_Pos;
+      Line          : in     Line_Number_Type;
+      Prev_Token_ID : in     Token_ID)
      is null;
 
    overriding function First (Lexer : in Instance) return Boolean is (False);

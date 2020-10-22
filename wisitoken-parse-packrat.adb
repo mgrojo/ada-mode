@@ -55,8 +55,8 @@ package body WisiToken.Parse.Packrat is
          Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
       end if;
 
-      Parser.Tree.Set_Parents;
-      Parser.Tree.Clear_Parse_Streams;
+      --  We don't do 'Parser.Tree.Clear_Parse_Streams; here; that deletes
+      --  the terminal stream, but those nodes are in the final tree.
       Parser.User_Data.Initialize_Actions (Parser.Tree);
       Parser.Tree.Process_Tree (Process_Node'Access);
    end Execute_Actions;

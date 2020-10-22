@@ -78,7 +78,7 @@ package body WisiToken.Syntax_Trees is
 
    function Subtree_Image
      (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
+      Node        : in Node_Access;
       Non_Grammar : in Boolean := False;
       Level       : in Integer := 0)
      return String;
@@ -126,8 +126,9 @@ package body WisiToken.Syntax_Trees is
       State           : in     Unknown_State_Index;
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
-      Action          : in     Semantic_Action := null;
-      Default_Virtual : in     Boolean         := False)
+      Action          : in     Semantic_Action;
+      Default_Virtual : in     Boolean;
+      Clear_Parents   : in     Boolean)
      return Valid_Node_Access
    is
       Nonterm_Node : constant Valid_Node_Access := new Node'
@@ -147,13 +148,17 @@ package body WisiToken.Syntax_Trees is
       if Children'Length > 0 then
          for Child of Children loop
             if Child.Parent /= Invalid_Node_Access then
-               declare
-                  Other_Parent : constant Node_Access := Child.Parent;
-                  Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
-                    (Other_Parent.all, Child);
-               begin
-                  Other_Parent.Children (Child_Index) := Invalid_Node_Access;
-               end;
+               if Clear_Parents then
+                  declare
+                     Other_Parent : constant Node_Access := Child.Parent;
+                     Child_Index  : constant SAL.Base_Peek_Type := Syntax_Trees.Child_Index
+                       (Other_Parent.all, Child);
+                  begin
+                     Other_Parent.Children (Child_Index) := Invalid_Node_Access;
+                  end;
+               else
+                  pragma Assert (False);
+               end if;
             end if;
 
             Child.Parent := Nonterm_Node;
@@ -169,11 +174,12 @@ package body WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
+      Clear_Parents   : in     Boolean;
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
    is begin
-      return Add_Nonterm_1 (Tree, Unknown_State, Production, Children, Action, Default_Virtual);
+      return Add_Nonterm_1 (Tree, Unknown_State, Production, Children, Action, Default_Virtual, Clear_Parents);
    end Add_Nonterm;
 
    function Add_Terminal_1
@@ -1361,14 +1367,19 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree        : in Syntax_Trees.Tree;
       Children    : in Boolean := False;
-      Non_Grammar : in Boolean := False)
+      Non_Grammar : in Boolean := False;
+      Root        : in Node_Access := Invalid_Node_Access)
      return String
    is begin
-      if Tree.Streams.Length = 0 then
+      if Root /= Invalid_Node_Access then
+         --  Assuming children = true in this case.
+         return Subtree_Image (Tree, Root, Non_Grammar);
+
+      elsif Tree.Streams.Length = 0 then
          if Tree.Root = Invalid_Node_Access then
             return "invalid_tree: no streams, Tree.Root not set";
          else
-            --  Ignoring children in this case.
+            --  Assuming children = true in this case.
             return Subtree_Image (Tree, Tree.Root, Non_Grammar);
          end if;
       else
@@ -1917,17 +1928,16 @@ package body WisiToken.Syntax_Trees is
 
             New_Stream : Parse_Stream renames Tree.Streams (Result_Cur);
 
-            New_Cur   : Stream_Element_Lists.Cursor;
-            Copy_Node : Boolean := False;
+            New_Cur : Stream_Element_Lists.Cursor;
          begin
             Tree.Next_Stream_Element_Index := @ + 1;
 
             for Old_Cur in Old_Parse_Stream.Elements.Iterate loop
                declare
+                  --  FIXME: this copies the entire tree for each new parser; will be very slow
+                  --  Only copy input stream (after stack top); requires not setting parents until done.
                   New_Node : constant Valid_Node_Access :=
-                    (if Copy_Node
-                     then Copy_Subtree (Tree, Stream_Element_Lists.Constant_Ref (Old_Cur).Node, User_Data)
-                     else Stream_Element_Lists.Constant_Ref (Old_Cur).Node);
+                    Copy_Subtree (Tree, Stream_Element_Lists.Constant_Ref (Old_Cur).Node, User_Data);
                begin
                   New_Cur := New_Stream.Elements.Append
                     ((Node   => New_Node,
@@ -1939,7 +1949,6 @@ package body WisiToken.Syntax_Trees is
 
                if Old_Cur = Old_Stack_Top then
                   New_Stream.Stack_Top := New_Cur;
-                  Copy_Node := True;
                end if;
 
             end loop;
@@ -2396,7 +2405,8 @@ package body WisiToken.Syntax_Trees is
          end return;
       end Pop_Children;
 
-      New_Node : constant Node_Access := Tree.Add_Nonterm_1 (State, Production, Pop_Children, Action, Default_Virtual);
+      New_Node : constant Node_Access := Tree.Add_Nonterm_1
+        (State, Production, Pop_Children, Action, Default_Virtual, Clear_Parents => False);
    begin
       Tree.Next_Stream_Element_Index := Tree.Next_Stream_Element_Index + 1;
 
@@ -2793,7 +2803,7 @@ package body WisiToken.Syntax_Trees is
 
    function Subtree_Image
      (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
+      Node        : in Node_Access;
       Non_Grammar : in Boolean := False;
       Level       : in Integer := 0)
      return String
@@ -2801,15 +2811,21 @@ package body WisiToken.Syntax_Trees is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := +"" & ASCII.LF;
    begin
-      Result := @ & Decimal_Image (Node.Node_Index, Width => 4) & ": ";
+      Result := @ &
+        (if Node = Invalid_Node_Access
+         then "    "
+         else Decimal_Image (Node.Node_Index, Width => 4)) & ": ";
       for I in 1 .. Level loop
          Result := @ & "| ";
       end loop;
-      Result := @ & Image
-        (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True,
-         Non_Grammar => Non_Grammar);
+      Result := @ &
+        (if Node = Invalid_Node_Access
+         then "<deleted>"
+         else Image
+           (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True,
+            Non_Grammar => Non_Grammar));
 
-      if Node.Label = Nonterm then
+      if Node /= Invalid_Node_Access and then Node.Label = Nonterm then
          for Child of Node.Children loop
             Result := @ & Subtree_Image (Tree, Child, Non_Grammar, Level + 1);
          end loop;
@@ -2854,6 +2870,7 @@ package body WisiToken.Syntax_Trees is
    begin
       for Child of Nonterm.Children loop
          Push (Tree, Parse_Stream, Child);
+         Child.Parent := Invalid_Node_Access;
       end loop;
    end Undo_Reduce;
 
@@ -3018,7 +3035,8 @@ package body WisiToken.Syntax_Trees is
          Real_Root := Root;
          Process_Tree (Tree, Root, Process_Node'Access);
       else
-         if Tree.Streams.Length = 0 then
+         if Tree.Streams.Length <= 1 then
+            --  Only the terminal stream exists; probably packrat
             if Tree.Root = Invalid_Node_Access then
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, 1, "... invalid_tree: Tree.Root not set"));

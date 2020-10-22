@@ -434,7 +434,7 @@ semantic check OK
 semantic check OK
  ... goto state 64
  1: 64: 67:(IS, (455 . 456)) : spawn 2, (2 active)
-tree size:  336
+tree size:  350
  2: 64: 67:(IS, (455 . 456)) : reduce 0 tokens to parameter_profile
 (parameter_profile_1) <= ()
  ... goto state 121
@@ -774,7 +774,7 @@ semantic check OK
 semantic check OK
  ... goto state 64
  2: 64: 109:(IS, (645 . 646)) : spawn 3, (2 active)
-tree size:  472
+tree size:  665
  3: 64: 109:(IS, (645 . 646)) : reduce 0 tokens to parameter_profile
 (parameter_profile_1) <= ()
  ... goto state 121

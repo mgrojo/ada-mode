@@ -249,6 +249,11 @@ package body WisiToken.Lexer.Regexp is
       return False;
    end Find_Next;
 
+   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region
+   is begin
+      return Buffer_Region_Byte (Lexer.Source);
+   end Buffer_Region_Byte;
+
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
    is begin
       return Lexer.Source.Buffer (Integer (Byte_Region.First) .. Integer (Byte_Region.Last));

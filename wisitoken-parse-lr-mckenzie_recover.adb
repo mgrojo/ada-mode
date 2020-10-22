@@ -140,10 +140,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
              when Action => "Action",
              when Check => "Check, " & Semantic_Checks.Image (Error.Check_Status, Shared_Parser.Descriptor.all),
              when Message => raise SAL.Programmer_Error));
-         if Trace_McKenzie > Extra then
-            Put_Line
-              (Trace, Shared_Parser.Tree, Parser_State.Stream, "stack: " & Parser_Lists.Image
-                 (Parser_State.Stream, Shared_Parser.Tree));
+         if Trace_McKenzie > Detail then
+            Trace.Put_Line (Shared_Parser.Tree.Image (Parser_State.Stream, Children => Trace_McKenzie > Extra));
          end if;
       end if;
 
