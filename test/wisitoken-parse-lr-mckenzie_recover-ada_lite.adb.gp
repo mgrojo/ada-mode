@@ -708,7 +708,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             else
                case To_Token_Enum (Tokens (Next_Index)) is
                when IF_ID =>
-                  Result := To_Vector ((+IF_ID, +THEN_ID));
+                  Result := To_Vector (+IF_ID);
 
                when IDENTIFIER_ID =>
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then

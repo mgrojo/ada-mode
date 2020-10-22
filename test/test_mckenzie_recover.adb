@@ -239,7 +239,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => 118,
+         Enqueue_Low             => 147,
          Check_Low               => 25,
          Cost                    => 5);
 
@@ -251,7 +251,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => 118,
+         Enqueue_Low             => 147,
          Check_Low               => 25,
          Cost                    => 5);
 
@@ -263,7 +263,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (1, 0),
          Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
          Strategy_Counts         => (Minimal_Complete => 1, Insert => 1, others => 0),
-         Enqueue_Low             => 118,
+         Enqueue_Low             => 147,
          Check_Low               => 25,
          Cost                    => 5);
    end Empty_Comments;
@@ -738,11 +738,11 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +AND_ID,
          Error_Token_Byte_Region => (28, 30),
-         Ops                     => +(Delete, +AND_ID, 6),
-         Strategy_Counts    => (Delete => 1, others => 0),
-         Enqueue_Low        => 81,
-         Check_Low          => 15,
-         Cost               => 4);
+         Ops                     => +(Insert, +NUMERIC_LITERAL_ID, 6),
+         Strategy_Counts    => (Minimal_Complete => 1, others => 0),
+         Enqueue_Low        => 10,
+         Check_Low          => 2,
+         Cost               => 1);
    end Error_Token_When_Parallel;
 
    procedure If_In_Handler (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1456,7 +1456,7 @@ package body Test_McKenzie_Recover is
            (Fast_Forward, 14) & (Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
            (Insert, +SEMICOLON_ID, 13),
       Strategy_Counts            => (Language_Fix => 1, Minimal_Complete => 2, others => 0),
-      Enqueue_Low                => (case Test.Alg is when LALR => 116, when LR1 => 117),
+      Enqueue_Low                => (case Test.Alg is when LALR => 119, when LR1 => 120),
       Check_Low                  => 11,
       Cost                       => 2);
    end Actual_Parameter_Part_1;
@@ -1642,7 +1642,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 79,
+         Enqueue_Low             => 77,
          Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 6),
          Cost                    => 1);
    end String_Quote_4;
@@ -1676,8 +1676,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 7) & (Delete, +IDENTIFIER_ID, 7) &
            (Fast_Forward, 10) & (Insert, +END_ID, 10) & (Insert, +SEMICOLON_ID, 10),
          Strategy_Counts         => (Minimal_Complete => 2, String_Quote => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 244, when LR1 => 251),
-         Check_Low               => 24,
+         Enqueue_Low             => (case Test.Alg is when LALR => 230, when LR1 => 235),
+         Check_Low               => 22,
          Cost                    => 3);
    end String_Quote_5;
 
@@ -1776,7 +1776,8 @@ package body Test_McKenzie_Recover is
       Test : Test_Case renames Test_Case (T);
    begin
       --  Similar to Minimal_Complete_Full_Reduce_1; Matching_Begin_Token
-      --  quickly gives "insert if then".
+      --  and minimal_complete quickly gives "insert if NUMERIC_LITERAL
+      --  then".
 
       Parse_Text ("A; end if;");
 
@@ -1784,11 +1785,11 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (4, 6),
-         Ops                     => +(Insert, +IF_ID, 3) & (Insert, +THEN_ID, 3),
-         Strategy_Counts         => (Matching_Begin => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 17, when LR1 => 16),
-         Check_Low               => 2,
-         Cost                    => 0);
+         Ops                     => +(Insert, +IF_ID, 3) & (Insert, +NUMERIC_LITERAL_ID, 3) & (Insert, +THEN_ID, 3),
+         Strategy_Counts         => (Matching_Begin => 1, Minimal_Complete => 2, others => 0),
+         Enqueue_Low             => (case Test.Alg is when LALR => 79, when LR1 => 78),
+         Check_Low               => 7,
+         Cost                    => 2);
    end Minimal_Complete_Full_Reduce_2;
 
    procedure Minimal_Complete_Full_Reduce_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -2011,8 +2012,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (23, 23),
          Ops                     => +(Insert, +WHEN_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4) &
            (Insert, +EQUAL_GREATER_ID, 4) & (Insert, +IF_ID, 4) & (Insert, +NUMERIC_LITERAL_ID, 4),
-         Strategy_Counts         => (Minimal_Complete => 3, Insert => 2, others => 0),
-         Cost                    => 11);
+         Strategy_Counts         => (Minimal_Complete => 4, Insert => 1, others => 0),
+         Cost                    => 8);
 
       Check_Recover
         (Errors_Length           => 2,
@@ -2083,11 +2084,11 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (46, 46),
          Ops                     =>
            +(Delete, +RIGHT_PAREN_ID, 12) & (Insert, +SEMICOLON_ID, 13) & (Insert, +IF_ID, 13) &
-             (Insert, +THEN_ID, 13),
-         Strategy_Counts         => (Minimal_Complete => 1, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 235, when LR1 => 207),
-         Check_Low               => (case Test.Alg is when LALR => 38, when LR1 => 34),
-         Cost                    => 5);
+             (Insert, +NUMERIC_LITERAL_ID, 13) & (Insert, +THEN_ID, 13),
+         Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, Delete => 1, others => 0),
+         Enqueue_Low             => (case Test.Alg is when LALR => 904, when LR1 => 933),
+         Check_Low               => (case Test.Alg is when LALR => 123, when LR1 => 122),
+         Cost                    => 7);
    end Do_Delete_First;
 
    procedure Forbid_Minimal_Complete (T : in out AUnit.Test_Cases.Test_Case'Class)
