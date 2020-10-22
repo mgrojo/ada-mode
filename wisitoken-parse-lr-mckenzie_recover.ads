@@ -72,7 +72,7 @@ private
       Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token
-   with Pre  => Tree.Contains (Tree.Terminal_Stream, Terminals_Current);
+   with Pre  => Tree.Contains (Tree.Shared_Stream, Terminals_Current);
    --  Return the current token, from either Tree (Terminal_Stream) or
    --  Insert_Delete; set up for Next_Token.
    --
@@ -203,12 +203,12 @@ private
       Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
      return Base_Token
    with Pre  => Terminals_Current = Syntax_Trees.Invalid_Stream_Index or else
-                Tree.Contains (Tree.Terminal_Stream, Terminals_Current);
+                Tree.Contains (Tree.Shared_Stream, Terminals_Current);
    --  Return the next token, from either Terminals or Insert_Delete;
    --  update Terminals_Current or Current_Insert_Delete.
    --
    --  Terminals_Current = Syntax_Trees.Invalid_Stream_Index means we are
-   --  before the first token in Tree.Terminal_Stream; update
+   --  before the first token in Tree.Shared_Stream; update
    --  Terminals_current to the first token, unless input comes from
    --  Insert_Delete.
    --

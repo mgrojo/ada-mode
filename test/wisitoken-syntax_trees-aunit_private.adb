@@ -145,7 +145,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
            (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
             Computed, (Cur => Computed_Stream),
             Expected, (Cur => Expected_Stream),
-            Node_Numbers => Node_Numbers or Computed.Terminal_Stream.Cur = Computed_Stream);
+            Node_Numbers => Node_Numbers or Computed.Shared_Stream.Cur = Computed_Stream);
 
          Next (Expected_Stream);
          Next (Computed_Stream);

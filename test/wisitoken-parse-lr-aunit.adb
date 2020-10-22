@@ -171,7 +171,7 @@ package body WisiToken.Parse.LR.AUnit is
       case Computed.Op is
       when Fast_Forward =>
          Check (Label & ".ff_token_index", Tree.Get_Element_Index
-                  (Tree.Terminal_Stream, Computed.FF_Token_Index), Expected.FF_Token_Index);
+                  (Tree.Shared_Stream, Computed.FF_Token_Index), Expected.FF_Token_Index);
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
@@ -180,7 +180,7 @@ package body WisiToken.Parse.LR.AUnit is
       when Push_Back =>
          Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);
          Check (Label & ".token_index", Tree.Get_Element_Index
-                  (Tree.Terminal_Stream, Computed.PB_Token_Index), Expected.PB_Token_Index);
+                  (Tree.Shared_Stream, Computed.PB_Token_Index), Expected.PB_Token_Index);
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
@@ -190,13 +190,13 @@ package body WisiToken.Parse.LR.AUnit is
             null;
          else
             Check (Label & ".ins_before", Tree.Get_Element_Index
-                     (Tree.Terminal_Stream, Computed.Ins_Before), Expected.Ins_Before);
+                     (Tree.Shared_Stream, Computed.Ins_Before), Expected.Ins_Before);
          end if;
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
          Check (Label & ".token_index", Tree.Get_Element_Index
-                  (Tree.Terminal_Stream, Computed.Del_Token_Index), Expected.Del_Token_Index);
+                  (Tree.Shared_Stream, Computed.Del_Token_Index), Expected.Del_Token_Index);
       end case;
    end Check;
 

@@ -31,17 +31,15 @@ incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
 
-    delete Node.Terminal_index?
-
-    rename terminal_stream to shared_stream
-        batch parse - contains shared terminals
-        incremental - contains edited parse tree, new shared terminals
-            no virtuals adjacent to edits; keep other virtuals
-            edit_tree deletes existing shared_stream, relabels existing parse stream
+    change edit_Tree to update shared_stream, not a parse stream + terminal stream
+        relabel existing parse stream as shared_stream, then edit
 
     run all tests
 
     more tests; see fixmes in test_incremental, parse_incremental
+
+    edit after error recovery:
+        no virtuals adjacent to edits; keep other virtuals
 
     don't copy entire tree in New_Stream
         bring back set_parents

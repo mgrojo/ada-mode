@@ -98,7 +98,7 @@ begin
                              Op.Ins_Before =
                              (if Parser_State.Inc_Shared_Token
                               then Shared_Parser.Tree.Stream_Next
-                                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)
+                                (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token)
                               else Parser_State.Shared_Token)
                            then
                               Result := True;
@@ -124,7 +124,7 @@ begin
 
                   elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Index or else
                     (if Parser_State.Inc_Shared_Token
-                     then Shared_Parser.Tree.Stream_Next (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token)
+                     then Shared_Parser.Tree.Stream_Next (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token)
                      else Parser_State.Shared_Token) /= Syntax_Trees.Invalid_Stream_Index
                   then
                      if Parser_State.Inc_Shared_Token then
@@ -133,10 +133,10 @@ begin
                         --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
                         if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Index then
                            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First
-                             (Shared_Parser.Tree.Terminal_Stream);
+                             (Shared_Parser.Tree.Shared_Stream);
                         else
                            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_Next
-                             (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token);
+                             (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token);
                         end if;
                      else
                         Parser_State.Inc_Shared_Token := True;
@@ -566,7 +566,7 @@ begin
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                            Token : constant Base_Token := Shared_Parser.Tree.Base_Token
                              (Shared_Parser.Tree.Get_Node
-                                (Shared_Parser.Tree.Terminal_Stream, Parser_State.Shared_Token));
+                                (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token));
                         begin
                            raise WisiToken.Parse_Error with Error_Message
                              (Shared_Parser.Lexer.File_Name, Token.Line,

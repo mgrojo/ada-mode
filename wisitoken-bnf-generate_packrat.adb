@@ -72,9 +72,9 @@ is
       Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;");
       Indent_Line ("Tree       : Syntax_Trees.Tree renames Parser.Tree;");
       Indent_Line
-        ("Start_Pos  : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Tree.Terminal_Stream, Last_Pos);");
+        ("Start_Pos  : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Tree.Shared_Stream, Last_Pos);");
       Indent_Line ("Start_Pos_Index : constant Syntax_Trees.Element_Index :=");
-      Indent_Line ("  Tree.Get_Element_Index (Tree.Terminal_Stream, Start_Pos);");
+      Indent_Line ("  Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos);");
       Indent_Line ("Pos        : Syntax_Trees.Stream_Index := Last_Pos; --  last token parsed.");
       Indent_Line ("Next_Pos   : Syntax_Trees.Stream_Index := Start_Pos;");
 
@@ -166,7 +166,7 @@ is
                elsif RHS.Tokens.Length = 1 then
                   Indent_Start (" Children        => ");
                   if RHS.Tokens (RHS.Tokens.First_Index) in Terminal then
-                     Put ("(1 => Tree.Get_Node (Tree.Terminal_Stream, Pos_" &
+                     Put ("(1 => Tree.Get_Node (Tree.Shared_Stream, Pos_" &
                             Var_Suffix (RHS_Index, RHS.Tokens.First_Index) & ")),");
                   else
                      Put ("(1 => Memo_" & Var_Suffix (RHS_Index, RHS.Tokens.First_Index) & ".Result),");
@@ -181,7 +181,7 @@ is
                           ((if Token_Index = RHS.Tokens.First_Index
                             then "  ("
                             else "   ") &
-                             "Tree.Get_Node (Tree.Terminal_Stream, Pos_" & Var_Suffix (RHS_Index, Token_Index) & ")");
+                             "Tree.Get_Node (Tree.Shared_Stream, Pos_" & Var_Suffix (RHS_Index, Token_Index) & ")");
                      else
                         Indent_Start
                           ((if Token_Index = RHS.Tokens.First_Index
@@ -219,7 +219,7 @@ is
          begin
             Indent_Wrap_Comment (Productions.Image (Prod.LHS, RHS_Index, RHS.Tokens, Descriptor), Ada_Comment);
             Indent_Line ("Pos := Last_Pos;");
-            Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Terminal_Stream, Pos);");
+            Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);");
 
             if RHS.Tokens.Length = 0 then
                Finish;
@@ -230,10 +230,10 @@ is
                      Var_Suf : constant String := Var_Suffix (RHS_Index, Token_Index);
                   begin
                      if RHS.Tokens (Token_Index) in Terminal then
-                        Indent_Line ("if Tree.ID (Tree.Terminal_Stream, Next_Pos) = " & ID & " then");
+                        Indent_Line ("if Tree.ID (Tree.Shared_Stream, Next_Pos) = " & ID & " then");
                         Indent := Indent + 3;
                         Indent_Line ("Pos := Next_Pos;");
-                        Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Terminal_Stream, Pos);");
+                        Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);");
                         Indent_Line ("Pos_" & Var_Suf & " := Pos;");
                         if Token_Index = RHS.Tokens.Last_Index then
                            Finish;
@@ -251,7 +251,7 @@ is
                         Indent_Line ("when Success =>");
                         Indent := Indent + 3;
                         Indent_Line ("Pos := Memo_" & Var_Suf & ".Last_Pos;");
-                        Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Terminal_Stream, Pos);");
+                        Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);");
                         if Token_Index = RHS.Tokens.Last_Index then
                            Finish;
                         end if;
@@ -286,8 +286,8 @@ is
          Indent_Line ("<<Finish>>");
          Indent_Line ("if Result_Recurse.State = Success then");
          Indent := Indent + 3;
-         Indent_Line ("if Tree.Get_Element_Index (Tree.Terminal_Stream, Pos) >");
-         Indent_Line ("  Tree.Get_Element_Index (Tree.Terminal_Stream, Pos_Recurse_Last)");
+         Indent_Line ("if Tree.Get_Element_Index (Tree.Shared_Stream, Pos) >");
+         Indent_Line ("  Tree.Get_Element_Index (Tree.Shared_Stream, Pos_Recurse_Last)");
          Indent_Line ("then");
          --  made progress, try again
          Indent := Indent + 3;

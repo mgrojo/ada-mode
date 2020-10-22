@@ -43,9 +43,9 @@ package body WisiToken.Parse.Packrat.Generated is
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
            (Parser.Tree.Get_Element_Index
-              (Parser.Tree.Terminal_Stream, Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
             Parser.Tree.Get_Element_Index
-              (Parser.Tree.Terminal_Stream, Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 
       Result := Parser.Parse_WisiToken_Accept (Parser, Syntax_Trees.Invalid_Stream_Index);
