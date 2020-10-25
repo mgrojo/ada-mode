@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  A generalized LR parser, with no error recovery, no semantic checks.
+--  A generalized LR parser, with no error recovery, no semantic
+--  checks, no incremental parse.
 --
 --  This allows wisi-generate (which uses the generated wisi_grammar)
 --  to not depend on wisitoken-lr-mckenzie_recover, so editing that

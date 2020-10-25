@@ -28,7 +28,7 @@ package body WisiToken.Parse.Packrat.Generated is
       Result : Memo_Entry;
    begin
       Parser.Tree.Clear;
-      --  Creates the terminal stream, but no parse stream; packrat does not
+      --  Creates Shared_Stream, but no parse stream; packrat does not
       --  use a parse stream.
 
       if Parser.User_Data /= null then

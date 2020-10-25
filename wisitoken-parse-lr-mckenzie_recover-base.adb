@@ -337,6 +337,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
       is
+         use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+
          Configs_Count : constant SAL.Base_Peek_Type := Configs.Count; -- Before it is emptied, for Trace.
 
          P_Status : Base.Parser_Status renames Parser_Status (Parser_Index);
@@ -349,7 +351,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          loop
             exit when Configs.Count = 0;
 
-            pragma Assert (Configs.Peek.Current_Shared_Token /= Syntax_Trees.Invalid_Stream_Index);
+            pragma Assert (Configs.Peek.Current_Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref);
             Data.Config_Heap.Add (Configs.Remove);
          end loop;
 

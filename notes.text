@@ -32,17 +32,42 @@ incremental parse
     test/test_incremental.adb
 
     change edit_Tree to update shared_stream, not a parse stream + terminal stream
-        relabel existing parse stream as shared_stream, then edit
+        compiles; test fails
+
+    validate_tree verify node_index order on shared_terminals in shared_stream
 
     run all tests
 
+    rename -parser-parse.adb to -parse_batch.adb
+
+    edit_tree delete unreachable nodes (from terminated parse streams)
+        use mark and sweep
+        time it in ada-mode
+
+    run all tests
+
+    test Parser.line_begin_token
+
     more tests; see fixmes in test_incremental, parse_incremental
+
+    error recover push_back nonterm makes no sense, since contained terminals may not be in shared_stream
+        must do combination of undo_reduce, push_back single terminal
+
+    error recover delete may need left_breakdown (shared_stream)
+        make that expensive, or just don't do it.
+        copy to config.input_stream?
 
     edit after error recovery:
         no virtuals adjacent to edits; keep other virtuals
 
     don't copy entire tree in New_Stream
         bring back set_parents
+        eliminate state in tree node by computing from parse_table, current_state and id shifted.
+            wagner graham 1998
+            or change node.state to array (stream_id)?
+        store current_state in config
+        shared_stream needs parents for next_shared_Terminal
+        other streams don't set new parents.
 
     optimize use of First_Terminal in parse
         enhance the parse table to store reduce actions on nonterms as well as terminals
@@ -54,14 +79,7 @@ incremental parse
     could merge edit_tree, parse_incremental
         wagner graham 1998
         is edit_tree useful for packrat incremental?
-
-    can eliminate state in tree node by computing from parse_table, current_state and id shifted.
-        wagner graham 1998
-        store current_state in config
-        also bring back set_parents
-            => don't need to copy shared nodes in shift, or entire tree in New_Stream; major simplification
-        calls parse_table operations much more often; will slow down undo_reduce, breakdown
-        do this in new branch after incremental parse working, compare space, speed.
+        tree-sitter has edit_tree
 
     [Wagner Graham 1998] doesn't modify the tree structure for
         Left_Breakdown; it just moves the Current_Token pointer around.

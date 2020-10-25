@@ -246,9 +246,9 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Matching_Begin;
       Ignore_Check_Fail           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
-      Check_Limit                 : Syntax_Trees.Element_Index :=
+      Check_Limit                 : Syntax_Trees.Node_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
-      Zombie_Limit                : Syntax_Trees.Element_Index :=
+      Zombie_Limit                : Syntax_Trees.Node_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Zombie_Limit;
       Check_Delta_Limit           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Delta_Limit;

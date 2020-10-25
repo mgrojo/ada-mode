@@ -2,7 +2,7 @@
 --
 --  Instantiation
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,4 +22,4 @@ with Gen_LR_Parser_No_Recover_Run;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure Run_WisiToken_Grammar is new Gen_LR_Parser_No_Recover_Run
-  (Wisitoken_Grammar_Actions.Descriptor, Wisitoken_Grammar_Main.Create_Parser);
+  (Wisitoken_Grammar_Actions.Descriptor'Access, Wisitoken_Grammar_Main.Create_Parser);

@@ -57,10 +57,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Result : List
       do
          Result.Elements.Append
-           ((Stream =>
-               (if Tree.Fully_Parsed
-                then Tree.First_Parse_Stream
-                else Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null)),
+           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null),
              others => <>));
       end return;
    end New_List;
@@ -162,7 +159,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Trace.Put_Line
               (" " & Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-                 ": " & Message & " " & Tree.Image (State.Current_Token, Terminal_Node_Numbers => True));
+                 ": " & Message & " " & Tree.Image (State.Current_Token));
          end if;
 
          Tree.Delete_Stream (State.Stream);
@@ -284,7 +281,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       New_Item : Parser_State;
    begin
       declare
-         use all type WisiToken.Syntax_Trees.Stream_Index;
+         use all type WisiToken.Syntax_Trees.Terminal_Ref;
 
          Item : Parser_State renames Parser_State_Lists.Variable_Ref (Cursor.Ptr);
          --  We can't do 'Prepend' in the scope of this 'renames';
@@ -300,7 +297,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Current_Token                 =>
               (if Item.Shared_Token = Item.Current_Token
                then Item.Current_Token
-               else Syntax_Trees.Invalid_Stream_Index), --  corrected below.
+               else Syntax_Trees.Invalid_Terminal_Ref), --  corrected below.
             Inc_Shared_Token              => Item.Inc_Shared_Token,
             Recover                       =>
               (Enqueue_Count              => Item.Recover.Enqueue_Count,
@@ -316,7 +313,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Verb                          => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
-            New_Item.Current_Token := Tree.Stream_Next (New_Item.Stream, Tree.Peek (New_Item.Stream));
+            New_Item.Current_Token := Tree.First_Input (New_Item.Stream);
 
             declare
                use all type WisiToken.Syntax_Trees.Node_Access;
@@ -328,7 +325,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             begin
                pragma Assert (Item_Op.Op = Insert);
 
-               if Tree.Get_Node (Item.Stream, Item.Current_Token) = Item_Op.Ins_Node then
+               if Item.Current_Token.Node = Item_Op.Ins_Node then
                   declare
                      New_Item_Op : Recover_Op_Arrays.Variable_Reference_Type renames
                        New_Item.Recover_Insert_Delete.Variable_Ref
@@ -336,7 +333,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                            then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
                            else New_Item.Recover_Insert_Delete_Current - 1));
                   begin
-                     New_Item_Op.Ins_Node := Tree.Get_Node (New_Item.Stream, New_Item.Current_Token);
+                     New_Item_Op.Ins_Node := New_Item.Current_Token.Node;
                   end;
                end if;
             end;

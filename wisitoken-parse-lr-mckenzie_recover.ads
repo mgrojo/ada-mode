@@ -66,44 +66,45 @@ private
    --  Check that ID = Expected_ID; raise Bad_Config if not.
 
    function Current_Token
-     (Tree                      :         in     Syntax_Trees.Tree;
-      Terminals_Current         :         in out Syntax_Trees.Stream_Index;
-      Restore_Terminals_Current :            out Syntax_Trees.Stream_Index;
-      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
-      Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
+     (Tree                            :         in     Syntax_Trees.Tree;
+      Current_Shared_Terminal         :         in out Syntax_Trees.Terminal_Ref;
+      Restore_Current_Shared_Terminal :            out Syntax_Trees.Terminal_Ref;
+      Insert_Delete                   : aliased in out Config_Op_Arrays.Vector;
+      Current_Insert_Delete           :         in out SAL.Base_Peek_Type)
      return Base_Token
-   with Pre  => Tree.Contains (Tree.Shared_Stream, Terminals_Current);
-   --  Return the current token, from either Tree (Terminal_Stream) or
+   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   --  Return the current token, from either Tree.Shared_Stream or
    --  Insert_Delete; set up for Next_Token.
    --
    --  See Next_Token for more info.
 
    function Current_Token_ID_Peek
-     (Tree                  :         in Syntax_Trees.Tree;
-      Terminals_Current     :         in Syntax_Trees.Stream_Index;
-      Insert_Delete         : aliased in Config_Op_Arrays.Vector;
-      Current_Insert_Delete :         in SAL.Base_Peek_Type)
-     return Token_ID;
-   --  Return the current token from either Tree (Terminal_Stream) or
+     (Tree                    :         in Syntax_Trees.Tree;
+      Current_Shared_Terminal :         in Syntax_Trees.Terminal_Ref;
+      Insert_Delete           : aliased in Config_Op_Arrays.Vector;
+      Current_Insert_Delete   :         in SAL.Base_Peek_Type)
+     return Token_ID
+   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   --  Return the current token from either Tree.Terminal_Stream or
    --  Insert_Delete, without setting up for Next_Token.
 
    procedure Current_Token_ID_Peek_3
-     (Tree                  :         in     Syntax_Trees.Tree;
-      Terminals_Current     :         in     Syntax_Trees.Stream_Index;
-      Insert_Delete         : aliased in     Config_Op_Arrays.Vector;
-      Current_Insert_Delete :         in     SAL.Base_Peek_Type;
-      Tokens                :            out Token_ID_Array_1_3);
-   --  Return the current token (in Tokens (1)) from either Tree
-   --  (Terminal_Stream) or Insert_Delete, without setting up for
+     (Tree                    :         in     Syntax_Trees.Tree;
+      Current_Shared_Terminal :         in     Syntax_Trees.Terminal_Ref;
+      Insert_Delete           : aliased in     Config_Op_Arrays.Vector;
+      Current_Insert_Delete   :         in     SAL.Base_Peek_Type;
+      Tokens                  :            out Token_ID_Array_1_3)
+   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   --  Return the current token (in Tokens (1)) from either
+   --  Tree.Shared_Stream or Insert_Delete, without setting up for
    --  Next_Token. Return the two following tokens in Tokens (2 .. 3).
 
    procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
       ID     : in     Token_ID);
-   --  Check that Tree (Terminal_Stream, Config.Current_Shared_Token) =
-   --  ID. Append a Delete op to Config.Ops, and insert it in
-   --  Config.Insert_Delete in token_index order.
+   --  Check that Config.Current_Shared_Token has ID. Append a Delete op
+   --  to Config.Ops, and append it to Config.Insert_Delete.
    --
    --  This or the next routine must be used instead of Config.Ops.Append
    --  (Delete...) unless the code also takes care of changing
@@ -114,17 +115,16 @@ private
    procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
-      Index  : in out Syntax_Trees.Stream_Index;
+      Ref    : in out Syntax_Trees.Terminal_Ref;
       ID     : in     Token_ID);
-   --  Check that Tree (Terminal_Stream, Index) = ID. Append a Delete op
-   --  to Config.Ops, and insert it in Config.Insert_Delete in
-   --  token_index order. Increments Index, for convenience when deleting
-   --  several tokens.
+   --  Check that Ref has ID. Append a Delete op to Config.Ops, and
+   --  append it to Config.Insert_Delete. Increments Ref, for convenience
+   --  when deleting several tokens.
 
    procedure Delete
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
-      Index  : in out Syntax_Trees.Stream_Index);
+      Ref    : in out Syntax_Trees.Terminal_Ref);
    --  Same as Delete_Check, without the check.
 
    function Find_ID
@@ -186,46 +186,43 @@ private
    --  Also count tokens with ID = Other_ID.
 
    procedure Insert (Config : in out Configuration; ID : in Token_ID);
-   --  Append an Insert op at Config.Current_Shared_Token, to Config.Ops,
-   --  and insert it in Config.Insert_Deleted in token_index order.
+   --  Append an Insert before Config.Current_Shared_Token op to
+   --  Config.Ops, and append it to Config.Insert_Deleted.
 
    procedure Insert (Config : in out Configuration; IDs : in Token_ID_Array);
    --  Call Insert for each item in IDs.
 
-   procedure Insert (Config : in out Configuration; Index : in Syntax_Trees.Stream_Index; ID : in Token_ID);
-   --  Same as Insert, but at Index, not Config.Current_Shared_Token.
+   procedure Insert (Config : in out Configuration; Ref : in Syntax_Trees.Terminal_Ref; ID : in Token_ID);
+   --  Same as Insert, but before Ref, not Config.Current_Shared_Token.
 
    function Next_Token
-     (Tree                      :         in     Syntax_Trees.Tree;
-      Terminals_Current         :         in out Syntax_Trees.Stream_Index;
-      Restore_Terminals_Current :         in out Syntax_Trees.Stream_Index;
-      Insert_Delete             : aliased in out Config_Op_Arrays.Vector;
-      Current_Insert_Delete     :         in out SAL.Base_Peek_Type)
+     (Tree                            :         in     Syntax_Trees.Tree;
+      Current_Shared_Terminal         :         in out Syntax_Trees.Terminal_Ref;
+      Restore_Current_Shared_Terminal :         in out Syntax_Trees.Terminal_Ref;
+      Insert_Delete                   : aliased in out Config_Op_Arrays.Vector;
+      Current_Insert_Delete           :         in out SAL.Base_Peek_Type)
      return Base_Token
-   with Pre  => Terminals_Current = Syntax_Trees.Invalid_Stream_Index or else
-                Tree.Contains (Tree.Shared_Stream, Terminals_Current);
-   --  Return the next token, from either Terminals or Insert_Delete;
-   --  update Terminals_Current or Current_Insert_Delete.
+   with Pre => Syntax_Trees.Valid_Terminal_Ref (Tree, Tree.Shared_Stream, Current_Shared_Terminal);
+   --  Return the next token, from either Shared_Stream or Insert_Delete;
+   --  update Current_Shared_Terminal or Current_Insert_Delete.
    --
-   --  Terminals_Current = Syntax_Trees.Invalid_Stream_Index means we are
+   --  Current_Shared_Terminal = Syntax_Trees.Invalid_Terminal_Ref means we are
    --  before the first token in Tree.Shared_Stream; update
-   --  Terminals_current to the first token, unless input comes from
+   --  Current_Shared_Terminal to the first token, unless input comes from
    --  Insert_Delete.
    --
    --  If result is Insert_Delete.Last_Index, Current_Insert_Delete =
    --  Last_Index; Insert_Delete is cleared and Current_Insert_Delete
    --  reset on next call.
    --
-   --  When done parsing, caller must reset actual Terminals_Current to
-   --  Restore_Terminals_Current.
+   --  When done parsing, caller must reset actual Current_Shared_Terminal to
+   --  Restore_Current_Shared_Terminal.
    --
-   --  Insert_Delete contains only Insert and Delete ops, in token_index
-   --  order. Those ops are applied when Terminals_Current =
-   --  op.token_index.
+   --  Insert_Delete contains only Insert and Delete ops. Those ops are
+   --  applied when Current_Shared_Terminal = op.token_index.
 
    function Push_Back_Valid
-     (Tree               : in Syntax_Trees.Tree;
-      Target_Token_Index : in WisiToken.Syntax_Trees.Stream_Index;
+     (Target_Token_Index : in WisiToken.Syntax_Trees.Node_Index;
       Ops                : in Config_Op_Arrays.Vector;
       Prev_Op            : in Positive_Index_Type)
      return Boolean;
@@ -240,7 +237,7 @@ private
               --  in trying to redo it.
               (Config_Op_Arrays.Length (Config.Ops) = 0 or else
                  Push_Back_Valid
-                   (Tree, Config.Stack.Peek.Token.First_Terminal_Index,
+                   (Tree.Get_Node_Index (Config.Stack.Peek.Token.First_Shared_Terminal.Node),
                     Config.Ops,
                     Config_Op_Arrays.Last_Index (Config.Ops)))));
 
@@ -288,17 +285,20 @@ private
      (Stack   : in Recover_Stacks.Stack;
       Tree    : in Syntax_Trees.Tree)
      return Boolean
-     --  Check if Undo_Reduce is valid when there is no previous Config_Op.
-     --
-     --  Undo_Reduce needs to know what tokens the nonterm contains, to
-     --  push them on the stack. Thus we need a valid Tree index. It is
-     --  tempting to also allow an empty nonterm when Tree_Index is
-     --  invalid, but that fails when the real Undo_Reduce results in
-     --  another empty nonterm on the stack; see test_mckenzie_recover.adb
-     --  Error_During_Resume_3.
-     is (Stack.Depth > 1 and then
-           Stack.Peek.Node /= Syntax_Trees.Invalid_Node_Access and then
-               Tree.Is_Nonterm (Stack.Peek.Node));
+   --  Check if Undo_Reduce is valid when there is no previous Config_Op.
+   --
+   --  Undo_Reduce needs to know what tokens the nonterm contains, to
+   --  push them on the stack. Thus we need a valid Tree index. It is
+   --  tempting to also allow an empty nonterm when Tree_Index is
+   --  invalid, but that fails when the real Undo_Reduce results in
+   --  another empty nonterm on the stack; see test_mckenzie_recover.adb
+   --  Error_During_Resume_3.
+   is (Stack.Depth > 1 and then
+         (declare
+             Element : constant Syntax_Trees.Stream_Index := Stack.Peek.Token.First_Shared_Terminal.Element;
+          begin
+             Element /= Syntax_Trees.Invalid_Stream_Index and then
+                Tree.Is_Nonterm (Syntax_Trees.Get_Node (Element))));
 
    function Undo_Reduce_Valid
      (Stack   : in Recover_Stacks.Stack;
@@ -307,7 +307,7 @@ private
       Prev_Op : in Positive_Index_Type)
      return Boolean
    is (Undo_Reduce_Valid (Stack, Tree) and then
-         Push_Back_Valid (Tree, Stack.Peek.Token.First_Terminal_Index, Ops, Prev_Op));
+         Push_Back_Valid (Tree.Get_Node_Index (Stack.Peek.Token.First_Shared_Terminal.Node), Ops, Prev_Op));
    --  Check if Undo_Reduce is valid when there is a previous Config_Op.
 
    function Unchecked_Undo_Reduce

@@ -63,7 +63,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean;

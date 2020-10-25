@@ -284,15 +284,6 @@ package body WisiToken.Parse.LR is
       end if;
    end Goto_For;
 
-   function In_Goto
-     (Table : in Parse_Table;
-      State : in State_Index;
-      ID    : in Token_ID)
-     return Boolean
-   is begin
-      return Table.States (State).Goto_List.Contains (ID);
-   end In_Goto;
-
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;
@@ -648,9 +639,7 @@ package body WisiToken.Parse.LR is
    end Get_Text_Rep;
 
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is
-      use all type WisiToken.Syntax_Trees.Stream_Index;
-   begin
+   is begin
       return Left.Op = Insert and then
         Left.Ins_ID = Right.Ins_ID and then
         Left.Ins_Before = Right.Ins_Before;
@@ -731,15 +720,15 @@ package body WisiToken.Parse.LR is
         "(" & Image (Item.Op) & ", " &
         (case Item.Op is
          when Insert =>
-             (if Item.Ins_Node = Invalid_Node_Access
-              then Image (Item.Ins_ID, Tree.Descriptor.all)
-              else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & ", " &
-             Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True),
+           (if Item.Ins_Node = Invalid_Node_Access
+            then Image (Item.Ins_ID, Tree.Descriptor.all)
+            else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & "," &
+              Item.Ins_Before'Image,
          when Delete =>
-             (if Item.Del_Node = Invalid_Node_Access
-              then Tree.Image (Item.Del_Index, Terminal_Node_Numbers => True)
-              else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) & ", " &
-              (if Item.Del_After_Node = Invalid_Node_Access
+           (if Item.Del_Node = Invalid_Node_Access
+            then Item.Del_Index'Image
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) & ", " &
+             (if Item.Del_After_Node = Invalid_Node_Access
               then "-"
               else Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
         & ")";
@@ -747,10 +736,10 @@ package body WisiToken.Parse.LR is
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
+      use all type WisiToken.Syntax_Trees.Stream_Index;
    begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Node = Syntax_Trees.Invalid_Node_Access then
+         if Stack.Peek (I).Token.First_Shared_Terminal.Element = Syntax_Trees.Invalid_Stream_Index then
             return False;
          end if;
       end loop;

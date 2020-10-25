@@ -60,9 +60,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
       case Computed.Label is
       when Shared_Terminal =>
-         Check (Label & ".terminal_index",
-                Stream_Element_Lists.Constant_Ref (Computed.Terminal_Index.Cur).Index,
-                Stream_Element_Lists.Constant_Ref (Expected.Terminal_Index.Cur).Index);
          Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Virtual_Terminal =>
@@ -110,10 +107,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Expected : Stream_Element renames Constant_Ref (Expected_Element);
          begin
             Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
-            if Node_Numbers then
-               Check (Label & I'Image & ".index", Computed.Index, Expected.Index);
-            end if;
-            Check (Label & ".node" & Computed.Index'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
+            Check (Label & ".node" & I'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
          end;
 
          Computed_Element := Next (@);

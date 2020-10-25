@@ -94,6 +94,7 @@ package WisiToken is
    --  Token IDs
 
    type Token_ID is range 0 .. 2**15 - 1;
+   for Token_ID'Size use 16;
    --  0 origin to match elisp array, 16 bits to reduce storage, signed
    --  to match generics. Biggest language will have < 500 token ids; Ada
    --  2020 has 481, Java 19 has 321.

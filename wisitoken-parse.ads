@@ -24,23 +24,22 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
-   type Tree_Ref is record
-      Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;  -- For post-parse actions
-      Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index; -- For error recover stream_prev/_next
-   end record;
    package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Tree_Ref, Default_Element => (others => <>));
+     (Line_Number_Type, Syntax_Trees.Terminal_Ref, Default_Element => (others => <>));
+   --  Tree_Ref in Shared_Stream; needed by Prev_Shared_Terminal in error
+   --  recover Try_Insert_Quote. In post-parse actions, Element is
+   --  Invalid_Stream_Index.
 
    type Wrapped_Lexer_Error is record
-      Recover_Token_Index : Syntax_Trees.Stream_Index;
+      Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
       --
-      --  If the error token is a grammar token, Recover_Token_Index is in
-      --  the terminal stream; it is needed by error recovery, for
-      --  Stream_Prev/_Next.
+      --  If the error token is a grammar token, Recover_Token_Ref is in
+      --  Shared_Stream; it is needed by error recovery, for
+      --  Stream_Prev/_Next in Try_Insert_Quote.
       --
       --  If the error token is a non-grammar token, Recover_Token_Index is
-      --  Invalid_Stream_Index.
+      --  Invalid_Terminal_Ref.
 
       Error : WisiToken.Lexer.Error;
    end record;
@@ -85,7 +84,7 @@ package WisiToken.Parse is
    procedure Lex_All (Parser : in out Base_Parser'Class);
    --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
    --  call Next_Grammar_Token repeatedly until EOF_ID is returned,
-   --  storing all tokens in Parser.Tree Terminal_Stream.
+   --  storing all tokens in Parser.Tree.Shared_Stream.
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 
@@ -141,16 +140,12 @@ package WisiToken.Parse is
    procedure Edit_Tree
      (Parser : in out Base_Parser'Class;
       Edits  : in     KMN_Lists.List)
-   with Pre => Parser.Tree.Fully_Parsed;
+   with Pre => Parser.Tree.Fully_Parsed,
+     Post => Parser.Tree.Stream_Count = 1;
    --  Assumes Parser.Lexer.Source has changed in a way reflected in
-   --  Edits. Uses Edits to direct editing Parser.Tree terminal and parse
-   --  streams to reflect lexing the changed source, in preparation for
-   --  Incremental_Parse.
-   --
-   --  precondition: 1 stream for Terminals, one remaining parse tree.
-   --
-   --  FIXME: delete virtual nodes inserted by previous error recover?
-   --  FIXME: delete unreachable nodes (from terminated parse streams)? - use mark and sweep
+   --  Edits. Uses Edits to direct editing Parser.Tree parse
+   --  stream to reflect lexing the changed source, in preparation for
+   --  Incremental_Parse; result is in Tree.Shared_Stream.
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

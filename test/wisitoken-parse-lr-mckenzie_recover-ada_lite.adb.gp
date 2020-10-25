@@ -111,6 +111,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    with Pre => Config.Check_Status.Label /= Ok
    is
       use Config_Op_Arrays;
+      use all type WisiToken.Syntax_Trees.Terminal_Ref;
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
@@ -204,7 +205,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                        then +identifier_opt_ID
                        else +name_opt_ID)));
 
-                  if New_Config.Stack.Peek (1).Token.First_Terminal_Index = Syntax_Trees.Invalid_Stream_Index then
+                  if New_Config.Stack.Peek (1).Token.First_Shared_Terminal = Syntax_Trees.Invalid_Terminal_Ref then
                      --  'end' is on top of stack. We want to set Current_Shared_Token to
                      --  'end'; we can't if it has an invalid index (which it has if it was
                      --  pushed after a previous fix).
@@ -282,9 +283,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          end if;
 
          if Config.Stack.Depth >= 4 and then
-           Config.Stack.Peek (4).Node /= Syntax_Trees.Invalid_Node_Access and then
-           Tree.Find_Child (Config.Stack.Peek (4).Node, +EXCEPTION_ID) =
-           Syntax_Trees.Invalid_Node_Access
+           (declare
+               Handled_Sequence : Syntax_Trees.Recover_Token renames Config.Stack.Peek (4).Token;
+            begin
+               Syntax_Trees.Valid_Element_Node (Handled_Sequence) and then
+                  Tree.Find_Child (Syntax_Trees.Element_Node (Handled_Sequence), +EXCEPTION_ID) =
+                  Syntax_Trees.Invalid_Node_Access)
          then
             --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
@@ -320,11 +324,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Check (New_Config.Stack.Peek (1).Token.ID, +nonterminal_029_list_ID);
 #end if;
 
-               Check (+END_ID, Tree.ID (Tree.Shared_Stream, End_Item.Token.First_Terminal_Index));
-               Append (Ops, (Delete, +END_ID, End_Item.Token.First_Terminal_Index));
+               Check (+END_ID, Tree.ID (End_Item.Token.First_Shared_Terminal.Node));
+               Append (Ops, (Delete, +END_ID, Tree.Get_Node_Index (End_Item.Token.First_Shared_Terminal.Node)));
 
-               Check (+SEMICOLON_ID, Tree.ID (Tree.Shared_Stream, Semicolon_Item.Token.First_Terminal_Index));
-               Append (Ops, (Delete, +SEMICOLON_ID, Semicolon_Item.Token.First_Terminal_Index));
+               Check (+SEMICOLON_ID, Tree.ID (Semicolon_Item.Token.First_Shared_Terminal.Node));
+               Append
+                 (Ops,
+                  (Delete, +SEMICOLON_ID, Tree.Get_Node_Index
+                     (Semicolon_Item.Token.First_Shared_Terminal.Node)));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
@@ -431,7 +438,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                --  Case 1.
                declare
                   New_Config : Configuration := Config;
-                  Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  We don't increase the cost, because this is not a guess.
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
@@ -440,14 +446,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.Check_Status   := (Label => Ok);
 
                   --  Push_Back the failed reduce tokens.
-                  for I in 1 .. New_Config.Check_Token_Count loop
-                     declare
-                        Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
-                     begin
-                        Append (Ops, (Push_Back, Item.Token.ID, Item.Token.First_Terminal_Index));
-                     end;
-                  end loop;
-                  New_Config.Current_Shared_Token := New_Config.Error_Token.First_Terminal_Index;
+                  Push_Back (Tree, New_Config);
 
                   Insert (New_Config, +END_ID);
                   --  We don't insert ';' here, because we may need to insert other

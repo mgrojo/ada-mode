@@ -56,7 +56,7 @@ package body WisiToken.Parse.Packrat is
       end if;
 
       --  We don't do 'Parser.Tree.Clear_Parse_Streams; here; that deletes
-      --  the terminal stream, but those nodes are in the final tree.
+      --  Shared_Stream, but those nodes are in the final tree.
       Parser.User_Data.Initialize_Actions (Parser.Tree);
       Parser.Tree.Process_Tree (Process_Node'Access);
    end Execute_Actions;

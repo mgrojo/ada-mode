@@ -26,7 +26,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Nonterm         :    out Syntax_Trees.Recover_Token;
       Default_Virtual : in     Boolean)
    is
-      First_Terminal_Index_Set : Boolean := False;
+      use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+
+      First_Shared_Terminal_Set : Boolean := False;
    begin
       Nonterm :=
         (ID      => ID,
@@ -48,10 +50,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Nonterm.Byte_Region.Last := T.Byte_Region.Last;
          end if;
 
-         if not First_Terminal_Index_Set then
-            if T.First_Terminal_Index /= Syntax_Trees.Invalid_Stream_Index then
-               First_Terminal_Index_Set     := True;
-               Nonterm.First_Terminal_Index := T.First_Terminal_Index;
+         if not First_Shared_Terminal_Set then
+            if T.First_Shared_Terminal /= Syntax_Trees.Invalid_Terminal_Ref then
+               First_Shared_Terminal_Set     := True;
+               Nonterm.First_Shared_Terminal := T.First_Shared_Terminal;
             end if;
          end if;
       end loop;
@@ -98,7 +100,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased in out          Parse_Item_Arrays.Vector;
       Parse_Item_Index  :         in              Positive;
-      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
       Trace_Prefix      :         in              String)
      return Boolean
    is
@@ -126,13 +128,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Conflict : Parse_Action_Node_Ptr;
 
-      Restore_Terminals_Current : Syntax_Trees.Stream_Index;
-      Current_Token             : Base_Token := McKenzie_Recover.Current_Token
-        (Tree                      => Super.Tree.all,
-         Terminals_Current         => Config.Current_Shared_Token,
-         Restore_Terminals_Current => Restore_Terminals_Current,
-         Insert_Delete             => Config.Insert_Delete,
-         Current_Insert_Delete     => Config.Current_Insert_Delete);
+      Restore_Current_Shared_Terminal : Syntax_Trees.Terminal_Ref;
+      Current_Token                   : Base_Token := McKenzie_Recover.Current_Token
+        (Tree                            => Super.Tree.all,
+         Current_Shared_Terminal         => Config.Current_Shared_Token,
+         Restore_Current_Shared_Terminal => Restore_Current_Shared_Terminal,
+         Insert_Delete                   => Config.Insert_Delete,
+         Current_Insert_Delete           => Config.Current_Insert_Delete);
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
@@ -147,7 +149,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end if;
 
          Base.Put (Trace_Prefix & ": " & Image (Current_Token, Descriptor), Super, Parser_Index, Config);
-         if Shared_Token_Goal /= Syntax_Trees.Invalid_Element_Index then
+         if Shared_Token_Goal /= Syntax_Trees.Invalid_Node_Index then
             Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
                         Shared_Token_Goal'Image);
          end if;
@@ -172,7 +174,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                declare
                   New_Config : Configuration := Config;
                begin
-                  New_Config.Current_Shared_Token := Restore_Terminals_Current;
+                  New_Config.Current_Shared_Token := Restore_Current_Shared_Terminal;
 
                   if Trace_McKenzie > Detail then
                      Put_Line
@@ -191,7 +193,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Put_Line
               (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" &
                  Config.Stack.Peek.State'Image &
-                 " :" & Trimmed_Image (Config.Current_Shared_Token) &
+                 " :" & Super.Tree.Image (Config.Current_Shared_Token) &
                  ":" & Image (Current_Token, Descriptor) &
                  " : " & Image (Action.Item, Descriptor) &
                  (if Action.Item.Verb = Reduce
@@ -205,22 +207,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
             Config.Stack.Push
               ((Action.Item.State,
-                Syntax_Trees.Invalid_Node_Access,
                 (Current_Token.ID,
-                 Byte_Region        => Current_Token.Byte_Region,
-                 First_Terminal_Index =>
+                 Byte_Region           => Current_Token.Byte_Region,
+                 First_Shared_Terminal =>
                    (if Config.Current_Insert_Delete = No_Insert_Delete
                     then Config.Current_Shared_Token
-                    else Syntax_Trees.Invalid_Stream_Index),
+                    else Syntax_Trees.Invalid_Terminal_Ref),
                  Name              => Null_Buffer_Region,
                  Virtual           => Config.Current_Insert_Delete /= No_Insert_Delete)));
 
             Current_Token := Next_Token
-              (Tree                      => Super.Tree.all,
-               Terminals_Current         => Config.Current_Shared_Token,
-               Restore_Terminals_Current => Restore_Terminals_Current,
-               Insert_Delete             => Config.Insert_Delete,
-               Current_Insert_Delete     => Config.Current_Insert_Delete);
+              (Tree                            => Super.Tree.all,
+               Current_Shared_Terminal         => Config.Current_Shared_Token,
+               Restore_Current_Shared_Terminal => Restore_Current_Shared_Terminal,
+               Insert_Delete                   => Config.Insert_Delete,
+               Current_Insert_Delete           => Config.Current_Insert_Delete);
 
          when Reduce =>
             declare
@@ -246,7 +247,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      raise Bad_Config;
                   end if;
 
-                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Access, Nonterm));
+                  Config.Stack.Push ((New_State, Nonterm));
 
                when Semantic_Checks.Error =>
                   Config.Error_Token       := Nonterm;
@@ -269,15 +270,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          exit when not Success or
            Action.Item.Verb = Accept_It or
-           (if Shared_Token_Goal = Syntax_Trees.Invalid_Element_Index
+           (if Shared_Token_Goal = Syntax_Trees.Invalid_Node_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Element_Index
-              (Super.Tree.Shared_Stream, Config.Current_Shared_Token) > Shared_Token_Goal);
+            else Super.Tree.Get_Node_Index (Config.Current_Shared_Token.Node) > Shared_Token_Goal);
 
          Action := Action_For (Table, Config.Stack.Peek.State, Current_Token.ID);
       end loop;
 
-      Config.Current_Shared_Token := Restore_Terminals_Current;
+      Config.Current_Shared_Token := Restore_Current_Shared_Terminal;
 
       return Success;
    end Parse_One_Item;
@@ -288,7 +288,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Syntax_Trees.Element_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean

@@ -45,8 +45,9 @@ package WisiToken.Parse.LR.Parser_Lists is
    record
       --  Visible components for direct access
 
-      Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Last token read from input text, in Terminal_Stream.
+      Shared_Token : Syntax_Trees.Stream_Node_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      --  Next token to shift in Tree.Shared_Stream. For batch parse, this
+      --  is a Shared_Terminal; for incremental parse, any Node_Label.
 
       Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.
@@ -60,24 +61,22 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 
-      Current_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Shared_Token in Tree.Terminal_Stream when there are no error
-      --  recover tokens to insert; inserted token in parse stream when
-      --  there are.
+      Current_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Terminal_Ref;
+      --  Next token to shift, in either Tree.Shared_Stream or Parser_State.Stream.
 
       Inc_Shared_Token : Boolean := True;
 
-      --  The parse stack is Shared_Parser.Tree (Stream).
+      --  The parse stack is Shared_Parser.Tree (Parser_State.Stream).
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Syntax_Trees.Element_Index := 0;
+      Zombie_Token_Count : Syntax_Trees.Node_Index := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
-      Resume_Active          : Boolean                    := False;
-      Resume_Token_Goal      : Syntax_Trees.Element_Index := Syntax_Trees.Invalid_Element_Index;
-      Conflict_During_Resume : Boolean                    := False;
+      Resume_Active          : Boolean                 := False;
+      Resume_Token_Goal      : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Conflict_During_Resume : Boolean                 := False;
 
       Errors : Parse_Error_Lists.List;
    end record;
@@ -92,8 +91,9 @@ package WisiToken.Parse.LR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function New_List (Tree : in out Syntax_Trees.Tree) return List;
-   --  If Tree.Fully_Parsed, reuse parse stream. Otherwise, create a new one.
+   function New_List (Tree : in out Syntax_Trees.Tree) return List
+   with Pre => Tree.Parseable;
+   --  Create the first parse stream in Tree.
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 

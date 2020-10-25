@@ -1433,7 +1433,7 @@ package body WisiToken.Generate.LR is
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False)
    is
-      use all type WisiToken.Syntax_Trees.Element_Index;
+      use all type WisiToken.Syntax_Trees.Node_Index;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
 
