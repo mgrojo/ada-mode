@@ -727,6 +727,7 @@ package body WisiToken.Parse.LR.Parser is
                         --  There were no previous errors. We allow the parse to fail, on the
                         --  assumption that an otherwise correct input should not yield an
                         --  ambiguous parse.
+                        Current_Parser := Shared_Parser.Parsers.First;
                         declare
                            Token : Base_Token renames Shared_Parser.Tree.Base_Token
                              (Shared_Parser.Tree.Get_Node

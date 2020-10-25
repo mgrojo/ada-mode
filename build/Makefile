@@ -39,8 +39,9 @@ one-clean :
 	rm -rf ada_lite*
 
 #one :: one-clean
-one :: dump_tree_sitter_ada_lite_corrected.exe
-	./dump_tree_sitter_ada_lite_corrected.exe ../../org.emacs.ada-mode/test/ada_lite/ada_mode-recover_03.adb > ada_mode-recover_03.adb.tokens
+one :: GRAMMAR := java_expressions_antlr
+one ::
+	./$(GRAMMAR)_lr1_t1_run.exe -v 1 -m 3 -t 1 ../test/bnf/$(GRAMMAR).input > debug.log
 
 two-clean :
 	rm -rf debug*
@@ -48,8 +49,7 @@ two-clean :
 #two :: VERBOSITY := 1 0 0
 #two :: two-clean
 two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --output_bnf --generate Tree_sitter Ada tree_sitter ../../org.emacs.java-wisi/source/java_ch19.wy
-	tree-sitter generate ./java_ch19.js
+	./wisitoken-bnf-generate.exe -v 0 0 0 --generate LALR Ada re2c ../test/bnf/ada_lite.wy
 
 three :: GENERATE_ARGS := -v 1 0 0
 three :: one-clean

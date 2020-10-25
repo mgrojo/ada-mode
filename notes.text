@@ -27,6 +27,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+wisitoken_grammar_1.wy
+    nonterminal
+  : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
+    %((wisi-indent-action [[nil 2] 2 2 (wisi-block 2) 2]))%
+    indent not applied to (COLON | COLON_COLON_EQUAL); actions not copied to new nonterminal
+    need error
+
 incremental parse
     Rename terminal_stream to shared_stream
 
