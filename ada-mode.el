@@ -542,6 +542,7 @@ See `ff-other-file-alist'.")
     single_protected_declaration
     single_task_declaration
     subprogram_body
+    subprogram_body_stub
     subprogram_declaration
     subprogram_renaming_declaration
     subtype_declaration
@@ -1144,7 +1145,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 
 (cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
   ;; Must match code in wisi-ada.adb Initialize
-  (format "%d %d %d %d %d %d %d %d %d %d %d %d"
+  (format "%d %d %d %d %d %d %d %d %d %d %d %d %d"
 	  ada-indent
 	  ada-indent-broken
 	  (if ada-indent-comment-col-0 1 0)
@@ -1156,6 +1157,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
 	  ada-indent-use
 	  ada-indent-when
 	  ada-indent-with
+	  ada-indent-subprogram-is
 	  (if ada-end-name-optional 1 0)
 	  ))
 
@@ -1164,7 +1166,7 @@ Must match wisi-ada.ads Language_Protocol_Version.")
   )
 
 (defconst ada-wisi-partial-begin-regexp
-  ;; We have to include 'begin' here:
+  ;; We have to include 'begin' here; consider:
   ;;
   ;;
    ;;    end Copy_Node;
@@ -1174,8 +1176,12 @@ Must match wisi-ada.ads Language_Protocol_Version.")
    ;; indenting 'Destination'. If we don't include 'begin', then
    ;; 'Destination' is indented ada-indent relative to 'end
    ;; Copy_Node', and there is no error to allow us to correct it.
+   ;;
+   ;; We'd like to include 'return' for extended return statement, but
+   ;; that gets confused with 'return' in a function declaration or
+   ;; non-extended return.
 
-  (concat "\\_<begin\\_>\\|\\_<declare\\_>\\|\\_<do\\_>\\|"
+  (concat "\\_<begin\\_>\\|\\_<declare\\_>\\|"
 	  ada-wisi-named-begin-regexp
 	  "\\|\\_<end;\\|\\_<end " ada-name-regexp ";"))
 
@@ -1319,8 +1325,7 @@ Point must have been set by `ada-wisi-find-begin'."
 
 (cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
   (cond
-   ((or (wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
-	(wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END)))
+   ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
     ;; case 1:
     ;;        ...
     ;;     end;
@@ -1330,15 +1335,20 @@ Point must have been set by `ada-wisi-find-begin'."
     ;; Indenting 'declare'; parse begin after 'end;', recover inserted
     ;; 'if then' before 'else', so result is ada-indent relative to
     ;; 'end;', but we want 0 relative to end
-    ;;
-    ;; case 2: test/ada_mode-partial_parse.adb
+    (- indent ada-indent))
+
+   ((wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END))
+    ;; test/ada_mode-partial_parse.adb
     ;;
     ;;       B;
-    ;;    end
-    ;; end Debug;
     ;;
-    ;; Indenting first 'end'; that 'end' was deleted.
-    (- indent ada-indent))
+    ;;    end
+    ;;
+    (if (looking-at "end")
+	;; Indenting first 'end'; that 'end' was deleted.
+	(- indent ada-indent)
+      ;; indenting something else after "B;"
+      (- indent (* 2 ada-indent))))
 
    ((equal '(CASE IDENTIFIER IS) (wisi--parse-error-repair-inserted repair))
     ;; test/ada_mode-partial_parse.adb

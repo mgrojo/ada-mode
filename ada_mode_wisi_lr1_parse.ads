@@ -32,5 +32,5 @@ procedure Ada_Mode_Wisi_LR1_Parse is new Gen_Emacs_Wisi_LR_Text_Rep_Parse
    Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    Language_Matching_Begin_Tokens => WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
    Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-   Text_Rep_File_Name             => "ada_annex_p_lr1_re2c_parse_table.txt",
+   Text_Rep_File_Name             => "ada_annex_p_lr1_parse_table.txt",
    Create_Parser                  => Ada_Annex_P_Process_LR1_Main.Create_Parser);

@@ -64,13 +64,14 @@ Called by `syntax-propertize', which is called by font-lock in
   (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (push-mark)
-  (when (looking-back "declare" (line-beginning-position))
+  (when (looking-back "declare\\|is" (line-beginning-position))
     ;; We just did ada-goto-declarative-region-start to get here; we
     ;; want the next one up.
+    (wisi-goto-statement-start)
     (backward-word 1))
+
   (let ((done nil)
 	(start-pos (point))
-	(outermost nil)
 	(cache (or (wisi-get-cache (point))
 		   (wisi-backward-cache))))
 
@@ -83,8 +84,6 @@ Called by `syntax-propertize', which is called by font-lock in
 
     (when cache ;; nil at bob
       (while (not done)
-	(unless (wisi-cache-containing cache)
-	  (setq outermost t))
 
 	(if (ada-declarative-region-start-p cache)
 	    (if (< (point) start-pos)
@@ -98,14 +97,11 @@ Called by `syntax-propertize', which is called by font-lock in
 	      ;; start-point is in a subprogram_declarator,
 	      ;; formal_part, aspect_clause, etc; code that contains a
 	      ;; declarative part. We want the next level up.
-	      (if outermost
-		  ;; there is no next level up; add the use_clause in the context_clause.
-		  (progn
-		    (setq cache (wisi-goto-containing cache))
-		    (setq done t))
+	      (if (wisi-cache-containing cache)
+		  (setq cache (wisi-goto-containing cache))
 
-	      (setq cache (wisi-goto-containing cache))
-	      (setq cache (wisi-goto-containing cache))))
+		;; There is no next level up; stop here (probably in a context_clause).
+		(setq done t)))
 
 	  (cl-case (wisi-cache-class cache)
 	    (motion
@@ -322,8 +318,8 @@ excluding leading pragmas."
 	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
 	  (pragma_g (wisi-goto-end-1 cache))
-	  (use_clause (wisi-goto-end-1 cache))
-	  (with_clause
+	  (use_package_clause (wisi-goto-end-1 cache))
+	  ((limited_with_clause | nonlimited_with_clause)
 	   (when (not begin)
 	     (setq begin (line-beginning-position)))
 	   (wisi-goto-end-1 cache))
@@ -737,7 +733,7 @@ Deselects the current project first."
    ((wisi-in-string-p)
     ;; In an operator, or a string literal
     (let (start)
-      (skip-chars-backward "+*/&<>=-")
+      (skip-chars-backward "+*/&<>=-andxorme") ;; Ada operator string content (see ada-operator-re).
       (setq start (point))
       (cond
        ((and (= (char-before) ?\")

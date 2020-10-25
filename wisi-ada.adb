@@ -495,6 +495,10 @@ package body Wisi.Ada is
          Ada_Indent_With := Integer'Value (Params (First .. Last - 1));
 
          First := Last + 1;
+         Last := Index (Params, " ", First);
+         Ada_Indent_Subprogram_Is := Integer'Value (Params (First .. Last - 1));
+
+         First := Last + 1;
          Last := First + 1;
          End_Names_Optional := Params (First) = '1';
       end if;

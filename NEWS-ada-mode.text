@@ -9,7 +9,12 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 * Ada Mode ?
 ?
 
-** parser Ada language protocol version 4; delete ada-indent-hanging-rel-exp
+** parser Ada language protocol version 4; delete ada-indent-hanging-rel-exp, add ada-indent-subprogram-is
+
+** New indent option add ada-indent-subprogram-is; indentation of 'is'
+   in expression functions and similar subprogram declarations.
+   Previously, this was ada-indent-broken; now you can set it
+   separately (ie to 0).
 
 ** Declare indent option ada-indent-hanging-rel-exp obsolete; it was
    never well defined, and now has no effect.

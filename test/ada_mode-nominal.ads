@@ -1,6 +1,6 @@
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(test-face "Text_IO" font-lock-function-name-face)
-with
+with -- context_clause_start
   Ada.Text_IO;
 
 -- don't indent this comment with the previous; blank line between
@@ -70,13 +70,19 @@ with Ada_Mode.Library_Procedure;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-spec'
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
-with Ada_Mode.Function_2;
+with Ada_Mode.Function_2; -- context_clause_end
+
+--EMACSCMD:(progn (goto-char (car (ada-fix-context-clause)))(looking-at "with -- context_clause_start"))
+--EMACSRESULT:t
+--EMACSCMD:(progn (goto-char (cdr (ada-fix-context-clause)))(looking-at "package Ada_Mode.Nominal -- context_clause_end"))
+--EMACSRESULT:t
+
 --EMACSRESULT:t
 --EMACSCMD:(progn (wisi-goto-statement-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:t
-package Ada_Mode.Nominal
+package Ada_Mode.Nominal -- context_clause_end
 with
   Spark_Mode => On
 is -- target 0
@@ -381,6 +387,18 @@ is -- target 0
       end record;
    for Record_Type_1'Size
      use 32 * 3;
+
+   function "+" (Left, Right : in Record_Type_1) return Record_Type_1;
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
+   --EMACSRESULT: "\"+\""
+   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"+\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
+   --EMACSRESULT:t
+
+   function "and" (Left, Right : in Record_Type_1) return Boolean;
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
+   --EMACSRESULT: "\"and\""
+   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"and\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
+   --EMACSRESULT:t
 
    type Record_Type_2 is limited record
       Component_1 : Integer := 1;

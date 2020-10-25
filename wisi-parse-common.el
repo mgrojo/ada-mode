@@ -304,6 +304,7 @@ value from grammar file (default 15)"
   :type 'integer
   :group 'wisi
   :safe 'integerp)
+(make-variable-buffer-local 'wisi-parse-max-parallel)
 
 (defcustom wisi-branched-tree-limit 1000
   "Maximum size of branched syntax table during regular parsing.

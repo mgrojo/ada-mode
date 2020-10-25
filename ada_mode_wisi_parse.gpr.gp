@@ -2,7 +2,7 @@
 --
 --  build ada_mode_wisi_parse and other executables
 --
---  Copyright (C) 2014, 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2014, 2018 - 2020 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -140,7 +140,7 @@ project Ada_Mode_Wisi_Parse is
 
    package Install is
       for Required_Artifacts ("bin") use
-        ("ada_lr1_parse_table.txt");
+        ("ada_annex_p_lr1_parse_table.txt");
    end Install;
 
 end Ada_Mode_Wisi_Parse;

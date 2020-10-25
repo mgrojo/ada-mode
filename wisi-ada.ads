@@ -42,6 +42,8 @@ package Wisi.Ada is
    Ada_Indent_Use             : Integer := 2;
    Ada_Indent_When            : Integer := 3;
    Ada_Indent_With            : Integer := 2;
+   --  ada-indent-after-trailing-comment is implemented in elisp
+   Ada_Indent_Subprogram_Is   : Integer := 2;
 
    --  Other parameters
    End_Names_Optional : Boolean := False;

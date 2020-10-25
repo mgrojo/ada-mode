@@ -183,6 +183,18 @@ Otherwise, indent by `ada-indent-broken' relative to the start of the expression
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-after-trailing-comment)
 
+(defcustom ada-indent-subprogram-is ada-indent-broken
+  "Indentation for `is' relative to `function' or `procedure' when
+the subprogram body is a short form; \"is null\", expression
+function, etc.
+
+An example is:
+   function A return Integer
+   >>is (B);"
+  :type  'integer
+  :safe  #'integerp)
+(make-variable-buffer-local 'ada-indent-subprogram-is)
+
 (defcustom ada-end-name-optional nil
   "If t, names at ends of blocks/subprograms are optional (as in
 standard Ada). If nil, they are required; this helps in error

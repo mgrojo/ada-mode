@@ -446,7 +446,8 @@ package body Wisi is
          Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item, Tree));
       end if;
 
-      if Length (Item) = 0 then
+      if Length (Item) = 0 or not Tree.Parents_Set then
+         --  Parents not set due to failed recover.
          return;
       end if;
 
@@ -2169,8 +2170,12 @@ package body Wisi is
 
                end;
             end if;
-            N := Tree.Parent (N);
-            exit when N = Invalid_Node_Access;
+            if Tree.Parents_Set then
+               N := Tree.Parent (N);
+               exit when N = Invalid_Node_Access;
+            else
+               exit;
+            end if;
          end loop;
          return Buffer_Pos'First;
       end Safe_Pos;

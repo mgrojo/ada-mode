@@ -811,8 +811,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --
          --  <statement> <variable_identifier> : [aliased constant] <subtype_indication> <expression> ...
          --
-         --  The variable_name looks like a block_label. compare to "variable decl as
-         --  param" case above.
+         --  The variable_name looks like a statement_identifier (ie block
+         --  name). compare to "variable decl as param" case above.
          --
          --  1) This is a copied variable declaration that the user is converting
          --  to an assignment. See
@@ -831,6 +831,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --
          --  3) There is an extra 'begin' before the <variable_name>. See
          --  test/ada_mode-recover_27.adb. Delete the 'begin'.
+         --
+         --  4) This is an incomplete object_declaration; let minimal_complete
+         --  handle it. test/ada_mode-recover_38.adb.
 
          --  case 1
          declare
@@ -839,7 +842,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          begin
             Push_Back_Check (Tree, New_Config, +COLON_ID);
             I := New_Config.Current_Shared_Token;
-            Delete_Check (Tree, New_Config, I, +COLON_ID);
             if Tree.ID (I) = +ALIASED_ID then
                Delete_Check (Tree, New_Config, I, +ALIASED_ID);
             end if;

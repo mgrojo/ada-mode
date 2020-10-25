@@ -786,7 +786,9 @@ Usefull if the parser appears to be hung."
   ;; we don't need to widen; the narrowed region contains a complete
   ;; production. If the user has narrowed to an arbitrary region, the
   ;; parse will probably be incorrect.
-  (unless (= (point-min) (point-max)) ;; some parsers can’t handle an empty buffer.
+  (unless (or (= (point-min) (point-max)) ;; some parsers can’t handle an empty buffer.
+	      (and (eq wisi--parse-action 'face)
+		   (null font-lock-mode))) ;; disabling font-lock in a buffer does _not_ prevent it calling parse!
     (let* ((partial-parse-p (wisi-partial-parse-p begin parse-end))
 	   (msg (when (> wisi-debug 0)
 		  (format "wisi: %sparsing %s %s:%d %d %d ..."

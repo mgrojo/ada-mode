@@ -631,6 +631,26 @@ is -- target 0
       end;
    end;
 
+   function "+" (Left, Right : in Record_Type_1) return Record_Type_1 -- body
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"+\" (Left, Right : in Record_Type_1) return Record_Type_1;"))
+   --EMACSRESULT:t
+   is begin
+      return
+        (Component_1   => Left.Component_1 + Right.Component_1,
+         Component_2   => Left.Component_2 + Right.Component_2,
+         Component_356 => Left.Component_356 + Right.Component_356);
+   end "+";
+
+   function "and" (Left, Right : in Record_Type_1) return Boolean -- body
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"and\" (Left, Right : in Record_Type_1) return Record_Type_1;"))
+   --EMACSRESULT:t
+   is begin
+      return
+        (Component_1   => Left.Component_1 > 0 and Right.Component_1 > 0,
+         Component_2   => Left.Component_2 > 0 and Right.Component_2 > 0,
+         Component_356 => Left.Component_356 > 0.0 and Right.Component_356 > 0.0);
+   end "and";
+
    function Function_2a (Param : in Parent_Type_1) return Float
    is begin
    Block_1 :

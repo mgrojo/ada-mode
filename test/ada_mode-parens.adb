@@ -34,7 +34,7 @@ package body Ada_Mode.Parens is
      (Param_1, Param_2, Param_3 : in     Ada.Text_Io.Count;
       Param_4                   : in out Integer;
       Param_5                   : in out Integer;
-      Param_6                   : in     Float := 1.0)
+      Param_6, Param_7          : in     Float := 1.0)
      return Float
    is
       Local_1 : Integer := (1 + 2 + 3);

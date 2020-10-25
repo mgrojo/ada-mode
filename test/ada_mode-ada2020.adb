@@ -10,6 +10,11 @@ package body Ada_Mode.Ada2020 is
       return -Worker (Index);
    end Creator_2;
 
+   function Func_Declare_1 (A : in Integer) return Integer
+     is (declare
+            B : Integer renames A;
+         begin B * 2);
+
    type Task_Array is array (Worker_Indexes) of Worker;
 
    --  [1] ai12-0061-1.txt
@@ -46,5 +51,10 @@ begin
          B : constant Integer := 3;
       begin
          B + 1);
+
+   A := Func_Declare_1
+     (declare
+      C : Integer renames A;
+   begin C + 2);
 
 end Ada_Mode.Ada2020;

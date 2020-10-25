@@ -366,7 +366,8 @@ See `ada-find-other-file' to create library level package body from spec."
 (defun ada-skel-setup ()
   "Setup a buffer for ada-skel."
   (setq wisi-skel-token-alist ada-skel-token-alist)
-  (add-hook 'skeleton-end-hook 'wisi-indent-statement nil t)
+  (add-hook 'skeleton-end-hook #'wisi-skel-enable-parse t)
+  (add-hook 'skeleton-end-hook #'wisi-indent-statement t)
   (when (and ada-skel-initial-string
 	     (= (buffer-size) 0))
     (insert ada-skel-initial-string))
