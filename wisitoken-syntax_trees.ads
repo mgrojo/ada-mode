@@ -506,13 +506,13 @@ package WisiToken.Syntax_Trees is
                Tree.Child_Count (Tree.Get_Node (Stream, Ref.Element)) > 0 and
                Tree.Stack_Top (Stream) /= Ref.Element,
      Post => Correct_Stream_Node_Ref (Tree, Stream, Ref);
-   --  [Wagner Graham 1998] Left_Breakdown of Ref for Parse_Incremental;
-   --  bring the first terminal in Ref or a following stream element (if
-   --  Ref is empty or virtual) to the parse stream. Ref is updated to
-   --  the first terminal, or Invalid_Terminal_Ref if Ref is empty and
-   --  the last element in Stream.
+   --  [Wagner Graham 1998] Left_Breakdown of Ref.Element for
+   --  Parse_Incremental; bring the first terminal in Ref.Element or a
+   --  following stream element (if Ref is empty) to the parse stream.
+   --  Ref is updated to the first terminal, or Invalid_Terminal_Ref if
+   --  Ref is empty and the last element in Stream.
    --
-   --  The stack top is unchanged.
+   --  The stack top is unchanged. Note that Ref.Node is ignored on input.
 
    procedure Right_Breakdown
      (Tree   : in out Syntax_Trees.Tree;
@@ -545,7 +545,7 @@ package WisiToken.Syntax_Trees is
    function Stream_First
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
-     return Terminal_Ref
+     return Stream_Node_Ref
    with Pre => Tree.Is_Valid (Stream);
 
    function Stream_Last
@@ -1006,8 +1006,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Terminal_Ref (Tree, Stream, Ref),
      Post => Correct_Stream_Node_Ref (Tree, Stream, Ref) and
              (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) = Shared_Terminal);
-   --  Update Element, Node to the next Shared_Terminal that is before
-   --  Node in Stream; Invalid_Node_Access if Node is first
+   --  Update Ref to the Shared_Terminal that is before
+   --  Node in Stream; Invalid_Terminal_Ref if Ref is first
    --  Shared_Terminal in Stream.
 
    function Prev_Shared_Terminal

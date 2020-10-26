@@ -60,7 +60,7 @@ begin
 
       if Tree.ID (Parser_State.Shared_Token.Node) = Shared_Parser.Descriptor.Accept_ID then
          --  Parsed tree was not changed in Edit_Tree.
-         Tree.Shift (Parser_State.Stream, Unknown_State, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
+         Tree.Shift (Parser_State.Stream, Unknown_State, Parser_State.Shared_Token.Element, Shared_Parser.User_Data);
          Tree.Finish_Parse (Parser_State.Stream, Tree.Stream_Last (Tree.Shared_Stream), Shared_Parser.User_Data);
          return;
       end if;
@@ -125,27 +125,33 @@ begin
                --  [Wagner Graham 1998] has "if shiftable (la)" here; but 'shiftable'
                --  is not defined. Apparently it means Goto_For returns a valid state.
                if New_State /= Unknown_State then
+                  Tree.Shift
+                    (Parser_State.Stream, New_State, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
+
                   if Trace_Parse > Detail then
                      Trace.Put
                        --  Leading space for compatibility with existing tests.
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                           Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
-                          Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : ");
-                     Trace.Put (" shift, right_breakdown");
-                  end if;
-                  Tree.Shift
-                    (Parser_State.Stream, New_State, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
+                          Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : shift and goto state" &
+                          New_State'Image);
 
-                  --  FIXME: if is_fragile then left_breakdown;
-
-                  if Trace_Parse > Detail then
-                     Trace.Put_Line (" and goto state" & New_State'Image);
                      if Trace_Parse > Extra then
                         Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": parse stream: " &
                              Tree.Image (Parser_State.Stream));
                      end if;
                   end if;
+
+                  --  FIXME: if is_fragile then left_breakdown;
+
+                  Parser_State.Shared_Token.Element := Tree.Stream_Next
+                    (Parser_State.Stream, Parser_State.Shared_Token.Element);
+
+                  Parser_State.Shared_Token := Tree.First_Shared_Terminal
+                    (Tree.Shared_Stream, Parser_State.Shared_Token.Element);
+
+                  Parser_State.Current_Token := Parser_State.Shared_Token;
 
                else
                   --  Current_Token nonterm is not immediately shiftable.

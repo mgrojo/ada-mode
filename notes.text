@@ -30,9 +30,7 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-
-    change edit_Tree to update shared_stream, not a parse stream + terminal stream
-        compiles; test fails
+        edit_code_1 passes; edit_code_2 fails, _3 crashes
 
     validate_tree verify node_index order on shared_terminals in shared_stream
 
@@ -68,6 +66,8 @@ incremental parse
         store current_state in config
         shared_stream needs parents for next_shared_Terminal
         other streams don't set new parents.
+
+        OR at least delete all nodes in a stream when delete the stream
 
     optimize use of First_Terminal in parse
         enhance the parse table to store reduce actions on nonterms as well as terminals

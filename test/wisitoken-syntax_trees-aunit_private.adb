@@ -86,14 +86,20 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
       Expected_Stream : in Stream_ID;
-      Node_Numbers    : in Boolean)
+      Node_Numbers    : in Boolean;
+      Check_Label     : in Boolean)
    is
       use SAL.AUnit;
       use Stream_Element_Lists;
-      Computed_Element : Cursor  := Computed_Tree.Streams (Computed_Stream.Cur).Elements.First;
-      Expected_Element : Cursor  := Expected_Tree.Streams (Expected_Stream.Cur).Elements.First;
+      Computed_Parse_Stream  : Parse_Stream renames Computed_Tree.Streams (Computed_Stream.Cur);
+      Expected_Parse_Stream  : Parse_Stream renames Expected_Tree.Streams (Expected_Stream.Cur);
+      Computed_Element : Cursor  := Computed_Parse_Stream.Elements.First;
+      Expected_Element : Cursor  := Expected_Parse_Stream.Elements.First;
       I                : Integer := 1;
    begin
+      if Check_Label then
+         Check (Label & ".label", Computed_Parse_Stream.Label, Expected_Parse_Stream.Label);
+      end if;
       Check (Label & ".length",
              Computed_Tree.Stream_Length (Computed_Stream),
              Expected_Tree.Stream_Length (Expected_Stream));
@@ -106,7 +112,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Computed : Stream_Element renames Constant_Ref (Computed_Element);
             Expected : Stream_Element renames Constant_Ref (Expected_Element);
          begin
-            Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
+            if Check_Label then
+               Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
+            end if;
             Check (Label & ".node" & I'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
          end;
 
@@ -117,10 +125,11 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    end Check;
 
    procedure Check
-     (Label        : in String;
-      Computed     : in Tree;
-      Expected     : in Tree;
-      Node_Numbers : in Boolean)
+     (Label         : in String;
+      Computed      : in Tree;
+      Expected      : in Tree;
+      Node_Numbers  : in Boolean;
+      Shared_Stream : in Boolean)
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit.Base_Token_Arrays_AUnit;
@@ -135,12 +144,14 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Check (Label & ".stream_count", Computed.Stream_Count, Expected.Stream_Count);
       loop
          exit when not (Has_Element (Computed_Stream) and Has_Element (Expected_Stream));
-         Check
-           (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
-            Computed, (Cur => Computed_Stream),
-            Expected, (Cur => Expected_Stream),
-            Node_Numbers => Node_Numbers or Computed.Shared_Stream.Cur = Computed_Stream);
-
+         if Shared_Stream or Computed_Stream /= Computed.Shared_Stream.Cur then
+            Check
+              (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
+               Computed, (Cur => Computed_Stream),
+               Expected, (Cur => Expected_Stream),
+               Node_Numbers => Node_Numbers or Computed.Shared_Stream.Cur = Computed_Stream,
+               Check_Label => Shared_Stream);
+         end if;
          Next (Expected_Stream);
          Next (Computed_Stream);
       end loop;

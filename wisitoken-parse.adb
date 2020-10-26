@@ -248,23 +248,7 @@ package body WisiToken.Parse is
       Terminal : Terminal_Ref;
 
       Next_Terminal_Index : Node_Index := 1;
-
-      procedure Breakdown
-      --  Bring Terminal.Node to Stream.
-      is begin
-         pragma Assert (Tree.ID (Terminal.Node) /= Parser.Descriptor.EOI_ID);
-            --  FIXME: need precise use case for:
-            --
-            --  exit when Tree.ID (Stream, Parse_Element) = Parser.Descriptor.EOI_ID;
-            --  Parse tree may contain EOI in a wisitoken_accept nonterm, in
-            --  addition to last stream element,
-
-         Tree.Left_Breakdown (Stream, Terminal);
-      end Breakdown;
-
    begin
-      Parser.Last_Grammar_Node := Invalid_Node_Access;
-
       Parser.Tree.Start_Edit;
 
       Stream := Tree.Shared_Stream;
@@ -278,6 +262,8 @@ package body WisiToken.Parse is
 
       KMN_Loop :
       loop
+         Parser.Last_Grammar_Node := Invalid_Node_Access;
+
          declare
             KMN : constant WisiToken.Parse.KMN := Element (KMN_Node);
 
@@ -291,6 +277,8 @@ package body WisiToken.Parse is
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
 
             Do_Scan : Boolean := KMN.Inserted_Bytes > 0;
+
+            Last_Stable_Line : Line_Number_Type := Invalid_Line_Number;
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
             --  stable, deleted are inside the initial text. Caller should use
@@ -345,12 +333,23 @@ package body WisiToken.Parse is
                Tree.Next_Shared_Terminal (Stream, Terminal);
             end loop Unchanged_Loop;
 
-            --  Terminal is the terminal token overlapping or after the end of the
-            --  stable region. Scanning is needed if Inserted_Region is not empty,
-            --  or if the deleted region overlaps or is adjacent to a preceding or
-            --  following token. If insert/delete is inside or after a comment,
-            --  the scanning may already have been done. Set Do_Scan, Old_* to the
-            --  scan start position; the start of token index or in the preceding
+            declare
+               --  Terminal is the terminal token overlapping or after the end of the
+               --  stable region.
+               Non_Grammar : Base_Token_Array_Const_Ref renames Tree.Non_Grammar_Const (Terminal.Node);
+            begin
+               if Non_Grammar.Length > 0 then
+                  Last_Stable_Line := Non_Grammar (Non_Grammar.Last_Index).Line;
+               else
+                  Last_Stable_Line := Tree.Base_Token (Terminal.Node).Line;
+               end if;
+            end;
+
+            --  Scanning is needed if Inserted_Region is not empty, or if the
+            --  deleted region overlaps or is adjacent to a preceding or following
+            --  token. If insert/delete is inside or after a comment, the scanning
+            --  may already have been done. Set Do_Scan, Old_* to the scan start
+            --  position; the start of token index or in the preceding
             --  non_grammar. FIXME: handle Tree.Leading_Non_Grammar.
             if Tree.Byte_Region (Terminal.Node).Last + Shift_Bytes > Scanned_Byte_Pos then
                if Tree.ID (Terminal.Node) /= Parser.Descriptor.EOI_ID and
@@ -448,8 +447,6 @@ package body WisiToken.Parse is
                      Prev_Token_ID => Prev_Token_ID);
                end;
 
-               Breakdown;
-
                Scan_Changed_Loop :
                loop
                   declare
@@ -504,23 +501,6 @@ package body WisiToken.Parse is
                end loop Scan_Changed_Loop;
             end if;
 
-            if Parser.Last_Grammar_Node /= Invalid_Node_Access then
-               declare
-                  Temp_Terminal : constant Terminal_Ref := Tree.Prev_Shared_Terminal (Stream, Terminal);
-               begin
-                  if Temp_Terminal.Node /= Invalid_Node_Access then
-                     pragma Assert (False, "--  FIXME: why is this ""last_deleted""?");
-
-                     declare
-                        Last_Inserted : constant WisiToken.Base_Token := Tree.Base_Token (Parser.Last_Grammar_Node);
-                        Last_Deleted  : constant WisiToken.Base_Token := Tree.Base_Token (Temp_Terminal.Node);
-                     begin
-                        Shift_Line := Last_Inserted.Line - Last_Deleted.Line;
-                     end;
-                  end if;
-               end;
-            end if;
-
             Delete_Loop :
             --  Delete tokens that were deleted or modified.
             loop
@@ -533,20 +513,29 @@ package body WisiToken.Parse is
                     (KMN.Inserted_Bytes > 0 and
                        Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1)); --  modified
 
-               Breakdown;
+               if Tree.Label (Terminal.Element) = Syntax_Trees.Nonterm then
+                  Tree.Left_Breakdown (Stream, Terminal);
+                  if Trace_Incremental_Parse > Detail then
+                     Parser.Trace.Put_Line ("left_breakdown stream: " & Tree.Image (Stream, Non_Grammar => True));
+                     Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal.Node, Terminal_Node_Numbers => True));
+                  end if;
+               end if;
 
                declare
                   Temp : Stream_Index := Terminal.Element;
                begin
                   Tree.Next_Shared_Terminal (Stream, Terminal);
                   if Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line
-                       ("delete " & Tree.Image (Temp, Terminal_Node_Numbers => True));
+                     Parser.Trace.Put_Line ("delete " & Tree.Image (Temp, Terminal_Node_Numbers => True));
                   end if;
 
                   Tree.Stream_Delete (Stream, Temp);
                end;
             end loop Delete_Loop;
+
+            --  Update Shift_Line. Terminal is the token after any insert, delete;
+            --  the first token in the next stable region.
+            Shift_Line := Tree.Base_Token (Terminal.Node).Line - Last_Stable_Line;
 
             Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
             Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
@@ -563,14 +552,26 @@ package body WisiToken.Parse is
       declare
          Token : constant WisiToken.Base_Token := Tree.Base_Token (Terminal.Node);
       begin
+         --  EOI is from wisitoken_accept if full parse, and/or at stream end
+         --  for full and partial parse; shift both.
+
          if Token.ID = Parser.Descriptor.EOI_ID then
             Tree.Set_Terminal_Index (Terminal.Node, Next_Terminal_Index);
+            Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
             if Trace_Incremental_Parse > Detail then
-               Parser.Trace.Put_Line ("shift " & Tree.Image (Terminal));
+               Parser.Trace.Put_Line ("shift EOI " & Tree.Image (Terminal));
+            end if;
+
+            Tree.Next_Shared_Terminal (Stream, Terminal);
+
+            if Terminal /= Invalid_Stream_Node_Ref then
+               --  Not partial parse
+               Tree.Set_Terminal_Index (Terminal.Node, Next_Terminal_Index);
+               Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
             end if;
          else
-            raise User_Error with "edit list does not cover entire buffer";
+            raise User_Error with "edit list does not cover entire parse region";
          end if;
       end;
 

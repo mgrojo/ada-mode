@@ -21,6 +21,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
@@ -234,10 +235,13 @@ package body Test_Incremental is
 
       Check_Tree ("incrementally parsed tree 1", Parser.Tree);
 
-      Check ("1", Parser.Tree, Edited_Tree_Batch, Compare_Node_Numbers);
+      Check ("1", Parser.Tree, Edited_Tree_Batch, Compare_Node_Numbers, Shared_Stream => False);
    exception
-   when WisiToken.Syntax_Error =>
-      Parser.Put_Errors;
+   when E : WisiToken.Syntax_Error =>
+      if WisiToken.Debug_Mode then
+         Put_Line ("exception: " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+         Parser.Put_Errors;
+      end if;
 
       Check ("exception", True, False);
    end Parse_Text;
@@ -269,7 +273,7 @@ package body Test_Incremental is
          Delete               => "comment",
          Insert               => "cool explanation",
          --                       |19        |30
-         Compare_Node_Numbers => True);
+         Compare_Node_Numbers => False);
    end Edit_Comment;
 
    procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

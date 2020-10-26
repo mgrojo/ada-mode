@@ -45,19 +45,21 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
       Expected_Stream : in Stream_ID;
-      Node_Numbers    : in Boolean)
+      Node_Numbers    : in Boolean;
+      Check_Label     : in Boolean)
    is begin
       WisiToken.Syntax_Trees.AUnit_Private.Check
-        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream, Node_Numbers);
+        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream, Node_Numbers, Check_Label);
    end Check;
 
    procedure Check
-     (Label        : in String;
-      Computed     : in Tree;
-      Expected     : in Tree;
-      Node_Numbers : in Boolean)
+     (Label         : in String;
+      Computed      : in Tree;
+      Expected      : in Tree;
+      Node_Numbers  : in Boolean;
+      Shared_Stream : in Boolean)
    is begin
-      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Node_Numbers);
+      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Node_Numbers, Shared_Stream);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Public;

@@ -651,17 +651,19 @@ package body WisiToken.Syntax_Trees is
          end loop;
 
          declare
-            Source_Parse_Stream : Parse_Stream renames Source.Streams (Source.Streams.Last);
-            Source_Root_Cur     : constant Stream_Element_Lists.Cursor := Stream_Element_Lists.Previous
+            Source_Parse_Stream  : Parse_Stream renames Source.Streams (Source.Streams.Last);
+            Source_Root_Cur      : constant Stream_Element_Lists.Cursor := Stream_Element_Lists.Previous
               (Source_Parse_Stream.Elements.Last);
-            Source_Root_Element : Stream_Element renames Source_Parse_Stream.Elements (Source_Root_Cur);
-            Dest_Stream_ID      : constant Stream_ID                   := New_Stream (Destination);
-            Dest_Shared_Stream  : Parse_Stream renames Destination.Streams (Destination.Shared_Stream.Cur);
-            Dest_Parse_Stream   : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
-            New_Element         : Stream_Element_Lists.Cursor;
+            Source_First_Element : Stream_Element renames Source_Parse_Stream.Elements
+              (Source_Parse_Stream.Elements.First);
+            Source_Root_Element  : Stream_Element renames Source_Parse_Stream.Elements (Source_Root_Cur);
+            Dest_Stream_ID       : constant Stream_ID                   := New_Stream (Destination);
+            Dest_Shared_Stream   : Parse_Stream renames Destination.Streams (Destination.Shared_Stream.Cur);
+            Dest_Parse_Stream    : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
+            New_Element          : Stream_Element_Lists.Cursor;
          begin
             Start_Parse
-              (Destination, Dest_Stream_ID, State => Source_Root_Element.Node.State);
+              (Destination, Dest_Stream_ID, State => Source_First_Element.Node.State);
 
             Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
 
@@ -1657,23 +1659,28 @@ package body WisiToken.Syntax_Trees is
       --  That means the rest of the parser must understand that.
       --
       --  Here we actually decompose the tree, as in [Lahav 2008]
+      use Stream_Element_Lists;
+
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-      Cur          : Stream_Element_Lists.Cursor := Ref.Element.Cur;
-      Node         : Valid_Node_Access           := Parse_Stream.Elements (Cur).Node;
+      Cur          : Cursor            := Ref.Element.Cur;
+      To_Delete    : Cursor            := Cur;
+      Node         : Valid_Node_Access := Parse_Stream.Elements (Ref.Element.Cur).Node;
    begin
+      Ref.Element.Cur := No_Element;
+
       loop
+         if Node.Label in Terminal_Label then
+            Parse_Stream.Elements.Delete (To_Delete);
+
+            Ref.Element.Cur := Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Node,
+                  Label => Parse_Stream.Label),
+               Before   => Cur);
+            exit;
+         end if;
+
          if Node.Child_Count > 0 then
-            if Node.Label in Terminal_Label then
-               Parse_Stream.Elements.Insert
-                 (Element  =>
-                    (Node  => Node,
-                     Label => Parse_Stream.Label),
-                  Before   => Cur);
-
-               Ref.Element.Cur := Cur;
-               exit;
-            end if;
-
             for I in reverse 2 .. Node.Child_Count loop
                Cur := Parse_Stream.Elements.Insert
                  (Element  =>
@@ -1684,15 +1691,17 @@ package body WisiToken.Syntax_Trees is
                Node.Children (I).Parent := Invalid_Node_Access;
             end loop;
 
-            Node := Node.Children (1);
-
+            Node        := Node.Children (1);
+            Node.Parent := Invalid_Node_Access;
          else
-            --  Cur is an empty nonterm
-            Cur := Stream_Element_Lists.Next (Cur);
-            if Stream_Element_Lists.Has_Element (Cur) then
-               Node := Parse_Stream.Elements (Cur).Node;
+            --  Node is an empty nonterm
+            Next (Cur);
+            Parse_Stream.Elements.Delete (To_Delete);
+            To_Delete := Cur;
+
+            if Has_Element (Ref.Element.Cur) then
+               Node := Parse_Stream.Elements (Ref.Element.Cur).Node;
             else
-               Ref.Element.Cur := Stream_Element_Lists.No_Element;
                exit;
             end if;
          end if;
@@ -1701,7 +1710,7 @@ package body WisiToken.Syntax_Trees is
       Ref.Node :=
         (if Ref.Element = Invalid_Stream_Index
          then Invalid_Node_Access
-         else Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node);
+         else Node);
    end Left_Breakdown;
 
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID
@@ -2531,6 +2540,8 @@ package body WisiToken.Syntax_Trees is
          --  Ensure compiler makes 'Element' writable
          Stream : Parse_Stream renames Tree.Streams.Variable_Reference (Tree.Shared_Stream.Cur);
       begin
+         Stream.Label := Shared_Stream_Label;
+
          for Element of Stream.Elements loop
             Element.Label := Shared_Stream_Label;
          end loop;
@@ -2582,13 +2593,12 @@ package body WisiToken.Syntax_Trees is
    function Stream_First
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
-     return Terminal_Ref
-   is
-      Result : Terminal_Ref;
-   begin
-      Result.Element := (Cur => Tree.Streams (Stream.Cur).Elements.First);
-      Result.Node := Stream_Element_Lists.Constant_Ref (Result.Element.Cur).Node;
-      return Result;
+     return Stream_Node_Ref
+   is begin
+      return Result : Stream_Node_Ref do
+         Result.Element := (Cur => Tree.Streams (Stream.Cur).Elements.First);
+         Result.Node := Stream_Element_Lists.Constant_Ref (Result.Element.Cur).Node;
+      end return;
    end Stream_First;
 
    function Stream_Input_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
