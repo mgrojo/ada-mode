@@ -539,7 +539,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  forever, making no progress. So we give it a cost.
 
       if Token_Node /= Syntax_Trees.Invalid_Node_Access and then
-        (Super.Tree.Has_Children (Token_Node) and
+        (Super.Tree.First_Terminal (Token_Node) /= Syntax_Trees.Invalid_Node_Access and
          --  No point in pushing back an empty nonterm; that leads to duplicate
          --  solutions with Undo_Reduce; see test_mckenzie_recover.adb Error_2.
 

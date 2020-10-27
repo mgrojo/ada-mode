@@ -1,8 +1,7 @@
 --  Abstract :
 --
---  Syntax tree type and operations, implemented with directly
---  allocated nodes, providing parse streams as described in [1], but
---  generalized for parallel parsers.
+--  Syntax tree type and operations, providing parse streams as
+--  described in [1], but generalized for parallel parsers.
 --
 --  References :
 --
@@ -16,16 +15,16 @@
 --  Each parallel parser uses one stream as the parse stack.
 --
 --  In all streams, in Shared_Terminal nodes, Node_Index gives token
---  order in source text. In all streams, Stream_Element.Index is
---  unique but arbitrary, for debugging.
+--  order in source text. In other nodes, Node_Index is unique but
+--  arbitrary, for debugging.
 --
 --  During batch parsing, the "shared stream" holds all of the shared
 --  terminals read from the input source; this is populated by
---  Wisitoken.Parse.Lex_All. Nodes
---  are copied from the shared stream to parse streams in order to
---  store state for undo_reduce (as well as the Parent pointer). After
---  error correction, the sequence of terminals in a parse stream is
---  given by Next_Terminal/Prev_Terminal.
+--  Wisitoken.Parse.Lex_All. Nodes are copied from the shared stream
+--  to parse streams in order to store state for undo_reduce (as well
+--  as the Parent pointer). After error correction, the sequence of
+--  terminals in a parse stream is given by
+--  Next_Terminal/Prev_Terminal.
 --
 --  During incremental parse, the shared stream holds the edited parse
 --  stream with new shared terminals inserted; Shared_Terminal nodes
@@ -759,8 +758,8 @@ package WisiToken.Syntax_Trees is
 
    function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    --  True if contained buffer region is empty; always the case for
-   --  virtual tokens, and for most copied tokens. Use Has_Children or
-   --  Child_Count to see if Node has children.
+   --  virtual tokens. Use First_Terminal = Invalid_Node_Access to see if
+   --  Node is an empty nonterm.
 
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;

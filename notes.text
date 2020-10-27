@@ -4,6 +4,7 @@ branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
 org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
+org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - from o.w.s-2; incremental parse error recover config.input_stream
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -30,12 +31,44 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
 
-    rename -parser-parse.adb to -parse_batch.adb
-        commit
-
     run all tests
         test/test_incremental.adb : passing
         t_mck: lots of failures; nothing should have changed
+            error_3: precondition fail in try_insert after push_back
+                config.current_shared_terminal is in parse stream
+                    in try_push_back, token.First_Shared_Terminal is in parse stream
+                        set in -mck_rec-parse Parse_One_Item to  config.current_shared_terminal or invalid if virtual
+                        set in syntax_trees.Get_Recover_Token to Ref
+                        -mck_rec Recover_Init calls -mck_rec To_Recover; Element is on parser_stack
+
+                    we don't have a pointer to the terminal stream any more
+
+                    use parse_stream for next/prev terminal?
+                        tag incremental_parse-pre-config.input_stream
+                        push_back moves nonterms, terminals to config.input_stream
+                            bounded_array_node_access for fast copy
+                            can breakdown there
+                                new config_op; breakdown
+                            edit config.input_stream for insert/delete?
+                                still need insert/delete ops, for post_process, error message
+
+                        if next_terminal reach config.stack_top, goto config.input_stream
+                        if reach end of that, goto parser.shared_token
+
+                    restore Terminal_Stream
+                        shares nodes with Shared_Stream
+                        store ref to that in shared_terminal nodes
+                        edit in Edit_Tree.
+                            clear ref in nominally deleted nodes
+
+                    store ref to shared_Stream in shared_terminal nodes?
+                        element becomes invalid in all streams if breakdown ref.element
+                            as in push_back nonterm/undo_reduce, insert/delete.
+                            adjust element in all streams?
+                                store reference_list in shared_stream elements
+                                    delete when stream deleted
+                                    way too complicated
+
         t_all:
 
     test Parser.line_begin_token
@@ -43,9 +76,6 @@ incremental parse
     more tests;
         parse_incremental with current_token = empty nonterm
         left_breakdown with first_terminal = virtual
-
-    error recover push_back nonterm makes no sense, since contained terminals may not be in shared_stream
-        must do combination of undo_reduce, push_back single terminal
 
     error recover delete may need left_breakdown (shared_stream)
         make that expensive, or just don't do it.

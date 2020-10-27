@@ -1296,7 +1296,7 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       return
-        (if Item.First_Shared_Terminal = Invalid_Terminal_Ref
+        (if Item.First_Shared_Terminal.Node = Invalid_Node_Access
          then ""
          else Trimmed_Image (Item.First_Shared_Terminal.Node.Node_Index) & ":") &
         "(" & Image (Item.ID, Descriptor) &

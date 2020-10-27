@@ -129,7 +129,8 @@ package WisiToken.Parse.LR.Parser is
    --  parse. Errors handled as in Parse.
    --
    --  Not 'overriding' because it's not clear yet if incremental parse
-   --  is possible for other parsing algorithms.
+   --  is possible for other parsing algorithms, and we may eventually
+   --  use the incremental algorithm for batch parse.
 
    overriding procedure Execute_Actions
      (Parser          : in out LR.Parser.Parser;
