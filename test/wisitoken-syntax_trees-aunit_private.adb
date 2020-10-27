@@ -115,7 +115,10 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             if Check_Label then
                Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
             end if;
-            Check (Label & ".node" & I'Image, Computed.Node.all, Expected.Node.all, Node_Numbers);
+            Check (Label & ".node" & Computed.Node.Node_Index'Image,
+                   Computed.Node.all,
+                   Expected.Node.all,
+                   Node_Numbers);
          end;
 
          Computed_Element := Next (@);
@@ -149,8 +152,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
               (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
                Computed, (Cur => Computed_Stream),
                Expected, (Cur => Expected_Stream),
-               Node_Numbers => Node_Numbers or Computed.Shared_Stream.Cur = Computed_Stream,
-               Check_Label => Shared_Stream);
+               Node_Numbers   => Node_Numbers or Computed.Shared_Stream.Cur = Computed_Stream,
+               Check_Label    => Shared_Stream);
          end if;
          Next (Expected_Stream);
          Next (Computed_Stream);

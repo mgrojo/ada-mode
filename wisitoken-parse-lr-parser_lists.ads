@@ -61,8 +61,9 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 
-      Current_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Terminal_Ref;
-      --  Next token to shift, in either Tree.Shared_Stream or Parser_State.Stream.
+      Current_Token : Syntax_Trees.Stream_Node_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      --  Next token to shift, in either Tree.Shared_Stream or
+      --  Parser_State.Stream. May be a nonterm in incremental parse.
 
       Inc_Shared_Token : Boolean := True;
 

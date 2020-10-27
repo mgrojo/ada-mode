@@ -77,7 +77,7 @@ begin
    begin
       Main_Loop :
       loop
-         if Tree.Label (Current_Parser.State_Ref.Current_Token.Element) in Terminal_Label then
+         if Tree.Label (Current_Parser.State_Ref.Current_Token.Node) in Terminal_Label then
             declare
                Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
             begin
@@ -95,7 +95,7 @@ begin
                case Current_Parser.Verb is
                when Shift =>
                   --  FIXME: handle insert_delete from error recovery
-                  Tree.Next_Shared_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token);
+                  Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
                   Parser_State.Current_Token := Parser_State.Shared_Token;
 
                when Accept_It =>
@@ -120,7 +120,10 @@ begin
                   Tree.State (Parser_State.Stream, Tree.Stack_Top (Parser_State.Stream)),
                   Tree.ID (Tree.Shared_Stream, Parser_State.Current_Token.Element));
             begin
-               pragma Assert (Parser_State.Current_Token = Parser_State.Shared_Token);
+               pragma Assert
+                 (Parser_State.Current_Token = Parser_State.Shared_Token and
+                    Tree.Get_Node (Tree.Shared_Stream, Parser_State.Shared_Token.Element) =
+                    Parser_State.Shared_Token.Node);
 
                --  [Wagner Graham 1998] has "if shiftable (la)" here; but 'shiftable'
                --  is not defined. Apparently it means Goto_For returns a valid state.
@@ -129,7 +132,7 @@ begin
                     (Parser_State.Stream, New_State, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
 
                   if Trace_Parse > Detail then
-                     Trace.Put
+                     Trace.Put_Line
                        --  Leading space for compatibility with existing tests.
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                           Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
@@ -145,11 +148,7 @@ begin
 
                   --  FIXME: if is_fragile then left_breakdown;
 
-                  Parser_State.Shared_Token.Element := Tree.Stream_Next
-                    (Parser_State.Stream, Parser_State.Shared_Token.Element);
-
-                  Parser_State.Shared_Token := Tree.First_Shared_Terminal
-                    (Tree.Shared_Stream, Parser_State.Shared_Token.Element);
+                  Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
 
                   Parser_State.Current_Token := Parser_State.Shared_Token;
 
@@ -168,55 +167,82 @@ begin
                   --  avoid calling Right_Breakdown while also avoiding finding
                   --  Tree.First_Terminal (next token).
 
-                  Action := Action_For
-                    (Shared_Parser.Table.all,
-                     Tree.State (Parser_State.Stream),
-                     Tree.ID (Tree.First_Terminal (Parser_State.Current_Token.Node)));
+                  declare
+                     First_In_Current : constant Terminal_Ref := Tree.First_Terminal
+                       (Tree.Shared_Stream, Parser_State.Shared_Token.Element);
 
-                  case Action.Item.Verb is
-                  when Accept_It =>
-                     raise SAL.Programmer_Error;
+                     Next_Terminal : constant Terminal_Ref :=
+                       (if First_In_Current = Invalid_Terminal_Ref
+                        then Tree.Next_Shared_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token)
+                        else First_In_Current);
+                  begin
+                     Action := Action_For
+                       (Shared_Parser.Table.all,
+                        Tree.State (Parser_State.Stream),
+                        Tree.ID (Next_Terminal.Node));
 
-                  when Reduce =>
-                     --  We need to reduce the stack before we can shift the next
-                     --  nonterm; test_incremental.adb Edit_Code_2 shifting
-                     --  binary_adding_operator.
-                     Do_Action (Action.Item, Current_Parser, Shared_Parser);
+                     case Action.Item.Verb is
+                     when Accept_It =>
+                        raise SAL.Programmer_Error;
 
-                  when Shift =>
-                     --   Breakdown Current_Token to allow shifting First_Terminal (Current_Token).
+                     when Reduce =>
+                        --  We need to reduce the stack before we can shift Next_Terminal;
+                        --  test_incremental.adb Edit_Code_2 shifting binary_adding_operator.
+                        Do_Action (Action.Item, Current_Parser, Shared_Parser);
 
-                     --  FIXME: this affects all parsers; pause until all get here? or copy
-                     --  this to Parse_Stream input, then breakdown; but that copies large
-                     --  portions of input.
-                     Tree.Left_Breakdown (Tree.Shared_Stream, Parser_State.Shared_Token);
+                     when Shift =>
+                        --  Breakdown nonterms to allow shifting Next_Terminal.
 
-                     Parser_State.Current_Token := Parser_State.Shared_Token;
+                        --  FIXME: this affects all parsers; pause until all get here? or copy
+                        --  tokens to Parse_Stream input, then breakdown; but that copies large
+                        --  portions of input.
 
-                     if Parser_State.Current_Token = Invalid_Terminal_Ref then
-                        --  FIXME: document use case
-                        raise SAL.Not_Implemented;
-                        --  FIXME: need error recovery
-                        --  raise Syntax_Error with "left_breakdown returned Invalid_Stream_Index";
-                     end if;
+                        if Next_Terminal.Element = Parser_State.Shared_Token.Element then
+                           Parser_State.Shared_Token.Node := Next_Terminal.Node;
+                        else
+                           loop
+                              --  Shared_Token.element is empty; delete it
+                              declare
+                                 Temp : Stream_Index := Parser_State.Shared_Token.Element;
+                              begin
+                                 Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
+                                 Tree.Stream_Delete (Tree.Shared_Stream, Temp);
+                              end;
 
-                  when Error =>
-                     --  First_Terminal (Current_Token) is not shiftable either.
+                              exit when Next_Terminal.Element = Parser_State.Shared_Token.Element;
+                           end loop;
+                        end if;
 
-                     --  [Wagner Graham 1998] has Right_Breakdown here, but that is
-                     --  overkill; we only need Undo_Reduce until Current_Token is
-                     --  shiftable. We don't loop locally; Main_Loop does the right things.
-                     --
-                     --  IMPROVEME: if error recovery is correct here, we do more
-                     --  Undo_Reduce than necessary (and it will never happen in
-                     --  Error_Recovery).
+                        Tree.Left_Breakdown (Tree.Shared_Stream, Parser_State.Shared_Token);
 
-                     if Tree.Label (Parser_State.Stream) in Terminal_Label then
-                        raise Syntax_Error with "need error_recovery";
-                     end if;
+                        Parser_State.Current_Token := Parser_State.Shared_Token;
 
-                     Tree.Undo_Reduce (Parser_State.Stream);
-                  end case;
+                        if Parser_State.Current_Token = Invalid_Terminal_Ref then
+                           --  FIXME: document use case
+                           raise SAL.Not_Implemented;
+                           --  FIXME: need error recovery
+                           --  raise Syntax_Error with "left_breakdown returned Invalid_Stream_Index";
+                        end if;
+
+                     when Error =>
+                        --  Next_Terminal is not shiftable either.
+
+                        if Tree.Label (Parser_State.Stream) in Terminal_Label then
+                           raise Syntax_Error with "need error_recovery";
+                        else
+                           --  [Wagner Graham 1998] has Right_Breakdown here, but that is
+                           --  overkill; we only need Undo_Reduce until Current_Token is
+                           --  shiftable. We don't loop on that locally; Main_Loop does the right
+                           --  things.
+                           --
+                           --  IMPROVEME: if error recovery is correct here, we do more
+                           --  Undo_Reduce than necessary (and it will never happen in
+                           --  Error_Recovery).
+
+                           Tree.Undo_Reduce (Parser_State.Stream);
+                        end if;
+                     end case;
+                  end;
                end if;
             end;
          end if;

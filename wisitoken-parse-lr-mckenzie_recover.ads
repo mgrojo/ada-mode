@@ -72,7 +72,7 @@ private
       Insert_Delete                   : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete           :         in out SAL.Base_Peek_Type)
      return Base_Token
-   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   with Pre  => Tree.Valid_Single_Terminal (Tree.Shared_Stream, Current_Shared_Terminal);
    --  Return the current token, from either Tree.Shared_Stream or
    --  Insert_Delete; set up for Next_Token.
    --
@@ -84,7 +84,7 @@ private
       Insert_Delete           : aliased in Config_Op_Arrays.Vector;
       Current_Insert_Delete   :         in SAL.Base_Peek_Type)
      return Token_ID
-   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   with Pre  => Tree.Valid_Single_Terminal (Tree.Shared_Stream, Current_Shared_Terminal);
    --  Return the current token from either Tree.Terminal_Stream or
    --  Insert_Delete, without setting up for Next_Token.
 
@@ -94,7 +94,7 @@ private
       Insert_Delete           : aliased in     Config_Op_Arrays.Vector;
       Current_Insert_Delete   :         in     SAL.Base_Peek_Type;
       Tokens                  :            out Token_ID_Array_1_3)
-   with Pre  => Tree.Valid_Terminal_Ref (Tree.Shared_Stream, Current_Shared_Terminal);
+   with Pre  => Tree.Valid_Single_Terminal (Tree.Shared_Stream, Current_Shared_Terminal);
    --  Return the current token (in Tokens (1)) from either
    --  Tree.Shared_Stream or Insert_Delete, without setting up for
    --  Next_Token. Return the two following tokens in Tokens (2 .. 3).
@@ -202,7 +202,7 @@ private
       Insert_Delete                   : aliased in out Config_Op_Arrays.Vector;
       Current_Insert_Delete           :         in out SAL.Base_Peek_Type)
      return Base_Token
-   with Pre => Syntax_Trees.Valid_Terminal_Ref (Tree, Tree.Shared_Stream, Current_Shared_Terminal);
+   with Pre => Syntax_Trees.Valid_Single_Terminal (Tree, Tree.Shared_Stream, Current_Shared_Terminal);
    --  Return the next token, from either Shared_Stream or Insert_Delete;
    --  update Current_Shared_Terminal or Current_Insert_Delete.
    --

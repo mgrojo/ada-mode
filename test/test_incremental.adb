@@ -56,6 +56,8 @@ package body Test_Incremental is
       use WisiToken.Parse;
       use all type WisiToken.Base_Buffer_Pos;
 
+      Saved_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
+
       Edited : String (Initial'First .. Initial'Last + Insert'Length + Insert_2'Length) := (others => ' ');
 
       Edited_Last : Integer := Initial'Last;
@@ -170,11 +172,16 @@ package body Test_Incremental is
       end if;
 
       --  Batch parse of Edited
+      if WisiToken.Trace_Tests < 2 then
+         --  Don't trace parse in batch parser.
+         WisiToken.Trace_Parse := 0;
+      end if;
+
       Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
       Parser.Parse;
 
-      Check_Tree ("edited source batch parse 0", Parser.Tree);
+      Check_Tree ("edited source batch parse result 0", Parser.Tree);
 
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
@@ -189,12 +196,14 @@ package body Test_Incremental is
 
       Parser.Parse;
 
+      WisiToken.Trace_Parse := Saved_Trace_Parse;
+
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
-         Put_Tree ("initial source batch parse", Parser.Tree);
+         Put_Tree ("initial source batch parse result", Parser.Tree);
       end if;
 
-      Check_Tree ("initial source batch parse", Parser.Tree);
+      Check_Tree ("initial source batch parse result", Parser.Tree);
 
       --  Prepare for incremental parse
       Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
@@ -259,7 +268,7 @@ package body Test_Incremental is
          Edit_At              => 0,
          Delete               => "",
          Insert               => "",
-         Compare_Node_Numbers => True);
+         Compare_Node_Numbers => False);
    end No_Change;
 
    procedure Edit_Comment (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -405,9 +414,6 @@ package body Test_Incremental is
 
          Compare_Node_Numbers => False);
    end Edit_Code_7;
-
-   --  FIXME: edit_code_n 2 inserts, second modifies token
-   --  FIXME: edit_code_n 2 inserts, neither ""
 
    ----------
    --  Public subprograms

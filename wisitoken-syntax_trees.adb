@@ -30,7 +30,7 @@ package body WisiToken.Syntax_Trees is
       Stream : in     Stream_ID;
       Node   : in     Valid_Node_Access)
      return Terminal_Ref
-   with Post => Tree.Valid_Terminal_Ref (Stream, Append_Stream_Element'Result);
+   with Post => Tree.Valid_Terminal (Stream, Append_Stream_Element'Result);
    --  Add Node at Stream.Last; if not Shared_Stream, set Stack_Top to
    --  element containing Node. If Node is from Shared_Stream, it has
    --  been copied and State set
@@ -216,7 +216,7 @@ package body WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Base_Token)
-     return Terminal_Ref
+     return Single_Terminal_Ref
    is begin
       return Append_Stream_Element (Tree, Stream, Tree.Add_Terminal_1 (Terminal));
    end Add_Terminal;
@@ -1018,29 +1018,6 @@ package body WisiToken.Syntax_Trees is
       end return;
    end First_Input;
 
-   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   is
-   begin
-      case Node.Label is
-      when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-         return Node;
-      when Nonterm =>
-         for C of Node.Children loop
-            --  This may be called from Error_Message
-            if C /= null then
-               declare
-                  Term : constant Node_Access := First_Terminal (Tree, C);
-               begin
-                  if Term /= Invalid_Node_Access then
-                     return Term;
-                  end if;
-               end;
-            end if;
-         end loop;
-         return Invalid_Node_Access;
-      end case;
-   end First_Terminal;
-
    function First_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -1072,12 +1049,59 @@ package body WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Terminal_Ref
    is
-      pragma Unreferenced (Stream);
    begin
-      return
-        (Element => Element,
-         Node    => First_Shared_Terminal (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node));
+      return Result : Terminal_Ref := First_Terminal (Tree, Stream, Element) do
+         loop
+            exit when Result.Node.Label = Shared_Terminal;
+            Next_Terminal (Tree, Stream, Result);
+         end loop;
+      end return;
    end First_Shared_Terminal;
+
+   function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   is
+   begin
+      case Node.Label is
+      when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+         return Node;
+      when Nonterm =>
+         for C of Node.Children loop
+            --  This may be called from Error_Message
+            if C /= null then
+               declare
+                  Term : constant Node_Access := First_Terminal (Tree, C);
+               begin
+                  if Term /= Invalid_Node_Access then
+                     return Term;
+                  end if;
+               end;
+            end if;
+         end loop;
+         return Invalid_Node_Access;
+      end case;
+   end First_Terminal;
+
+   function First_Terminal
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Terminal_Ref
+   is
+      use Stream_Element_Lists;
+   begin
+      return Result : Terminal_Ref := (Element, First_Terminal (Tree, Constant_Ref (Element.Cur).Node)) do
+         loop
+            exit when Result.Node /= Invalid_Node_Access;
+            --  Element is not empty
+
+            Result.Element.Cur := Next (Element.Cur);
+            exit when not Has_Element (Result.Element.Cur);
+            --  Not at end of stream
+
+            Result.Node := First_Terminal (Tree, Constant_Ref (Element.Cur).Node);
+         end loop;
+      end return;
+   end First_Terminal;
 
    function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID
    is
@@ -1288,7 +1312,7 @@ package body WisiToken.Syntax_Trees is
    is
       use Ada.Strings.Unbounded;
       use Stream_Element_Lists;
-      Result     : Unbounded_String := +"(";
+      Result     : Unbounded_String := +"(" & Stream.Label'Image & ", ";
       Element    : Cursor           := Stream.Elements.First;
       Need_Comma : Boolean          := False;
    begin
@@ -1320,6 +1344,7 @@ package body WisiToken.Syntax_Trees is
       Root        : in Node_Access := Invalid_Node_Access)
      return String
    is begin
+      --  FIXME: leading non_grammar
       if Root /= Invalid_Node_Access then
          --  Assuming children = true in this case.
          return Subtree_Image (Tree, Root, Non_Grammar);
@@ -1458,8 +1483,10 @@ package body WisiToken.Syntax_Trees is
    function Image (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return String
    is begin
       if Tree.Incremental_Parse then
-         return "(" & Image (Tree, Ref.Element, Node_Numbers => True) & ", " &
-            Image (Tree, Ref.Node, Terminal_Node_Numbers => True) & ")";
+         return "(" & Image (Tree, Ref.Element, Node_Numbers => True) &
+           (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index
+            then ""
+            else ", " & Image (Tree, Ref.Node, Terminal_Node_Numbers => True)) & ")";
       else
          return Image (Tree, Ref.Node, Node_Numbers => True);
       end if;
@@ -1484,7 +1511,7 @@ package body WisiToken.Syntax_Trees is
       Terminal : in     WisiToken.Base_Token;
       Index    : in     Node_Index;
       Before   : in     Stream_Index)
-     return Terminal_Ref
+     return Single_Terminal_Ref
    is
       New_Node : constant Valid_Node_Access := Add_Terminal_1 (Tree, Terminal, Index);
    begin
@@ -1521,7 +1548,7 @@ package body WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     Token_ID;
       Before   : in     Stream_Index)
-     return Terminal_Ref
+     return Single_Terminal_Ref
    is
       New_Node : constant Node_Access := new Node'
         (Label       => Virtual_Terminal,
@@ -1658,60 +1685,186 @@ package body WisiToken.Syntax_Trees is
       --  Left_Breakdown; it just moves the Current_Token pointer around.
       --  That means the rest of the parser must understand that.
       --
-      --  Here we actually decompose the tree, as in [Lahav 2008]
+      --  Here we actually decompose the tree, as in [Lahav 2008]. Empty
+      --  nonterms are handled by caller.
       use Stream_Element_Lists;
 
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
       Cur          : Cursor            := Ref.Element.Cur;
       To_Delete    : Cursor            := Cur;
       Node         : Valid_Node_Access := Parse_Stream.Elements (Ref.Element.Cur).Node;
+      Next_Node    : Node_Access;
    begin
-      Ref.Element.Cur := No_Element;
-
       loop
-         if Node.Label in Terminal_Label then
-            Parse_Stream.Elements.Delete (To_Delete);
+         Next_Node := Invalid_Node_Access;
+
+         for I in reverse 2 .. Node.Child_Count loop
+            if Node.Children (I).Child_Count > 0 then
+               Next_Node := Node.Children (I);
+            end if;
+
+            Cur := Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Node.Children (I),
+                  Label => Parse_Stream.Label),
+               Before   => Cur);
+
+            Node.Children (I).Parent := Invalid_Node_Access;
+         end loop;
+
+         if Node.Children (1).Child_Count > 0 then
+            Node        := Node.Children (1);
+            Node.Parent := Invalid_Node_Access;
+
+         elsif Node.Children (1).Label in Terminal_Label then
+            Node        := Node.Children (1);
+            Node.Parent := Invalid_Node_Access;
 
             Ref.Element.Cur := Parse_Stream.Elements.Insert
               (Element  =>
                  (Node  => Node,
                   Label => Parse_Stream.Label),
                Before   => Cur);
-            exit;
-         end if;
 
-         if Node.Child_Count > 0 then
-            for I in reverse 2 .. Node.Child_Count loop
-               Cur := Parse_Stream.Elements.Insert
-                 (Element  =>
-                    (Node  => Node.Children (I),
-                     Label => Parse_Stream.Label),
-                  Before   => Cur);
+            Ref.Node := Node;
 
-               Node.Children (I).Parent := Invalid_Node_Access;
-            end loop;
-
-            Node        := Node.Children (1);
-            Node.Parent := Invalid_Node_Access;
-         else
-            --  Node is an empty nonterm
-            Next (Cur);
             Parse_Stream.Elements.Delete (To_Delete);
-            To_Delete := Cur;
-
-            if Has_Element (Ref.Element.Cur) then
-               Node := Parse_Stream.Elements (Ref.Element.Cur).Node;
-            else
-               exit;
-            end if;
+            exit;
+         else
+            --  Node is an empty nonterm. Note that Next_Node cannot be null; the
+            --  precondition asserts that Ref was not empty.
+            Node := Next_Node;
          end if;
       end loop;
-
-      Ref.Node :=
-        (if Ref.Element = Invalid_Stream_Index
-         then Invalid_Node_Access
-         else Node);
    end Left_Breakdown;
+
+   function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   is
+      Result : Node_Access := Node;
+   begin
+      loop
+         Result := Next_Terminal (Tree, Result);
+         if Result = Invalid_Node_Access or else Result.Label = Shared_Terminal then
+            return Result;
+         end if;
+      end loop;
+   end Next_Shared_Terminal;
+
+   procedure Next_Shared_Terminal
+     (Tree   : in     Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Ref    : in out Stream_Node_Ref)
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      if Ref.Node.ID = Tree.Descriptor.EOI_ID then
+         --  FIXME: there are two EOI each stream; check for end of stream?
+         --  partial parse inserts an EOI at end of parse, which is usually
+         --  before end of stream.
+         Ref := Invalid_Terminal_Ref;
+         return;
+      end if;
+
+      loop
+         Ref.Node := Next_Terminal (Tree, Ref.Node);
+         if Ref.Node = Invalid_Node_Access then
+            loop
+               Ref.Element := (Cur => Stream_Element_Lists.Next (Ref.Element.Cur));
+               if Ref.Element = Invalid_Stream_Index then
+                  return;
+               end if;
+
+               Ref.Node := Tree.First_Shared_Terminal (Parse_Stream.Elements (Ref.Element.Cur).Node);
+               if Ref.Node /= Invalid_Node_Access then
+                  return;
+               end if;
+            end loop;
+
+         elsif Ref.Node.Label = Shared_Terminal then
+            return;
+         end if;
+      end loop;
+   end Next_Shared_Terminal;
+
+   function Next_Shared_Terminal
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Ref    : in Stream_Node_Ref)
+     return Terminal_Ref
+   is begin
+      return Temp_Ref : Terminal_Ref := Ref do
+         Next_Shared_Terminal (Tree, Stream, Temp_Ref);
+      end return;
+   end Next_Shared_Terminal;
+
+   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   is
+      function First_Child (Node : in Valid_Node_Access) return Node_Access
+      is
+      begin
+         case Node.Label is
+         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
+            return Node;
+         when Nonterm =>
+            --  Use first non-empty
+            for J of Node.Children loop
+               --  Encountering a deleted child here is an error in the user
+               --  algorithm.
+               declare
+                  Result : constant Node_Access := First_Child (J);
+               begin
+                  if Result /= Invalid_Node_Access then
+                     return Result;
+                  end if;
+               end;
+            end loop;
+            --  All Children are empty
+            return Invalid_Node_Access;
+         end case;
+      end First_Child;
+
+      function Next_Child (Child : in Valid_Node_Access; Node : in Node_Access) return Node_Access
+      is begin
+         --  Node is Parent of Child; return node immediately after Child.
+         if Node = Invalid_Node_Access then
+            return Invalid_Node_Access;
+         else
+            pragma Assert (Node.Label = Nonterm);
+            for I in Node.Children'Range loop
+               --  Encountering a deleted child here is an error in the user
+               --  algorithm.
+               if Node.Children (I) = Child then
+                  --  Use first non-empty next from I + 1.
+                  for J in I + 1 .. Node.Children'Last loop
+                     declare
+                        Result : constant Node_Access := First_Child (Node.Children (J));
+                     begin
+                        if Result /= Invalid_Node_Access then
+                           return Result;
+                        end if;
+                     end;
+                  end loop;
+                  --  All next Children are empty
+                  return Next_Child (Node, Node.Parent);
+               end if;
+            end loop;
+            raise SAL.Programmer_Error;
+         end if;
+      end Next_Child;
+   begin
+      return Next_Child (Node, Node.Parent);
+   end Next_Terminal;
+
+   procedure Next_Terminal
+     (Tree   : in     Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Ref    : in out Terminal_Ref)
+   is begin
+      Ref.Node := Next_Terminal (Tree, Ref.Node);
+      if Ref.Node = Invalid_Node_Access then
+         Ref := First_Terminal (Tree, Stream, (Cur => Stream_Element_Lists.Next (Ref.Element.Cur)));
+      end if;
+   end Next_Terminal;
 
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID
    is begin
@@ -1772,121 +1925,6 @@ package body WisiToken.Syntax_Trees is
          end;
       end if;
    end New_Stream;
-
-   function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   is
-      function First_Child (Node : in Valid_Node_Access) return Node_Access
-      is
-      begin
-         case Node.Label is
-         when Shared_Terminal | Virtual_Terminal | Virtual_Identifier =>
-            return Node;
-         when Nonterm =>
-            --  Use first non-empty
-            for J of Node.Children loop
-               --  Encountering a deleted child here is an error in the user
-               --  algorithm.
-               declare
-                  Result : constant Node_Access := First_Child (J);
-               begin
-                  if Result /= Invalid_Node_Access then
-                     return Result;
-                  end if;
-               end;
-            end loop;
-            --  All Children are empty
-            return Invalid_Node_Access;
-         end case;
-      end First_Child;
-
-      function Next_Child (Child : in Valid_Node_Access; Node : in Node_Access) return Node_Access
-      is begin
-         --  Node is Parent of Child; return node immediately after Child.
-         if Node = Invalid_Node_Access then
-            return Invalid_Node_Access;
-         else
-            pragma Assert (Node.Label = Nonterm);
-            for I in Node.Children'Range loop
-               --  Encountering a deleted child here is an error in the user
-               --  algorithm.
-               if Node.Children (I) = Child then
-                  --  Use first non-empty next from I + 1.
-                  for J in I + 1 .. Node.Children'Last loop
-                     declare
-                        Result : constant Node_Access := First_Child (Node.Children (J));
-                     begin
-                        if Result /= Invalid_Node_Access then
-                           return Result;
-                        end if;
-                     end;
-                  end loop;
-                  --  All next Children are empty
-                  return Next_Child (Node, Node.Parent);
-               end if;
-            end loop;
-            raise SAL.Programmer_Error;
-         end if;
-      end Next_Child;
-   begin
-      return Next_Child (Node, Node.Parent);
-   end Next_Terminal;
-
-   function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
-   is
-      Result : Node_Access := Node;
-   begin
-      loop
-         Result := Next_Terminal (Tree, Result);
-         if Result = Invalid_Node_Access or else Result.Label = Shared_Terminal then
-            return Result;
-         end if;
-      end loop;
-   end Next_Shared_Terminal;
-
-   procedure Next_Shared_Terminal
-     (Tree   : in     Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Terminal_Ref)
-   is
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-   begin
-      if Ref.Node.ID = Tree.Descriptor.EOI_ID then
-         Ref := Invalid_Terminal_Ref;
-         return;
-      end if;
-
-      loop
-         Ref.Node := Next_Terminal (Tree, Ref.Node);
-         if Ref.Node = Invalid_Node_Access then
-            loop
-               Ref.Element := (Cur => Stream_Element_Lists.Next (Ref.Element.Cur));
-               if Ref.Element = Invalid_Stream_Index then
-                  return;
-               end if;
-
-               Ref.Node := Tree.First_Shared_Terminal (Parse_Stream.Elements (Ref.Element.Cur).Node);
-               if Ref.Node /= Invalid_Node_Access then
-                  return;
-               end if;
-            end loop;
-
-         elsif Ref.Node.Label = Shared_Terminal then
-            return;
-         end if;
-      end loop;
-   end Next_Shared_Terminal;
-
-   function Next_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Terminal_Ref)
-     return Terminal_Ref
-   is
-      Temp_Ref : Terminal_Ref := Ref;
-   begin
-      Next_Shared_Terminal (Tree, Stream, Temp_Ref);
-      return Temp_Ref;
-   end Next_Shared_Terminal;
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
    is
@@ -2085,7 +2123,7 @@ package body WisiToken.Syntax_Trees is
    procedure Print_Streams (Tree : in Syntax_Trees.Tree; Non_Grammar : in Boolean := False)
    is begin
       for Stream of Tree.Streams loop
-         Ada.Text_IO.Put_Line (Stream.Label'Image & ": " & Tree.Image (Stream, Non_Grammar => Non_Grammar));
+         Ada.Text_IO.Put_Line (Tree.Image (Stream, Non_Grammar => Non_Grammar));
       end loop;
    end Print_Streams;
 
@@ -2620,6 +2658,20 @@ package body WisiToken.Syntax_Trees is
 
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    is (SAL.Base_Peek_Type (Tree.Streams (Stream.Cur).Elements.Length));
+
+   procedure Stream_Next
+     (Tree   : in     Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Ref    : in out Stream_Node_Ref)
+   is
+      use Stream_Element_Lists;
+   begin
+      Ref.Element := (Cur => Next (Ref.Element.Cur));
+      Ref.Node :=
+        (if Has_Element (Ref.Element.Cur)
+         then Constant_Ref (Ref.Element.Cur).Node
+         else Invalid_Node_Access);
+   end Stream_Next;
 
    function Subtree_Image
      (Tree        : in Syntax_Trees.Tree;

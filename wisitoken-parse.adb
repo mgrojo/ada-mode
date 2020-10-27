@@ -22,8 +22,7 @@ package body WisiToken.Parse is
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
       Token  : in     Base_Token;
-      Ref    : in     Syntax_Trees.Terminal_Ref)
-   with Pre => Parser.Tree.Single (Ref)
+      Ref    : in     Syntax_Trees.Single_Terminal_Ref)
    is
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.User_Data_Access;
@@ -248,6 +247,36 @@ package body WisiToken.Parse is
       Terminal : Terminal_Ref;
 
       Next_Terminal_Index : Node_Index := 1;
+
+      procedure Breakdown (Single : in Boolean := False)
+      is
+         Target : constant Valid_Node_Access := Terminal.Node;
+      begin
+         loop
+            exit when Tree.First_Terminal (Stream, Terminal.Element).Node = Target and
+              (not Single or Single_Terminal (Terminal));
+
+            if Tree.Label (Terminal.Element) = Nonterm then
+               Tree.Left_Breakdown (Stream, Terminal);
+
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line ("left_breakdown stream: " & Tree.Image (Stream, Non_Grammar => True));
+                  Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
+               end if;
+            else
+               Tree.Next_Terminal (Stream, Terminal);
+
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
+               end if;
+            end if;
+
+            pragma Assert (Tree.Label (Terminal.Node) = Shared_Terminal);
+            --  FIXME: if first_terminal is virtual, delete it
+
+         end loop;
+      end Breakdown;
+
    begin
       Parser.Tree.Start_Edit;
 
@@ -447,6 +476,9 @@ package body WisiToken.Parse is
                      Prev_Token_ID => Prev_Token_ID);
                end;
 
+               --  Ensure Terminal.Node is first in Terminal.Element, so we can insert before it.
+               Breakdown;
+
                Scan_Changed_Loop :
                loop
                   declare
@@ -481,8 +513,6 @@ package body WisiToken.Parse is
 
                         Process_Grammar_Token (Parser, Token, Ref);
 
-                        --  Further breakdown of parse tree is done in Parse_Incremental or
-                        --  below in Delete
                      else
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
@@ -513,13 +543,8 @@ package body WisiToken.Parse is
                     (KMN.Inserted_Bytes > 0 and
                        Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1)); --  modified
 
-               if Tree.Label (Terminal.Element) = Syntax_Trees.Nonterm then
-                  Tree.Left_Breakdown (Stream, Terminal);
-                  if Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line ("left_breakdown stream: " & Tree.Image (Stream, Non_Grammar => True));
-                     Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal.Node, Terminal_Node_Numbers => True));
-                  end if;
-               end if;
+               --  Ensure Terminal.Node is Single, so we can delete it.
+               Breakdown (Single => True);
 
                declare
                   Temp : Stream_Index := Terminal.Element;

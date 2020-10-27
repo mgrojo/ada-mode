@@ -30,7 +30,8 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
     test/test_incremental.adb
-        edit_code_1 passes; edit_code_2 fails, _3 crashes
+        code_4 failing line check
+        delete Compare_Node_Numbers; never True.
 
     validate_tree verify node_index order on shared_terminals in shared_stream
 
@@ -38,15 +39,11 @@ incremental parse
 
     rename -parser-parse.adb to -parse_batch.adb
 
-    edit_tree delete unreachable nodes (from terminated parse streams)
-        use mark and sweep
-        time it in ada-mode
-
-    run all tests
-
     test Parser.line_begin_token
 
-    more tests; see fixmes in test_incremental, parse_incremental
+    more tests;
+        parse_incremental with current_token = empty nonterm
+        left_breakdown with first_terminal = virtual
 
     error recover push_back nonterm makes no sense, since contained terminals may not be in shared_stream
         must do combination of undo_reduce, push_back single terminal
@@ -67,6 +64,9 @@ incremental parse
         shared_stream needs parents for next_shared_Terminal
         other streams don't set new parents.
 
+        edit_tree delete unreachable nodes (from terminated parse streams)
+            use mark and sweep
+
         OR at least delete all nodes in a stream when delete the stream
 
     optimize use of First_Terminal in parse
@@ -75,6 +75,11 @@ incremental parse
             does that break something?
 
     review fixmes
+
+    should be two Wisi_EOI in streams
+
+    test partial_parse
+        first EOI is at end of parse, not end of shared_stream.
 
     could merge edit_tree, parse_incremental
         wagner graham 1998
