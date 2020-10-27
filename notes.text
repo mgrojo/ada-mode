@@ -29,15 +29,14 @@ update-wisitoken_grammar
  current work
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
-    test/test_incremental.adb
-        code_4 failing line check
-        delete Compare_Node_Numbers; never True.
-
-    validate_tree verify node_index order on shared_terminals in shared_stream
-
-    run all tests
 
     rename -parser-parse.adb to -parse_batch.adb
+        commit
+
+    run all tests
+        test/test_incremental.adb : passing
+        t_mck: lots of failures; nothing should have changed
+        t_all:
 
     test Parser.line_begin_token
 

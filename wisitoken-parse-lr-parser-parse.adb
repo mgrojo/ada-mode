@@ -122,9 +122,10 @@ begin
                      null;
 
                   elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref or else
-                    (Parser_State.Inc_Shared_Token and then Shared_Parser.Tree.Next_Shared_Terminal
-                      (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token) /=
-                    Syntax_Trees.Invalid_Stream_Node_Ref)
+                    (not Parser_State.Inc_Shared_Token or else
+                       Shared_Parser.Tree.Next_Shared_Terminal
+                       (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token)
+                       /= Syntax_Trees.Invalid_Stream_Node_Ref)
                   then
                      if Parser_State.Inc_Shared_Token then
                         --  Inc_Shared_Token is only set False by McKenzie_Recover; see there

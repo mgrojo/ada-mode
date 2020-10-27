@@ -307,7 +307,8 @@ package body WisiToken.Parse is
 
             Do_Scan : Boolean := KMN.Inserted_Bytes > 0;
 
-            Last_Stable_Line : Line_Number_Type := Invalid_Line_Number;
+            Last_Stable_Line : Line_Number_Type      := Invalid_Line_Number;
+            Line_Delta       : Base_Line_Number_Type := 0; -- counts new_lines inserted
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
             --  stable, deleted are inside the initial text. Caller should use
@@ -520,6 +521,9 @@ package body WisiToken.Parse is
                         end if;
 
                         Process_Non_Grammar_Token (Parser, Token);
+                        if Token.ID = Parser.Descriptor.New_Line_ID then
+                           Line_Delta := @ + 1;
+                        end if;
                      end if;
 
                      if Error then
@@ -559,8 +563,13 @@ package body WisiToken.Parse is
             end loop Delete_Loop;
 
             --  Update Shift_Line. Terminal is the token after any insert, delete;
-            --  the first token in the next stable region.
-            Shift_Line := Tree.Base_Token (Terminal.Node).Line - Last_Stable_Line;
+            --  the first token in the next stable region; it has the old line number.
+            declare
+               Old_Line_Delta : constant Base_Line_Number_Type :=
+                 Tree.Base_Token (Terminal.Node).Line - Last_Stable_Line;
+            begin
+               Shift_Line := Shift_Line + Line_Delta - Old_Line_Delta;
+            end;
 
             Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
             Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;

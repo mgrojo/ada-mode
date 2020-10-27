@@ -37,6 +37,7 @@ with Name_Grammar_Test;
 with Test_Accept_State;
 with Test_BNF_Suite;
 with Test_Follow;
+with Test_Incremental;
 with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
@@ -114,7 +115,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Name_Grammar_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Accept_State.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
-   --  FIXME: Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));

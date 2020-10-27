@@ -40,14 +40,13 @@ package body Test_Incremental is
    Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
 
    procedure Parse_Text
-     (Initial              : in String;
-      Edit_At              : in Integer;
-      Delete               : in String;
-      Insert               : in String;
-      Edit_2_At            : in Integer := 0;
-      Delete_2             : in String  := "";
-      Insert_2             : in String  := "";
-      Compare_Node_Numbers : in Boolean)
+     (Initial   : in String;
+      Edit_At   : in Integer;
+      Delete    : in String;
+      Insert    : in String;
+      Edit_2_At : in Integer := 0;
+      Delete_2  : in String  := "";
+      Insert_2  : in String  := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
@@ -244,7 +243,7 @@ package body Test_Incremental is
 
       Check_Tree ("incrementally parsed tree 1", Parser.Tree);
 
-      Check ("1", Parser.Tree, Edited_Tree_Batch, Compare_Node_Numbers, Shared_Stream => False);
+      Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception
    when E : WisiToken.Syntax_Error =>
       if WisiToken.Debug_Mode then
@@ -263,12 +262,11 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       Parse_Text
-        (Initial              => "A := B + C;",
-         --                       1        |10
-         Edit_At              => 0,
-         Delete               => "",
-         Insert               => "",
-         Compare_Node_Numbers => False);
+        (Initial => "A := B + C;",
+         --          1        |10
+         Edit_At => 0,
+         Delete  => "",
+         Insert  => "");
    end No_Change;
 
    procedure Edit_Comment (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -276,13 +274,13 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       Parse_Text
-        (Initial              => "A := B + C; --  A comment",
-         --                       1        |10       |20
-         Edit_At              => 19,
-         Delete               => "comment",
-         Insert               => "cool explanation",
-         --                       |19        |30
-         Compare_Node_Numbers => False);
+        (Initial => "A := B + C; --  A comment",
+         --          1        |10       |20
+         Edit_At => 19,
+         Delete  => "comment",
+         Insert  => "cool explanation");
+      --             |19        |30
+
    end Edit_Comment;
 
    procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -291,13 +289,12 @@ package body Test_Incremental is
    begin
       --  Insert at start of initial text
       Parse_Text
-        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
-         --                       1        |10     |18              |20       |30     |38
-         Edit_At              => 1,
-         Delete               => "",
-         Insert               => "A_",
-         --                       |1
-         Compare_Node_Numbers => False);
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --          1        |10     |18              |20       |30     |38
+         Edit_At => 1,
+         Delete  => "",
+         Insert  => "A_");
+      --             |1
    end Edit_Code_1;
 
    procedure Edit_Code_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -306,13 +303,12 @@ package body Test_Incremental is
    begin
       --  Insert, delete in middle
       Parse_Text
-        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
-         --                       1        |10     |18              |20       |30     |38
-         Edit_At              => 20,
-         Delete               => "B",
-         Insert               => "A_1",
-         --                       |20
-         Compare_Node_Numbers => False);
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --          1        |10     |18              |20       |30     |38
+         Edit_At => 20,
+         Delete  => "B",
+         Insert  => "A_1");
+      --             |20
    end Edit_Code_2;
 
    procedure Edit_Code_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -321,13 +317,12 @@ package body Test_Incremental is
    begin
       --  Insert, delete at last grammar token
       Parse_Text
-        (Initial              => "A := --  comment 1" & ASCII.LF & "B + C;",
-         --                       1        |10     |18              |20
-         Edit_At              => 25,
-         Delete               => ";",
-         Insert               => "_1;",
-         --                       |25
-         Compare_Node_Numbers => False);
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
+         --          1        |10     |18              |20
+         Edit_At => 25,
+         Delete  => ";",
+         Insert  => "_1;");
+      --             |25
    end Edit_Code_3;
 
    procedure Edit_Code_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -345,9 +340,7 @@ package body Test_Incremental is
 
          Edit_2_At => 20,
          Delete_2  => "B + ",
-         Insert_2  => "",
-
-         Compare_Node_Numbers => False);
+         Insert_2  => "");
 
       --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "C;",
       --           |1       |10       |20                |24
@@ -367,9 +360,7 @@ package body Test_Incremental is
 
          Edit_2_At => 24,
          Delete_2  => "",
-         Insert_2  => "_2",
-
-         Compare_Node_Numbers => False);
+         Insert_2  => "_2");
    end Edit_Code_5;
 
    procedure Edit_Code_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -387,9 +378,7 @@ package body Test_Incremental is
 
          Edit_2_At => 7,
          Delete_2  => " + ",
-         Insert_2  => "",
-
-         Compare_Node_Numbers => False);
+         Insert_2  => "");
 
       --  Edited: "A_1 := BC;",
       --           |1     |8
@@ -410,9 +399,7 @@ package body Test_Incremental is
 
          Edit_2_At => 9,
          Delete_2  => " ",
-         Insert_2  => "",
-
-         Compare_Node_Numbers => False);
+         Insert_2  => "");
    end Edit_Code_7;
 
    ----------
