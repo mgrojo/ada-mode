@@ -66,6 +66,9 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Parser_State.Stream. May be a nonterm in incremental parse.
 
       Inc_Shared_Token : Boolean := True;
+      --  Whether Parse should increment Shared_Token before using it as the
+      --  next input. This is set False when Current_Token is from recover
+      --  (either Insert or Push_Back).
 
       --  The parse stack is Shared_Parser.Tree (Parser_State.Stream).
 
@@ -75,9 +78,13 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
-      Resume_Active          : Boolean                 := False;
-      Resume_Token_Goal      : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
-      Conflict_During_Resume : Boolean                 := False;
+      Resume_Active : Boolean := False;
+
+      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  Set at the end of recovery, so during recovery it is the end of
+      --  the previous recover session.
+
+      Conflict_During_Resume : Boolean := False;
 
       Errors : Parse_Error_Lists.List;
    end record;

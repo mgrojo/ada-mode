@@ -76,8 +76,9 @@ package WisiToken.Parse.LR.AUnit is
          FF_Token_Index : Syntax_Trees.Node_Index;
 
       when Undo_Reduce =>
-         Nonterm     : Token_ID;
-         Token_Count : Ada.Containers.Count_Type;
+         Nonterm        : Token_ID;
+         Token_Count    : Ada.Containers.Count_Type;
+         UR_Token_Index : Syntax_Trees.Node_Index;
 
       when Push_Back =>
          PB_ID          : Token_ID;

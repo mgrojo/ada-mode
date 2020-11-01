@@ -163,6 +163,9 @@ package WisiToken is
    --  Put user readable token list (token_id'first ..
    --  descriptor.last_nonterminal) to Ada.Text_IO.Current_Output
 
+   function Is_Terminal (ID : in Token_ID; Descriptor : in WisiToken.Descriptor) return Boolean
+   is (ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal);
+
    function Find_ID (Descriptor : in WisiToken.Descriptor; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 

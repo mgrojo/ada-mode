@@ -37,6 +37,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
+with SAL.Gen_Bounded_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
@@ -437,8 +438,7 @@ package WisiToken.Parse.LR is
       case Op is
       when Fast_Forward =>
          FF_Token_Index : Syntax_Trees.Node_Index;
-         --  Config.Current_Shared_Token after the operation is done; the last
-         --  token shifted.
+         --  Config current_token after the operation is done.
 
       when Undo_Reduce =>
          Nonterm : Token_ID;
@@ -447,14 +447,17 @@ package WisiToken.Parse.LR is
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
 
+         UR_Token_Index : Syntax_Trees.Node_Index;
+         --  First terminal in the undo_reduce token; Invalid_Node_Index if
+         --  empty. Used to check that successive Push_Backs are valid.
+
       when Push_Back =>
          PB_ID : Token_ID;
          --  The nonterm ID popped off the stack.
 
          PB_Token_Index : Syntax_Trees.Node_Index;
-         --  First terminal in token; Invalid_Node_Index if the pushed_back
-         --  nonterm is empty. Used to check that successive Push_Backs are
-         --  valid.
+         --  First terminal in the pushd_back token; Invalid_Node_Index if
+         --  empty. Used to check that successive Push_Backs are valid.
 
       when Insert =>
          Ins_ID : Token_ID;
@@ -465,7 +468,7 @@ package WisiToken.Parse.LR is
 
       when Delete =>
          Del_ID : Token_ID;
-         --  The token ID deleted.
+         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
          Del_Token_Index : Syntax_Trees.Node_Index;
          --  Token at Del_Token_Index is deleted.
@@ -590,17 +593,17 @@ package WisiToken.Parse.LR is
 
    package Recover_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Recover_Stack_Item);
 
-   function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor) return String
+   function Image (Item : in Recover_Stack_Item; Tree : in Syntax_Trees.Tree) return String
      is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
-           Syntax_Trees.Image (Item.Token, Descriptor));
+           Syntax_Trees.Image (Tree, Item.Token));
 
-   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (Syntax_Trees.Tree, Image);
    --  Unique name for calling from debugger
 
    function Image
-     (Stack      : in Recover_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor;
-      Depth      : in SAL.Base_Peek_Type := 0)
+     (Stack : in Recover_Stacks.Stack;
+      Tree  : in Syntax_Trees.Tree;
+      Depth : in SAL.Base_Peek_Type := 0)
      return String
      renames Recover_Stack_Image;
 
@@ -609,6 +612,13 @@ package WisiToken.Parse.LR is
    --  Return True if Stack top Depth items have valid Tree_Indices,
    --  which is true if they were copied from the parser stack, and not
    --  pushed by recover.
+
+   package Bounded_Streams is new SAL.Gen_Bounded_Definite_Doubly_Linked_Lists (Syntax_Trees.Node_Access);
+
+   function Image (Item : in Syntax_Trees.Node_Access; Tree : in Syntax_Trees.Tree) return String
+   is (Tree.Image (Item, Node_Numbers => True));
+
+   function Image is new Bounded_Streams.Gen_Image_Aux (Syntax_Trees.Tree, LR.Image);
 
    type Strategies is
      (Ignore_Error, Language_Fix, Minimal_Complete, Matching_Begin,
@@ -628,27 +638,40 @@ package WisiToken.Parse.LR is
       --  larger size slows down recover due to memory cache thrashing and
       --  allocation.
       --
-      --  Emacs Ada mode wisi.adb needs > 50
+      --  Emacs ada-mode wisi.adb needs > 50
+
+      Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Terminal_Ref;
+      --  Current input token in Shared_Stream; to be input after all of
+      --  Input_Stream and Insert_Delete is input. Initially the error
+      --  token. In batch parse, always a Shared_Terminal; in incremental
+      --  parse, may be a nonterm or virtual terminal (from error correction
+      --  in the previous parse).
+
+      Input_Stream : Bounded_Streams.List (10);
+      --  Holds tokens copied from Shared_Stream when Push_Back operations
+      --  are performed, or added by Insert. Delete may be applied to these,
+      --  which requires that nonterms be broken down (similar to
+      --  Syntax_Trees.Left_Breakdown).
+      --
+      --  Current token is root of Input_Stream.First.
+      --
+      --  10 is probably too small FIXME: justify size
+
+      Insert_Delete : aliased Config_Op_Arrays.Vector;
+      --  Edits to the input stream that are not yet parsed; contains only
+      --  Insert and Delete ops, in node_index order.
+
+      Current_Insert_Delete : SAL.Base_Peek_Type := No_Insert_Delete;
+      --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
+      --  Current_Tree_Token.
 
       Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  A successful solution shifts this terminal token from Tree.Shared_Stream.
       --  Per-config because it increases with Delete; we increase
       --  Shared_Parser.Resume_Token_Goal only from successful configs.
 
-      Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Terminal_Ref;
-      --  Element in Shared_Stream for current input token, after all of
-      --  Inserted is input. Initially the error token.
-
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
-
-      Insert_Delete : aliased Config_Op_Arrays.Vector;
-      --  Edits to the input stream that are not yet parsed; contains only
-      --  Insert and Delete ops, in token_index order.
-
-      Current_Insert_Delete : SAL.Base_Peek_Type := No_Insert_Delete;
-      --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
-      --  Current_Shared_Token.
 
       Error_Token       : Syntax_Trees.Recover_Token;
       Check_Token_Count : Ada.Containers.Count_Type;

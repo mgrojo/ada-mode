@@ -736,10 +736,12 @@ package body WisiToken.Parse.LR is
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is
-      use all type WisiToken.Syntax_Trees.Stream_Index;
+      use all type WisiToken.Syntax_Trees.Node_Access;
    begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Token.First_Shared_Terminal.Element = Syntax_Trees.Invalid_Stream_Index then
+         if Stack.Peek (I).Token.Virtual and then
+           Stack.Peek (I).Token.First_Terminal = Syntax_Trees.Invalid_Node_Access
+         then
             return False;
          end if;
       end loop;

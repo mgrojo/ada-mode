@@ -43,7 +43,7 @@ package WisiToken.Semantic_Checks is
    subtype Error_Check_Status is Check_Status
    with Dynamic_Predicate => Error_Check_Status.Label /= Ok;
 
-   function Image (Item : in Check_Status; Descriptor : WisiToken.Descriptor) return String;
+   function Image (Item : in Check_Status; Tree : in Syntax_Trees.Tree) return String;
 
    type Semantic_Check is access function
      (Lexer          : access constant WisiToken.Lexer.Instance'Class;
@@ -74,9 +74,9 @@ package WisiToken.Semantic_Checks is
       Name_Index : in     Positive_Index_Type)
      return Check_Status;
    function Merge_Names
-     (Nonterm     : in out Syntax_Trees.Recover_Token;
-      Tokens      : in     Syntax_Trees.Recover_Token_Array;
-      Name_Index  : in     Positive_Index_Type)
+     (Nonterm    : in out Syntax_Trees.Recover_Token;
+      Tokens     : in     Syntax_Trees.Recover_Token_Array;
+      Name_Index : in     Positive_Index_Type)
      return Check_Status
    renames Propagate_Name;
    --  Set Nonterm.Name to Tokens (Name_Index).Name, or .Byte_Region, if
@@ -88,7 +88,7 @@ package WisiToken.Semantic_Checks is
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Check_Status;
-   --  Then set Nonterm.Name to the merger of Tokens (First_Index ..
+   --  Set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.
    --
    --  If Tokens (Last_Index).Name is Null_Buffer_Region, use Tokens

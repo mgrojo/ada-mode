@@ -20,15 +20,15 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 package body WisiToken.Semantic_Checks is
 
-   function Image (Item : in Check_Status; Descriptor : in WisiToken.Descriptor) return String
+   function Image (Item : in Check_Status; Tree : in Syntax_Trees.Tree) return String
    is begin
       case Item.Label is
       when Ok =>
          return Check_Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Check_Status_Label'Image (Item.Label) & ", " &
-           Syntax_Trees.Image (Item.Begin_Name, Descriptor) & ',' &
-           Syntax_Trees.Image (Item.End_Name, Descriptor) & ')';
+           Syntax_Trees.Image (Tree, Item.Begin_Name) & ',' &
+           Syntax_Trees.Image (Tree, Item.End_Name) & ')';
       end case;
    end Image;
 
@@ -41,63 +41,62 @@ package body WisiToken.Semantic_Checks is
       End_Optional : in     Boolean)
      return Check_Status
    is
-      Start_Name_Region : constant Buffer_Region :=
-        (if Tokens (Start_Index).Name = Null_Buffer_Region
-         then Tokens (Start_Index).Byte_Region
-         else Tokens (Start_Index).Name);
-      End_Name_Region : constant Buffer_Region :=
-        (if Tokens (End_Index).Name = Null_Buffer_Region
-         then Tokens (End_Index).Byte_Region
-         else Tokens (End_Index).Name);
-
-      function Equal return Boolean
-      is
-         use Ada.Characters.Handling;
-      begin
-         if Descriptor.Case_Insensitive then
-            return To_Lower (Lexer.Buffer_Text (Start_Name_Region)) =
-              To_Lower (Lexer.Buffer_Text (End_Name_Region));
-         else
-            return Lexer.Buffer_Text (Start_Name_Region) = Lexer.Buffer_Text (End_Name_Region);
-         end if;
-      end Equal;
-
+      use Syntax_Trees;
    begin
-      if Tokens (Start_Index).Virtual or Tokens (End_Index).Virtual then
+      if Contains_Virtual (Tokens (Start_Index)) or Contains_Virtual (Tokens (End_Index)) then
          return (Label => Ok);
+      end if;
 
-      elsif End_Optional then
-         if End_Name_Region = Null_Buffer_Region then
-            return (Label => Ok);
-         elsif Start_Name_Region = Null_Buffer_Region then
-            return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
-         else
-            if Equal then
-               return (Label => Ok);
+      declare
+         Start_Name_Region : constant Buffer_Region := Syntax_Trees.Name (Tokens (Start_Index));
+         End_Name_Region   : constant Buffer_Region := Syntax_Trees.Name (Tokens (End_Index));
+
+         function Equal return Boolean
+         is
+            use Ada.Characters.Handling;
+         begin
+            if Descriptor.Case_Insensitive then
+               return To_Lower (Lexer.Buffer_Text (Start_Name_Region)) =
+                 To_Lower (Lexer.Buffer_Text (End_Name_Region));
             else
-               return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+               return Lexer.Buffer_Text (Start_Name_Region) = Lexer.Buffer_Text (End_Name_Region);
             end if;
-         end if;
+         end Equal;
+      begin
 
-      else
-         if Start_Name_Region = Null_Buffer_Region then
+         if End_Optional then
             if End_Name_Region = Null_Buffer_Region then
                return (Label => Ok);
-            else
+            elsif Start_Name_Region = Null_Buffer_Region then
                return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+            else
+               if Equal then
+                  return (Label => Ok);
+               else
+                  return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+               end if;
             end if;
-
-         elsif End_Name_Region = Null_Buffer_Region then
-            return (Missing_Name_Error, Tokens (Start_Index), Tokens (End_Index));
 
          else
-            if Equal then
-               return (Label => Ok);
+            if Start_Name_Region = Null_Buffer_Region then
+               if End_Name_Region = Null_Buffer_Region then
+                  return (Label => Ok);
+               else
+                  return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+               end if;
+
+            elsif End_Name_Region = Null_Buffer_Region then
+               return (Missing_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+
             else
-               return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+               if Equal then
+                  return (Label => Ok);
+               else
+                  return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+               end if;
             end if;
          end if;
-      end if;
+      end;
    end Match_Names;
 
    function Propagate_Name
@@ -106,11 +105,7 @@ package body WisiToken.Semantic_Checks is
       Name_Index : in     Positive_Index_Type)
      return Check_Status
    is begin
-      if Tokens (Name_Index).Name = Null_Buffer_Region then
-         Nonterm.Name := Tokens (Name_Index).Byte_Region;
-      else
-         Nonterm.Name := Tokens (Name_Index).Name;
-      end if;
+      Syntax_Trees.Set_Name (Nonterm, Syntax_Trees.Name (Tokens (Name_Index)));
       return (Label => Ok);
    end Propagate_Name;
 
@@ -121,14 +116,9 @@ package body WisiToken.Semantic_Checks is
       Last_Index  : in     Positive_Index_Type)
      return Check_Status
    is
-      First_Name : Buffer_Region renames Tokens (First_Index).Name;
-      Last_Name  : Buffer_Region renames Tokens (Last_Index).Name;
+      use Syntax_Trees;
    begin
-      Nonterm.Name :=
-        First_Name and
-          (if Last_Name = Null_Buffer_Region
-           then Tokens (Last_Index).Byte_Region
-           else Last_Name);
+      Set_Name (Nonterm, Name (Tokens (First_Index)) and Name (Tokens (Last_Index)));
       return (Label => Ok);
    end Merge_Names;
 

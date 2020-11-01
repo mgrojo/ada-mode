@@ -360,7 +360,8 @@ package body WisiToken.Parse is
 
                Next_Terminal_Index := @ + 1;
 
-               Tree.Next_Shared_Terminal (Stream, Terminal);
+               Tree.Next_Shared_Terminal (Stream, Terminal); -- FIXME: use
+               --  Next_Terminal, to set Node_Index in them as well.
             end loop Unchanged_Loop;
 
             declare

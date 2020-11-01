@@ -36,7 +36,8 @@ package WisiToken.Parse.LR.Parser is
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration);
+      Config            : in     Configuration;
+      Prev_Recover_End  : in     Syntax_Trees.Node_Index);
    --  Config encountered a parse table Error action, or failed a
    --  semantic check; attempt to provide a language-specific fix,
    --  enqueuing new configs on Local_Config_Heap.

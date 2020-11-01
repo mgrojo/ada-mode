@@ -174,7 +174,8 @@ package body WisiToken.Parse.LR.AUnit is
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
-         Check (Label & ".id", Computed.Token_Count, Expected.Token_Count);
+         Check (Label & ".token_count", Computed.Token_Count, Expected.Token_Count);
+         Check (Label & ".ur_token_index", Computed.UR_Token_Index, Expected.UR_Token_Index);
 
       when Push_Back =>
          Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);

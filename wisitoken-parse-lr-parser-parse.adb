@@ -64,7 +64,8 @@ begin
 
       when Shift =>
          --  We just shifted a token; get the next token from
-         --  Shared_Parser.Terminals.
+         --  Tree.Shared_Stream, Tree parse stream input, or Parser
+         --  Insert_Delete.
 
          for Parser_State of Shared_Parser.Parsers loop
             if Parser_State.Verb = Error then
@@ -80,80 +81,100 @@ begin
                end if;
 
             elsif Parser_State.Verb = Shift then
+               --  Update Parser_State.Current_Token to the next token. If
+               --  Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref,
+               --  we are at the start of the input text.
+
                declare
                   use Recover_Op_Arrays;
-                  use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+                  use all type Syntax_Trees.Stream_Node_Ref;
+                  use all type WisiToken.Syntax_Trees.Node_Label;
+
+                  Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+
+                  Next_Token : constant Syntax_Trees.Stream_Node_Ref :=
+                    (if Tree.Has_Input (Parser_State.Stream)
+                     then Tree.First_Input (Parser_State.Stream)
+                     elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref
+                     then Tree.Stream_First (Tree.Shared_Stream)
+                     elsif Parser_State.Inc_Shared_Token
+                     then Tree.Next_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token)
+                     else Parser_State.Shared_Token);
+
+                  Next_Real_Terminal : constant Syntax_Trees.Terminal_Ref := Tree.First_Terminal
+                    ((if Tree.Has_Input (Parser_State.Stream) then Parser_State.Stream else Tree.Shared_Stream),
+                     Next_Token.Element);
+                  pragma Assert
+                    (Tree.Label (Next_Real_Terminal.Node) = Syntax_Trees.Shared_Terminal,
+                     "virtual terminal first in Next_Real_Terminal");
+                  --  Next_Real_Terminal should never be Virtual. There can be Virtual
+                  --  terminals in the Shared_Stream from previous error recovery, but
+                  --  if they are the first terminal in a Shared_Stream nonterminal,
+                  --  Edit_Tree or error recover Breakdown should have deleted them.
+                  --  There can be no Virtual terminals in the parse stream input; error
+                  --  recover does not push back over them, since recomputing them is a
+                  --  waste of time.
 
                   function Insert_Virtual return Boolean
                   is
-                     Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-
                      Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
                      Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
-                     Result      : Boolean := False;
                   begin
-                     if Ins_Del_Cur /= No_Index then
-                        declare
-                           Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
-                           Insert_Before : constant Syntax_Trees.Terminal_Ref :=
-                             (if Parser_State.Inc_Shared_Token
-                              then Tree.Next_Shared_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token)
-                              else Parser_State.Shared_Token);
-                        begin
-                           if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Insert_Before.Node) then
-                              Result := True;
-
-                              Parser_State.Current_Token := Shared_Parser.Tree.Insert_Virtual_Terminal
-                                (Parser_State.Stream, Op.Ins_ID, Insert_Before.Element);
-
-                              Op.Ins_Node := Parser_State.Current_Token.Node;
-
-                              Ins_Del_Cur := Ins_Del_Cur + 1;
-                              if Ins_Del_Cur > Last_Index (Ins_Del) then
-                                 Ins_Del_Cur := No_Index;
-                              end if;
-                           end if;
-                        end;
+                     if Ins_Del_Cur = No_Index then
+                        return False;
                      end if;
-                     return Result;
+                     declare
+                        Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
+                     begin
+                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Real_Terminal.Node) then
+
+                           Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
+                             (Parser_State.Stream, Op.Ins_ID, Before_Real_Terminal => Next_Token.Element);
+
+                           Op.Ins_Node := Parser_State.Current_Token.Node;
+
+                           Ins_Del_Cur := Ins_Del_Cur + 1;
+                           if Ins_Del_Cur > Last_Index (Ins_Del) then
+                              Ins_Del_Cur := No_Index;
+                           end if;
+                           return True;
+                        else
+                           return False;
+                        end if;
+                     end;
                   end Insert_Virtual;
+
                begin
                   if Insert_Virtual then
                      null;
 
-                  elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref or else
-                    (not Parser_State.Inc_Shared_Token or else
-                       Shared_Parser.Tree.Next_Shared_Terminal
-                       (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token)
-                       /= Syntax_Trees.Invalid_Stream_Node_Ref)
-                  then
-                     if Parser_State.Inc_Shared_Token then
-                        --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
-                        --  for when/why. Don't increment past wisi_eoi (happens when input
-                        --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
-                        if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
-                           Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First
-                             (Shared_Parser.Tree.Shared_Stream);
-                        else
-                           Shared_Parser.Tree.Next_Shared_Terminal
-                             (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token);
-                        end if;
-                     else
-                        Parser_State.Inc_Shared_Token := True;
-                     end if;
+                  elsif Tree.Has_Input (Parser_State.Stream) then
+                     Parser_State.Current_Token    := Next_Token;
+                     Parser_State.Inc_Shared_Token := False;
 
-                     Parser_State.Current_Token := Parser_State.Shared_Token;
+                  else
+                     Parser_State.Shared_Token := Next_Token;
+
+                     Parser_State.Inc_Shared_Token := True;
+                     Parser_State.Current_Token    := Next_Token;
                   end if;
 
                   if Trace_Parse > Extra then
                      Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
-                          ": current_token " & Shared_Parser.Tree.Image (Parser_State.Current_Token) &
-                          " recover_insert_delete:" &
+                       (" " & Tree.Trimmed_Image (Parser_State.Stream) &
+                          ": current_token " & Tree.Image (Parser_State.Current_Token));
+                     Trace.Put_Line
+                       (" ... recover_insert_delete:" &
                           (if Parser_State.Recover_Insert_Delete_Current = No_Index
                            then ""
-                           else Parser_State.Recover_Insert_Delete_Current'Image & " " &
-                             Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree)));
+                           else Image
+                             (Parser_State.Recover_Insert_Delete, Tree,
+                              First => Parser_State.Recover_Insert_Delete_Current)));
+
+                     if Tree.Has_Input (Parser_State.Stream) then
+                        Trace.Put_Line
+                          (" ... stream input:" & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
+                     end if;
                   end if;
                end;
             end if;
@@ -388,12 +409,19 @@ begin
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": Current_Token " &
                           Shared_Parser.Tree.Image (Parser_State.Current_Token) &
                           " Shared_Token " & Shared_Parser.Tree.Image
-                            (Parser_State.Shared_Token) &
-                          " recover_insert_delete:" &
+                            (Parser_State.Shared_Token));
+                     Trace.Put_Line
+                       (" recover_insert_delete:" &
                           (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
                            then ""
-                           else Parser_State.Recover_Insert_Delete_Current'Image & " " &
-                             Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree)));
+                           else Image
+                               (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                                First => Parser_State.Recover_Insert_Delete_Current)));
+                     if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
+                        Trace.Put_Line
+                          (" ... stream input:" & Shared_Parser.Tree.Image
+                             (Parser_State.Stream, Stack => False, Input => True));
+                     end if;
 
                      if Trace_Parse > Detail then
                         Shared_Parser.Trace.Put_Line

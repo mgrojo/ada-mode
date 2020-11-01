@@ -74,8 +74,7 @@ package body WisiToken.Parse.LR.Parser is
          --  We have to call the semantic action even when Resume_Active,
          --  because it might do other things than return a status.
          declare
-            Nonterm_Token : Syntax_Trees.Recover_Token :=
-              Shared_Parser.Tree.Get_Recover_Token (Nonterm);
+            Nonterm_Token : Syntax_Trees.Recover_Token := Shared_Parser.Tree.Get_Recover_Token (Nonterm);
 
             Children_Token : constant Syntax_Trees.Recover_Token_Array :=
               Shared_Parser.Tree.Children_Recover_Tokens (Parser_State.Stream, Nonterm.Element);
@@ -83,12 +82,8 @@ package body WisiToken.Parse.LR.Parser is
          begin
             Status := Action.Check (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
 
-            if Nonterm_Token.Name /= Null_Buffer_Region then
-               Shared_Parser.Tree.Set_Name_Region (Nonterm.Node, Nonterm_Token.Name);
-            end if;
-
             if Trace_Parse > Detail then
-               Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status, Shared_Parser.Descriptor.all));
+               Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status, Shared_Parser.Tree));
             end if;
 
             case Status.Label is
@@ -847,7 +842,7 @@ package body WisiToken.Parse.LR.Parser is
             Put_Line
               (Current_Error,
                Parser.Lexer.File_Name & ":1:0: semantic check error: " &
-                 Semantic_Checks.Image (Item.Check_Status, Descriptor));
+                 Semantic_Checks.Image (Item.Check_Status, Parser.Tree));
 
          when Message =>
             Put_Line (Current_Error, -Item.Msg);
