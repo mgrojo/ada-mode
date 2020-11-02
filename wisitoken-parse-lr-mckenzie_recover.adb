@@ -713,9 +713,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       ID     : in     Token_ID)
    is
       use Config_Op_Arrays;
-      Op : constant Config_Op := (Delete, ID, Tree.Get_Node_Index (Config.Current_Shared_Token.Node));
+      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Real_Terminal (Tree, Config);
+      Op   : constant Config_Op := (Delete, ID, Tree.Get_Node_Index (Node));
    begin
-      Check (Tree.ID (Config.Current_Shared_Token.Node), ID);
+      Check (Tree.ID (Node), ID);
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
       end if;

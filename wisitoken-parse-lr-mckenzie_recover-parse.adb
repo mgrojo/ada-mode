@@ -369,6 +369,30 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          else Config.Input_Stream (Config.Input_Stream.First));
    end Peek_Current_Element_Node;
 
+   function Peek_Current_First_Terminal
+     (Tree   : in Syntax_Trees.Tree;
+      Config : in Configuration)
+     return Syntax_Trees.Valid_Node_Access
+   is
+      use Bounded_Streams;
+      use Syntax_Trees;
+   begin
+      if Config.Input_Stream.First = No_Element then
+         return Tree.First_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
+
+      else
+         declare
+            Result : constant Node_Access := First_Terminal (Tree, Config.Input_Stream);
+         begin
+            if Result /= Invalid_Node_Access then
+               return Result;
+            else
+               return Tree.First_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
+            end if;
+         end;
+      end if;
+   end Peek_Current_First_Terminal;
+
    function Peek_Current_First_Real_Terminal
      (Tree   : in Syntax_Trees.Tree;
       Config : in Configuration)
@@ -392,6 +416,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end;
       end if;
    end Peek_Current_First_Real_Terminal;
+
+   function First_Terminal
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Bounded_Streams.List)
+     return Syntax_Trees.Node_Access
+   is
+      use Bounded_Streams;
+      use Syntax_Trees;
+      Cur  : Cursor      := Stream.First;
+      Node : Node_Access := Invalid_Node_Access;
+   begin
+      loop
+         exit when not Has_Element (Cur);
+
+         Node := Tree.First_Terminal (Stream (Cur));
+         exit when Node /= Invalid_Node_Access;
+
+         Stream.Next (Cur);
+      end loop;
+      return Node;
+   end First_Terminal;
 
    function First_Real_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -596,17 +641,63 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
-      Item   : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref (Parse_Items, Parse_Item_Index).Element.all;
-      Config : Configuration renames Item.Config;
-      Action : Parse_Action_Node_Ptr renames Item.Action;
-
-      Conflict : Parse_Action_Node_Ptr;
+      Item       : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref
+        (Parse_Items, Parse_Item_Index).Element.all;
+      Config     : Configuration renames Item.Config;
+      Action_Cur : Parse_Action_Node_Ptr renames Item.Action;
+      Action     : Parse_Action_Rec;
 
       Inc_Shared_Token : Boolean;
       Current_Token    : Syntax_Trees.Recover_Token := Get_Current_Token (Super.Tree.all, Config, Inc_Shared_Token);
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
+
+      procedure Get_Action
+      is
+         --  We use the incremental parse algorithm even if the main parse is
+         --  batch, because Push_Back places whole nonterms on
+         --  Config.Input_Stream.
+
+         Current_State : constant State_Index := Config.Stack.Peek.State;
+         Current_ID    : constant Token_ID    := Syntax_Trees.ID (Current_Token);
+
+         First_In_Current : Syntax_Trees.Node_Access;
+      begin
+         loop --  Skip empty nonterms
+            if Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor) then
+               Action_Cur := Action_For (Table, Current_State, Current_ID);
+               Action     := Action_Cur.Item;
+               return;
+            else
+               --  nonterminal.
+               declare
+                  New_State : constant Unknown_State_Index := Goto_For (Table, Current_State, Current_ID);
+               begin
+                  if New_State /= Unknown_State then
+                     Action_Cur := null;
+                     Action     :=
+                       (Verb       => Shift,
+                        Production => Invalid_Production_ID,
+                        State      => New_State);
+                     return;
+                  else
+                     First_In_Current := Super.Tree.First_Terminal (Current_Token);
+
+                     if First_In_Current = Syntax_Trees.Invalid_Node_Access then
+                        Next_Token (Super.Tree.all, Config, Inc_Shared_Token);
+                        Current_Token := Get_Current_Token (Super.Tree.all, Config, Inc_Shared_Token);
+                     else
+                        Breakdown (Super.Tree.all, Config.Input_Stream);
+                        Action_Cur := Action_For (Table, Current_State, Super.Tree.ID (First_In_Current));
+                        Action     := Action_Cur.Item;
+                        return;
+                     end if;
+                  end if;
+               end;
+            end if;
+         end loop;
+      end Get_Action;
 
    begin
       if Trace_McKenzie > Detail then
@@ -627,54 +718,53 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Item.Parsed := True;
 
-      if Action = null then
+      if Action_Cur = null then
          --  Item is original Config; else Item is from a conflict
-         pragma Assert
-           (Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor),
-            "FIXME: Parse_One_Item handle incremental parse");
-         Action := Action_For (Table, Config.Stack.Peek.State, Syntax_Trees.ID (Current_Token));
+         Get_Action;
       end if;
 
       loop
-         Conflict := Action.Next;
-         loop
-            exit when Conflict = null;
-            if Is_Full (Parse_Items) then
-               if Trace_McKenzie > Outline then
-                  Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index),
-                            Trace_Prefix & ": too many conflicts; abandoning");
-                  raise Bad_Config;
-               end if;
-            else
-               if Trace_McKenzie > Detail then
-                  Put_Line
-                    (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
-                       (Config.Stack.Peek.State) & ": add conflict " &
-                       Image (Conflict.Item, Descriptor));
-               end if;
+         declare
+            Conflict : Parse_Action_Node_Ptr := (if Action_Cur = null then null else Action_Cur.Next);
+         begin
+            loop
+               exit when Conflict = null;
+               if Is_Full (Parse_Items) then
+                  if Trace_McKenzie > Outline then
+                     Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index),
+                               Trace_Prefix & ": too many conflicts; abandoning");
+                     raise Bad_Config;
+                  end if;
+               else
+                  if Trace_McKenzie > Detail then
+                     Put_Line
+                       (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                          (Config.Stack.Peek.State) & ": add conflict " &
+                          Image (Conflict.Item, Descriptor));
+                  end if;
 
-               Append (Parse_Items, (Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
-            end if;
-            Conflict := Conflict.Next;
-         end loop;
+                  Append (Parse_Items, (Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+               end if;
+               Conflict := Conflict.Next;
+            end loop;
+         end;
 
          if Trace_McKenzie > Extra then
             Put_Line
               (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" &
                  Config.Stack.Peek.State'Image &
-                 " :" & Super.Tree.Image (Config.Current_Shared_Token) &
                  ":" & Syntax_Trees.Image (Super.Tree.all, Current_Token) &
-                 " : " & Image (Action.Item, Descriptor) &
-                 (if Action.Item.Verb = Reduce
-                  then " via" & Config.Stack.Peek (SAL.Peek_Type (Action.Item.Token_Count + 1)).State'Image
+                 " : " & Image (Action_Cur.Item, Descriptor) &
+                 (if Action.Verb = Reduce
+                  then " via" & Config.Stack.Peek (SAL.Peek_Type (Action.Token_Count + 1)).State'Image
                   else ""));
          end if;
 
-         case Action.Item.Verb is
+         case Action.Verb is
          when Shift =>
             Item.Shift_Count := Item.Shift_Count + 1;
 
-            Config.Stack.Push ((Action.Item.State, Current_Token));
+            Config.Stack.Push ((Action.State, Current_Token));
 
             Next_Token (Super.Tree.all, Config, Inc_Shared_Token);
             Current_Token := Get_Current_Token (Super.Tree.all, Config, Inc_Shared_Token);
@@ -684,13 +774,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                Nonterm : Syntax_Trees.Recover_Token;
             begin
                Config.Check_Status := Reduce_Stack
-                 (Super, Shared, Config.Stack, Action.Item, Nonterm,
+                 (Super, Shared, Config.Stack, Action, Nonterm,
                   Default_Contains_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
 
                case Config.Check_Status.Label is
                when Ok =>
                   New_State := Config.Stack.Peek.State;
-                  New_State := Goto_For (Table, New_State, Action.Item.Production.LHS);
+                  New_State := Goto_For (Table, New_State, Action.Production.LHS);
 
                   if New_State = Unknown_State then
                      --  Most likely from an inappropriate language fix.
@@ -708,7 +798,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                when Semantic_Checks.Error =>
                   Config.Error_Token       := Nonterm;
-                  Config.Check_Token_Count := Action.Item.Token_Count;
+                  Config.Check_Token_Count := Action.Token_Count;
                   Success                  := False;
                end case;
             end;
@@ -726,12 +816,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end case;
 
          exit when not Success or
-           Action.Item.Verb = Accept_It or
+           Action.Verb = Accept_It or
            (if Shared_Token_Goal = Syntax_Trees.Invalid_Node_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Node_Index (Config.Current_Shared_Token.Node) > Shared_Token_Goal);
+            else Super.Tree.Get_Node_Index (Peek_Current_First_Real_Terminal (Super.Tree.all, Config)) >
+              Shared_Token_Goal);
 
-         Action := Action_For (Table, Config.Stack.Peek.State, Syntax_Trees.ID (Current_Token));
+         Get_Action;
       end loop;
 
       return Success;

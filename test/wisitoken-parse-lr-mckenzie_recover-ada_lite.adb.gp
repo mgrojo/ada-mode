@@ -113,7 +113,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    is
       use Config_Op_Arrays;
       use Syntax_Trees;
-      use all type WisiToken.Syntax_Trees.Terminal_Ref;
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
@@ -333,8 +332,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                Check (+SEMICOLON_ID, Tree.ID (Tree.First_Terminal (Semicolon_Item.Token)));
                Append (Ops, (Delete, +SEMICOLON_ID, Tree.Get_Node_Index (Tree.First_Terminal (Semicolon_Item.Token))));
-
-               New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
                   Put

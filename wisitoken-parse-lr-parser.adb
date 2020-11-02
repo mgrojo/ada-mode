@@ -354,17 +354,27 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Set_Verb (Shift);
 
             if Parser_State.Resume_Active then
-               --  There may still be ops left in Recover_Insert_Delete after we get
-               --  to Resume_Token_Goal, probably from a Language_Fix or string quote
+               --  There may still be ops left in Recover_Insert_Delete, or
+               --  pushed_back tokens in the parse stream input, after we get to
+               --  Resume_Token_Goal, probably from a Language_Fix or string quote
                --  fix that deletes a lot of tokens. FIXME: that's a bug!
                if Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Node_Index
-                 (Parser_State.Shared_Token.Node) and
-                 Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                 (Parser_State.Shared_Token.Node)
                then
-                  Parser_State.Resume_Active := False;
-                  if Trace_Parse > Detail then
-                     Shared_Parser.Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
+                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index or
+                    Shared_Parser.Tree.Has_Input (Parser_State.Stream)
+                  then
+                     if Debug_Mode then
+                        raise SAL.Programmer_Error with
+                          "resume_token_goal reached with remaining insert/delete/push_back";
+                     end if;
+                     Resume_Active := True;
+                  else
+                     Parser_State.Resume_Active := False;
+                     if Trace_Parse > Detail then
+                        Shared_Parser.Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
+                     end if;
                   end if;
                else
                   Resume_Active := True;

@@ -529,13 +529,6 @@ package WisiToken.Parse.LR is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains only Op (at least one) after the last Fast_Forward (or ops.first, if
-   --  no Fast_Forward).
-
-   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains at least one Op.
-
    type Recover_Op (Op : Insert_Delete_Op_Label := Insert) is record
       --  Add Ins_Tree_Node to Config_Op info, set when item is
       --  parsed; used to create user augmented token.

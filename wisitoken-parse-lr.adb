@@ -674,44 +674,6 @@ package body WisiToken.Parse.LR is
       return True;
    end None_Since_FF;
 
-   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-      use all type Ada.Containers.Count_Type;
-   begin
-      if Length (Ops) = 0 or else Constant_Ref (Ops, Last_Index (Ops)).Op /= Op then
-         return False;
-      else
-         for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
-            declare
-               O : Config_Op renames Constant_Ref (Ops, I);
-            begin
-               exit when O.Op = Fast_Forward;
-               if O.Op /= Op then
-                  return False;
-               end if;
-            end;
-         end loop;
-         return True;
-      end if;
-   end Only_Since_FF;
-
-   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-   begin
-      for I in First_Index (Ops) .. Last_Index (Ops) loop
-         declare
-            O : Config_Op renames Constant_Ref (Ops, I);
-         begin
-            if O.Op = Op then
-               return True;
-            end if;
-         end;
-      end loop;
-      return False;
-   end Any;
-
    function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String
    is
       use Syntax_Trees;

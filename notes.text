@@ -34,21 +34,32 @@ update-wisitoken_grammar
 incremental parse
     d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
 
+    commit
+
+    node_index < 0 = from shared_stream
+        if terminal_node_numbers, image shows abs
+
+    virtual_terminals in shared_stream get node_index > 0
+        can insert before them, if they are first in nonterm that is not broken down
+        deleted when broken down
+            cannot have config op delete virtual_terminal
+
+    rename syntax_trees.shared_terminal to source_terminal
+        actually in source text, not just shared_stream
+        most are not in shared_stream, some virtual are!
+
+    next_shared_Terminal => next terminal with node_index > 0
+        rename next_real_terminal to next_shared_terminal
+
     run all tests
         test/test_incremental.adb : passing
         t_mck: lots of failures; nothing should have changed
-            Error_3: passing
+            Pattern_1 passing
 
-                resume done require parse stream input empty
-
-                using LR.None_Since_FF, Only_Since_FF?
 
         t_all:
 
     ada_lite.wy require statement in sequence_of_statements
-
-    rename syntax_trees.shared_terminal to real_terminal
-        most are not in shared_stream, some virtual are!
 
     test Parser.line_begin_token
 
