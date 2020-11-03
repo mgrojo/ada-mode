@@ -99,7 +99,7 @@ package body WisiToken.Parse is
             Process_Grammar_Token (Parser, Token, Ref);
          else
             Process_Non_Grammar_Token (Parser, Token);
-            Ref := Invalid_Terminal_Ref;
+            Ref := Invalid_Stream_Node_Ref;
          end if;
 
          if Error then
@@ -257,24 +257,21 @@ package body WisiToken.Parse is
               (not Single or Single_Terminal (Terminal));
 
             if Tree.Label (Terminal.Element) = Nonterm then
-               Tree.Left_Breakdown (Stream, Terminal);
+               Tree.Left_Breakdown (Terminal);
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line ("left_breakdown stream: " & Tree.Image (Stream, Non_Grammar => True));
                   Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
                end if;
             else
-               Tree.Next_Terminal (Stream, Terminal);
+               Tree.Next_Terminal (Terminal);
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
                end if;
             end if;
-
-            pragma Assert (Tree.Label (Terminal.Node) = Shared_Terminal);
-            --  FIXME: if first_terminal is virtual, delete it
-
          end loop;
+         --  Leading virtual terminals are deleted in Delete_Loop below
       end Breakdown;
 
    begin
@@ -336,7 +333,7 @@ package body WisiToken.Parse is
 
             Unchanged_Loop :
             loop
-               exit Unchanged_Loop when Terminal = Invalid_Terminal_Ref;
+               exit Unchanged_Loop when Terminal = Invalid_Stream_Node_Ref;
                exit Unchanged_Loop when not Contains
                  (Inner          => Tree.Byte_Region (Terminal.Node),
                   Outer          => Stable_Region,
@@ -360,8 +357,7 @@ package body WisiToken.Parse is
 
                Next_Terminal_Index := @ + 1;
 
-               Tree.Next_Shared_Terminal (Stream, Terminal); -- FIXME: use
-               --  Next_Terminal, to set Node_Index in them as well.
+               Tree.Next_Terminal (Terminal);
             end loop Unchanged_Loop;
 
             declare
@@ -504,7 +500,7 @@ package body WisiToken.Parse is
 
                      if Token.ID >= Parser.Descriptor.First_Terminal then
                         --  grammar token
-                        Ref := Tree.Insert_Shared_Terminal
+                        Ref := Tree.Insert_Source_Terminal
                           (Stream, Token, Next_Terminal_Index, Before => Terminal.Element);
 
                         if Trace_Incremental_Parse > Detail then
@@ -541,7 +537,9 @@ package body WisiToken.Parse is
             loop
                exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Descriptor.EOI_ID;
 
-               exit Delete_Loop when not
+               exit Delete_Loop when
+                 Tree.Label (Terminal.Node) in Syntax_Trees.Source_Terminal | Syntax_Trees.Nonterm and
+                 not
                  ((KMN.Deleted_Bytes > 0 and
                      Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
                     or
@@ -554,7 +552,7 @@ package body WisiToken.Parse is
                declare
                   Temp : Stream_Index := Terminal.Element;
                begin
-                  Tree.Next_Shared_Terminal (Stream, Terminal);
+                  Tree.Next_Shared_Terminal (Terminal);
                   if Trace_Incremental_Parse > Detail then
                      Parser.Trace.Put_Line ("delete " & Tree.Image (Temp, Terminal_Node_Numbers => True));
                   end if;
@@ -598,7 +596,7 @@ package body WisiToken.Parse is
                Parser.Trace.Put_Line ("shift EOI " & Tree.Image (Terminal));
             end if;
 
-            Tree.Next_Shared_Terminal (Stream, Terminal);
+            Tree.Next_Shared_Terminal (Terminal);
 
             if Terminal /= Invalid_Stream_Node_Ref then
                --  Not partial parse

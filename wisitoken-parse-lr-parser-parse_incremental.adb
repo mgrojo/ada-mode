@@ -94,8 +94,8 @@ begin
 
                case Current_Parser.Verb is
                when Shift =>
-                  --  FIXME: handle insert_delete from error recovery
-                  Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
+                  --  FIXME: handle insert_delete from error recovery; better to add incremental_parse to parser.parse.
+                  Tree.Stream_Next (Parser_State.Shared_Token);
                   Parser_State.Current_Token := Parser_State.Shared_Token;
 
                when Accept_It =>
@@ -148,7 +148,7 @@ begin
 
                   --  FIXME: if is_fragile then left_breakdown;
 
-                  Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
+                  Tree.Stream_Next (Parser_State.Shared_Token);
 
                   Parser_State.Current_Token := Parser_State.Shared_Token;
 
@@ -172,8 +172,8 @@ begin
                        (Tree.Shared_Stream, Parser_State.Shared_Token.Element);
 
                      Next_Terminal : constant Terminal_Ref :=
-                       (if First_In_Current = Invalid_Terminal_Ref
-                        then Tree.Next_Shared_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token)
+                       (if First_In_Current = Invalid_Stream_Node_Ref
+                        then Tree.Next_Shared_Terminal (Parser_State.Shared_Token)
                         else First_In_Current);
                   begin
                      Action := Action_For
@@ -205,7 +205,7 @@ begin
                               declare
                                  Temp : Stream_Index := Parser_State.Shared_Token.Element;
                               begin
-                                 Tree.Stream_Next (Tree.Shared_Stream, Parser_State.Shared_Token);
+                                 Tree.Stream_Next (Parser_State.Shared_Token);
                                  Tree.Stream_Delete (Tree.Shared_Stream, Temp);
                               end;
 
@@ -213,11 +213,11 @@ begin
                            end loop;
                         end if;
 
-                        Tree.Left_Breakdown (Tree.Shared_Stream, Parser_State.Shared_Token);
+                        Tree.Left_Breakdown (Parser_State.Shared_Token);
 
                         Parser_State.Current_Token := Parser_State.Shared_Token;
 
-                        if Parser_State.Current_Token = Invalid_Terminal_Ref then
+                        if Parser_State.Current_Token = Invalid_Stream_Node_Ref then
                            --  FIXME: document use case
                            raise SAL.Not_Implemented;
                            --  FIXME: need error recovery

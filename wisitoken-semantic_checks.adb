@@ -43,7 +43,7 @@ package body WisiToken.Semantic_Checks is
    is
       use Syntax_Trees;
    begin
-      if Contains_Virtual (Tokens (Start_Index)) or Contains_Virtual (Tokens (End_Index)) then
+      if Contains_Virtual_Terminal (Tokens (Start_Index)) or Contains_Virtual_Terminal (Tokens (End_Index)) then
          return (Label => Ok);
       end if;
 

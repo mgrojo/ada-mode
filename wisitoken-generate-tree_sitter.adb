@@ -758,7 +758,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
       begin
          case Tree.Label (Tree_Index) is
-         when Shared_Terminal =>
+         when Source_Terminal =>
             return Strip_Delimiters (Tree_Index);
 
          when Virtual_Terminal =>

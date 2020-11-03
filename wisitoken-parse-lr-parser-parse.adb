@@ -92,28 +92,18 @@ begin
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
-                  Next_Token : constant Syntax_Trees.Stream_Node_Ref :=
-                    (if Tree.Has_Input (Parser_State.Stream)
-                     then Tree.First_Input (Parser_State.Stream)
-                     elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref
-                     then Tree.Stream_First (Tree.Shared_Stream)
-                     elsif Parser_State.Inc_Shared_Token
-                     then Tree.Next_Terminal (Tree.Shared_Stream, Parser_State.Shared_Token)
-                     else Parser_State.Shared_Token);
-
-                  Next_Real_Terminal : constant Syntax_Trees.Terminal_Ref := Tree.First_Terminal
-                    ((if Tree.Has_Input (Parser_State.Stream) then Parser_State.Stream else Tree.Shared_Stream),
-                     Next_Token.Element);
+                  Next_Shared_Terminal : constant Syntax_Trees.Terminal_Ref := Parser_Lists.Peek_Next_Shared_Terminal
+                    (Parser_State, Tree);
                   pragma Assert
-                    (Tree.Label (Next_Real_Terminal.Node) = Syntax_Trees.Shared_Terminal,
-                     "virtual terminal first in Next_Real_Terminal");
-                  --  Next_Real_Terminal should never be Virtual. There can be Virtual
+                    (Tree.Label (Next_Shared_Terminal.Node) = Syntax_Trees.Source_Terminal,
+                     "virtual terminal first in Next_Shared_Terminal");
+                  --  Next_Shared_Terminal should never be Virtual. There can be Virtual
                   --  terminals in the Shared_Stream from previous error recovery, but
                   --  if they are the first terminal in a Shared_Stream nonterminal,
-                  --  Edit_Tree or error recover Breakdown should have deleted them.
-                  --  There can be no Virtual terminals in the parse stream input; error
-                  --  recover does not push back over them, since recomputing them is a
-                  --  waste of time.
+                  --  Edit_Tree Breakdown should have deleted them. There can be no
+                  --  Virtual terminals in the parse stream input; error recover does
+                  --  not push back over them, since recomputing them is a waste of
+                  --  time.
 
                   function Insert_Virtual return Boolean
                   is
@@ -126,10 +116,10 @@ begin
                      declare
                         Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
                      begin
-                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Real_Terminal.Node) then
+                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node) then
 
                            Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
-                             (Parser_State.Stream, Op.Ins_ID, Before_Real_Terminal => Next_Token.Element);
+                             (Parser_State.Stream, Op.Ins_ID, Before_Shared_Terminal => Next_Shared_Terminal.Node);
 
                            Op.Ins_Node := Parser_State.Current_Token.Node;
 
@@ -148,15 +138,10 @@ begin
                   if Insert_Virtual then
                      null;
 
-                  elsif Tree.Has_Input (Parser_State.Stream) then
-                     Parser_State.Current_Token    := Next_Token;
-                     Parser_State.Inc_Shared_Token := False;
-
                   else
-                     Parser_State.Shared_Token := Next_Token;
+                     LR.Parser.Next_Token (Parser_State, Tree);
+                     Parser_State.Current_Token := Peek_Current_Token (Parser_State, Tree);
 
-                     Parser_State.Inc_Shared_Token := True;
-                     Parser_State.Current_Token    := Next_Token;
                   end if;
 
                   if Trace_Parse > Extra then

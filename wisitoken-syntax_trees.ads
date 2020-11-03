@@ -30,8 +30,11 @@
 --  progresses.
 --
 --  In other streams, nodes copied from the shared stream maintain
---  their Node_Index; in other nodes, Node_Index is unique but
---  arbitrary, for debugging.
+--  their Node_Index; in other nodes, Node_Index is negative and
+--  unique but arbitrary, for debugging.
+--
+--  A terminal is a "shared terminal" if it is in the Shared_Stream,
+--  or was copied from the Shared_Stream.
 --
 --  Tree are limited because a bit-copy is not a good start on copy
 --  for assign; use Copy_Tree.
@@ -101,7 +104,7 @@ package WisiToken.Syntax_Trees is
    type Stream_Index is private;
    Invalid_Stream_Index : constant Stream_Index;
 
-   type Node_Index is range 0 .. Integer'Last;
+   type Node_Index is new Integer;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
    Invalid_Node_Index : constant Node_Index := 0;
 
@@ -130,12 +133,12 @@ package WisiToken.Syntax_Trees is
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
 
    type Node_Label is
-     (Shared_Terminal,    -- text is user input, accessed via Parser.Terminals
+     (Source_Terminal,    -- text is user input, accessed via Lexer
       Virtual_Terminal,   -- no text; inserted during error recovery
       Virtual_Identifier, -- text in user data, created during tree rewrite
       Nonterm             -- contains terminals/nonterminals/identifiers
      );
-   subtype Terminal_Label is Node_Label range Shared_Terminal .. Virtual_Identifier;
+   subtype Terminal_Label is Node_Label range Source_Terminal .. Virtual_Identifier;
    subtype Virtual_Terminal_Label is Node_Label range Virtual_Terminal .. Virtual_Identifier;
 
    function Label (Node : in Valid_Node_Access) return Node_Label;
@@ -143,31 +146,32 @@ package WisiToken.Syntax_Trees is
    function Shared_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID;
 
    type Stream_Node_Ref is record
+      Stream  : Syntax_Trees.Stream_ID;
       Element : Syntax_Trees.Stream_Index := Invalid_Stream_Index;
       Node    : Syntax_Trees.Node_Access  := Invalid_Node_Access;
-      --  If both valid, Element contains Node in some stream. In some
-      --  cases, Element is valid but Node is Invalid_Node_Access (for
-      --  example, if the ref is the First_Terminal in an empty nonterm). In
-      --  post-parse actions, the parse stream is deleted, so Element is
-      --  Invalid_Stream_Index, but Node is valid.
+      --  If both valid, Element contains Node in Stream. In some cases,
+      --  Element is valid but Node is Invalid_Node_Access (for example, if
+      --  the ref is the First_Terminal in an empty nonterm). In post-parse
+      --  actions, the parse stream is deleted, so Stream is
+      --  Invalid_Stream_Index, Element is Invalid_Stream_Index, but Node is
+      --  valid.
    end record;
 
    Invalid_Stream_Node_Ref : constant Stream_Node_Ref;
 
    function Correct_Stream_Node
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Boolean;
    --  True if Ref = Invalid_Stream_Node_Ref or Ref.Node =
-   --  Invalid_Node_Access or Element contains Node.
+   --  Invalid_Node_Access or Stream contains Element, which contains
+   --  Node.
    --
    --  Note that this is False in post-parse actions.
 
    function Valid_Stream_Node
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Boolean;
    --  True if Ref refers to a node.
 
@@ -176,30 +180,34 @@ package WisiToken.Syntax_Trees is
      Terminal_Ref.Node = Invalid_Node_Access or else
      Label (Terminal_Ref.Node) in Terminal_Label;
 
-   Invalid_Terminal_Ref : constant Terminal_Ref;
-
    function Valid_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Terminal_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Terminal_Ref)
      return Boolean
-   is (Valid_Stream_Node (Tree, Stream, Ref));
+   is (Valid_Stream_Node (Tree, Ref));
    --  True if Ref refers to a Terminal node.
 
    function Single_Terminal (Ref : in Stream_Node_Ref) return Boolean;
    --  True if Ref contains a single terminal node.
 
    function Valid_Single_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Boolean
-   is (Valid_Stream_Node (Tree, Stream, Ref) and then Single_Terminal (Ref));
+   is (Valid_Stream_Node (Tree, Ref) and then Single_Terminal (Ref));
 
    subtype Single_Terminal_Ref is Stream_Node_Ref
    with Dynamic_Predicate =>
      Single_Terminal_Ref.Node = Invalid_Node_Access or else
      Single_Terminal (Single_Terminal_Ref);
+
+   function Rooted (Ref : in Stream_Node_Ref) return Boolean;
+   --  True if Ref.Element.Node = Ref.Node.
+
+   subtype Rooted_Ref is Stream_Node_Ref
+   with Dynamic_Predicate =>
+     (Rooted_Ref = Invalid_Stream_Node_Ref --  allows initialization
+        or else Rooted (Rooted_Ref));
 
    type Recover_Token (Virtual : Boolean := True) is record
       --  Virtual is True if there is no node in the syntax tree that is
@@ -230,7 +238,7 @@ package WisiToken.Syntax_Trees is
          Name : Buffer_Region := Null_Buffer_Region;
          --  Set and used by semantic_checks.
 
-         Contains_Virtual : Boolean := False;
+         Contains_Virtual_Terminal : Boolean := False;
          --  True if any contained terminal is Virtual.
 
       when False =>
@@ -238,7 +246,7 @@ package WisiToken.Syntax_Trees is
          Node         : Node_Access := Invalid_Node_Access;
          --  This token in the Tree shared or parse stream.
          --
-         --  With Node, emulates a Terminal_Ref for recover;
+         --  With Node, emulates a Stream_Node_Ref for recover;
          --  Configuration.Input_Stream can hold nonterms, but not a
          --  Stream_Index.
          --
@@ -270,7 +278,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Set_Name (Item : in out Recover_Token; Name : in Buffer_Region);
 
-   function Contains_Virtual (Item : in Recover_Token) return Boolean;
+   function Contains_Virtual_Terminal (Item : in Recover_Token) return Boolean;
 
    function First_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access;
 
@@ -370,8 +378,8 @@ package WisiToken.Syntax_Trees is
       Prev_Token    : in     Node_Access)
    is null
    with Pre'Class =>
-     Tree.Label (Deleted_Token) = Shared_Terminal and
-     (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Shared_Terminal | Virtual_Terminal);
+     Tree.Label (Deleted_Token) in Terminal_Label and
+     (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Terminal_Label);
    --  Deleted_Token was deleted in error recovery. Prev_Token is the
    --  previous terminal token in the parse stream. Update remaining
    --  tokens as needed; Deleted_Token.Non_Grammar has _not_ been moved
@@ -437,6 +445,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Delete_Stream (Tree : in out Syntax_Trees.Tree; Stream : in out Stream_ID)
    with Pre => Tree.Is_Valid (Stream);
+   --  Delete the stream
 
    function Is_Valid (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Boolean;
    --  Stream is available for parsing operations.
@@ -445,15 +454,14 @@ package WisiToken.Syntax_Trees is
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
       Token  : in Stream_Index)
-     return Boolean
-   with Pre => Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index;
-   --  Token is an element of Stream.
+     return Boolean;
+   --  True if Stream and Token are valid, and Token is an element of Stream.
 
    procedure Set_Terminal_Index
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Valid_Node_Access;
-      Index    : in     Node_Index)
-   with Pre => Tree.Label (Terminal) = Shared_Terminal;
+      Index    : in     Valid_Node_Index)
+   with Pre => Tree.Label (Terminal) in Terminal_Label;
    --  Set Node_Index of Terminal to Index; must reflect token order
    --  in source buffer.
 
@@ -519,15 +527,15 @@ package WisiToken.Syntax_Trees is
       Action          : in     Semantic_Action := null;
       State           : in     Unknown_State_Index;
       Default_Virtual : in     Boolean         := False)
-     return Stream_Node_Ref
+     return Rooted_Ref
    with Pre => not Tree.Traversing and Tree.Is_Valid (Stream),
-     Post => Tree.Valid_Stream_Node (Stream, Reduce'Result);
+     Post => Reduce'Result.Stream = Stream and Tree.Valid_Stream_Node (Reduce'Result);
    --  Reduce Child_Count tokens on end of Stream to a new Nonterm node on
    --  Stream. Result points to the new Nonterm node. If Child_Count = 0,
    --  set Nonterm.Virtual := Default_Virtual.
    --
    --  Set Result byte_region, char_region, line, column,
-   --  first_terminal_index to min/max of children.
+   --  first_terminal to min/max of children.
 
    procedure Undo_Reduce
      (Tree   : in out Syntax_Trees.Tree;
@@ -555,28 +563,18 @@ package WisiToken.Syntax_Trees is
    --  Move Stream.Stack_Top to Stream input.
 
    procedure Left_Breakdown
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Terminal_Ref)
-   with Pre => Valid_Terminal (Tree, Stream, Ref) and Tree.Label (Ref.Element) = Nonterm and
-               Tree.First_Terminal (Tree.Get_Node (Stream, Ref.Element)) /= Invalid_Node_Access and
-               Tree.Stack_Top (Stream) /= Ref.Element,
-     Post => Valid_Single_Terminal (Tree, Stream, Ref);
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => Valid_Terminal (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+               Tree.First_Terminal (Tree.Get_Node (Ref.Stream, Ref.Element)) /= Invalid_Node_Access and
+               Tree.Stack_Top (Ref.Stream) /= Ref.Element,
+     Post => Valid_Single_Terminal (Tree, Ref);
    --  Part of [Wagner Graham 1998] Left_Breakdown of Ref.Element for
    --  Parse_Incremental. Bring the first terminal in Ref.Element (which
    --  cannot be empty) to the parse stream. Ref.Element is updated to
    --  the element containing the first terminal.
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
-
-   procedure Right_Breakdown
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
-   with Pre => Tree.Is_Valid (Stream) and Tree.Label (Tree.Stack_Top (Stream)) = Nonterm;
-   --  [Wagner Graham 1998] Right_Breakdown of Stream.Stack_Top; bring
-   --  the last terminal in Stream.Stack_Top to Stream.Stack_Top.
-   --
-   --  FIXME: using Undo_Reduce instead; delete?
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -600,7 +598,7 @@ package WisiToken.Syntax_Trees is
    function Stream_First
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
-     return Stream_Node_Ref
+     return Rooted_Ref
    with Pre => Tree.Is_Valid (Stream);
 
    function Stream_Last
@@ -622,18 +620,25 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Contains (Stream, Element);
 
    function Has_Input
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Boolean
-   with Pre => Tree.Is_Valid (Stream);
+   with Pre => Stream /= Tree.Shared_Stream and Tree.Is_Valid (Stream);
    --  Return True if there is a stream element after Stack_Top.
 
    function First_Input
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
+     return Rooted_Ref
+   with Pre => Tree.Has_Input (Stream);
+   --  Return first stream element after Stack_Top.
+
+   function First_Input_Terminal
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID)
      return Terminal_Ref
    with Pre => Tree.Has_Input (Stream);
-   --  Return first Shared_Terminal in first stream element after
+   --  Return first terminal in first stream element after
    --  Stack_Top.
 
    function Stream_Next
@@ -646,12 +651,11 @@ package WisiToken.Syntax_Trees is
    --  If Element is Invalid_Stream_Index, result is Stream_First
 
    procedure Stream_Next
-     (Tree   : in     Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Stream_Node_Ref)
-   with Pre => Valid_Stream_Node (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Ref) and
-             (Ref = Invalid_Stream_Node_Ref or else Tree.Get_Node (Stream, Ref.Element) = Ref.Node);
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref) and
+             (Ref = Invalid_Stream_Node_Ref or else Tree.Get_Node (Ref.Stream, Ref.Element) = Ref.Node);
    --  Update Ref to root of next stream element after Ref.Element.
 
    function Stream_Prev
@@ -679,8 +683,8 @@ package WisiToken.Syntax_Trees is
       Terminal : in     Base_Token)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Stream = Tree.Shared_Stream,
-     Post => Tree.Label (Add_Terminal'Result.Node) = Shared_Terminal;
-   --  Add a new Shared_Terminal element in Stream. Result points to the added
+     Post => Tree.Label (Add_Terminal'Result.Node) = Source_Terminal;
+   --  Add a new Source_Terminal element in Stream. Result points to the added
    --  node.
 
    function Copy_Subtree
@@ -697,15 +701,15 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Terminal  : in     Valid_Node_Access)
      return Base_Token_Array_Var_Ref
-   with Pre => Tree.Label (Terminal) in Shared_Terminal | Virtual_Identifier;
+   with Pre => Tree.Label (Terminal) in Source_Terminal | Virtual_Identifier;
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
      return Base_Token_Array_Const_Ref
-   with Pre => Tree.Label (Terminal) in Shared_Terminal | Virtual_Identifier;
+   with Pre => Tree.Label (Terminal) in Source_Terminal | Virtual_Identifier;
 
-   function Insert_Shared_Terminal
+   function Insert_Source_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Base_Token;
@@ -713,27 +717,28 @@ package WisiToken.Syntax_Trees is
       Before   : in     Stream_Index)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Tree.Contains (Stream, Before),
-     Post => Tree.Label (Insert_Shared_Terminal'Result.Node) = Shared_Terminal;
-   --  Insert a new Shared_Terminal element on Stream, before Before.
+     Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
+   --  Insert a new Source_Terminal element on Stream, before Before.
    --  Index should give the source token order. Result points to the
    --  added element.
 
    function Insert_Virtual_Terminal
-     (Tree                 : in out Syntax_Trees.Tree;
-      Stream               : in     Stream_ID;
-      Terminal             : in     Token_ID;
-      Before_Real_Terminal : in     Stream_Index)
+     (Tree                   : in out Syntax_Trees.Tree;
+      Stream                 : in     Stream_ID;
+      Terminal               : in     Token_ID;
+      Before_Shared_Terminal : in     Valid_Node_Access)
      return Single_Terminal_Ref
    with
      Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream and
-             (Tree.Contains (Stream, Before_Real_Terminal) or
-                Tree.Contains (Tree.Shared_Stream, Before_Real_Terminal)),
+             Tree.Label (Before_Shared_Terminal) in Terminal_Label and Tree.Is_Shared (Before_Shared_Terminal),
      Post => Tree.Label (Insert_Virtual_Terminal'Result.Node) = Virtual_Terminal;
    --  Insert a new Virtual_Terminal element into Stream, after
-   --  Stack_Top. Before_Real_Terminal should be the token Terminal is
+   --  Stack_Top. Before_Shared_Terminal should be the token Terminal is
    --  inserted before; Terminal Line, Char_Region are set to
-   --  Before_Real_Terminal.Line, Before_Real_Terminal.Char_Region.First.
-   --  Result points to the added node.
+   --  Before_Shared_Terminal.Line (for indent),
+   --  Before_Shared_Terminal.Char_Region.First (for indent); Byte_Region
+   --  is Null_Buffer_Region (for "is empty). result points to the added
+   --  node.
 
    procedure Update
      (Tree        : in Syntax_Trees.Tree;
@@ -750,7 +755,7 @@ package WisiToken.Syntax_Trees is
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
       Shift_Line  : in Base_Line_Number_Type)
-   with Pre => Tree.Label (Node) = Shared_Terminal;
+   with Pre => Tree.Label (Node) = Source_Terminal;
    --  Add Shift_* to token positions.
 
    procedure Stream_Delete
@@ -769,10 +774,10 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Token_ID
    with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element);
-   --  For example, Parser.Current_Token is either a Shared_Terminal from
-   --  Shared_Stream or a Virtual_Terminal on Stream from error
-   --  recovery; in incremental parse, it could be a Shared_Terminal on
-   --  Stream from breakdown.
+   --  The precondition allows either stream; Parser.Current_Token is
+   --  either a Source_Terminal from Shared_Stream or a Virtual_Terminal
+   --  in Stream input from error recovery; in incremental parse, it
+   --  could be a Source_Terminal in Stream input from push_back.
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
@@ -813,8 +818,9 @@ package WisiToken.Syntax_Trees is
    --  virtual tokens. Use First_Terminal = Invalid_Node_Access to see if
    --  Node is an empty nonterm.
 
+   function Is_Shared (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
-   function Is_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Is_Source_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
 
@@ -990,8 +996,8 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Node_Access;
    --  Returns first shared terminal node (in parse tree) in subtree
-   --  under Node (ignoring virtual terminals). If result is
-   --  Invalid_Node_Access, all terminals are virtual, or Node is empty.
+   --  under Node. If result is Invalid_Node_Access, all terminals are
+   --  non-shared, or Node is an empty nonterm.
 
    function First_Shared_Terminal
      (Tree    : in Syntax_Trees.Tree;
@@ -999,23 +1005,35 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Terminal_Ref
    with Pre => Tree.Contains (Stream, Element),
-     Post => Valid_Terminal (Tree, Stream, First_Shared_Terminal'Result);
+     Post => First_Shared_Terminal'Result = Invalid_Stream_Node_Ref or else
+             (First_Shared_Terminal'Result.Stream = Stream and Valid_Terminal (Tree, First_Shared_Terminal'Result));
    --  Returns first shared terminal in Element or a following stream
-   --  element.
+   --  element, or Invalid_Stream_Node_Ref if there is no such shared terminal.
+
+   function First_Shared_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Rooted_Ref)
+     return Terminal_Ref
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => First_Shared_Terminal'Result = Invalid_Stream_Node_Ref or else
+             (First_Shared_Terminal'Result.Stream = Ref.Stream and
+                Valid_Terminal (Tree, First_Shared_Terminal'Result));
+   --  Returns first shared terminal in Element or a following stream
+   --  element. Can be Invalid_Stream_Node_Ref if Ref.Stream is the last
+   --  element in a parse stream and Ref.Element contains no shared
+   --  terminals.
 
    function Last_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
      return Node_Access;
-   --  Returns last shared terminal in subtree under Element (ignoring
-   --  virtual terminals). If result is Invalid_Stream_Index, all
-   --  terminals are virtual, or a nonterm is empty.
+   --  Returns last shared terminal in subtree under Element. If result
+   --  is Invalid_Node_Access, all terminals are non-shared, or Node is
+   --  an empty nonterm.
 
-   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array;
+   function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
+   with Post => (for all Node of Get_Terminals'Result => Tree.Label (Node) in Terminal_Label);
    --  Return sequence of terminals in Node.
-   --
-   --  "Terminals" can be Shared_Terminal, Virtual_Terminal,
-   --  Virtual_Identifier.
 
    function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  First of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
@@ -1026,7 +1044,7 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Terminal_Ref
    with Pre => Tree.Contains (Stream, Element),
-     Post => Valid_Terminal (Tree, Stream, First_Terminal'Result);
+     Post => First_Terminal'Result.Stream = Stream and Valid_Terminal (Tree, First_Terminal'Result);
    --  Return the first terminal in Element or a following Element if
    --  Element is empty.
    --
@@ -1052,24 +1070,19 @@ package WisiToken.Syntax_Trees is
    --  in that subtree.
 
    procedure Next_Terminal
-     (Tree   : in     Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Terminal_Ref)
-   with Pre => Valid_Terminal (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Ref) and
-             (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) in Terminal_Label);
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref);
    --  Update Ref to the next terminal that is after Ref.Node in Stream;
-   --  Invalid_Terminal_Ref if Ref.Node is EOI.
+   --  Invalid_Stream_Node_Ref if Ref.Node is EOI.
 
    function Next_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Terminal_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Terminal_Ref)
      return Terminal_Ref
-   with Pre => Valid_Terminal (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Next_Terminal'Result) and
-             (Next_Terminal'Result.Node = Invalid_Node_Access or else
-                Tree.Label (Next_Terminal'Result.Node) in Terminal_Label);
+   with Pre => Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Next_Terminal'Result);
    --  Same as procedure Next_Terminal, but return result.
 
    function Next_Shared_Terminal
@@ -1078,52 +1091,42 @@ package WisiToken.Syntax_Trees is
      return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Shared_Terminal'Result = Invalid_Node_Access or else
-             Tree.Label (Next_Shared_Terminal'Result) = Shared_Terminal;
-   --  Return the next Shared_Terminal that is after Node in subtree
-   --  containing Node; Invalid_Node_Access if Node is last shared
-   --  terminal in subtree.
+             Tree.Label (Next_Shared_Terminal'Result) in Terminal_Label;
+   --  Return the next shared terminal after Node in subtree containing
+   --  Node; Invalid_Node_Access if Node is last shared terminal in
+   --  subtree.
 
    procedure Next_Shared_Terminal
-     (Tree   : in     Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Stream_Node_Ref)
-   with Pre => Valid_Stream_Node (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Ref) and
-             (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) = Shared_Terminal);
-   --  Update Ref to the next Shared_Terminal that is after Ref.Node in
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref) and
+             (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) in Terminal_Label);
+   --  Update Ref to the next shared terminal that is after Ref.Node in
    --  Stream; Invalid_Stream_Node_Ref if Ref is EOI.
 
    function Next_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Terminal_Ref
-   with Pre => Valid_Stream_Node (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Next_Shared_Terminal'Result) and
-             (Next_Shared_Terminal'Result.Node = Invalid_Node_Access or else
-                Tree.Label (Next_Shared_Terminal'Result.Node) = Shared_Terminal);
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Next_Shared_Terminal'Result);
    --  Same as procedure Next_Shared_Terminal, but returns the updated ref.
 
    procedure Prev_Shared_Terminal
-     (Tree   : in     Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Terminal_Ref)
-   with Pre => Valid_Terminal (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Ref) and
-             (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) = Shared_Terminal);
-   --  Update Ref to the Shared_Terminal that is before
-   --  Node in Stream; Invalid_Terminal_Ref if Ref is first
-   --  Shared_Terminal in Stream.
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref);
+   --  Update Ref to the shared terminal that is before Node in Stream;
+   --  Invalid_Stream_Node_Ref if Ref is first shared terminal in Stream.
 
    function Prev_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Terminal_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Terminal_Ref)
      return Terminal_Ref
-   with Pre => Valid_Terminal (Tree, Stream, Ref),
-     Post => Correct_Stream_Node (Tree, Stream, Prev_Shared_Terminal'Result) and
-             (Prev_Shared_Terminal'Result.Node = Invalid_Node_Access or else
-                Tree.Label (Prev_Shared_Terminal'Result.Node) = Shared_Terminal);
+   with Pre => Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Prev_Shared_Terminal'Result);
    --  Same as procedure Prev_Shared_Terminal, but returns the updated result.
 
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
@@ -1454,8 +1457,9 @@ private
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
       Node_Index : Syntax_Trees.Node_Index := 0;
-      --  If Shared_Terminal, corresponds to text order. If not
-      --  Shared_Terminal, unique and arbitrary, for debugging.
+      --  If Terminal_Label, and in or copied from Shared_Stream,
+      --  corresponds to text order. Otherwise, negative, unique and
+      --  arbitrary, for debugging.
 
       Byte_Region : aliased Buffer_Region := Null_Buffer_Region;
       Char_Region : aliased Buffer_Region := Null_Buffer_Region;
@@ -1477,11 +1481,11 @@ private
       --  main devel branch.
 
       case Label is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          Non_Grammar : aliased Base_Token_Arrays.Vector;
          --  Immediately following Node. In initial parse, this can only be in
-         --  a Shared_Terminal node. But editing the tree can copy it to a Virtual_Identifier
-         --  node.
+         --  a Source_Terminal node. But editing the tree can copy it to a
+         --  Virtual_Identifier node.
 
       when Virtual_Terminal =>
          null;
@@ -1510,8 +1514,9 @@ private
          --  We use an explicit array, rather than a pointer to the first
          --  child, to preserve child indices while editing the tree.
 
-         First_Shared_Terminal : Node_Access := Invalid_Node_Access;
-         --  Cached for push_back of nonterminals during error recovery
+         First_Terminal : Node_Access := Invalid_Node_Access;
+         --  Cached for push_back of nonterminals during error recovery, and
+         --  fast access in incremental parse.
       end case;
    end record;
 
@@ -1542,8 +1547,7 @@ private
       Cur : Stream_Element_Lists.Cursor;
    end record;
 
-   Invalid_Stream_Index    : constant Stream_Index    := (Cur => Stream_Element_Lists.No_Element);
-   Invalid_Stream_Node_Ref : constant Stream_Node_Ref := (Invalid_Stream_Index, Invalid_Node_Access);
+   Invalid_Stream_Index : constant Stream_Index := (Cur => Stream_Element_Lists.No_Element);
 
    type Parse_Stream is record
       Label : Stream_Label := Invalid_Stream_Label;
@@ -1567,6 +1571,9 @@ private
 
    Invalid_Stream_ID : constant Stream_ID := (Cur => Parse_Stream_Lists.No_Element);
 
+   Invalid_Stream_Node_Ref : constant Stream_Node_Ref :=
+     (Invalid_Stream_ID, Invalid_Stream_Index, Invalid_Node_Access);
+
    package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
 
    type Tree (Descriptor : Descriptor_Access_Constant) is new Ada.Finalization.Limited_Controlled with record
@@ -1585,8 +1592,7 @@ private
       Shared_Stream : Stream_ID;
 
       Nodes : Node_Access_Arrays.Vector;
-      --  Stores ref to all nodes, for Finalize. Also provides Node_Index
-      --  for non-Shared_Terminals.
+      --  Stores ref to all nodes, for Finalize.
 
       Traversing : Boolean := False;
       --  True while traversing tree in Process_Tree.
@@ -1625,14 +1631,14 @@ private
          Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label);
 
    function Correct_Stream_Node
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Boolean
-   is (((Ref.Element = Invalid_Stream_Index and Ref.Node = Invalid_Node_Access) or else
-          (Ref.Node = Invalid_Node_Access or else
-             (Tree.Contains (Stream, Ref.Element) and
-                Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Stream, Ref.Element)))));
+   is (((Ref.Stream = Invalid_Stream_ID and Ref.Element = Invalid_Stream_Index and Ref.Node = Invalid_Node_Access)
+          or else
+          (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Label = Tree.Streams (Ref.Stream.Cur).Label and
+             (Ref.Node = Invalid_Node_Access or else
+                Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)))));
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element);
@@ -1676,11 +1682,12 @@ private
    is (Get_Node_Index (Element));
 
    function Has_Input
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Boolean
    is (declare Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-       begin Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last);
+       begin Parse_Stream.Stack_Top /= Parse_Stream.Elements.First and
+          Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last);
 
    function ID (Item : in Recover_Token) return Token_ID
    is (if Item.Virtual then Item.ID else Item.Element_Node.ID);
@@ -1697,6 +1704,9 @@ private
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);
+
+   function Is_Shared (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
+   is (Node.Node_Index > 0);
 
    function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is (Tree.Label (Node) in Terminal_Label);
@@ -1721,6 +1731,9 @@ private
 
    function Parseable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 1);
+
+   function Rooted (Ref : in Stream_Node_Ref) return Boolean
+   is (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node = Ref.Node);
 
    function Stack_Top
      (Tree   : in out Syntax_Trees.Tree;
@@ -1800,15 +1813,13 @@ private
        else Trimmed_Image (Node.Node_Index));
 
    function Valid_Stream_Node
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
      return Boolean
-   is (Tree.Contains (Stream, Ref.Element) and
-         Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Stream, Ref.Element));
+   is (Tree.Contains (Ref.Stream, Ref.Element) and
+         (Ref.Node = Invalid_Node_Access or else
+            Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
-
-   Invalid_Terminal_Ref : constant Terminal_Ref := (Invalid_Stream_Index, Invalid_Node_Access);
 
 end WisiToken.Syntax_Trees;

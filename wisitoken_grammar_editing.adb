@@ -42,11 +42,11 @@ package body WisiToken_Grammar_Editing is
       is
       begin
          case Terminal_Label'(Tree.Label (Item)) is
-         when Shared_Terminal =>
+         when Source_Terminal =>
             declare
                Token : constant WisiToken.Base_Token := Tree.Base_Token (Item);
             begin
-               return (Shared_Terminal, Token.ID, Token.Byte_Region, Get_Node_Index (Item), Token.Line);
+               return (Source_Terminal, Token.ID, Token.Byte_Region, Get_Node_Index (Item), Token.Line);
             end;
 
          when Virtual_Terminal =>
@@ -111,7 +111,7 @@ package body WisiToken_Grammar_Editing is
      return Valid_Node_Access
    is begin
       case Item.Label is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          return Tree.Add_Terminal
            (WisiToken.Base_Token'
               (ID          => Item.ID,
@@ -1834,7 +1834,7 @@ package body WisiToken_Grammar_Editing is
                Name_Node : constant Node_Access := Tree.Child (Tree.Child (Found_Unit, 1), 1);
             begin
                case Tree.Label (Name_Node) is
-               when Shared_Terminal =>
+               when Source_Terminal =>
                   New_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
                when Virtual_Identifier =>
                   New_Ident := Tree.Identifier (Name_Node);
@@ -2646,7 +2646,7 @@ package body WisiToken_Grammar_Editing is
                     Target = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
                   then
                      case Tree.Label (Tree.Child (Decl, 3)) is
-                     when Shared_Terminal =>
+                     when Source_Terminal =>
                         Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
                      when Virtual_Identifier =>
                         Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
@@ -3048,7 +3048,7 @@ package body WisiToken_Grammar_Editing is
               (if Last_Term = Invalid_Node_Access
                then Base_Token_Arrays.Empty_Vector
                else (case Tree.Label (Last_Term) is
-                     when Shared_Terminal | Virtual_Identifier => Tree.Non_Grammar_Const (Last_Term),
+                     when Source_Terminal | Virtual_Identifier => Tree.Non_Grammar_Const (Last_Term),
                      when Virtual_Terminal | Nonterm => Base_Token_Arrays.Empty_Vector));
 
             Comments_Include_Newline : Boolean := False;

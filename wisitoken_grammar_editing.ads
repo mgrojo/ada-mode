@@ -40,7 +40,7 @@ package WisiToken_Grammar_Editing is
       Byte_Region : WisiToken.Buffer_Region;
 
       case Label is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          Node_Index : WisiToken.Syntax_Trees.Node_Index;
          Line       : WisiToken.Line_Number_Type;
 
@@ -54,8 +54,7 @@ package WisiToken_Grammar_Editing is
 
    function Image (Item : in Identifier_Token_Index) return String
    is ((case Item.Label is
-        when Shared_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Node_Index) & ":",
-        when Virtual_Terminal => "",
+        when Source_Terminal | Virtual_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Node_Index) & ":",
         when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";") &
          Image (Item.ID, Wisitoken_Grammar_Actions.Descriptor));
 

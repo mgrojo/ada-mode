@@ -67,7 +67,7 @@ package body WisiToken_Grammar_Runtime is
       end if;
 
       case Tree.Label (Tree_Index) is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          return Strip_Delimiters (Tree_Index);
 
       when Virtual_Terminal =>
@@ -445,10 +445,10 @@ package body WisiToken_Grammar_Runtime is
       begin
          if Tokens'Last < Index then
             raise SAL.Programmer_Error;
-         elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
+         elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Source_Terminal then
             raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Tokens (Index))) &
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
-              ", expecting Shared_Terminal";
+              ", expecting Source_Terminal";
          else
             return Tree.Base_Token (Tokens (Index));
          end if;
@@ -459,7 +459,7 @@ package body WisiToken_Grammar_Runtime is
 
    begin
       if Data.Phase = Meta then
-         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Shared_Terminal then
+         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Source_Terminal then
             case Enum_ID (2) is
             when IDENTIFIER_ID =>
                declare
@@ -577,7 +577,7 @@ package body WisiToken_Grammar_Runtime is
             end case;
          end;
 
-      when Syntax_Trees.Shared_Terminal =>
+      when Syntax_Trees.Source_Terminal =>
          case Enum_ID (2) is
          when CODE_ID =>
             declare
@@ -959,7 +959,7 @@ package body WisiToken_Grammar_Runtime is
 
       if WisiToken.BNF.Is_Present (Data.Tokens.Rules, LHS_String) then
          case Tree.Label (LHS_Node) is
-         when Shared_Terminal =>
+         when Source_Terminal =>
             declare
                LHS_Token : WisiToken.Base_Token renames Tree.Base_Token (LHS_Node);
             begin
@@ -982,7 +982,7 @@ package body WisiToken_Grammar_Runtime is
            ((+LHS_String, Right_Hand_Sides, Labels,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
-                when Shared_Terminal    => Tree.Base_Token (LHS_Node).Line,
+                when Source_Terminal    => Tree.Base_Token (LHS_Node).Line,
                 when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;

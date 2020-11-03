@@ -74,9 +74,9 @@ private
    --
    --  This or the next routine must be used instead of Config.Ops.Append
    --  (Delete...) unless the code also takes care of changing
-   --  Config.Current_Shared_Token. Note that this routine does _not_
-   --  increment Config.Current_Shared_Token, so it can only be used to
-   --  delete one token.
+   --  Config.Current_Shared_Token or Config.Input_Stream. Note that this
+   --  routine does _not_ increment Config.Current_Shared_Token or
+   --  Config.Input_Stream, so it can only be used to delete one token.
 
    procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
@@ -84,8 +84,11 @@ private
       Ref    : in out Syntax_Trees.Terminal_Ref;
       ID     : in     Token_ID);
    --  Check that Ref has ID. Append a Delete op to Config.Ops, and
-   --  append it to Config.Insert_Delete. Increments Ref, for convenience
+   --  append it to Config.Insert_Delete. Increment Ref, for convenience
    --  when deleting several tokens.
+   --
+   --  FIXME: need new 'ref' type that contains config.shared_token and
+   --  config.input_stream
 
    procedure Delete
      (Tree   : in     Syntax_Trees.Tree;

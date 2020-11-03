@@ -1,0 +1,25 @@
+just notes for now
+
+In parse, there are three sources for the next token: Shared\_Stream
+(source text, from Lex\_All or Edit\_Tree), Parse\_Stream input
+(pushed back in error recovery), or Insert (inserted in error
+recovery).
+
+Edit\_Tree deletes virtual tokens that are on the edge of or outside a stable
+region; they may change or be unneeded. It does not delete virtual tokens that are
+internal to a stable region; they are still needed. Virtual tokens
+that are not deleted have sequential Node\_Index with other terminals
+in the Shared\_Stream; error recovery may insert tokens before them,
+or delete them.
+
+Error Recover
+
+Don't push\_back over virtual tokens; if we needed to recompute those,
+Edit\_Tree would have deleted them.
+
+Push\_Back moves tokens from the stack to the parse stream input. In
+batch parse, it could just move the Shared\_Token reference, but in
+incremental parse that is wrong when the token is broken down.
+
+Breakdown (of a token from Shared\_Stream) does not delete virtual
+terminals, to allow insert before, delete.

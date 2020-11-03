@@ -24,6 +24,7 @@ with Ada.Iterator_Interfaces;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_Lists is
+   use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
    function Parser_Stack_Image
      (Stack : in Syntax_Trees.Stream_ID;
@@ -45,7 +46,7 @@ package WisiToken.Parse.LR.Parser_Lists is
    record
       --  Visible components for direct access
 
-      Shared_Token : Syntax_Trees.Stream_Node_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      Shared_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Next token to shift in Tree.Shared_Stream. For batch parse, this
       --  is a Shared_Terminal; for incremental parse, any Node_Label.
 
@@ -61,7 +62,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 
-      Current_Token : Syntax_Trees.Stream_Node_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      Current_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Next token to shift, in either Tree.Shared_Stream or
       --  Parser_State.Stream. May be a nonterm in incremental parse.
 
@@ -91,6 +92,15 @@ package WisiToken.Parse.LR.Parser_Lists is
 
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
+
+   function Peek_Next_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref;
+   --  Return first shared terminal from Parser_State.Current_Token.
+   --
+   --  Declared here because LR.McKenzie_Recover and LR.Parser need it;
+   --  see LR.Parser body for related subprograms.
 
    type List is tagged private
    with

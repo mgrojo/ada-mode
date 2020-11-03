@@ -118,7 +118,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Element : constant Syntax_Trees.Stream_Index  := Tree.Peek (Parser_Stack, I);
             Node    : constant Syntax_Trees.Node_Access   := Tree.Get_Node (Parser_Stack, Element);
             Token   : constant Syntax_Trees.Recover_Token :=
-              (if I = Depth then (others => <>) else Tree.Get_Recover_Token ((Element, Node)));
+              (if I = Depth then (others => <>) else Tree.Get_Recover_Token ((Parser_Stack, Element, Node)));
          begin
             Stack.Push ((Tree.State (Node), Token));
          end;
@@ -558,7 +558,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               if Stack_Matches_Ops then
                                  Tree.Push_Back (Parser_State.Stream);
                                  Parser_State.Inc_Shared_Token := False;
-                                 Parser_State.Current_Token    := Tree.First_Input (Parser_State.Stream);
+
+                                 if Tree.Incremental_Parse then
+                                    Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
+                                 else
+                                    --  FIXME: change batch parser to support incremental
+                                    Parser_State.Current_Token := Tree.First_Input_Terminal (Parser_State.Stream);
+                                 end if;
                               end if;
 
                            when Insert       =>
@@ -570,7 +576,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Ins_Before => Op.Ins_Before,
                                   Ins_Node   => Syntax_Trees.Invalid_Node_Access));
 
-                              if First_Insert and Op.Ins_Before = Tree.Get_Node_Index (Parser_State.Current_Token.Node)
+                              if First_Insert and Op.Ins_Before = Tree.Get_Node_Index
+                                (Peek_Next_Shared_Terminal (Parser_State, Tree).Node)
                               then
                                  --  We need First_Insert here, not just Stack_Matches_Ops, when the
                                  --  first insert is preceeded only by Push_Back and Undo_Reduce, with
@@ -580,7 +587,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  First_Insert := False;
 
                                  Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
-                                   (Parser_State.Stream, Op.Ins_ID, Parser_State.Shared_Token.Element);
+                                   (Parser_State.Stream, Op.Ins_ID, Peek_Next_Shared_Terminal
+                                      (Parser_State, Tree).Node);
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
@@ -617,13 +625,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  Parser_State.Shared_Token, so we can't change that;
                               --  ada_mode-recover_38.adb
                               if Parser_State.Recover_Insert_Delete_Current = No_Index and
-                                Op.Del_Token_Index = Tree.Get_Node_Index (Parser_State.Shared_Token.Node)
+                                Op.Del_Token_Index = Tree.Get_Node_Index
+                                  (Peek_Next_Shared_Terminal (Parser_State, Tree).Node)
                               then
                                  Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last_Index)
                                    .Del_Node := Parser_State.Shared_Token.Node;
 
-                                 Parser_State.Shared_Token := Tree.Next_Shared_Terminal
-                                   (Tree.Shared_Stream, Parser_State.Shared_Token);
+                                 Parser_State.Shared_Token := Tree.Next_Shared_Terminal (Parser_State.Shared_Token);
 
                                  Parser_State.Current_Token := Parser_State.Shared_Token;
 
@@ -632,9 +640,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                     Parser_State.Recover_Insert_Delete_Current :=
                                       Recover_Op_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
                                  end if;
-
                               end if;
-
                            end case;
                         end;
                      end loop;
@@ -713,7 +719,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       ID     : in     Token_ID)
    is
       use Config_Op_Arrays;
-      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Real_Terminal (Tree, Config);
+      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal (Tree, Config);
       Op   : constant Config_Op := (Delete, ID, Tree.Get_Node_Index (Node));
    begin
       Check (Tree.ID (Node), ID);
@@ -750,7 +756,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Append (Config.Insert_Delete, Op);
       Config.Current_Insert_Delete := 1;
 
-      Tree.Next_Shared_Terminal (Tree.Shared_Stream, Ref);
+      Tree.Next_Shared_Terminal (Ref);
    end Delete;
 
    procedure Do_Push_Back
@@ -915,7 +921,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : in out Configuration;
       ID     : in     Token_ID)
    is begin
-      Insert (Config, Parse.Peek_Current_First_Real_Terminal (Tree, Config), ID);
+      Insert (Config, Parse.Peek_Current_First_Shared_Terminal (Tree, Config), ID);
    end Insert;
 
    procedure Insert
@@ -1038,9 +1044,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
              First_Terminal : constant Syntax_Trees.Node_Access :=
                (if Token.Virtual then Token.First_Terminal else Tree.First_Terminal (Token.Element_Node));
           begin
-             not Syntax_Trees.Contains_Virtual (Token) and
-               --  If Contains_Virtual, Token was inserted earlier in this or a
-               --  previous recover session; no point in recomputing it. In
+             not Syntax_Trees.Contains_Virtual_Terminal (Token) and
+               --  If Contains_Virtual_Terminal, Token was inserted earlier in this
+               --  or a previous recover session; no point in recomputing it. In
                --  incremental parse, it can be from a previous recover session;
                --  Edit_Tree would have deleted it if it needed to be recomputed.
                (First_Terminal /= Syntax_Trees.Invalid_Node_Access and then
@@ -1069,8 +1075,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Do_Push_Back (Tree, Config);
 
       declare
-         Node : constant Syntax_Trees.Node_Access := Parse.First_Real_Terminal (Tree, Config.Input_Stream);
-         --  Invalid_Node_Access if we pushed back an empty or virtual nonterm.
+         Node : constant Syntax_Trees.Node_Access := Parse.First_Shared_Terminal (Tree, Config.Input_Stream);
+         --  Invalid_Node_Access if we pushed back an empty newly virtual
+         --  nonterm.
 
          function Compare (Left : in Syntax_Trees.Valid_Node_Access; Right : in Config_Op) return Boolean
          is (case Right.Op is

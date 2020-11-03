@@ -633,7 +633,7 @@ package WisiToken.Parse.LR is
       --
       --  Emacs ada-mode wisi.adb needs > 50
 
-      Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Terminal_Ref;
+      Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Current input token in Shared_Stream; to be input after all of
       --  Input_Stream and Insert_Delete is input. Initially the error
       --  token. In batch parse, always a Shared_Terminal; in incremental

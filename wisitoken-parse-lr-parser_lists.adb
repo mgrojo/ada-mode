@@ -52,6 +52,32 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
+   function Peek_Next_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref
+   is
+      use Syntax_Trees;
+   begin
+      if Parser_State.Current_Token = Invalid_Stream_Node_Ref then
+         return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
+
+      else
+         return Result : Terminal_Ref := Tree.First_Shared_Terminal (Parser_State.Current_Token) do
+            if Result = Invalid_Stream_Node_Ref then
+               --  No shared terminal in Parser_State.Stream input
+
+               if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
+                  Result := Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
+
+               else
+                  Result := Tree.First_Shared_Terminal (Parser_State.Shared_Token);
+               end if;
+            end if;
+         end return;
+      end if;
+   end Peek_Next_Shared_Terminal;
+
    function New_List (Tree : in out Syntax_Trees.Tree) return List
    is begin
       return Result : List
@@ -281,8 +307,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       New_Item : Parser_State;
    begin
       declare
-         use all type WisiToken.Syntax_Trees.Terminal_Ref;
-
          Item : Parser_State renames Parser_State_Lists.Variable_Ref (Cursor.Ptr);
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
@@ -297,7 +321,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Current_Token                 =>
               (if Item.Shared_Token = Item.Current_Token
                then Item.Current_Token
-               else Syntax_Trees.Invalid_Terminal_Ref), --  corrected below.
+               else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
             Inc_Shared_Token              => Item.Inc_Shared_Token,
             Recover                       =>
               (Enqueue_Count              => Item.Recover.Enqueue_Count,
@@ -313,8 +337,16 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Verb                          => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
+            --  Item has a virtual terminal from Insert in the parse stream
+            --
+            --  We know it's from Insert because don't spawn parsers while in
+            --  Resume, and Stream input from Push_Back is emptied in Resume.
+            --
+            --  FIXME: this fails when called from Recover to spawn a parser for a
+            --  config.
             New_Item.Current_Token := Tree.First_Input (New_Item.Stream);
 
+            --  Set New_Item op.ins_node to node in new tree.
             declare
                use all type WisiToken.Syntax_Trees.Node_Access;
                use Recover_Op_Arrays;

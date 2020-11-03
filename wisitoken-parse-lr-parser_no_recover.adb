@@ -284,10 +284,10 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             --  get the next token
 
             for Parser_State of Shared_Parser.Parsers loop
-               if Parser_State.Shared_Token = Syntax_Trees.Invalid_Terminal_Ref then
+               if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
                   Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
                else
-                  Shared_Parser.Tree.Next_Shared_Terminal (Shared_Parser.Tree.Shared_Stream, Parser_State.Shared_Token);
+                  Shared_Parser.Tree.Next_Shared_Terminal (Parser_State.Shared_Token);
                end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;

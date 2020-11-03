@@ -70,18 +70,18 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      return Syntax_Trees.Valid_Node_Access;
    --  First_Terminal from Config.Shared_Token or Config.Input_Stream.
 
-   function Peek_Current_First_Real_Terminal
+   function Peek_Current_First_Shared_Terminal
      (Tree   : in Syntax_Trees.Tree;
       Config : in Configuration)
      return Syntax_Trees.Valid_Node_Access;
-   --  First_Real_Terminal from Config.Shared_Token or Config.Input_Stream.
+   --  First_Shared_Terminal from Config.Shared_Token or Config.Input_Stream.
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Bounded_Streams.List)
      return Syntax_Trees.Node_Access;
 
-   function First_Real_Terminal
+   function First_Shared_Terminal
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Bounded_Streams.List)
      return Syntax_Trees.Node_Access;

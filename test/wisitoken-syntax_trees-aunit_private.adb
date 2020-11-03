@@ -52,7 +52,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       --  Not comparing Augmented; not used in unit tests.
 
       case Computed.Label is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Virtual_Terminal =>
