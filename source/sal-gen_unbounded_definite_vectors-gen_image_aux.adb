@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,20 +21,28 @@ with Ada.Strings.Unbounded;
 function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux
   (Item        : in Vector;
    Aux         : in Aux_Data;
+   First       : in Index_Type := Index_Type'First;
+   Last        : in Index_Type := Index_Type'Last;
    Association : in Boolean := False)
   return String
 is
    use Ada.Strings.Unbounded;
    Result : Unbounded_String        := To_Unbounded_String ("(");
-   First  : constant Base_Peek_Type := To_Peek_Type (Item.First_Index);
-   Last   : constant Base_Peek_Type := To_Peek_Type (Item.Last_Index);
+   Actual_First  : constant Base_Peek_Type := To_Peek_Type
+     (if First = Index_Type'First
+      then Item.First_Index
+      else First);
+   Actual_Last : constant Base_Peek_Type := To_Peek_Type
+     (if Last = Index_Type'Last
+      then Item.Last_Index
+      else Last);
 begin
-   for I in First .. Last loop
+   for I in Actual_First .. Actual_Last loop
       if Association then
          Result := Result & Index_Trimmed_Image (To_Index_Type (I)) & " => ";
       end if;
       Result := Result & Element_Image (Item.Elements (I), Aux);
-      if I /= Last then
+      if I /= Actual_Last then
          Result := Result & ", ";
       end if;
    end loop;

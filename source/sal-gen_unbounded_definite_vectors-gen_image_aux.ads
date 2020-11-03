@@ -24,5 +24,7 @@ generic
 function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux
   (Item        : in Vector;
    Aux         : in Aux_Data;
-   Association : in Boolean := False)
+   First       : in Index_Type := Index_Type'First;
+   Last        : in Index_Type := Index_Type'Last;
+   Association : in Boolean    := False)
   return String;
