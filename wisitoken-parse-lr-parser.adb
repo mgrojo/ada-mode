@@ -33,56 +33,6 @@ with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
 
-   function Peek_Current_Token
-     (Parser_State : in Parser_Lists.Parser_State;
-      Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Stream_Node_Ref
-   --  Current token from Parser_State.Stream or Tree.Shared_Stream;
-   --  ignoring Parser_State.Recover_Insert_Delete.
-   is
-      use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
-   begin
-      return
-        (if Tree.Has_Input (Parser_State.Stream)
-         then Tree.First_Input (Parser_State.Stream) --  _not_ First_Terminal; requires incremental parse
-         elsif Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref
-         then Tree.Stream_First (Tree.Shared_Stream)
-         else Parser_State.Shared_Token);
-   end Peek_Current_Token;
-
-   procedure Next_Token
-     (Parser_State : in out Parser_Lists.Parser_State;
-      Tree         : in out Syntax_Trees.Tree)
-   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next token
-   is
-      use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
-   begin
-      if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
-         Parser_State.Inc_Shared_Token := Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index;
-         Parser_State.Shared_Token     := Tree.Stream_First (Tree.Shared_Stream);
-
-      elsif Tree.Has_Input (Parser_State.Stream) then
-         declare
-            Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
-         begin
-            Tree.Stream_Delete (Parser_State.Stream, Temp);
-         end;
-
-         if Tree.Has_Input (Parser_State.Stream) then
-            Parser_State.Inc_Shared_Token := False;
-         else
-            Parser_State.Inc_Shared_Token := Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index;
-            Tree.Stream_Next (Parser_State.Shared_Token);
-         end if;
-      else
-         if Parser_State.Inc_Shared_Token then
-            Tree.Stream_Next (Parser_State.Shared_Token);
-         else
-            Parser_State.Inc_Shared_Token := Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index;
-         end if;
-      end if;
-   end Next_Token;
-
    function Reduce_Stack_1
      (Shared_Parser  : in out Parser;
       Current_Parser : in     Parser_Lists.Cursor;
@@ -341,26 +291,17 @@ package body WisiToken.Parse.LR.Parser is
                   Ins_Del_Cur := No_Index;
                end if;
 
-               Next_Token (Parser_State, Shared_Parser.Tree);
+               Parser_Lists.Next_Token (Parser_State, Shared_Parser.Tree, Set_Current => False);
+
+               if Trace_Parse > Extra  then
+                  Shared_Parser.Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete" & Op.Del_Index'Image);
+               end if;
             else
                exit;
             end if;
          end;
       end loop;
-
-      if Trace_Parse > Extra and Parser_State.Shared_Token /= Invalid_Stream_Node_Ref then
-         Shared_Parser.Trace.Put_Line
-           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": (do_deletes) shared_token:" &
-              Tree.Get_Node_Index (Parser_State.Shared_Token.Node)'Image &
-              " inc_shared_token: " & Parser_State.Inc_Shared_Token'Image &
-              " recover_insert_delete:" &
-              (if Parser_State.Recover_Insert_Delete_Current = No_Index
-               then ""
-               else Parser_State.Recover_Insert_Delete_Current'Image & " " &
-                  Image
-                    (Constant_Ref (Parser_State.Recover_Insert_Delete, Parser_State.Recover_Insert_Delete_Current),
-                     Shared_Parser.Tree)));
-      end if;
    end Do_Deletes;
 
    --  Verb: the type of parser cycle to execute;
@@ -411,7 +352,8 @@ package body WisiToken.Parse.LR.Parser is
                   then
                      if Debug_Mode then
                         raise SAL.Programmer_Error with
-                          "resume_token_goal reached with remaining insert/delete/push_back";
+                          Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                          ": resume_token_goal reached with remaining insert/delete/push_back";
                      end if;
                      Resume_Active := True;
                   else
@@ -465,6 +407,43 @@ package body WisiToken.Parse.LR.Parser is
          end loop;
       end if;
    end Parse_Verb;
+
+   procedure Recover_To_Log
+     (Shared_Parser : in out LR.Parser.Parser;
+      Recover_Result : in McKenzie_Recover.Recover_Status;
+      Pre_Recover_Parser_Count : in SAL.Base_Peek_Type)
+   is
+      use Ada.Text_IO;
+   begin
+      Put
+        (Shared_Parser.Recover_Log_File,
+         Ada.Calendar.Formatting.Image (Ada.Calendar.Clock) & " " &
+           Shared_Parser.Partial_Parse_Active'Image & " " &
+           Recover_Result'Image & " " &
+           Pre_Recover_Parser_Count'Image & " '" &
+           Shared_Parser.Lexer.File_Name & "'");
+
+      Put (Shared_Parser.Recover_Log_File, '(');
+      for Parser of Shared_Parser.Parsers loop
+         if Parser.Recover.Results.Count > 0 then
+            --  Count can be 0 when error recovery fails
+            Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
+         end if;
+         Put
+           (Shared_Parser.Recover_Log_File,
+            Integer'Image (Parser.Recover.Enqueue_Count) &
+              Integer'Image (Parser.Recover.Check_Count) & " " &
+              Boolean'Image (Parser.Recover.Success));
+      end loop;
+      Put (Shared_Parser.Recover_Log_File, ')');
+
+      New_Line (Shared_Parser.Recover_Log_File);
+      Flush (Shared_Parser.Recover_Log_File);
+   exception
+   when others =>
+      New_Line (Shared_Parser.Recover_Log_File);
+      Flush (Shared_Parser.Recover_Log_File);
+   end Recover_To_Log;
 
    ----------
    --  Public subprograms, declaration order

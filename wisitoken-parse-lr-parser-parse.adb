@@ -89,6 +89,7 @@ begin
                   use Recover_Op_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
                   use all type WisiToken.Syntax_Trees.Node_Label;
+                  use all type WisiToken.Syntax_Trees.Stream_ID;
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
@@ -116,8 +117,8 @@ begin
                      declare
                         Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
                      begin
-                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node) then
-
+                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node)
+                        then
                            Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
                              (Parser_State.Stream, Op.Ins_ID, Before_Shared_Terminal => Next_Shared_Terminal.Node);
 
@@ -139,9 +140,7 @@ begin
                      null;
 
                   else
-                     LR.Parser.Next_Token (Parser_State, Tree);
-                     Parser_State.Current_Token := Peek_Current_Token (Parser_State, Tree);
-
+                     Parser_Lists.Next_Token (Parser_State, Tree, Set_Current => True);
                   end if;
 
                   if Trace_Parse > Extra then
@@ -149,16 +148,16 @@ begin
                        (" " & Tree.Trimmed_Image (Parser_State.Stream) &
                           ": current_token " & Tree.Image (Parser_State.Current_Token));
                      Trace.Put_Line
-                       (" ... recover_insert_delete:" &
-                          (if Parser_State.Recover_Insert_Delete_Current = No_Index
-                           then ""
-                           else Image
-                             (Parser_State.Recover_Insert_Delete, Tree,
-                              First => Parser_State.Recover_Insert_Delete_Current)));
-
+                       ("    shared_token " & Tree.Image (Parser_State.Shared_Token));
                      if Tree.Has_Input (Parser_State.Stream) then
                         Trace.Put_Line
-                          (" ... stream input:" & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
+                          ("    stream input:" & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
+                     end if;
+                     if Parser_State.Recover_Insert_Delete_Current /= No_Index then
+                        Trace.Put_Line
+                          ("    recover_insert_delete:" & Image
+                             (Parser_State.Recover_Insert_Delete, Tree,
+                              First => Parser_State.Recover_Insert_Delete_Current));
                      end if;
                   end if;
                end;
@@ -345,38 +344,7 @@ begin
                end if;
 
                if Ada.Text_IO.Is_Open (Shared_Parser.Recover_Log_File) then
-                  declare
-                     use Ada.Text_IO;
-                  begin
-                     Put
-                       (Shared_Parser.Recover_Log_File,
-                        Ada.Calendar.Formatting.Image (Ada.Calendar.Clock) & " " &
-                          Shared_Parser.Partial_Parse_Active'Image & " " &
-                          Recover_Result'Image & " " &
-                          Pre_Recover_Parser_Count'Image & " '" &
-                          Shared_Parser.Lexer.File_Name & "'");
-
-                     Put (Shared_Parser.Recover_Log_File, '(');
-                     for Parser of Shared_Parser.Parsers loop
-                        if Parser.Recover.Results.Count > 0 then
-                           --  Count can be 0 when error recovery fails
-                           Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
-                        end if;
-                        Put
-                          (Shared_Parser.Recover_Log_File,
-                           Integer'Image (Parser.Recover.Enqueue_Count) &
-                             Integer'Image (Parser.Recover.Check_Count) & " " &
-                             Boolean'Image (Parser.Recover.Success));
-                     end loop;
-                     Put (Shared_Parser.Recover_Log_File, ')');
-
-                     New_Line (Shared_Parser.Recover_Log_File);
-                     Flush (Shared_Parser.Recover_Log_File);
-                  exception
-                  when others =>
-                     New_Line (Shared_Parser.Recover_Log_File);
-                     Flush (Shared_Parser.Recover_Log_File);
-                  end;
+                  Recover_To_Log (Shared_Parser, Recover_Result, Pre_Recover_Parser_Count);
                end if;
             else
                if Trace_Parse > Outline or Trace_McKenzie > Outline then
@@ -389,31 +357,30 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  if Trace_Parse > Outline then
+                  if Trace_Parse > Outline and Trace_McKenzie <= Detail then
                      Trace.Put_Line
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": Current_Token " &
-                          Shared_Parser.Tree.Image (Parser_State.Current_Token) &
-                          " Shared_Token " & Shared_Parser.Tree.Image
-                            (Parser_State.Shared_Token));
+                          Shared_Parser.Tree.Image (Parser_State.Current_Token));
                      Trace.Put_Line
-                       (" recover_insert_delete:" &
+                       ("    Shared_Token " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
+                     if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
+                        Trace.Put_Line
+                          ("    stream input:" & Shared_Parser.Tree.Image
+                             (Parser_State.Stream, Stack => False, Input => True));
+                     end if;
+                     Trace.Put_Line
+                       ("    recover_insert_delete:" &
                           (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
                            then ""
                            else Image
                                (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
                                 First => Parser_State.Recover_Insert_Delete_Current)));
-                     if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
-                        Trace.Put_Line
-                          (" ... stream input:" & Shared_Parser.Tree.Image
-                             (Parser_State.Stream, Stack => False, Input => True));
-                     end if;
 
                      if Trace_Parse > Detail then
                         Shared_Parser.Trace.Put_Line
-                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
-                             ": resume_active: True, token goal" &
-                             Parser_State.Resume_Token_Goal'Image &
-                             ", inc_shared_token: " & Parser_State.Inc_Shared_Token'Image);
+                          ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
+                             ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image &
+                             ", inc_parse_stream_token: " & Parser_State.Inc_Parse_Stream_Token'Image);
                      end if;
                   end if;
 
@@ -476,9 +443,7 @@ begin
             --  We don't check duplicate state during resume, because the tokens
             --  inserted/deleted by error recover may cause initially duplicate
             --  states to diverge.
-            if not Current_Parser.State_Ref.Resume_Active and
-              Current_Verb = Shift
-            then
+            if not Current_Parser.State_Ref.Resume_Active and Current_Verb = Shift then
                Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.

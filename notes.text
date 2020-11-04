@@ -35,11 +35,15 @@ incremental parse
     run all tests
         test/test_incremental.adb : ?
         t_mck: lots of failures; nothing should have changed
+            Error_2: did not do undo_reduce
 
+            Error_Token_When_Parallel: hangs
 
         t_all:
 
     ada_lite.wy require statement in sequence_of_statements
+
+    either leave inserted virtual in Current_Token, or delete Current_Token, copy shared_Stream to parse_stream input
 
     test Parser.line_begin_token
 

@@ -52,6 +52,27 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
+   function Peek_Current_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref
+   is
+      use Syntax_Trees;
+   begin
+      if Tree.Has_Input (Parser_State.Stream) then
+         declare
+            Result : constant Stream_Node_Ref := Tree.First_Shared_Terminal (Tree.First_Input (Parser_State.Stream));
+         begin
+            if Result /= Invalid_Stream_Node_Ref then
+               return Result;
+            end if;
+         end;
+      end if;
+      --  No next shared token in Parser_State.Stream input
+
+      return Tree.First_Shared_Terminal (Parser_State.Shared_Token);
+   end Peek_Current_Shared_Terminal;
+
    function Peek_Next_Shared_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
@@ -59,24 +80,74 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       use Syntax_Trees;
    begin
-      if Parser_State.Current_Token = Invalid_Stream_Node_Ref then
+      if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
          return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
+      end if;
 
-      else
-         return Result : Terminal_Ref := Tree.First_Shared_Terminal (Parser_State.Current_Token) do
-            if Result = Invalid_Stream_Node_Ref then
-               --  No shared terminal in Parser_State.Stream input
+      declare
+         Result : Stream_Node_Ref;
+      begin
+         if Tree.Has_Input (Parser_State.Stream) then
+            Result := Tree.First_Input (Parser_State.Stream);
+            if Parser_State.Inc_Parse_Stream_Token then
+               Tree.Stream_Next (Result);
+            end if;
 
-               if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
-                  Result := Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
+            if Result /= Invalid_Stream_Node_Ref then
+               Result := Tree.First_Shared_Terminal (Result);
 
-               else
-                  Result := Tree.First_Shared_Terminal (Parser_State.Shared_Token);
+               if Result /= Invalid_Stream_Node_Ref then
+                  return Result;
                end if;
             end if;
-         end return;
-      end if;
+         end if;
+
+         --  No next shared token in Parser_State.Stream input
+
+         Result := Parser_State.Shared_Token;
+         if Parser_State.Inc_Shared_Stream_Token then
+            Tree.Stream_Next (Result);
+         end if;
+         Result := Tree.First_Shared_Terminal (Result);
+         return Result;
+      end;
    end Peek_Next_Shared_Terminal;
+
+   procedure Next_Token
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Set_Current  : in     Boolean)
+   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next token
+   is begin
+      if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
+         Parser_State.Shared_Token := Tree.Stream_First (Tree.Shared_Stream);
+
+      elsif Tree.Has_Input (Parser_State.Stream) then
+         if Parser_State.Inc_Parse_Stream_Token then
+            declare
+               Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
+            begin
+               Tree.Stream_Delete (Parser_State.Stream, Temp);
+            end;
+         end if;
+
+      else
+         if Parser_State.Inc_Shared_Stream_Token then
+            Tree.Stream_Next (Parser_State.Shared_Token);
+         end if;
+      end if;
+
+      if Set_Current then
+         if Tree.Has_Input (Parser_State.Stream) then
+            Parser_State.Current_Token           := Tree.First_Input (Parser_State.Stream);
+            Parser_State.Inc_Parse_Stream_Token  := True;
+
+         else
+            Parser_State.Current_Token           := Parser_State.Shared_Token;
+            Parser_State.Inc_Shared_Stream_Token := True;
+         end if;
+      end if;
+   end Next_Token;
 
    function New_List (Tree : in out Syntax_Trees.Tree) return List
    is begin
@@ -322,19 +393,20 @@ package body WisiToken.Parse.LR.Parser_Lists is
               (if Item.Shared_Token = Item.Current_Token
                then Item.Current_Token
                else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
-            Inc_Shared_Token              => Item.Inc_Shared_Token,
-            Recover                       =>
-              (Enqueue_Count              => Item.Recover.Enqueue_Count,
-               Config_Full_Count          => Item.Recover.Config_Full_Count,
-               Check_Count                => Item.Recover.Check_Count,
-               others                     => <>),
-            Resume_Active                 => Item.Resume_Active,
-            Resume_Token_Goal             => Item.Resume_Token_Goal,
-            Conflict_During_Resume        => Item.Conflict_During_Resume,
-            Zombie_Token_Count            => 0,
-            Errors                        => Item.Errors,
-            Stream                        => Tree.New_Stream (Item.Stream, User_Data),
-            Verb                          => Item.Verb);
+            Inc_Shared_Stream_Token => Item.Inc_Shared_Stream_Token,
+            Inc_Parse_Stream_Token  => Item.Inc_Parse_Stream_Token,
+            Recover                 =>
+              (Enqueue_Count        => Item.Recover.Enqueue_Count,
+               Config_Full_Count    => Item.Recover.Config_Full_Count,
+               Check_Count          => Item.Recover.Check_Count,
+               others               => <>),
+            Resume_Active           => Item.Resume_Active,
+            Resume_Token_Goal       => Item.Resume_Token_Goal,
+            Conflict_During_Resume  => Item.Conflict_During_Resume,
+            Zombie_Token_Count      => 0,
+            Errors                  => Item.Errors,
+            Stream                  => Tree.New_Stream (Item.Stream, User_Data),
+            Verb                    => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
             --  Item has a virtual terminal from Insert in the parse stream

@@ -88,7 +88,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Do_Delete
      (Tree   : in     Syntax_Trees.Tree;
-      Config : in out          Configuration);
+      Config : in out Configuration);
    --  Delete Config Current_Token. Does not append to Config.Ops.
 
    type Parse_Item is record

@@ -1058,8 +1058,10 @@ package body WisiToken.Syntax_Trees is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
    begin
       return Result : Terminal_Ref do
+
+         Result.Stream      := Stream;
          Result.Element.Cur := Next (Parse_Stream.Stack_Top);
-         Result.Node := First_Terminal (Tree, Constant_Ref (Result.Element.Cur).Node);
+         Result.Node        := First_Terminal (Tree, Constant_Ref (Result.Element.Cur).Node);
       end return;
    end First_Input_Terminal;
 
@@ -1357,7 +1359,7 @@ package body WisiToken.Syntax_Trees is
    is
       use Ada.Strings.Unbounded;
       use Stream_Element_Lists;
-      Result     : Unbounded_String := +"(" & Stream.Label'Image & ", ";
+      Result     : Unbounded_String := +"(" & Trimmed_Image (Stream.Label) & ", ";
       Element    : Cursor           :=
         (if Stack
          then Stream.Elements.First
@@ -1534,14 +1536,11 @@ package body WisiToken.Syntax_Trees is
 
    function Image (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return String
    is begin
-      if Tree.Incremental_Parse then
-         return "(" & Image (Tree, Ref.Element, Node_Numbers => True) &
-           (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index
-            then ""
-            else ", " & Image (Tree, Ref.Node, Terminal_Node_Numbers => True)) & ")";
-      else
-         return Image (Tree, Ref.Node, Node_Numbers => True);
-      end if;
+      return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
+        Image (Tree, Ref.Element, Node_Numbers => True) &
+        (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index
+         then ""
+         else ", " & Image (Tree, Ref.Node, Terminal_Node_Numbers => True)) & ")";
    end Image;
 
    function Insert_After

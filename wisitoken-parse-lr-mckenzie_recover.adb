@@ -447,15 +447,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:", Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "stack " & Image (Stack, Tree),
-                           Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Shared_Token  " & Tree.Image (Parser_State.Shared_Token),
-                           Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Current_Token " & Tree.Image (Parser_State.Current_Token),
-                           Task_ID => False);
+                        Trace.Put_Line ("   stack " & Parser_Lists.Image (Stack, Tree));
+                        Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
+                        Trace.Put_Line ("   Current_Token " & Tree.Image (Parser_State.Current_Token));
                      end if;
 
                      --  We don't apply all Ops to the parser stack here, because there can
@@ -557,14 +551,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                               if Stack_Matches_Ops then
                                  Tree.Push_Back (Parser_State.Stream);
-                                 Parser_State.Inc_Shared_Token := False;
 
-                                 if Tree.Incremental_Parse then
-                                    Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
-                                 else
-                                    --  FIXME: change batch parser to support incremental
-                                    Parser_State.Current_Token := Tree.First_Input_Terminal (Parser_State.Stream);
-                                 end if;
+                                 pragma Assert (not Tree.Incremental_Parse);
+                                 --  for incremental parse:
+                                 --  Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
+                                 --  FIXME: change batch parser to support incremental
+                                 Parser_State.Current_Token           := Tree.First_Input_Terminal
+                                   (Parser_State.Stream);
+                                 Parser_State.Inc_Shared_Stream_Token := False;
+                                 Parser_State.Inc_Parse_Stream_Token  := True;
                               end if;
 
                            when Insert       =>
@@ -577,7 +572,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Ins_Node   => Syntax_Trees.Invalid_Node_Access));
 
                               if First_Insert and Op.Ins_Before = Tree.Get_Node_Index
-                                (Peek_Next_Shared_Terminal (Parser_State, Tree).Node)
+                                (Peek_Current_Shared_Terminal (Parser_State, Tree).Node)
                               then
                                  --  We need First_Insert here, not just Stack_Matches_Ops, when the
                                  --  first insert is preceeded only by Push_Back and Undo_Reduce, with
@@ -587,8 +582,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  First_Insert := False;
 
                                  Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
-                                   (Parser_State.Stream, Op.Ins_ID, Peek_Next_Shared_Terminal
+                                   (Parser_State.Stream, Op.Ins_ID, Peek_Current_Shared_Terminal
                                       (Parser_State, Tree).Node);
+
+                                 Parser_State.Inc_Shared_Stream_Token := False;
+                                 Parser_State.Inc_Parse_Stream_Token  := False;
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
@@ -598,8 +596,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                    (Parser_State.Recover_Insert_Delete.Last_Index).Ins_Node :=
                                       Parser_State.Current_Token.Node;
 
-                                 Parser_State.Inc_Shared_Token              := False;
-                                 Parser_State.Recover_Insert_Delete_Current := No_Index;
+                                 pragma Assert (Parser_State.Recover_Insert_Delete_Current = No_Index);
                               else
                                  --  Let main parser handle it
                                  if Parser_State.Recover_Insert_Delete_Current = No_Index then
@@ -626,14 +623,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  ada_mode-recover_38.adb
                               if Parser_State.Recover_Insert_Delete_Current = No_Index and
                                 Op.Del_Token_Index = Tree.Get_Node_Index
-                                  (Peek_Next_Shared_Terminal (Parser_State, Tree).Node)
+                                  (Peek_Current_Shared_Terminal (Parser_State, Tree).Node)
                               then
                                  Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last_Index)
                                    .Del_Node := Parser_State.Shared_Token.Node;
 
-                                 Parser_State.Shared_Token := Tree.Next_Shared_Terminal (Parser_State.Shared_Token);
-
-                                 Parser_State.Current_Token := Parser_State.Shared_Token;
+                                 Next_Token (Parser_State, Tree, Set_Current => True);
 
                               else
                                  if Parser_State.Recover_Insert_Delete_Current = No_Index then
@@ -647,25 +642,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:", Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "stack " & Parser_Lists.Image (Stack, Tree),
-                           Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Shared_Token  " & Tree.Image
-                             (Parser_State.Shared_Token), Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "Current_Token " & Tree.Image
-                             (Parser_State.Current_Token), Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "recover_insert_delete" &
-                             Image
+                        Trace.Put_Line ("   stack " & Parser_Lists.Image (Stack, Tree));
+                        Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
+                        Trace.Put_Line ("   Current_Token " & Tree.Image (Parser_State.Current_Token));
+                        Trace.Put_Line ("   recover_insert_delete " & Image
                                (Parser_State.Recover_Insert_Delete, Tree,
-                                First => Parser_State.Recover_Insert_Delete_Current),
-                           Task_ID => False);
-                        Put_Line
-                          (Trace, Tree, Parser_State.Stream, "inc_shared_token " &
-                             Boolean'Image (Parser_State.Inc_Shared_Token),
-                           Task_ID => False);
+                                First => Parser_State.Recover_Insert_Delete_Current));
+                        Trace.Put_Line ("   inc_shared_stream_token " & Parser_State.Inc_Shared_Stream_Token'Image);
+                        Trace.Put_Line ("   inc_parse_stream_token " & Parser_State.Inc_Parse_Stream_Token'Image);
+                        Trace.Put_Line ("   resume_token_goal" & Parser_State.Resume_Token_Goal'Image);
                      end if;
                   end;
                exception

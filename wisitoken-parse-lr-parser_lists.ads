@@ -45,6 +45,8 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Base_Parser_State is tagged
    record
       --  Visible components for direct access
+      --
+      --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
       Shared_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Next token to shift in Tree.Shared_Stream. For batch parse, this
@@ -66,12 +68,20 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next token to shift, in either Tree.Shared_Stream or
       --  Parser_State.Stream. May be a nonterm in incremental parse.
 
-      Inc_Shared_Token : Boolean := True;
+      Inc_Shared_Stream_Token : Boolean := True;
       --  Whether Parse should increment Shared_Token before using it as the
-      --  next input. This is set False when Current_Token is from recover
-      --  (either Insert or Push_Back).
+      --  next input. This is set False in error recover when it sets
+      --  Current_Token, True in main parser when Current_Token is set to
+      --  Shared_Token. This reflects the fact that the main parser should
+      --  not have set Current_Token as it did.
 
-      --  The parse stack is Shared_Parser.Tree (Parser_State.Stream).
+      Inc_Parse_Stream_Token : Boolean := True;
+      --  Whether Parse should increment (for Peek) or delete (for
+      --  Next_Token) the parse stream input before using it as the next
+      --  input. This is set False in recover when it sets Current_Token,
+      --  True in main parser when when Current_Token is set to the parse
+      --  stream input. This reflects the fact that the main parser should
+      --  not have set Current_Token as it did.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
@@ -93,14 +103,38 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
 
+   function Peek_Current_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref;
+   --  Return first shared terminal from current token, ignoring
+   --  insert/delete, or a following token if that is an empty nonterm.
+   --  For comparison with insert/delete token index in
+   --  error recover.
+   --
+   --  In error recover we compare insert/delete to the current token,
+   --  because the main parse should have done the insert/delete before
+   --  making that token current.
+
    function Peek_Next_Shared_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Terminal_Ref;
-   --  Return first shared terminal from Parser_State.Current_Token.
+   --  Return first shared terminal from token that will be current after
+   --  Next_Token, ignoring insert/delete, or a following token if that
+   --  is an empty nonterm. For comparison with insert/delete token index
+   --  in main parse.
    --
-   --  Declared here because LR.McKenzie_Recover and LR.Parser need it;
-   --  see LR.Parser body for related subprograms.
+   --  We compare insert/delete to the next token, because the
+   --  insert/delete should be done instead of making that token current.
+
+   procedure Next_Token
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Set_Current  : in     Boolean);
+   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next
+   --  token. If Set_Current, also update Current_Token,
+   --  Inc_Shared_Stream_Token, Inc_Parse_Stream_Token.
 
    type List is tagged private
    with

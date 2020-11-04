@@ -335,6 +335,7 @@ package body WisiToken.Parse is
             loop
                exit Unchanged_Loop when Terminal = Invalid_Stream_Node_Ref;
                exit Unchanged_Loop when not Contains
+                 --  FIXME: virtual_terminals have null byte_region, non-null char_region
                  (Inner          => Tree.Byte_Region (Terminal.Node),
                   Outer          => Stable_Region,
                   First_Boundary => Inclusive,
@@ -359,6 +360,8 @@ package body WisiToken.Parse is
 
                Tree.Next_Terminal (Terminal);
             end loop Unchanged_Loop;
+
+            --  FIXME: delete trailing virtual_terminals in stable_region
 
             declare
                --  Terminal is the terminal token overlapping or after the end of the

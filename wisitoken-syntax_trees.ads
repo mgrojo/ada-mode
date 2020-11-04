@@ -630,14 +630,16 @@ package WisiToken.Syntax_Trees is
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
      return Rooted_Ref
-   with Pre => Tree.Has_Input (Stream);
+   with Pre => Tree.Has_Input (Stream),
+     Post => Correct_Stream_Node (Tree, First_Input'Result);
    --  Return first stream element after Stack_Top.
 
    function First_Input_Terminal
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID)
      return Terminal_Ref
-   with Pre => Tree.Has_Input (Stream);
+   with Pre => Tree.Has_Input (Stream),
+     Post => Correct_Stream_Node (Tree, First_Input_Terminal'Result);
    --  Return first terminal in first stream element after
    --  Stack_Top.
 
