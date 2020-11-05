@@ -449,7 +449,7 @@ package WisiToken.Parse.LR is
 
          UR_Token_Index : Syntax_Trees.Node_Index;
          --  First terminal in the undo_reduce token; Invalid_Node_Index if
-         --  empty. Used to check that successive Push_Backs are valid.
+         --  empty. Used to check that successive Undo_Reduce are valid.
 
       when Push_Back =>
          PB_ID : Token_ID;

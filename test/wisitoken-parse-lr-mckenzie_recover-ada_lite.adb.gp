@@ -83,12 +83,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          exit when Matching_Name_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
             Token : Syntax_Trees.Recover_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+            Token_Name : constant Buffer_Region := Syntax_Trees.Name (Token);
          begin
-            exit when Token.Name /= Null_Buffer_Region and then
+            exit when Token_Name /= Null_Buffer_Region and then
               Match_Name =
               (if Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (Token.Name))
-               else Lexer.Buffer_Text (Token.Name));
+               then To_Lower (Lexer.Buffer_Text (Token_Name))
+               else Lexer.Buffer_Text (Token_Name));
 
             for I in Other_IDs'Range loop
                if Other_IDs (I)(Syntax_Trees.ID (Token)) then

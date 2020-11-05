@@ -1082,7 +1082,7 @@ package body WisiToken.Syntax_Trees is
          end if;
 
       when Nonterm =>
-         if Node.First_Terminal.Node_Index > 0 then
+         if Node.First_Terminal /= Invalid_Node_Access then
             return Node.First_Terminal;
          else
             for C of Node.Children loop
@@ -2185,6 +2185,7 @@ package body WisiToken.Syntax_Trees is
          if Ref.Node = Invalid_Node_Access then
             Ref.Element := (Cur => Stream_Element_Lists.Next (Ref.Element.Cur));
             if Ref.Element = Invalid_Stream_Index then
+               Ref := Invalid_Stream_Node_Ref;
                return;
             end if;
 

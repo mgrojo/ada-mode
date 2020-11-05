@@ -109,6 +109,80 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Reduce_Stack_1;
 
+   procedure Get_Action
+     (Shared_Parser : in out LR.Parser.Parser;
+      Parser_State  : in out Parser_Lists.Parser_State;
+      Action_Cur    :    out Parse_Action_Node_Ptr;
+      Action        :    out Parse_Action_Rec)
+   is
+      --  Same logic as in McKensie_Recover.Parse.Get_Action, but this
+      --  operates on Parser_State.
+      use Syntax_Trees;
+
+      Table : Parse_Table renames Shared_Parser.Table.all;
+      Tree  : Syntax_Trees.Tree renames Shared_Parser.Tree;
+
+      Current_State : constant State_Index := Tree.State (Parser_State.Stream);
+
+      First_In_Current : Node_Access;
+   begin
+      loop --  Skip empty nonterms
+         if Tree.Label (Parser_State.Current_Token.Node) in Terminal_Label then
+            Action_Cur := Action_For (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+            Action     := Action_Cur.Item;
+            return;
+         else
+            --  nonterminal; we don't Insert nonterms, so
+            --  Parser_State.Current_Token cannot be from an Insert. FIXME: we
+            --  don't have a good Assert for that. Could add
+            --  Parser_State.Current_From_Insert.
+
+            declare
+               New_State : constant Unknown_State_Index := Goto_For
+                 (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+            begin
+               if New_State /= Unknown_State then
+                  Action_Cur := null;
+                  Action     :=
+                    (Verb       => Shift,
+                     Production => Invalid_Production_ID,
+                     State      => New_State);
+                  return;
+               else
+                  First_In_Current := Tree.First_Terminal (Parser_State.Current_Token.Node);
+
+                  if First_In_Current = Invalid_Node_Access then
+                     --  Current_Token is an empty nonterm; skip it. This will not affect
+                     --  Insert_Delete; that already skipped it via First_Shared_Terminal
+                     --  (Stream), and we don't Delete nonterms.
+
+                     if Parser_State.Current_Token.Stream = Parser_State.Stream then
+                        Tree.Stream_Delete (Parser_State.Current_Token.Stream, Parser_State.Current_Token.Element);
+                        Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
+                     else
+                        Tree.Stream_Next (Parser_State.Shared_Token);
+                        Parser_State.Current_Token := Parser_State.Shared_Token;
+                     end if;
+
+                  else
+                     pragma Assert
+                       (Parser_State.Current_Token.Stream = Parser_State.Stream,
+                        --  Currently we only need to handle nonterms from Push_Back. To
+                        --  breakdown a shared_stream token, we first have to copy it to the
+                        --  parse stream input.
+                        "FIXME: handle breakdown of nonterms in shared_stream");
+
+                     Tree.Left_Breakdown (Parser_State.Current_Token);
+                     Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
+                     Action     := Action_Cur.Item;
+                     return;
+                  end if;
+               end if;
+            end;
+         end if;
+      end loop;
+   end Get_Action;
+
    procedure Do_Action
      (Action         : in     Parse_Action_Rec;
       Current_Parser : in     Parser_Lists.Cursor;

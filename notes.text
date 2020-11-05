@@ -34,8 +34,11 @@ update-wisitoken_grammar
 incremental parse
     run all tests
         test/test_incremental.adb : ?
-        t_mck: lots of failures; nothing should have changed
-            Error_2: did not do undo_reduce
+        t_mck: some failures; nothing should have changed
+
+            String_Quote_0 fails assert; --  FIXME: not updated to Config.Input_Stream
+
+            mck_re-parse need current_shared_matches_ops?
 
             Error_Token_When_Parallel: hangs
 

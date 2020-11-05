@@ -227,7 +227,7 @@ begin
                      when Error =>
                         --  Next_Terminal is not shiftable either.
 
-                        if Tree.Label (Parser_State.Stream) in Terminal_Label then
+                        if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
                            raise Syntax_Error with "need error_recovery";
                         else
                            --  [Wagner Graham 1998] has Right_Breakdown here, but that is

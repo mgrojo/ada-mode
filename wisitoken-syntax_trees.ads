@@ -167,6 +167,10 @@ package WisiToken.Syntax_Trees is
    --  Invalid_Node_Access or Stream contains Element, which contains
    --  Node.
    --
+   --  We allow Ref.Node = Invalid_Node_Access so a Stream_Node_Ref can
+   --  be First_Shared_Terminal of an empty nonterm, while still allowing
+   --  Next_Shared_Terminal (ref).
+   --
    --  Note that this is False in post-parse actions.
 
    function Valid_Stream_Node
@@ -540,7 +544,7 @@ package WisiToken.Syntax_Trees is
    procedure Undo_Reduce
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID)
-   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Label (Stream) = Nonterm;
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Label (Tree.Peek (Stream)) = Nonterm;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
 
@@ -784,10 +788,6 @@ package WisiToken.Syntax_Trees is
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
    with Pre => Element /= Invalid_Stream_Index;
-
-   function Label (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Label
-   with Pre => Tree.Is_Valid (Stream);
-   --  Label of Stream.Last; top of stack
 
    function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return SAL.Base_Peek_Type;
 
@@ -1475,7 +1475,7 @@ private
 
       State : Unknown_State_Index := Unknown_State;
       --  Parse state that is on the parse stack with this token. Required
-      --  for error recover Undo_Reduce, Left_, Right_Breakdown.
+      --  for Left_Breakdown, Undo_Reduce.
 
       Augmented : Augmented_Class_Access := null;
       --  IMPROVEME: Augmented should not derive from Base_Token; that
@@ -1724,9 +1724,6 @@ private
 
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.Label);
-
-   function Label (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Node_Label
-   is (Stream_Element_Lists.Constant_Ref (Tree.Streams (Stream.Cur).Elements.Last).Node.Label);
 
    function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String
    is (Trimmed_Image (Tree.Next_Stream_Label));

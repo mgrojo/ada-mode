@@ -1379,7 +1379,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  Don't push back an inserted token
                exit;
 
-            elsif Item.Token.Byte_Region = Null_Buffer_Region then
+            elsif Syntax_Trees.Byte_Region (Item.Token) = Null_Buffer_Region then
                --  Don't need push_back for an empty token
                null;
 
@@ -1896,10 +1896,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         --  If Config reduces to the start nonterm, there's no point in Push_Back or Undo_Reduce.
       then
          Try_Push_Back (Super, Shared, Parser_Index, Config, Local_Config_Heap);
+      end if;
 
-         if Undo_Reduce_Valid (Super.Tree.all, Config) then
-            Try_Undo_Reduce (Super, Shared, Parser_Index, Config, Local_Config_Heap);
-         end if;
+      if Undo_Reduce_Valid (Super.Tree.all, Config) then
+         Try_Undo_Reduce (Super, Shared, Parser_Index, Config, Local_Config_Heap);
       end if;
 
       if None_Since_FF (Config.Ops, Insert) then

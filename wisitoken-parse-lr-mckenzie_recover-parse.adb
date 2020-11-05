@@ -661,21 +661,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          --  We use the incremental parse algorithm even if the main parse is
          --  batch, because Push_Back places whole nonterms on
          --  Config.Input_Stream.
+         --
+         --  Same logic as in Parser.Parse.Get_Action, but this
+         --  operates on Config.
 
          Current_State : constant State_Index := Config.Stack.Peek.State;
-         Current_ID    : constant Token_ID    := Syntax_Trees.ID (Current_Token);
 
          First_In_Current : Syntax_Trees.Node_Access;
       begin
          loop --  Skip empty nonterms
             if Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor) then
-               Action_Cur := Action_For (Table, Current_State, Current_ID);
+               Action_Cur := Action_For (Table, Current_State, Syntax_Trees.ID (Current_Token));
                Action     := Action_Cur.Item;
                return;
             else
                --  nonterminal.
                declare
-                  New_State : constant Unknown_State_Index := Goto_For (Table, Current_State, Current_ID);
+                  New_State : constant Unknown_State_Index := Goto_For
+                    (Table, Current_State, Syntax_Trees.ID (Current_Token));
                begin
                   if New_State /= Unknown_State then
                      Action_Cur := null;

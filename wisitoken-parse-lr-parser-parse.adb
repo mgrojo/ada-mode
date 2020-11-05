@@ -22,9 +22,8 @@ is
 
    Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
-   Current_Verb   : All_Parse_Action_Verbs;
-   Action         : Parse_Action_Node_Ptr;
-   Zombie_Count   : SAL.Base_Peek_Type;
+   Current_Verb : All_Parse_Action_Verbs;
+   Zombie_Count : SAL.Base_Peek_Type;
 
 begin
    if Trace_Time then
@@ -435,6 +434,8 @@ begin
       --  changing the parser list.
       declare
          Current_Parser : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+         Action_Cur     : Parse_Action_Node_Ptr;
+         Action         : Parse_Action_Rec;
       begin
          Action_Loop :
          loop
@@ -485,17 +486,10 @@ begin
                   Trace.Put_Line (Parser_Lists.Image (Current_Parser.Stream, Shared_Parser.Tree));
                end if;
 
-               declare
-                  Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-               begin
-                  Action := Action_For
-                    (Table => Shared_Parser.Table.all,
-                     State => Shared_Parser.Tree.State (Parser_State.Stream),
-                     ID    => Shared_Parser.Tree.ID (Parser_State.Current_Token.Node));
-               end;
+               LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
 
                declare
-                  Conflict : Parse_Action_Node_Ptr := Action.Next;
+                  Conflict : Parse_Action_Node_Ptr := (if Action_Cur = null then null else Action_Cur.Next);
                begin
                   loop
                      exit when Conflict = null;
@@ -588,7 +582,7 @@ begin
                      Conflict := Conflict.Next;
                   end loop;
                end;
-               Do_Action (Action.Item, Current_Parser, Shared_Parser);
+               Do_Action (Action, Current_Parser, Shared_Parser);
                Check_Error (Shared_Parser, Current_Parser);
 
             else
