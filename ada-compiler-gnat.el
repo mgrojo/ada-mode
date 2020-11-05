@@ -488,10 +488,17 @@ Prompt user if more than one."
 		 (replace-match correct-spelling)
 		 t))))
 
-	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp
-			       "\\( defined at " ada-gnat-file-name-regexp "\\)?"))
-	   (let ((type (match-string 2))
-		 (package-file (match-string 4))
+	  ((looking-at (concat "operator for \\(?:private \\)?type " ada-gnat-quoted-name-regexp
+			       "\\(?: defined at " ada-gnat-file-name-regexp "\\)?"))
+	   (let ((type (match-string 1))
+		 (package-file (match-string 2))
+		 ;; IMPROVEME: we'd like to handle ", instance at
+		 ;; <file:line:column>, but gnatcoll.xref does not
+		 ;; support looking up an entity by location alone; it
+		 ;; requires the name, and this error message does not
+		 ;; give the name of the instance. When we implement
+		 ;; adalang xref, or if the error message improves,
+		 ;; try again.
 		 (prj (project-current)))
 	     (when package-file
 	       (setq type (concat
@@ -592,8 +599,9 @@ Prompt user if more than one."
 	  ((or
 	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced"))
 	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated"))
+	    (looking-at (concat "warning: renamed constant " ada-gnat-quoted-name-regexp " is not referenced"))
 	    (looking-at "warning: redundant with clause"))
-	   ;; just delete the 'with'; assume it's on a line by itself.
+	   ;; just delete the declaration; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
 	   (delete-region (point) (progn (forward-line 1) (point)))

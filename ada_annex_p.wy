@@ -261,6 +261,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
 %conflict REDUCE subtype_indication | REDUCE primary on token BAR
 %conflict REDUCE subtype_indication | REDUCE primary on token EQUAL_GREATER
+%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
 %conflict SHIFT at_clause | REDUCE name on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
@@ -282,6 +283,11 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT global_set | REDUCE formal_parameter_set on token COMMA
 %conflict SHIFT global_set | REDUCE global_aspect_element on token COMMA
 %conflict SHIFT iterator_filter | REDUCE subtype_indication on token WHEN
+%conflict SHIFT membership_choice_list | REDUCE relation on token BAR (668, 991)
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token MOD
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token REM
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token SLASH
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token STAR
 %conflict SHIFT null_exclusion | REDUCE mode on token NOT
 %conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
@@ -297,19 +303,8 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT tick | REDUCE direct_name on token TICK_2
 %conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
 
-%if parser in LALR | LR1
-%conflict REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
-%conflict SHIFT AND_choice_relation_list | REDUCE relation on token AND
-%conflict SHIFT OR_choice_relation_list | REDUCE relation on token OR
-%conflict SHIFT XOR_choice_relation_list | REDUCE relation on token XOR
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token MOD
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token REM
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token SLASH
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token STAR
-
-%elsif parser = LALR
+%if parser = LALR
 %conflict REDUCE subtype_indication | REDUCE primary on token COMMA
-
 %end if
 
 ;;; grammar rules
@@ -660,7 +655,7 @@ discrete_choice_list
   ;
 
 discrete_choice
-  : choice_expression
+  : expression ;;:edited choice_expression -> expression
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   | subtype_indication
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
@@ -1037,28 +1032,28 @@ iterated_element_association
   ;
 
 AND_relation_list ;;:new, split out from expression for action. FIXME: put back
-  : AND relation
-  | AND_relation_list AND relation
+  : 'and' relation
+  | AND_relation_list 'and' relation
   ;
 
 AND_THEN_relation_list
-  : AND THEN relation
-  | AND_THEN_relation_list AND THEN relation
+  : 'and' THEN relation
+  | AND_THEN_relation_list 'and' THEN relation
   ;
 
 OR_relation_list
-  : OR relation
-  | OR_relation_list OR relation
+  : 'or' relation
+  | OR_relation_list 'or' relation
   ;
 
 OR_ELSE_relation_list
-  : OR ELSE relation
-  | OR_ELSE_relation_list OR ELSE relation
+  : 'or' ELSE relation
+  | OR_ELSE_relation_list 'or' ELSE relation
   ;
 
 XOR_relation_list
-  : XOR relation
-  | XOR_relation_list XOR relation
+  : 'xor' relation
+  | XOR_relation_list 'xor' relation
   ;
 
 expression
@@ -1071,19 +1066,16 @@ expression
   | relation XOR_relation_list
   ;
 
-choice_expression ::=
-    choice_relation ;; new to reduce conflicts
-  | choice_relation {'and' choice_relation}-        ;; extra -
-  | choice_relation {'or' choice_relation}-         ;; extra -
-  | choice_relation {'xor' choice_relation}-        ;; extra -
-  | choice_relation {'and' 'then' choice_relation}- ;; extra -
-  | choice_relation {'or' 'else' choice_relation}-  ;; extra -
-
-choice_relation : simple_expression [relational_operator simple_expression] ;
+;; choice_expression ;;:deleted; mostly redundant with expression, delete to reduce conflicts
+  ;; : choice_relation ;; new to reduce conflicts
+  ;; | choice_relation {'and' choice_relation}-        ;; extra -
+  ;; | choice_relation {'or' choice_relation}-         ;; extra -
+  ;; | choice_relation {'xor' choice_relation}-        ;; extra -
+  ;; | choice_relation {'and' 'then' choice_relation}- ;; extra -
+  ;; | choice_relation {'or' 'else' choice_relation}-  ;; extra -
 
 relation
-  ;; simple_expression [ relational_operator simple_expression ] ;;:redundant with choice_relation
-  : choice_relation ;;:new
+  : simple_expression [relational_operator simple_expression]
   | simple_expression ['not'] 'in' membership_choice_list
   | raise_expression
   ;
@@ -1219,7 +1211,7 @@ quantifier : 'all' | 'some' ;
 
 declare_expression
   : 'declare' {declare_item} 'begin' expression
-    %((wisi-indent-action [nil ada-indent nil (wisi-hanging% ada-indent (* 2 ada-indent))]))%
+    %((wisi-indent-action [nil (wisi-block ada-indent) nil (wisi-hanging% ada-indent (+ ada-indent ada-indent-broken))]))%
   ;
 
 declare_item ::= object_declaration | object_renaming_declaration
@@ -1727,9 +1719,8 @@ null_procedure_declaration
   ;
 
 expression_function_declaration
-  ;;:redundant with 'aggregate' [overriding_indicator]
-  ;; function_specification 'is' '(' expression ')'
-  ;; [aspect_specification] ';'
+  ;;:redundant with 'aggregate'
+  ;; [overriding_indicator] function_specification 'is' '(' expression ')' [aspect_specification] ';'
 
   : [overriding_indicator] function_specification 'is' aggregate [aspect_specification] ';'
     %((wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
@@ -1815,7 +1806,7 @@ use_clause : use_package_clause | use_type_clause ;
 
 name_list ;;:new; split out from use_package_clause for action
   : name
-  | name_list COMMA name
+  | name_list ',' name
   ;
 
 use_package_clause

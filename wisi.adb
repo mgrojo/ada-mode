@@ -212,18 +212,16 @@ package body Wisi is
             end case;
          else
             --  Apply delta_2
-            if Delta_Indent.Hanging_Paren_State = Data.Line_Paren_State (Line) then
-               case Delta_Indent.Hanging_Delta_2.Label is
-               when None =>
-                  null;
-               when Int =>
-                  Indent_Apply_Int
-                    (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta,
-                     Delta_Indent.Hanging_Delta_2.Controlling_Token_Line);
-               when Anchored =>
-                  Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
-               end case;
-            end if;
+            case Delta_Indent.Hanging_Delta_2.Label is
+            when None =>
+               null;
+            when Int =>
+               Indent_Apply_Int
+                 (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta,
+                  Delta_Indent.Hanging_Delta_2.Controlling_Token_Line);
+            when Anchored =>
+               Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
+            end case;
          end if;
       end case;
 

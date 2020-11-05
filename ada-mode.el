@@ -212,6 +212,10 @@ nil, only the file name."
     (define-key map "\C-c\C-\M-y" 'wisi-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
 
+    (define-key map "\C-cr1" 'ada-refactor-1)
+    (define-key map "\C-cr2" 'ada-refactor-2)
+    (define-key map "\C-cr3" 'ada-refactor-3)
+    (define-key map "\C-cr4" 'ada-refactor-4)
     (wisi-case-activate-keys map)
 
     map
@@ -523,6 +527,7 @@ See `ff-other-file-alist'.")
 (defconst ada-declaration-nonterms
   '(
     abstract_subprogram_declaration
+    attribute_definition_clause
     entry_body
     entry_declaration
     expression_function_declaration

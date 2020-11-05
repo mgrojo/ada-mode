@@ -13,7 +13,10 @@ package body Ada_Mode.Ada2020 is
    function Func_Declare_1 (A : in Integer) return Integer
      is (declare
             B : Integer renames A;
-         begin B * 2);
+         begin
+            B * 2 +
+              --  Comment in expression
+              4);
 
    type Task_Array is array (Worker_Indexes) of Worker;
 
@@ -47,14 +50,14 @@ begin
 
    --  [2] 4.4 declare_expresssion
    A :=
-     (declare
-         B : constant Integer := 3;
+     (declare B : constant Integer :=
+        3;
       begin
          B + 1);
 
    A := Func_Declare_1
-     (declare
-      C : Integer renames A;
-   begin C + 2);
+     (declare C : Integer renames
+           A;
+      begin C + 2);
 
 end Ada_Mode.Ada2020;

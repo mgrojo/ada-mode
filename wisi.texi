@@ -862,18 +862,18 @@ during grammar development.
 The argument is a token index. Set the @code{name} component of the
 left-hand-side parse-time token object to the @code{name} component of
 the identified token, if it is not empty. Otherwise use the
-@code{char_region} component.
+@code{byte_region} component.
 
 @item wisi-merge-name FIRST-TOKEN, LAST-TOKEN
 The arguments are token indices, giving a range of
 tokens. LAST-TOKEN may be omitted if it is the same as FIRST-TOKEN.
 
 Set the @code{name} component of the left-hand-side to the merger of
-the @code{name} or @code{char_region} components of the identified tokens.
+the @code{name} or @code{byte_region} components of the identified tokens.
 
 @item wisi-match-name START-TOKEN END-TOKEN
 The arguments are token indices. Compare the text contained by the
-@code{name} (or @code{char_region} if @code{name} is empty) token
+@code{name} (or @code{byte_region} if @code{name} is empty) token
 components for START-TOKEN and END-TOKEN; signal a parse error if they
 are different.
 

@@ -43,11 +43,15 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-read lr1 text_rep dies
-    recompiling after clean
-
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
+
+    try full recursion since eliminated some conflicts
+
+indent bug:
+    indent_line had delta_indent.hanging_paren_state for delta_2, but not delta_1
+        caused bad comment indent in ada_mode-ada2020.adb Func_Declare_1
+        otherwise not used; delete it?
 
 indent recover bug:
                (case Shared_Parser.Tree.Label (Parser_State.Shared_Token.Node) is
@@ -91,42 +95,12 @@ indent bug
                               (KMN.Inserted_Bytes > 0 and then (Overlaps (Token.Byte_Region, Inserted_Region))) or
                               (KMN.Inserted_Bytes = 0 and then
 
-add user option for indent of 'is' in expression_function, null, abstract procedure
-    ada-indent-offset default, 0 for wisitoken, ada-mode
-
 doc wisi-enable-parse in skeleton-end-hook?
 
-c:/eurocontrol/gnatcoll-xref.adb
-    (parse_error "WISITOKEN.PARSE_ERROR gnatcoll-xref.adb:4836:68: too many parallel parsers required in grammar state 367; simplify grammar, or increase max-parallel ( 20)")
-    30 ok
-    ;;  3130: 367: 19917:(RIGHT_PAREN, (183998 . 183998)) : spawn 3141, (24 active)
-         return (Location => (Project => Xref.Tree.Project_From_Path
-                                (Create (+Curs.Value (Q_Decl_Project))),
-                              Scope  => Scope));
-    each => spawns two
-    each ) spawns two
-        => max_parallel depends on aggregate nesting
-
-    in state 367:
-        124.3:subtype_indication <= name ^
-        235.3:primary <= name ^
-
-    RIGHT_PAREN                               => reduce 1 tokens to subtype_indication 124.3,
-                                                 reduce 1 tokens to primary 235.3
-
-wisitoken-syntax_trees.ads
-   procedure Shift_Terminal
-     (Tree      : in out Syntax_Trees.Tree;
-      Stream    : in     Stream_ID;
-      State     : in     State_Index;
-      Token     : in     Stream_Index;
-      User_Data : in     User_Data_Access)
-   with Pre => (Tree.Contains (Tree.Terminal_Stream, Token) or
-                  (Tree.Contains (Stream, Token) and then Token = Tree.Stream_Next (Tree.Stack_Top (Stream)))))
-               and then (Tree.Label (Token) in Terminal_Label and (not Tree.Traversing));
-    move 'not tree.traversing' first requires more parens => to many parallel parsers.
 
 incremental parse
+    Incremental indent - store line indent result in auxilliary? Delta? for contained lines in each nonterm?
+        Or fast enough to recompute all?
 
 ada2020
     recursion reduces power of Minimal_Complete in error recover too much

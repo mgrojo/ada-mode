@@ -53,22 +53,13 @@ Values defined by compiler packages.")
 Called by `syntax-propertize', which is called by font-lock in
 `after-change-functions'.")
 
-(defun ada-declarative-region-start-p (cache)
-  "Return t if cache is a keyword starting a declarative region."
-  (memq (wisi-cache-token cache) '(DECLARE IS PRIVATE))
-  ;; IS has a cache only if start of declarative region
-  )
-
 (defun ada-goto-declarative-region-start ()
-  "Goto start of declarative region containing point."
+  "Goto start of declarative region containing point.
+If already in a declaration at or before a declarative region
+start, goto containing region start."
   (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (push-mark)
-  (when (looking-back "declare\\|is" (line-beginning-position))
-    ;; We just did ada-goto-declarative-region-start to get here; we
-    ;; want the next one up.
-    (wisi-goto-statement-start)
-    (backward-word 1))
 
   (let ((done nil)
 	(start-pos (point))
@@ -82,27 +73,40 @@ Called by `syntax-propertize', which is called by font-lock in
     ;; The typical use case for calling this fuction is to add a
     ;; use_clause for an identifier/operator at start-pos.
 
-    (when cache ;; nil at bob
-      (while (not done)
+    (while (not done)
+      (if (not cache) ;; nil at bob
+	  (setq done t)
 
-	(if (ada-declarative-region-start-p cache)
-	    (if (< (point) start-pos)
-		;; found it.
-		(progn
-		  (forward-word);; past 'is' or 'declare'.
-		  (setq done t))
+	(if (memq (wisi-cache-token cache) '(DECLARE IS PRIVATE))
+	    ;; IS has a cache only if start of declarative region
+	    (progn
+	      (forward-word);; past 'is' or 'declare'.
+	      (if (< (point) start-pos)
+		  ;; found it.
+		  (setq done t)
 
-	      ;; test/ada_mode-nominal.adb function F2
-	      ;;
-	      ;; start-point is in a subprogram_declarator,
-	      ;; formal_part, aspect_clause, etc; code that contains a
-	      ;; declarative part. We want the next level up.
-	      (if (wisi-cache-containing cache)
-		  (setq cache (wisi-goto-containing cache))
+		;; else goto containing declarative-region-start
+		;;
+		;; test/ada_mode-nominal.adb function F2
+		;;
+		;; start-point is in a subprogram_declarator,
+		;; formal_part, aspect_clause, etc; code that contains a
+		;; declarative part. We want the next level up.
+		(if (wisi-cache-containing cache)
+		    (cl-ecase (wisi-cache-token cache)
+		      (DECLARE
+		       (setq cache (wisi-goto-containing cache)))
 
-		;; There is no next level up; stop here (probably in a context_clause).
-		(setq done t)))
+		      ((IS PRIVATE)
+		       (setq cache (wisi-goto-containing cache)) ;; start of current declaration
+		       (setq cache (wisi-goto-containing cache)))
+		      )
 
+		  ;; else there is no next level up; stop here
+		  ;; (probably in a context_clause).
+		  (setq done t))))
+
+	  ;; else keep searching.
 	  (cl-case (wisi-cache-class cache)
 	    (motion
 	     (setq cache (wisi-goto-containing cache)));; statement-start
@@ -125,21 +129,37 @@ Called by `syntax-propertize', which is called by font-lock in
 	     (cl-case (wisi-cache-nonterm cache)
 	       (generic_package_declaration
 		(setq cache (wisi-next-statement-cache cache)) ;; 'package'
-		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+		(setq cache (wisi-next-statement-cache cache)) ;; 'is'
+
+		(when (< start-pos (point))
+		  (wisi-goto-start cache)
+		  (setq cache (wisi-backward-cache))))
 
 	       (package_declaration
-		(setq cache (wisi-next-statement-cache cache))) ;; 'is'
+		(setq cache (wisi-next-statement-cache cache)) ;; 'is'
+
+		(when (< start-pos (point))
+		  (wisi-goto-start cache)
+		  (setq cache (wisi-backward-cache))))
 
 	       ((entry_body package_body protected_body subprogram_body task_body)
 		(while (not (eq 'IS (wisi-cache-token cache)))
-		  (setq cache (wisi-next-statement-cache cache))))
+		  (setq cache (wisi-next-statement-cache cache)))
+
+		(when (< start-pos (point))
+		  (wisi-goto-start cache)
+		  (setq cache (wisi-backward-cache))))
 
 	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache)))
 		(when (looking-at "\<new\>")
 		  (while (not (eq 'WITH (wisi-cache-token cache)))
-		    (setq cache (wisi-next-statement-cache cache)))))
+		    (setq cache (wisi-next-statement-cache cache))))
+
+		(when (< start-pos (point))
+		  (wisi-goto-start cache)
+		  (setq cache (wisi-backward-cache))))
 
 	       (t
 		(setq cache (wisi-goto-containing cache t)))
