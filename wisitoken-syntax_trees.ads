@@ -964,10 +964,9 @@ package WisiToken.Syntax_Trees is
      (Tree       : in Syntax_Trees.Tree;
       Root       : in Valid_Node_Access;
       Descendant : in Valid_Node_Access)
-     return Boolean
-   with Pre => Tree.Is_Nonterm (Root);
+     return Boolean;
 
-   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access;
+   function Subtree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access;
    --  Return top ancestor of Node.
 
    procedure Process_Tree
@@ -1114,6 +1113,17 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Next_Shared_Terminal'Result);
    --  Same as procedure Next_Shared_Terminal, but returns the updated ref.
+
+   function Prev_Shared_Terminal
+     (Tree   : in Syntax_Trees.Tree;
+      Node   : in Valid_Node_Access)
+     return Node_Access
+   with Pre => Tree.Label (Node) in Terminal_Label,
+     Post => Prev_Shared_Terminal'Result = Invalid_Node_Access or else
+             Tree.Label (Prev_Shared_Terminal'Result) in Terminal_Label;
+   --  Return the previous shared terminal before Node in subtree containing
+   --  Node; Invalid_Node_Access if Node is first shared terminal in
+   --  subtree.
 
    procedure Prev_Shared_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -1369,7 +1379,12 @@ package WisiToken.Syntax_Trees is
      return String;
    --  Includes Node.Node_Index, Node.ID
 
-   function Image (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return String;
+   function Image
+     (Tree           : in Syntax_Trees.Tree;
+      Ref            : in Stream_Node_Ref;
+      First_Terminal : in Boolean := False)
+     return String;
+   --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
 
    function Decimal_Image is new SAL.Generic_Decimal_Image (Node_Index);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Node_Index);
@@ -1640,7 +1655,7 @@ private
           or else
           (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Label = Tree.Streams (Ref.Stream.Cur).Label and
              (Ref.Node = Invalid_Node_Access or else
-                Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)))));
+                Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)))));
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element);
@@ -1817,7 +1832,7 @@ private
      return Boolean
    is (Tree.Contains (Ref.Stream, Ref.Element) and
          (Ref.Node = Invalid_Node_Access or else
-            Tree.Sub_Tree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)));
+            Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 

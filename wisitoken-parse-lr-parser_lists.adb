@@ -89,9 +89,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       begin
          if Tree.Has_Input (Parser_State.Stream) then
             Result := Tree.First_Input (Parser_State.Stream);
-            if Parser_State.Inc_Parse_Stream_Token then
-               Tree.Stream_Next (Result);
-            end if;
 
             if Result /= Invalid_Stream_Node_Ref then
                Result := Tree.First_Shared_Terminal (Result);
@@ -116,14 +113,14 @@ package body WisiToken.Parse.LR.Parser_Lists is
    procedure Next_Token
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in out Syntax_Trees.Tree;
-      Set_Current  : in     Boolean)
-   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next token
+      Set_Current  : in     Boolean;
+      Delete       : in     Boolean)
    is begin
       if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
          Parser_State.Shared_Token := Tree.Stream_First (Tree.Shared_Stream);
 
       elsif Tree.Has_Input (Parser_State.Stream) then
-         if Parser_State.Inc_Parse_Stream_Token then
+         if Delete then
             declare
                Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
             begin
@@ -132,15 +129,14 @@ package body WisiToken.Parse.LR.Parser_Lists is
          end if;
 
       else
-         if Parser_State.Inc_Shared_Stream_Token then
+         if Parser_State.Inc_Shared_Stream_Token or Delete then
             Tree.Stream_Next (Parser_State.Shared_Token);
          end if;
       end if;
 
       if Set_Current then
          if Tree.Has_Input (Parser_State.Stream) then
-            Parser_State.Current_Token           := Tree.First_Input (Parser_State.Stream);
-            Parser_State.Inc_Parse_Stream_Token  := True;
+            Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
 
          else
             Parser_State.Current_Token           := Parser_State.Shared_Token;
@@ -394,7 +390,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
                then Item.Current_Token
                else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
             Inc_Shared_Stream_Token => Item.Inc_Shared_Stream_Token,
-            Inc_Parse_Stream_Token  => Item.Inc_Parse_Stream_Token,
             Recover                 =>
               (Enqueue_Count        => Item.Recover.Enqueue_Count,
                Config_Full_Count    => Item.Recover.Config_Full_Count,

@@ -566,7 +566,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
 
                                  Parser_State.Inc_Shared_Stream_Token := False;
-                                 Parser_State.Inc_Parse_Stream_Token  := True;
                               end if;
 
                            when Insert       =>
@@ -593,7 +592,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                       (Parser_State, Tree).Node);
 
                                  Parser_State.Inc_Shared_Stream_Token := False;
-                                 Parser_State.Inc_Parse_Stream_Token  := False;
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
@@ -635,7 +633,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last_Index)
                                    .Del_Node := Parser_State.Shared_Token.Node;
 
-                                 Next_Token (Parser_State, Tree, Set_Current => True);
+                                 Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
 
                               else
                                  if Parser_State.Recover_Insert_Delete_Current = No_Index then
@@ -650,13 +648,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:", Task_ID => False);
                         Trace.Put_Line ("   stack " & Parser_Lists.Image (Stack, Tree));
-                        Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
                         Trace.Put_Line ("   Current_Token " & Tree.Image (Parser_State.Current_Token));
+                        Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
+                        if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
+                           Trace.Put_Line
+                             ("   stream input:" & Shared_Parser.Tree.Image
+                                (Parser_State.Stream, Stack => False, Input => True));
+                        end if;
                         Trace.Put_Line ("   recover_insert_delete " & Image
                                (Parser_State.Recover_Insert_Delete, Tree,
                                 First => Parser_State.Recover_Insert_Delete_Current));
                         Trace.Put_Line ("   inc_shared_stream_token " & Parser_State.Inc_Shared_Stream_Token'Image);
-                        Trace.Put_Line ("   inc_parse_stream_token " & Parser_State.Inc_Parse_Stream_Token'Image);
                         Trace.Put_Line ("   resume_token_goal" & Parser_State.Resume_Token_Goal'Image);
                      end if;
                   end;
@@ -1008,8 +1010,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       function Check_Insert_Delete (Op_Index : in Syntax_Trees.Node_Index) return Boolean
       is begin
          return Fast_Forward_Seen and
-           (Target_Node_Index = Syntax_Trees.Invalid_Node_Index or else
-              Target_Node_Index > Op_Index);
+           (Target_Node_Index = Syntax_Trees.Invalid_Node_Index or
+              Target_Node_Index >= Op_Index);
       end Check_Insert_Delete;
 
    begin

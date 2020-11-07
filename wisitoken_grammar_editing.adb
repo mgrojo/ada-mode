@@ -2812,17 +2812,17 @@ package body WisiToken_Grammar_Editing is
       procedure Check_Original_EBNF
       is
          use Ada.Text_IO;
-         Sub_Tree_Root : Node_Access;
+         Subtree_Root : Node_Access;
       begin
          for N of Data.EBNF_Nodes loop
-            Sub_Tree_Root := Tree.Sub_Tree_Root (N);
-            if Sub_Tree_Root /= Tree.Root then
+            Subtree_Root := Tree.Subtree_Root (N);
+            if Subtree_Root /= Tree.Root then
                Put_Line
                  (Current_Error,
                   Error_Message
                     (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                      Tree.Image (N, Node_Numbers => True)));
-               Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
+               Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
          end loop;
@@ -2831,17 +2831,17 @@ package body WisiToken_Grammar_Editing is
       procedure Check_Copied_EBNF
       is
          use Ada.Text_IO;
-         Sub_Tree_Root : Node_Access;
+         Subtree_Root : Node_Access;
       begin
          for N of Copied_EBNF_Nodes loop
-            Sub_Tree_Root := Tree.Sub_Tree_Root (N);
-            if Sub_Tree_Root /= Tree.Root then
+            Subtree_Root := Tree.Subtree_Root (N);
+            if Subtree_Root /= Tree.Root then
                Put_Line
                  (Current_Error,
                   Error_Message
                     (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
                      Tree.Image (N, Node_Numbers      => True)));
-               Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Sub_Tree_Root)));
+               Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
          end loop;

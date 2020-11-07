@@ -20,6 +20,7 @@ pragma License (Modified_GPL);
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
+   use all type WisiToken.Syntax_Trees.Node_Label;
 
    function Reduce_Stack
      (Super                    : not null access Base.Supervisor;
@@ -85,6 +86,33 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Bounded_Streams.List)
      return Syntax_Trees.Node_Access;
+
+   procedure Next_Shared_Terminal
+     (Tree         : in     Syntax_Trees.Tree;
+      Stream       : in     Bounded_Streams.List;
+      Element_Node : in out Bounded_Streams.Cursor;
+      Node         : in out Syntax_Trees.Node_Access);
+
+   procedure Prev_Shared_Terminal
+     (Tree         : in     Syntax_Trees.Tree;
+      Stream       : in     Bounded_Streams.List;
+      Element_Node : in out Bounded_Streams.Cursor;
+      Node         : in out Syntax_Trees.Node_Access);
+
+   procedure Breakdown
+     (Tree   : in     Syntax_Trees.Tree;
+      Stream : in out Bounded_Streams.List)
+   with Pre => Stream.Length > 0 and then
+               (declare Node : constant Syntax_Trees.Node_Access := Stream (Stream.First);
+                begin Node /= Syntax_Trees.Invalid_Node_Access and then
+                   (Tree.Label (Node) = Syntax_Trees.Nonterm and
+                      Tree.First_Terminal (Node) /= Syntax_Trees.Invalid_Node_Access)),
+     Post =>
+       (declare Node : constant Syntax_Trees.Node_Access := Stream (Stream.First);
+        begin Node /= Syntax_Trees.Invalid_Node_Access and then
+           (Tree.Label (Node) in Syntax_Trees.Terminal_Label));
+   --  Bring the first terminal in Stream (which cannot be empty) to
+   --  Stream.
 
    procedure Do_Delete
      (Tree   : in     Syntax_Trees.Tree;

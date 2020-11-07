@@ -35,8 +35,9 @@ incremental parse
     run all tests
         test/test_incremental.adb : ?
         t_mck: some failures; nothing should have changed
-
-            String_Quote_0 fails assert; --  FIXME: not updated to Config.Input_Stream
+            String_Quote_0, _1, _3 pass
+            string_quote_2. 5, 6 enqueue_low mismatch
+            _4 error in resume
 
             mck_re-parse need current_shared_matches_ops?
 
@@ -46,14 +47,12 @@ incremental parse
 
     ada_lite.wy require statement in sequence_of_statements
 
-    either leave inserted virtual in Current_Token, or delete Current_Token, copy shared_Stream to parse_stream input
-
     test Parser.line_begin_token
 
     more tests;
         parse_incremental with current_token = empty nonterm
         left_breakdown with first_terminal = virtual
-        Mckensie current_Terminal skip virtual terminals in input and shared
+        Mckenzie current_Terminal skip virtual terminals in input and shared
             breakdown virtual nonterms if first is virtual
 
     error recover delete may need left_breakdown (shared_stream)
@@ -120,6 +119,9 @@ incremental parse
     inserted text before and after, may want to allow error recover to
     push_back over Virtual tokens
 
+
+Mckenzie parallel gain
+    eliminate super access that does not require lock
 
 recover supervisor should provide Put_Trace_line
     to control access to Trace

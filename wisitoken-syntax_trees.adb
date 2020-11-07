@@ -1534,13 +1534,21 @@ package body WisiToken.Syntax_Trees is
       return -Result;
    end Image;
 
-   function Image (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return String
+   function Image
+     (Tree           : in Syntax_Trees.Tree;
+      Ref            : in Stream_Node_Ref;
+      First_Terminal : in Boolean := False)
+     return String
    is begin
       return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
         Image (Tree, Ref.Element, Node_Numbers => True) &
-        (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index
+        (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index and
+           not First_Terminal
          then ""
-         else ", " & Image (Tree, Ref.Node, Terminal_Node_Numbers => True)) & ")";
+         else ", " & Image
+           (Tree,
+            (if First_Terminal then Tree.First_Terminal (Ref.Node) else Ref.Node),
+            Terminal_Node_Numbers => True)) & ")";
    end Image;
 
    function Insert_After
@@ -2169,6 +2177,18 @@ package body WisiToken.Syntax_Trees is
       return Prev_Child (Node, Node.Parent);
    end Prev_Terminal;
 
+   function Prev_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   is
+      Result : Node_Access := Node;
+   begin
+      loop
+         Result := Prev_Terminal (Tree, Result);
+         if Result = Invalid_Node_Access or else Result.Node_Index > 0 then
+            return Result;
+         end if;
+      end loop;
+   end Prev_Shared_Terminal;
+
    procedure Prev_Shared_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Terminal_Ref)
@@ -2183,7 +2203,7 @@ package body WisiToken.Syntax_Trees is
       loop
          Ref.Node := Prev_Terminal (Tree, Ref.Node);
          if Ref.Node = Invalid_Node_Access then
-            Ref.Element := (Cur => Stream_Element_Lists.Next (Ref.Element.Cur));
+            Ref.Element := (Cur => Stream_Element_Lists.Previous (Ref.Element.Cur));
             if Ref.Element = Invalid_Stream_Index then
                Ref := Invalid_Stream_Node_Ref;
                return;
@@ -2786,7 +2806,7 @@ package body WisiToken.Syntax_Trees is
       return -Result;
    end Subtree_Image;
 
-   function Sub_Tree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access
+   function Subtree_Root (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access
    is
       N : Valid_Node_Access := Node;
    begin
@@ -2795,7 +2815,7 @@ package body WisiToken.Syntax_Trees is
          N := N.Parent;
       end loop;
       return N;
-   end Sub_Tree_Root;
+   end Subtree_Root;
 
    function To_Node_Access (Item : in Valid_Node_Access_Array) return Node_Access_Array
    is (for I in Item'Range => Item (I));

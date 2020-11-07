@@ -358,14 +358,14 @@ package body WisiToken.Parse.LR.Parser is
                  (Tree.Label (Next_Shared_Terminal.Node) in Terminal_Label,
                   "FIXME: Do_Deletes needs Left_Breakdown.");
 
-               Op.Del_Node := Parser_State.Shared_Token.Node;
+               Op.Del_Node := Next_Shared_Terminal.Node;
 
                Ins_Del_Cur := Ins_Del_Cur + 1;
                if Ins_Del_Cur > Last_Index (Ins_Del)  then
                   Ins_Del_Cur := No_Index;
                end if;
 
-               Parser_Lists.Next_Token (Parser_State, Shared_Parser.Tree, Set_Current => False);
+               Parser_Lists.Next_Token (Parser_State, Shared_Parser.Tree, Set_Current => False, Delete => True);
 
                if Trace_Parse > Extra  then
                   Shared_Parser.Trace.Put_Line
@@ -408,8 +408,6 @@ package body WisiToken.Parse.LR.Parser is
       for Parser_State of Shared_Parser.Parsers loop
          case Parser_State.Verb is
          when Pause | Shift =>
-            Do_Deletes (Shared_Parser, Parser_State);
-
             Shift_Count := Shift_Count + 1;
             Parser_State.Set_Verb (Shift);
 

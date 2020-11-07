@@ -84,6 +84,8 @@ begin
                --  Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref,
                --  we are at the start of the input text.
 
+               Do_Deletes (Shared_Parser, Parser_State);
+
                declare
                   use Recover_Op_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
@@ -139,18 +141,18 @@ begin
                      null;
 
                   else
-                     Parser_Lists.Next_Token (Parser_State, Tree, Set_Current => True);
+                     Parser_Lists.Next_Token (Parser_State, Tree, Set_Current => True, Delete => False);
                   end if;
 
                   if Trace_Parse > Extra then
                      Trace.Put_Line
                        (" " & Tree.Trimmed_Image (Parser_State.Stream) &
-                          ": current_token " & Tree.Image (Parser_State.Current_Token));
+                          ": current_token " & Tree.Image (Parser_State.Current_Token, First_Terminal => True));
                      Trace.Put_Line
                        ("    shared_token " & Tree.Image (Parser_State.Shared_Token));
                      if Tree.Has_Input (Parser_State.Stream) then
                         Trace.Put_Line
-                          ("    stream input:" & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
+                          ("    stream input " & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
                      end if;
                      if Parser_State.Recover_Insert_Delete_Current /= No_Index then
                         Trace.Put_Line
@@ -356,15 +358,18 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  if Trace_Parse > Outline and Trace_McKenzie <= Detail then
+                  if Trace_Parse > Outline and Trace_McKenzie <= Extra then
                      Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": Current_Token " &
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack " &
+                          Shared_Parser.Tree.Image (Parser_State.Stream, Stack => True, Input => False));
+                     Trace.Put_Line
+                       ("    Current_Token: " &
                           Shared_Parser.Tree.Image (Parser_State.Current_Token));
                      Trace.Put_Line
-                       ("    Shared_Token " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
+                       ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
                      if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
                         Trace.Put_Line
-                          ("    stream input:" & Shared_Parser.Tree.Image
+                          ("    stream input: " & Shared_Parser.Tree.Image
                              (Parser_State.Stream, Stack => False, Input => True));
                      end if;
                      Trace.Put_Line
@@ -378,8 +383,7 @@ begin
                      if Trace_Parse > Detail then
                         Shared_Parser.Trace.Put_Line
                           ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
-                             ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image &
-                             ", inc_parse_stream_token: " & Parser_State.Inc_Parse_Stream_Token'Image);
+                             ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image);
                      end if;
                   end if;
 
@@ -454,8 +458,7 @@ begin
 
             if Trace_Parse > Extra then
                Trace.Put_Line
-                 ("current_verb: " & Image (Current_Verb) &
-                    ", " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
+                 (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
                     ".verb: " & Image (Current_Parser.Verb));
             end if;
 

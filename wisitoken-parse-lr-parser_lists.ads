@@ -73,15 +73,8 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  next input. This is set False in error recover when it sets
       --  Current_Token, True in main parser when Current_Token is set to
       --  Shared_Token. This reflects the fact that the main parser should
-      --  not have set Current_Token as it did.
-
-      Inc_Parse_Stream_Token : Boolean := True;
-      --  Whether Parse should increment (for Peek) or delete (for
-      --  Next_Token) the parse stream input before using it as the next
-      --  input. This is set False in recover when it sets Current_Token,
-      --  True in main parser when when Current_Token is set to the parse
-      --  stream input. This reflects the fact that the main parser should
-      --  not have set Current_Token as it did.
+      --  not have set Current_Token as it did, and thus should not have
+      --  incremented Shared_Token.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
@@ -131,10 +124,14 @@ package WisiToken.Parse.LR.Parser_Lists is
    procedure Next_Token
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in out Syntax_Trees.Tree;
-      Set_Current  : in     Boolean);
+      Set_Current  : in     Boolean;
+      Delete       : in     Boolean);
    --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next
    --  token. If Set_Current, also update Current_Token,
    --  Inc_Shared_Stream_Token, Inc_Parse_Stream_Token.
+   --
+   --  If Delete, implements the Delete recover operation. Otherwise
+   --  implement the main parser next token operation.
 
    type List is tagged private
    with

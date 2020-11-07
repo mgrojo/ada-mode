@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
-   use all type WisiToken.Syntax_Trees.Node_Label;
 
    procedure Compute_Nonterm
      (Tree                     : in     Syntax_Trees.Tree;
@@ -101,17 +100,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    procedure Breakdown
      (Tree   : in     Syntax_Trees.Tree;
       Stream : in out Bounded_Streams.List)
-   with Pre => Stream.Length > 0 and then
-     (declare Node : constant Syntax_Trees.Node_Access := Stream (Stream.First);
-      begin Node /= Syntax_Trees.Invalid_Node_Access and then
-         (Tree.Label (Node) = Syntax_Trees.Nonterm and
-            Tree.First_Terminal (Node) /= Syntax_Trees.Invalid_Node_Access)),
-     Post =>
-       (declare Node : constant Syntax_Trees.Node_Access := Stream (Stream.First);
-        begin Node /= Syntax_Trees.Invalid_Node_Access and then
-           (Tree.Label (Node) in Syntax_Trees.Terminal_Label))
-   --  Bring the first terminal in Ref.Element (which cannot be empty) to
-   --  the parse stream.
    is
       use Bounded_Streams;
       use Syntax_Trees;
@@ -120,7 +108,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  terminals, to allow insert before, delete.
 
       Cur       : Cursor            := Stream.First;
-      To_Delete : Cursor            := Cur;
       Node      : Valid_Node_Access := Stream (Cur);
       Next_Node : Node_Access;
    begin
@@ -154,7 +141,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                Stream.Insert (Element => Node, Before => Cur);
 
-               Stream.Delete (To_Delete);
+               declare
+                  To_Delete : Cursor := Cur;
+               begin
+                  Stream.Delete (To_Delete);
+               end;
                exit;
             else
                --  Node is an empty nonterm. Note that Next_Node cannot be null; the
@@ -464,6 +455,46 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end loop Outer;
       return Node;
    end First_Shared_Terminal;
+
+   procedure Next_Shared_Terminal
+     (Tree         : in     Syntax_Trees.Tree;
+      Stream       : in     Bounded_Streams.List;
+      Element_Node : in out Bounded_Streams.Cursor;
+      Node         : in out Syntax_Trees.Node_Access)
+   is
+      use Bounded_Streams;
+   begin
+      Node := Tree.Next_Shared_Terminal (Node);
+      loop
+         exit when Node /= Syntax_Trees.Invalid_Node_Access;
+         Element_Node := Next (Stream, Element_Node);
+         if Element_Node = No_Element then
+            Node := Syntax_Trees.Invalid_Node_Access;
+            exit;
+         end if;
+         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node));
+      end loop;
+   end Next_Shared_Terminal;
+
+   procedure Prev_Shared_Terminal
+     (Tree         : in     Syntax_Trees.Tree;
+      Stream       : in     Bounded_Streams.List;
+      Element_Node : in out Bounded_Streams.Cursor;
+      Node         : in out Syntax_Trees.Node_Access)
+   is
+      use Bounded_Streams;
+   begin
+      Node := Tree.Prev_Shared_Terminal (Node);
+      loop
+         exit when Node /= Syntax_Trees.Invalid_Node_Access;
+         Element_Node := Previous (Stream, Element_Node);
+         if Element_Node = No_Element then
+            Node := Syntax_Trees.Invalid_Node_Access;
+            exit;
+         end if;
+         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node));
+      end loop;
+   end Prev_Shared_Terminal;
 
    procedure Do_Delete
      (Tree   : in     Syntax_Trees.Tree;
