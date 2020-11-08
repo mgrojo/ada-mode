@@ -700,7 +700,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          First_In_Current : Syntax_Trees.Node_Access;
       begin
-         loop --  Skip empty nonterms
+         loop --  Skip empty nonterms, handle Breakdown
             if Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor) then
                Action_Cur := Action_For (Table, Current_State, Syntax_Trees.ID (Current_Token));
                Action     := Action_Cur.Item;
@@ -727,10 +727,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                         Current_Token := Get_Current_Token
                           (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
                      else
+                        pragma Assert
+                          (Config.Input_Stream.Length > 0,
+                           "FIXME: mckenzie_recover.parse handle nonterm in Shared_Stream");
+
                         Breakdown (Super.Tree.all, Config.Input_Stream);
-                        Action_Cur := Action_For (Table, Current_State, Super.Tree.ID (First_In_Current));
-                        Action     := Action_Cur.Item;
-                        return;
+
+                        Current_Token := Get_Current_Token
+                          (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
                      end if;
                   end if;
                end;

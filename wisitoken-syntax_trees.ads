@@ -568,8 +568,8 @@ package WisiToken.Syntax_Trees is
 
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Terminal_Ref)
-   with Pre => Valid_Terminal (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                Tree.First_Terminal (Tree.Get_Node (Ref.Stream, Ref.Element)) /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Valid_Single_Terminal (Tree, Ref);

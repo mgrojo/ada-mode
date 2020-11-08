@@ -1609,7 +1609,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Adj_First : constant Node_Index := (if First = Invalid_Node_Index then Last else First);
          Adj_Last  : constant Node_Index := (if Last = Invalid_Node_Index then First else Last);
 
-         Shared_Stream_First : Node_Index  := Adj_First;
+         Last_Deleted : Node_Index;
       begin
          if Adj_Last = Invalid_Node_Index or Adj_First = Invalid_Node_Index then
             raise Bad_Config;
@@ -1618,19 +1618,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
 
          if Length (Config.Input_Stream) > 0 then
-            Delete_Pushed_Back
-              (Label, Config, Target_Node_Index => Last + 1, Max_Node_Index => Shared_Stream_First);
+            Delete_Pushed_Back (Label, Config, Target_Node_Index => Last + 1, Max_Node_Index => Last_Deleted);
          end if;
 
-         if Shared_Stream_First = Adj_Last then
+         if Last_Deleted = Adj_Last then
             --  First .. Last deleted from input_stream.
             null;
          else
-            if Shared_Stream_First /= Adj_First then
-               Shared_Stream_First := @ + 1;
-            end if;
-
-            Delete_Shared_Stream (Label, Config, Shared_Stream_First, Last);
+            Delete_Shared_Stream
+              (Label, Config,
+               First =>
+                 (if Last_Deleted = Invalid_Node_Index
+                  then Adj_First
+                  else Last_Deleted + 1),
+               Last => Last);
          end if;
 
          Config.Error_Token  := Syntax_Trees.Invalid_Recover_Token;

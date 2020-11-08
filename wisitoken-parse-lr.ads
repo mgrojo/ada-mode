@@ -508,7 +508,7 @@ package WisiToken.Parse.LR is
          (case Item.Op is
           when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
           when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
-               Ada.Containers.Count_Type'Image (Item.Token_Count),
+            Item.Token_Count'Image & ", " & Syntax_Trees.Trimmed_Image (Item.UR_Token_Index),
           when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
           when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
           when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
@@ -640,7 +640,7 @@ package WisiToken.Parse.LR is
       --  parse, may be a nonterm or virtual terminal (from error correction
       --  in the previous parse).
 
-      Input_Stream : Bounded_Streams.List (10);
+      Input_Stream : Bounded_Streams.List (20);
       --  Holds tokens copied from Shared_Stream when Push_Back operations
       --  are performed, or added by Insert. Delete may be applied to these,
       --  which requires that nonterms be broken down (similar to
@@ -648,7 +648,10 @@ package WisiToken.Parse.LR is
       --
       --  Current token is root of Input_Stream.First.
       --
-      --  10 is probably too small FIXME: justify size
+      --  To justify the size; in a typical recover we might need to push
+      --  back a few terminals, and one nonterm that is then broken down
+      --  (max of 15 tokens for most languages). For
+      --  test_mckenzie_recover.adb, 10 is too small.
 
       Insert_Delete : aliased Config_Op_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only

@@ -30,7 +30,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    use all type System.Multiprocessors.CPU_Range;
 
    function Push_Back_Undo_Reduce_Valid
-     (Target_Node_Index : in Syntax_Trees.Node_Index;
+     (Target_Op         : in Config_Op_Label;
+      Target_Node_Index : in Syntax_Trees.Node_Index;
       Ops               : in Config_Op_Arrays.Vector;
       Last_Op_Index     : in Positive_Index_Type)
      return Boolean;
@@ -202,12 +203,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Config_Op_Arrays.Append
                  (Config.Ops,
                   (Undo_Reduce, Syntax_Trees.ID (Config.Error_Token), Config.Check_Token_Count,
-                   Shared_Parser.Tree.Get_Node_Index (Shared_Parser.Tree.First_Terminal (Config.Stack.Peek.Token))));
+                   Shared_Parser.Tree.Get_Node_Index (First_Terminal (Shared_Parser.Tree, Config.Error_Token))));
 
                if Trace_McKenzie > Detail then
-                  Put ("undo_reduce " & Image
-                         (Config.Error_Token.ID, Shared_Parser.Descriptor.all), Trace, Shared_Parser.Tree,
-                          Parser_State.Stream, Config, Task_ID => False);
+                  Put ("undo_reduce " & Image (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Descriptor.all),
+                       Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
                end if;
             else
                --  Ignore error
@@ -512,7 +512,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               if not
                                 (I = First_Index (Result.Ops) or else
                                    Push_Back_Undo_Reduce_Valid
-                                     (Target_Node_Index =>
+                                     (Undo_Reduce,
+                                      Target_Node_Index =>
                                         (if Stack_Matches_Ops
                                          then Tree.Get_Node_Index
                                            (Tree.First_Shared_Terminal
@@ -547,7 +548,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               if not
                                 (I = First_Index (Result.Ops) or else
                                    Push_Back_Undo_Reduce_Valid
-                                     (Target_Node_Index =>
+                                     (Push_Back,
+                                      Target_Node_Index =>
                                         (if Stack_Matches_Ops
                                          then Tree.Get_Node_Index
                                            (Tree.First_Shared_Terminal
@@ -973,7 +975,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Undo_Reduce_Op_Order_Valid;
 
    function Push_Back_Undo_Reduce_Valid
-     (Target_Node_Index : in Syntax_Trees.Node_Index;
+     (Target_Op         : in Config_Op_Label;
+      Target_Node_Index : in Syntax_Trees.Node_Index;
       Ops               : in Config_Op_Arrays.Vector;
       Last_Op_Index     : in Positive_Index_Type)
      return Boolean
@@ -982,36 +985,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Fast_Forward_Seen : Boolean := False;
 
-      function Check_UR_PB (Op_Index : in Syntax_Trees.Node_Index) return Boolean
-      is begin
-         if Target_Node_Index = Syntax_Trees.Invalid_Node_Index then
-            --  Target token is empty; it does not cross anything.
-            return True;
-         end if;
-
-         --  Between Fast_Forwards, successive non-empty Push_Back/Undo_Reduce
-         --  have decreasing targets; see test_mckenzie_recover.adb
-         --  Missing_Name_0.
-         --
-         --  If the target op crosses a Fast_Forward, it must not cross a
-         --  preceding op; Target_Node_Index must be >= Op_Index. See
-         --  ada-mode-recover_27.adb.
-         return
-           (if Fast_Forward_Seen
-            then Target_Node_Index > Op_Index
-            --  Target push_back/undo_reduce does not cross the previous
-            --  push_back/undo_reduce.
-
-            else Target_Node_Index <= Op_Index
-            --  Decreasing order.
-           );
-      end Check_UR_PB;
-
       function Check_Insert_Delete (Op_Index : in Syntax_Trees.Node_Index) return Boolean
       is begin
          return Fast_Forward_Seen and
            (Target_Node_Index = Syntax_Trees.Invalid_Node_Index or
-              Target_Node_Index >= Op_Index);
+              Target_Node_Index > Op_Index);
       end Check_Insert_Delete;
 
    begin
@@ -1041,7 +1019,33 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --  Undo_Reduced token was empty; need to see the next one.
                   null;
                else
-                  return Check_UR_PB (Op.UR_Token_Index);
+                  if Target_Node_Index = Syntax_Trees.Invalid_Node_Index then
+                     --  Target token is empty; it does not cross anything.
+                     return True;
+                  end if;
+
+                  case Target_Op is
+                  when Undo_Reduce =>
+                     --  No point in checking Fast_Forward_Seen here; we don't have the
+                     --  last terminal index of the push_back. So this allows Undo_Reduce
+                     --  of the entire fast_forward.
+                     --
+                     --  Undo_Reduce after Undo_Reduce; must undo only part of the original
+                     --  nonterm.
+                     return Target_Node_Index > Op.UR_Token_Index;
+
+                  when Push_Back =>
+                     --  No point in checking Fast_Forward_Seen here; we don't have the
+                     --  last terminal index of Op. So this allows Push_Back of the
+                     --  entire fast_forward.
+                     --
+                     --  Push_Back after Undo_Reduce; must push back only part of the
+                     --  unreduced nonterm.
+                     return Target_Node_Index > Op.UR_Token_Index;
+
+                  when others =>
+                     raise SAL.Programmer_Error;
+                  end case;
                end if;
 
             when Push_Back =>
@@ -1051,7 +1055,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --  here in case we change that.
                   null;
                else
-                  return Check_UR_PB (Op.PB_Token_Index);
+                  if Target_Node_Index = Syntax_Trees.Invalid_Node_Index then
+                     --  Target token is empty; it does not cross anything.
+                     return True;
+                  end if;
+
+                  case Target_Op is
+                  when Undo_Reduce =>
+                     if Fast_Forward_Seen then
+                        --  Unreducing a token somewhere in the push_back.
+                        return Target_Node_Index >= Op.PB_Token_Index;
+                     else
+                        --  Unreducing a token before the push_back.
+                        return Target_Node_Index < Op.PB_Token_Index;
+                     end if;
+
+                  when Push_Back =>
+                     --  Between Fast_Forwards, successive non-empty Push_Back
+                     --  have decreasing targets; see test_mckenzie_recover.adb
+                     --  Missing_Name_0.
+                     --
+                     --  If the target push_back crosses a Fast_Forward, it must not cross
+                     --  a preceding op; Target_Node_Index must be >= Op.PB_Token_Index. See
+                     --  ada-mode-recover_27.adb.
+                     return
+                       (if Fast_Forward_Seen
+                        then Target_Node_Index > Op.PB_Token_Index
+                        --  Target push_back/undo_reduce does not cross the previous
+                        --  push_back/undo_reduce.
+
+                        else Target_Node_Index <= Op.PB_Token_Index
+                        --  Decreasing order.
+                       );
+                  when others =>
+                     raise SAL.Programmer_Error;
+                  end case;
                end if;
 
             when Insert =>
@@ -1093,7 +1131,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                ) and
                (Config_Op_Arrays.Length (Config.Ops) = 0 or else
                   Push_Back_Undo_Reduce_Valid
-                    (Tree.Get_Node_Index (First_Terminal),
+                    (Push_Back,
+                     Tree.Get_Node_Index (First_Terminal),
                      Config.Ops,
                      Config_Op_Arrays.Last_Index (Config.Ops)))));
 
@@ -1264,7 +1303,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                  Undo_Reduce_Op_Order_Valid (Config.Ops))
               or else
               (Push_Back_Undo_Reduce_Valid
-                 (Tree.Get_Node_Index (First_Terminal), Config.Ops, Last_Index (Config.Ops)));
+                 (Undo_Reduce, Tree.Get_Node_Index (First_Terminal), Config.Ops, Last_Index (Config.Ops)));
          end if;
       end;
    end Undo_Reduce_Valid;

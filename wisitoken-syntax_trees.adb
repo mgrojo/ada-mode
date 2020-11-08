@@ -69,7 +69,8 @@ package body WisiToken.Syntax_Trees is
      (Parse_Stream : in out Syntax_Trees.Parse_Stream;
       Stream_ID    : in     Syntax_Trees.Stream_ID;
       Node         : in     Valid_Node_Access)
-     return Rooted_Ref;
+     return Rooted_Ref
+   with Pre => Node.Parent = Invalid_Node_Access;
    --  Add Node to Parse_Stream at Stack_Top, return reference to it. If
    --  Node is originally from Shared_Stream, it has been copied and
    --  State set.
@@ -1744,7 +1745,7 @@ package body WisiToken.Syntax_Trees is
 
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Terminal_Ref)
+      Ref  : in out Stream_Node_Ref)
    is
       --  [Wagner Graham 1998] doesn't modify the tree structure for
       --  Left_Breakdown; it just moves the Current_Token pointer around.
@@ -2841,8 +2842,8 @@ package body WisiToken.Syntax_Trees is
       Nonterm : constant Node_Access := Pop (Parse_Stream);
    begin
       for Child of Nonterm.Children loop
-         Push (Parse_Stream, Stream, Child);
          Child.Parent := Invalid_Node_Access;
+         Push (Parse_Stream, Stream, Child);
       end loop;
    end Undo_Reduce;
 
