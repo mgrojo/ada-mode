@@ -221,7 +221,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Config_Op_Arrays;
       use Config_Op_Array_Refs;
       use Syntax_Trees;
-      use all type Bounded_Streams.Cursor;
 
       --  We can't use Parse.Get_Current_Token, Parse.Next_Token, because we
       --  are not allowed to modify Config. In particular, we cannot apply
@@ -234,91 +233,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  not have to here, but rather than rely on that and special case it
       --  here, we handle all three in the same way.
 
-      Tokens_Last           : Integer            := 0;
-      Current_Insert_Delete : SAL.Base_Peek_Type := Config.Current_Insert_Delete;
-
-      Current_Input_Stream_Element : Bounded_Streams.Cursor := Config.Input_Stream.First;
-
-      function First_Input_Stream_Terminal return Node_Access
-      is
-         Result : Node_Access := Invalid_Node_Access;
-      begin
-         if Current_Input_Stream_Element = Bounded_Streams.No_Element then
-            return Result;
-         end if;
-
-         Result := Tree.First_Terminal (Config.Input_Stream (Current_Input_Stream_Element));
-
-         if Result = Invalid_Node_Access then
-            --  Current_Input_Stream_Element is an empty nonterm
-            Config.Input_Stream.Next (Current_Input_Stream_Element);
-
-            if Bounded_Streams.Has_Element (Current_Input_Stream_Element) then
-               Result := Tree.First_Terminal (Config.Input_Stream (Current_Input_Stream_Element));
-            end if;
-         end if;
-
-         return Result;
-      end First_Input_Stream_Terminal;
-
-      Current_Input_Stream_Node : Node_Access := First_Input_Stream_Terminal;
-
-      Current_Shared_Token : Terminal_Ref := Tree.First_Terminal
-        (Tree.Shared_Stream, Config.Current_Shared_Token.Element);
-      Inc_Shared_Token     : Boolean      := True;
-
-      procedure Next_Input_Stream_Terminal
-      is begin
-         Current_Input_Stream_Node := Tree.Next_Terminal (Current_Input_Stream_Node);
-
-         loop
-            exit when Current_Input_Stream_Node /= Invalid_Node_Access;
-
-            Config.Input_Stream.Next (Current_Input_Stream_Element);
-
-            exit when not Bounded_Streams.Has_Element (Current_Input_Stream_Element);
-
-            Current_Input_Stream_Node := Tree.First_Terminal (Config.Input_Stream (Current_Input_Stream_Element));
-            --  Invalid_Node_Access when Current_Input_Stream_Element is an empty nonterm
-         end loop;
-      end Next_Input_Stream_Terminal;
-
-      procedure Next_Terminal
-      is begin
-         if Current_Input_Stream_Node = Invalid_Node_Access then
-            if Inc_Shared_Token then
-               Tree.Next_Shared_Terminal (Current_Shared_Token);
-            end if;
-            Inc_Shared_Token := True;
-
-         else
-            Next_Input_Stream_Terminal;
-         end if;
-      end Next_Terminal;
-
+      Tokens_Last                  : Integer := 0;
+      Current_Insert_Delete        : SAL.Base_Peek_Type := Config.Current_Insert_Delete;
+      Current_Input_Stream_Element : Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    : Node_Access;
+      Current_Shared_Token         : Terminal_Ref;
+      Inc_Shared_Token : Boolean                    := True;
    begin
+      Peek_Shared_Start (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+
       loop -- three tokens, Op = Delete
          declare
-            Next_Node : constant Valid_Node_Access :=
-              (if Current_Input_Stream_Node /= Invalid_Node_Access
-               then Current_Input_Stream_Node
-               else Current_Shared_Token.Node);
+            Next_Node        : constant Valid_Node_Access := Peek_Shared_Terminal
+              (Current_Input_Stream_Node, Current_Shared_Token);
          begin
             if Current_Insert_Delete /= No_Insert_Delete and then
               Token_Index (Constant_Ref (Config.Insert_Delete, Current_Insert_Delete)) =
               Tree.Get_Node_Index (Next_Node)
             then
+               Inc_Shared_Token     := False;
                declare
                   Op : Insert_Delete_Op renames Constant_Ref (Config.Insert_Delete, Current_Insert_Delete);
                begin
                   case Insert_Delete_Op_Label (Op.Op) is
                   when Insert =>
-                     Inc_Shared_Token     := False;
                      Tokens_Last          := @ + 1;
                      Tokens (Tokens_Last) := ID (Op);
 
                   when Delete =>
-                     Next_Terminal;
+                     Peek_Next_Shared_Terminal
+                       (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
                   end case;
 
                   Current_Insert_Delete := @ + 1;
@@ -328,8 +272,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   end if;
                end;
             else
-               Inc_Shared_Token := Config.Input_Stream.First = Bounded_Streams.No_Element;
-
+               Inc_Shared_Token     := True;
                Tokens_Last          := @ + 1;
                Tokens (Tokens_Last) := Tree.ID (Next_Node);
             end if;
@@ -337,7 +280,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          exit when Tokens (Tokens_Last) = Tree.Descriptor.EOI_ID or Tokens_Last = 3;
 
-         Next_Terminal;
+         if Inc_Shared_Token then
+            Peek_Next_Shared_Terminal
+              (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+         end if;
       end loop;
 
       for I in Tokens_Last + 1 .. 3 loop
@@ -405,6 +351,48 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end;
       end if;
    end Peek_Current_First_Shared_Terminal;
+
+   procedure Peek_Shared_Start
+     (Tree                         : in     Syntax_Trees.Tree;
+      Config                       : in     Configuration;
+      Current_Input_Stream_Element :    out Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    :    out Syntax_Trees.Node_Access;
+      Current_Shared_Token         :    out Syntax_Trees.Terminal_Ref)
+   is begin
+      Current_Input_Stream_Element := Config.Input_Stream.First;
+      Current_Input_Stream_Node    := First_Shared_Terminal (Tree, Config.Input_Stream);
+      Current_Shared_Token         := Config.Current_Shared_Token;
+   end Peek_Shared_Start;
+
+   function Peek_Shared_Terminal
+     (Current_Input_Stream_Node : in Syntax_Trees.Node_Access;
+      Current_Shared_Token      : in Syntax_Trees.Terminal_Ref)
+     return Syntax_Trees.Node_Access
+   is begin
+      if Current_Input_Stream_Node = Syntax_Trees.Invalid_Node_Access then
+         return Current_Shared_Token.Node;
+
+      else
+         return Current_Input_Stream_Node;
+      end if;
+   end Peek_Shared_Terminal;
+
+   procedure Peek_Next_Shared_Terminal
+     (Tree                         : in     Syntax_Trees.Tree;
+      Config                       : in     Configuration;
+      Current_Input_Stream_Element : in out Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    : in out Syntax_Trees.Node_Access;
+      Current_Shared_Token         : in out Syntax_Trees.Terminal_Ref)
+   is
+      use Syntax_Trees;
+   begin
+      if Current_Input_Stream_Node = Invalid_Node_Access then
+         Tree.Next_Shared_Terminal (Current_Shared_Token);
+
+      else
+         Next_Shared_Terminal (Tree, Config.Input_Stream, Current_Input_Stream_Element, Current_Input_Stream_Node);
+      end if;
+   end Peek_Next_Shared_Terminal;
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -745,6 +733,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    begin
       if Trace_McKenzie > Detail then
          if Trace_McKenzie > Extra then
+            Put_Line (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Super.Tree.all));
             if Config.Current_Insert_Delete /= No_Insert_Delete then
                Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
                            Image (Config.Insert_Delete, Descriptor));

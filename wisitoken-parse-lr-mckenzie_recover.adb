@@ -633,7 +633,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   (Peek_Current_Shared_Terminal (Parser_State, Tree).Node)
                               then
                                  Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last_Index)
-                                   .Del_Node := Parser_State.Shared_Token.Node;
+                                   .Del_Node := Peek_Current_Shared_Terminal (Parser_State, Tree).Node;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
 
@@ -714,15 +714,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Check;
 
    procedure Delete_Check
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID)
+     (Tree        : in     Syntax_Trees.Tree;
+      Config      : in out Configuration;
+      Node        : in     Syntax_Trees.Valid_Node_Access;
+      Expected_ID : in     Token_ID)
    is
       use Config_Op_Arrays;
-      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal (Tree, Config);
-      Op   : constant Config_Op := (Delete, ID, Tree.Get_Node_Index (Node));
+      Op : constant Config_Op := (Delete, Expected_ID, Tree.Get_Node_Index (Node));
    begin
-      Check (Tree.ID (Node), ID);
+      Check (Tree.ID (Node), Expected_ID);
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
       end if;
@@ -734,30 +734,31 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
-      Ref    : in out Syntax_Trees.Terminal_Ref;
       ID     : in     Token_ID)
-   is begin
-      Check (Tree.ID (Ref.Node), ID);
-      Delete (Tree, Config, Ref);
+   is
+      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal (Tree, Config);
+   begin
+      Delete_Check (Tree, Config, Node, ID);
    end Delete_Check;
 
-   procedure Delete
+   procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
-      Ref    : in out Syntax_Trees.Terminal_Ref)
+      IDs    : in     Token_ID_Array)
    is
-      use Config_Op_Arrays;
-      Op : constant Config_Op := (Delete, Tree.ID (Ref.Node), Tree.Get_Node_Index (Ref.Node));
+      Current_Input_Stream_Element : Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    : Syntax_Trees.Node_Access;
+      Current_Shared_Token         : Syntax_Trees.Terminal_Ref;
    begin
-      if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
-         raise Bad_Config;
-      end if;
-      Append (Config.Ops, Op);
-      Append (Config.Insert_Delete, Op);
-      Config.Current_Insert_Delete := 1;
+      Parse.Peek_Shared_Start
+        (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
 
-      Tree.Next_Shared_Terminal (Ref);
-   end Delete;
+      for ID of IDs loop
+         Delete_Check (Tree, Config, Parse.Peek_Shared_Terminal (Current_Input_Stream_Node, Current_Shared_Token), ID);
+         Parse.Peek_Next_Shared_Terminal
+           (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+      end loop;
+   end Delete_Check;
 
    procedure Do_Push_Back
      (Tree   : in     Syntax_Trees.Tree;
@@ -769,12 +770,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config_Op_Arrays.Append (Config.Ops, (Push_Back, ID (Token), Tree.Get_Node_Index (Tree.First_Terminal (Token))));
 
       if Token.Virtual then
-         case Tree.Label (Token.First_Terminal) is
-         when Terminal_Label =>
-            Config.Input_Stream.Prepend (Token.First_Terminal);
-         when Nonterm =>
-            raise SAL.Programmer_Error;
-         end case;
+         if Token.First_Terminal = Invalid_Node_Access then
+            --  Token is an empty nonterm; precondition rules out virtual
+            --  terminal. Doing nothing is ok; the empty nonterm will be created
+            --  by the parse process.
+            null;
+         else
+            case Tree.Label (Token.First_Terminal) is
+            when Terminal_Label =>
+               Config.Input_Stream.Prepend (Token.First_Terminal);
+            when Nonterm =>
+               raise SAL.Programmer_Error;
+            end case;
+         end if;
       else
          Config.Input_Stream.Prepend (Token.Element_Node);
       end if;
@@ -987,9 +995,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       function Check_Insert_Delete (Op_Index : in Syntax_Trees.Node_Index) return Boolean
       is begin
+         --  We allow '=' here, so we can try adding more ops at a previous
+         --  edit point; in particular, another Language_Fix. See
+         --  test_mckenzie_Recover Error_3.
          return Fast_Forward_Seen and
            (Target_Node_Index = Syntax_Trees.Invalid_Node_Index or
-              Target_Node_Index > Op_Index);
+              Target_Node_Index >= Op_Index);
       end Check_Insert_Delete;
 
    begin
@@ -1030,9 +1041,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  last terminal index of the push_back. So this allows Undo_Reduce
                      --  of the entire fast_forward.
                      --
-                     --  Undo_Reduce after Undo_Reduce; must undo only part of the original
-                     --  nonterm.
-                     return Target_Node_Index > Op.UR_Token_Index;
+                     --  Undo_Reduce after Undo_Reduce; must undo part or all of the original
+                     --  nonterm; see test_mckenzie_recover.adb Missing_Name_2.
+                     return Target_Node_Index >= Op.UR_Token_Index;
 
                   when Push_Back =>
                      --  No point in checking Fast_Forward_Seen here; we don't have the
@@ -1050,9 +1061,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             when Push_Back =>
                if Op.PB_Token_Index = Syntax_Trees.Invalid_Node_Index then
-                  --  Pushed_Back token was empty; need to see the next one. Currently,
-                  --  other checks forbid push_back of an empty token, but we check this
-                  --  here in case we change that.
+                  --  Pushed_Back token was empty; need to see the next one.
                   null;
                else
                   if Target_Node_Index = Syntax_Trees.Invalid_Node_Index then
@@ -1116,19 +1125,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          (declare
              Token : Syntax_Trees.Recover_Token renames Config.Stack.Peek.Token;
              First_Terminal : constant Syntax_Trees.Node_Access :=
-               (if Token.Virtual then Token.First_Terminal else Tree.First_Terminal (Token.Element_Node));
+               (if Token.Virtual
+                then Token.First_Terminal
+                else Tree.First_Terminal (Token.Element_Node));
           begin
-             not Syntax_Trees.Contains_Virtual_Terminal (Token) and
+             not Syntax_Trees.Contains_Virtual_Terminal (Token) and then
                --  If Contains_Virtual_Terminal, Token was inserted earlier in this
                --  or a previous recover session; no point in recomputing it. In
                --  incremental parse, it can be from a previous recover session;
-               --  Edit_Tree would have deleted it if it needed to be recomputed.
-               (First_Terminal /= Syntax_Trees.Invalid_Node_Access and then
-                  --  If Token is an empty nonterm, Push_Back is mostly the same as
-                  --  Undo_Reduce, so only do Undo_Reduce.
+               --  Edit_Tree would have deleted it if it needed to be recomputed. We
+               --  don't exclude Virtual, because sometimes we need to push_back a
+               --  virtual nonterm created by a Language_Fix in order to apply a
+               --  second Language_Fix; see test_mckenzie_recover.adb Missing_Name_0.
+               (First_Terminal = Syntax_Trees.Invalid_Node_Access or else
+                  --  We allow both Push_Back and Undo_Reduce of empty nonterms;
+                  --  Push_Back is easier to use in Language_Fixes, Undo_Reduce is
+                  --  required to change the stack state to allow completing a
+                  --  production with a non-empty nonterm.
                   Prev_Recover_End < Tree.Get_Node_Index (First_Terminal)
                   --  Don't push back into a previous recover session.
-               ) and
+               ) and then
                (Config_Op_Arrays.Length (Config.Ops) = 0 or else
                   Push_Back_Undo_Reduce_Valid
                     (Push_Back,
@@ -1137,66 +1153,34 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Config_Op_Arrays.Last_Index (Config.Ops)))));
 
    procedure Push_Back
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index)
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-   begin
-      if not Push_Back_Valid (Tree, Config, Prev_Recover_End) then
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration)
+   is begin
+      --  We relax the "don't push back into previous recover" restriction
+      --  for Language_Fixes; see test_mckenzie_recover.adb Missing_Name_5.
+      if not Push_Back_Valid (Tree, Config, Prev_Recover_End => 0) then
          raise Bad_Config;
       end if;
 
       Do_Push_Back (Tree, Config);
-
-      declare
-         Node : constant Syntax_Trees.Node_Access := Parse.First_Shared_Terminal (Tree, Config.Input_Stream);
-         --  Invalid_Node_Access if we pushed back an empty newly virtual
-         --  nonterm.
-
-         function Compare (Left : in Syntax_Trees.Valid_Node_Access; Right : in Config_Op) return Boolean
-         is (case Right.Op is
-             when Fast_Forward    => False,
-             when Undo_Reduce     => False,
-             when Push_Back       => False,
-               when Insert => Tree.Get_Node_Index (Left) < Right.Ins_Before,
-               when Delete => Tree.Get_Node_Index (Left) < Right.Del_Token_Index);
-         --  If Left = Right.Token_Index, we assume the Right ops go _after_
-         --  the Left, so the Left do not need to be repeated.
-      begin
-         if Node /= Syntax_Trees.Invalid_Node_Access then
-            --  If we pushed_back over any insert/delete ops, record them for
-            --  future application.
-            for I in First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
-               if Compare (Node, Constant_Ref (Config.Ops, I)) then
-                  if Is_Full (Config.Insert_Delete) then
-                     raise Bad_Config;
-                  end if;
-                  Append (Config.Insert_Delete, Constant_Ref (Config.Ops, I));
-               end if;
-            end loop;
-         end if;
-      end;
    end Push_Back;
 
    procedure Push_Back_Check
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index;
-      Expected_ID      : in     Token_ID)
+     (Tree        : in     Syntax_Trees.Tree;
+      Config      : in out Configuration;
+      Expected_ID : in     Token_ID)
    is begin
       Check (Syntax_Trees.ID (Config.Stack.Peek (1).Token), Expected_ID);
-      Push_Back (Tree, Config, Prev_Recover_End);
+      Push_Back (Tree, Config);
    end Push_Back_Check;
 
    procedure Push_Back_Check
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index;
-      Expected         : in     Token_ID_Array)
+     (Tree     : in     Syntax_Trees.Tree;
+      Config   : in out Configuration;
+      Expected : in     Token_ID_Array)
    is begin
       for ID of Expected loop
-         Push_Back_Check (Tree, Config, Prev_Recover_End, ID);
+         Push_Back_Check (Tree, Config, ID);
       end loop;
    end Push_Back_Check;
 

@@ -1158,7 +1158,7 @@ package body WisiToken.Syntax_Trees is
             exit when not Has_Element (Result.Element.Cur);
             --  Not at end of stream
 
-            Result.Node := First_Terminal (Tree, Constant_Ref (Element.Cur).Node);
+            Result.Node := First_Terminal (Tree, Constant_Ref (Result.Element.Cur).Node);
          end loop;
       end return;
    end First_Terminal;

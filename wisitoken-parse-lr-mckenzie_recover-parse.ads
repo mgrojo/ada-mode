@@ -99,6 +99,25 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Element_Node : in out Bounded_Streams.Cursor;
       Node         : in out Syntax_Trees.Node_Access);
 
+   procedure Peek_Shared_Start
+     (Tree                         : in     Syntax_Trees.Tree;
+      Config                       : in     Configuration;
+      Current_Input_Stream_Element :    out Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    :    out Syntax_Trees.Node_Access;
+      Current_Shared_Token         :    out Syntax_Trees.Terminal_Ref);
+
+   function Peek_Shared_Terminal
+     (Current_Input_Stream_Node : in Syntax_Trees.Node_Access;
+      Current_Shared_Token      : in Syntax_Trees.Terminal_Ref)
+     return Syntax_Trees.Node_Access;
+
+   procedure Peek_Next_Shared_Terminal
+     (Tree                         : in     Syntax_Trees.Tree;
+      Config                       : in     Configuration;
+      Current_Input_Stream_Element : in out Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    : in out Syntax_Trees.Node_Access;
+      Current_Shared_Token         : in out Syntax_Trees.Terminal_Ref);
+
    procedure Breakdown
      (Tree   : in     Syntax_Trees.Tree;
       Stream : in out Bounded_Streams.List)

@@ -26,8 +26,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration;
-      Prev_Recover_End  : in     Syntax_Trees.Node_Index);
+      Config            : in     Configuration);
 
    procedure Matching_Begin_Tokens
      (Tokens                  : in     Token_ID_Array_1_3;

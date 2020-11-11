@@ -81,20 +81,8 @@ private
    procedure Delete_Check
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
-      Ref    : in out Syntax_Trees.Terminal_Ref;
-      ID     : in     Token_ID);
-   --  Check that Ref has ID. Append a Delete op to Config.Ops, and
-   --  append it to Config.Insert_Delete. Increment Ref, for convenience
-   --  when deleting several tokens.
-   --
-   --  FIXME: need new 'ref' type that contains config.shared_token and
-   --  config.input_stream
-
-   procedure Delete
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      Ref    : in out Syntax_Trees.Terminal_Ref);
-   --  Same as Delete_Check, without the check.
+      IDs    : in     Token_ID_Array);
+   --  Call Delete_Check for each ID in IDs.
 
    procedure Do_Push_Back
      (Tree   : in     Syntax_Trees.Tree;
@@ -190,26 +178,20 @@ private
    --  True if Push_Back is a valid op for Config.
 
    procedure Push_Back
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index);
-   --  If not Push_Back_Valid, raise Bad_Config. Otherwise pop the top
-   --  Config.Stack item, set Config.Current_Shared_Token to the first
-   --  terminal in that item. If the item is empty,
-   --  Config.Current_Shared_Token is unchanged.
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration);
+   --  If not Push_Back_Valid, raise Bad_Config. Otherwise do Push_Back.
 
    procedure Push_Back_Check
      (Tree             : in     Syntax_Trees.Tree;
       Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index;
       Expected_ID      : in     Token_ID);
    --  In effect, call Check and Push_Back.
 
    procedure Push_Back_Check
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Prev_Recover_End : in     Syntax_Trees.Node_Index;
-      Expected         : in     Token_ID_Array);
+     (Tree     : in     Syntax_Trees.Tree;
+      Config   : in out Configuration;
+      Expected : in     Token_ID_Array);
    --  Call Push_Back_Check for each item in Expected.
    --
    --  Raises Bad_Config if any of the push_backs is invalid.

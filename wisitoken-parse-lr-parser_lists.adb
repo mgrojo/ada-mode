@@ -121,11 +121,25 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
       elsif Tree.Has_Input (Parser_State.Stream) then
          if Delete then
-            declare
-               Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
-            begin
-               Tree.Stream_Delete (Parser_State.Stream, Temp);
-            end;
+            loop
+               declare
+                  use all type WisiToken.Syntax_Trees.Node_Label;
+
+                  Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
+
+                  Node : constant Syntax_Trees.Valid_Node_Access := Tree.Get_Node (Parser_State.Stream, Temp);
+               begin
+                  Tree.Stream_Delete (Parser_State.Stream, Temp);
+
+                  if Tree.Label (Node) = Syntax_Trees.Nonterm then
+                     --  We only support Delete for terminals; that includes deleting
+                     --  preceding empty nonterms.
+                     pragma Assert (Tree.Child_Count (Node) = 0 and Tree.Has_Input (Parser_State.Stream));
+                  else
+                     exit;
+                  end if;
+               end;
+            end loop;
          end if;
 
       else

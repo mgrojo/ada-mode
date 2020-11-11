@@ -284,6 +284,8 @@ package WisiToken.Syntax_Trees is
 
    function Contains_Virtual_Terminal (Item : in Recover_Token) return Boolean;
 
+   function Is_Empty_Nonterm (Item : in Recover_Token; Descriptor : in WisiToken.Descriptor) return Boolean;
+
    function First_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access;
 
    function To_Real_Recover_Token (Item : in Stream_Node_Ref) return Real_Recover_Token
@@ -1721,6 +1723,11 @@ private
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);
+
+   function Is_Empty_Nonterm (Item : in Recover_Token; Descriptor : in WisiToken.Descriptor) return Boolean
+   is (case Item.Virtual is
+       when True => Is_Nonterminal (Item.ID, Descriptor) and Item.First_Terminal = Invalid_Node_Access,
+       when False => Item.Node.Label = Nonterm and Item.Node.Child_Count = 0);
 
    function Is_Shared (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is (Node.Node_Index > 0);

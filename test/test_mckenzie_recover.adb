@@ -909,8 +909,8 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (19, 34),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 5, 9) & (Push_Back, +SEMICOLON_ID, 15) &
-           (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 14) &
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, 5) & (Push_Back, +SEMICOLON_ID, 15) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 14) &
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) & (Fast_Forward, 19) &
            (Push_Back, +SEMICOLON_ID, 18) & (Push_Back, +name_opt_ID, 17) & (Push_Back, +END_ID, 16) &
            (Insert, +END_ID, 16) & (Insert, +SEMICOLON_ID, 16),
@@ -949,11 +949,11 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (19, 34),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 5, 9) & (Push_Back, +SEMICOLON_ID, 15) &
-           (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 14) &
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, 5) & (Push_Back, +SEMICOLON_ID, 15) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 14) &
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 12,
+         Enqueue_Low             => 13,
          Check_Low               => 3,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
@@ -989,13 +989,13 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (19, 34),
          Ops                     =>
-           +(Undo_Reduce, +subprogram_body_ID, 5, 9) & (Push_Back, +SEMICOLON_ID, 14) &
-             (Push_Back, +name_opt_ID, 14) & (Push_Back, +END_ID, 13) &
-             (Undo_Reduce, +handled_sequence_of_statements_ID, 9, 1) & (Undo_Reduce, +sequence_of_statements_ID, 9, 1) &
-             (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
+           +(Undo_Reduce, +subprogram_body_ID, 9, 5) & (Push_Back, +SEMICOLON_ID, 14) &
+             (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 13) &
+             (Undo_Reduce, +handled_sequence_of_statements_ID, 1, 9) & (Undo_Reduce, +sequence_of_statements_ID, 1, 9) &
+             (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14) & (Fast_Forward, 16),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => 11,
-         Check_Low               => 2,
+         Enqueue_Low             => 13,
+         Check_Low               => 3,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_2;
@@ -1022,19 +1022,19 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Errors_Length           => 1,
+         Code                    => Missing_Name_Error,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (19, 34),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 5, 9) & (Push_Back, +SEMICOLON_ID, 14) &
-           (Push_Back, +name_opt_ID, 14) & (Push_Back, +END_ID, 13) &
-           (Undo_Reduce, +handled_sequence_of_statements_ID, 9, 1) & (Undo_Reduce, +sequence_of_statements_ID, 9, 1) &
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, 5) & (Push_Back, +SEMICOLON_ID, 14) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 13) &
+           (Undo_Reduce, +handled_sequence_of_statements_ID, 1, 9) & (Undo_Reduce, +sequence_of_statements_ID, 1, 9) &
            (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14) & (Fast_Forward, 18) & (Push_Back, +SEMICOLON_ID, 17) &
            (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
            (Insert, +SEMICOLON_ID, 15),
          Strategy_Counts         => (Language_Fix => 2, others => 0),
-         Enqueue_Low             => 5,
-         Check_Low               => 5,
-         Cost                    => 1,
-         Code                    => Missing_Name_Error);
+         Enqueue_Low             => 6,
+         Check_Low               => 6,
+         Cost                    => 1);
    end Missing_Name_3;
 
    procedure Missing_Name_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1057,7 +1057,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +name_ID,
          Error_Token_Byte_Region => (32, 37),
-         Ops                     => +(Undo_Reduce, +package_body_ID, 9, 5),
+         Ops                     => WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Empty_Vector,
          Strategy_Counts         => (Ignore_Error => 1, others => 0),
          Enqueue_Low             => 1,
          Check_Low               => 1,
@@ -1077,43 +1077,46 @@ package body Test_McKenzie_Recover is
       --  1         2      3  4         5      6  7     8   9 10 11 12   13  14 15  16
 
       --  Missing 'Proc_2' 68. Enters error recovery on 'begin' 58 with
-      --  Missing_Name_Error.
+      --  Missing_Name_Error for Proc_2.
       --
-      --  Language_Fixes enqueues (push_back ...).
+      --  Language_Fixes enqueues the solution below, inserting a matching
+      --  'end' (which is not the desired solution in this case, but we
+      --  assume it is more likely to be the desired solution in practice).
       --
-      --  In LALR, that fails at EOI with an Extra_Name_Error; in LR1, with
-      --  a parser error - expecting another 'end'. The difference is
-      --  because LALR merges lookaheads.
+      --  In LALR, that fails at EOI with an Extra_Name_Error; the solution
+      --  reverts the solution to the first error. In LR1, it fails with a
+      --  parser error - expecting another 'end'; similar solution to LALR
+      --  case. The difference is because LALR merges lookaheads.
 
       Check_Recover
         (Errors_Length           => 2,
          Checking_Error          => 1,
+         Code                    => Missing_Name_Error,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (21, 36),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 5, 9) & (Push_Back, +SEMICOLON_ID, 11) &
-           (Push_Back, +name_opt_ID, 11) & (Push_Back, +END_ID, 10) &
-           (Undo_Reduce, +handled_sequence_of_statements_ID, 8, 1) & (Undo_Reduce, +sequence_of_statements_ID, 8, 1) &
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, 4) & (Push_Back, +SEMICOLON_ID, 11) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 10) &
+           (Undo_Reduce, +handled_sequence_of_statements_ID, 1, 8) & (Undo_Reduce, +sequence_of_statements_ID, 1, 8) &
            (Delete, +END_ID, 10) & (Delete, +SEMICOLON_ID, 11),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
-         Cost                    => 1,
-         Code                    => Missing_Name_Error);
+         Cost                    => 1);
 
       case Test.Alg is
       when LALR =>
          Check_Recover
            (Errors_Length           => 2,
             Checking_Error          => 2,
+            Code                    => Extra_Name_Error,
             Error_Token_ID          => +identifier_opt_ID,
             Error_Token_Byte_Region => (74, 79),
-            Ops                     => +(Undo_Reduce, +block_statement_ID, 12, 6) & (Push_Back, +SEMICOLON_ID, 17) &
+            Ops                     => +(Undo_Reduce, +block_statement_ID, 6, 12) & (Push_Back, +SEMICOLON_ID, 17) &
               (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
               (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
               (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-            Enqueue_Low             => 16,
+            Enqueue_Low             => 17,
             Check_Low               => 4,
-            Cost                    => 1,
-            Code                    => Extra_Name_Error);
+            Cost                    => 1);
 
       when LR1                      =>
          Check_Recover

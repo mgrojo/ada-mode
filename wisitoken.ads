@@ -166,6 +166,9 @@ package WisiToken is
    function Is_Terminal (ID : in Token_ID; Descriptor : in WisiToken.Descriptor) return Boolean
    is (ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal);
 
+   function Is_Nonterminal (ID : in Token_ID; Descriptor : in WisiToken.Descriptor) return Boolean
+   is (ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
+
    function Find_ID (Descriptor : in WisiToken.Descriptor; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 

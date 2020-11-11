@@ -117,8 +117,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if Shared.Language_Fixes /= null then
                Shared.Language_Fixes
                  (Super.Trace.all, Shared.Lexer, Super.Stream (Parser_Index), Shared.Table.all, Super.Tree.all,
-                  Local_Config_Heap, Config,
-                  Prev_Recover_End => Super.Parser_State (Parser_Index).Resume_Token_Goal);
+                  Local_Config_Heap, Config);
             end if;
          end if;
 
@@ -349,7 +348,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Item.Config.Minimal_Complete_State := None;
          Item.Config.Matching_Begin_Done    := False;
 
-         if Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward then
+         if Last_Index (Item.Config.Ops) /= Config_Op_Arrays.No_Index and then
+           Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward
+         then
             --  Update the trailing Fast_Forward.
             Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Token_Index :=
               Super.Tree.Get_Node_Index (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, Item.Config));
@@ -422,9 +423,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Config.Check_Status := Item.Config.Check_Status;
                Config.Error_Token  := Item.Config.Error_Token;
 
-               --  Explore cannot fix a check fail; only Language_Fixes can, which
-               --  was already done. The "ignore error" case is handled immediately
-               --  on return from Language_Fixes in Process_One, below.
+               if Item.Shift_Count > 0 then
+                  --  Progress was made, so let Language_Fixes try again on the new Config.
+                  Enqueue (Item);
+               end if;
+
+               --  Explore cannot fix a check fail; only
+               --  Language_Fixes can, which was already done. The "ignore error"
+               --  case is handled immediately on return from Language_Fixes in
+               --  Process_One, below.
                return Abandon;
 
             else
@@ -1949,16 +1956,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       if Trace_McKenzie > Detail then
          Base.Put ("dequeue", Super, Parser_Index, Config);
-         if Trace_McKenzie > Extra then
-            Put_Line
-              (Trace,
-               Super.Tree.all,
-               Super.Stream (Parser_Index), "stack: " &
-                 LR.Image (Config.Stack, Super.Tree.all) &
-                 (if Config.Input_Stream.Length > 0
-                  then " stream: " & Image (Config.Input_Stream, Super.Tree.all)
-                  else ""));
-         end if;
       end if;
 
       --  Fast_Forward; parse Insert, Delete in Config.Ops that have not
@@ -1983,8 +1980,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          else
             Shared.Language_Fixes
               (Trace, Shared.Lexer, Super.Stream (Parser_Index), Shared.Table.all, Super.Tree.all, Local_Config_Heap,
-               Config,
-               Prev_Recover_End => Super.Parser_State (Parser_Index).Resume_Token_Goal);
+               Config);
 
             --  The solutions enqueued by Language_Fixes should be lower cost than
             --  others (typically 0), so they will be checked first.
@@ -2008,6 +2004,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                Config.Cost := Config.Cost + Table.McKenzie_Param.Ignore_Check_Fail;
                Config.Strategy_Counts (Ignore_Error) := Config.Strategy_Counts (Ignore_Error) + 1;
+
+               declare
+                  use Config_Op_Arrays, Config_Op_Array_Refs;
+                  Last : constant SAL.Base_Peek_Type := Last_Index (Config.Ops);
+               begin
+                  if Last /= SAL.Invalid_Peek_Index and then
+                    Constant_Ref (Config.Ops, Last).Op = Undo_Reduce and then
+                    Constant_Ref (Config.Ops, Last).Nonterm = Syntax_Trees.ID (Config.Error_Token)
+                  then
+                     --  We are ignoring this undo_reduce.
+                     Delete_Last (Config.Ops);
+                  end if;
+               end;
 
                --  finish reduce.
                Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
@@ -2077,8 +2086,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
 
       if Push_Back_Valid (Super.Tree.all, Config, Super.Parser_State (Parser_Index).Resume_Token_Goal) and then
-        (not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))
-        --  If Config reduces to the start nonterm, there's no point in Push_Back or Undo_Reduce.
+        (not Syntax_Trees.Is_Empty_Nonterm (Config.Stack.Peek.Token, Super.Tree.Descriptor.all) and
+           --  We only allow Push_Back of empty nonterm from Language_Fixes;
+           --  otherwise it is usually redundant with Undo_Reduce.
+           not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))
+           --  If Config reduces to the start nonterm, there's no point in Push_Back or Undo_Reduce.
       then
          Try_Push_Back (Super, Shared, Parser_Index, Config, Local_Config_Heap);
       end if;

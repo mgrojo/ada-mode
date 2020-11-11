@@ -35,11 +35,8 @@ incremental parse
     run all tests
         test/test_incremental.adb : ?
         t_mck: some failures; nothing should have changed
-        only test check fail left.
 
             mck_recover-parse need current_shared_matches_ops?
-
-            Error_Token_When_Parallel: hangs
 
         t_all:
 
@@ -71,6 +68,7 @@ incremental parse
         store current_state in config
         shared_stream needs parents for next_shared_Terminal
             same in stream input?!
+            store parents in iterator object
         other nodes don't set new parents.
             or change Parent to stream_map_node_access?
 
