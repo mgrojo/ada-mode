@@ -609,7 +609,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          declare
             Next_Node : constant Syntax_Trees.Valid_Node_Access :=
               (if Config.Input_Stream.First /= Bounded_Streams.No_Element
-               then Config.Input_Stream (Config.Input_Stream.First)
+               then First_Shared_Terminal (Tree, Config.Input_Stream)
                else Config.Current_Shared_Token.Node);
          begin
             if Config.Current_Insert_Delete /= No_Insert_Delete and then
@@ -740,8 +740,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             end if;
          end if;
 
-         Base.Put
-           (Trace_Prefix & ": " & Syntax_Trees.Image (Super.Tree.all, Current_Token), Super, Parser_Index, Config);
          if Shared_Token_Goal /= Syntax_Trees.Invalid_Node_Index then
             Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
                         Shared_Token_Goal'Image);

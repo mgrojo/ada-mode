@@ -65,6 +65,9 @@ package body Test_McKenzie_Recover is
      WisiToken.To_Token_ID_Set
        (Descriptor.First_Terminal, Descriptor.Last_Terminal, (1 .. 0 => WisiToken.Invalid_Token_ID));
 
+   Empty_Ops : constant WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Vector :=
+     WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Empty_Vector;
+
    procedure Parse_Text
      (Text             : in String;
       Multiple_Tasks   : in Boolean := False;
@@ -1057,7 +1060,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +name_ID,
          Error_Token_Byte_Region => (32, 37),
-         Ops                     => WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Empty_Vector,
+         Ops                     => Empty_Ops,
          Strategy_Counts         => (Ignore_Error => 1, others => 0),
          Enqueue_Low             => 1,
          Check_Low               => 1,
@@ -1166,7 +1169,7 @@ package body Test_McKenzie_Recover is
               (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
               (Insert, +SEMICOLON_ID, 15),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-            Enqueue_Low             => 17,
+            Enqueue_Low             => 19,
             Check_Low               => 4,
             Cost                    => 1,
             Code                    => Extra_Name_Error);
@@ -1241,7 +1244,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +identifier_opt_ID,
          Error_Token_Byte_Region => (97, 112),
-         Ops                     => +(Undo_Reduce, +block_statement_ID, 11, 6) & (Push_Back, +SEMICOLON_ID, 14) &
+         Ops                     => +(Undo_Reduce, +block_statement_ID, 6, 11) & (Push_Back, +SEMICOLON_ID, 14) &
            (Push_Back, +identifier_opt_ID, 13) & (Push_Back, +END_ID, 12) &
            (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 11) &
            (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 11) &
@@ -1280,7 +1283,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +identifier_opt_ID,
          Error_Token_Byte_Region => (112, 127),
          Ops                     =>
-           +(Undo_Reduce, +block_statement_ID, 15, 6) & (Push_Back, +SEMICOLON_ID, 17) &
+           +(Undo_Reduce, +block_statement_ID, 6, 14) & (Push_Back, +SEMICOLON_ID, 17) &
              (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 14) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 14) &
@@ -1321,7 +1324,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +identifier_opt_ID,
          Error_Token_Byte_Region => (75, 90),
          Ops                     =>
-           +(Undo_Reduce, +block_statement_ID, 8, 6) & (Push_Back, +SEMICOLON_ID, 11) &
+           +(Undo_Reduce, +block_statement_ID, 6, 8) & (Push_Back, +SEMICOLON_ID, 11) &
              (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 9) &
              (Insert, +SEMICOLON_ID, 9),
          Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
@@ -1363,7 +1366,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +identifier_opt_ID,
          Error_Token_Byte_Region => (103, 108),
          Ops                     =>
-           +(Undo_Reduce, +block_statement_ID, 20, 6) & (Push_Back, +SEMICOLON_ID, 23) &
+           +(Undo_Reduce, +block_statement_ID, 6, 20) & (Push_Back, +SEMICOLON_ID, 23) &
              (Push_Back, +identifier_opt_ID, 22) & (Push_Back, +END_ID, 21) &
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) &
@@ -1372,7 +1375,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20),
          Strategy_Counts         => (Language_Fix => 2, Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 26, when LR1 => 40),
+         Enqueue_Low             => (case Test.Alg is when LALR => 27, when LR1 => 41),
          Check_Low               => 9,
          Cost                    => 3,
          Code                    => Extra_Name_Error);
@@ -1406,7 +1409,7 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) &
              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
-             (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12),
+             (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
          Enqueue_Low             => (case Test.Alg is when LALR => 23, when LR1 => 35),
          Check_Low               => (case Test.Alg is when LALR => 8, when LR1 => 8),
@@ -1545,7 +1548,7 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 40,
+         Enqueue_Low             => 43,
          Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_1;
@@ -1583,8 +1586,8 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) &
            (Insert, +SEMICOLON_ID, 28),
          Strategy_Counts => (Minimal_Complete => 1, String_Quote => 1, others => 0),
-         Enqueue_Low     => (case Test.Alg is when LALR => 61, when LR1 => 69),
-         Check_Low       => 7,
+         Enqueue_Low     => (case Test.Alg is when LALR => 79, when LR1 => 86),
+         Check_Low       => 8,
          Cost            => 2);
    end String_Quote_2;
 
@@ -1615,7 +1618,7 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 19) & (Delete, +LESS_ID, 20) & (Delete, +SLASH_ID, 21) &
            (Delete, +IDENTIFIER_ID, 22) & (Delete, +GREATER_ID, 23) & (Fast_Forward,  24),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 49,
+         Enqueue_Low             => 51,
          Check_Low               => 6,
          Cost                    => 1);
    end String_Quote_3;
@@ -1650,7 +1653,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 75,
+         Enqueue_Low             => 78,
          Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 6),
          Cost                    => 1);
    end String_Quote_4;
@@ -1684,8 +1687,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 7) & (Delete, +IDENTIFIER_ID, 7) &
            (Fast_Forward, 10) & (Insert, +END_ID, 10) & (Insert, +SEMICOLON_ID, 10),
          Strategy_Counts         => (Minimal_Complete => 2, String_Quote => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 191, when LR1 => 235),
-         Check_Low               => 22,
+         Enqueue_Low             => (case Test.Alg is when LALR => 191, when LR1 => 195),
+         Check_Low               => 19,
          Cost                    => 3);
    end String_Quote_5;
 
@@ -1937,7 +1940,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (34, 35),
          Ops_Race_Condition      => True,
-         Enqueue_Low             => 60,
+         Enqueue_Low             => 61,
          Check_Low               => 27,
          Cost                    => 4);
    end Error_During_Resume_3;
@@ -2030,7 +2033,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (139, 138),
          Ops                     => +(Insert, +END_ID, 21) & (Insert, +CASE_ID, 21) & (Insert, +SEMICOLON_ID, 21),
          Strategy_Counts         => (Minimal_Complete => 3, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 14, when LR1 => 15),
+         Enqueue_Low             => (case Test.Alg is when LALR => 15, when LR1 => 15),
          Check_Low               => 4,
          Cost                    => 3);
    end Always_Minimal_Complete;
@@ -2094,8 +2097,8 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 12) & (Insert, +SEMICOLON_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +NUMERIC_LITERAL_ID, 13) & (Insert, +THEN_ID, 13),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 904, when LR1 => 933),
-         Check_Low               => (case Test.Alg is when LALR => 123, when LR1 => 122),
+         Enqueue_Low             => (case Test.Alg is when LALR => 951, when LR1 => 972),
+         Check_Low               => (case Test.Alg is when LALR => 128, when LR1 => 125),
          Cost                    => 7);
    end Do_Delete_First;
 
@@ -2190,10 +2193,10 @@ package body Test_McKenzie_Recover is
          Code                    => Missing_Name_Error,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (1, 11),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 1, 9),
+         Ops                     => Empty_Ops,
          Strategy_Counts         => (Ignore_Error => 1, others => 0),
-         Enqueue_Low             => 12,
-         Check_Low               => 2,
+         Enqueue_Low             => 13,
+         Check_Low               => 3,
          Cost                    => 2);
 
       Parse_Text ("procedure C is procedure A is begin null; end; begin end C  ;");
@@ -2213,9 +2216,9 @@ package body Test_McKenzie_Recover is
          Code                    => Missing_Name_Error,
          Error_Token_ID          => +subprogram_specification_ID,
          Error_Token_Byte_Region => (16, 26),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 4, 9) & (Push_Back, +SEMICOLON_ID, 11) &
-           (Push_Back, +name_opt_ID, 11) & (Push_Back, +END_ID, 10) &
-           (Undo_Reduce, +handled_sequence_of_statements_ID, 8, 1) & (Undo_Reduce, +sequence_of_statements_ID, 8, 1) &
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, 4) & (Push_Back, +SEMICOLON_ID, 11) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, 10) &
+           (Undo_Reduce, +handled_sequence_of_statements_ID, 1, 8) & (Undo_Reduce, +sequence_of_statements_ID, 1, 8) &
            (Delete, +END_ID, 10) & (Delete, +SEMICOLON_ID, 11),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
          Cost                    => 1);
@@ -2229,12 +2232,12 @@ package body Test_McKenzie_Recover is
             Code                    => Extra_Name_Error,
             Error_Token_ID          => +identifier_opt_ID,
             Error_Token_Byte_Region => (58, 58),
-            Ops                     => +(Undo_Reduce, +block_statement_ID, 12, 6) & (Push_Back, +SEMICOLON_ID, 15) &
+            Ops                     => +(Undo_Reduce, +block_statement_ID, 6, 12) & (Push_Back, +SEMICOLON_ID, 15) &
               (Push_Back, +identifier_opt_ID, 14) & (Push_Back, +END_ID, 13) &
               (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 12) &
               (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-            Enqueue_Low             => 16,
+            Enqueue_Low             => 17,
             Check_Low               => 4,
             Cost                    => 1);
 

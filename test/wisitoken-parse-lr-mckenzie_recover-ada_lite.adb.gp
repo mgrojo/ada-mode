@@ -515,7 +515,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  this similar to a semantic check Extra_Name_Error, and the
          --  solutions are similar.
 
-         if Config.Stack.Depth >= 3 and then
+         if Config.Stack.Depth >= 5 and then
            (ID (Config.Stack.Peek (1).Token) = +IDENTIFIER_ID and
               ID (Config.Stack.Peek (2).Token) = +END_ID)
          then
@@ -550,7 +550,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             declare
                Label        : constant String := "Selected_Component 1 ";
                New_Config_1 : Configuration   := Config;
-               New_Config_2 : Configuration;
             begin
                New_Config_1.Error_Token := Invalid_Recover_Token;
 
@@ -560,19 +559,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                when block_label_opt_ID =>
                   --  no 'declare'; either case 1 or 2
 
-                  New_Config_2 := New_Config_1;
-                  Insert (Tree, New_Config_2, (+END_ID, +SEMICOLON_ID));
+                  declare
+                     New_Config_2 : Configuration := New_Config_1;
+                  begin
+                     Insert (Tree, New_Config_2, (+END_ID, +SEMICOLON_ID));
 
-                  New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
+                     New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
 
-                  if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes " & Label & Image (ID (Config.Error_Token), Descriptor),
-                          New_Config_2);
-                     if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config_2.Stack, Tree));
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes " & Label & Image (ID (Config.Error_Token), Descriptor),
+                             New_Config_2);
                      end if;
-                  end if;
-                  Local_Config_Heap.Add (New_Config_2);
+                     Local_Config_Heap.Add (New_Config_2);
+                  end;
 
                   Push_Back_Check
                     (Tree, New_Config_1,
@@ -587,7 +586,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   if Trace_McKenzie > Outline then
                      Put ("Language_Fixes " & Label & "missing case " & Image
                             (ID (New_Config_1.Stack.Peek (3).Token), Descriptor), Config);
-                     Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Tree));
                   end if;
                   return;
                end case;
@@ -597,9 +595,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label & Image (ID (Config.Error_Token), Descriptor),
                        New_Config_1);
-                  if Trace_McKenzie > Extra then
-                     Trace.Put_Line ("config stack: " & Image (New_Config_1.Stack, Tree));
-                  end if;
                end if;
                Local_Config_Heap.Add (New_Config_1);
             end;
@@ -677,7 +672,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration)
    is begin
       if Trace_McKenzie > Extra then
-         Put ("Language_Fixes", Trace, Tree, Parser_Label, Config);
+         Put_Line (Trace, Tree, Parser_Label, "Language_Fixes stack: " & LR.Image (Config.Stack, Tree));
       end if;
 
       case Config.Check_Status.Label is

@@ -33,12 +33,13 @@ update-wisitoken_grammar
  current work
 incremental parse
     run all tests
-        test/test_incremental.adb : ?
-        t_mck: some failures; nothing should have changed
-
-            mck_recover-parse need current_shared_matches_ops?
+        t_mck: all pass
+        test/test_incremental.adb : pass
+            change to use main parser; integrate incremental parse there.
 
         t_all:
+./wisitoken-bnf-generate.exe --output_bnf --generate None ../test/bnf/java_ebnf.wy
+SAL.PROGRAMMER_ERROR: java_ebnf.wy:135:40: unhandled exception SAL.DUPLICATE_KEY: sal-gen_unbounded_definite_red_black_trees.adb:192
 
     ada_lite.wy require statement in sequence_of_statements
 
