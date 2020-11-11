@@ -133,6 +133,12 @@ is
                 Element (Container'Old, Index_Type (Integer (I) + Integer (Count))) = Element (Container, I));
    --  Remaining elements slide down.
 
+   procedure Delete_Last (Container : in out Vector; Count : in Ada.Containers.Count_Type := 1) with
+     Pre  => Length (Container) >= Count,
+     Post => Length (Container) = Length (Container)'Old - Count and then
+             (for all I in Index_Type'First .. Last_Index (Container) =>
+                Element (Container'Old, I) = Element (Container, I));
+
 private
 
    type Array_Type is array (Peek_Type range 1 .. Peek_Type (Capacity)) of aliased Element_Type;

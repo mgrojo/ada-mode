@@ -124,4 +124,15 @@ is
       end;
    end Delete_First;
 
+   procedure Delete_Last (Container : in out Vector; Count : in Ada.Containers.Count_Type := 1)
+   is
+      use Ada.Containers;
+   begin
+      if Count = 0 then
+         return;
+      end if;
+
+      Container.Last := Extended_Index (Integer (Container.Last) - Integer (Count));
+   end Delete_Last;
+
 end SAL.Gen_Bounded_Definite_Vectors;
