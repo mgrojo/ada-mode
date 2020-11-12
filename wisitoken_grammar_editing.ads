@@ -101,7 +101,7 @@ package WisiToken_Grammar_Editing is
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Item : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => Tree.ID (Item) = +IDENTIFIER_ID,
+   with Pre => To_Token_Enum (Tree.ID (Item)) in IDENTIFIER_ID | STRING_LITERAL_2_ID,
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element

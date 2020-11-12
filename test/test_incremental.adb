@@ -234,7 +234,7 @@ package body Test_Incremental is
          Put_Line ("incremental parse:");
       end if;
 
-      WisiToken.Parse.LR.Parser.Parse_Incremental (Parser, Edits);
+      Parser.Parse (Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;

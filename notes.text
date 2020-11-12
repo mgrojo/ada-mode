@@ -32,14 +32,34 @@ update-wisitoken_grammar
 
  current work
 incremental parse
+    eliminate state in tree node by computing from parse_table, current_state and id shifted.
+        wagner graham 1998
+        store current_state in config, parser_state
+
+    don't copy entire tree in New_Stream
+        bring back set_parents
+        shared_stream needs parents for next_shared_Terminal
+            same in stream input?!
+            store parents in iterator object
+        other nodes don't set new parents.
+            or change Parent to stream_map_node_access?
+
+
+        config.input_stream could be real_recover_Token, to cache first_terminal
+
+        edit_tree delete unreachable nodes (from terminated parse streams)
+            use mark and sweep
+
+        OR at least delete all nodes in a stream when delete the stream
+
     run all tests
         t_mck: all pass
-        test/test_incremental.adb : pass
-            change to use main parser; integrate incremental parse there.
+        test/test_incremental.adb :
+            need left_breakdown (shared_stream) in get_action
 
         t_all:
 ./wisitoken-bnf-generate.exe --output_bnf --generate None ../test/bnf/java_ebnf.wy
-SAL.PROGRAMMER_ERROR: java_ebnf.wy:135:40: unhandled exception SAL.DUPLICATE_KEY: sal-gen_unbounded_definite_red_black_trees.adb:192
+    doesn't translate token literals; copied shared_terminal nodes not in Data.EBNF_Nodes.
 
     ada_lite.wy require statement in sequence_of_statements
 
@@ -60,30 +80,6 @@ SAL.PROGRAMMER_ERROR: java_ebnf.wy:135:40: unhandled exception SAL.DUPLICATE_KEY
 
     edit after error recovery:
         no virtuals adjacent to edits; keep other virtuals
-
-    don't copy entire tree in New_Stream
-        bring back set_parents
-        eliminate state in tree node by computing from parse_table, current_state and id shifted.
-            wagner graham 1998
-            or change node.state to array (stream_id)?
-        store current_state in config
-        shared_stream needs parents for next_shared_Terminal
-            same in stream input?!
-            store parents in iterator object
-        other nodes don't set new parents.
-            or change Parent to stream_map_node_access?
-
-
-        config.input_stream could be real_recover_Token, to cache first_terminal
-
-        edit_tree delete unreachable nodes (from terminated parse streams)
-            use mark and sweep
-
-        OR at least delete all nodes in a stream when delete the stream
-
-    optimize use of First_Terminal in parse, error recovery
-        change node.first_shared_terminal to node.first_terminal
-            does that break something?
 
     enhance the parse table to store reduce actions on nonterms as well as terminals?
         ada lr1 is already huge

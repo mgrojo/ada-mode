@@ -42,7 +42,7 @@ package body WisiToken.Syntax_Trees is
       Stream : in     Stream_ID;
       Node   : in     Valid_Node_Access;
       Before : in     Stream_Element_Lists.Cursor := Stream_Element_Lists.No_Element)
-     return Terminal_Ref;
+     return Rooted_Ref;
    --  If Before is No_Element, add Node after Stream.Stack_Top (at
    --  beginning of input). Otherwise add Node before Before.
    --
@@ -546,6 +546,16 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Copy_Subtree;
 
+   procedure Copy_Token
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Ref       : in out Rooted_Ref;
+      User_Data : in     User_Data_Access)
+   is begin
+      Ref := Insert_Stream_Element
+        (Tree, Stream, Copy_Subtree (Tree, Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node, User_Data));
+   end Copy_Token;
+
    procedure Copy_Tree
      (Source      : in     Tree;
       Destination :    out Tree;
@@ -837,7 +847,10 @@ package body WisiToken.Syntax_Trees is
             Line := First_Terminal.Line;
 
             if Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
-               Column := Ada.Text_IO.Count (First_Terminal.Char_Region.First - Line_Begin_Char_Pos (Line));
+               Column :=
+                 (if First_Terminal.Char_Region.First = Invalid_Buffer_Pos
+                  then Ada.Text_IO.Count'First
+                  else Ada.Text_IO.Count (First_Terminal.Char_Region.First - Line_Begin_Char_Pos (Line)));
             end if;
 
          when Virtual_Terminal | Virtual_Identifier =>
@@ -1586,7 +1599,7 @@ package body WisiToken.Syntax_Trees is
       Stream : in     Stream_ID;
       Node   : in     Valid_Node_Access;
       Before : in     Stream_Element_Lists.Cursor := Stream_Element_Lists.No_Element)
-     return Terminal_Ref
+     return Rooted_Ref
    is
       use Stream_Element_Lists;
 

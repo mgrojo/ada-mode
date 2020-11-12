@@ -111,10 +111,11 @@ is
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
       Put_Line
-        (Standard_Error, "  -v <EBNF level> <Table level> <Minimal_Complete level>: sets verbosity (default 0):");
+        (Standard_Error, "  --verbosity <key=value ...> sets verbosity levels (default 0):");
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
       Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line (Standard_Error, "     keys: ebnf, table, minimal_complete, debug");
       Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
       Put_Line (Standard_Error, "  --output_bnf : output translated EBNF source to <grammar file name base>_bnf.wy");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
@@ -122,7 +123,6 @@ is
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
-      Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
       Put_Line (Standard_Error,
                 "  --task_count n; number of tasks used to compute LR1 items; 0 means CPU count." &
                   " Default 1 unless %lr1_hash_table_size specified; then 0.");
@@ -185,24 +185,16 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
-         --   --help, -v first, then alphabetical
+         --   --help, --verbosity first, then alphabetical
 
          if Argument (Arg_Next) = "--help" then
             Put_Usage;
             return;
 
-         elsif Argument (Arg_Next) = "-v" then
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_EBNF := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_Table := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_Minimal_Complete := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--debug_mode" then
-            WisiToken.Debug_Mode := True;
-            Arg_Next             := Arg_Next + 1;
+         elsif Argument (Arg_Next) = "--verbosity" then
+            Arg_Next := Arg_Next + 1;
+            WisiToken.Enable_Trace (Argument (Arg_Next));
+            Arg_Next := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--ignore_conflicts" then
             Ignore_Conflicts := True;

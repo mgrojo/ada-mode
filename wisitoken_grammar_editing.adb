@@ -1615,7 +1615,6 @@ package body WisiToken_Grammar_Editing is
          List_Element      : in Identifier_Token_Index;
          Separator         : in Identifier_Token_Index;
          Auto_Token_Labels : in Boolean)
-      with Pre => List_Element.ID = +IDENTIFIER_ID
       is
          --  Add a nonterminal declaration for a canonical list:
          --
@@ -2261,6 +2260,11 @@ package body WisiToken_Grammar_Editing is
                  (if Has_Separator
                   then Element (B_Alt_List_Item_List.First)
                   else Invalid_Node_Access);
+
+               pragma Assert (Element_1 = Invalid_Node_Access or else Tree.ID (Element_1) = +IDENTIFIER_ID);
+               --  So we can use it as a nonterm name. If the source text has a
+               --  terminal literal (see java_ebnf.wy arrayCreatorRest), it should
+               --  have been translated to a token name by now.
 
                List_Nonterm_String : constant String :=
                  (if Has_Separator

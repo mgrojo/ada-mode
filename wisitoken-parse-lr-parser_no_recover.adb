@@ -148,6 +148,9 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end case;
    end Do_Action;
 
+   procedure Parse_Verb
+     (Shared_Parser : in out Parser;
+      Verb          :    out All_Parse_Action_Verbs)
    --  Return the type of parser cycle to execute.
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
@@ -157,9 +160,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    --  Reduce : some Parsers.Verb return Reduce.
    --
    --  Error : all Parsers.Verb return Error.
-   procedure Parse_Verb
-     (Shared_Parser : in out Parser;
-      Verb          :    out All_Parse_Action_Verbs)
    is
       Shift_Count  : SAL.Base_Peek_Type := 0;
       Accept_Count : SAL.Base_Peek_Type := 0;
@@ -230,8 +230,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end if;
    end New_Parser;
 
-   overriding procedure Parse (Shared_Parser : in out Parser)
+   overriding procedure Parse
+     (Shared_Parser : in out Parser;
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
+      use all type KMN_Lists.List;
       use all type WisiToken.Syntax_Trees.Terminal_Ref;
       use all type Syntax_Trees.User_Data_Access;
 
@@ -258,6 +261,10 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end Check_Error;
 
    begin
+      if Edits /= KMN_Lists.Empty_List then
+         raise SAL.Programmer_Error;
+      end if;
+
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
       end if;

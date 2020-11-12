@@ -14,8 +14,11 @@
 pragma License (Modified_GPL);
 
 separate (WisiToken.Parse.LR.Parser)
-overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser)
+overriding procedure Parse
+  (Shared_Parser : in out LR.Parser.Parser;
+   Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
 is
+   use all type KMN_Lists.List;
    use all type Ada.Strings.Unbounded.Unbounded_String;
    use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
@@ -30,22 +33,60 @@ begin
       Trace.Put_Clock ("start");
    end if;
 
-   --  Reset parser for new parse; in Base_Parser, Parser order. Lexer
-   --  done by caller to set input text.
-   Shared_Parser.Tree.Clear;
    if Shared_Parser.User_Data /= null then
       Shared_Parser.User_Data.Reset;
    end if;
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
-   --  Line_Begin_Token, Last_Grammar_Node done by Lex_All
+   --  Line_Begin_Token, Last_Grammar_Node done by Lex_All or Edit_Tree.
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
 
-   Shared_Parser.Lex_All;
+   if Edits /= KMN_Lists.Empty_List then
+      Edit_Tree (Shared_Parser, Edits);
+
+   else
+      Shared_Parser.Tree.Clear;
+
+      Shared_Parser.Lex_All;
+   end if;
 
    Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
 
    Shared_Parser.Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
+
+   if Edits /= KMN_Lists.Empty_List then
+      if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+        Shared_Parser.Descriptor.Accept_ID
+      then
+         --  Parsed tree was not changed in Edit_Tree.
+         declare
+            Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers.First_State_Ref;
+         begin
+            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
+            Shared_Parser.Tree.Shift
+              (Parser_State.Stream, Unknown_State, Parser_State.Shared_Token.Element, Shared_Parser.User_Data);
+            Shared_Parser.Tree.Finish_Parse
+              (Parser_State.Stream,
+               Shared_Parser.Tree.Stream_Last (Shared_Parser.Tree.Shared_Stream),
+               Shared_Parser.User_Data);
+
+            if Trace_Parse > Detail then
+               Trace.Put_Line ("existing tree not changed by edits");
+            end if;
+            return;
+         end;
+      end if;
+
+      if Trace_Parse > Detail then
+         Trace.New_Line;
+         Trace.Put_Line ("edited stream:");
+         Trace.Put_Line
+           (Shared_Parser.Tree.Image
+              (Non_Grammar => Trace_Parse > Extra,
+               Children    => Trace_Parse > Extra));
+         Trace.New_Line;
+      end if;
+   end if;
 
    Main_Loop :
    loop

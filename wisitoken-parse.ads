@@ -88,17 +88,6 @@ package WisiToken.Parse is
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 
-   procedure Parse (Parser : in out Base_Parser) is abstract;
-   --  Call Lex_All, then execute parse algorithm to parse the tokens,
-   --  storing the result in Parser for Execute_Actions.
-   --
-   --  If a parse error is encountered, raises Syntax_Error.
-   --  Parser.Lexer_Errors and Parser contain information about the
-   --  errors.
-   --
-   --  For other errors, raises Parse_Error with an appropriate error
-   --  message.
-
    type KMN is record
       --  Similar to [Lahav 2004] page 6; describes changed and unchanged
       --  regions in a text buffer. We assume the range boundaries do not
@@ -146,6 +135,21 @@ package WisiToken.Parse is
    --  Edits. Uses Edits to direct editing Parser.Tree parse
    --  stream to reflect lexing the changed source, in preparation for
    --  Incremental_Parse; result is in Tree.Shared_Stream.
+
+   procedure Parse
+     (Parser : in out Base_Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
+   is abstract;
+   --  If Edits is empty, call Lex_All. If Edits is not empty, call
+   --  Edit_Tree. Then execute parse algorithm to parse the new tokens,
+   --  storing the result in Parser for Execute_Actions.
+   --
+   --  If a parse error is encountered, raises Syntax_Error.
+   --  Parser.Lexer_Errors and Parser contain information about the
+   --  errors.
+   --
+   --  For other errors, raises Parse_Error with an appropriate error
+   --  message.
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

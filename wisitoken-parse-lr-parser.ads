@@ -109,7 +109,9 @@ package WisiToken.Parse.LR.Parser is
       Language_String_ID_Set         : in              Language_String_ID_Set_Access;
       User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access);
 
-   overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser);
+   overriding procedure Parse
+     (Shared_Parser : in out LR.Parser.Parser;
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --
@@ -120,17 +122,6 @@ package WisiToken.Parse.LR.Parser is
    --
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
-
-   procedure Parse_Incremental
-     (Shared_Parser : in out LR.Parser.Parser;
-      Edits         : in     KMN_Lists.List)
-   with Pre => Shared_Parser.Tree.Fully_Parsed;
-   --  Apply Edits to Shared_Parser.Tree, use [Wagner Graham 1998] to
-   --  parse. Errors handled as in Parse.
-   --
-   --  Not 'overriding' because it's not clear yet if incremental parse
-   --  is possible for other parsing algorithms, and we may eventually
-   --  use the incremental algorithm for batch parse.
 
    overriding procedure Execute_Actions
      (Parser          : in out LR.Parser.Parser;

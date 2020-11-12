@@ -165,12 +165,11 @@ package body WisiToken.Parse.LR.Parser is
                      end if;
 
                   else
-                     pragma Assert
-                       (Parser_State.Current_Token.Stream = Parser_State.Stream,
-                        --  Currently we only need to handle nonterms from Push_Back. To
-                        --  breakdown a shared_stream token, we first have to copy it to the
-                        --  parse stream input.
-                        "FIXME: handle breakdown of nonterms in shared_stream");
+                     if Parser_State.Current_Token.Stream /= Parser_State.Stream then
+                        --  To breakdown a shared_stream token, we first have to copy it to
+                        --  the parse stream input.
+                        Tree.Copy_Token (Parser_State.Stream, Parser_State.Current_Token, Shared_Parser.User_Data);
+                     end if;
 
                      Tree.Left_Breakdown (Parser_State.Current_Token);
                      Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
@@ -618,11 +617,9 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Check_Error;
 
-   overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser) is separate;
-
-   procedure Parse_Incremental
+   overriding procedure Parse
      (Shared_Parser : in out LR.Parser.Parser;
-      Edits         : in     KMN_Lists.List)
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is separate;
 
    overriding

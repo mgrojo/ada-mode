@@ -568,6 +568,15 @@ package WisiToken.Syntax_Trees is
       Stream : in     Stream_ID);
    --  Move Stream.Stack_Top to Stream input.
 
+   procedure Copy_Token
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Ref       : in out Rooted_Ref;
+      User_Data : in     User_Data_Access)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Stream /= Ref.Stream;
+   --  Copy Ref to beginning of Stream input. Ref is updated to point to
+   --  copy.
+
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
