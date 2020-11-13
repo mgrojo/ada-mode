@@ -21,7 +21,6 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
-with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
@@ -245,13 +244,11 @@ package body Test_Incremental is
 
       Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception
-   when E : WisiToken.Syntax_Error =>
-      if WisiToken.Debug_Mode then
-         Put_Line ("exception: " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Parser.Put_Errors;
-      end if;
-
+   when WisiToken.Syntax_Error =>
       Check ("exception", True, False);
+
+   when WisiToken.Parse_Error =>
+      Check ("unexpected exception", True, False);
    end Parse_Text;
 
    ----------

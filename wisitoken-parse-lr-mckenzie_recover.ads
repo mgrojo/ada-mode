@@ -222,7 +222,8 @@ private
 
    function Unchecked_Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
-      Tree  : in     Syntax_Trees.Tree)
+      Tree  : in     Syntax_Trees.Tree;
+      Table : in     Parse_Table)
      return Ada.Containers.Count_Type;
    --  Undo the reduction that produced the top stack item, return the
    --  token count for that reduction.
@@ -230,6 +231,7 @@ private
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;
       Tree     : in     Syntax_Trees.Tree;
+      Table    : in     Parse_Table;
       Expected : in     Token_ID)
    with Inline => True;
    --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check, Undo_Reduce.
@@ -237,6 +239,7 @@ private
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;
       Tree     : in     Syntax_Trees.Tree;
+      Table    : in     Parse_Table;
       Expected : in     Token_ID_Array);
    --  Call Undo_Reduce_Check for each item in Expected.
 

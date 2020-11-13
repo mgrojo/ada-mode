@@ -663,7 +663,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
       New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-      Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Tree.all);
+      Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Tree.all, Shared.Table.all);
 
       if not Super.Tree.Buffer_Region_Is_Empty (Token.Element_Node) then
          --  Token is not empty.

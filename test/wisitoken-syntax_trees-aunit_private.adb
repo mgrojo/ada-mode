@@ -47,8 +47,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
          Standard.AUnit.Assertions.Assert (False, Label & ".parent set expected null");
       end if;
 
-      Check (Label & ".state", Computed.State, Expected.State);
-
       --  Not comparing Augmented; not used in unit tests.
 
       case Computed.Label is
@@ -82,6 +80,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use SAL.AUnit;
       use Stream_Element_Lists;
+      use WisiToken.AUnit;
       Computed_Parse_Stream  : Parse_Stream renames Computed_Tree.Streams (Computed_Stream.Cur);
       Expected_Parse_Stream  : Parse_Stream renames Expected_Tree.Streams (Expected_Stream.Cur);
       Computed_Element : Cursor  := Computed_Parse_Stream.Elements.First;
@@ -106,9 +105,10 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             if Check_Label then
                Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
             end if;
-            Check (Label & ".node" & Computed.Node.Node_Index'Image,
+            Check (Label & " (" & Computed.Node.Node_Index'Image & ").node",
                    Computed.Node.all,
                    Expected.Node.all);
+            Check (Label & " (" & Computed.Node.Node_Index'Image & ").state", Computed.State, Expected.State);
          end;
 
          Computed_Element := Next (@);

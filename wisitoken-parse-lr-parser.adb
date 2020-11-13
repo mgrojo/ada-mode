@@ -37,7 +37,7 @@ package body WisiToken.Parse.LR.Parser is
      (Shared_Parser  : in out Parser;
       Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      New_State      : in     Unknown_State_Index;
+      New_State      : in     State_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
       Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
@@ -286,7 +286,7 @@ package body WisiToken.Parse.LR.Parser is
          case Reduce_Stack_1
            (Shared_Parser, Current_Parser,
             (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
-            Unknown_State, Shared_Parser.Lexer, Trace)
+            Accept_State, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
             Parser_State.Set_Verb (Action.Verb);

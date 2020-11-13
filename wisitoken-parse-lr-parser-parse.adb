@@ -38,7 +38,8 @@ begin
    end if;
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
-   --  Line_Begin_Token, Last_Grammar_Node done by Lex_All or Edit_Tree.
+   --  Line_Begin_Token, Line_Begin_Char_Pos, Last_Grammar_Node done by
+   --  Lex_All or Edit_Tree.
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
 
    if Edits /= KMN_Lists.Empty_List then
@@ -64,7 +65,7 @@ begin
          begin
             Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
             Shared_Parser.Tree.Shift
-              (Parser_State.Stream, Unknown_State, Parser_State.Shared_Token.Element, Shared_Parser.User_Data);
+              (Parser_State.Stream, Accept_State, Parser_State.Shared_Token.Element, Shared_Parser.User_Data);
             Shared_Parser.Tree.Finish_Parse
               (Parser_State.Stream,
                Shared_Parser.Tree.Stream_Last (Shared_Parser.Tree.Shared_Stream),
@@ -671,6 +672,7 @@ when E : others =>
       end if;
 
       if Debug_Mode then
+         Trace.Put_Line ("exception: " & Msg);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          Trace.New_Line;
       end if;

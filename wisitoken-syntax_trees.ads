@@ -14,12 +14,19 @@
 --
 --  Each parallel parser uses one stream as the parse stack.
 --
+--  We don't store the parse State in syntax tree nodes, to avoid
+--  having to copy nodes from the shared_stream; that would mean
+--  copying the entire tree for each new parallel parser, which is far
+--  too slow. State is stored in the parse stream elements; they form
+--  the parser stack. This means Parse.LR.Undo_Reduce has to call
+--  Action_For to compute the state for the child nodes.
+--
 --  During batch parsing, the "shared stream" holds all of the shared
 --  terminals read from the input source; this is populated by
 --  Wisitoken.Parse.Lex_All. Nodes are copied from the shared stream
---  to parse streams in order to store state for undo_reduce (as well
---  as the Parent pointer). After error correction, the sequence of
---  terminals in a parse stream is given by
+--  to parse streams in order to store the Parent pointer (will be
+--  changed in next iteration). After error correction, the sequence
+--  of terminals in a parse stream is given by
 --  Next_Terminal/Prev_Terminal.
 --
 --  During incremental parse, the shared stream holds the edited parse
@@ -531,7 +538,7 @@ package WisiToken.Syntax_Trees is
       Production      : in     WisiToken.Production_ID;
       Child_Count     : in     Ada.Containers.Count_Type;
       Action          : in     Semantic_Action := null;
-      State           : in     Unknown_State_Index;
+      State           : in     State_Index;
       Default_Virtual : in     Boolean         := False)
      return Rooted_Ref
    with Pre => not Tree.Traversing and Tree.Is_Valid (Stream),
@@ -543,17 +550,10 @@ package WisiToken.Syntax_Trees is
    --  Set Result byte_region, char_region, line, column,
    --  first_terminal to min/max of children.
 
-   procedure Undo_Reduce
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
-   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.Label (Tree.Peek (Stream)) = Nonterm;
-   --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
-   --  the last Child of the nonterm.
-
    procedure Shift
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
-      State     : in     Unknown_State_Index;
+      State     : in     State_Index;
       Token     : in     Stream_Index;
       User_Data : in     User_Data_Access)
    with Pre => not Tree.Traversing and
@@ -562,6 +562,21 @@ package WisiToken.Syntax_Trees is
    --  If Token is in Shared_Stream, copy Token from Shared_Stream to
    --  Stream.Stack_Top; otherwise move from Stream input to
    --  Stream.Stack_Top. Then set State in the Stream token.
+
+   function Pop
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID)
+     return Valid_Node_Access
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream);
+   --  Delete Stream stack top, returning its node.
+
+   procedure Push
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      State  : in     State_Index)
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream);
+   --  State, Node become Stream stack top.
 
    procedure Push_Back
      (Tree   : in out Syntax_Trees.Tree;
@@ -591,9 +606,9 @@ package WisiToken.Syntax_Trees is
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
 
-   function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
+   function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
-   --  Return State from node at Stream.Stack_Top.
+   --  Return State from Stream.Stack_Top.
 
    function State
      (Tree    : in Syntax_Trees.Tree;
@@ -601,8 +616,7 @@ package WisiToken.Syntax_Trees is
       Element : in Stream_Index)
      return Unknown_State_Index
    with Pre => Tree.Contains (Stream, Element);
-
-   function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Unknown_State_Index;
+   --  If Element is in input, state may be Unknown_State.
 
    function Stream_First
      (Tree   : in Syntax_Trees.Tree;
@@ -1325,8 +1339,7 @@ package WisiToken.Syntax_Trees is
      (Tree : in out Syntax_Trees.Tree;
       Node : in     Valid_Node_Access)
    with
-     Pre => Tree.Editable and (not Tree.Traversing) and
-            Tree.Parent (Node) /= Invalid_Node_Access;
+     Pre => not Tree.Traversing and Tree.Parent (Node) /= Invalid_Node_Access;
    --  Set child in Node.Parent to Invalid_Node_Access. If Node.Parent =
    --  Tree.Root, set Tree.Root to Node. Set Node.Parent to
    --  Invalid_Node_Access.
@@ -1499,10 +1512,6 @@ private
 
       Parent : Node_Access := Invalid_Node_Access;
 
-      State : Unknown_State_Index := Unknown_State;
-      --  Parse state that is on the parse stack with this token. Required
-      --  for Left_Breakdown, Undo_Reduce.
-
       Augmented : Augmented_Class_Access := null;
       --  IMPROVEME: Augmented should not derive from Base_Token; that
       --  duplicates information. Not changing yet for compatibility with
@@ -1564,6 +1573,9 @@ private
       --  its own stream. This also preserves Child_Index when children are
       --  deleted during editing.
       Node : Node_Access  := Invalid_Node_Access;
+
+      State : Unknown_State_Index := Unknown_State;
+      --  Parse state that is on the parse stack with this token.
 
       Label : Stream_Label; -- allows checking if Element is from Shared_Stream or a parse stream.
    end record;
@@ -1776,13 +1788,10 @@ private
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Unknown_State_Index
-   is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.State);
+   is (Stream_Element_Lists.Constant_Ref (Element.Cur).State);
 
-   function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Unknown_State_Index
-   is (Stream_Element_Lists.Constant_Ref (Tree.Streams (Stream.Cur).Stack_Top).Node.State);
-
-   function State (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Unknown_State_Index
-   is (Node.State);
+   function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
+   is (Stream_Element_Lists.Constant_Ref (Tree.Streams (Stream.Cur).Stack_Top).State);
 
    function Stream_Count (Tree : in Syntax_Trees.Tree) return Natural
    is (Natural (Tree.Streams.Length));

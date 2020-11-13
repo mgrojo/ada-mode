@@ -299,6 +299,32 @@ package body WisiToken.Parse.LR is
       return Ref.Actions;
    end Action_For;
 
+   function Shift_State (Action_List : in Parse_Action_Node_Ptr) return State_Index
+   is begin
+      --  There can be only one shift action, and it is always first.
+      return Action_List.Item.State;
+   end Shift_State;
+
+   procedure Undo_Reduce
+     (Tree   : in out Syntax_Trees.Tree;
+      Table  : in     Parse_Table;
+      Stream : in     Syntax_Trees.Stream_ID)
+   is
+      use Syntax_Trees;
+      Nonterm    : constant Node_Access := Tree.Pop (Stream);
+      Prev_State : State_Index          := Tree.State (Stream);
+   begin
+      for Child of Tree.Children (Nonterm) loop
+         Tree.Clear_Parent (Child);
+         if Is_Terminal (Tree.ID (Child), Tree.Descriptor.all) then
+            Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
+         else
+            Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
+         end if;
+         Tree.Push (Stream, Child, Prev_State);
+      end loop;
+   end Undo_Reduce;
+
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set
    is
       Result : Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => False);

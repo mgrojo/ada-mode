@@ -120,6 +120,7 @@ package body WisiToken.Parse is
    begin
       Parser.Lexer.Errors.Clear;
       Parser.Line_Begin_Token.Clear;
+      Parser.Line_Begin_Char_Pos.Clear;
       Parser.Last_Grammar_Node := WisiToken.Syntax_Trees.Invalid_Node_Access;
 
       loop

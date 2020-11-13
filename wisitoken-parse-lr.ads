@@ -341,7 +341,8 @@ package WisiToken.Parse.LR is
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
-     return Unknown_State_Index;
+     return Unknown_State_Index
+   with Pre => ID in Table.First_Nonterminal .. Table.Last_Nonterminal;
    --  Return next state after reducing stack by nonterminal ID;
    --  Unknown_State if none (only possible during error recovery).
 
@@ -350,8 +351,19 @@ package WisiToken.Parse.LR is
       State : in State_Index;
       ID    : in Token_ID)
      return Parse_Action_Node_Ptr
-   with Post => Action_For'Result /= null;
+   with Pre => ID in Table.First_Terminal .. Table.Last_Terminal,
+     Post => Action_For'Result /= null;
    --  Return the action for State, terminal ID.
+
+   function Shift_State (Action_List : in Parse_Action_Node_Ptr) return State_Index;
+   --  Return State from the shift action in Action_List.
+
+   procedure Undo_Reduce
+     (Tree   : in out Syntax_Trees.Tree;
+      Table  : in     Parse_Table;
+      Stream : in     Syntax_Trees.Stream_ID);
+   --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
+   --  the last Child of the nonterm.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 

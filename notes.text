@@ -32,10 +32,6 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    eliminate state in tree node by computing from parse_table, current_state and id shifted.
-        wagner graham 1998
-        store current_state in config, parser_state
-
     don't copy entire tree in New_Stream
         bring back set_parents
         shared_stream needs parents for next_shared_Terminal
@@ -508,5 +504,6 @@ integrate with emacs module
 build/release_process.text
 
 d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
+d:/Books/eBooks/Parsing/Lahav 2004 Efficient Semantic Analysis for Text Editors.pdf
 
 # end of file

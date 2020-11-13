@@ -378,7 +378,7 @@ package body WisiToken is
    function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count
    is begin
       if Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
-         return Ada.Text_IO.Count (Line_Begin_Char_Pos (Token.Line) - Token.Char_Region.First);
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line) + 1);
       else
          return 1;
       end if;

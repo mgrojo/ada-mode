@@ -106,6 +106,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
+      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
@@ -313,7 +314,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    +END_ID));
 
                Undo_Reduce_Check
-                 (New_Config, Tree,
+                 (New_Config, Tree, Parse_Table,
                   (+handled_sequence_of_statements_ID,
                    +sequence_of_statements_ID));
 
@@ -680,7 +681,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          Handle_Parse_Error (Trace, Lexer, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
 
       when others =>
-         Handle_Check_Fail (Trace, Lexer, Parser_Label, Tree, Local_Config_Heap, Config);
+         Handle_Check_Fail (Trace, Lexer, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
       end case;
    end Fixes;
 
