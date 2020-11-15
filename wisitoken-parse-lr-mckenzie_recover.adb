@@ -749,15 +749,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       Current_Input_Stream_Element : Bounded_Streams.Cursor;
       Current_Input_Stream_Node    : Syntax_Trees.Node_Access;
+      Input_Stream_Parents         : Syntax_Trees.Node_Stacks.Stack;
       Current_Shared_Token         : Syntax_Trees.Terminal_Ref;
    begin
       Parse.Peek_Shared_Start
-        (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+        (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
+         Current_Shared_Token);
 
       for ID of IDs loop
          Delete_Check (Tree, Config, Parse.Peek_Shared_Terminal (Current_Input_Stream_Node, Current_Shared_Token), ID);
          Parse.Peek_Next_Shared_Terminal
-           (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+           (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
+            Current_Shared_Token);
       end loop;
    end Delete_Check;
 

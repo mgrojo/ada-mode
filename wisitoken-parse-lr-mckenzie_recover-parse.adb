@@ -233,18 +233,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  not have to here, but rather than rely on that and special case it
       --  here, we handle all three in the same way.
 
-      Tokens_Last                  : Integer := 0;
+      Tokens_Last                  : Integer            := 0;
       Current_Insert_Delete        : SAL.Base_Peek_Type := Config.Current_Insert_Delete;
       Current_Input_Stream_Element : Bounded_Streams.Cursor;
       Current_Input_Stream_Node    : Node_Access;
+      Input_Stream_Parents         : Syntax_Trees.Node_Stacks.Stack;
       Current_Shared_Token         : Terminal_Ref;
-      Inc_Shared_Token : Boolean                    := True;
+      Inc_Shared_Token             : Boolean            := True;
    begin
-      Peek_Shared_Start (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+      Peek_Shared_Start
+        (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
+         Current_Shared_Token);
 
       loop -- three tokens, Op = Delete
          declare
-            Next_Node        : constant Valid_Node_Access := Peek_Shared_Terminal
+            Next_Node : constant Valid_Node_Access := Peek_Shared_Terminal
               (Current_Input_Stream_Node, Current_Shared_Token);
          begin
             if Current_Insert_Delete /= No_Insert_Delete and then
@@ -262,7 +265,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                   when Delete =>
                      Peek_Next_Shared_Terminal
-                       (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+                       (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
+                        Current_Shared_Token);
                   end case;
 
                   Current_Insert_Delete := @ + 1;
@@ -282,7 +286,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          if Inc_Shared_Token then
             Peek_Next_Shared_Terminal
-              (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Current_Shared_Token);
+              (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
+               Current_Shared_Token);
          end if;
       end loop;
 
@@ -335,18 +340,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Bounded_Streams;
       use Syntax_Trees;
+      Parents : Node_Stacks.Stack;
    begin
       if Config.Input_Stream.First = No_Element then
-         return Tree.First_Shared_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
+         return Tree.First_Shared_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element, Parents).Node;
 
       else
          declare
-            Result : constant Node_Access := First_Shared_Terminal (Tree, Config.Input_Stream);
+            Result : constant Node_Access := First_Shared_Terminal (Tree, Config.Input_Stream, Parents);
          begin
             if Result /= Invalid_Node_Access then
                return Result;
             else
-               return Tree.First_Shared_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
+               return Tree.First_Shared_Terminal
+                 (Tree.Shared_Stream, Config.Current_Shared_Token.Element, Parents).Node;
             end if;
          end;
       end if;
@@ -357,10 +364,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Config                       : in     Configuration;
       Current_Input_Stream_Element :    out Bounded_Streams.Cursor;
       Current_Input_Stream_Node    :    out Syntax_Trees.Node_Access;
+      Input_Stream_Parents         : in out Syntax_Trees.Node_Stacks.Stack;
       Current_Shared_Token         :    out Syntax_Trees.Terminal_Ref)
    is begin
       Current_Input_Stream_Element := Config.Input_Stream.First;
-      Current_Input_Stream_Node    := First_Shared_Terminal (Tree, Config.Input_Stream);
+      Current_Input_Stream_Node    := First_Shared_Terminal (Tree, Config.Input_Stream, Input_Stream_Parents);
       Current_Shared_Token         := Config.Current_Shared_Token;
    end Peek_Shared_Start;
 
@@ -382,6 +390,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Config                       : in     Configuration;
       Current_Input_Stream_Element : in out Bounded_Streams.Cursor;
       Current_Input_Stream_Node    : in out Syntax_Trees.Node_Access;
+      Input_Stream_Parents         : in out Syntax_Trees.Node_Stacks.Stack;
       Current_Shared_Token         : in out Syntax_Trees.Terminal_Ref)
    is
       use Syntax_Trees;
@@ -390,7 +399,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Tree.Next_Shared_Terminal (Current_Shared_Token);
 
       else
-         Next_Shared_Terminal (Tree, Config.Input_Stream, Current_Input_Stream_Element, Current_Input_Stream_Node);
+         Next_Shared_Terminal
+           (Tree, Config.Input_Stream, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents);
       end if;
    end Peek_Next_Shared_Terminal;
 
@@ -416,8 +426,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end First_Terminal;
 
    function First_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Bounded_Streams.List)
+     (Tree           : in     Syntax_Trees.Tree;
+      Stream         : in     Bounded_Streams.List;
+      Stream_Parents : in out Syntax_Trees.Node_Stacks.Stack)
      return Syntax_Trees.Node_Access
    is
       use Bounded_Streams;
@@ -429,14 +440,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       loop
          exit Outer when not Has_Element (Cur);
 
-         Node := Tree.First_Terminal (Stream (Cur));
+         Node := Tree.First_Terminal (Stream (Cur), Stream_Parents);
 
          Inner :
          loop
             exit Inner when Node = Invalid_Node_Access;
             exit Outer when Tree.Get_Node_Index (Node) > 0;
 
-            Node := Tree.Next_Terminal (Node);
+            Node := Tree.Next_Terminal (Stream_Parents, Node);
          end loop Inner;
 
          Stream.Next (Cur);
@@ -448,11 +459,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree         : in     Syntax_Trees.Tree;
       Stream       : in     Bounded_Streams.List;
       Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access)
+      Node         : in out Syntax_Trees.Node_Access;
+      Parents      : in out Syntax_Trees.Node_Stacks.Stack)
    is
       use Bounded_Streams;
    begin
-      Node := Tree.Next_Shared_Terminal (Node);
+      if Tree.Has_Parent (Node) then
+         Node := Tree.Next_Shared_Terminal (Node);
+      else
+         Node := Tree.Next_Shared_Terminal (Parents, Node);
+      end if;
+
       loop
          exit when Node /= Syntax_Trees.Invalid_Node_Access;
          Element_Node := Next (Stream, Element_Node);
@@ -460,7 +477,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node));
+         Node := Tree.First_Shared_Terminal (Element (Stream, Element_Node), Parents);
       end loop;
    end Next_Shared_Terminal;
 
@@ -468,11 +485,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree         : in     Syntax_Trees.Tree;
       Stream       : in     Bounded_Streams.List;
       Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access)
+      Node         : in out Syntax_Trees.Node_Access;
+      Parents      : in out Syntax_Trees.Node_Stacks.Stack)
    is
       use Bounded_Streams;
    begin
-      Node := Tree.Prev_Shared_Terminal (Node);
+      if Tree.Has_Parent (Node) then
+         Node := Tree.Prev_Shared_Terminal (Node);
+      else
+         Node := Tree.Prev_Shared_Terminal (Parents, Node);
+      end if;
+
       loop
          exit when Node /= Syntax_Trees.Invalid_Node_Access;
          Element_Node := Previous (Stream, Element_Node);
@@ -480,7 +503,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node));
+         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node), Parents);
       end loop;
    end Prev_Shared_Terminal;
 
@@ -607,9 +630,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Clear (Config.Insert_Delete);
       else
          declare
+            Parents : Syntax_Trees.Node_Stacks.Stack;
             Next_Node : constant Syntax_Trees.Valid_Node_Access :=
               (if Config.Input_Stream.First /= Bounded_Streams.No_Element
-               then First_Shared_Terminal (Tree, Config.Input_Stream)
+               then First_Shared_Terminal (Tree, Config.Input_Stream, Parents)
                else Config.Current_Shared_Token.Node);
          begin
             if Config.Current_Insert_Delete /= No_Insert_Delete and then
@@ -710,6 +734,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      First_In_Current := Super.Tree.First_Terminal (Current_Token);
 
                      if First_In_Current = Syntax_Trees.Invalid_Node_Access then
+                        --  Current_Token is an empty nonterm; skip it.
                         Next_Token (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
                         Current_Token := Get_Current_Token
@@ -719,6 +744,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                           (Config.Input_Stream.Length > 0,
                            "FIXME: mckenzie_recover.parse handle nonterm in Shared_Stream");
 
+                        --  FIXME: don't need breakdown if action on first_terminal is reduce;
+                        --  see wisitoken-parse-lr-parser.adb Get_Action
                         Breakdown (Super.Tree.all, Config.Input_Stream);
 
                         Current_Token := Get_Current_Token

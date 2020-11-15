@@ -663,7 +663,7 @@ package WisiToken.Parse.LR is
       --  To justify the size; in a typical recover we might need to push
       --  back a few terminals, and one nonterm that is then broken down
       --  (max of 15 tokens for most languages). For
-      --  test_mckenzie_recover.adb, 10 is too small.
+      --  test_mckenzie_recover.adb, 10 is too small, 20 is enough.
 
       Insert_Delete : aliased Config_Op_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only

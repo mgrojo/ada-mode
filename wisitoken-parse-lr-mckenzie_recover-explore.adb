@@ -1341,12 +1341,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config         : in out Configuration;
          Target_Element : in out Bounded_Streams.Cursor;
          Target_Node    : in     Valid_Node_Access;
+         Parents_Stack  : in     Syntax_Trees.Node_Stacks.Stack;
          Max_Node_Index :    out Node_Index)
       with Pre => Length (Config.Input_Stream) > 0
       --  Delete terminals First .. Target_Node - 1 in Config.Input_Stream;
-      --  Target_Element must contain Target_Node. Max_Node_Index is the
-      --  last node_index deleted. Target_Element is updated if Input_Stream
-      --  is broken down to expose tokens.
+      --  Target_Element must contain Target_Node, via Parents.
+      --  Max_Node_Index is the last node_index deleted. Target_Element is
+      --  updated if Input_Stream is broken down to expose tokens.
       is
          Stream : Bounded_Streams.List renames Config.Input_Stream;
 
@@ -1371,6 +1372,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Delete (Stream, To_Delete);
          end Delete_First;
 
+         Parents : constant Valid_Node_Access_Array := (for I in 1 .. Parents_Stack.Depth => Parents_Stack.Peek (I));
       begin
          Max_Node_Index := Invalid_Node_Index;
          loop
@@ -1379,13 +1381,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                Parse.Breakdown (Tree, Stream);
 
+               exit when Target_Node = Stream (Stream.First);
+
                --  Find new Target_Element
                Target_Element := Stream.First;
                loop
-                  exit when Tree.Is_Descendant_Of
-                    (Root       => Stream (Target_Element),
-                     Descendant => Target_Node);
-
+                  exit when (for some I in Parents'Range => Element (Stream, Target_Element) = Parents (I));
                   Target_Element := Next (Stream, Target_Element);
                end loop;
 
@@ -1408,7 +1409,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       is
          Stream         : Bounded_Streams.List renames Config.Input_Stream;
          Target_Element : Bounded_Streams.Cursor := First (Stream);
-         Target_Node    : Node_Access := Invalid_Node_Access;
+         Target_Node    : Node_Access            := Invalid_Node_Access;
       begin
          if not Has_Element (Target_Element) then
             Max_Node_Index := Invalid_Node_Index;
@@ -1432,14 +1433,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
 
          --  Find Target_Node
-         Target_Node := Parse.First_Shared_Terminal (Tree, Stream);
-         loop
-            exit when Tree.Get_Node_Index (Target_Node) = Target_Node_Index;
+         declare
+            Parents : Syntax_Trees.Node_Stacks.Stack;
+         begin
+            Target_Node := Parse.First_Shared_Terminal (Tree, Stream, Parents);
+            loop
+               exit when Tree.Get_Node_Index (Target_Node) = Target_Node_Index;
 
-            Parse.Next_Shared_Terminal (Tree, Stream, Target_Element, Target_Node);
-         end loop;
+               Parse.Next_Shared_Terminal (Tree, Stream, Target_Element, Target_Node, Parents);
+            end loop;
 
-         Delete_Pushed_Back (Label, Config, Target_Element, Target_Node, Max_Node_Index);
+            Delete_Pushed_Back (Label, Config, Target_Element, Target_Node, Parents, Max_Node_Index);
+         end;
       end Delete_Pushed_Back;
 
       procedure String_Literal_In_Stack
@@ -1454,6 +1459,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       is
          String_Lit_Element : Bounded_Streams.Cursor := Last (Config.Input_Stream);
          String_Lit_Node    : Node_Access;
+         String_Lit_Parents : Syntax_Trees.Node_Stacks.Stack;
          Max_Deleted        : Node_Index;
          pragma Unreferenced (Max_Deleted);
       begin
@@ -1473,20 +1479,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  Search the pushed_back tokens for the last string literal.
          if String_Lit_Element = No_Element then
             String_Lit_Element := Last (Config.Input_Stream);
-            String_Lit_Node    := Tree.Last_Shared_Terminal (Config.Input_Stream (String_Lit_Element));
+            String_Lit_Node    := Tree.Last_Shared_Terminal
+              (Config.Input_Stream (String_Lit_Element), String_Lit_Parents);
          else
-            String_Lit_Node := Tree.First_Shared_Terminal (Config.Input_Stream (String_Lit_Element));
-            Parse.Prev_Shared_Terminal (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node);
+            String_Lit_Node := Tree.First_Shared_Terminal
+              (Config.Input_Stream (String_Lit_Element), String_Lit_Parents);
+            Parse.Prev_Shared_Terminal
+              (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node, String_Lit_Parents);
          end if;
          loop
             exit when Tree.ID (String_Lit_Node) = String_Literal_ID;
 
-            Parse.Prev_Shared_Terminal (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node);
+            Parse.Prev_Shared_Terminal
+              (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node, String_Lit_Parents);
          end loop;
 
          --  Delete pushed_back tokens to the string literal; keep the tokens
          --  before it.
-         Delete_Pushed_Back (Label, Config, String_Lit_Element, String_Lit_Node, Max_Deleted);
+         Delete_Pushed_Back (Label, Config, String_Lit_Element, String_Lit_Node, String_Lit_Parents, Max_Deleted);
 
          --  Parse the pushed back tokens before the string literal so
          --  Config matches Ops.

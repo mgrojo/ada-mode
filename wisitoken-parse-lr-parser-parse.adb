@@ -64,8 +64,7 @@ begin
             Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers.First_State_Ref;
          begin
             Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
-            Shared_Parser.Tree.Shift
-              (Parser_State.Stream, Accept_State, Parser_State.Shared_Token.Element, Shared_Parser.User_Data);
+            Shared_Parser.Tree.Shift (Parser_State.Stream, Accept_State, Parser_State.Shared_Token.Element);
             Shared_Parser.Tree.Finish_Parse
               (Parser_State.Stream,
                Shared_Parser.Tree.Stream_Last (Shared_Parser.Tree.Shared_Stream),

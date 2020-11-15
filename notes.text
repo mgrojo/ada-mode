@@ -32,30 +32,17 @@ update-wisitoken_grammar
 
  current work
 incremental parse
-    don't copy entire tree in New_Stream
-        bring back set_parents
-        shared_stream needs parents for next_shared_Terminal
-            same in stream input?!
-            store parents in iterator object
-        other nodes don't set new parents.
-            or change Parent to stream_map_node_access?
-
-
-        config.input_stream could be real_recover_Token, to cache first_terminal
-
-        edit_tree delete unreachable nodes (from terminated parse streams)
-            use mark and sweep
-
-        OR at least delete all nodes in a stream when delete the stream
+    edit_tree delete unreachable nodes (from terminated parse streams)
+        use mark and sweep
 
     run all tests
-        t_mck: all pass
+        t_mck:
+            make -r t_mck RUN_ARGS="LALR \"\" \"debug=1 tests=1 \" "
+
         test/test_incremental.adb :
-            need left_breakdown (shared_stream) in get_action
+            make -r t_one RUN_ARGS="test_incremental.adb \"\" \"debug=1 \" "
 
         t_all:
-./wisitoken-bnf-generate.exe --output_bnf --generate None ../test/bnf/java_ebnf.wy
-    doesn't translate token literals; copied shared_terminal nodes not in Data.EBNF_Nodes.
 
     ada_lite.wy require statement in sequence_of_statements
 
@@ -111,6 +98,8 @@ incremental parse
     inserted text before and after, may want to allow error recover to
     push_back over Virtual tokens
 
+
+rename Semantic_Action to in_parse_action
 
 Mckenzie parallel gain
     eliminate super access that does not require lock

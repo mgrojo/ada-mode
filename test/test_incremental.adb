@@ -20,7 +20,6 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks;
-with Ada.Containers;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
@@ -126,18 +125,6 @@ package body Test_Incremental is
          --  Edit_Tree.
       end Last_KMN;
 
-      procedure Check_Tree
-        (Label : in     String;
-         Tree  : in out WisiToken.Syntax_Trees.Tree)
-      is
-         use all type Ada.Containers.Count_Type;
-         Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
-      begin
-         Tree.Validate_Tree (User_Data, Parser.Line_Begin_Char_Pos, Label, Error_Reported);
-
-         Standard.AUnit.Assertions.Assert (Error_Reported.Count = 0, Label & ": error in validate_tree");
-      end Check_Tree;
-
       procedure Put_Tree (Label : in String; Tree : in WisiToken.Syntax_Trees.Tree)
       is begin
          Put_Line (Label & ":");
@@ -179,15 +166,11 @@ package body Test_Incremental is
 
       Parser.Parse;
 
-      Check_Tree ("edited source batch parse result 0", Parser.Tree);
-
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Put_Tree ("edited source batch parse", Edited_Tree_Batch);
       end if;
-
-      Check_Tree ("edited source batch parse 1", Edited_Tree_Batch);
 
       --  Batch parse of Initial
       Parser.Lexer.Reset_With_String (Initial);
@@ -200,8 +183,6 @@ package body Test_Incremental is
          New_Line;
          Put_Tree ("initial source batch parse result", Parser.Tree);
       end if;
-
-      Check_Tree ("initial source batch parse result", Parser.Tree);
 
       --  Prepare for incremental parse
       Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
@@ -239,8 +220,6 @@ package body Test_Incremental is
          New_Line;
          Put_Tree ("incremental parse result", Parser.Tree);
       end if;
-
-      Check_Tree ("incrementally parsed tree 1", Parser.Tree);
 
       Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception

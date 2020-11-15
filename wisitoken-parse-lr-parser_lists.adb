@@ -58,10 +58,12 @@ package body WisiToken.Parse.LR.Parser_Lists is
      return Syntax_Trees.Terminal_Ref
    is
       use Syntax_Trees;
+      Parents : Node_Stacks.Stack;
    begin
       if Tree.Has_Input (Parser_State.Stream) then
          declare
-            Result : constant Stream_Node_Ref := Tree.First_Shared_Terminal (Tree.First_Input (Parser_State.Stream));
+            Result : constant Stream_Node_Ref := Tree.First_Shared_Terminal
+              (Tree.First_Input (Parser_State.Stream), Parents);
          begin
             if Result /= Invalid_Stream_Node_Ref then
                return Result;
@@ -70,7 +72,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       end if;
       --  No next shared token in Parser_State.Stream input
 
-      return Tree.First_Shared_Terminal (Parser_State.Shared_Token);
+      return Tree.First_Shared_Terminal (Parser_State.Shared_Token, Parents);
    end Peek_Current_Shared_Terminal;
 
    function Peek_Next_Shared_Terminal
@@ -79,9 +81,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
      return Syntax_Trees.Terminal_Ref
    is
       use Syntax_Trees;
+      Parents : Node_Stacks.Stack;
    begin
       if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
-         return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
+         return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream), Parents);
       end if;
 
       declare
@@ -91,7 +94,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Result := Tree.First_Input (Parser_State.Stream);
 
             if Result /= Invalid_Stream_Node_Ref then
-               Result := Tree.First_Shared_Terminal (Result);
+               Result := Tree.First_Shared_Terminal (Result, Parents);
 
                if Result /= Invalid_Stream_Node_Ref then
                   return Result;
@@ -105,7 +108,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
          if Parser_State.Inc_Shared_Stream_Token then
             Tree.Stream_Next (Result);
          end if;
-         Result := Tree.First_Shared_Terminal (Result);
+         Result := Tree.First_Shared_Terminal (Result, Parents);
          return Result;
       end;
    end Peek_Next_Shared_Terminal;

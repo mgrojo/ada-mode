@@ -315,7 +315,10 @@ package body WisiToken.Parse.LR is
       Prev_State : State_Index          := Tree.State (Stream);
    begin
       for Child of Tree.Children (Nonterm) loop
-         Tree.Clear_Parent (Child);
+         if Tree.Parents_Set then
+            Tree.Clear_Parent (Child);
+         end if;
+
          if Is_Terminal (Tree.ID (Child), Tree.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
          else

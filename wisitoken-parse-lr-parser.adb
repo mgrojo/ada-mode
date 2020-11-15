@@ -165,16 +165,30 @@ package body WisiToken.Parse.LR.Parser is
                      end if;
 
                   else
-                     if Parser_State.Current_Token.Stream /= Parser_State.Stream then
-                        --  To breakdown a shared_stream token, we first have to copy it to
-                        --  the parse stream input.
-                        Tree.Copy_Token (Parser_State.Stream, Parser_State.Current_Token, Shared_Parser.User_Data);
-                     end if;
-
-                     Tree.Left_Breakdown (Parser_State.Current_Token);
                      Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
                      Action     := Action_Cur.Item;
-                     return;
+
+                     if Action.Verb /= Shift then
+                        --  Don't need breakdown.
+                        return;
+
+                     else
+                        if Parser_State.Current_Token.Stream /= Parser_State.Stream then
+                           --  To breakdown a shared_stream token, we first have to create a
+                           --  parse stream input element for it, and do the breakdown in the
+                           --  parse stream input.
+                           Tree.Insert_Token (Parser_State.Stream, Parser_State.Current_Token);
+                        end if;
+
+                        Tree.Left_Breakdown (Parser_State.Current_Token);
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             (" ... left_breakdown; current_token: " & Tree.Image
+                                (Parser_State.Current_Token, First_Terminal => True));
+                        end if;
+
+                        return;
+                     end if;
                   end if;
                end if;
             end;
@@ -201,7 +215,7 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
-              Shared_Parser.Tree.Image (Parser_State.Current_Token) & " : ");
+              Shared_Parser.Tree.Image (Parser_State.Current_Token, First_Terminal => True) & " : ");
          Put (Trace, Trace_Image (Action, Shared_Parser.Tree.Descriptor.all));
          Trace.New_Line;
       end if;
@@ -209,8 +223,7 @@ package body WisiToken.Parse.LR.Parser is
       case Action.Verb is
       when Shift =>
          Parser_State.Set_Verb (Shift);
-         Shared_Parser.Tree.Shift
-           (Parser_State.Stream, Action.State, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
+         Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token.Element);
 
       when Reduce =>
          declare
