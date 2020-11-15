@@ -44,11 +44,12 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    overriding function "=" (Left, Right : in Sguds.Stack) return Boolean;
 
-   procedure Clear (Stack : in out Sguds.Stack);
-   --  Empty Stack of all items.
-
    function Depth (Stack : in Sguds.Stack) return Base_Peek_Type;
    --  Returns current count of items in the Stack
+
+   procedure Clear (Stack : in out Sguds.Stack)
+   with Post => Stack.Depth = 0;
+   --  Empty Stack of all items.
 
    function Is_Empty (Stack : in Sguds.Stack) return Boolean;
    --  Returns true iff no items are in Stack.
@@ -56,7 +57,9 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    function Peek
      (Stack : in Sguds.Stack;
       Index : in Peek_Type := 1)
-     return Element_Type with Inline;
+     return Element_Type
+   with Inline,
+     Pre => Stack.Depth >= Index;
    --  Return the Index'th item from the top of Stack; the Item is _not_ removed.
    --  Top item has index 1.
    --
@@ -64,13 +67,15 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  See also Constant_Ref, implicit indexing
 
-   procedure Pop (Stack : in out Sguds.Stack; Count : in Base_Peek_Type := 1);
+   procedure Pop (Stack : in out Sguds.Stack; Count : in Base_Peek_Type := 1)
+   with Pre => Stack.Depth >= Count;
    --  Remove Count Items from the top of Stack, discard them.
    --
    --  Raises Container_Empty if there are fewer than Count items on
    --  Stack.
 
-   function Pop (Stack : in out Sguds.Stack) return Element_Type;
+   function Pop (Stack : in out Sguds.Stack) return Element_Type
+   with Pre => Stack.Depth >= 1;
    --  Remove Item from the top of Stack, and return it.
    --
    --  Raises Container_Empty if Is_Empty.
@@ -80,7 +85,8 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  May raise Container_Full.
 
-   function Top (Stack : in Sguds.Stack) return Element_Type;
+   function Top (Stack : in Sguds.Stack) return Element_Type
+   with Pre => Stack.Depth >= 1;
    --  Return the item at the top of Stack; the Item is _not_ removed.
    --  Same as Peek (Stack, 1).
    --

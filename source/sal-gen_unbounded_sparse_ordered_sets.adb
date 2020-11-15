@@ -32,10 +32,9 @@ package body SAL.Gen_Unbounded_Sparse_Ordered_Sets is
       return Result;
    end Count;
 
-
    procedure Insert (Set : in out Pkg.Set; Item : in Index_Type)
    is begin
-      Set.Tree.Insert (Item);
+      Set.Tree.Insert (Item, Duplicate => Ignore);
    end Insert;
 
    function Contains (Set : in Pkg.Set; Item : in Index_Type) return Boolean
