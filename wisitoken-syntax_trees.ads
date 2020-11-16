@@ -1583,8 +1583,9 @@ package WisiToken.Syntax_Trees is
       Stream  : in Stream_ID;
       Element : in Stream_Index)
      return Node_Index
-   with Pre => Tree.Contains (Stream, Element);
-   --  Version without Tree requires Syntax_Trees.Get_Node_Index.
+   with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Stream, Element);
+   --  Version without Tree requires Syntax_Trees.Get_Node_Index. Returns
+   --  Invalid_Node_Index for Invalid_Node_Access.
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result;
 
@@ -1869,15 +1870,15 @@ private
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node);
 
    function Get_Node_Index (Node : in Node_Access) return Node_Index
-   is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
+   is (if Node = Invalid_Node_Access then Invalid_Node_Index else Node.Node_Index);
 
    function Get_Node_Index (Tree : in Syntax_Trees.Tree; Node : in Node_Access) return Node_Index
-   is (if Node = Invalid_Node_Access then 0 else Node.Node_Index);
+   is (if Node = Invalid_Node_Access then Invalid_Node_Index else Node.Node_Index);
 
    function Get_Node_Index (Element : in Stream_Index) return Node_Index
    is (if Stream_Element_Lists.Has_Element (Element.Cur)
        then Stream_Element_Lists.Constant_Ref (Element.Cur).Node.Node_Index
-       else 0);
+       else Invalid_Node_Index);
 
    function Get_Node_Index
      (Tree    : in Syntax_Trees.Tree;

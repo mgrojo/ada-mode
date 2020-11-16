@@ -19,14 +19,20 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse.Packrat.Generated is
 
-   overriding procedure Parse (Parser : in out Generated.Parser)
+   overriding procedure Parse
+     (Parser : in out Generated.Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
-
+      use all type Ada.Containers.Count_Type;
       Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
 
       Result : Memo_Entry;
    begin
+      if Edits.Length > 0 then
+         raise Parse_Error;
+      end if;
+
       Parser.Tree.Clear;
       --  Creates Shared_Stream, but no parse stream; packrat does not
       --  use a parse stream.
@@ -42,9 +48,9 @@ package body WisiToken.Parse.Packrat.Generated is
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Element_Index
+           (Parser.Tree.Get_Node_Index
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
-            Parser.Tree.Get_Element_Index
+            Parser.Tree.Get_Node_Index
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 

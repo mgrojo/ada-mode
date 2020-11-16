@@ -49,8 +49,12 @@ package WisiToken.Parse.Packrat.Procedural is
       end case;
    end record;
 
+   subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors
-     (Syntax_Trees.Element_Index, Memo_Entry, Default_Element => (others => <>));
+     (Positive_Node_Index, Memo_Entry, Default_Element => (others => <>));
+   --  Memos is indexed by Node_Index of terminals in Shared_Stream
+   --  (incremental parse is not supported).
+
    type Derivs is array (Token_ID range <>) of Memos.Vector;
 
    type Parser
@@ -73,7 +77,10 @@ package WisiToken.Parse.Packrat.Procedural is
       User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
-   overriding procedure Parse (Parser : in out Procedural.Parser);
+   overriding procedure Parse
+     (Parser : in out Procedural.Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List);
+   --  Raises Parse_Error if Edits is not empty.
 
    overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean
      is (False);

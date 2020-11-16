@@ -1341,7 +1341,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config         : in out Configuration;
          Target_Element : in out Bounded_Streams.Cursor;
          Target_Node    : in     Valid_Node_Access;
-         Parents_Stack  : in     Syntax_Trees.Node_Stacks.Stack;
+         Parents        : in     Syntax_Trees.Node_Stacks.Stack;
          Max_Node_Index :    out Node_Index)
       with Pre => Length (Config.Input_Stream) > 0
       --  Delete terminals First .. Target_Node - 1 in Config.Input_Stream;
@@ -1371,8 +1371,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             Delete (Stream, To_Delete);
          end Delete_First;
-
-         Parents : constant Valid_Node_Access_Array := (for I in 1 .. Parents_Stack.Depth => Parents_Stack.Peek (I));
       begin
          Max_Node_Index := Invalid_Node_Index;
          loop
@@ -1386,7 +1384,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  Find new Target_Element
                Target_Element := Stream.First;
                loop
-                  exit when (for some I in Parents'Range => Element (Stream, Target_Element) = Parents (I));
+                  exit when (for some I in 1 .. Parents.Depth => Element (Stream, Target_Element) = Parents.Peek (I));
                   Target_Element := Next (Stream, Target_Element);
                end loop;
 

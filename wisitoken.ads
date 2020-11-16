@@ -367,6 +367,7 @@ package WisiToken is
    end record;
 
    function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count;
+   --  Result is origin 0 (WisiToken and Emacs standard)
 
    function Image
      (Item       : in Base_Token;

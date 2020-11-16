@@ -131,7 +131,7 @@ package body WisiToken.Semantic_Checks is
    is begin
       if Partial_Parse_Active and then
         (not Recover_Active) and then
-        Nonterm.Byte_Region.Last >= Partial_Parse_Byte_Goal
+        Syntax_Trees.Byte_Region (Nonterm).Last >= Partial_Parse_Byte_Goal
       then
          raise WisiToken.Partial_Parse;
       else

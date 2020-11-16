@@ -3,7 +3,7 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse, used by o.e.a-6
 org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - from o.w.s-2; incremental parse error recover config.input_stream
 
 possible branch tags:
@@ -31,9 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+rename Semantic_Action to in_parse_action
+
+update ada-mode.stephe-6
+    change/enhance test/*recover_partial to test incremental parse
+    include two edit cycles, to catch issues with virtuals in shared_stream
+
 incremental parse
-    edit_tree delete unreachable nodes (from terminated parse streams)
-        use mark and sweep
 
     run all tests
         t_mck:
@@ -42,11 +46,7 @@ incremental parse
         test/test_incremental.adb :
             make -r t_one RUN_ARGS="test_incremental.adb \"\" \"debug=1 \" "
 
-        t_all:
-
-    ada_lite.wy require statement in sequence_of_statements
-
-    test Parser.line_begin_token
+        t_all: pass
 
     more tests;
         parse_incremental with current_token = empty nonterm
@@ -54,25 +54,14 @@ incremental parse
         Mckenzie current_Terminal skip virtual terminals in input and shared
             breakdown virtual nonterms if first is virtual
 
-    error recover delete may need left_breakdown (shared_stream)
-        make that expensive, or just don't do it.
-        copy to config.input_stream?
-
-    error recover test case:
-        mck_ref.parse current_Token; most nested 'end loop' is 'end if' because not changed yet
+    error recover delete left_breakdown (shared_stream)
+        wisitoken-parse-lr-mckenzie_recover-parse.adb Get_Action
+        add to config.input_stream first
 
     edit after error recovery:
         no virtuals adjacent to edits; keep other virtuals
 
-    enhance the parse table to store reduce actions on nonterms as well as terminals?
-        ada lr1 is already huge
-
     review fixmes
-
-    should be two Wisi_EOI in streams
-
-    test partial_parse
-        first EOI is at end of parse, not end of shared_stream.
 
     could merge edit_tree, parse_incremental
         wagner graham 1998
@@ -91,15 +80,8 @@ incremental parse
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
-    batch parse is a special case of incremental parse
-        edits = all inserted.
-
-    if use partial parse as initial parse for incremental, with
-    inserted text before and after, may want to allow error recover to
-    push_back over Virtual tokens
-
-
-rename Semantic_Action to in_parse_action
+edit_tree delete unreachable nodes (from terminated parse streams)
+    use mark and sweep
 
 Mckenzie parallel gain
     eliminate super access that does not require lock

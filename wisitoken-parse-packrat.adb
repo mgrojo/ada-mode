@@ -72,7 +72,7 @@ package body WisiToken.Parse.Packrat is
       if Element = Invalid_Stream_Index then
          return "0";
       else
-         return Tree.Get_Element_Index (Stream, Element)'Image;
+         return Tree.Get_Node_Index (Stream, Element)'Image;
       end if;
    end Image_Pos;
 

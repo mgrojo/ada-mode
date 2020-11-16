@@ -2171,8 +2171,8 @@ package body WisiToken_Grammar_Editing is
             Has_Separator : Boolean := False;
          begin
             if Trace_Generate_EBNF > Detail then
-               Ada.Text_IO.Put_Line ("Check_Canonical_List start: RHS " & Get_Text (Data, Tree, RHS_List.Root));
-               Ada.Text_IO.Put_Line ("Check_Canonical_List start: B " & Get_Text (Data, Tree, B));
+               Ada.Text_IO.Put_Line ("Check_Canonical_List start RHS: " & Get_Text (Data, Tree, RHS_List.Root));
+               Ada.Text_IO.Put_Line (" ...                         B: " & Get_Text (Data, Tree, B));
             end if;
 
             if not B_Alt_List_List.Is_Invalid and then B_Alt_List_List.Count /= 1 then
@@ -2261,7 +2261,13 @@ package body WisiToken_Grammar_Editing is
                   then Element (B_Alt_List_Item_List.First)
                   else Invalid_Node_Access);
 
-               pragma Assert (Element_1 = Invalid_Node_Access or else Tree.ID (Element_1) = +IDENTIFIER_ID);
+               pragma Assert
+                 (Element_1 = Invalid_Node_Access or else Tree.ID
+                    (case Tree.RHS_Index (Element_1) is
+                     when 0      => Tree.Child (Tree.Child (Element_1, 1), 1),
+                     when 1      => Tree.Child (Tree.Child (Element_1, 3), 1),
+                     when others => raise SAL.Programmer_Error)
+                    = +IDENTIFIER_ID);
                --  So we can use it as a nonterm name. If the source text has a
                --  terminal literal (see java_ebnf.wy arrayCreatorRest), it should
                --  have been translated to a token name by now.
@@ -2904,6 +2910,8 @@ package body WisiToken_Grammar_Editing is
       --  process.
       declare
          Nodes_To_Process : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (Data.EBNF_Nodes.Count)) :=
+           --  WORKAROUND: GNAT Community 2020 -ada2020 doesn't support 'of' iterator here
+           --  (for Node of Data.EBNF_Nodes => Node);
            (others => Syntax_Trees.Dummy_Node);
          I : SAL.Base_Peek_Type := 1;
       begin

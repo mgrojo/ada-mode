@@ -135,6 +135,9 @@ package WisiToken.Parse is
    --  Edits. Uses Edits to direct editing Parser.Tree parse
    --  stream to reflect lexing the changed source, in preparation for
    --  Incremental_Parse; result is in Tree.Shared_Stream.
+   --
+   --  FIXME: handle Editable; we don't actually use the parse stream,
+   --  just the one tree element.
 
    procedure Parse
      (Parser : in out Base_Parser;

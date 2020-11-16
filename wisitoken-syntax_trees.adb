@@ -380,6 +380,7 @@ package body WisiToken.Syntax_Trees is
       Tree.Next_Terminal_Node_Index := 1;
       Tree.Traversing               := False;
       Tree.Incremental_Parse        := False;
+      Tree.Parents_Set              := False;
 
       if Initialize_Parse then
          --  Set up for new parse:
@@ -447,7 +448,7 @@ package body WisiToken.Syntax_Trees is
               (Label       => Source_Terminal,
                Child_Count => 0,
                ID          => Node.ID,
-               Node_Index  => Node.Node_Index, --  source text order
+               Node_Index  => Tree.Next_Terminal_Node_Index + 1,
                Byte_Region => Node.Byte_Region,
                Parent      => (if Tree.Parents_Set then Parent else Invalid_Node_Access),
                Augmented   =>
@@ -459,16 +460,14 @@ package body WisiToken.Syntax_Trees is
                Char_Region => Node.Char_Region);
 
             Tree.Nodes.Append (New_Node);
+            Tree.Next_Terminal_Node_Index := @ + 1;
 
          when Virtual_Terminal =>
             New_Node := new Syntax_Trees.Node'
               (Label       => Virtual_Terminal,
                Child_Count => 0,
                ID          => Node.ID,
-               Node_Index  =>
-                 (if Node.Node_Index > 0
-                  then Node.Node_Index -- from Shared_Stream
-                  else -(Tree.Nodes.Last_Index + 1)),
+               Node_Index  => Tree.Next_Terminal_Node_Index + 1,
                Byte_Region => Node.Byte_Region,
                Char_Region => Node.Char_Region,
                Line        => Node.Line,
@@ -479,16 +478,14 @@ package body WisiToken.Syntax_Trees is
                   else Copy_Augmented (User_Data.all, Node.Augmented)));
 
             Tree.Nodes.Append (New_Node);
+            Tree.Next_Terminal_Node_Index := @ + 1;
 
          when Virtual_Identifier =>
             New_Node := new Syntax_Trees.Node'
               (Label       => Virtual_Identifier,
                Child_Count => 0,
                ID          => Node.ID,
-               Node_Index  =>
-                 (if Node.Node_Index > 0
-                  then Node.Node_Index -- from Shared_Stream
-                  else -(Tree.Nodes.Last_Index + 1)),
+               Node_Index  => Tree.Next_Terminal_Node_Index + 1,
                Byte_Region => Node.Byte_Region,
                Char_Region => Node.Char_Region,
                Line        => Node.Line,
@@ -501,6 +498,7 @@ package body WisiToken.Syntax_Trees is
                Identifier     => Node.Identifier);
 
             Tree.Nodes.Append (New_Node);
+            Tree.Next_Terminal_Node_Index := @ + 1;
 
          when Nonterm =>
             declare
@@ -1675,11 +1673,13 @@ package body WisiToken.Syntax_Trees is
       Ref            : in Stream_Node_Ref;
       First_Terminal : in Boolean := False)
      return String
-   is begin
+   is
+      Element_Node : constant Valid_Node_Access := Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node;
+   begin
       return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
         Image (Tree, Ref.Element, Node_Numbers => True) &
-        (if Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.Node_Index = Ref.Node.Node_Index and
-           not First_Terminal
+        (if Ref.Node.Label in Terminal_Label or
+           (Element_Node.Node_Index = Ref.Node.Node_Index and not First_Terminal)
          then ""
          else ", " & Image
            (Tree,
@@ -2474,9 +2474,13 @@ package body WisiToken.Syntax_Trees is
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
    is
-     --  Within one subtree, Node_Index is unique.
-     (if Left.Node_Index > Right.Node_Index then SAL.Greater
-      elsif Left.Node_Index < Right.Node_Index then SAL.Less
+     --  Within one subtree, positive and negative Node_Indices are
+     --  separately unique. Positive Node_Index first, abs value for
+     --  wisitoken_grammar_editing.translate_EBNF_to_BNF.
+     (if Left.Node_Index > 0 and Right.Node_Index <= 0 then SAL.Less
+      elsif Left.Node_Index <= 0 and Right.Node_Index > 0 then SAL.Greater
+      elsif abs Left.Node_Index > abs Right.Node_Index then SAL.Greater
+      elsif abs Left.Node_Index < abs Right.Node_Index then SAL.Less
       else SAL.Equal);
 
    function Non_Grammar_Var
@@ -2813,7 +2817,7 @@ package body WisiToken.Syntax_Trees is
          if Node_Printed.Contains (Node) then
             --  This does not catch all possible tree edit errors, but it does
             --  catch circles.
-            raise SAL.Programmer_Error with "Print_Tree: invalid tree; loop:" & Node.Label'Image & " " &
+            raise SAL.Programmer_Error with "Print_Tree: invalid tree; loop: " & Node.Label'Image & " " &
               Node.Node_Index'Image;
          else
             Node_Printed.Insert (Node);

@@ -709,14 +709,11 @@ package body WisiToken.Parse.LR.Parser is
                begin
                   case Op.Op is
                   when Insert =>
-                     if Op.Ins_Before /= Invalid_Node_Index or
-                       Op.Ins_Node = Invalid_Node_Access
-                     then
+                     if Op.Ins_Node = Invalid_Node_Access then
                         return False;
                      end if;
                   when Delete =>
-                     if Op.Del_Index /= Invalid_Node_Index or
-                       Op.Del_Node = Invalid_Node_Access or
+                     if Op.Del_Node = Invalid_Node_Access or
                        (I > First_Index (Parser_State.Recover_Insert_Delete) and
                           Op.Del_After_Node = Invalid_Node_Access)
                      then
@@ -738,6 +735,10 @@ package body WisiToken.Parse.LR.Parser is
               (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
                  (Parser.Tree.Root));
          end if;
+
+         --  We do this here, not at the end of Parse, for compatibility with
+         --  existing tests.
+         Parser.Tree.Set_Parents;
 
          declare
             --  Recompute Parser.Line_Begin_Token using final parse tree terminal
@@ -819,7 +820,10 @@ package body WisiToken.Parse.LR.Parser is
 
                   Last_Terminal        := I;
                   Last_Shared_Terminal := I;
-                  Next_Shared_Terminal := Tree.Next_Shared_Terminal (I);
+                  Next_Shared_Terminal :=
+                    (if Tree.Has_Parent (I)
+                     then Tree.Next_Shared_Terminal (I)
+                     else Invalid_Node_Access);
 
                when Virtual_Terminal =>
                   if Tree.Base_Token (I).Line /= Last_Line then
@@ -842,10 +846,10 @@ package body WisiToken.Parse.LR.Parser is
                exit when Tree.ID (I) = Parser.Descriptor.EOI_ID;
                --  From a wisitoken_accept production containing EOI
 
-               I := Tree.Next_Terminal (I);
+               exit when not Tree.Has_Parent (I);
+               --  From a partial parse; no EOI in the parse tree.
 
-               exit when I = Invalid_Node_Access;
-               --  From a partial parse.
+               I := Tree.Next_Terminal (I);
             end loop;
          end;
 
@@ -856,9 +860,6 @@ package body WisiToken.Parse.LR.Parser is
 
          pragma Assert (Validate_Recover_Ops);
 
-         --  FIXME: incremental reparse requires parse_streams. They are
-         --  cleared here because we are editing the tree; does that actually
-         --  invalidate the parse streams?
          Parser.Tree.Clear_Parse_Streams;
 
          --  In ada-mode, Delete_Token modifies Next_Terminal

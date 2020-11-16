@@ -73,8 +73,8 @@ is
       Indent_Line ("Tree       : Syntax_Trees.Tree renames Parser.Tree;");
       Indent_Line
         ("Start_Pos  : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Tree.Shared_Stream, Last_Pos);");
-      Indent_Line ("Start_Pos_Index : constant Syntax_Trees.Element_Index :=");
-      Indent_Line ("  Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos);");
+      Indent_Line ("Start_Pos_Index : constant Syntax_Trees.Node_Index :=");
+      Indent_Line ("  Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos);");
       Indent_Line ("Pos        : Syntax_Trees.Stream_Index := Last_Pos; --  last token parsed.");
       Indent_Line ("Next_Pos   : Syntax_Trees.Stream_Index := Start_Pos;");
 
@@ -286,8 +286,8 @@ is
          Indent_Line ("<<Finish>>");
          Indent_Line ("if Result_Recurse.State = Success then");
          Indent := Indent + 3;
-         Indent_Line ("if Tree.Get_Element_Index (Tree.Shared_Stream, Pos) >");
-         Indent_Line ("  Tree.Get_Element_Index (Tree.Shared_Stream, Pos_Recurse_Last)");
+         Indent_Line ("if Tree.Get_Node_Index (Tree.Shared_Stream, Pos) >");
+         Indent_Line ("  Tree.Get_Node_Index (Tree.Shared_Stream, Pos_Recurse_Last)");
          Indent_Line ("then");
          --  made progress, try again
          Indent := Indent + 3;
@@ -336,7 +336,7 @@ begin
    Indent_Line ("use WisiToken.Parse.Packrat;");
    Indent_Line ("use WisiToken.Parse.Packrat.Generated;");
    Indent_Line ("use all type WisiToken.Syntax_Trees.Stream_Index;");
-   Indent_Line ("use all type WisiToken.Syntax_Trees.Element_Index;");
+   Indent_Line ("use all type WisiToken.Syntax_Trees.Node_Index;");
 
    for Prod of Data.Grammar loop
       Put_Parser_Spec (Parser_Name (Prod.LHS)); Put_Line (";");

@@ -8,7 +8,7 @@
  1: 6: 2:(IDENTIFIER, (10 . 14)) : shift and goto state 10
  1: 10: 3:(COLON, (16 . 16)) : ERROR
  1: expecting: COLON_EQUAL
- 1: terminate (1 active):  3:(COLON, (16 . 16))
+ 1: terminate (1 active):  (-1, 3:(COLON, (16 . 16)))
  0: 3: 3:(COLON, (16 . 16)) : shift and goto state 7
  0: 7: 4:(IDENTIFIER, (21 . 21)) : reduce 2 tokens to label_opt
 (label_opt, (10 . 16)) <= (2:(IDENTIFIER, (10 . 14)), 3:(COLON, (16 . 16)))

@@ -145,7 +145,7 @@ package body WisiToken.Parse.Packrat.Procedural is
      return Memo_Entry
    is
       use all type WisiToken.Syntax_Trees.Stream_Index;
-      use all type WisiToken.Syntax_Trees.Element_Index;
+      use all type WisiToken.Syntax_Trees.Node_Index;
 
       Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
@@ -154,7 +154,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       Start_Pos : constant Syntax_Trees.Stream_Index := Tree.Stream_Next
         (Tree.Shared_Stream, Last_Pos);                         --  first token in current nonterm
       Memo      : Memo_Entry                         := Parser.Derivs (R)
-        (Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos));
+        (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
 
       Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;
       Recursing        : Boolean                   := False;
@@ -170,7 +170,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       when No_Result =>
          if Parser.Direct_Left_Recursive (R) then
             Parser.Derivs (R).Replace_Element
-              (Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos), (State => Failure));
+              (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), (State => Failure));
          else
             Memo := Eval (Parser, R, Last_Pos, Recursing => False);
 
@@ -186,7 +186,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                   raise SAL.Programmer_Error;
                end case;
             end if;
-            Parser.Derivs (R).Replace_Element (Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos), Memo);
+            Parser.Derivs (R).Replace_Element (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Memo);
             return Memo;
          end if;
       end case;
@@ -202,11 +202,11 @@ package body WisiToken.Parse.Packrat.Procedural is
          Result_Recurse := Eval (Parser, R, Pos, Recursing);
 
          if Result_Recurse.State = Success then
-            if Tree.Get_Element_Index (Tree.Shared_Stream, Result_Recurse.Last_Pos) >
-              Tree.Get_Element_Index (Tree.Shared_Stream, Pos_Recurse_Last)
+            if Tree.Get_Node_Index (Tree.Shared_Stream, Result_Recurse.Last_Pos) >
+              Tree.Get_Node_Index (Tree.Shared_Stream, Pos_Recurse_Last)
             then
                Parser.Derivs (R).Replace_Element
-                 (Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
+                 (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
                Pos              := Result_Recurse.Last_Pos;
                Pos_Recurse_Last := Pos;
                Recursing        := True;
@@ -221,7 +221,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             elsif Result_Recurse.Last_Pos = Pos_Recurse_Last then
                if Parser.Tree.Buffer_Region_Is_Empty (Result_Recurse.Result) then
                   Parser.Derivs (R).Replace_Element
-                    (Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
+                    (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
                end if;
                exit;
             else
@@ -232,7 +232,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             exit;
          end if;
       end loop;
-      return Parser.Derivs (R)(Tree.Get_Element_Index (Tree.Shared_Stream, Start_Pos));
+      return Parser.Derivs (R)(Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
    end Apply_Rule;
 
    ----------
@@ -258,14 +258,21 @@ package body WisiToken.Parse.Packrat.Procedural is
       end return;
    end Create;
 
-   overriding procedure Parse (Parser : in out Procedural.Parser)
+   overriding procedure Parse
+     (Parser : in out Procedural.Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
+      use all type Ada.Containers.Count_Type;
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
       Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
 
       Result : Memo_Entry;
    begin
+      if Edits.Length > 0 then
+         raise Parse_Error;
+      end if;
+
       Parser.Tree.Clear;
       --  Creates Shared_Stream, but no parse stream; packrat does not
       --  use a parse stream.
@@ -279,9 +286,9 @@ package body WisiToken.Parse.Packrat.Procedural is
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Element_Index
+           (Parser.Tree.Get_Node_Index
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
-            Parser.Tree.Get_Element_Index
+            Parser.Tree.Get_Node_Index
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 

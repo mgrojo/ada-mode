@@ -377,10 +377,16 @@ package body WisiToken is
 
    function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count
    is begin
-      if Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
-         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line) + 1);
+      --  We should check for Token.ID = EOI, and return column 0, because
+      --  there is no actual EOI character in files created by Emacs). But
+      --  that would require a Descriptor arg, and might be wrong for other
+      --  files.
+      if Token.Line = 1 then
+         return Ada.Text_IO.Count (Token.Char_Region.First);
+      elsif Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line));
       else
-         return 1;
+         return 0;
       end if;
    end Column;
 

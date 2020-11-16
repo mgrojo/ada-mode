@@ -20,16 +20,12 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 #if ADA_LITE = "Ada_Lite" then
 with Ada_Lite_Actions;
-#elsif ADA_LITE = "Ada_Lite_Bnf" then
-with Ada_Lite_Bnf_Actions;
 #elsif ADA_LITE = "Ada_Lite_Ebnf" then
 with Ada_Lite_Ebnf_Actions;
 #end if;
 package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #if ADA_LITE = "Ada_Lite" then
    package Actions renames Ada_Lite_Actions;
-#elsif ADA_LITE = "Ada_Lite_Bnf" then
-   package Actions renames Ada_Lite_Bnf_Actions;
 #elsif ADA_LITE = "Ada_Lite_Ebnf" then
    package Actions renames Ada_Lite_Ebnf_Actions;
 #end if;
@@ -320,8 +316,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
 #if ADA_LITE = "Ada_Lite" then
                Check (ID (New_Config.Stack.Peek (1).Token), +sequence_of_statements_list_ID);
-#elsif ADA_LITE = "Ada_Lite_Bnf" or ADA_LITE = "Ada_Lite_Ebnf" then
-               Check (ID (New_Config.Stack.Peek (1).Token), +nonterminal_029_list_ID);
+#elsif ADA_LITE = "Ada_Lite_Ebnf" then
+               Check (ID (New_Config.Stack.Peek (1).Token), +statement_list_ID);
 #end if;
                --  This is handling Missing_Name_Error, so we know the identifier_opt
                --  or name_opt is empty.

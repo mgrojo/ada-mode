@@ -54,15 +54,18 @@ package body WisiToken.Parse is
      (Parser : in out Base_Parser'Class;
       Token  : in     Base_Token)
    is
+      use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.Node_Access;
       use all type Syntax_Trees.User_Data_Access;
    begin
       if Token.ID = Parser.Descriptor.New_Line_ID then
-         if Token.Line > Parser.Line_Begin_Char_Pos.Last_Index then
-            Parser.Line_Begin_Char_Pos.Set_First_Last (Parser.Line_Begin_Char_Pos.First_Index, Token.Line);
+         if Parser.Line_Begin_Char_Pos.Length = 0 then
+            Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
+         elsif Token.Line + 1 > Parser.Line_Begin_Char_Pos.Last_Index then
+            Parser.Line_Begin_Char_Pos.Set_First_Last (Parser.Line_Begin_Char_Pos.First_Index, Token.Line + 1);
          end if;
 
-         Parser.Line_Begin_Char_Pos (Token.Line) := Parser.Lexer.Line_Start_Char_Pos;
+         Parser.Line_Begin_Char_Pos (Token.Line + 1) := Parser.Lexer.Line_Start_Char_Pos;
       end if;
 
       if Parser.Last_Grammar_Node = Syntax_Trees.Invalid_Node_Access then
@@ -457,16 +460,12 @@ package body WisiToken.Parse is
                --  Scan last token in unchanged + new text + following for new/changed tokens.
 
                declare
-                  Line          : Line_Number_Type := Old_Line + Shift_Line;
-                  Prev_Token_ID : Token_ID         := Invalid_Token_ID;
+                  Prev_Token_ID : constant Token_ID :=
+                    (if Old_Line in Parser.Line_Begin_Char_Pos.First_Index .. Parser.Line_Begin_Char_Pos.Last_Index
+                       and then Parser.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
+                     then Parser.Descriptor.New_Line_ID
+                     else Invalid_Token_ID);
                begin
-                  if Old_Line in Parser.Line_Begin_Char_Pos.First_Index .. Parser.Line_Begin_Char_Pos.Last_Index
-                    and then Parser.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
-                  then
-                     Line          := @  + 1;
-                     Prev_Token_ID := Parser.Descriptor.New_Line_ID;
-                  end if;
-
                   if Trace_Incremental_Parse > Outline then
                      Parser.Trace.Put_Line ("lexer.set_position" & Buffer_Pos'Image (Old_Byte_Pos + Shift_Bytes));
                   end if;
@@ -474,7 +473,7 @@ package body WisiToken.Parse is
                   Parser.Lexer.Set_Position
                     (Byte_Position => Buffer_Pos'Max (Buffer_Pos'First, Old_Byte_Pos + Shift_Bytes),
                      Char_Position => Buffer_Pos'Max (Buffer_Pos'First, Old_Char_Pos + Shift_Chars),
-                     Line          => Line,
+                     Line          => Old_Line + Shift_Line,
                      Prev_Token_ID => Prev_Token_ID);
                end;
 

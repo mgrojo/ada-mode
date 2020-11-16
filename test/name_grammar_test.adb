@@ -51,6 +51,20 @@ package body Name_Grammar_Test is
       Name_ID,
       Symbol_Name_ID);
 
+   Real_Image : constant WisiToken.Token_ID_Array_String :=
+     --  WORKAROUND for 'Image bug in GNAT Community 2020 -gnat2020
+     (new String'("WHITESPACE_ID"),
+      new String'("DOT_ID"),
+      new String'("PAREN_LEFT_ID"),
+      new String'("PAREN_RIGHT_ID"),
+      new String'("IDENTIFIER_ID"),
+      new String'("EOF_ID"),
+      new String'("statement_id"),
+      new String'("component_id"),
+      new String'("component_list_id"),
+      new String'("name_id"),
+      new String'("symbol_name_id"));
+
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Dot_ID,
@@ -196,4 +210,6 @@ package body Name_Grammar_Test is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
+begin
+   LALR_Descriptor.Image := Real_Image;
 end Name_Grammar_Test;
